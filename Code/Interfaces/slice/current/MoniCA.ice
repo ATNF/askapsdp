@@ -5,6 +5,8 @@ module atnf {
         ////////////
         //Data structure definitions
         sequence<string> stringarray;
+        sequence<int>    intarray;
+        sequence<float>  floatarray;
 
         //PointDescriptionIce contains pickled fields which fully describe
         //a specific point
@@ -58,6 +60,12 @@ module atnf {
         class DataValueAngle extends DataValue {
           double value;
         };
+        class DataValueFloatArray extends DataValue {
+          floatarray value;
+        };        
+        class DataValueIntArray extends DataValue {
+          intarray value;
+        };
         
         //PointDataIce encapsulates a single record/datum
         struct PointDataIce {
@@ -69,6 +77,21 @@ module atnf {
         sequence<PointDataIce> pointdataset;
         sequence<pointdataset> pointdatasetarray;
         
+        //Alarm
+        struct AlarmIce {
+          string       pointname;
+          PointDataIce data;
+          bool         alarm;
+          bool         shelved;
+          string       shelvedBy;
+          long         shelvedAt;
+          bool         acknowledged;
+          string       acknowledgedBy;
+          long         acknowledgedAt;
+          int          priority;
+          string       guidance;
+        };
+        sequence<AlarmIce> alarmarray;
         
         
         ////////////
@@ -100,6 +123,10 @@ module atnf {
           idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
+          //Get the last updates which were before the specified time
+          idempotent pointdataset getBefore(stringarray names, long t);
+          //Get the next updates which were after the specified time
+          idempotent pointdataset getAfter(stringarray names, long t);          
           //Set new values for the given points
           //If israw is true then translation will be applied to the specified values
           bool setData(stringarray names, pointdataset values, string username, string passwd);
@@ -114,6 +141,17 @@ module atnf {
           idempotent stringarray getAllSetups();
           //Add/update a new setup to the server's list
           bool addSetup(string setup, string username, string passwd);
+
+          ////////////
+          //Operations for managing alarms.
+          //Get all alarms defined on the system whether they are alarming or not
+          alarmarray getAllAlarms();
+          //Get all active alarms (including acknowledged) or shelved.
+          alarmarray getCurrentAlarms();
+          //Acknowledge alarms (ack=true) or deacknowledge (ack=false)
+          bool acknowledgeAlarms(stringarray pointnames, bool ack, string username, string passwd);
+          //Shelve alarms (shelve=true) or deshelve (shelve=false)
+          bool shelveAlarms(stringarray pointnames, bool shelve, string username, string passwd);          
           
           ////////////
           //Some miscellaneous operations
