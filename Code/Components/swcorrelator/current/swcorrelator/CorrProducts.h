@@ -51,12 +51,22 @@ struct CorrProducts : private boost::noncopyable {
   /// @brief constructor 
   /// @param[in] nchan number of channels (cards)
   /// @param[in] beam beam number corresponding to this buffer
-  CorrProducts(const int nchan, const int beam);
+  /// @param[in] nant number of antennas
+  CorrProducts(const int nchan, const int beam, const int nant = 3);
   
   /// @brief initialise the buffer for a given beam and bat
   /// @details
   /// @param[in] bat time
   void init(const uint64_t bat);
+  
+  /// @brief baseline index for pairs of antennas
+  /// @details For more than 3 antennas mapping between antennas and baselines 
+  /// is handy to implement inside this method
+  /// @param[in] first index of the first antenna (0..nant-1)
+  /// @param[in] second index of the second antenna (0..nant-1)
+  /// @return baseline index (0..(nant*(nant-1)/2))
+  /// @note an exception is thrown if there is no matching baseline
+  int baseline(const int first, const int second) const;
   
   /// @brief visibility buffer (dimensions are baseline and channel)
   casa::Matrix<casa::Complex> itsVisibility;   

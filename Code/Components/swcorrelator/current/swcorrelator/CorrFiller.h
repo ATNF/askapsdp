@@ -104,11 +104,11 @@ public:
   
   /// @brief notify that the writing job has been finished
   /// @details This method is intended to be called from the writing thread. It releases
-  /// the whole set of buffers unlocking them for the corelation threads.
+  /// the whole set of buffers unlocking them for the correlation threads.
   /// @param[in] isFirst true, if the first set of buffers is released, false otherwise
   void notifyWritingDone(const bool useFirst);
     
-  /// @brief get buffer to be fileld with new data
+  /// @brief get buffer to be filled with new data
   /// @details This method is intended to be called from correlator threads when
   /// new visibility data are ready to be stored
   /// @param[in] beam beam index

@@ -38,12 +38,16 @@ namespace swcorrelator {
 
 /// @brief constructor 
 /// @param[in] nchan number of channels (cards)
-  /// @param[in] beam beam number corresponding to this buffer
-CorrProducts::CorrProducts(const int nchan, const int beam) : itsVisibility(3, nchan, casa::Complex(0.,0.)), 
-      itsFlag(3, nchan, true), itsBeam(beam),
-      itsBAT(0), itsUVW(3, 3, 0.), itsDelays(3,0.), itsUVWValid(false), itsControl(3,0u)
+/// @param[in] beam beam number corresponding to this buffer
+/// @param[in] nant number of antennas  
+CorrProducts::CorrProducts(const int nchan, const int beam, const int nant) : 
+      itsVisibility(nant * (nant - 1) / 2, nchan, casa::Complex(0.,0.)), 
+      itsFlag(nant * (nant - 1) / 2, nchan, true), itsBeam(beam),
+      itsBAT(0), itsUVW(nant * (nant - 1) / 2, 3, 0.), itsDelays(nant * (nant - 1) / 2,0.), 
+      itsUVWValid(false), itsControl(nant,0u)
 {
   ASKAPDEBUGASSERT(beam >= 0);
+  ASKAPDEBUGASSERT(nant >= 3);
 }
   
 /// @brief initialise the buffer for a given beam and bat
@@ -59,6 +63,28 @@ void CorrProducts::init(const uint64_t bat)
   itsVisibility.set(casa::Complex(0.,0.));
   itsControl.set(0u);
 }
+
+/// @brief baseline index for pairs of antennas
+/// @details For more than 3 antennas mapping between antennas and baselines 
+/// is handy to implement inside this method
+/// @param[in] first index of the first antenna (0..nant-1)
+/// @param[in] second index of the second antenna (0..nant-1)
+/// @return baseline index (0..(nant*(nant-1)/2))
+/// @note an exception is thrown if there is no matching baseline
+int CorrProducts::baseline(const int first, const int second) const
+{
+  ASKAPDEBUGASSERT((first >= 0) && (second >= 0));
+  ASKAPCHECK(first < int(itsControl.nelements()), "First antenna index is out of range, have only "<<
+             itsControl.nelements()<<" antennas");
+  ASKAPCHECK(second < int(itsControl.nelements()), "Second antenna index is out of range, have only "<<
+             itsControl.nelements()<<" antennas");
+  ASKAPCHECK(first<second, "Baseline "<<first<<" - "<<second<<" is not mapped as first index should be less than second");
+  const int offset = (second + 1) * second / 2;
+  const int baseline =  offset - first - 1;
+  ASKAPDEBUGASSERT(baseline >= 0);
+  return baseline;  
+}
+
 
 } // namespace swcorrelator
 
