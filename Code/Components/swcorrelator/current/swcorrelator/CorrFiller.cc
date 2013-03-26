@@ -51,7 +51,7 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
    itsNChan(parset.getInt32("nchan",1)), itsFlushStatus(false,false), itsFirstActive(true), 
    itsActiveBAT(uint64_t(-1)), itsReadyToWrite(false), itsSwapHandled(false)
 {
-  ASKAPCHECK(itsNAnt == 3, "Only 3 antennas are supported at the moment");
+  ASKAPCHECK(itsNAnt >= 3, "Minimum of 3 antennas are required");
   ASKAPCHECK(itsNChan > 0, "Number of channels should be positive");
   ASKAPCHECK(itsNBeam > 0, "Number of beams should be positive");
   
@@ -59,7 +59,7 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
   
   itsCorrProducts.resize(2*nBeam());
   for (int buf=0; buf<int(itsCorrProducts.size()); ++buf) {
-       itsCorrProducts[buf].reset(new CorrProducts(nChan(), buf % nBeam()));
+       itsCorrProducts[buf].reset(new CorrProducts(nChan(), buf % nBeam(), nAnt()));
   }
   itsFillStatus.resize(nBeam(),false);  
   // initialisation of MS
@@ -233,7 +233,7 @@ void CorrFiller::waitFillCompletion()
   }
 }
 
-/// @brief get buffer to be fileld with new data
+/// @brief get buffer to be filled with new data
 /// @details This method is intended to be called from correlator threads when
 /// new visibility data are ready to be stored
 /// @param[in] beam beam index

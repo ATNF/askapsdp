@@ -64,6 +64,21 @@ void CorrProducts::init(const uint64_t bat)
   itsControl.set(0u);
 }
 
+/// @brief obtain the number of antennas
+/// @return number of antennas handled by this buffer
+casa::uInt CorrProducts::nAnt() const 
+{
+  return itsControl.nelements();
+}
+  
+/// @brief obtain the number of baselines
+/// @return number of baselines handled by this buffer
+casa::uInt CorrProducts::nBaseline() const
+{
+  return itsVisibility.nrow();
+}
+
+
 /// @brief baseline index for a pair of antennas
 /// @details For more than 3 antennas mapping between antennas and baselines 
 /// is handy to implement inside this method

@@ -117,14 +117,16 @@ public:
 
   /// @brief return baseline index for a given baseline
   /// @details The data are passed in CorrProducts structure gathering all baselines in a single
-  /// matrix (for visibility data and for flags). There is a standard order (see also theirAntIDs)
+  /// matrix (for visibility data and for flags). There is a standard order (see also CorrProducts)
   /// of baselines. In the software correlator itself, the data are produced directly in the standard
   /// order, but this method is handy for other uses of this class (i.e. format converter). It
   /// returns an index for a given baseline
   /// @param[in] ant1 zero-based index of the first antenna  
   /// @param[in] ant2 zero-based index of the second antenna
   /// @return index into visibility of flag matrix (row of the matrix)
-  /// @note a negative value is returned if the given baseline is not found, no substitution is beformed
+  /// @note a negative value is returned if the given baseline is not found, no substitution is performed
+  /// with the recent changes to CorrProducts this methid could be made redundant, provide it for
+  /// compatibility for the time being
   static int baselineIndex(const casa::uInt ant1, const casa::uInt ant2);
   
 protected:
@@ -233,10 +235,7 @@ private:
   
   /// @brief Measurement set
   boost::scoped_ptr<casa::MeasurementSet> itsMs;
-  
-  /// @brief antenna indicies for all 3 baselines in our standard order
-  static const int theirAntIDs[3][2];
-  
+    
   /// @brief cached number of channels
   /// @details We don't use it for the real-time correlator, but it is handy for the converter
   int itsNumberOfChannels;

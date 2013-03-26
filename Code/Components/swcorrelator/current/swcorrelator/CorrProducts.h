@@ -59,6 +59,14 @@ struct CorrProducts : private boost::noncopyable {
   /// @param[in] bat time
   void init(const uint64_t bat);
   
+  /// @brief obtain the number of antennas
+  /// @return number of antennas handled by this buffer
+  casa::uInt nAnt() const;
+  
+  /// @brief obtain the number of baselines
+  /// @return number of baselines handled by this buffer
+  casa::uInt nBaseline() const;
+  
   /// @brief baseline index for a pair of antennas
   /// @details For more than 3 antennas mapping between antennas and baselines 
   /// is handy to implement inside this method

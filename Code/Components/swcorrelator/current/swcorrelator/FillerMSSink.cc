@@ -132,10 +132,12 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   }
   ASKAPLOG_DEBUG_STR(logger, "calculateUVW: BAT="<<buf.itsBAT<<" corresponds to UT epoch: "<<epoch.getValue());
   buf.itsUVWValid = true;
-  // only 3 antennas are supported
-  buf.itsUVW.resize(3,3);
-  buf.itsDelays.resize(3);
-  ASKAPDEBUGASSERT(itsAntXYZ.nrow() >= 3);
+  ASKAPDEBUGASSERT(buf.itsUVW.nrow() == buf.nBaseline());
+  ASKAPDEBUGASSERT(buf.itsUVW.ncolumn() == 3u);
+  ASKAPDEBUGASSERT(buf.itsDelays.nelements() == buf.nAnt());
+  
+  // positions for at least buf.nAnt() should be defined, order == consecutive order of indices
+  ASKAPDEBUGASSERT(itsAntXYZ.nrow() >= buf.nAnt());
   ASKAPDEBUGASSERT(buf.itsBeam < int(itsBeamOffsets.nrow()));
   ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);
   casa::MDirection phaseCntr(itsDishPointing);
@@ -175,16 +177,13 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   ASKAPDEBUGASSERT(antUVW.nrow() == buf.itsUVW.ncolumn() + 1);
   for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
        for (casa::uInt dim = 0; dim < buf.itsUVW.ncolumn(); ++dim) {
-            buf.itsUVW(baseline,dim) = antUVW(dim,substituteAntId(theirAntIDs[baseline][1], buf.itsBeam)) - antUVW(dim,substituteAntId(theirAntIDs[baseline][0], buf.itsBeam));
+            buf.itsUVW(baseline,dim) = antUVW(dim,substituteAntId(buf.second(baseline), buf.itsBeam)) - antUVW(dim,substituteAntId(buf.first(baseline), buf.itsBeam));
        }
-       buf.itsDelays[baseline] = antUVW(buf.itsUVW.ncolumn(),substituteAntId(theirAntIDs[baseline][1], buf.itsBeam)) - 
-                                 antUVW(buf.itsUVW.ncolumn(),substituteAntId(theirAntIDs[baseline][0], buf.itsBeam));
+       buf.itsDelays[baseline] = antUVW(buf.itsUVW.ncolumn(),substituteAntId(buf.second(baseline), buf.itsBeam)) - 
+                                 antUVW(buf.itsUVW.ncolumn(),substituteAntId(buf.first(baseline), buf.itsBeam));
   }
   return epoch;
 }
-
-/// @brief antenna indicies for all 3 baselines in our standard order
-const int FillerMSSink::theirAntIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
 
   
 /// @brief write one buffer to the measurement set
@@ -253,8 +252,8 @@ void FillerMSSink::write(CorrProducts &buf)
   ASKAPDEBUGASSERT(itsMs);
   casa::MSColumns msc(*itsMs);
   const casa::uInt baseRow = msc.nrow();
-  const casa::uInt newRows = buf.itsVisibility.nrow();
-  ASKAPDEBUGASSERT(newRows == 3);
+  const casa::uInt newRows = buf.nBaseline();
+  ASKAPDEBUGASSERT(newRows >= 3);
   itsMs->addRow(newRows);
 
   // First set the constant things outside the loop,
@@ -278,8 +277,8 @@ void FillerMSSink::write(CorrProducts &buf)
  
   for (casa::uInt i = 0; i < newRows; ++i) {
        const casa::uInt row = i + baseRow;
-       msc.antenna1().put(row, substituteAntId(theirAntIDs[i][0], buf.itsBeam));
-       msc.antenna2().put(row, substituteAntId(theirAntIDs[i][1], buf.itsBeam));
+       msc.antenna1().put(row, substituteAntId(buf.first(i), buf.itsBeam));
+       msc.antenna2().put(row, substituteAntId(buf.second(i), buf.itsBeam));
        msc.feed1().put(row, buf.itsBeam);
        msc.feed2().put(row, buf.itsBeam);
        msc.uvw().put(row, buf.itsUVW.row(i));
@@ -580,7 +579,7 @@ void FillerMSSink::create()
     casa::MS::addColumnToDesc(msDesc, casa::MS::DATA, 2);
    
     // additional non-standard columns
-    msDesc.addColumn(casa::ScalarColumnDesc<casa::uInt>("CONTROL","User defined number sent via epics (for channel 0, antenna 0)"));
+    msDesc.addColumn(casa::ScalarColumnDesc<casa::uInt>("CONTROL","User-defined number sent via epics (for channel 0, antenna 0)"));
     //
 
     casa::SetupNewTable newMS(filename, msDesc, casa::Table::New);
@@ -634,6 +633,7 @@ void FillerMSSink::create()
         info.setType(casa::TableInfo::type(casa::TableInfo::MEASUREMENTSET));
         info.setSubType(casa::String(""));
         info.readmeAddLine("This is a MeasurementSet Table holding astronomical observations obtained with ASKAP software correlator");
+        info.readmeAddLine("Software correlator package version: " + getAskapPackageVersion_swcorrelator());
     }
 }
 
@@ -928,7 +928,7 @@ int FillerMSSink::nBeam() const
 
 /// @brief return baseline index for a given baseline
 /// @details The data are passed in CorrProducts structure gathering all baselines in a single
-/// matrix (for visibility data and for flags). There is a standard order (see also theirAntIDs)
+/// matrix (for visibility data and for flags). There is a standard order (see also CorrProducts)
 /// of baselines. In the software correlator itself, the data are produced directly in the standard
 /// order, but this method is handy for other uses of this class (i.e. format converter). It
 /// returns an index for a given baseline
@@ -936,14 +936,11 @@ int FillerMSSink::nBeam() const
 /// @param[in] ant2 zero-based indicex of the second antenna
 /// @return index into visibility of flag matrix (row of the matrix)
 /// @note a negative value is returned if the given baseline is not found
+/// with the recent changes to CorrProducts this methid could be made redundant, provide it for
+/// compatibility for the time being
 int FillerMSSink::baselineIndex(const casa::uInt ant1, const casa::uInt ant2)
 {
-   for (int i=0; i<3; ++i) {
-        if ((theirAntIDs[i][0] == int(ant1)) && (theirAntIDs[i][1] == int(ant2))) {
-             return i;
-        }
-   }
-   return -1;
+   return ant1<ant2 ? CorrProducts::baseline(ant1,ant2) : -1;
 }
 
 /// @brief helper method to substitute antenna index

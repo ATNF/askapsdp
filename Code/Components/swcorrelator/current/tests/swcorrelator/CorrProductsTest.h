@@ -54,11 +54,14 @@ public:
      CPPUNIT_ASSERT_EQUAL(nChan, int(cp.itsVisibility.ncolumn()));
      CPPUNIT_ASSERT_EQUAL(nChan, int(cp.itsFlag.ncolumn()));
      CPPUNIT_ASSERT_EQUAL(nAnt * (nAnt - 1) / 2, int(cp.itsVisibility.nrow()));
+     CPPUNIT_ASSERT_EQUAL(nAnt * (nAnt - 1) / 2, int(cp.nBaseline()));
      CPPUNIT_ASSERT_EQUAL(nAnt * (nAnt - 1) / 2, int(cp.itsFlag.nrow()));
      CPPUNIT_ASSERT_EQUAL(nAnt * (nAnt - 1) / 2, int(cp.itsDelays.nelements()));
      CPPUNIT_ASSERT_EQUAL(nAnt * (nAnt - 1) / 2, int(cp.itsUVW.nrow()));
      CPPUNIT_ASSERT_EQUAL(3, int(cp.itsUVW.ncolumn()));
+     CPPUNIT_ASSERT_EQUAL(3, int(cp.itsUVW.ncolumn()));
      CPPUNIT_ASSERT_EQUAL(nAnt, int(cp.itsControl.nelements()));     
+     CPPUNIT_ASSERT_EQUAL(nAnt, int(cp.nAnt()));     
   }
   
   void testIndexConversion() {
