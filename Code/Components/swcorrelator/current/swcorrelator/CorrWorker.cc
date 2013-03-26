@@ -83,9 +83,12 @@ void CorrWorker::operator()()
        const int frameOff_02 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
        // for debugging
        if ((chan == 0) || (chan == 8)) {
-          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<frameOff_01<<" for chan="<<chan);
-          ASKAPLOG_INFO_STR(logger, "                 (ant1 - ant2) is "<<frameOff_12<<" for chan="<<chan);
-          ASKAPLOG_INFO_STR(logger, "                 (ant0 - ant2) is "<<frameOff_02<<" for chan="<<chan);
+          ASKAPLOG_INFO_STR(logger, "Frame difference (ant"<<ids.itsAnt1<<" - ant"<<ids.itsAnt2<<") is "<<
+                            frameOff_01<<" for chan="<<chan);
+          ASKAPLOG_INFO_STR(logger, "                 (ant"<<ids.itsAnt2<<" - ant"<<ids.itsAnt3<<") is "<<
+                            frameOff_12<<" for chan="<<chan);
+          ASKAPLOG_INFO_STR(logger, "                 (ant"<<ids.itsAnt1<<" - ant"<<ids.itsAnt3<<") is "<<
+                            frameOff_02<<" for chan="<<chan);
        }
        // run correlation
        //s3bc.reset(0,0,0); // zero delays for now
@@ -100,21 +103,30 @@ void CorrWorker::operator()()
        // store the result
        CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
+       const int baseline0 = cp.baseline(ids.itsAnt1, ids.itsAnt2);
+       const int baseline1 = cp.baseline(ids.itsAnt2, ids.itsAnt3);
+       const int baseline2 = cp.baseline(ids.itsAnt1, ids.itsAnt3);
+       ASKAPDEBUGASSERT(baseline0 < int(cp.nBaseline()));
+       ASKAPDEBUGASSERT(baseline1 < int(cp.nBaseline()));
+       ASKAPDEBUGASSERT(baseline2 < int(cp.nBaseline()));
+       
        if (chan==0) {
-          ASKAPDEBUGASSERT(cp.itsControl.nelements()>=3);
-          cp.itsControl[0] = itsBufferManager->header(ids.itsAnt1).control;
-          cp.itsControl[1] = itsBufferManager->header(ids.itsAnt2).control;
-          cp.itsControl[2] = itsBufferManager->header(ids.itsAnt3).control;
+          ASKAPDEBUGASSERT(ids.itsAnt1 < int(cp.itsControl.nelements()));
+          ASKAPDEBUGASSERT(ids.itsAnt2 < int(cp.itsControl.nelements()));
+          ASKAPDEBUGASSERT(ids.itsAnt3 < int(cp.itsControl.nelements()));          
+          cp.itsControl[ids.itsAnt1] = itsBufferManager->header(ids.itsAnt1).control;
+          cp.itsControl[ids.itsAnt2] = itsBufferManager->header(ids.itsAnt2).control;
+          cp.itsControl[ids.itsAnt3] = itsBufferManager->header(ids.itsAnt3).control;
        }
        // unflag this channel if frame offset is less than 100 by absolute value (it should be within a few steps); false is good here
           //cp.itsFlag.column(chan).set(false);
-          cp.itsFlag(0,chan) = (abs(frameOff_01) >= 100);
-          cp.itsFlag(1,chan) = (abs(frameOff_12) >= 100);
-          cp.itsFlag(2,chan) = (abs(frameOff_02) >= 100);
+          cp.itsFlag(baseline0,chan) = (abs(frameOff_01) >= 100);
+          cp.itsFlag(baseline1,chan) = (abs(frameOff_12) >= 100);
+          cp.itsFlag(baseline2,chan) = (abs(frameOff_02) >= 100);
        //
-       cp.itsVisibility(0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
-       cp.itsVisibility(1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
-       cp.itsVisibility(2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
+       cp.itsVisibility(baseline0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
+       cp.itsVisibility(baseline1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
+       cp.itsVisibility(baseline2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
        itsFiller->notifyProductsReady(beam);
     }
   } catch (const boost::thread_interrupted &) { 
