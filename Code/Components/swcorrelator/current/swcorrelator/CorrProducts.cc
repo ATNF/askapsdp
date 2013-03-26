@@ -64,26 +64,61 @@ void CorrProducts::init(const uint64_t bat)
   itsControl.set(0u);
 }
 
-/// @brief baseline index for pairs of antennas
+/// @brief baseline index for a pair of antennas
 /// @details For more than 3 antennas mapping between antennas and baselines 
 /// is handy to implement inside this method
 /// @param[in] first index of the first antenna (0..nant-1)
 /// @param[in] second index of the second antenna (0..nant-1)
-/// @return baseline index (0..(nant*(nant-1)/2))
-/// @note an exception is thrown if there is no matching baseline
-int CorrProducts::baseline(const int first, const int second) const
+/// @return baseline index (0..(nant*(nant-1)/2)-1)
+/// @note an exception is thrown if there is no matching baseline (i.e. if first >= second)
+int CorrProducts::baseline(const int first, const int second)
 {
   ASKAPDEBUGASSERT((first >= 0) && (second >= 0));
-  ASKAPCHECK(first < int(itsControl.nelements()), "First antenna index is out of range, have only "<<
-             itsControl.nelements()<<" antennas");
-  ASKAPCHECK(second < int(itsControl.nelements()), "Second antenna index is out of range, have only "<<
-             itsControl.nelements()<<" antennas");
-  ASKAPCHECK(first<second, "Baseline "<<first<<" - "<<second<<" is not mapped as first index should be less than second");
+  ASKAPCHECK(first < second, "Baseline "<<first<<" - "<<second<<" is not mapped as the first index should be less than the second");
   const int offset = (second + 1) * second / 2;
   const int baseline =  offset - first - 1;
   ASKAPDEBUGASSERT(baseline >= 0);
   return baseline;  
 }
+
+/// @brief index of the first antenna for a given baseline
+/// @details It is handy to encapsulate mapping between baseline and antenna
+/// indices.
+/// @param[in] baseline baseline index (0..(nant*(nant-1)/2-1))
+/// @return index of the first antenna
+int CorrProducts::first(const int baseline)
+{
+   // look-up table for small number of antennas (as it is our use case realistically)
+   const int ants[15] = {0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0};
+   if (baseline < 15) {
+       ASKAPDEBUGASSERT(baseline >= 0);
+       return ants[baseline];  
+   }
+   
+   // checks for non-zero baseline index are done inside the "second" method 
+   const int ant2index = second(baseline);
+   // number of baselines with antennas up to and including ant2index
+   const int maxBaselines = ant2index * (ant2index + 1) / 2;
+   ASKAPDEBUGASSERT(baseline < maxBaselines);
+   const int result = maxBaselines - baseline - 1;
+   return result;
+}
+
+/// @brief index of the second antenna for a given baseline
+/// @details It is handy to encapsulate mapping between baseline and antenna
+/// indices.
+/// @param[in] baseline baseline index (0..(nant*(nant-1)/2-1))
+/// @return index of the second antenna
+int CorrProducts::second(const int baseline)
+{
+  ASKAPDEBUGASSERT(baseline >= 0);  
+  // look-up table for small number of antennas (as it is our use case realistically)
+  const int ants[15] = {1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5};
+    
+  const int result = baseline < 15 ? ants[baseline] : int((1.+sqrt(1.+8.*baseline))/2);
+  return result;
+}
+
 
 
 } // namespace swcorrelator

@@ -28,6 +28,7 @@
 #include <askap_swcorrelator.h>
 #include <FillerMSSinkTest.h>
 #include <IndexConverterTest.h>
+#include <CorrProductsTest.h>
 
 
 int main(int argc, char *argv[])
@@ -36,6 +37,7 @@ int main(int argc, char *argv[])
 
     runner.addTest(askap::swcorrelator::FillerMSSinkTest::suite());
     runner.addTest(askap::swcorrelator::IndexConverterTest::suite());
+    runner.addTest(askap::swcorrelator::CorrProductsTest::suite());
 
     bool wasSucessful = runner.run();
 

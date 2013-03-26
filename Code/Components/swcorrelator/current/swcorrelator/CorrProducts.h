@@ -59,14 +59,29 @@ struct CorrProducts : private boost::noncopyable {
   /// @param[in] bat time
   void init(const uint64_t bat);
   
-  /// @brief baseline index for pairs of antennas
+  /// @brief baseline index for a pair of antennas
   /// @details For more than 3 antennas mapping between antennas and baselines 
   /// is handy to implement inside this method
   /// @param[in] first index of the first antenna (0..nant-1)
   /// @param[in] second index of the second antenna (0..nant-1)
-  /// @return baseline index (0..(nant*(nant-1)/2))
-  /// @note an exception is thrown if there is no matching baseline
-  int baseline(const int first, const int second) const;
+  /// @return baseline index (0..(nant*(nant-1)/2)-1)
+  /// @note an exception is thrown if there is no matching baseline (i.e. if first >= second)
+  static int baseline(const int first, const int second);
+  
+  /// @brief index of the first antenna for a given baseline
+  /// @details It is handy to encapsulate mapping between baseline and antenna
+  /// indices.
+  /// @param[in] baseline baseline index (0..(nant*(nant-1)/2-1))
+  /// @return index of the first antenna
+  static int first(const int baseline);
+
+  /// @brief index of the second antenna for a given baseline
+  /// @details It is handy to encapsulate mapping between baseline and antenna
+  /// indices.
+  /// @param[in] baseline baseline index (0..(nant*(nant-1)/2-1))
+  /// @return index of the second antenna
+  static int second(const int baseline);
+  
   
   /// @brief visibility buffer (dimensions are baseline and channel)
   casa::Matrix<casa::Complex> itsVisibility;   
