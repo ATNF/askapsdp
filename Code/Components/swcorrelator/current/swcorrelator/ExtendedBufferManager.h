@@ -43,6 +43,8 @@
 
 // std includes
 #include <vector>
+#include <utility>
+
 
 namespace askap {
 
@@ -94,7 +96,32 @@ protected:
    /// @return buffer set structure with buffer indices corresponding to the first chosen triangle
    /// @note it is implied that the required locks have already been obtained
    virtual BufferSet newBufferSet(const std::pair<int,int> &index) const;
-
+private:
+   
+   /// @brief group counter condition variable
+   mutable boost::condition_variable itsGroupCV;
+   
+   /// @brief mutex associated with the condition variable protecting the data of this class
+   mutable boost::mutex itsGroupCVMutex;
+   
+   /// @brief current group
+   /// @details This is essentially a counter of BufferSets returned by this class. 
+   /// when it reaches the number of groups, a new complete set of antennas is requested from the 
+   /// parent class (which may belong to a different channel/beam). Negative number means
+   /// the class has just been initialised and didn't return any group yet
+   mutable int itsGroupCounter;
+   
+   /// @brief buffers for each antenna for the channel/beam being processed
+   /// @details Negative value means the numbers have not been initialised.
+   mutable casa::Vector<int> itsBuffers;
+   
+   /// @brief iteration plan
+   /// @details Each BufferSet stores antenna indices (after pre-processing) rather than buffer indices.
+   /// The number of elements is the number of groups. The content is initialised in the contructor
+   /// (using the number of antennas) and then remains unchanged. The returned set is formed using
+   /// itsBuffers and itsGroupCounter element of this plan.
+   std::vector<BufferSet> itsPlan;
+      
 }; // class ExtendedBufferManager
 
 

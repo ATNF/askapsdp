@@ -32,6 +32,7 @@
 
 #include <swcorrelator/ExtendedBufferManager.h>
 #include <askap/AskapError.h>
+#include <swcorrelator/CorrProducts.h>
 #include <boost/thread/thread.hpp>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
@@ -50,8 +51,12 @@ namespace swcorrelator {
 /// @param[in] nAnt number of antennas
 /// @param[in[ hdrProc optional shared pointer to the header preprocessor
 ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nChan, const size_t nAnt, 
-         const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : BufferManager(nBeam, nChan, nAnt, hdrProc) 
+         const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : BufferManager(nBeam, nChan, nAnt, hdrProc),
+         itsGroupCounter(-1), itsBuffers(nAnt, -1) 
 {
+  ASKAPDEBUGASSERT(nAnt >= 3);
+  // worst case scenario, we have less groups than the baselines
+  itsPlan.reserve(nAnt * (nAnt - 1) / 2); 
 }
    
 /// @brief get filled buffers for a matching channel + beam
