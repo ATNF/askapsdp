@@ -1,8 +1,8 @@
 /// @file 
 ///
-/// @brief manages buffers for broad-band data
-/// @details This class manages buffers for broad-band data 
-/// can keeps track of the current status (i.e. free, filled, 
+/// @brief manages buffers for raw data
+/// @details This class manages buffers for raw data 
+/// and keeps track of the current status (i.e. free, filled, 
 /// being reduced) providing the required syncronisation between
 /// parallel threads accessing the buffers. The number of buffers should be
 /// at least twice the number of beams * antennas * cards.

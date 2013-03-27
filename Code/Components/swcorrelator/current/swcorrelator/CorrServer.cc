@@ -35,6 +35,7 @@
 #include <askap/AskapLogging.h>
 #include <swcorrelator/CorrServer.h>
 #include <swcorrelator/FillerWorker.h>
+#include <swcorrelator/ExtendedBufferManager.h>
 #include <swcorrelator/CorrWorker.h>
 #include <swcorrelator/CaptureWorker.h>
 #include <swcorrelator/StreamConnection.h>
@@ -79,7 +80,16 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
   } else {
      itsFiller.reset(new CorrFiller(parset));
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
-     itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));
+     if (itsFiller->nAnt() == 3) {
+         // special case of the 3-antenna correlator
+         ASKAPLOG_INFO_STR(logger, "Number of antennas is exactly 3, use special 3-baseline version of the correlator");
+         itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));
+     } else {
+         ASKAPCHECK(itsFiller->nAnt() > 3, "Less than 3 antennas are not supported.");
+         // generic case of more than 3 antennas
+         ASKAPLOG_INFO_STR(logger, "Number of antennas is "<<itsFiller->nAnt()<<", use generic version of the correlator");
+         itsBufferManager.reset(new ExtendedBufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));         
+     }
   }
   const bool duplicate2nd = parset.getBool("duplicate2nd", false);
   if (duplicate2nd) {

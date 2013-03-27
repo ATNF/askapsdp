@@ -1,8 +1,8 @@
 /// @file 
 ///
-/// @brief manages buffers for broad-band data
-/// @details This class manages buffers for broad-band data 
-/// can keeps track of the current status (i.e. free, filled, 
+/// @brief manages buffers for raw data
+/// @details This class manages buffers for raw data 
+/// and keeps track of the current status (i.e. free, filled, 
 /// being reduced) providing the required syncronisation between
 /// parallel threads accessing the buffers. The number of buffers should be
 /// at least twice the number of beams * antennas * cards.
@@ -56,9 +56,9 @@ namespace askap {
 
 namespace swcorrelator {
 
-/// @brief manages buffers for baseband data
-/// @details This class manages buffers for baseband data 
-/// it keeps track of the current status (i.e. free, filled, 
+/// @brief manages buffers for raw data
+/// @details This class manages buffers for raw data. 
+/// It keeps track of the current status (i.e. free, filled, 
 /// being reduced) providing the required syncronisation between
 /// parallel threads accessing the buffers. The number of buffers should be
 /// at least twice the number of beams * antennas * cards.
@@ -129,7 +129,7 @@ public:
    /// and beam. The calling thread is blocked until a suitable set
    /// is available for correlation.
    /// @return a set of buffers ready for correlation
-   BufferSet getFilledBuffers() const;
+   virtual BufferSet getFilledBuffers() const;
    
    /// @brief get one filled buffer
    /// @details This method is only used with the capture, correlation
