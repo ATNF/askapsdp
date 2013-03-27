@@ -84,9 +84,13 @@ public:
    /// @details
    /// @param[in] nBeam number of beams
    /// @param[in] nChan number of channels (cards)
+   /// @param[in] nAnt number of antennas
    /// @param[in[ hdrProc optional shared pointer to the header preprocessor
-   BufferManager(const size_t nBeam, const size_t nChan, 
+   BufferManager(const size_t nBeam, const size_t nChan, const size_t nAnt = 3, 
          const boost::shared_ptr<HeaderPreprocessor> &hdrProc = boost::shared_ptr<HeaderPreprocessor>());
+   
+   /// @brief destructor to keep the compiler happy
+   virtual ~BufferManager();
    
    /// @brief obtain a header for the given buffer
    /// @details
@@ -137,7 +141,7 @@ public:
    /// @details This method notifies the manager that data dump is 
    /// now complete and the data buffers can now be released.
    /// @param[in] id the buffer to release
-   /// @note the correlation uses an overloaded version of this 
+   /// @note the correlator uses an overloaded version of this 
    /// method which releases 3 buffers in a row
    void releaseBuffers(const int id) const;
       
@@ -145,8 +149,17 @@ public:
    /// @details This method notifies the manager that correlation is
    /// now complete and the data buffers can now be released.
    /// @param[in] ids buffer set to release
-   void releaseBuffers(const BufferSet &ids) const;
-  
+   /// @note this version of the method is called from correlator thread
+   /// to get the next work unit. It is made virtual to be able to change
+   /// the behavior for more than 3 antenna case. Other overloaded 
+   /// versions do not need this polymorphism and are therefore non-virtual
+   virtual void releaseBuffers(const BufferSet &ids) const;
+
+   /// @brief release more than 3 buffers
+   /// @details This version is expected to be used in derived classes to
+   /// release a bunch of buffers in one go (under common mutex lock).
+   /// @param[in] ids buffer set to release
+   void releaseBuffers(const casa::Vector<int> &ids) const;  
    
    /// @brief notify that the buffer is ready for correlation
    /// @details This method notifies the manager that the data buffer
@@ -197,7 +210,28 @@ protected:
    bool findCompleteSet(std::pair<int,int> &index) const;
 
    /// @brief exception used internally
-   struct HelperException : public std::exception {};   
+   struct HelperException : public std::exception {};
+   
+   /// @brief process a new complete set of antennas
+   /// @details This method called every time a new complete set of per-antenna 
+   /// buffers is found. It is intended to be overridden in derived classes to support
+   /// more than 3 antennas (by building the appropriate strategy of iterating over the
+   /// baseline space).
+   /// @param[in] index channel/beam pair
+   /// @return buffer set structure with buffer indices corresponding to the first chosen triangle
+   /// @note it is implied that the required locks have already been obtained
+   virtual BufferSet newBufferSet(const std::pair<int,int> &index) const;
+   
+   /// @brief access to buffer IDs for given channel/beam
+   /// @details This method provides access to buffer IDs for all antennas corresponding
+   /// to given channel and beam. It is largely intended to be used in derived classes in the
+   /// overridden version of newBufferSet.
+   /// @param[in] index channel/beam pair to work with
+   /// @return vector with buffer IDs, one per antenna
+   /// @note it is implied that the required locks have already been obtained
+   casa::Vector<int> readyBuffers(const std::pair<int,int> &index) const;
+    
+   
 private:
    /// @brief maximum number of buffers supported (fixed at 6*nChan*nBeam)
    int itsNBuf;

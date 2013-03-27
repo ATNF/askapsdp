@@ -63,18 +63,24 @@ int BufferManager::NumberOfSamples() {
 /// @details
 /// @param[in] nBeam number of beams
 /// @param[in] nChan number of channels (cards)
+/// @param[in] nAnt number of antennas
 /// @param[in[ hdrProc optional shared pointer to the header preprocessor
-BufferManager::BufferManager(const size_t nBeam, const size_t nChan, 
-     const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : itsNBuf(6*nBeam*nChan),
+BufferManager::BufferManager(const size_t nBeam, const size_t nChan, const size_t nAnt,
+     const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : itsNBuf(2*nBeam*nChan*nAnt),
      itsBufferSize(2*nSamples + int(sizeof(BufferHeader)/sizeof(float))),
      itsBuffer(new float[(2*nSamples + int(sizeof(BufferHeader)/sizeof(float)))*itsNBuf]),
      itsStatus(itsNBuf, BUF_FREE),
-     itsReadyBuffers(3, nChan, nBeam, -1), itsHeaderPreprocessor(hdrProc),
+     itsReadyBuffers(nAnt, nChan, nBeam, -1), itsHeaderPreprocessor(hdrProc),
      itsDuplicate2nd(false)
 {
    ASKAPCHECK(sizeof(BufferHeader) % sizeof(float) == 0, "Some padding is required");
    ASKAPCHECK(sizeof(std::complex<float>) == 2*sizeof(float), "std::complex<float> is not just two floats!");
+   ASKAPCHECK(nAnt >= 3, "This code doesn't support less than 3 antennas");
 }
+
+/// @brief destructor to keep the compiler happy
+BufferManager::~BufferManager() {}
+
    
 /// @brief obtain a header for the given buffer
 /// @details
@@ -134,6 +140,38 @@ int BufferManager::getBufferToFill() const
   }
   return -1;
 }
+
+/// @brief process a new complete set of antennas
+/// @details This method called every time a new complete set of per-antenna 
+/// buffers is found. It is intended to be overridden in derived classes to support
+/// more than 3 antennas (by building the appropriate strategy of iterating over the
+/// baseline space).
+/// @param[in] index channel/beam pair
+/// @return buffer set structure with buffer indices corresponding to the first chosen triangle
+/// @note it is implied that the required locks have already been obtained
+BufferManager::BufferSet BufferManager::newBufferSet(const std::pair<int,int> &index) const
+{
+  casa::Vector<int> bufferIDs = readyBuffers(index);
+  ASKAPDEBUGASSERT(bufferIDs.nelements() == 3);
+  BufferManager::BufferSet result;
+  result.itsAnt1 = bufferIDs[0];
+  result.itsAnt2 = bufferIDs[1];
+  result.itsAnt3 = bufferIDs[itsDuplicate2nd ? 1 : 2];
+  return result;
+}
+   
+/// @brief access to buffer IDs for given channel/beam
+/// @details This method provides access to buffer IDs for all antennas corresponding
+/// to given channel and beam. It is largely intended to be used in derived classes in the
+/// overridden version of newBufferSet.
+/// @param[in] index channel/beam pair to work with
+/// @return vector with buffer IDs, one per antenna
+/// @note it is implied that the required locks have already been obtained
+casa::Vector<int> BufferManager::readyBuffers(const std::pair<int,int> &index) const
+{
+  return itsReadyBuffers.xyPlane(index.second).column(index.first);
+}
+
    
 /// @brief get filled buffers for a matching channel + beam
 /// @details This method returns the first available set of
@@ -147,11 +185,9 @@ BufferManager::BufferSet BufferManager::getFilledBuffers() const
   while (findCompleteSet(index)) {  
      itsStatusCV.wait(lock);
   }
-  ASKAPDEBUGASSERT(itsReadyBuffers.nrow() == 3);
-  BufferManager::BufferSet result;
-  result.itsAnt1 = itsReadyBuffers(0, index.first, index.second);
-  result.itsAnt2 = itsReadyBuffers(1, index.first, index.second);
-  result.itsAnt3 = itsReadyBuffers(itsDuplicate2nd ? 1 : 2, index.first, index.second);
+  ASKAPDEBUGASSERT(itsReadyBuffers.nrow() >= 3);
+  BufferManager::BufferSet result = newBufferSet(index);
+  // remove buffers for the given channel/beam pair, so the next complete set should correspond to a different one
   const casa::uInt nAntToIterate = itsDuplicate2nd ? itsReadyBuffers.nrow() - 1 : itsReadyBuffers.nrow();    
   for (casa::uInt ant = 0; ant < nAntToIterate; ++ant) {
        const int id = itsReadyBuffers(ant, index.first, index.second);
@@ -215,7 +251,7 @@ int BufferManager::getFilledBuffer() const
 /// @details This method notifies the manager that data dump is 
 /// now complete and the data buffers can now be released.
 /// @param[in] id the buffer to release
-/// @note the correlation uses an overloaded version of this 
+/// @note the correlator uses an overloaded version of this 
 /// method which releases 3 buffers in a row
 void BufferManager::releaseBuffers(const int id) const
 {
@@ -233,6 +269,10 @@ void BufferManager::releaseBuffers(const int id) const
 /// @details This method notifies the manager that correlation is
 /// now complete and the data buffers can now be released.
 /// @param[in] ids buffer set to release
+/// @note this version of the method is called from correlator thread
+/// to get the next work unit. It is made virtual to be able to change
+/// the behavior for more than 3 antenna case. Other overloaded 
+/// versions do not need this polymorphism and are therefore non-virtual
 void BufferManager::releaseBuffers(const BufferSet &ids) const
 {
   {
@@ -249,6 +289,24 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
   }
   itsStatusCV.notify_all();
 }
+
+/// @brief release more than 3 buffers
+/// @details This version is expected to be used in derived classes to
+/// release a bunch of buffers in one go (under common mutex lock).
+/// @param[in] ids buffer set to release
+void BufferManager::releaseBuffers(const casa::Vector<int> &ids) const
+{
+  {
+    boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);  
+    for (casa::uInt i = 0; i<ids.nelements(); ++i) {
+         if (ids[i] >= 0) {
+             releaseOneBuffer(ids[i]);
+         }
+    }
+  }
+  itsStatusCV.notify_all();
+}  
+
 
 /// @brief optional index substitution
 /// @details We want to be quite flexible and allow various substitutions of

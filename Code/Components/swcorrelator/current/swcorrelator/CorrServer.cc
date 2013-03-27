@@ -74,11 +74,12 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
 
   if (itsCaptureMode) {
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
-     itsBufferManager.reset(new BufferManager(parset.getInt("nbeam"),parset.getInt("nchan"), hdrProc));     
+     // it doesn't matter how many antennas are chosen in this mode
+     itsBufferManager.reset(new BufferManager(parset.getInt("nbeam"),parset.getInt("nchan"), 3, hdrProc));     
   } else {
      itsFiller.reset(new CorrFiller(parset));
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
-     itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), hdrProc));
+     itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));
   }
   const bool duplicate2nd = parset.getBool("duplicate2nd", false);
   if (duplicate2nd) {
