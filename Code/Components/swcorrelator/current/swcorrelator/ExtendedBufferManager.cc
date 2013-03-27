@@ -37,6 +37,8 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 
+#include <set>
+
 
 ASKAP_LOGGER(logger, ".swcorrelator");
 
@@ -55,8 +57,78 @@ ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nC
          itsGroupCounter(-1), itsBuffers(nAnt, -1) 
 {
   ASKAPDEBUGASSERT(nAnt >= 3);
-  // worst case scenario, we have less groups than the baselines
-  itsPlan.reserve(nAnt * (nAnt - 1) / 2); 
+  size_t nBaselines = nAnt * (nAnt - 1) / 2;
+ 
+  // build the iteration plan here. There could be a better algorithm, but efficiency
+  // shouldn't be an issue here as we typically have a relatively small number of antennas
+  // The complexity arises because the baselines cannot be factorised into triangles
+  // without duplication.
+  size_t nUniqueGroups = 0, nDuplicateOne = 0, nDuplicateTwo = 0; // for stats
+ 
+  // worst case scenario, we actually expect to have less groups than the baselines
+  itsPlan.reserve(nBaselines); 
+  // first build the set of all possible baselines
+  std::set<int> baselines;
+  for (int bl = 0; bl<int(nBaselines); ++bl) {
+       baselines.insert(bl);
+  }
+  // now form groups of baselines which do not have duplication
+  for (std::set<int>::iterator it=baselines.begin(); it!=baselines.end();++it) {
+       BufferSet bs;
+       bs.itsAnt1 = CorrProducts::first(*it);
+       bs.itsAnt2 = CorrProducts::second(*it);
+       // now search 'third' to form a triangle first-second, second-third, first-third
+       std::set<int>::iterator it2 = it;
+       for (++it2; it2!=baselines.end();++it2) {
+            if (CorrProducts::first(*it2) == bs.itsAnt2) {
+                bs.itsAnt3 = CorrProducts::second(*it2);
+                std::set<int>::iterator it3 = it2;
+                for (++it3; it3!=baselines.end();++it3) {
+                     if ((CorrProducts::first(*it3) == bs.itsAnt1) && 
+                         (CorrProducts::second(*it3) == bs.itsAnt3)) {
+                         itsPlan.push_back(bs);
+                         baselines.erase(it3);
+                         baselines.erase(it2);
+                         baselines.erase(it);
+                         it2 = baselines.end();
+                         ++nUniqueGroups;
+                         break;
+                     }
+                }
+            }
+       }
+  }
+  // search for triangles with a single wasted baseline
+  for (std::set<int>::iterator it=baselines.begin(); it!=baselines.end();++it) {
+       BufferSet bs;
+       bs.itsAnt2 = CorrProducts::first(*it);
+       bs.itsAnt3 = CorrProducts::second(*it);
+       std::set<int>::iterator it2 = it;
+       for (++it2; it2!=baselines.end(); ++it2) {
+            if (CorrProducts::second(*it2) == bs.itsAnt3) {
+                bs.itsAnt1 = CorrProducts::first(*it2);
+                itsPlan.push_back(bs);
+                baselines.erase(it2);
+                baselines.erase(it);
+                ++nDuplicateOne;
+                break;
+            }
+       }
+  }
+
+  // finally, add unaccounted baseline wasting two correlations
+  for (std::set<int>::iterator it=baselines.begin(); it!=baselines.end();++it) {
+       BufferSet bs;
+       bs.itsAnt1 = CorrProducts::first(*it);
+       bs.itsAnt2 = CorrProducts::second(*it);
+       bs.itsAnt3 = 0;
+       itsPlan.push_back(bs);
+       ++nDuplicateTwo;
+  }
+  ASKAPLOG_INFO_STR(logger, "Groupped baselines into triangles: "<<nUniqueGroups<<
+      " groups without duplication, "<<nDuplicateOne<<
+      " groups with a single redundant baseline, and "<<nDuplicateTwo<<
+      " single-baseline groups");
 }
    
 /// @brief get filled buffers for a matching channel + beam
