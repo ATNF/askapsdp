@@ -96,13 +96,24 @@ protected:
    /// @return buffer set structure with buffer indices corresponding to the first chosen triangle
    /// @note it is implied that the required locks have already been obtained
    virtual BufferSet newBufferSet(const std::pair<int,int> &index) const;
+   
+   /// @brief helper method to check that some baseline triangles are still processed
+   /// @return true if at least one triangle is still being processed
+   /// @note It is assumed that the lock had been aquired
+   bool notAllReleased() const;
+
+   /// @brief helper method to get a triangle according to the iteration plan
+   /// @param[in] index item in the plan
+   /// @return buffer set filled with buffer IDs
+   BufferSet getTriangle(const int index) const; 
+      
 private:
-   
-   /// @brief group counter condition variable
-   mutable boost::condition_variable itsGroupCV;
-   
-   /// @brief mutex associated with the condition variable protecting the data of this class
-   mutable boost::mutex itsGroupCVMutex;
+      
+   /// @brief mutex protecting the data of this class
+   mutable boost::mutex itsGroupMutex;
+     
+   /// @brief condition variable for release counters
+   mutable boost::condition_variable itsReleaseCV;
    
    /// @brief current group
    /// @details This is essentially a counter of BufferSets returned by this class. 
@@ -121,6 +132,11 @@ private:
    /// (using the number of antennas) and then remains unchanged. The returned set is formed using
    /// itsBuffers and itsGroupCounter element of this plan.
    std::vector<BufferSet> itsPlan;
+   
+   /// @brief release counters
+   /// @details There is one item per baseline set stored in itsPlan. The element is true if a particular
+   /// combination is not released. All elements false means that this channel/beam is either done or not started
+   mutable casa::Vector<bool> itsReleaseFlags;
       
 }; // class ExtendedBufferManager
 

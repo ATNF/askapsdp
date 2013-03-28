@@ -129,6 +129,8 @@ ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nC
       " groups without duplication, "<<nDuplicateOne<<
       " groups with a single redundant baseline, and "<<nDuplicateTwo<<
       " single-baseline groups");
+  itsReleaseFlags.resize(itsPlan.size());
+  itsReleaseFlags.set(false);
 }
    
 /// @brief get filled buffers for a matching channel + beam
@@ -139,8 +141,44 @@ ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nC
 /// @return a set of buffers ready for correlation
 BufferManager::BufferSet ExtendedBufferManager::getFilledBuffers() const
 {
+  boost::unique_lock<boost::mutex> lock(itsGroupMutex);  
+  // first check whether there are items still left in the iteration plan
+  if (itsGroupCounter++ >= 0) {      
+      if (itsGroupCounter < int(itsPlan.size())) {
+          ASKAPCHECK(!itsReleaseFlags[itsGroupCounter], "Logic error - attempted to correlate the same baseline triangle twice");          
+          itsReleaseFlags[itsGroupCounter] = true;
+          return getTriangle(itsGroupCounter);
+      }
+  }
+  // need to get a new complete set of data and start new iteration
+  
+  // wait until correlation is completed and buffers are ready to be released
+  while (notAllReleased()) {
+     itsReleaseCV.wait(lock);
+  }
+  // now we can overwrite itsBuffers
+  
+  itsGroupCounter = 0;
+  // the following call will call newBufferSet which fills itsBuffers
   return BufferManager::getFilledBuffers();
 }
+
+/// @brief helper method to get a triangle according to the iteration plan
+/// @param[in] index item in the plan
+/// @return buffer set filled with buffer IDs
+BufferManager::BufferSet ExtendedBufferManager::getTriangle(const int index) const
+{
+  ASKAPDEBUGASSERT(index < int(itsPlan.size()));
+  BufferManager::BufferSet result = itsPlan[index];
+  ASKAPDEBUGASSERT(result.itsAnt1 < int(itsBuffers.nelements()));
+  ASKAPDEBUGASSERT(result.itsAnt2 < int(itsBuffers.nelements()));
+  ASKAPDEBUGASSERT(result.itsAnt3 < int(itsBuffers.nelements()));
+  result.itsAnt1 = itsBuffers[result.itsAnt1];
+  result.itsAnt2 = itsBuffers[result.itsAnt2];
+  result.itsAnt3 = itsBuffers[result.itsAnt3];          
+  return result;          
+} 
+
    
 /// @brief release the buffers
 /// @details This method notifies the manager that correlation is
@@ -151,9 +189,42 @@ BufferManager::BufferSet ExtendedBufferManager::getFilledBuffers() const
 /// the behavior for more than 3 antenna case. Other overloaded 
 /// versions do not need this polymorphism and are therefore non-virtual
 void ExtendedBufferManager::releaseBuffers(const BufferSet &ids) const
-{
-  BufferManager::releaseBuffers(ids);
+{ 
+  {
+    boost::lock_guard<boost::mutex> lock(itsGroupMutex);
+    size_t index = 0;
+    for (; index < itsPlan.size(); ++index) {
+         BufferSet bs = getTriangle(index);
+         
+         if ((bs.itsAnt1 == ids.itsAnt1) && (bs.itsAnt2 == ids.itsAnt2) &&
+             (bs.itsAnt3 == ids.itsAnt3)) {
+              break;
+         }
+    }
+    ASKAPCHECK(index < itsReleaseFlags.nelements(), "Unable to find baseline set to release");
+    ASKAPCHECK(itsReleaseFlags[index], "Attempted to release baseline combination which has not been scheduled for correlation");
+    itsReleaseFlags[index] = false;
+    if (itsGroupCounter == int(itsPlan.size()) && !notAllReleased()) {
+        // this was the last group now we can release the buffers
+        BufferManager::releaseBuffers(itsBuffers);
+    }    
+  }
+  itsReleaseCV.notify_all();
 }
+
+/// @brief helper method to check that some baseline triangles are still processed
+/// @return true if at least one triangle is still being processed
+/// @note It is assumed that the lock had been aquired
+bool ExtendedBufferManager::notAllReleased() const
+{ 
+  for (casa::uInt index = 0; index < itsReleaseFlags.nelements(); ++index) {
+       if (itsReleaseFlags[index]) {
+           return true;
+       }
+  }
+  return false;
+}
+
 
 /// @brief process a new complete set of antennas
 /// @details This method called every time a new complete set of per-antenna 
@@ -165,7 +236,13 @@ void ExtendedBufferManager::releaseBuffers(const BufferSet &ids) const
 /// @note it is implied that the required locks have already been obtained
 BufferManager::BufferSet ExtendedBufferManager::newBufferSet(const std::pair<int,int> &index) const
 {
-  return BufferManager::newBufferSet(index);
+  itsBuffers = readyBuffers(index).copy();
+  ASKAPDEBUGASSERT(itsBuffers.nelements() >= 3);
+  ASKAPDEBUGASSERT(itsGroupCounter == 0);
+  ASKAPDEBUGASSERT(itsGroupCounter < int(itsPlan.size()));
+  ASKAPCHECK(!itsReleaseFlags[0], "Logic error - attempted to correlate the same baseline triangle twice");          
+  itsReleaseFlags[0] = true;
+  return getTriangle(0);
 }
 
 
