@@ -68,26 +68,29 @@ void CorrWorker::operator()()
     while (true) {
        // extract the first complete set of buffers
        BufferManager::BufferSet ids = itsBufferManager->getFilledBuffers();
-       const uint64_t bat = itsBufferManager->header(ids.itsAnt1).bat;
-       const int beam = itsBufferManager->header(ids.itsAnt1).beam;
-       const int chan = itsBufferManager->header(ids.itsAnt1).freqId;
+       const BufferHeader& hdrAnt1 = itsBufferManager->header(ids.itsAnt1); 
+       const BufferHeader& hdrAnt2 = itsBufferManager->header(ids.itsAnt2); 
+       const BufferHeader& hdrAnt3 = itsBufferManager->header(ids.itsAnt3); 
+       const uint64_t bat = hdrAnt1.bat;
+       const int beam = hdrAnt1.beam;
+       const int chan = hdrAnt1.freqId;
        // consistency checks
-       ASKAPDEBUGASSERT(beam == int(itsBufferManager->header(ids.itsAnt2).beam));
-       ASKAPDEBUGASSERT(beam == int(itsBufferManager->header(ids.itsAnt3).beam));
-       ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt2).freqId));
-       ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt3).freqId));
-       ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
-       ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
-       const int frameOff_01 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt2).frame);
-       const int frameOff_12 = int(itsBufferManager->header(ids.itsAnt2).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
-       const int frameOff_02 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
+       ASKAPDEBUGASSERT(beam == int(hdrAnt2.beam));
+       ASKAPDEBUGASSERT(beam == int(hdrAnt3.beam));
+       ASKAPDEBUGASSERT(chan == int(hdrAnt2.freqId));
+       ASKAPDEBUGASSERT(chan == int(hdrAnt3.freqId));
+       ASKAPDEBUGASSERT(bat == hdrAnt2.bat);
+       ASKAPDEBUGASSERT(bat == hdrAnt3.bat);
+       const int frameOff_01 = int(hdrAnt1.frame) - int(hdrAnt2.frame);
+       const int frameOff_12 = int(hdrAnt2.frame) - int(hdrAnt3.frame);
+       const int frameOff_02 = int(hdrAnt1.frame) - int(hdrAnt3.frame);
        // for debugging
        if ((chan == 0) || (chan == 8)) {
-          ASKAPLOG_INFO_STR(logger, "Frame difference (ant"<<ids.itsAnt1<<" - ant"<<ids.itsAnt2<<") is "<<
+          ASKAPLOG_INFO_STR(logger, "Frame difference (ant"<<hdrAnt1.antenna<<" - ant"<<hdrAnt2.antenna<<") is "<<
                             frameOff_01<<" for chan="<<chan);
-          ASKAPLOG_INFO_STR(logger, "                 (ant"<<ids.itsAnt2<<" - ant"<<ids.itsAnt3<<") is "<<
+          ASKAPLOG_INFO_STR(logger, "                 (ant"<<hdrAnt2.antenna<<" - ant"<<hdrAnt3.antenna<<") is "<<
                             frameOff_12<<" for chan="<<chan);
-          ASKAPLOG_INFO_STR(logger, "                 (ant"<<ids.itsAnt1<<" - ant"<<ids.itsAnt3<<") is "<<
+          ASKAPLOG_INFO_STR(logger, "                 (ant"<<hdrAnt1.antenna<<" - ant"<<hdrAnt3.antenna<<") is "<<
                             frameOff_02<<" for chan="<<chan);
        }
        // run correlation
@@ -103,20 +106,20 @@ void CorrWorker::operator()()
        // store the result
        CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
-       const int baseline0 = cp.baseline(ids.itsAnt1, ids.itsAnt2);
-       const int baseline1 = cp.baseline(ids.itsAnt2, ids.itsAnt3);
-       const int baseline2 = cp.baseline(ids.itsAnt1, ids.itsAnt3);
+       const int baseline0 = cp.baseline(hdrAnt1.antenna, hdrAnt2.antenna);
+       const int baseline1 = cp.baseline(hdrAnt2.antenna, hdrAnt3.antenna);
+       const int baseline2 = cp.baseline(hdrAnt1.antenna, hdrAnt3.antenna);
        ASKAPDEBUGASSERT(baseline0 < int(cp.nBaseline()));
        ASKAPDEBUGASSERT(baseline1 < int(cp.nBaseline()));
        ASKAPDEBUGASSERT(baseline2 < int(cp.nBaseline()));
        
        if (chan==0) {
-          ASKAPDEBUGASSERT(ids.itsAnt1 < int(cp.itsControl.nelements()));
-          ASKAPDEBUGASSERT(ids.itsAnt2 < int(cp.itsControl.nelements()));
-          ASKAPDEBUGASSERT(ids.itsAnt3 < int(cp.itsControl.nelements()));          
-          cp.itsControl[ids.itsAnt1] = itsBufferManager->header(ids.itsAnt1).control;
-          cp.itsControl[ids.itsAnt2] = itsBufferManager->header(ids.itsAnt2).control;
-          cp.itsControl[ids.itsAnt3] = itsBufferManager->header(ids.itsAnt3).control;
+          ASKAPDEBUGASSERT(hdrAnt1.antenna < cp.itsControl.nelements());
+          ASKAPDEBUGASSERT(hdrAnt2.antenna < cp.itsControl.nelements());
+          ASKAPDEBUGASSERT(hdrAnt3.antenna < cp.itsControl.nelements());          
+          cp.itsControl[hdrAnt1.antenna] = hdrAnt1.control;
+          cp.itsControl[hdrAnt2.antenna] = hdrAnt2.control;
+          cp.itsControl[hdrAnt3.antenna] = hdrAnt3.control;
        }
        // unflag this channel if frame offset is less than 100 by absolute value (it should be within a few steps); false is good here
           //cp.itsFlag.column(chan).set(false);
