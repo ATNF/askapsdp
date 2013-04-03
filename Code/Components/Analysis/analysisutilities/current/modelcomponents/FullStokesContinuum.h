@@ -95,6 +95,7 @@ namespace askap {
       double itsCosVA;
 
       double itsStokesRefFreq;
+      double itsStokesIref;
       double itsStokesQref;
       double itsStokesUref;
       double itsStokesVref;

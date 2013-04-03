@@ -96,7 +96,7 @@ namespace askap {
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
 	       >> this->itsPA >> this->itsMaj >> this->itsMin 
-	       >> this->itsI151 >> this->itsI610 >> flux1420 
+	       >> this->itsI151 >> this->itsI610 >> this->itsStokesIref 
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
 	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
 	    
@@ -108,8 +108,8 @@ namespace askap {
 	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
 	    this->itsFreqValues[2] = POLREFFREQ;
 
-	    this->itsI1400 = log10(flux1420);
-	    this->itsFlux = flux1420; // Set the reference flux here, but should properly call prepareForUse() to get it right.
+	    this->itsI1400 = log10(this->itsStokesIref);
+	    this->itsFlux = this->itsStokesIref; // Set the reference flux here, but should properly call prepareForUse() to get it right.
 	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1420<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
 
@@ -137,7 +137,7 @@ namespace askap {
 	theStream.precision(4);
 	theStream << std::setw(10)<<this->itsI151 << std::setw(10)<<this->itsI610;
 	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
-	theStream << std::setw(12)<<this->itsFlux << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
+	theStream << std::setw(12)<<this->itsStokesIref << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4860 << std::setw(10)<<this->itsI18000 << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
