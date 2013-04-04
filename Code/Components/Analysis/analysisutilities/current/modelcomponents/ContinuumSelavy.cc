@@ -92,12 +92,12 @@ namespace askap {
 	    if(this->itsFlagUseDeconvolvedSizes){
 	      this->setMaj(std::max(this->itsMajDECONV,this->itsMinDECONV));
 	      this->setMin(std::min(this->itsMajDECONV,this->itsMinDECONV));
-	      this->setPA(this->itsPADECONV);
+	      this->setPA(this->itsPADECONV * M_PI / 180.);
 	    }
 	    else{
 	      this->setMaj(std::max(this->itsMajFIT,this->itsMinFIT));
 	      this->setMin(std::min(this->itsMajFIT,this->itsMinFIT));
-	      this->setPA(this->itsPAFIT);
+	      this->setPA(this->itsPAFIT * M_PI / 180.);
 	    }
 	    this->setFluxZero(this->itsFintFIT);
 	    this->itsFlagGuess = (flag==1);

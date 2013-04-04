@@ -196,17 +196,24 @@ namespace askap {
 	    gsl_vector_free (c);
 	    gsl_matrix_free (cov);
 
-	    // ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum
-	    // 		       <<", I151="<<itsI151<<", I610="<<itsI610
-	    // 		       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
-	    // 		       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
-	    // 		       <<", flux="<<log10(this->itsFlux)
-	    // 		       <<", alpha="<<this->itsAlpha
-	    // 		       <<", beta="<<this->itsBeta);
+	    ASKAPLOG_DEBUG_STR(logger, "From Fit::  S3SEX source: ID="<<this->itsComponentNum
+	    		       <<", I151="<<itsI151<<", I610="<<itsI610
+	    		       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
+	    		       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
+	    		       <<", flux="<<log10(this->itsFlux)
+	    		       <<", alpha="<<this->itsAlpha
+	    		       <<", beta="<<this->itsBeta);
 	  }
 	  else{
 	    ASKAPLOG_ERROR_STR(logger, "Unknown SED type in ContinuumS3SEX");
 	  }
+	    ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum
+	    		       <<", I151="<<itsI151<<", I610="<<itsI610
+	    		       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
+	    		       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
+	    		       <<", flux="<<log10(this->itsFlux)
+	    		       <<", alpha="<<this->itsAlpha
+	    		       <<", beta="<<this->itsBeta);
         }
 
       ContinuumS3SEX::ContinuumS3SEX(const ContinuumS3SEX& c):

@@ -110,7 +110,7 @@ namespace askap {
 	/// convertSource()). Also finds the pixel scale, which is the
 	/// geometric mean of the increment of the two spatial
 	/// directions, and the units of the direction axes. If these
-	/// are not the same a error is raised.  If no beam is found,
+	/// are not the same an error is raised.  If no beam is found,
 	/// the beam area is set to 1 (so convertSource() will not do
 	/// anything).
 

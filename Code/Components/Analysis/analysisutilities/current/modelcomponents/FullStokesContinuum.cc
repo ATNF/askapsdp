@@ -90,7 +90,6 @@ namespace askap {
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
             /// @param line A line from the ascii input file
 
-	  float flux1420;
             std::stringstream ss(line);
             ss >> this->itsComponentNum >> this->itsClusterID >> this->itsGalaxyNum 
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
