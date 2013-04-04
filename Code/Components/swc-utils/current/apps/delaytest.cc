@@ -124,7 +124,10 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             if ((casa::abs(currentAvgVis) > 50) && (row % 3 == 0)) {
                 flagged = true;
             } 
-            
+            // optional flagging based on time-range
+            if ((counter>1) && ((it->time() - startTime)/60.>1050.)) {
+                flagged = true;
+            }
             
             /*
             // uncomment to store the actual amplitude time-series
@@ -166,6 +169,14 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
            nChan = 0;
            continue;
        }
+       /*
+       // optionally reset integration to provide multiple chunks integrated 
+       if ((counter>1) && ((it->time() - startTime)/60. >= 29.9999999)) {
+           counter = 0;
+           nChan = 0;
+       } 
+       //
+       */
       
        if (++counter == 1) {
            startTime = it->time();
