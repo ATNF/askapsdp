@@ -565,7 +565,7 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
 
 	  casa::Gaussian2D<casa::Double> gauss;
-	  const float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
+	  const double arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
 
 	  if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
 
