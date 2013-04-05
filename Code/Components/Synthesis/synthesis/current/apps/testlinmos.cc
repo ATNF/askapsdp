@@ -63,24 +63,27 @@ casa::MVDirection convertDir(const std::string &ra, const std::string &dec) {
 }
 
 void process() {
-  const casa::MVDirection beam0centre = convertDir("19:41:21.77","-62.11.21.06");
-  //const casa::MVDirection beam1centre = convertDir("19:39:25.03","-63.42.45.6");
-  const casa::MVDirection beam1centre = convertDir("19:36:17.78","-63.07.50.87");
-  const double cutoff = 1e-2;
-  const double fwhm = 1.22*3e8/930e6/12;
+  // centres for each beam
+  casa::Vector<casa::MVDirection> centres(3);
+  centres[0] = convertDir("15:56:58.87","-79.14.04.28");
+  centres[1] = convertDir("16:17:49.28","-77.17.18.49");
+  centres[2] = convertDir("16:08:15.09","-78.16.24.53");
+  const double cutoff = 5e-2;
+  const double fwhm = 1.22*3e8/928e6/12;
   
-
   accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
-  const casa::IPosition shape = iacc.shape("image.beam1");
-  const casa::Vector<casa::Quantum<double> > beamInfo = iacc.beamInfo("image.beam1");
+  const casa::IPosition shape = iacc.shape("beam0.img");
+  const casa::Vector<casa::Quantum<double> > beamInfo = iacc.beamInfo("beam0.img");
   ASKAPCHECK(beamInfo.nelements()>=3, "beamInfo is supposed to have at least 3 elements");
-  const casa::CoordinateSystem cs = iacc.coordSys("image.beam1");
-  casa::Array<float> pix1 = iacc.read("image.beam1");
-  // read the second one
-  casa::Array<float> pix2 = iacc.read("image.beam0");
-  ASKAPASSERT(pix1.shape() == pix2.shape());
-  ASKAPASSERT(pix1.shape().nonDegenerate().nelements() == 2);
-  casa::IPosition curpos(pix1.shape());
+  const casa::CoordinateSystem cs = iacc.coordSys("beam0.img");
+  casa::Vector<casa::Array<float> > pixels(centres.nelements());
+  ASKAPASSERT(pixels.nelements()>=1);
+  for (size_t beam = 0; beam < pixels.nelements(); ++beam) {
+       pixels[beam] = iacc.read("beam" + utility::toString<size_t>(beam)+".img");
+       ASKAPASSERT(pixels[beam].shape() == pixels[0].shape());
+       ASKAPASSERT(pixels[beam].shape().nonDegenerate().nelements() == 2);
+  }
+  casa::IPosition curpos(pixels[0].shape());
   for (casa::uInt dim=0; dim<curpos.nelements(); ++dim) {
        curpos[dim] = 0;
   }
@@ -88,29 +91,36 @@ void process() {
   const casa::DirectionCoordinate &dc = cs.directionCoordinate(0);
   casa::Vector<casa::Double> pixel(2,0.);
   casa::MVDirection world;
-  for (int x=0; x<pix1.shape()[0];++x) {
-       for (int y=0; y<pix2.shape()[1];++y) {
+  for (int x=0; x<pixels[0].shape()[0];++x) {
+       for (int y=0; y<pixels[0].shape()[1];++y) {
             pixel[0] = double(x);
             pixel[1] = double(y);
             dc.toWorld(world,pixel);
-            const double offsetBeam0 = world.separation(beam0centre);
-            const double offsetBeam1 = world.separation(beam1centre);
+            const double offsetBeam0 = world.separation(centres[0]);
             const double wt0 = exp(-offsetBeam0*offsetBeam0*4.*log(2.)/fwhm/fwhm);
-            const double wt1 = exp(-offsetBeam1*offsetBeam1*4.*log(2.)/fwhm/fwhm);
-            const double sumsqwt = wt0*wt0 + wt1*wt1;
+            double sumsqwt = wt0 * wt0;
             curpos[0] = x;
             curpos[1] = y;
-            if (sqrt(sumsqwt)<cutoff) {
-                pix1(curpos) = 0.;
-            } else {
-                pix1(curpos) = (pix1(curpos)*wt1 + pix2(curpos)*wt0)/sqrt(sumsqwt);
+            double resflux = pixels[0](curpos) * wt0;
+            for (size_t beam=1; beam<pixels.nelements(); ++beam) {
+                 const double offsetThisBeam = world.separation(centres[beam]);
+                 const double thisWt = exp(-offsetThisBeam*offsetThisBeam*4.*log(2.)/fwhm/fwhm);
+                 sumsqwt += thisWt*thisWt;
+                 resflux += pixels[beam](curpos)*thisWt;
             }
+            if (sqrt(sumsqwt)<cutoff) {
+                resflux = 0.;
+            } else {
+                resflux /= sqrt(sumsqwt);
+            }
+            pixels[0](curpos) = sqrt(sumsqwt); //resflux;
+            //pixels[0](curpos) = resflux;
        }
   }
  
   // write result
   iacc.create("image.result", shape, cs);
-  iacc.write("image.result",pix1);
+  iacc.write("image.result",pixels[0]);
   iacc.setBeamInfo("image.result",beamInfo[0].getValue("rad"), beamInfo[1].getValue("rad"),
                    beamInfo[2].getValue("rad"));
 }
