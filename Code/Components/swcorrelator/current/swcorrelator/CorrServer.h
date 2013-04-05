@@ -44,6 +44,9 @@
 #include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
+// std
+#include <string>
+
 namespace askap {
 
 namespace swcorrelator {
@@ -102,6 +105,9 @@ private:
   
   /// @brief true if the capture mode produces stats only
   bool itsStatsOnly;
+
+  /// @brief stream type (float or int)
+  std::string itsStreamType;
 };
 
 } // namespace swcorrelator

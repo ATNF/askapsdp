@@ -39,10 +39,11 @@
 #include <swcorrelator/CorrWorker.h>
 #include <swcorrelator/CaptureWorker.h>
 #include <swcorrelator/StreamConnection.h>
+#include <swcorrelator/FloatStreamConnection.h>
 #include <swcorrelator/HeaderPreprocessor.h>
 #include <boost/asio.hpp>
 
-ASKAP_LOGGER(logger, ".swcorrelator");
+ASKAP_LOGGER(logger, ".corrserver");
 
 namespace askap {
 
@@ -66,12 +67,15 @@ void CorrServer::stop()
 /// @param[in] parset parset file with configuration info
 CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService), 
      itsCaptureMode(parset.getBool("capturemode", false)),
-     itsStatsOnly(parset.getBool("capturemode.statsonly",false))
+     itsStatsOnly(parset.getBool("capturemode.statsonly",false)),
+     itsStreamType(parset.getString("streamtype","int"))
 {
   theirStopRequested = false;
+  ASKAPCHECK((itsStreamType == "int") || (itsStreamType == "float"), "Only 'int' and 'float' stream types are supported, you have "<<itsStreamType);
   // setup acceptor
   const int port = parset.getInt32("port");
-  ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
+  ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port<<", stream type is "<<itsStreamType);
+  
 
   if (itsCaptureMode) {
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
@@ -159,7 +163,11 @@ void CorrServer::initAsyncAccept()
 void CorrServer::asyncAcceptHandler(const boost::system::error_code &e)
 {
   if (!e) {
-     itsThreads.create_thread(StreamConnection(itsSocketBuf, itsBufferManager));
+     if (itsStreamType == "int") {
+         itsThreads.create_thread(StreamConnection(itsSocketBuf, itsBufferManager));
+     } else {
+         itsThreads.create_thread(FloatStreamConnection(itsSocketBuf, itsBufferManager));
+     }
      itsSocketBuf.reset();
   }
   if (!theirStopRequested) {
