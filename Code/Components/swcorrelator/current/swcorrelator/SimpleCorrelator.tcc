@@ -117,6 +117,9 @@ Simple3BaselineCorrelator<AccType, IndexType>::Simple3BaselineCorrelator(const I
          const IndexType delay2, const IndexType delay3) : itsDelay1(delay1), itsDelay2(delay2),
          itsDelay3(delay3), itsVis12(AccType(0)), itsVis13(AccType(0)), itsVis23(AccType(0)),
          itsSamples12(0), itsSamples13(0), itsSamples23(0) 
+#ifdef SUBTRACT_DC
+         , itsAnt1Sum(AccType(0)), itsAnt2Sum(AccType(0)), itsAnt3Sum(AccType(0))
+#endif
 {
   const IndexType minDelay = std::min(itsDelay1, std::min(itsDelay2, itsDelay3));
   itsDelay1 -= minDelay;
@@ -155,6 +158,11 @@ void Simple3BaselineCorrelator<AccType, IndexType>::reset()
   itsSamples12 = IndexType(0);
   itsSamples13 = IndexType(0);
   itsSamples23 = IndexType(0);
+#ifdef SUBTRACT_DC
+  itsAnt1Sum = AccType(0);
+  itsAnt2Sum = AccType(0);
+  itsAnt3Sum = AccType(0);
+#endif
 }
 
 //#define CYCLIC_CORR
@@ -181,6 +189,11 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
        itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
        itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
        itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
+#ifdef SUBTRACT_DC
+       itsAnt1Sum += AccType(*(stream1 + offset1));
+       itsAnt2Sum += AccType(*(stream2 + offset2));
+       itsAnt3Sum += AccType(*(stream3 + offset3));
+#endif
   }
   const IndexType largestDelay = std::max(itsDelay1, std::max(itsDelay2, itsDelay3));
 
@@ -198,6 +211,11 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
        itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
        itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
        itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
+#ifdef SUBTRACT_DC
+       itsAnt1Sum += AccType(*(stream1 + offset1));
+       itsAnt2Sum += AccType(*(stream2 + offset2));
+       itsAnt3Sum += AccType(*(stream3 + offset3));
+#endif
   }
   itsSamples12 += size;
   itsSamples13 += size;

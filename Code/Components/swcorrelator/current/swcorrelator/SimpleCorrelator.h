@@ -36,6 +36,8 @@
 #ifndef SIMPLE_CORRELATOR_H
 #define SIMPLE_CORRELATOR_H
 
+#define SUBTRACT_DC
+
 #include <iterator>
 #include <stdexcept>
 #include <vector>
@@ -147,6 +149,33 @@ public:
   /// @details This method can be used to move to the next integration cycle
   void reset();
   
+#ifdef SUBTRACT_DC
+  /// @brief obtain buffer with the sum
+  /// @return sum of all samples for antenna 1
+  inline AccType getSum1() const { return itsAnt1Sum;}
+
+  /// @brief obtain buffer with the sum
+  /// @return sum of all samples for antenna 2
+  inline AccType getSum2() const { return itsAnt2Sum;}
+
+  /// @brief obtain buffer with the sum
+  /// @return sum of all samples for antenna 3
+  inline AccType getSum3() const { return itsAnt3Sum;}
+
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis12() const { return itsVis12 - itsAnt1Sum * conj(itsAnt2Sum) / float(itsSamples12 != 0 ? itsSamples12 : 1); }
+
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis13() const { return itsVis13 - itsAnt1Sum * conj(itsAnt3Sum) / float(itsSamples13 != 0 ? itsSamples13 : 1); }
+
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis23() const { return itsVis23 - itsAnt2Sum * conj(itsAnt3Sum) / float(itsSamples23 != 0 ? itsSamples23 : 1); }
+
+#else
+
   /// @brief obtain buffer
   /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
   inline AccType getVis12() const { return itsVis12; }
@@ -158,6 +187,8 @@ public:
   /// @brief obtain buffer
   /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
   inline AccType getVis23() const { return itsVis23; }
+
+#endif
   
   /// @return obtain number of accumulated samples
   inline IndexType nSamples12() const { return itsSamples12;}
@@ -207,6 +238,19 @@ private:
   
   /// @bruef number of accumulated samples for baseline 23
   IndexType itsSamples23;
+
+#ifdef SUBTRACT_DC
+  
+  /// @brief sum of samples for antenna 1
+  AccType itsAnt1Sum;
+
+  /// @brief sum of samples for antenna 2
+  AccType itsAnt2Sum;
+
+  /// @brief sum of samples for antenna 3
+  AccType itsAnt3Sum;
+
+#endif
   
 };
 
