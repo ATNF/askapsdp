@@ -184,8 +184,13 @@ void doReadOnlyTest(const IConstDataSource &ds) {
 
 void makeRaster() {
   // Virgo
-  casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
-  const double size = 4.9; // in degrees
+  //casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
+  // 0407-658
+  casa::MVDirection tangent(convertQuantity("04h08m20.38","rad"),convertQuantity("-65.45.09.1","rad"));
+
+  //const double size = 4.9; // in degrees
+  const double size = 4.2; // in degrees
+
   std::cout<<"Making a raster file for "<<size<<" by "<<size<<" deg about tangent: "<<printDirection(tangent)<<std::endl;
   const double resolution = 0.25; // in degrees
   // we always include 0 offset, so the number of points each side will always be odd
