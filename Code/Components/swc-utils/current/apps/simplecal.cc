@@ -100,8 +100,12 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
-           ASKAPCHECK(nRow == it->nRow(), 
-                  "Number of rows seem to have been changed, previously "<<nRow<<" now "<<it->nRow());
+           //ASKAPCHECK(nRow == it->nRow(), 
+           //       "Number of rows seem to have been changed, previously "<<nRow<<" now "<<it->nRow());
+           if (nRow != it->nRow()) {
+               std::cerr<<"Number of rows has been changed, initially "<<nRow<<" now "<<it->nRow()<<", integration cycle = "<<counter+1<<std::endl;
+               continue;
+           }
        }
        
        ASKAPASSERT(it->nPol() >= 1);

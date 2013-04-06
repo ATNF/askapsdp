@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
-  //sel->chooseFeed(1);
+  sel->chooseFeed(0);
   if (ctrl >=0 ) {
       sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
   }
@@ -121,13 +121,16 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             
             // flagging based on the amplitude (to remove extreme outliers)
             casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
-            if ((casa::abs(currentAvgVis) > 50) && (row % 3 == 0)) {
+            
+            if ((casa::abs(currentAvgVis) > 0.05) && (row % 3 == 2)) {
                 flagged = true;
             } 
+            /*
             // optional flagging based on time-range
             if ((counter>1) && ((it->time() - startTime)/60.>1050.)) {
                 flagged = true;
             }
+            */
             
             /*
             // uncomment to store the actual amplitude time-series
@@ -147,7 +150,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                 }
                 ++nGoodRows;
                 // uncomment to store averaged time-series
-                if ((counter>1) && (row % 3 == 0) && (it->feed1()[row] == 0)) {
+                if ((counter>1) && (row % 3 == 2) && (it->feed1()[row] == 0)) {
                     const casa::Vector<casa::Complex> currentSpectrum = thisRow.copy() / float(counter);                    
                     const casa::Complex avgVis = casa::sum(currentSpectrum) / float(currentSpectrum.nelements());
                     casa::Complex avgSqr(0.,0.);

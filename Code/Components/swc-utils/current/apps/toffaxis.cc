@@ -182,6 +182,35 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   }
 }
 
+void makeRaster() {
+  // Virgo
+  casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
+  const double size = 4.9; // in degrees
+  std::cout<<"Making a raster file for "<<size<<" by "<<size<<" deg about tangent: "<<printDirection(tangent)<<std::endl;
+  const double resolution = 0.25; // in degrees
+  // we always include 0 offset, so the number of points each side will always be odd
+  const int halfNOffsets = int(size/2./resolution);
+  const int nOffsets = 2*halfNOffsets+1;
+  std::cout<<"Will include "<<nOffsets<<" points each side"<<std::endl;
+  std::ofstream os("rasterpointings.dat");
+  os<<"# pointings for the "<<nOffsets*resolution<<" by "<<nOffsets*resolution<<" deg raster around "<<printDirection(tangent)<<std::endl;
+  os<<"# resolution = "<<resolution<<" degrees, "<<nOffsets<<" pointings each side"<<std::endl;
+  os<<"# columns are RA2000 DEC2000 SequenceNum x y"<<std::endl;
+  size_t counter = 0;
+  const double resolutionInRad = resolution / 180. * casa::C::pi;
+  for (int x = -halfNOffsets; x <= halfNOffsets; ++x) {
+       const int dir = (x + halfNOffsets) % 2 == 0 ? 1 : -1; // the first scan is in the increasing order
+       for (int y = -halfNOffsets; y <= halfNOffsets; ++y) {
+            const double xOffset = double(x) * resolutionInRad;
+            const double yOffset = double(y * dir) * resolutionInRad;
+            casa::MVDirection testDir(tangent);
+            testDir.shift(xOffset,yOffset, casa::True);
+            ++counter; // effectively a 1-based counter
+            os<<testDir.getLong()/casa::C::pi*180.<<" "<<testDir.getLat()/casa::C::pi*180.<<" "<<counter<<" "<<x<<" "<<y * dir<<std::endl;
+       }
+  }
+}
+
 void doTest() {
   // 1549-790
   const casa::MVDirection tangent(convertQuantity("15h56m58.871","rad"), convertQuantity("-79.14.04.28","rad"));
@@ -192,24 +221,25 @@ void doTest() {
   // 1610-771
   const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
 
+  // 1936-623
   //const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
   
   // 1547-795
   //const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
   
 
-  //casa::MVDirection testDir = tangent;
+  casa::MVDirection testDir = tangent;
   // Virgo
   //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
   // 1934-638
   //casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
-  casa::MVDirection testDir(convertQuantity("07h12m43.98","rad"),convertQuantity("18.57.52.4","rad"));
+  //casa::MVDirection testDir(convertQuantity("07h12m43.98","rad"),convertQuantity("18.57.52.4","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
   std::cout<<"test direction: "<<printDirection(testDir)<<std::endl;
   double offset1 = 0., offset2 = 0.;
-  const double factor = -1;
+  const double factor = +0.5;
 
   offset1 = sin(dir.getLong() - tangent.getLong()) * cos(dir.getLat());
   offset2 = sin(dir.getLat()) * cos(tangent.getLat()) - cos(dir.getLat()) * sin(tangent.getLat())
@@ -236,6 +266,7 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
+     makeRaster();
      doTest();
      //doReadOnlyTest(ds);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
