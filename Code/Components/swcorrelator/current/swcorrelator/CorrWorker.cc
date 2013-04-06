@@ -127,6 +127,14 @@ void CorrWorker::operator()()
           cp.itsFlag(baseline1,chan) = (abs(frameOff_12) >= 100);
           cp.itsFlag(baseline2,chan) = (abs(frameOff_02) >= 100);
        //
+       // flag if control is different. We do it in the filler anyway, but it is handy to also do it earlier as it would be more
+       // clear from the logs when this condition took place.
+       if ((hdrAnt1.control != hdrAnt2.control) || (hdrAnt1.control != hdrAnt3.control) || (hdrAnt2.control != hdrAnt3.control)) {
+           cp.itsFlag(baseline0,chan) = true;
+           cp.itsFlag(baseline1,chan) = true;
+           cp.itsFlag(baseline2,chan) = true;
+       }
+       //
        cp.itsVisibility(baseline0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
        cp.itsVisibility(baseline1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
        cp.itsVisibility(baseline2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
