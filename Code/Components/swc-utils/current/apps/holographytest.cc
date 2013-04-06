@@ -32,7 +32,6 @@ ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
 #include <dataaccess/SharedIter.h>
-#include <utils/ImageUtils.h>
 
 #include <dataaccess/TableManager.h>
 #include <dataaccess/IDataConverterImpl.h>
@@ -44,6 +43,11 @@ ASKAP_LOGGER(logger, "");
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/MatrixMath.h>
+#include <images/Images/PagedImage.h>
+#include <lattices/Lattices/ArrayLattice.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/LinearCoordinate.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
 
 
 
@@ -192,34 +196,64 @@ casa::Matrix<casa::Complex> processOnePoint(const IConstDataSource &ds, const in
 }
 
 void process(const IConstDataSource &ds, const casa::uInt size) {
-   //const double resolutionInRad = 0.25 / 180. * casa::C::pi; // in radians
+   const double resolutionInRad = 0.25 / 180. * casa::C::pi; // in radians
    ASKAPDEBUGASSERT(size % 2 == 1);
    ASKAPDEBUGASSERT(size > 1);
    const int halfSize = (int(size) - 1) / 2;
-   casa::Cube<float> buf(size,size,maxMappedAnt * maxMappedBeam,0.);
+   //const casa::IPosition targetShape(4,int(size),int(size),maxMappedBeam,maxMappedAnt);
+   const casa::IPosition targetShape(3,int(size),int(size),maxMappedBeam*maxMappedAnt);
+   casa::Array<float> buf(targetShape,0.);
 
    int counter = 0;
    for (int x = -halfSize; x <= halfSize; ++x) {
        const int dir = (x + halfSize) % 2 == 0 ? 1 : -1; // the first scan is in the increasing order
        for (int y = -halfSize; y <= halfSize; ++y) {
-            //const double xOffset = double(x) * resolutionInRad;
-            //const double yOffset = double(y * dir) * resolutionInRad;
-            //casa::MVDirection testDir(tangent);
-            //testDir.shift(xOffset,yOffset, casa::True);
 
             ++counter; // effectively a 1-based counter
 
+            int planeCounter = 0;
             casa::Matrix<casa::Complex> result = processOnePoint(ds,counter);
-            casa::uInt productCounter = 0;
             for (casa::uInt ant = 0; ant < result.nrow(); ++ant) {
-                 for (casa::uInt beam = 0; beam < result.ncolumn(); ++beam,++productCounter) {
-                      ASKAPDEBUGASSERT(productCounter < buf.nplane());
-                      buf(x + halfSize,y * dir + halfSize,productCounter) = casa::abs(result(ant,beam));
+                 for (casa::uInt beam = 0; beam < result.ncolumn(); ++beam,++planeCounter) {
+                      //const casa::IPosition curPos(4, x + halfSize, halfSize - y * dir,int(beam),int(ant));
+                      ASKAPDEBUGASSERT(planeCounter < targetShape(2));
+                      const casa::IPosition curPos(3, x + halfSize, halfSize - y * dir,planeCounter);
+                      buf(curPos) = casa::abs(result(ant,beam));
                  }
             }
        }
    }
-   scimath::saveAsCasaImage("beammap.img",buf);
+
+   // storing the image
+   size_t nDim = buf.shape().nonDegenerate().nelements();
+   ASKAPASSERT(nDim>=2);
+      
+   casa::Matrix<double> xform(2,2,0.);
+   xform.diagonal() = 1.;
+   casa::DirectionCoordinate dc(casa::MDirection::AZEL, casa::Projection(casa::Projection::SIN),0.,0.,
+         resolutionInRad, resolutionInRad, xform, double(halfSize), double(halfSize));
+         
+   casa::CoordinateSystem coords;
+   coords.addCoordinate(dc);
+      
+   for (size_t dim=2; dim<nDim; ++dim) {
+        casa::Vector<casa::String> addname(1);
+        if (dim == 2) {
+            addname[0] = targetShape.nelements() == 4 ? "beam" : "";
+        } else if (dim == 3) {
+            addname[0] = "antenna";
+        } else {
+           addname[0]="addaxis"+utility::toString<size_t>(dim-3);
+        }
+        casa::Matrix<double> xform(1,1,1.);
+        casa::LinearCoordinate lc(addname, addname,
+        casa::Vector<double>(1,0.), casa::Vector<double>(1,1.),xform, 
+            casa::Vector<double>(1,0.));
+        coords.addCoordinate(lc);
+   }
+   casa::PagedImage<casa::Float> resimg(casa::TiledShape(buf.nonDegenerate().shape()), coords, "beammap.img");
+   casa::ArrayLattice<casa::Float> lattice(buf.nonDegenerate());
+   resimg.copyData(lattice);
 }
    
 int main(int argc, char **argv) {
