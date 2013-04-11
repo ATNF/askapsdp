@@ -59,7 +59,7 @@ Cduchamp.minVoxels = 3
 #
 Cimstat.image = ${CONTINUUMIMAGE}
 Cimstat.flagSubsection = true
-Cimstat.subsection = [601:2700,601:2700,*,*]
+Cimstat.subsection = ${ANALYSIS_SUBSECTION}
 #
 Crossmatch.source.filename     = duchamp-fitResults.txt
 Crossmatch.source.database     = Selavy
