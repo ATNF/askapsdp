@@ -126,6 +126,9 @@ if [ $BETA_MODE == "small" ]; then
     SKYMODEL_FREQ="1.270GHz"
     SKYMODEL_ALT_FREQ="1.270e9"
 
+# subsection of image used for analysis
+    ANALYSIS_SUBSECTION="[301:1800,301:1800,*,*]"
+
 elif [ ${BETA_MODE} == "full" ]; then
 
     echo Running pipeline for original BETA specs: 300MHz BW, 36 beams
@@ -177,6 +180,9 @@ elif [ ${BETA_MODE} == "full" ]; then
     SKYMODEL_REFFREQ="1.270GHz"
     SKYMODEL_FREQ="1.270GHz"
     SKYMODEL_ALT_FREQ="1.270e9"
+
+# subsection of image used for analysis
+    ANALYSIS_SUBSECTION="[601:2700,601:2700,*,*]"
 
 else
 

@@ -42,15 +42,15 @@ parset=analysis-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
 Cduchamp.image = ${CONTINUUMIMAGE}
 Cduchamp.flagSubsection = true
-Cduchamp.subsection = [601:2700,601:2700,*,*]
+Cduchamp.subsection = ${ANALYSIS_SUBSECTION}
 Cduchamp.snrCut = 6
 Cduchamp.flagGrowth = true
 Cduchamp.growthCut = 4
 Cduchamp.doMedianSearch = true
 Cduchamp.medianBoxWidth = 50
-Cduchamp.doFit = true
+Cduchamp.Fitter.doFit = true
 Cduchamp.Fitter.fitTypes = [full]
-Cduchamp.fitJustDetection = true
+Cduchamp.Fitter.fitJustDetection = true
 Cduchamp.Fitter.stopAfterFirstGoodFit = true
 Cduchamp.nsubx = 5
 Cduchamp.nsuby = 3
@@ -67,9 +67,12 @@ Crossmatch.source.trimsize     = 30
 Crossmatch.reference.filename  = ${skymodel}
 Crossmatch.reference.database  = Selavy
 Crossmatch.reference.trimsize  = 30
-Crossmatch.epsilon = 8.e-3
+Crossmatch.epsilon = 60arcsec
 Crossmatch.matchfile = matches.txt
 Crossmatch.missfile = misses.txt
+#
+Eval.refCatalogue = ${skymodel}
+Eval.sourceCatalogue = duchamp-fitResults.txt
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
