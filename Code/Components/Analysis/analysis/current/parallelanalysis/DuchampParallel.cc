@@ -968,22 +968,24 @@ namespace askap {
 	  if(this->itsFlagWriteSNRimage){
 
 	    ASKAPLOG_DEBUG_STR(logger, "Saving SNR map to image \"" << this->itsSNRimageName <<"\"");
-	    std::stringstream addition;
-	    addition << "-" << itsComms.rank();
-	    this->itsSNRimageName += addition.str();
-	    ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
-	    
+	    if(this->itsComms.isParallel()){
+		std::stringstream addition;
+		addition << "-" << itsComms.rank();
+		this->itsSNRimageName += addition.str();
+		ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
+	    }
 	    this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
 	  }
 	
 	  if(this->itsFlagWriteThresholdImage){
 
 	    ASKAPLOG_DEBUG_STR(logger, "Saving Threshold map to image \"" << this->itsThresholdImageName <<"\"");
-	    std::stringstream addition;
-	    addition << "-" << itsComms.rank();
-	    this->itsSNRimageName += addition.str();
-	    ASKAPLOG_DEBUG_STR(logger, "Threshold image name is now " << this->itsSNRimageName);
-	    
+	    if(this->itsComms.isParallel()){
+		std::stringstream addition;
+		addition << "-" << itsComms.rank();
+		this->itsSNRimageName += addition.str();
+		ASKAPLOG_DEBUG_STR(logger, "Threshold image name is now " << this->itsSNRimageName);
+	    }
 	    // Find the flux threshold map, purely for the purposes of writing it out to an image.
 	    // Re-use the temporary storage we used for the SNR map prior to saving to the Cube's recon array
 	    if(this->itsCube.pars().getSearchType()=="spatial"){
@@ -1018,10 +1020,12 @@ namespace askap {
 	  if(this->itsFlagWriteNoiseImage){
 
 	      ASKAPLOG_DEBUG_STR(logger, "Saving Noise map to image \"" << this->itsNoiseImageName <<"\"");
-	      std::stringstream addition;
-	      addition << "-" << itsComms.rank();
-	      this->itsSNRimageName += addition.str();
-	      ASKAPLOG_DEBUG_STR(logger, "Noise image name is now " << this->itsSNRimageName);
+	      if(this->itsComms.isParallel()){
+		  std::stringstream addition;
+		  addition << "-" << itsComms.rank();
+		  this->itsSNRimageName += addition.str();
+		  ASKAPLOG_DEBUG_STR(logger, "Noise image name is now " << this->itsSNRimageName);
+	      }
 
 	      // Find the flux threshold map, purely for the purposes of writing it out to an image.
 	      // Re-use the temporary storage we used for the SNR map (snrAll) prior to saving to the Cube's recon array
@@ -2747,11 +2751,11 @@ namespace askap {
 	  // if here, something went wrong
 	  if (this->itsCube.pars().section().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
 	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().section().getSection());
-	  if (this->itsCube.pars().statsec().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
+	  if (this->itsCube.pars().getFlagStatSec() && this->itsCube.pars().statsec().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
 	    ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << this->itsCube.pars().statsec().getSection());
 	  if(!this->itsCube.pars().section().isValid())
 	    ASKAPTHROW(AskapError, "Pixel subsection " << this->itsBaseSubsection << " has no pixels");
-	  if(!this->itsCube.pars().statsec().isValid())
+	  if(this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
 	    ASKAPTHROW(AskapError, "Statistics subsection " << this->itsBaseStatSubsection << " has no pixels in common with the image or the pixel subsection requested");
 	}
 	
