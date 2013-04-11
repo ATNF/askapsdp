@@ -67,7 +67,7 @@ Crossmatch.source.trimsize     = 30
 Crossmatch.reference.filename  = ${skymodel}
 Crossmatch.reference.database  = Selavy
 Crossmatch.reference.trimsize  = 30
-Crossmatch.epsilon = 60arcsec
+Crossmatch.epsilon = 10arcsec
 Crossmatch.matchfile = matches.txt
 Crossmatch.missfile = misses.txt
 #
