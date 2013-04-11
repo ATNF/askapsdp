@@ -395,7 +395,7 @@ namespace askap {
             void RadioSource::getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min)
             {
                 /// @details This returns an estimate of an object's shape,
-                /// using the principle axes and position angle calculated in
+                /// using the principal axes and position angle calculated in
                 /// the duchamp::PixelInfo code. This is done by using the
                 /// array of flux values given by f, thresholding at half the
                 /// object's peak flux value, and averaging the x- and
@@ -423,7 +423,7 @@ namespace askap {
                             (tempobj.getYPeak() + this->boxYmin()) == this->getYPeak()) {
 		      // measure parameters only for source at peak
                         angle = o->getPositionAngle();
-                        std::pair<double, double> axes = o->getPrincipleAxes();
+                        std::pair<double, double> axes = o->getPrincipalAxes();
                         maj = std::max(axes.first, axes.second);
                         min = std::min(axes.first, axes.second);
                     }
