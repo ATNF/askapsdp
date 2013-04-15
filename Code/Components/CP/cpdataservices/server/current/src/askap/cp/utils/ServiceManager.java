@@ -60,6 +60,8 @@ public class ServiceManager {
 				logger.warn("No endpoint exception" + baseWarn);
 			} catch (Ice.NotRegisteredException e) {
 				logger.warn("Not registered exception" + baseWarn);
+			} catch (Ice.ConnectFailedException e) {
+				logger.warn("Connect failed exception" + baseWarn);
 			}
 			if (!activated) {
 				try {
