@@ -197,6 +197,7 @@ while [ \$IDX -lt \$END ]; do
 done
 
 dir="merge1-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
+mkdir -p ${logdirVis}/\${dir}
 logfile=${logdirVis}/\${dir}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
