@@ -118,13 +118,13 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$plotEval > \$pelog
+mpirun -np 1 \$plotEval -c \$parset > \$pelog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$fluxEval > \$felog
+mpirun -np 1 \$fluxEval -c \$parset > \$felog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
