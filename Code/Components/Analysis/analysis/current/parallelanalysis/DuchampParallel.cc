@@ -207,14 +207,14 @@ namespace askap {
 
             this->itsFlagFindSpectralTerms = parset.getBoolVector("findSpectralTerms", std::vector<bool>(2,this->itsFitParams.doFit()));
 	    for(size_t i=this->itsFlagFindSpectralTerms.size();i<2;i++) this->itsFlagFindSpectralTerms.push_back(false);
+	    this->itsSpectralTermImages = parset.getStringVector("spectralTermImages", std::vector<std::string>(2, ""));
+	    for(size_t i=this->itsSpectralTermImages.size();i<2;i++) this->itsSpectralTermImages.push_back("");
 	    if(this->itsFlagFindSpectralTerms[0]){
 		if(!this->itsFitParams.doFit()){
 		    ASKAPLOG_WARN_STR(logger, "No fitting is to be done, so the spectral indices will not be found. Setting findSpectralIndex=false.");
 		    this->itsFlagFindSpectralTerms = std::vector<bool>(2,false);
 		}
 		else{
-		    this->itsSpectralTermImages = parset.getStringVector("spectralTermImages", std::vector<std::string>(2, ""));
-		    for(size_t i=this->itsSpectralTermImages.size();i<2;i++) this->itsSpectralTermImages.push_back("");
 		    this->checkSpectralTermImages();
 		}
 	    }
