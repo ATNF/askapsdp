@@ -77,14 +77,12 @@ namespace askap {
             /// the correct way to match the output from the appropriate
             /// python script. The columns should accepted by this function are:
             /// RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
-            /// (Alpha & Beta are the spectral index & spectral curvature). The Flux provided in the text file is assumed to be in log space.
+            /// (Alpha & Beta are the spectral index & spectral curvature). *** The Flux provided in the text file is no longer assumed to be in log space.***
             /// @param line A line from the ascii input file
 
-	    double flux;
             std::stringstream ss(line);
-	    ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
+	    ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
 	    this->PosToID();
-	    this->itsFlux = pow(10,flux);
 	    this->checkShape();
 
         }

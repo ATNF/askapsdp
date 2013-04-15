@@ -38,7 +38,7 @@ namespace askap {
 
   namespace analysisutilities {
 
-    const std::string ContinuumInput="187.5 -45. 0. 0.5 0. 10. 5. 30.";
+    const std::string ContinuumInput="187.5 -45. 1. 0.5 0. 10. 5. 30.";
 
     class ContinuumTest : public CppUnit::TestFixture {
 	CPPUNIT_TEST_SUITE(ContinuumTest);

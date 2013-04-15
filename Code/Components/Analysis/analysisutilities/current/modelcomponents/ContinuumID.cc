@@ -75,13 +75,11 @@ namespace askap {
             /// text from an ascii file. This line should be formatted in
             /// the following way, explicitly setting the ID:
             /// ID - RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
-            /// (Alpha & Beta are the spectral index & spectral curvature). The Flux provided in the text file is assumed to be in log space.
+            /// (Alpha & Beta are the spectral index & spectral curvature). *** The Flux provided in the text file is no longer assumed to be in log space.***
             /// @param line A line from the ascii input file
 
-	    double flux;
             std::stringstream ss(line);
-	    ss >> this->itsID >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
-	    this->itsFlux = pow(10,flux);
+	    ss >> this->itsID >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
 	    this->checkShape();
 
         }
