@@ -32,24 +32,20 @@
 
 // System includes
 #include <string>
-#include <inttypes.h>
-
-
-// casa includes
-#include <measures/Measures/MeasFrame.h>
-#include <measures/Measures/MCEpoch.h>
-
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
-#include "measures/Measures.h"
-#include "casa/Quanta/MVEpoch.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
 #include "utils/PolConverter.h"
+#include "casa/Quanta/MVEpoch.h"
+#include "measures/Measures.h"
+#include "measures/Measures/MeasFrame.h"
+#include "measures/Measures/MCEpoch.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -391,28 +387,4 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
         chunk->flag()(row, chan, pol) = true;
         return;
     }
-
-    // Flag if detailed flagging is set in the metadata for this sample.
-    // Note flagging in metadata is per coarse channel so if a coarse channel
-    // is flagged then the whole 54 fine channels are flagged
-    const unsigned int beam1 = chunk->beam1()(row);
-    const unsigned int beam2 = chunk->beam2()(row);
-    const unsigned int coarseChan = fineToCoarseChannel(chan);
-
-    if (mdAnt1.flagDetailed(beam1, coarseChan, pol)) {
-        chunk->flag()(row, chan, pol) = true;
-        return;
-    }
-    if (mdAnt2.flagDetailed(beam2, coarseChan, pol)) {
-        chunk->flag()(row, chan, pol) = true;
-        return;
-    }
-
-}
-
-inline
-unsigned int MergedSource::fineToCoarseChannel(const unsigned int& fineChannel)
-{
-    const unsigned int N_FINE_PER_COARSE = 54;
-    return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
 }

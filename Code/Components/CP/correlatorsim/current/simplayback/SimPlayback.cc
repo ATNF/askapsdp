@@ -174,7 +174,7 @@ void SimPlayback::run(void)
         // But first check and report if we are behind schedule
         if (itsRank == 0) {
             if (now > nextTime) {
-                ASKAPLOG_DEBUG_STR(logger, "Running slower than integration cycle period");
+                ASKAPLOG_WARN_STR(logger, "Running slower than integration cycle period");
             }
         }
 

@@ -27,9 +27,6 @@
 #ifndef ASKAP_CP_INGEST_MERGEDSOURCE_H
 #define ASKAP_CP_INGEST_MERGEDSOURCE_H
 
-// System includes
-#include <map>
-
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
@@ -91,9 +88,6 @@ class MergedSource {
                               const unsigned int row,
                               const unsigned int chan,
                               const unsigned int pol);
-
-        // Convert from find channels to coarse
-        unsigned int fineToCoarseChannel(const unsigned int& fineChannel);
 
         // Configuration
         const Configuration itsConfig;

@@ -104,7 +104,7 @@ bool CorrelatorSimulator::sendNext(void)
  
     // Record the timestamp for the current integration that is
     // being processed
-    casa::Double currentIntegration = msc.time()(itsCurrentRow);
+    const casa::Double currentIntegration = msc.time()(itsCurrentRow);
     ASKAPLOG_DEBUG_STR(logger, "Processing integration with timestamp "
             << std::setprecision (13) << currentIntegration);
 
@@ -159,7 +159,6 @@ bool CorrelatorSimulator::sendNext(void)
 
         // ideally we need to carry 64-bit BAT in the payload explicitly
         payload.timestamp = static_cast<long>(startBAT);
-        payload.baselineid = 0; // TODO
         ASKAPCHECK(msc.feed1()(itsCurrentRow) == msc.feed2()(itsCurrentRow),
                 "feed1 and feed2 must be equal");
         payload.beamid = msc.feed1()(itsCurrentRow);
@@ -215,7 +214,11 @@ bool CorrelatorSimulator::sendNext(void)
                 // Finished populating, send this payload but then reuse it in the
                 // next iteration of the loop for the next packet
                 itsPort->send(payload);
-                usleep(50);
+
+                // Sleep for a while to smooth the packet flow. This is an
+                // arbitary time suited to sending BETA scale datasets, and should
+                // be updated in future to be more general (TODO)
+                usleep(200);
             }
         }
 
