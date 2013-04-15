@@ -60,6 +60,17 @@ Include a title:
 .. parameterset:: example.parset
     :show-title:
 
+Include a header:
+
+.. code-block:: rest
+   
+   .. parameterset:: example.parset
+      :show-header:
+
+.. parameterset:: example.parset
+    :show-header:
+
+
 Show only a specific key:
 
 .. code-block:: rest

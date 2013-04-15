@@ -1,3 +1,25 @@
+# Copyright (c) 2012-2013 CSIRO
+# Australia Telescope National Facility (ATNF)
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# PO Box 76, Epping NSW 1710, Australia
+# atnf-enquiries@csiro.au
+#
+# This file is part of the ASKAP software distribution.
+#
+# The ASKAP software distribution is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the License
+# or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
+#
 """
 :class:`ParameterSetDirective` implements the ``parameterset`` -directive.
 """
@@ -52,6 +74,7 @@ class ParameterSetDirective(ListTable, DirectiveTemplate):
         'class': directives.class_option,
         'show-title': directives.flag,
         'show-key': directives.flag,
+        'show-header': directives.flag,
     }
 
     def run(self):
@@ -61,6 +84,7 @@ class ParameterSetDirective(ListTable, DirectiveTemplate):
         # Get content and options
         file_path = self.arguments[0]
         use_title = 'show-title' in self.options
+        use_header = 'show-header' in self.options
         main_key = self.options.get('key', None)
         show_key = 'show-key' in self.options
         if not file_path:
@@ -93,9 +117,17 @@ class ParameterSetDirective(ListTable, DirectiveTemplate):
 
         col_widths = self.get_column_widths(3)
         self.check_table_dimensions(table_data, 0, 0)
+        header_rows = 0
+        if use_header:
+            header_rows = 1
+            table_data.insert(0, [nodes.strong(text="Key"),
+                                  nodes.strong(text="Default"),
+                                  nodes.strong(text="Description"),
+                                  ])
 
         # Generate the table node from the given list of elements
-        table_node = self.build_table_from_list(table_data, col_widths, 0, 0)
+        table_node = self.build_table_from_list(table_data, col_widths, 
+                                                header_rows, 0)
 
         # Optional class parameter
         table_node['classes'] += self.options.get('class', [])
