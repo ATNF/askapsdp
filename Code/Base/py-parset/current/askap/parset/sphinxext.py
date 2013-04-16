@@ -26,11 +26,12 @@
 import os
 
 # Import required docutils modules
-from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst import Directive, directives, Parser
 from docutils.parsers.rst.directives.tables import ListTable
 from docutils import nodes, utils
 
-from askap.parset import ParameterSet,encode
+from askap.parset import ParameterSet, encode
+
 
 class DirectiveTemplate(Directive):
     """
@@ -103,6 +104,7 @@ class ParameterSetDirective(ListTable, DirectiveTemplate):
             return [nodes.paragraph(text='')]
 
         table_data = []
+        docparser = Parser()
         # Iterates rows: put the given data in rst elements
         for key in parset.keys():
             the_val = encode(parset[key])
@@ -111,7 +113,9 @@ class ParameterSetDirective(ListTable, DirectiveTemplate):
                 key = ".".join([main_key.split(".")[-1],key])
             node1 = nodes.strong(text=key)
             node2 = nodes.literal(text=the_val)
-            node3 = nodes.paragraph(text=the_doc)
+            subdoc = utils.new_document('<>', self.state.document.settings)
+            docparser.parse(the_doc, subdoc)
+            node3 = subdoc.children
             table_data.append([node1, node2, node3])
 
 

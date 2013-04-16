@@ -119,6 +119,7 @@ class ParameterSet(object):
                     pairs.append(pair)
                     if pair:
                         try:
+#                            print pair, "->",comment,"<-"
                             self.set_value(pair[0], pair[1], comment)
                             doc = ""
                         except ValueError, ex:
@@ -514,9 +515,15 @@ def extract(line, comment=""):
     elif line.startswith("#"):
         if line.startswith("##"):
             if len(comment):
-                return None, "\n".join((comment, line.strip("#")))
+                line = line.strip("#")
+                if len(line) and line.startswith(" "):
+                    line = line[1:]
+                return None, "\n".join((comment, line))
             else:
-                return None, line.strip("#")
+                line = line.strip("#")
+                if len(line) and line.startswith(" "):
+                    line = line[1:]
+                return None, line
         return None, comment
     else:
         line = line.strip()
