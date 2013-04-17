@@ -71,7 +71,7 @@ namespace askap {
 	  CPPUNIT_ASSERT(fabs(itsComponent.alpha()-0.5)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(itsComponent.maj()-10.)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(itsComponent.min()-5.)<1.e-6);
-	  CPPUNIT_ASSERT(fabs(itsComponent.pa()-(30.*M_PI/180.))<1.e-6);
+	  CPPUNIT_ASSERT(fabs(itsComponent.pa()-30.)<1.e-6);
 	  CPPUNIT_ASSERT(!itsComponent.isGuess());
 	}
 
