@@ -52,7 +52,7 @@ class ContinuumObject:
             cols=line.split()
             self.ra = posToDec(cols[0])
             self.dec = posToDec(cols[1])
-            self.flux0 = 10**float(cols[2])
+            self.flux0 = float(cols[2])
             self.alpha = float(cols[3])
             self.beta = float(cols[4])
             self.maj = float(cols[5])
@@ -71,7 +71,7 @@ class ContinuumIDObject:
             self.id = cols[0]
             self.ra = posToDec(cols[1])
             self.dec = posToDec(cols[2])
-            self.flux0 = 10**float(cols[3])
+            self.flux0 = float(cols[3])
             self.alpha = float(cols[4])
             self.beta = float(cols[5])
             self.maj = float(cols[6])
