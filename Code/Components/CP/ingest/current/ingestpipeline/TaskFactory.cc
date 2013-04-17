@@ -48,7 +48,6 @@
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
-#include "ingestpipeline/uvpublishtask/UVPublishTask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".TaskFactory");
@@ -81,9 +80,6 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::MSSink :
             task.reset(new MSSink(params, itsConfig));
-            break;
-        case TaskDesc::UVPublishTask :
-            task.reset(new UVPublishTask(params, itsConfig));
             break;
         default:
             ASKAPTHROW(AskapError, "Unknown task type specified");
