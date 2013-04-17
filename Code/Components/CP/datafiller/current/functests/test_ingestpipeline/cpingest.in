@@ -1,0 +1,273 @@
+#
+# Central Processor Ingest Pipeline Configuration
+#
+
+#
+# Array Name
+#
+arrayname = ASKAP
+
+#
+# Feed Configurations
+#
+feeds.names                 = [PAF36]
+feeds.PAF36.n_feeds         = 36
+feeds.PAF36.spacing         = 1deg
+
+feeds.PAF36.feed0           = [-2.5, -2.5]
+feeds.PAF36.feed1           = [-2.5, -1.5]
+feeds.PAF36.feed2           = [-2.5, -0.5]
+feeds.PAF36.feed3           = [-2.5,  0.5]
+feeds.PAF36.feed4           = [-2.5,  1.5]
+feeds.PAF36.feed5           = [-2.5,  2.5]
+
+feeds.PAF36.feed6           = [-1.5, -2.5]
+feeds.PAF36.feed7           = [-1.5, -1.5]
+feeds.PAF36.feed8           = [-1.5, -0.5]
+feeds.PAF36.feed9           = [-1.5,  0.5]
+feeds.PAF36.feed10          = [-1.5,  1.5]
+feeds.PAF36.feed11          = [-1.5,  2.5]
+
+feeds.PAF36.feed12          = [-0.5, -2.5]
+feeds.PAF36.feed13          = [-0.5, -1.5]
+feeds.PAF36.feed14          = [-0.5, -0.5]
+feeds.PAF36.feed15          = [-0.5,  0.5]
+feeds.PAF36.feed16          = [-0.5,  1.5]
+feeds.PAF36.feed17          = [-0.5,  2.5]
+
+feeds.PAF36.feed18          = [0.5, -2.5]
+feeds.PAF36.feed19          = [0.5, -1.5]
+feeds.PAF36.feed20          = [0.5, -0.5]
+feeds.PAF36.feed21          = [0.5,  0.5]
+feeds.PAF36.feed22          = [0.5,  1.5]
+feeds.PAF36.feed23          = [0.5,  2.5]
+
+feeds.PAF36.feed24          = [1.5, -2.5]
+feeds.PAF36.feed25          = [1.5, -1.5]
+feeds.PAF36.feed26          = [1.5, -0.5]
+feeds.PAF36.feed27          = [1.5,  0.5]
+feeds.PAF36.feed28          = [1.5,  1.5]
+feeds.PAF36.feed29          = [1.5,  2.5]
+
+feeds.PAF36.feed30          = [2.5, -2.5]
+feeds.PAF36.feed31          = [2.5, -1.5]
+feeds.PAF36.feed32          = [2.5, -0.5]
+feeds.PAF36.feed33          = [2.5,  0.5]
+feeds.PAF36.feed34          = [2.5,  1.5]
+feeds.PAF36.feed35          = [2.5,  2.5]
+
+#
+# Antennas
+#
+antennas.names              = [Pad01,Pad03,Pad06,Pad08,Pad09,Pad29]
+
+# easting: 463334.040000; northing: 7047071.010000; el: 370.140000; Zone: 50 south
+# # lat: -26.697000721961; long: 116.631424285887; el: 370.140000
+antennas.Pad01.location     = [-2556088.333184, 5097405.644248, -2848428.243729]
+antennas.Pad01.diameter     = 12m
+antennas.Pad01.mount        = equatorial
+antennas.Pad01.feed_config  = PAF36
+
+# # easting: 463369.990000; northing: 7047078.500000; el: 369.580000; Zone: 50 south
+# # lat: -26.696934033924; long: 116.631785875968; el: 369.580000
+antennas.Pad03.location     = [-2556121.766414, 5097392.033236, -2848421.390498]
+antennas.Pad03.diameter     = 12m
+antennas.Pad03.mount        = equatorial
+antennas.Pad03.feed_config  = PAF36
+
+# # easting: 463469.700000; northing: 7047183.010000; el: 367.890000; Zone: 50 south
+# # lat: -26.695993030157; long: 116.632791194436; el: 367.890000
+antennas.Pad06.location     = [-2556231.527388, 5097387.706446, -2848327.478204]
+antennas.Pad06.diameter     = 12m
+antennas.Pad06.mount        = equatorial
+antennas.Pad06.feed_config  = PAF36
+
+# # easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
+# # lat: -26.699153192237; long: 116.631037279591; el: 370.810000
+antennas.Pad08.location     = [-2556006.138107, 5097327.654894, -2848641.621908]
+antennas.Pad08.diameter     = 12m
+antennas.Pad08.mount        = equatorial
+antennas.Pad08.feed_config  = PAF36
+
+# # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
+# # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
+antennas.Pad09.location     = [-2555892.622948, 5097559.688165, -2848328.788867]
+antennas.Pad09.diameter     = 12m
+antennas.Pad09.mount        = equatorial
+antennas.Pad09.feed_config  = PAF36
+
+# # easting: 463899.970000; northing: 7047824.220000; el: 364.280000; Zone: 50 south
+# # lat: -26.690214789597; long: 116.637134608883; el: 364.280000
+antennas.Pad29.location     = [-2556745.438405, 5097448.114406, -2847753.833282]
+antennas.Pad29.diameter     = 12m
+antennas.Pad29.mount        = equatorial
+antennas.Pad29.feed_config  = PAF36
+
+#
+# Baseline mapping:
+# Used for mapping from baselineid to antenna1/antenna2/polarisation product
+# Mapping is from baselineid to (ant1, ant2,  product)
+#
+baselinemap.baselineids            = [0..77]
+
+baselinemap.0                      = [0, 0, XX]
+baselinemap.1                      = [0, 0, XY]
+baselinemap.2                      = [0, 0, YY]
+
+baselinemap.3                      = [0, 1, XX]
+baselinemap.4                      = [0, 1, XY]
+baselinemap.5                      = [0, 1, YX]
+baselinemap.6                      = [0, 1, YY]
+
+baselinemap.7                      = [0, 2, XX]
+baselinemap.8                      = [0, 2, XY]
+baselinemap.9                      = [0, 2, YX]
+baselinemap.10                     = [0, 2, YY]
+
+baselinemap.11                     = [0, 3, XX]
+baselinemap.12                     = [0, 3, XY]
+baselinemap.13                     = [0, 3, YX]
+baselinemap.14                     = [0, 3, YY]
+
+baselinemap.15                     = [0, 4, XX]
+baselinemap.16                     = [0, 4, XY]
+baselinemap.17                     = [0, 4, YX]
+baselinemap.18                     = [0, 4, YY]
+
+baselinemap.19                     = [0, 5, XX]
+baselinemap.20                     = [0, 5, XY]
+baselinemap.21                     = [0, 5, YX]
+baselinemap.22                     = [0, 5, YY]
+
+baselinemap.23                     = [1, 1, XX]
+baselinemap.24                     = [1, 1, XY]
+baselinemap.25                     = [1, 1, YY]
+
+baselinemap.26                     = [1, 2, XX]
+baselinemap.27                     = [1, 2, XY]
+baselinemap.28                     = [1, 2, YX]
+baselinemap.29                     = [1, 2, YY]
+
+baselinemap.30                     = [1, 3, XX]
+baselinemap.31                     = [1, 3, XY]
+baselinemap.32                     = [1, 3, YX]
+baselinemap.33                     = [1, 3, YY]
+
+baselinemap.34                     = [1, 4, XX]
+baselinemap.35                     = [1, 4, XY]
+baselinemap.36                     = [1, 4, YX]
+baselinemap.37                     = [1, 4, YY]
+
+baselinemap.38                     = [1, 5, XX]
+baselinemap.39                     = [1, 5, XY]
+baselinemap.40                     = [1, 5, YX]
+baselinemap.41                     = [1, 5, YY]
+
+baselinemap.42                     = [2, 2, XX]
+baselinemap.43                     = [2, 2, XY]
+baselinemap.44                     = [2, 2, YY]
+
+baselinemap.45                     = [2, 3, XX]
+baselinemap.46                     = [2, 3, XY]
+baselinemap.47                     = [2, 3, YX]
+baselinemap.48                     = [2, 3, YY]
+
+baselinemap.49                     = [2, 4, XX]
+baselinemap.50                     = [2, 4, XY]
+baselinemap.51                     = [2, 4, YX]
+baselinemap.52                     = [2, 4, YY]
+
+baselinemap.53                     = [2, 5, XX]
+baselinemap.54                     = [2, 5, XY]
+baselinemap.55                     = [2, 5, YX]
+baselinemap.56                     = [2, 5, YY]
+
+baselinemap.57                     = [3, 3, XX]
+baselinemap.58                     = [3, 3, XY]
+baselinemap.59                     = [3, 3, YY]
+
+baselinemap.60                     = [3, 4, XX]
+baselinemap.61                     = [3, 4, XY]
+baselinemap.62                     = [3, 4, YX]
+baselinemap.63                     = [3, 4, YY]
+
+baselinemap.64                     = [3, 5, XX]
+baselinemap.65                     = [3, 5, XY]
+baselinemap.66                     = [3, 5, YX]
+baselinemap.67                     = [3, 5, YY]
+
+baselinemap.68                     = [4, 4, XX]
+baselinemap.69                     = [4, 4, XY]
+baselinemap.70                     = [4, 4, YY]
+
+baselinemap.71                     = [4, 5, XX]
+baselinemap.72                     = [4, 5, XY]
+baselinemap.73                     = [4, 5, YX]
+baselinemap.74                     = [4, 5, YY]
+
+baselinemap.75                     = [5, 5, XX]
+baselinemap.76                     = [5, 5, XY]
+baselinemap.77                     = [5, 5, YY]
+
+
+#
+#  Observation specific
+#
+observation.sbid                    = 0
+observation.scan0.field_name        = test-field
+observation.scan0.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
+observation.scan0.start_freq        = 1.420GHz
+observation.scan0.n_chan            = 8208
+observation.scan0.chan_width        = 18.518518kHz
+observation.scan0.stokes            = [XX, XY, YX, YY]
+
+#
+# Metadata topic config
+#
+metadata_source.ice.locator_host        = localhost
+metadata_source.ice.locator_port        = 4061
+metadata_source.icestorm.topicmanager   = IceStorm/TopicManager@IceStorm.TopicManager
+metadata_source.icestorm.topic          = tosmetadata
+
+#
+# Calibration data service config
+#
+cal_data_service.ice.locator_host       = localhost
+cal_data_service.ice.locator_port       = 4061
+cal_data_service.servicename            = CalibrationDataService
+
+#
+# Task List
+#
+tasks.tasklist                          = [MergedSource, CalcUVWTask, ChannelAvgTask, MSSink]
+
+#
+# MergedSource
+#
+tasks.MergedSource.type                             = MergedSource
+tasks.MergedSource.params.vis_source.port           = 3000
+tasks.MergedSource.params.vis_source.buffer_size    = 459648
+
+# Number of channels a given ingest process is meant to receive/process
+tasks.MergedSource.params.n_channels.0              = 8208
+tasks.MergedSource.params.n_channels.1              = 8208
+
+#
+# CalcUVWTask
+#
+tasks.CalcUVWTask.type                  = CalcUVWTask
+
+#
+# ChannelAvgTask
+#
+tasks.ChannelAvgTask.type               = ChannelAvgTask
+tasks.ChannelAvgTask.params.averaging   = 54
+
+#
+# MSSink
+#
+tasks.MSSink.type                       = MSSink
+tasks.MSSink.params.filenamebase        = ingest_test
+tasks.MSSink.params.stman.bucketsize    = 1048576
+tasks.MSSink.params.stman.tilencorr     = 4
+tasks.MSSink.params.stman.tilenchan     = 1

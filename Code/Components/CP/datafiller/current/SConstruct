@@ -1,0 +1,24 @@
+# @file
+# SConstruct build script for this module.
+#
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("cpingest")
+
+pkg.AddSubPackage("configuration")
+pkg.AddSubPackage("ingestpipeline")
+
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpicxx"
+
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-O2'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+
+# run the build process
+pkg()
