@@ -157,7 +157,8 @@ namespace askap {
 	}
 
 	wcs->equinox = theEquinox;
-	wcs->restfrq = theRestFreq;
+	if(theRestFreq > 0.) wcs->restfrq = theRestFreq;
+	else wcs->restfrq = 0.;
 	wcs->restwav = 0.;
 	wcsset(wcs);
 

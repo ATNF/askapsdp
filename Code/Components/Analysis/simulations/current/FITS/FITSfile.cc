@@ -366,8 +366,8 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "No beam used");
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
-	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
-	ASKAPLOG_DEBUG_STR(logger,"Rest freq = " << this->itsRestFreq);
+	this->itsRestFreq = parset.getFloat("restFreq", -1.);
+	if(this->itsRestFreq > 0.) ASKAPLOG_DEBUG_STR(logger,"Rest freq = " << this->itsRestFreq);
 
 	LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
 	this->itsWCSAllocated = false;
@@ -892,7 +892,7 @@ namespace askap {
 	    if (fits_update_key(fptr, TSTRING, (char *)header.c_str(), unit,  NULL, &status))
 	      fits_report_error(stderr, status);
 
-	    if (this->itsSourceListType == "spectralline") {
+	    if ( (this->itsSourceListType == "spectralline") && (this->itsRestFreq > 0.) ) {
 	      status = 0;
 
 	      header = "RESTFREQ";
