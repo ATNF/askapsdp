@@ -1,4 +1,0 @@
-/// The central processor filler package namespace.
-namespace askap::cp::filler {};
-
-/// @copyright 2010 CSIRO, All Rights Reserved.
