@@ -282,16 +282,20 @@ namespace askap {
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
 	this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
+	if (this->itsPAunits != "rad" && this->itsPAunits != "deg") {
+	  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
+	  this->itsPAunits = "rad";
+	}
+	if(this->itsDatabaseOrigin == "Selavy" && this->itsPAunits != "deg") {
+	  if(parset.isDefined("PAunits"))
+	    ASKAPLOG_WARN_STR(logger, "With Selavy, PAunits must be 'deg'.");
+	  this->itsPAunits = "deg";
+	}	     
 
 	this->itsFlagIntegrateGaussians = parset.getBool("integrateGaussians",true);
 	// For the Selavy case, we want to default to false, unless specified in the parset.
 	if(this->itsDatabaseOrigin == "Selavy" && !parset.isDefined("integrateGaussians")) 
 	  this->itsFlagIntegrateGaussians = false;
-
-	if (this->itsPAunits != "rad" && this->itsPAunits != "deg") {
-	  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
-	  this->itsPAunits = "rad";
-	}
 
 	this->itsAxisUnits = casa::Unit(parset.getString("axisUnits", "arcsec"));
 	this->itsSourceFluxUnits = casa::Unit(parset.getString("sourceFluxUnits", ""));
