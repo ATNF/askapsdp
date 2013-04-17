@@ -1,21 +1,4 @@
-/// The central processor ingest package namespace.
-namespace askap::cp::ingest {};
+/// The central processor filler package namespace.
+namespace askap::cp::filler {};
 
-/// @mainpage ASKAP Central Processor Ingest Pipeline
-///
-/// @section cpingest_intro Introduction
-/// The Central Processor Ingest Pipeline is responsible for the following:
-///
-/// @li Ingesting visibilities from the correlator
-/// @li Ingesting metadata from the telescope operating system
-/// @li Annotating visibility stream with metadata
-/// @li Calculating uvw coordinates
-/// @li Flagging suspect data (e.g. RFI impacted data)
-/// @li Applying calibration to the observed visibilities
-/// @li Averaging (optional)
-/// @li Writing out of measurement set or similar
-///
-/// @note This package does not provide an externally consumable library & API.
-/// This package provides a set of programs.
-///
 /// @copyright 2010 CSIRO, All Rights Reserved.

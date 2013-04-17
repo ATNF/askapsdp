@@ -6,15 +6,10 @@
 from askapenv import env
 
 # create build object with library name
-pkg = env.AskapPackage("cpingest")
+pkg = env.AskapPackage("cpfiller")
 
 pkg.AddSubPackage("configuration")
-pkg.AddSubPackage("ingestpipeline")
-
-env["CC"] = "mpicc"
-env["CXX"] = "mpicxx"
-env["LINK"] = "mpicxx"
-env["SHLINK"] = "mpicxx"
+pkg.AddSubPackage("datafiller")
 
 env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O2'])

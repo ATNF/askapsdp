@@ -1,4 +1,4 @@
-/// @file cpingest.cc
+/// @file datafiller.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,13 +25,12 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Must be included first
-#include "askap_cpingest.h"
+#include "askap_cpfiller.h"
 
 // System includes
 #include <string>
 #include <stdexcept>
 #include <unistd.h>
-#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/Application.h"
@@ -41,59 +40,28 @@
 #include "askap/StatReporter.h"
 
 // Local package includes
-#include "ingestpipeline/IngestPipeline.h"
+#include "datafiller/DataFiller.h"
 
 // Using
 using namespace askap;
-using namespace askap::cp::ingest;
+using namespace askap::cp::datafiller;
 
 ASKAP_LOGGER(logger, ".main");
 
-static std::string getNodeName(void)
-{
-    char name[MPI_MAX_PROCESSOR_NAME];
-    int resultlen;
-    MPI_Get_processor_name(name, &resultlen);
-    std::string nodename(name);
-    std::string::size_type idx = nodename.find_first_of('.');
-    if (idx != std::string::npos) {
-        // Extract just the hostname part
-        nodename = nodename.substr(0, idx);
-    }
-    return nodename;
-}
-
-static std::string getRank(void)
-{
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    return utility::toString(rank);
-}
-
-class CpIngestApp : public askap::Application
+class DatafillerApp : public askap::Application
 {
     public:
         virtual int run(int argc, char* argv[])
         {
-            MPI_Init(&argc, &argv);
-
             int error = 0;
             try {
-                // To aid in debugging, the logger needs to know the
-                // MPI rank and nodename
-                ASKAPLOG_REMOVECONTEXT("mpirank");
-                ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
-                ASKAPLOG_REMOVECONTEXT("hostname");
-                ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
-
-                ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
-                        << ASKAP_PACKAGE_VERSION);
+                ASKAPLOG_INFO_STR(logger, "ASKAP Datafiller - " << ASKAP_PACKAGE_VERSION);
 
                 StatReporter stats;
 
-                // Run the pipeline
-                IngestPipeline pipeline(config());
-                pipeline.start();
+                // Run the data filler
+                DataFiller filler(config());
+                filler.start();
 
                 stats.logSummary();
             } catch (const askap::AskapError& e) {
@@ -107,18 +75,12 @@ class CpIngestApp : public askap::Application
                 error = 1;
             }
 
-            if (error) {
-                MPI_Abort(MPI_COMM_WORLD, error);
-            } else {
-                MPI_Finalize();
-            }
-
             return error;
         }
 };
 
 int main(int argc, char *argv[])
 {
-    CpIngestApp app;
+    DataFillerApp app;
     return app.main(argc, argv);
 }
