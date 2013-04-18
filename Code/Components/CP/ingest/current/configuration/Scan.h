@@ -47,7 +47,8 @@ class Scan {
              const casa::Quantity& startFreq,
              const casa::uInt nChan,
              const casa::Quantity& chanWidth,
-             const std::vector<casa::Stokes::StokesTypes>& stokes);
+             const std::vector<casa::Stokes::StokesTypes>& stokes,
+             const casa::uInt interval);
 
         casa::String name(void) const;
 
@@ -61,6 +62,8 @@ class Scan {
 
         std::vector<casa::Stokes::StokesTypes> stokes(void) const;
 
+        casa::uInt interval(void) const;
+
     private:
         casa::String itsFieldName;
         casa::MDirection itsFieldDirection;
@@ -68,6 +71,7 @@ class Scan {
         casa::uInt itsNChan;
         casa::Quantity itsChanWidth;
         std::vector<casa::Stokes::StokesTypes> itsStokes;
+        casa::uInt itsInterval;
 };
 
 }

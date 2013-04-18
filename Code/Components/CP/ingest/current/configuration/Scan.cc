@@ -45,10 +45,12 @@ Scan::Scan(const casa::String& fieldName,
            const casa::Quantity& startFreq,
            const casa::uInt nChan,
            const casa::Quantity& chanWidth,
-           const std::vector<casa::Stokes::StokesTypes>& stokes)
+           const std::vector<casa::Stokes::StokesTypes>& stokes,
+           const casa::uInt interval)
 : itsFieldName(fieldName), itsFieldDirection(fieldDirection),
     itsCentreFreq(startFreq), itsNChan(nChan),
-    itsChanWidth(chanWidth), itsStokes(stokes)
+    itsChanWidth(chanWidth), itsStokes(stokes),
+    itsInterval(interval)
 {
     ASKAPCHECK(startFreq.isConform("Hz"),
             "Start frequency must conform to Hz");
@@ -85,4 +87,9 @@ casa::Quantity Scan::chanWidth(void) const
 std::vector<casa::Stokes::StokesTypes> Scan::stokes(void) const
 {
         return itsStokes;
+}
+
+casa::uInt Scan::interval(void) const
+{
+    return itsInterval;
 }

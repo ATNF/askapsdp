@@ -63,6 +63,7 @@ class ConfigurationHelper {
             parset.add("observation.scan0.n_chan", "16416");
             parset.add("observation.scan0.chan_width", "18.51851851kHz");
             parset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
+            parset.add("observation.scan0.interval", "5000000");
 
             // Scan1
             parset.add("observation.scan1.field_name", "test-field2");
@@ -71,6 +72,7 @@ class ConfigurationHelper {
             parset.add("observation.scan1.n_chan", "16416");
             parset.add("observation.scan1.chan_width", "18.51851851kHz");
             parset.add("observation.scan1.stokes", "[XX, XY, YX, YY]");
+            parset.add("observation.scan1.interval", "5000000");
 
             // Scan2
             parset.add("observation.scan2.field_name", "test-field2");
@@ -79,6 +81,7 @@ class ConfigurationHelper {
             parset.add("observation.scan2.n_chan", "16416");
             parset.add("observation.scan2.chan_width", "18.51851851kHz");
             parset.add("observation.scan2.stokes", "[XX, XY, YX, YY]");
+            parset.add("observation.scan2.interval", "5000000");
 
             // Feed configurations
             parset.add("feeds.names", "[PAF]");

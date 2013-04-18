@@ -220,6 +220,7 @@ observation.scan0.start_freq        = 1.420GHz
 observation.scan0.n_chan            = 8208
 observation.scan0.chan_width        = 18.518518kHz
 observation.scan0.stokes            = [XX, XY, YX, YY]
+observation.scan0.interval          = 10000000
 
 #
 # Metadata topic config

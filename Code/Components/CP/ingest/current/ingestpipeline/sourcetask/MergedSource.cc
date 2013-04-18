@@ -131,13 +131,14 @@ VisChunk::ShPtr MergedSource::next(void)
     VisChunk::ShPtr chunk = createVisChunk(*itsMetadata);
 
     // Determine how many VisDatagrams are expected for a single integration
+    const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
     const casa::uInt nAntenna = itsMetadata->nAntenna();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     const casa::uInt nBeams = itsMetadata->nBeams();
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
     const casa::uInt datagramsExpected =itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
-    const casa::uInt timeout = itsMetadata->period() * 2;
+    const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
     // returns a null pointer this indicates the timeout has been reached.
@@ -173,13 +174,14 @@ VisChunk::ShPtr MergedSource::next(void)
 
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
+    const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
     const casa::uInt nAntenna = metadata.nAntenna();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     const casa::uInt nBeams = metadata.nBeams();
     const casa::uInt nPol = metadata.nPol();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt nRow = nBaselines * nBeams;
-    const casa::uInt period = metadata.period();
+    const casa::uInt period = scanInfo.interval(); // in microseconds
 
     VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
 
@@ -196,7 +198,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                              casa::MEpoch::Ref(casa::MEpoch::UTC))().getValue();
   
     // Convert the interval from microseconds (long) to seconds (double)
-    const casa::Double interval = metadata.period() / 1000.0 / 1000.0;
+    const casa::Double interval = period / 1000.0 / 1000.0;
     chunk->interval() = interval;
 
     // All visibilities get flagged as bad, then as the visibility data 
@@ -217,7 +219,6 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->scan() = itsScanManager.scanIndex();
 
     // Determine and add the spectral channel width
-    Scan scanInfo = itsConfig.observation().scans().at(chunk->scan());
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;

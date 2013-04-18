@@ -155,8 +155,10 @@ Observation Configuration::observation(void) const
             stokes.push_back(casa::Stokes::type(*it));
         }
 
+        const casa::uInt interval = itsParset.getUint32(makeKey(keyBase, "interval"));
+
         scans.push_back(Scan(fieldName, fieldDirection, startFreq, nChan,
-                    chanWidth, stokes));
+                    chanWidth, stokes, interval));
     }
 
     return Observation(schedulingBlockID, scans);

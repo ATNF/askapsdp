@@ -90,6 +90,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
             itsParset.add("observation.scan0.n_chan", "16416");
             itsParset.add("observation.scan0.chan_width", "18.51851851kHz");
             itsParset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
+            itsParset.add("observation.scan0.interval", "5000000");
 
 
             // Metadata topic config
@@ -209,6 +210,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(16416u, s.nChan());
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), s.chanWidth());
             CPPUNIT_ASSERT_EQUAL(4ul, s.stokes().size());
+            CPPUNIT_ASSERT_EQUAL(5000000u, s.interval());
         }
 
         void testTopicConfig() {
