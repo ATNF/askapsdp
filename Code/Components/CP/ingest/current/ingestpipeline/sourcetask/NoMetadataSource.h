@@ -1,6 +1,6 @@
-/// @file MergedSource.h
+/// @file NoMetadataSource.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,20 +24,18 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_MERGEDSOURCE_H
-#define ASKAP_CP_INGEST_MERGEDSOURCE_H
+#ifndef ASKAP_CP_INGEST_NOMETADATASOURCE_H
+#define ASKAP_CP_INGEST_NOMETADATASOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
-#include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/ISource.h"
 #include "ingestpipeline/sourcetask/IVisSource.h"
-#include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
@@ -47,10 +45,9 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief Ingest pipeline source tasks. The MergedSource task merges the TOS
-/// metadata stream and the visibility stream creating a VISChunk object for
-/// each correlator integration.
-class MergedSource : public ISource {
+/// @brief Ingest pipeline source tasks. The NoMetadataSource task builds a VisChunk from
+/// visibilities and configuration (in the parset) only, no TOs metadata is needed.
+class NoMetadataSource : public ISource {
     public:
         /// @brief Constructor.
         ///
@@ -63,13 +60,12 @@ class MergedSource : public ISource {
         /// @param[in] numTasks     Total number of ingest pipeline tasks. This enables
         ///                         the merged source to determine how many visibilities
         ///                         it is responsible for receiving.
-        MergedSource(const LOFAR::ParameterSet& params,
-                     const Configuration& config,
-                     IMetadataSource::ShPtr metadataSource,
-                     IVisSource::ShPtr visSource, int numTasks, int id);
+        NoMetadataSource(const LOFAR::ParameterSet& params,
+                         const Configuration& config,
+                         IVisSource::ShPtr visSource, int numTasks, int id);
 
         /// @brief Destructor.
-        virtual ~MergedSource();
+        virtual ~NoMetadataSource();
 
         /// @brief Called to obtain the next VisChunk from the merged stream.
         /// @return a shared pointer to a VisChunk.
@@ -77,25 +73,14 @@ class MergedSource : public ISource {
 
     private:
 
-        askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
+        askap::cp::common::VisChunk::ShPtr createVisChunk(const casa::uLong timestamp);
 
         void addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
                 const casa::uInt nAntenna, const casa::uInt nBeams);
 
-        void doFlagging(askap::cp::common::VisChunk::ShPtr chunk, const TosMetadata& metadata);
-
-        void doFlaggingSample(askap::cp::common::VisChunk::ShPtr chunk,
-                              const TosMetadata& metadata,
-                              const unsigned int row,
-                              const unsigned int chan,
-                              const unsigned int pol);
-
         // Configuration
         const Configuration itsConfig;
 
-        // The object that is the source of telescope metadata
-        IMetadataSource::ShPtr itsMetadataSrc;
-        
         // The object that is the source of visibilities
         IVisSource::ShPtr itsVisSrc;
 
@@ -107,7 +92,6 @@ class MergedSource : public ISource {
         int itsId;
 
         // Pointers to the two constituent datatypes
-        boost::shared_ptr<TosMetadata> itsMetadata;
         boost::shared_ptr<VisDatagram> itsVis;
 
         // Scan Manager
@@ -120,10 +104,10 @@ class MergedSource : public ISource {
         const BaselineMap itsBaselineMap;
 
         // No support for assignment
-        MergedSource& operator=(const MergedSource& rhs);
+        NoMetadataSource& operator=(const NoMetadataSource& rhs);
 
         // No support for copy constructor
-        MergedSource(const MergedSource& src);
+        NoMetadataSource(const NoMetadataSource& src);
 };
 
 }

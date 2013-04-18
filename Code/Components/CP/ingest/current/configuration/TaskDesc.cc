@@ -68,6 +68,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "MergedSource") {
         return TaskDesc::MergedSource;
     }
+    if (type == "NoMetadataSource") {
+        return TaskDesc::NoMetadataSource;
+    }
     if (type == "CalcUVWTask") {
         return TaskDesc::CalcUVWTask;
     }
@@ -76,9 +79,6 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     }
     if (type == "CalTask") {
         return TaskDesc::CalTask;
-    }
-    if (type == "UVPublishTask") {
-        return TaskDesc::UVPublishTask;
     }
     if (type == "MSSink") {
         return TaskDesc::MSSink;

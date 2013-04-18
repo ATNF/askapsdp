@@ -1,6 +1,6 @@
-/// @file TaskDesc.h
+/// @file ISource.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,52 +24,24 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_TASKDESC_H
-#define ASKAP_CP_INGEST_TASKDESC_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_INGEST_ISOURCE_H
+#define ASKAP_CP_INGEST_ISOURCE_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
-
-// Local package includes
+#include "cpcommon/VisChunk.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
-class TaskDesc {
+/// @brief Interface for a data source
+class ISource {
     public:
+        virtual ~ISource();
 
-        enum Type {
-            MergedSource,
-            NoMetadataSource,
-            CalcUVWTask,
-            ChannelAvgTask,
-            CalTask,
-            MSSink
-        };
-
-        /// @brief Constructor
-        TaskDesc(const std::string& name,
-                 const TaskDesc::Type type,
-                 const LOFAR::ParameterSet& params);
-
-        std::string name(void) const;
-
-        TaskDesc::Type type(void) const;
-
-        LOFAR::ParameterSet params(void) const;
-
-        static TaskDesc::Type toType(const std::string& type);
-
-    private:
-
-        std::string itsName;
-        TaskDesc::Type itsType;
-        LOFAR::ParameterSet itsParams;
+        /// @brief Called to obtain the next VisChunk from the source.
+        /// @return a shared pointer to a VisChunk.
+        virtual askap::cp::common::VisChunk::ShPtr next(void) = 0;
 };
 
 }

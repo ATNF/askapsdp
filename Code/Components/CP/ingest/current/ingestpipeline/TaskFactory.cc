@@ -47,7 +47,9 @@
 #include "ingestpipeline/mssink/MSSink.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
+#include "ingestpipeline/sourcetask/ISource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "ingestpipeline/sourcetask/NoMetadataSource.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".TaskFactory");
@@ -89,7 +91,7 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
     return task;
 }
 
-boost::shared_ptr< MergedSource > TaskFactory::createSource(void)
+boost::shared_ptr< ISource > TaskFactory::createMergedSource(void)
 {
     // Pre-conditions
     ASKAPCHECK(itsConfig.tasks().at(0).name().compare("MergedSource") == 0,
@@ -117,5 +119,26 @@ boost::shared_ptr< MergedSource > TaskFactory::createSource(void)
 
     // 3) Create and configure the merged source
     boost::shared_ptr< MergedSource > source(new MergedSource(params, itsConfig, metadataSrc, visSrc, numTasks, rank));
+    return source;
+}
+
+boost::shared_ptr< ISource > TaskFactory::createNoMetadataSource(void)
+{
+    // Pre-conditions
+    ASKAPCHECK(itsConfig.tasks().at(0).name().compare("NoMetadataSource") == 0,
+            "First defined task is not the NoMetadataSource");
+
+    //  Configure and create the visibility source
+    const LOFAR::ParameterSet params = itsConfig.tasks().at(0).params();
+    const unsigned int visPort = params.getUint32("vis_source.port");
+    const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
+    const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
+    int rank, numTasks;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
+    VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
+
+    // Create and configure the merged source
+    boost::shared_ptr< NoMetadataSource > source(new NoMetadataSource(params, itsConfig, visSrc, numTasks, rank));
     return source;
 }

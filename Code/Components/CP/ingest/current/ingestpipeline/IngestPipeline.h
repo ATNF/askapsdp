@@ -35,7 +35,7 @@
 #include "boost/shared_ptr.hpp"
 
 // Local package includes
-#include "ingestpipeline/sourcetask/MergedSource.h"
+#include "ingestpipeline/sourcetask/ISource.h"
 #include "ingestpipeline/ITask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
@@ -72,7 +72,7 @@ class IngestPipeline {
 
         bool itsRunning;
 
-        boost::shared_ptr< MergedSource > itsSource;
+        boost::shared_ptr< ISource > itsSource;
 
         std::vector<ITask::ShPtr> itsTasks;
 

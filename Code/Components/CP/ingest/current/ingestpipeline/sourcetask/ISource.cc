@@ -1,6 +1,6 @@
-/// @file TaskDesc.h
+/// @file ISource.cc
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,56 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_TASKDESC_H
-#define ASKAP_CP_INGEST_TASKDESC_H
+// Include own header file first
+#include "ingestpipeline/sourcetask/ISource.h"
 
-// System includes
-#include <string>
-
-// ASKAPsoft includes
-#include "Common/ParameterSet.h"
-
-// Local package includes
-
-namespace askap {
-namespace cp {
-namespace ingest {
-
-/// @brief TODO: Write documentation...
-class TaskDesc {
-    public:
-
-        enum Type {
-            MergedSource,
-            NoMetadataSource,
-            CalcUVWTask,
-            ChannelAvgTask,
-            CalTask,
-            MSSink
-        };
-
-        /// @brief Constructor
-        TaskDesc(const std::string& name,
-                 const TaskDesc::Type type,
-                 const LOFAR::ParameterSet& params);
-
-        std::string name(void) const;
-
-        TaskDesc::Type type(void) const;
-
-        LOFAR::ParameterSet params(void) const;
-
-        static TaskDesc::Type toType(const std::string& type);
-
-    private:
-
-        std::string itsName;
-        TaskDesc::Type itsType;
-        LOFAR::ParameterSet itsParams;
-};
-
+askap::cp::ingest::ISource::~ISource()
+{
 }
-}
-}
-
-#endif

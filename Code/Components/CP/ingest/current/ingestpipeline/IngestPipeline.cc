@@ -45,6 +45,7 @@
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "ingestpipeline/sourcetask/NoMetadataSource.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
@@ -75,22 +76,29 @@ void IngestPipeline::abort(void)
 
 void IngestPipeline::ingest(void)
 {
+    // 0) Get task list from configuration
+    const std::vector<TaskDesc>& tasks = itsConfig.tasks();
+
     // 1) Create a Task Factory
     TaskFactory factory(itsConfig);
 
     // 2) Setup source
-    itsSource = factory.createSource();
+    if (tasks.empty()) {
+        ASKAPTHROW(AskapError, "No pipeline tasks specified");
+    }
+
+    if (tasks[0].type() == TaskDesc::MergedSource) {
+        itsSource = factory.createMergedSource();
+    } else if (tasks[0].type() == TaskDesc::NoMetadataSource) {
+        itsSource = factory.createNoMetadataSource();
+    } else {
+        ASKAPTHROW(AskapError, "First task should be a Source");
+    }
 
     // 3) Setup tasks
-    const std::vector<TaskDesc>& tasks = itsConfig.tasks();
-    for (size_t i = 0; i < tasks.size(); ++i) {
-        if (i == 0) {
-            ASKAPCHECK(tasks[0].type() == TaskDesc::MergedSource,
-                    "First task should be a MergedSource");
-        } else {
-            ITask::ShPtr task = factory.createTask(tasks[i]);
-            itsTasks.push_back(task);
-        }
+    for (size_t i = 1; i < tasks.size(); ++i) {
+        ITask::ShPtr task = factory.createTask(tasks[i]);
+        itsTasks.push_back(task);
     }
 
     // 4) Process correlator integrations, one at a time
