@@ -46,6 +46,7 @@
 #include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/sourcetask/NoMetadataSource.h"
+#include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
@@ -103,9 +104,12 @@ void IngestPipeline::ingest(void)
 
     // 4) Process correlator integrations, one at a time
     while (itsRunning)  {
-        bool endOfStream = ingestOne();
-        if (endOfStream) {
-            itsRunning = false;
+        try {
+            bool endOfStream = ingestOne();
+            itsRunning = !endOfStream;
+        } catch (InterruptedException&) {
+            std::cerr << "$$$$$$$$$$$$$$$$$$$ Interrupted" << std::endl;
+            break;
         }
     }
 

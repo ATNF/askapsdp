@@ -29,6 +29,8 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "boost/system/error_code.hpp"
+#include "boost/asio.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisDatagram.h"
 #include "cpcommon/VisChunk.h"
@@ -78,6 +80,9 @@ class NoMetadataSource : public ISource {
         void addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
                 const casa::uInt nAntenna, const casa::uInt nBeams);
 
+        void signalHandler(const boost::system::error_code& error,
+                           int signalNumber);
+
         // Configuration
         const Configuration itsConfig;
 
@@ -102,6 +107,15 @@ class NoMetadataSource : public ISource {
 
         // Baseline Map
         const BaselineMap itsBaselineMap;
+
+        // Interrupted by SIGTERM or SIGINT?
+        bool itsInterrupted;
+
+        // Boost io_service
+        boost::asio::io_service itsIOService;
+
+        // Interrupt signals
+        boost::asio::signal_set itsSignals;
 
         // No support for assignment
         NoMetadataSource& operator=(const NoMetadataSource& rhs);

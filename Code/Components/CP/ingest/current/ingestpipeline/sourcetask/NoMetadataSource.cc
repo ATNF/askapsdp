@@ -38,6 +38,8 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
+#include "boost/asio.hpp"
+#include "boost/bind.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisDatagram.h"
 #include "utils/PolConverter.h"
@@ -51,6 +53,7 @@
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
+#include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
 
@@ -68,7 +71,9 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
      itsNumTasks(numTasks), itsId(id),
      itsScanManager(config),
      itsChannelManager(params),
-     itsBaselineMap(config.bmap())
+     itsBaselineMap(config.bmap()),
+     itsInterrupted(false),
+     itsSignals(itsIOService, SIGINT, SIGTERM)
 {
   // trigger a dummy frame conversion with casa measures to ensure all chaches are setup
   const casa::MVEpoch dummyEpoch(56000.);
@@ -77,17 +82,25 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
                              casa::MEpoch::Ref(casa::MEpoch::UTC))();
   ASKAPCHECK(itsConfig.observation().scans().size() == 1,
           "NoMetadataSource supports only a single scan");
+
+  // Setup a signal handler to catch SIGINT and SIGTERM
+  itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
 }
 
 NoMetadataSource::~NoMetadataSource()
 {
+    itsSignals.cancel();
 }
 
 VisChunk::ShPtr NoMetadataSource::next(void)
 {
     // Get the next VisDatagram if there isn't already one in the buffer
-    if (!itsVis) {
-        itsVis = itsVisSrc->next();
+    while (!itsVis) {
+        itsVis = itsVisSrc->next(10000000); // 1 second timeout
+        itsIOService.poll();
+        if (itsInterrupted) {
+            throw InterruptedException();
+        }
     }
 
     // This is the BAT timestamp for the current integration being processed
@@ -112,6 +125,10 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // be recieved and move on
     casa::uInt datagramCount = 0; 
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
+        itsIOService.poll();
+        if (itsInterrupted) {
+            throw InterruptedException();
+        }
         if (currentTimestamp > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
             ASKAPLOG_WARN_STR(logger, "Received VisDatagram from past integration");
@@ -315,5 +332,13 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
                 chunk->flag()(row, chanOffset + chan, 2) = false;
             }
         }
+    }
+}
+
+void NoMetadataSource::signalHandler(const boost::system::error_code& error,
+        int signalNumber)
+{
+    if (signalNumber == SIGTERM || signalNumber == SIGINT) {
+        itsInterrupted = true;
     }
 }
