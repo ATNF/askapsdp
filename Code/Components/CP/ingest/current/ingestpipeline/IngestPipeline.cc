@@ -108,7 +108,6 @@ void IngestPipeline::ingest(void)
             bool endOfStream = ingestOne();
             itsRunning = !endOfStream;
         } catch (InterruptedException&) {
-            std::cerr << "$$$$$$$$$$$$$$$$$$$ Interrupted" << std::endl;
             break;
         }
     }
