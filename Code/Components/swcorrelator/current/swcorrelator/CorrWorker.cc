@@ -108,7 +108,7 @@ void CorrWorker::operator()()
        cp.itsBAT = bat;
        const int baseline0 = cp.baseline(hdrAnt1.antenna, hdrAnt2.antenna);
        const int baseline1 = itsBufferManager->is2ndDuplicated() ? 1 : cp.baseline(hdrAnt2.antenna, hdrAnt3.antenna);
-       const int baseline2 = cp.baseline(hdrAnt1.antenna, hdrAnt3.antenna);
+       const int baseline2 = itsBufferManager->is2ndDuplicated() ? 2 : cp.baseline(hdrAnt1.antenna, hdrAnt3.antenna);
        ASKAPDEBUGASSERT(baseline0 < int(cp.nBaseline()));
        ASKAPDEBUGASSERT(baseline1 < int(cp.nBaseline()));
        ASKAPDEBUGASSERT(baseline2 < int(cp.nBaseline()));
