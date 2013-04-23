@@ -3,10 +3,6 @@ Post-processing of detections
 
 Once the list of detected objects has been obtained, there are several post-processing steps that can be utilised. We describe here mask optimisation and two-dimensional component fitting.
 
-The WALLABY team have provided an algorithm to optimise the source mask, which in Duchamp terms means growing detections, such that the integrated flux of the detection is maximised subject to the noise present. This has been provided to avoid issues with the fact that the Duchamp-based parameterisation is based only on the detected pixels, so structure below the detection threshold is not taken into account. Growing the object in this way increases the number of faint pixels contributing to source parameterisation.
-
-
-
 
 Mask optimisation
 -----------------
@@ -155,7 +151,6 @@ Parameters for fitting
 +=====================================+=================+============+=========================================================================================+
 |Selavy.distribFit                    |bool             |true        |If true, the edge sources are distributed by the master node to the workers for          |
 |                                     |                 |            |fitting. If false, the master node does all the fitting.                                 |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.doFit                  |bool             |false       |Whether to fit Gaussians to the detections -- necessary if you want to do the quality    |
 |                                     |                 |            |evaluation                                                                               |
@@ -170,9 +165,6 @@ Parameters for fitting
 |                                     |                 |            |is also a third option, "shape", where the location and shape are fitted, but the height |
 |                                     |                 |            |of the Gaussian is kept at the object's peak flux value. The "shape" option needs to be  |
 |                                     |                 |            |specifically requested.                                                                  |
-|                                     |                 |            |                                                                                         |
-|                                     |                 |            |                                                                                         |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.maxNumGauss            |int              |4           |The maximum number of Gaussians to fit to a single detection                             |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
@@ -180,23 +172,19 @@ Parameters for fitting
 |                                     |                 |            |in which the fitting is done.                                                            |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.maxReducedChisq        |float            |5.          |The maximum value for the reduced chi-squared for a fit to be acceptable.                |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.chisqConfidence        |float            |-1.         |A probability value, between 0 and 1, used as a confidence level for accepting the       |
 |                                     |                 |            |chi-squared value. If outside this range of values (as is the default), the test is done |
 |                                     |                 |            |with the reduced chi-squared value, using the **maxReducedChisq** parameter.             |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.maxRMS                 |float            |1.          |The value that is passed to the FitGaussian::fit() function.                             |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.useNoise               |bool             |true        |Whether to measure the noise in a box surrounding the object and use that as the sigma   |
 |                                     |                 |            |value for each point in the fit. Setting to false has the effect of setting the sigma to |
 |                                     |                 |            |one for each point.                                                                      |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.noiseBoxSize           |int              |101         |The side length of a box centred on the peak pixel that is used to estimate the noise    |
 |                                     |                 |            |level (ie. the rms) for a source: this is used for the fitting.                          |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.minFitSize             |int              |3           |The minimum number of pixels that an object has for it to be fit.                        |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
@@ -219,6 +207,37 @@ Parameters for fitting
 |                                     |                 |            |with more Gaussian components.                                                           |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 |Selavy.Fitter.useGuessIfBad          |bool             |true        |Whether to print the initial estimates in the case that the fitting fails                |
-|                                     |                 |            |                                                                                         |
 +-------------------------------------+-----------------+------------+-----------------------------------------------------------------------------------------+
 
+
+
+Spectral Index & Curvature
+--------------------------
+
+Measuring spectral terms
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Selavy is designed to work in conjunction with the ASKAPsoft pipeline. For continuum data, a common processing mode will be multi-frequency synthesis, where the output will be a series of "Taylor-term" images, being the coefficients of a Taylor-expansion of the frequency spectrum at each pixel. These images will be; taylor 0 - a total intensity (I) image (at a fiducial frequency); taylor 1 - the alpha * I map, where alpha is the spectral index; taylor 2 -  I * (beta + 0.5*alpha*(alpha-1)), where beta is the spectral curvature.
+
+We want to extract a value for alpha & beta for each component. We do this by fitting to the total intensity image, as described above. Each resulting component is then fitted to the taylor 1 & 2 images, keeping the shape and location constant. This just fits the normalisation of the Gaussian. The total flux of the Gaussian is then extracted and used in the above relations.
+
+The measurement of the spectral information in this way is dependent on the fitting, so one needs to request Gaussian fitting via the above parameters. The measurement of spectral index and spectral curvature can be requested independently (if, for instance, you have only a spectral index map).
+ 
+Selavy defaults to assuming the images have been produced in the ASKAPsoft pipeline, and are thus named in a specific way. It is possible, however, to specify alternative names for the spectral index & curvature images (ie. taylor 1 & 2 maps), although the data they hold must be formed in the same way (ie. conform to the above relationships). The image names are specified via the **spectralTermImages** input parameter. If this is not given, the names are derived, if possible, from the image name, assuming a standard format: if the total intensity image is named XXX.taylor.0.YYY, then the spectral index map will be XXX.taylor.1.YYY and the spectral curvature map will be XXX.taylor.2.YYY
+
+
+Parameters for spectral term measurement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++--------------------------+---------------+-------------------------------+----------------------------------------------------------------------+
+| *Parameter*              | *Type*        | *Default*                     | *Explanation*                                                        |
++==========================+===============+===============================+======================================================================+
+|Selavy.findSpectralTerms  |vector<bool>   |2 terms, same as Fitter.doFit  |A vector of 2 terms, indiciating whether to find the spectral index   |
+|                          |               |                               |(first term) and the spectral curvature (2nd term). It is possible to |
+|                          |               |                               |give only one term (e.g. findSpectralTerms = true) - then the second  |
+|                          |               |                               |term will be set to false. To request both, put **findSpectralTerms = |
+|                          |               |                               |[true,true]**.                                                        |
++--------------------------+---------------+-------------------------------+----------------------------------------------------------------------+
+|Selavy.spectralTermImages |vector<string> |Derived from image name - see  |You can explicitly set the images for each term like so:              |
+|                          |               |text                           |**spectralTermImages = [image1, image2]**.                            |
++--------------------------+---------------+-------------------------------+----------------------------------------------------------------------+

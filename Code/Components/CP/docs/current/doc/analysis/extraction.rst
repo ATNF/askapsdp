@@ -24,44 +24,53 @@ The second use case is triggered by setting extractSpectra.useDetectedPixels=tru
 
 *IMPORTANT NOTE* - the spectra are written to *CASA images*, rather than FITS files.
 
+Note that Selavy inherits Duchamp's ability to save the spectra to an ASCII text file. This is controlled by the parameters **flagTextSpectra** and **spectraTextFile**.
+
+You can select particular objects for spectral extraction, either to CASA images or ASCII text, by using the **objectList** parameter and providing a comma-separated list of object IDs.
+
 Parameters for spectral extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|*Parameter*                       |*Type*          |*Default*   |*Explanation*                                                                    |
-+==================================+================+============+=================================================================================+
-|extractSpectra                    |bool            |false       |Whether to extract spectra for each detected source                              |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.spectralCube       |vector<string>  |[]          |A set of input spectral cubes from which the spectra will be extracted, given as |
-|                                  |                |            |a comma-separated list within square brackets. If just one cube is required, the |
-|                                  |                |            |square brackets are optional.                                                    |
-|                                  |                |            |                                                                                 |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.spectralOutputBase |string          |""          |The base used for the output spectra. The filename for a given source will be    |
-|                                  |                |            |this string appended with "_ID", where ID is the source's ID number from the     |
-|                                  |                |            |results list. When run through the Selavy service, the filename will have        |
-|                                  |                |            |"selavy-SPECTRA-" prepended to it.                                               |
-|                                  |                |            |                                                                                 |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.polarisation       |vector<string>  |I           |The set of Stokes parameters for which spectra should be extracted.  Multiple    |
-|                                  |                |            |polarisations can be provided in a number of ways: "IQUV", ["I","Q","U","V"]     |
-|                                  |                |            |etc. See text for requirements.                                                  |
-|                                  |                |            |                                                                                 |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.spectralBoxWidth   |int             |5           |The width of the box to be applied in the extraction.                            |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.pixelCentre        |string          |peak        |Which object location to use. Can be "peak", "centroid", or "average", in the    |
-|                                  |                |            |same way as the standard Duchamp input parameter pixelCentre.                    |
-|                                  |                |            |                                                                                 |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.useDetectedPixels  |bool            |false       |Whether to use all detected pixels of the object, and integrating over them,     |
-|                                  |                |            |rather than applying a box.                                                      |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
-|extractSpectra.scaleSpectraByBeam |bool            |true        |Whether to scale the resulting spectra by the beam extracted over the same box,  |
-|                                  |                |            |or, in the case of useDetectedPixels=true, by the area of the beam (using the    |
-|                                  |                |            |same correction as in Duchamp).                                                  |
-|                                  |                |            |                                                                                 |
-+----------------------------------+----------------+------------+---------------------------------------------------------------------------------+
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|*Parameter*                       |*Type*          |*Default*          |*Explanation*                                                                          |
++==================================+================+===================+=======================================================================================+
+|extractSpectra                    |bool            |false              |Whether to extract spectra for each detected source                                    |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.spectralCube       |vector<string>  |[]                 |A set of input spectral cubes from which the spectra will be extracted, given as a     |
+|                                  |                |                   |comma-separated list within square brackets. If just one cube is required, the square  |
+|                                  |                |                   |brackets are optional.                                                                 |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.spectralOutputBase |string          |""                 |The base used for the output spectra. The filename for a given source will be this     |
+|                                  |                |                   |string appended with "_ID", where ID is the source's ID number from the results        |
+|                                  |                |                   |list. When run through the Selavy service, the filename will have "selavy-SPECTRA-"    |
+|                                  |                |                   |prepended to it.                                                                       |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.polarisation       |vector<string>  |I                  |The set of Stokes parameters for which spectra should be extracted.  Multiple          |
+|                                  |                |                   |polarisations can be provided in a number of ways: "IQUV", ["I","Q","U","V"] etc. See  |
+|                                  |                |                   |text for requirements.                                                                 |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.spectralBoxWidth   |int             |5                  |The width of the box to be applied in the extraction.                                  |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.pixelCentre        |string          |peak               |Which object location to use. Can be "peak", "centroid", or "average", in the same way |
+|                                  |                |                   |as the standard Duchamp input parameter pixelCentre.                                   |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.useDetectedPixels  |bool            |false              |Whether to use all detected pixels of the object, and integrating over them, rather    |
+|                                  |                |                   |than applying a box.                                                                   |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|extractSpectra.scaleSpectraByBeam |bool            |true               |Whether to scale the resulting spectra by the beam extracted over the same box, or, in |
+|                                  |                |                   |the case of useDetectedPixels=true, by the area of the beam (using the same correction |
+|                                  |                |                   |as in Duchamp).                                                                        |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|flagTextSpectra                   |bool            |false              |Produce a file with text-based values of the spectra of each detection.                |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|spectraTextFile                   |string          |selavy-spectra.txt |The file containing ascii spectra of each detection.                                   |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+|objectList                        |string          |*no default*       |A comma-separated list of objects that will be used for the post-processing. This is   |
+|                                  |                |                   |inherited from Duchamp, where it can be used to only plot a selection of sources. This |
+|                                  |                |                   |is most useful for re-running with a previously-obtained catalogue.  In Selavy, this   |
+|                                  |                |                   |will only be applied to the spectraTextFile and spectral extraction options.           |
++----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
+
 
 Noise spectra
 -------------

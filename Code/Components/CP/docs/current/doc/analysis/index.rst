@@ -1,5 +1,5 @@
-Science Analysis Software Documentation
-=======================================
+Selavy Documentation
+====================
 
 The analysis package supports analysis of processed radio synthesis observations,
 including source detection and extraction, profile fitting, and writing to the
@@ -13,5 +13,7 @@ TBs per hour.
 
    selavy.rst
    preprocessing.rst
+   thresholds.rst
    postprocessing.rst
    extraction.rst
+   duchampExclusions.rst
