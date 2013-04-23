@@ -231,46 +231,12 @@ namespace askap {
 	      ASKAPCHECK(parset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting noise spectra. Please use the \"spectralCube\" parameter.");
 	      ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << parset.getString("extractNoiseSpectra.spectralCube",""));
 	    }
-// 	    if(parset.isDefined("summaryFile")){
-// 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
-// 	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
-// 	    }
-//             this->itsFitSummaryFile = parset.getString("fitResultsFile", "duchamp-fitResults.txt");
-//             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
-//             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
-	    if( parset.isDefined("logFile") || 
-		((!itsComms.isParallel() || itsComms.isMaster()) && 
-		 (parset.isDefined("subimageAnnotationFile") ||
-		  parset.isDefined("summaryFile") || 
-		  parset.isDefined("fitResultsFile") || 
-		  parset.isDefined("fitAnnotationFile") || 
-		  parset.isDefined("fitBoxAnnotationFile"))
-		 )
-		)
-	      ASKAPLOG_WARN_STR(logger, "Output filenames have been fixed to certain default values:");
 
-	    this->itsFitSummaryFile = "duchamp-fitResults.txt";
-	    this->itsFitAnnotationFile = "duchamp-fitResults.ann";
-	    this->itsFitBoxAnnotationFile = "duchamp-fitResults.boxes.ann";
+	    this->itsFitSummaryFile = parset.getString("fitResultsFile","duchamp-fitResults.txt");
+	    this->itsFitAnnotationFile = parset.getString("fitAnnotationFile","duchamp-fitResults.ann");
+	    this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile","duchamp-fitResults.boxes.ann");
 
-	    if(!itsComms.isParallel() || itsComms.isMaster()){
-	      if(parset.isDefined("summaryFile") || parset.isDefined("fitResultsFile") ) ASKAPLOG_WARN_STR(logger, "fitResultsFile = 'duchamp-fitResults.txt'  (= old parameter summaryFile)");
-	      if(parset.isDefined("fitAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitAnnotationFile = 'duchamp-fitResults.ann'");
-	      if(parset.isDefined("fitBoxAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitBoxAnnotationFile = 'duchamp-fitResults.boxes.ann'");
-	    }
-
-//             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
-	    this->itsSubimageAnnotationFile = "duchamp-SubimageLocations.ann";	       
-	    if((!itsComms.isParallel() || itsComms.isMaster()) && parset.isDefined("subimageAnnotationFile")) 
-	      ASKAPLOG_WARN_STR(logger, "subimageAnnotationFile = 'duchamp-SubimageLocations.ann'");
-
-
-	    if(parset.isDefined("logFile")){
-	      if(itsComms.isParallel() && itsComms.isMaster())
-		ASKAPLOG_WARN_STR(logger, "logFile = 'duchamp-Logfile-Master.txt'");
-	      if(itsComms.isWorker())
-		ASKAPLOG_WARN_STR(logger, "logFile = '"<<itsComms.substitute("duchamp-Logfile-%w.txt")<<"'");
-	    }
+	    this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "duchamp-SubimageLocations.ann");
 
             if (itsComms.isParallel()) {
 	      this->itsSubimageDef = SubimageDef(parset);
@@ -293,15 +259,9 @@ namespace askap {
 		ASKAPLOG_DEBUG_STR(logger, "Changed Subimage overlaps to " << this->itsSubimageDef.overlapx() << ","
 				   << this->itsSubimageDef.overlapy() << ","<< this->itsSubimageDef.overlapz());
 
-	      if (itsComms.isMaster()) {
-		this->itsCube.pars().setLogFile("duchamp-Logfile-Master.txt");
-	      }
-            }
+	    }
 	    
-            if (itsComms.isWorker())
-	      this->itsCube.pars().setLogFile(itsComms.substitute("duchamp-Logfile-%w.txt"));
-
-        }
+	}
 
 	void DuchampParallel::checkSpectralTermImages()
 	{
@@ -324,7 +284,7 @@ namespace askap {
 					      << ") is not a Taylor term. Cannot find spectral information.");
 
 			    // set flag for this and higher terms to false
-			    for(size_t j=i;j<2;j++) this->itsFlagFindSpectralTerms[i] = false;
+			    for(size_t j=i;j<2;j++) this->itsFlagFindSpectralTerms[j] = false;
 			    
 			}
 			else { // it is a taylor.0 image, so set current term's image appropriately
@@ -533,6 +493,17 @@ namespace askap {
             /// @details Opens the log file and writes the execution
             /// statement, the time, and the duchamp parameter set to it.
             if (this->itsCube.pars().getFlagLog()) {
+		if(this->itsComms.isParallel()){
+		    std::string inputLog=this->itsCube.pars().getLogFile();
+		    size_t loc = inputLog.rfind(".");
+		    std::string suffix = inputLog.substr(loc, inputLog.length());
+		    std::string addition;
+		    if(this->itsComms.isMaster()) addition=".Master";
+		    else addition=itsComms.substitute(".%w");
+		    if(loc != std::string::npos) this->itsCube.pars().setLogFile( inputLog.insert(loc,addition) );
+		    else this->itsCube.pars().setLogFile( inputLog + addition );
+		}
+
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile());
                 std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
                 logfile << "New run of the CDuchamp sourcefinder: ";
@@ -2003,6 +1974,7 @@ namespace askap {
 		}
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
 
+		ASKAPLOG_INFO_STR(logger, "Writing to output catalogue " << this->itsCube.pars().getOutFile());
                 this->itsCube.outputCatalogue();
 
                 if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
@@ -2012,7 +1984,13 @@ namespace askap {
 		this->itsCube.outputAnnotations();
 
 		if(this->itsCube.pars().getFlagVOT()){
+		    ASKAPLOG_INFO_STR(logger, "Writing to output VOTable " << this->itsCube.pars().getVOTFile());
 		  this->itsCube.outputDetectionsVOTable();
+		}
+
+		if(this->itsCube.pars().getFlagTextSpectra()){
+		    ASKAPLOG_INFO_STR(logger,"Saving spectra to text file " << this->itsCube.pars().getSpectraTextFile());
+		    this->itsCube.writeSpectralData();
 		}
 
 		
@@ -2170,17 +2148,13 @@ namespace askap {
 
       void DuchampParallel::writeToFITS()
       {
-	
-	if(!this->itsComms.isParallel()){
-	  this->itsCube.pars().setFlagBlankPix(false);
-	  // if(this->itsCube.pars().getFlagOutputMask()){
-	  //     ASKAPLOG_INFO_STR(logger, "Saving mask cube to "<< this->itsCube.pars().outputMaskFile());
-	  //     if(this->itsCube.saveMaskCube() == FAILURE)
-	  // 	  ASKAPLOG_ERROR_STR(logger, "Unable to save the mask cube to " << this->itsCube.pars().outputMaskFile());
-	  // }
-	  this->itsCube.writeToFITS();
- 
-	}
+	  if(!this->itsIsFITSFile){
+	      ASKAPLOG_ERROR_STR(logger, "Writing to FITS files currently requires the input to be FITS, which is not the case here.");
+	  }
+	  else if(!this->itsComms.isParallel()){
+	      this->itsCube.pars().setFlagBlankPix(false);
+	      this->itsCube.writeToFITS(); 
+	  }
 
       }
 

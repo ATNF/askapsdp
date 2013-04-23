@@ -187,11 +187,13 @@ namespace askap {
 	    par.setObjectList(parset.getString("objectList",par.getObjectList()));
 
             par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
-	    if(parset.isDefined("outfile") || parset.isDefined("resultsFile")) 
-	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getOutFile()<<"' for the results file");
+	    par.setLogFile(parset.getString("logFile",par.getLogFile()));
+	    if(parset.isDefined("resultsFile"))
+		par.setOutFile(parset.getString("resultsFile",par.getOutFile()));
+	    else 
+		par.setOutFile(parset.getString("outFile",par.getOutFile()));
 	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
-	    if(par.getFlagSeparateHeader() && parset.isDefined("headerFile")) 
-	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getHeaderFile()<<"' for the results header file");
+	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
 	    par.setFlagWriteBinaryCatalogue( parset.getBool("flagWriteBinaryCatalogue",par.getFlagWriteBinaryCatalogue()) );
 	    par.setBinaryCatalogue( parset.getString("binaryCatalogue",par.getBinaryCatalogue()) );
 	    par.setFlagPlotSpectra(false); // no graphics, so not plotting
@@ -214,20 +216,13 @@ namespace askap {
 	    par.setFlagOutputResid(parset.getBool("flagOutputResid",par.getFlagOutputResid()));
 	    par.setFileOutputResid(parset.getString("fileOutputResid",par.getFileOutputResid()));
 	    par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
-	    if(par.getFlagVOT() && parset.isDefined("votFile"))
-	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getVOTFile()<<"' for the VOTable file");
+	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
             par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
-	    if(par.getFlagKarma() && parset.isDefined("karmaFile"))
-	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getKarmaFile()<<"' for the Karma annotation file");
 	    par.setFlagDS9(parset.getBool("flagDS9",true)); // different from Duchamp default
 	    par.setDS9File(parset.getString("ds9File",par.getDS9File()));
-	    if(par.getFlagDS9() && parset.isDefined("ds9File"))
-	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getDS9File()<<"' for the DS9 region file");
 	    par.setFlagCasa(parset.getBool("flagCasa",true)); // different from Duchamp default
 	    par.setCasaFile(parset.getString("casaFile",par.getCasaFile()));
-	    if(par.getFlagCasa() && parset.isDefined("casaFile"))
-		ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getCasaFile()<<"' for the Casa region file");
 	    //
 	    par.setFlagMaps(false); // flagMaps
 	    checkUnusedParameter(parset,"flagMaps");//  - not using X
@@ -320,7 +315,6 @@ namespace askap {
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
 	    checkUnusedParameter(parset,"spectralMethod"); // only used for graphical output.
 	    par.setSortingParam(parset.getString("sortingParam",par.getSortingParam()));
-
 
             par.checkPars();
 

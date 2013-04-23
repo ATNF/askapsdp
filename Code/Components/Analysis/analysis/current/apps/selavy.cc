@@ -53,25 +53,28 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "selavy.log");
 
-void setSelavyNames(DuchampParallel &finder, askap::askapparallel::AskapParallel &comms)
+void setSelavyParameters(LOFAR::ParameterSet &parset, askap::askapparallel::AskapParallel &comms)
 {
-    finder.cube().pars().setOutFile("selavy-results.txt");
-    finder.cube().pars().setHeaderFile("selavy-results.hdr");
-    finder.cube().pars().setBinaryCatalogue("selavy-catalogue.dpc");
-    finder.cube().pars().setVOTFile("selavy-results.xml");
-    finder.cube().pars().setKarmaFile("selavy-results.ann");
-    finder.cube().pars().setDS9File("selavy-results.reg");
-    finder.cube().pars().setCasaFile("selavy-results.crf");
-    if(comms.isParallel() && comms.isMaster())
-        finder.cube().pars().setLogFile("selavy-Logfile-Master.txt");
-    else
-        finder.cube().pars().setLogFile(comms.substitute("selavy-Logfile-%w.txt"));
+    /// The aim of this function is to ensure the parset contains
+    /// entries for all output files, and, where they have not been
+    /// provided by the user, add them in with Selavy-specific
+    /// defaults.
 
-    finder.setSubimageAnnotationFile("selavy-SubimageLocations.ann");
-    finder.setFitSummaryFile("selavy-fitResults.txt");
-    finder.setFitAnnotationFile("selavy-fitResults.ann");
-    finder.setFitBoxAnnotationFile("selavy-fitResults.boxes.ann");
+    if(!parset.isDefined("headerFile")) parset.add("headerFile","selavy-results.hdr");
+    if(!parset.isDefined("outFile") && !parset.isDefined("resultsFile")) parset.add("resultsFile","selavy-results.txt");
+    if(!parset.isDefined("logFile")) parset.add("logFile","selavy-Logfile.txt");
+    if(!parset.isDefined("votFile")) parset.add("votFile","selavy-results.xml");
+    if(!parset.isDefined("karmaFile")) parset.add("karmaFile","selavy-results.ann");
+    if(!parset.isDefined("ds9File")) parset.add("ds9File","selavy-results.reg");
+    if(!parset.isDefined("casaFile")) parset.add("casaFile","selavy-results.crf");
+    if(!parset.isDefined("fitResultsFile")) parset.add("fitResultsFile","selavy-fitResults.txt");
+    if(!parset.isDefined("fitAnnotationFile")) parset.add("fitAnnotationFile","selavy-fitResults.ann");
+    if(!parset.isDefined("fitBoxAnnotationFile")) parset.add("fitBoxAnnotationFile","selavy-fitResults.boxes.ann");
+    if(!parset.isDefined("subimageAnnotationFile")) parset.add("subimageAnnotationFile","selavy-SubimageLocations.ann");
+    if(!parset.isDefined("binaryCatalogue")) parset.add("binaryCatalogue","selavy-catalogue.dpc");
+    if(!parset.isDefined("spectraTextFile")) parset.add("spectraTextFile","selavy-spectra.txt");
 }
+
 
 class SelavyApp : public askap::Application
 {
@@ -90,13 +93,13 @@ class SelavyApp : public askap::Application
                 LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
                 parset.adoptCollection(config());
                 LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
+		setSelavyParameters(subset,comms);
 
                 if(!comms.isParallel() || comms.isMaster())
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                if(!comms.isParallel() || comms.isMaster())
+                    ASKAPLOG_INFO_STR(logger, "Parset file as used:\n" << subset);
                 DuchampParallel finder(comms, subset);
-
-                // change the default output names from duchamp-* to selavy-*
-                setSelavyNames(finder,comms);
 
                 finder.readData();
                 finder.setupLogfile(argc, const_cast<const char**>(argv));
