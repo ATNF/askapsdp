@@ -22,6 +22,7 @@ namespace askap {
     AskapAsciiCatalogueWriter::AskapAsciiCatalogueWriter(std::string name):
       duchamp::ASCIICatalogueWriter(name)
     {
+	this->itsDestination = duchamp::Catalogues::FILE;
       this->itsFlagWriteFits = true;
       this->itsSourceList = 0;
       this->itsFitType = "best";
