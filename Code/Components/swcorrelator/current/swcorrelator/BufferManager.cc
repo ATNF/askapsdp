@@ -429,6 +429,15 @@ void BufferManager::duplicate2nd(const bool duplicate)
    itsDuplicate2nd = duplicate;
 }
 
+/// @brief check duplicate 2nd flag
+/// @return true, if the data from the second antenna (id=1) are duplicated
+/// and treated as data from the third antenna (id=2) allowing operations
+/// in the single baseline case.
+bool BufferManager::is2ndDuplicated() const
+{
+  return itsDuplicate2nd;
+}
+
 
 } // namespace swcorrelator
 

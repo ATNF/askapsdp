@@ -183,6 +183,12 @@ public:
    /// @note The optional substitution is done before duplication of the antenna
    void duplicate2nd(const bool duplicate);
 
+   /// @brief check duplicate 2nd flag
+   /// @return true, if the data from the second antenna (id=1) are duplicated
+   /// and treated as data from the third antenna (id=2) allowing operations
+   /// in the single baseline case.
+   bool is2ndDuplicated() const;
+
 protected:
    /// @brief optional index substitution
    /// @details We want to be quite flexible and allow various substitutions of
