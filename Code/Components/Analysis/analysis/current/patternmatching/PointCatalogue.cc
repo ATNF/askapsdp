@@ -121,7 +121,7 @@ namespace askap {
 		  double radius=analysisutilities::angularSeparation(this->itsRAref,this->itsDECref,spec->raD(),spec->decD());
 		  if(this->itsRadius < 0. || radius<this->itsRadius){
 		      this->itsFullPointList.push_back(spec);
-		      this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0,spec->raD(),0.));
+		      this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0.5*(this->itsDECref+spec->decD()),spec->raD(),0.5*(this->itsDECref+spec->decD())));
 		      this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
 		      ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
 					 <<"), and storing point with (x,y)=("<<itsFullPointList.back().x()<<","<<itsFullPointList.back().y()<<")");
@@ -143,6 +143,8 @@ namespace askap {
 	std::reverse(this->itsWorkingPointList.begin(), this->itsWorkingPointList.end());
 	size_t maxPoint=this->itsWorkingPointList.size();
 	if(this->itsTrimSize>2) maxPoint = std::min(this->itsTrimSize, this->itsWorkingPointList.size());
+
+	ASKAPLOG_DEBUG_STR(logger, "Sorted the list of " << this->itsWorkingPointList.size() << " point and using the first " << maxPoint << " to generate triangles");
 
 	this->itsTriangleList = std::vector<Triangle>(0);
 	for (size_t i = 0; i < maxPoint - 2; i++) {

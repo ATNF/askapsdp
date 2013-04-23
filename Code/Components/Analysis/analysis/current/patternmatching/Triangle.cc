@@ -242,6 +242,9 @@ namespace askap {
 	/// @param list2 The other list of triangles
 	/// @param epsilon The error parameter used to define the tolerances. Defaults to posTolerance.
 	/// @return A list of matching pairs of triangles.
+
+	  ASKAPLOG_INFO_STR(logger, "Commencing match between lists of size " << list1.size() << " and " << list2.size());
+
 	size_t size1 = list1.size(), size2 = list2.size();
 	// sort in order of increasing ratio
 	std::stable_sort(list1.begin(), list1.end());
