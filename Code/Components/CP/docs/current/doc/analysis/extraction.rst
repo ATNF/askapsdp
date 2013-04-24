@@ -10,7 +10,7 @@ This set of parameters allows, for each detected source, the extraction of spect
 * Extracting full-Stokes spectra from a continuum cube for a source detected in a taylor.0 MFS image.
 * Extracting an integrated or peak spectrum of a spectral-line source (eg. an HI detection). In this case the spectral cube is the same dataset as that used for the source detection.
 
-*Note* At this point the pixel coordinates are used to get the location in the spectral cube, so the detection image and the spectral cube should have the same WCS. This will be updated as needed in future releases.
+*Note*: At this point the pixel coordinates are used to get the location in the spectral cube, so the detection image and the spectral cube should have the same WCS. This will be updated as needed in future releases.
 
 The initial use case follows the specification provided by POSSUM. The user provides a spectral cube, a list of polarisations to be extracted, and a box width. The spectrum is summed in each channel within this box, centred on the peak (or centroid or average) position of the detected object. This spectrum can optionally be scaled by the response of the beam over the same box, such that the resulting spectrum gives the flux of a point source at that location. At present, the decision to scale by the beam is made at the parset input stage, but future versions of the algorithm could make this a dynamic choice based on the source in question.
 
@@ -24,7 +24,7 @@ The second use case is triggered by setting extractSpectra.useDetectedPixels=tru
 
 *IMPORTANT NOTE* - the spectra are written to *CASA images*, rather than FITS files.
 
-Note that Selavy inherits Duchamp's ability to save the spectra to an ASCII text file. This is controlled by the parameters **flagTextSpectra** and **spectraTextFile**.
+Additionally, Selavy inherits Duchamp's ability to save the spectra to an ASCII text file. This is controlled by the parameters **flagTextSpectra** and **spectraTextFile**.
 
 You can select particular objects for spectral extraction, either to CASA images or ASCII text, by using the **objectList** parameter and providing a comma-separated list of object IDs.
 
@@ -68,7 +68,8 @@ Parameters for spectral extraction
 |objectList                        |string          |*no default*       |A comma-separated list of objects that will be used for the post-processing. This is   |
 |                                  |                |                   |inherited from Duchamp, where it can be used to only plot a selection of sources. This |
 |                                  |                |                   |is most useful for re-running with a previously-obtained catalogue.  In Selavy, this   |
-|                                  |                |                   |will only be applied to the spectraTextFile and spectral extraction options.           |
+|                                  |                |                   |will only be applied to the spectraTextFile and spectral extraction options. If not    |
+|                                  |                |                   |provided, all objects will be processed.                                               |
 +----------------------------------+----------------+-------------------+---------------------------------------------------------------------------------------+
 
 
@@ -78,6 +79,8 @@ Noise spectra
 The same algorithms can be applied to extract noise spectra for each object. In this case, the box used is defined by a multiple of beam areas (defaulting to 50, as per the POSSUM specification). The box is taken to be a square box with the same area as requested. For each channel, the noise rms level is measured within that box to produce the noise spectrum.
 
 As for the source spectrum, a polarisation can be indicated as the Stokes parameter from which to measure the noise. Only one Stokes parameter is used - if more than one is provided, only the first is used. The same rules for accessing the spectral cube are applied as described above.
+
+The **objectList** parameter applies to the noise spectra as well.
 
 Parameters for noise spectra extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

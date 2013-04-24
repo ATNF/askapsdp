@@ -3,8 +3,9 @@ Selavy Documentation
 
 The analysis package supports analysis of processed radio synthesis observations,
 including source detection and extraction, profile fitting, and writing to the
-database. The emphasis is on the processing of ASKAP-scale data sets i.e. many
-TBs per hour.
+database. The emphasis is on the processing of ASKAP-scale data sets,
+and providing the functionality required by the Survey Science
+Projects. 
 
 **Contents:**
 

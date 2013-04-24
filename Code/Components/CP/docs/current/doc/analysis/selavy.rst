@@ -22,7 +22,15 @@ Basic Execution and Control Parameters
 
 This section summarises the basic execution of Selavy, with control of specific types of processing discussed in later sections. The default approach of Selavy is to follow the Duchamp method of applying a single threshold, either a flux value (specified by the user) or a signal-to-noise level, to the entire image. Pixels above this threshold are grouped together in objects - they may be required to be contiguous, or they can be separated by up to some limit. Detected objects may be "grown" to a secondary (lower) threshold, to include faint pixels without having to search to a faint level. 
 
-The image can be subdivided for distributed processing. To get a single SNR threshold in this case, the noise stats are calculated on a subimage basis and combined to find the average noise across the image. 
+One of the aims of Selavy is to provide distributed processing support, and details on how this is done can be found `below`_. To get single SNR threshold in this case, the noise stats are calculated on a subimage basis and combined to find the average noise across the image. Selavy also permits variable detection thresholds to be determined in several ways - these are described on the `Thresholds`_ page.
+
+The input image can be a FITS format image or a CASA image (as is produced by the ASKAPsoft imaging pipeline). The code to read CASA images is new: it extracts the flux, WCS and metadata information and stores them in the classes used by the Duchamp code. While the Duchamp software is able to read FITS images, this has issues with very large cubes depending on the memory of the system being used - sometimes even the getMetadata() function would break (e.g. when subsections were being requested) since the number of pixels in the subsection was more than memory could hold. For this reason, the CASA code is default, unless the **useCASAforFITS** parameter is set to false.
+
+.. _`below`: selavy.html#distributed-processing
+.. _`Thresholds`: thresholds.html
+
+General parameters
+~~~~~~~~~~~~~~~~~~
 
 The following table lists the basic parameters governing the searching. All parameters listed here should have a **Selavy.** prefix (ie. **Selavy.image**). 
 
@@ -30,37 +38,29 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 
 .. _`Duchamp Exclusions`: duchampExclusions.html
 
-General parameters
-~~~~~~~~~~~~~~~~~~
-
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |*Parameter*            |*Type*        |*Default*            |*Description*                                                                           |
 +=======================+==============+=====================+========================================================================================+
 |image                  |string        |none                 |The input image - can also use **imageFile** for consistency with Duchamp parameters    |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |useCASAforFITS         |bool          |true                 |Whether to use the casacore functionality for FITS images (if false, the native Duchamp |
 |                       |              |                     |code is used - see discussion above)                                                    |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |searchType             |string        |spatial              |How the searches are done: in 2D channel maps ("spatial") or in 1D spectra ("spectral") |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |snrCut                 |float         |4.                   |Threshold value, in multiples of the rms above the mean noise level                     |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|threshold              |float         |*no default*         |Threshold value in units of the FITS cube (default value means snrCut will be used      |
-|                       |              |                     |instead)                                                                                |
+|threshold              |float         |*no default*         |Threshold value in units of the image (default value means snrCut will be used instead) |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagGrowth             |bool          |false                |Whether to grow detections to a lower threshold                                         |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |growthCut              |float         |3.                   |Signal-to-noise ratio to grow detections down to                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |growthThreshold        |float         |0.                   |Threshold value to grow detections down to (takes precedence over **growthCut**)        |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagNegative           |bool          |false                |Whether to invert the cube and search for negative features                             |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagRobust             |bool          |true                 |Whether to use robust statistics when evaluating image noise statistics.                |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |minPix                 |int           |2                    |Minimum number of pixels allowed in a detection                                         |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
@@ -79,7 +79,6 @@ General parameters
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagRejectBeforeMerge  |bool          |false                |A flag indicating whether to reject sources that fail to meet the minimum size criteria |
 |                       |              |                     |**before** the merging stage. Default behaviour is to do the rejection last.            |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagTwoStageMerging    |bool          |true                 |A flag indicating whether to do an initial merge of newly-detected sources into the     |
 |                       |              |                     |source list as they are found. If false, new sources are simply added to the end of the |
@@ -91,7 +90,6 @@ General parameters
 |                       |              |                     |examined                                                                                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagStatSec            |bool          |false                |Whether to use a subsection of the image to calculate the image statistics              |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |statsec                |string        |*full image*         |A subsection string indicating the pixel region to be used to calculate statistics      |
 |                       |              |                     |(mean, rms,...)                                                                         |
@@ -105,24 +103,21 @@ General parameters
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |beamArea               |float         |10.                  |The area of the beam in *pixels*. This parameter is only used when the image does not   |
 |                       |              |                     |provide beam information. When this is used, a circular beam is assumed.                |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |beamFWHM               |float         |-1.                  |The FWHM of the beam in *pixels*. This parameter is only used when the image does not   |
 |                       |              |                     |provide beam information. When this is used, a circular beam is assumed. This value     |
 |                       |              |                     |takes precedence over **beamArea** but is ignored if negative (the default).            |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|spectralUnits          |string        |km/s                 |The units desired for the spectral axis.                                                |
+|spectralUnits          |string        |*no default*         |The units desired for the spectral axis. If no value is given, the units in the image   |
+|                       |              |                     |header are used.                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |spectralType           |string        |*no default*         |An alternative WCS type that the spectral axis is to be expressed in. If no value is    |
 |                       |              |                     |given, the type held by the image header is used. The specification should conform to   |
 |                       |              |                     |the standards described in `Greisen et al (2006)`_, although it is possible to provide  |
 |                       |              |                     |just the first four letters (the 'S-type', e.g. 'VELO').                                |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |restFrequency          |float         |-1.                  |If provided, this will be used in preference to the rest frequency given in the image   |
 |                       |              |                     |header. If not provided, the image header value will be used if required.               |
-|                       |              |                     |                                                                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 
  .. _`Greisen et al (2006)`: http://adsabs.harvard.edu/abs/2006A%26A...446..747G
@@ -135,7 +130,7 @@ The following table lists parameters that control different modes of Selavy. The
 +---------------------+---------+----------+-------------------------------------------------------------------+
 |*Parameter*          |*Type*   |*Default* |*Description*                                                      |
 +=====================+=========+==========+===================================================================+
-|flagATrous           |bool     |false     |Use the a trous wavelet reconstruction algorithm prior to          |
+|flagATrous           |bool     |false     |Use the à trous wavelet reconstruction algorithm prior to          |
 |                     |         |          |source-finding. See the Preprocessing_ page for details.           |
 +---------------------+---------+----------+-------------------------------------------------------------------+
 |flagSmooth           |bool     |false     |Use spectral or spatial smoothing prior to source-finding. See the |
@@ -285,7 +280,7 @@ Output-related parameters
 |                         |              |                     |                                                                                        |
 +-------------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagWriteBinaryCatalogue |bool          |true                 |Produce a binary catalogue compatible with Duchamp (that can be loaded into Duchamp     |
-|                         |              |                     |along with the FITS image to produce plots of the detections).                          |
+|                         |              |                     |along with the image to produce plots of the detections).                               |
 +-------------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |binaryCatalogue          |string        |selavy-catalogue.dpc |The binary catalogue.                                                                   |
 +-------------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
