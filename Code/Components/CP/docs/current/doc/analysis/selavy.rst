@@ -60,7 +60,7 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagNegative           |bool          |false                |Whether to invert the cube and search for negative features                             |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|flagRobust             |bool          |true                 |Whether to use robust statistics when evaluating image noise statistics.                |
+|flagRobustStats        |bool          |true                 |Whether to use robust statistics when evaluating image noise statistics.                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |minPix                 |int           |2                    |Minimum number of pixels allowed in a detection                                         |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
