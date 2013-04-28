@@ -15,8 +15,6 @@ The searching can be done either spatially or spectrally, and this affects how t
 
 When run on a distributed system as above, this processing is done at the worker level. Note that having an overlap between workers of at least the half box width will give continuous coverage (avoiding the aforementioned edge problems). The amount of processing needed increases quickly with the size of the box, due to the use of medians, particularly for the 2D case. 
 
-Selavy provides the option of writing out the various arrays created for the median box searching. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. In a parallel case, the current behaviour is to write individual images for each worker, showing just their subsection of the full image. This behaviour, then, is best used in serial mode (it is currently intended more for debugging and analysis purposes, and may be improved as we move towards actual operations).
-
 A final option for varying the threshold spatially is to use a different threshold for each worker. In this scenario, switched on by setting **thresholdPerWorker = true**, each worker finds its own threshold based on the noise within it, using the **snrCut** signal-to-noise ratio threshold. No variation of the threshold *within* a worker is done, so you get discrete jumps in the threshold at worker boundaries. Use of the overlap can mitigate this. This mode was implemented more as an experiment than out of any expectation it would be useful, and limited trials indicate it's probably not much use. For completeness we include the parameter here. 
 
 Threshold-related parameters
@@ -47,6 +45,21 @@ Threshold-related parameters
 |                               |            |             |channel map at a time; spectral=1D searches, one spectrum at a    |
 |                               |            |             |time.                                                             |
 +-------------------------------+------------+-------------+------------------------------------------------------------------+
+|Selavy.thresholdPerWorker      |bool        |false        |If true, each worker's subimage sets its own threshold.           |
++-------------------------------+------------+-------------+------------------------------------------------------------------+
+
+Saving threshold maps
+~~~~~~~~~~~~~~~~~~~~~
+
+Selavy provides the option of writing out the various arrays created for the median box searching. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. In a parallel case, the current behaviour is to write individual images for each worker, showing just their subsection of the full image. This behaviour, then, is best used in serial mode (it is currently intended more for debugging and analysis purposes, and may be improved as we move towards actual operations). 
+
+The name of the images can be specified via the parameter set, but if not given they build upon the input image name in the following manner. If the input file ended in ".fits", this suffix is removed. Then the appropriate one of "-SNR", "-Threshold" or "-Noise" is appended to the (remaining) filename. No further suffix is added, and the image will be written in CASA image format.
+
+The parameters controlling this behaviour are listed below.
+
++-------------------------------+------------+-------------+------------------------------------------------------------------+
+|*Parameter*                    |*Type*      |*Default*    |*Description*                                                     |
++===============================+============+=============+==================================================================+
 |Selavy.flagWriteSNRimage       |bool        |false        |Whether to write out the SNR map as a CASA image.                 |
 +-------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.SNRimageName            |string      |*see text*   |The name of the CASA image containing the SNR map                 |
@@ -59,6 +72,3 @@ Threshold-related parameters
 +-------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.NoiseImageName          |string      |*see text*   |The name of the CASA image containing the noise map               |
 +-------------------------------+------------+-------------+------------------------------------------------------------------+
-|Selavy.thresholdPerWorker      |bool        |false        |If true, each worker's subimage sets its own threshold.           |
-+-------------------------------+------------+-------------+------------------------------------------------------------------+
-
