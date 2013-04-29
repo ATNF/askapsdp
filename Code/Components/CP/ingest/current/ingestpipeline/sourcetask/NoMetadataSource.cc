@@ -64,27 +64,28 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
-        const Configuration& config,
-        IVisSource::ShPtr visSrc, int numTasks, int id) :
-     itsConfig(config),
-     itsVisSrc(visSrc),
-     itsNumTasks(numTasks), itsId(id),
-     itsScanManager(config),
-     itsChannelManager(params),
-     itsBaselineMap(config.bmap()),
-     itsInterrupted(false),
-     itsSignals(itsIOService, SIGINT, SIGTERM)
+                                   const Configuration& config,
+                                   IVisSource::ShPtr visSrc,
+                                   int numTasks, int id) :
+        itsConfig(config),
+        itsVisSrc(visSrc),
+        itsNumTasks(numTasks), itsId(id),
+        itsScanManager(config),
+        itsChannelManager(params),
+        itsBaselineMap(config.bmap()),
+        itsInterrupted(false),
+        itsSignals(itsIOService, SIGINT, SIGTERM)
 {
-  // trigger a dummy frame conversion with casa measures to ensure all chaches are setup
-  const casa::MVEpoch dummyEpoch(56000.);
+    // Trigger a dummy frame conversion with casa measures to ensure all chaches are setup
+    const casa::MVEpoch dummyEpoch(56000.);
 
-  casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
-                             casa::MEpoch::Ref(casa::MEpoch::UTC))();
-  ASKAPCHECK(itsConfig.observation().scans().size() == 1,
-          "NoMetadataSource supports only a single scan");
+    casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
+                          casa::MEpoch::Ref(casa::MEpoch::UTC))();
+    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
+               "NoMetadataSource supports only a single scan");
 
-  // Setup a signal handler to catch SIGINT and SIGTERM
-  itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
+    // Setup a signal handler to catch SIGINT and SIGTERM
+    itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
 }
 
 NoMetadataSource::~NoMetadataSource()
@@ -98,6 +99,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     while (!itsVis) {
         itsVis = itsVisSrc->next(10000000); // 1 second timeout
         itsIOService.poll();
+
         if (itsInterrupted) {
             throw InterruptedException();
         }
@@ -115,20 +117,23 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     const casa::uInt nBeams = itsConfig.antennas().at(0).feeds().nFeeds();
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
-            "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected =itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
+               "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
+    const casa::uInt datagramsExpected = itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
     // returns a null pointer this indicates the timeout has been reached.
     // In this case assume no more VisDatagrams for this integration will
     // be recieved and move on
-    casa::uInt datagramCount = 0; 
+    casa::uInt datagramCount = 0;
+
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
         itsIOService.poll();
+
         if (itsInterrupted) {
             throw InterruptedException();
         }
+
         if (currentTimestamp > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
             ASKAPLOG_WARN_STR(logger, "Received VisDatagram from past integration");
@@ -139,6 +144,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
         datagramCount++;
         addVis(chunk, *itsVis, nAntenna, nBeams);
         itsVis = itsVisSrc->next(timeout);
+
         if (datagramCount == datagramsExpected) {
             // This integration is finished
             break;
@@ -146,7 +152,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     }
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
-            " of expected " << datagramsExpected << " visibility datagrams");
+                       " of expected " << datagramsExpected << " visibility datagrams");
 
     return chunk;
 }
@@ -171,28 +177,29 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     // is achieved when converting to MVEpoch
     const uint64_t midpointBAT = static_cast<uint64_t>(timestamp + (period / 2ull));
     const uint64_t microsecondsPerDay = 86400000000ull;
-    const casa::MVEpoch BATEpoch(static_cast<casa::Double>(midpointBAT / microsecondsPerDay), 
-                                 static_cast<casa::Double>(midpointBAT % microsecondsPerDay) / 
+    const casa::MVEpoch BATEpoch(static_cast<casa::Double>(midpointBAT / microsecondsPerDay),
+                                 static_cast<casa::Double>(midpointBAT % microsecondsPerDay) /
                                  static_cast<casa::Double>(microsecondsPerDay));
     chunk->time() = casa::MEpoch::Convert(casa::MEpoch(BATEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
-                             casa::MEpoch::Ref(casa::MEpoch::UTC))().getValue();
-  
+                                          casa::MEpoch::Ref(casa::MEpoch::UTC))().getValue();
+
     // Convert the interval from microseconds (long) to seconds (double)
     const casa::Double interval = period / 1000.0 / 1000.0;
     chunk->interval() = interval;
 
-    // All visibilities get flagged as bad, then as the visibility data 
+    // All visibilities get flagged as bad, then as the visibility data
     // arrives they are unflagged
     chunk->flag() = true;
     chunk->visibility() = 0.0;
 
     // For now polarisation data is hardcoded.
     ASKAPCHECK(nPol == 4, "Only supporting 4 polarisation products");
+
     for (casa::uInt polIndex = 0; polIndex < nPol; ++polIndex) {
-         // this way of creating the Stokes vectors ensures the canonical order of polarisation products
-         // the last parameter of stokesFromIndex just defines the frame (i.e. linear, circular) and can be
-         // any product from the chosen frame. We may want to specify the frame via the parset eventually.
-         chunk->stokes()(polIndex) = scimath::PolConverter::stokesFromIndex(polIndex, casa::Stokes::XX);
+        // this way of creating the Stokes vectors ensures the canonical order of polarisation products
+        // the last parameter of stokesFromIndex just defines the frame (i.e. linear, circular) and can be
+        // any product from the chosen frame. We may want to specify the frame via the parset eventually.
+        chunk->stokes()(polIndex) = scimath::PolConverter::stokesFromIndex(polIndex, casa::Stokes::XX);
     }
 
     // Add the scan index
@@ -202,46 +209,35 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;
+
     for (casa::uInt beam = 0; beam < nBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
-            //const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
                 ASKAPCHECK(row <= nRow, "Row index (" << row <<
-                        ") should not exceed nRow (" << nRow <<")");
-                //const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
+                           ") should not exceed nRow (" << nRow << ")");
 
-                /*
-                // Set thedirection reference if it is not already set, otherwise
-                // check to ensure all MDirection instances have the same reference
-                // frame.
-                if (chunk->directionFrame().getType() == casa::MDirection::DEFAULT) {
-                    chunk->directionFrame() = mdAnt1.phaseTrackingCentre(beam).getRef();
-                } else {
-                    const casa::uInt type = chunk->directionFrame().getType();
-                    const std::string errMsg = "Direction reference inconsistant";
-                    ASKAPCHECK(type == mdAnt1.phaseTrackingCentre(beam).getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt2.phaseTrackingCentre(beam).getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt1.targetRaDec().getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt2.targetRaDec().getRef().getType(), errMsg);
-                }
-                */
-                
+                // TODO!!
+                // The handling of pointing directions below is not handled per beam.
+                // It just takes the field centre direction from the parset and uses
+                // that for all beam pointing directions.
+                chunk->directionFrame() = scanInfo.fieldDirection().getRef();
+
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;
                 chunk->beam2()(row) = beam;
-                //chunk->beam1PA()(row) = mdAnt1.polarisationOffset();
-                //chunk->beam2PA()(row) = mdAnt2.polarisationOffset();
-                //chunk->pointingDir1()(row) = mdAnt1.phaseTrackingCentre(beam).getAngle();
-                //chunk->pointingDir2()(row) = mdAnt2.phaseTrackingCentre(beam).getAngle();
-                //chunk->dishPointing1()(row) = mdAnt1.targetRaDec().getAngle();
-                //chunk->dishPointing2()(row) = mdAnt2.targetRaDec().getAngle();
+                chunk->beam1PA()(row) = 0;
+                chunk->beam2PA()(row) = 0;
+                chunk->pointingDir1()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->pointingDir2()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->dishPointing1()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->dishPointing2()(row) = scanInfo.fieldDirection().getAngle();
                 chunk->uvw()(row) = 0.0;
-                
+
                 // Frequency vector is not of length nRows, but instead nChannels
                 chunk->frequency() = itsChannelManager.localFrequencies(itsId,
-                        scanInfo.startFreq().getValue("Hz"),
-                        scanInfo.chanWidth().getValue("Hz"));
+                                     scanInfo.startFreq().getValue("Hz"),
+                                     scanInfo.chanWidth().getValue("Hz"));
 
                 row++;
             }
@@ -252,15 +248,16 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
 }
 
 void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
-        const casa::uInt nAntenna, const casa::uInt nBeams)
+                              const casa::uInt nAntenna, const casa::uInt nBeams)
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
             itsBaselineMap.idToAntenna2(vis.baselineid) == -1) {
-            ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
-                    << " has no valid mapping to antenna pair and stokes");
+        ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
+                              << " has no valid mapping to antenna pair and stokes");
         return;
     }
+
     const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
     const casa::uInt antenna2 = itsBaselineMap.idToAntenna2(vis.baselineid);
     const casa::uInt beamid = vis.beamid;
@@ -268,16 +265,19 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
     const casa::Stokes::StokesTypes stokestype = itsBaselineMap.idToStokes(vis.baselineid);
-    // we could use scimath::PolConverter::getIndex here, but the following code allows more checks
+
+    // We could use scimath::PolConverter::getIndex here, but the following code allows more checks
     int polidx = -1;
+
     for (size_t i = 0; i < chunk->stokes().size(); ++i) {
         if (chunk->stokes()(i) == stokestype) {
             polidx = i;
         }
     }
+
     if (polidx < 0) {
-            ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
-                    << " is not configured for storage");
+        ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
+                              << " is not configured for storage");
         return;
     }
 
@@ -292,6 +292,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     casa::uInt idx = 0;
+
     for (casa::uInt beam = 0; beam < nBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
@@ -301,10 +302,12 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
                     row = idx;
                     break;
                 }
+
                 idx++;
             }
         }
     }
+
     const std::string errorMsg = "Indexing failed to find row";
     ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
     ASKAPCHECK(chunk->antenna2()(row) == antenna2, errorMsg);
@@ -314,21 +317,22 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 4) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
+
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
         casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
-
         chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
         // Unflag the sample
         chunk->flag()(row, chanOffset + chan, polidx) = false;
 
         if (antenna1 == antenna2) {
-            // for auto-correlations we duplicate cross-pols as index 2 should always be missing
+            // For auto-correlations we duplicate cross-pols as index 2 should always be missing
             ASKAPDEBUGASSERT(polidx != 2);
+
             if (polidx == 1) {
                 chunk->visibility()(row, chanOffset + chan, 2) = conj(sample);
-                // unflag the sample
+                // Unflag the sample
                 chunk->flag()(row, chanOffset + chan, 2) = false;
             }
         }
@@ -336,7 +340,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 }
 
 void NoMetadataSource::signalHandler(const boost::system::error_code& error,
-        int signalNumber)
+                                     int signalNumber)
 {
     if (signalNumber == SIGTERM || signalNumber == SIGINT) {
         itsInterrupted = true;
