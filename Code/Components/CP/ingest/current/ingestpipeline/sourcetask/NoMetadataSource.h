@@ -38,7 +38,6 @@
 // Local package includes
 #include "ingestpipeline/sourcetask/ISource.h"
 #include "ingestpipeline/sourcetask/IVisSource.h"
-#include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
@@ -98,9 +97,6 @@ class NoMetadataSource : public ISource {
 
         // Pointers to the two constituent datatypes
         boost::shared_ptr<VisDatagram> itsVis;
-
-        // Scan Manager
-        ScanManager itsScanManager;
 
         // Channel Manager
         ChannelManager itsChannelManager;

@@ -51,7 +51,6 @@
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
-#include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
@@ -70,11 +69,10 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsConfig(config),
         itsVisSrc(visSrc),
         itsNumTasks(numTasks), itsId(id),
-        itsScanManager(config),
         itsChannelManager(params),
         itsBaselineMap(config.bmap()),
         itsInterrupted(false),
-        itsSignals(itsIOService, SIGINT, SIGTERM)
+        itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1)
 {
     // Trigger a dummy frame conversion with casa measures to ensure all chaches are setup
     const casa::MVEpoch dummyEpoch(56000.);
@@ -203,7 +201,7 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     }
 
     // Add the scan index
-    chunk->scan() = itsScanManager.scanIndex();
+    chunk->scan() = 0;
 
     // Determine and add the spectral channel width
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
@@ -342,7 +340,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 void NoMetadataSource::signalHandler(const boost::system::error_code& error,
                                      int signalNumber)
 {
-    if (signalNumber == SIGTERM || signalNumber == SIGINT) {
+    if (signalNumber == SIGTERM || signalNumber == SIGINT || signalNumber == SIGUSR1) {
         itsInterrupted = true;
     }
 }
