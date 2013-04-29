@@ -225,7 +225,7 @@ if [ \$ERR -eq 0 ]; then
             mv \$file "TOO_BIG_\$file"
         fi
     done
-    tar zcvf ${FTP_OUTGOING_DIR}/${UUID}.tgz * --exclude="${USERNAME}*.o*" --exclude="*.qsub" --exclude=status.txt --exclude=${PARSET}
+    tar zcvf ${FTP_OUTGOING_DIR}/${UUID}.tgz * --exclude ${UUID}.log.gz --exclude="${USERNAME}*.o*" --exclude="*.qsub" --exclude=status.txt --exclude=${PARSET}
     chmod 644 ${FTP_OUTGOING_DIR}/${UUID}.tgz
 fi
 
