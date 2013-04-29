@@ -102,7 +102,6 @@ void CorrWorker::operator()()
        //s3bc.reset(0,frameOff_01 + 1,frameOff_02 - (chan-8)); // derive offsets from frame differences
        s3bc.accumulate(itsBufferManager->data(ids.itsAnt1), itsBufferManager->data(ids.itsAnt2), 
                        itsBufferManager->data(ids.itsAnt3), size);
-       itsBufferManager->releaseBuffers(ids);
        // store the result
        CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
@@ -134,6 +133,7 @@ void CorrWorker::operator()()
            cp.itsFlag(baseline1,chan) = true;
            cp.itsFlag(baseline2,chan) = true;
        }
+       itsBufferManager->releaseBuffers(ids);
        //
        cp.itsVisibility(baseline0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
        cp.itsVisibility(baseline1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
