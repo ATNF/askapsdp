@@ -78,6 +78,7 @@ using namespace LOFAR::TYPES;
 #include <preprocessing/Wavelet2D1D.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
 #include <outputs/AskapVOTableCatalogueWriter.h>
+#include <outputs/ImageWriter.h>
 
 #include <casainterface/CasaInterface.h>
 #include <analysisparallel/SubimageDef.h>
@@ -503,7 +504,18 @@ namespace askap {
 		    if(loc != std::string::npos) this->itsCube.pars().setLogFile( inputLog.insert(loc,addition) );
 		    else this->itsCube.pars().setLogFile( inputLog + addition );
 		}
-
+		else{
+		    // In case the user has put %w in the logfile name but is running in serial mode
+		    std::string inputLog=this->itsCube.pars().getLogFile();
+		    size_t loc;
+		    while (loc=inputLog.find("%w"), loc!=std::string::npos){
+			inputLog.replace(loc,2,"");
+		    }
+		    while (loc=inputLog.find("%n"), loc!=std::string::npos){
+			inputLog.replace(loc,2,"1");
+		    }
+		    this->itsCube.pars().setLogFile(inputLog);
+		}
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile());
                 std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
                 logfile << "New run of the CDuchamp sourcefinder: ";
@@ -707,13 +719,14 @@ namespace askap {
       {
 	
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating weighted image");
-	float *snrAll = new float[this->itsCube.getSize()];
+//	float *snrAll = new float[this->itsCube.getSize()];
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining weighted image");
 	for(size_t i=0; i<size_t(this->itsCube.getSize());i++){
-	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
+//	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
+	    this->itsCube.getRecon()[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
-	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
+//	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
 	this->itsCube.setReconFlag(true);
 		
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching weighted image to threshold " << this->itsCube.stats().getThreshold());
@@ -722,7 +735,7 @@ namespace askap {
 	if(this->itsCube.pars().getFlagLog())
 	  this->itsCube.logDetectionList();
 	
-	delete [] snrAll;
+//	delete [] snrAll;
 	delete this->itsWeighter; // don't need it anymore.
       }
 
@@ -823,7 +836,7 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, "Creating image " << imageName);
 	ia.create(imageName, sub->shape(), sub->coordinates());
 	ASKAPLOG_DEBUG_STR(logger, "Writing data to image");
-	ia.write(imageName, casa::Array<float>(sub->shape(), data) );
+	ia.write(imageName, casa::Array<float>(sub->shape(), data, casa::SHARE) );
 
 	delete imagePtr;
 	
@@ -945,7 +958,11 @@ namespace askap {
 		this->itsSNRimageName += addition.str();
 		ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
 	    }
-	    this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
+//	    this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
+	    ImageWriter imWriter;
+	    imWriter.copyMetadata(&(this->itsCube));
+	    imWriter.create(this->itsSNRimageName);
+	    imWriter.write(this->itsCube.getRecon(),imWriter.shape());
 	  }
 	
 	  if(this->itsFlagWriteThresholdImage){
@@ -984,7 +1001,11 @@ namespace askap {
 	      delete chanIm;
 	    }
 	    ASKAPLOG_DEBUG_STR(logger, "About to write the threshold map to image " << this->itsThresholdImageName);
-	    this->writeImage(this->itsThresholdImageName,snrAll);
+	    // this->writeImage(this->itsThresholdImageName,snrAll);
+	    ImageWriter imWriter;
+	    imWriter.copyMetadata(&(this->itsCube));
+	    imWriter.create(this->itsThresholdImageName);
+	    imWriter.write(snrAll,imWriter.shape());
 	    ASKAPLOG_DEBUG_STR(logger, "Done");
 	  }
 
@@ -1000,6 +1021,9 @@ namespace askap {
 
 	      // Find the flux threshold map, purely for the purposes of writing it out to an image.
 	      // Re-use the temporary storage we used for the SNR map (snrAll) prior to saving to the Cube's recon array
+	      ImageWriter imWriter;
+	      imWriter.copyMetadata(&(this->itsCube));
+	      imWriter.create(this->itsNoiseImageName);
 	      if(this->itsCube.pars().getSearchType()=="spatial"){
 		  casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
 		  casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
@@ -1009,6 +1033,7 @@ namespace askap {
 		      chanIm->extractImage(this->itsCube, z);
 		      ASKAPLOG_DEBUG_STR(logger, "Finding noise map for z="<<z);
 		      findNoiseMap(chanIm->getArray(),snrAll,shape,box,z,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
+		      imWriter.write(snrAll+z*spatSize,shape);
 		  }
 		  delete chanIm;
 	      }
@@ -1021,11 +1046,12 @@ namespace askap {
 		  for (size_t i = 0; i < spatSize; i++) {
 		      chanIm->extractSpectrum(this->itsCube, i);
 		      findNoiseMap(chanIm->getArray(),snrAll,shape,box,i,spatSize,specSize,false,this->itsCube.pars().getFlagRobustStats());
+//		      imWriter.write(,imWriter.shape());
 		  }
 		  delete chanIm;
 	      }
 	      ASKAPLOG_DEBUG_STR(logger, "About to write the noise map to image " << this->itsThresholdImageName);
-	      this->writeImage(this->itsNoiseImageName,snrAll);
+//	      this->writeImage(this->itsNoiseImageName,snrAll);
 	      ASKAPLOG_DEBUG_STR(logger, "Done");
 	  }
 	
@@ -1037,62 +1063,62 @@ namespace askap {
       
 
 
-        void DuchampParallel::medianSearch2D()
-        {
+        // void DuchampParallel::medianSearch2D()
+        // {
 
-            ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
-            casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
-            casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
+        //     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
+        //     casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
+        //     casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
 
-            int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
-            float *snrAll = new float[this->itsCube.getSize()];
-            size_t *imdim = new size_t[2];
-            imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
-            duchamp::Image *chanIm = new duchamp::Image(imdim);
+        //     int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
+        //     float *snrAll = new float[this->itsCube.getSize()];
+        //     size_t *imdim = new size_t[2];
+        //     imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+        //     duchamp::Image *chanIm = new duchamp::Image(imdim);
 
-            for (size_t z = 0; z < this->itsCube.getDimZ(); z++) {
+        //     for (size_t z = 0; z < this->itsCube.getDimZ(); z++) {
 
-                chanIm->extractImage(this->itsCube, z);
-                casa::Array<Float> base(shape, chanIm->getArray());
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
-                casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
-                casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
-                casa::Array<Float> snr = (base - median);
+        //         chanIm->extractImage(this->itsCube, z);
+        //         casa::Array<Float> base(shape, chanIm->getArray());
+        //         ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
+        //         casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+        //         ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
+        //         casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+        //         ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
+        //         casa::Array<Float> snr = (base - median);
 
-                // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-		Float* madfmData=madfm.data();
-		Float *snrData=snr.data();
-		for(int i=0;i<spatSize;i++){
-		  if(madfmData[i]>0) snrAll[i+z*spatSize] = snrData[i]/madfmData[i];
-		  else snrAll[i+z*spatSize] = 0.;
-		}
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "SNR map @ z="<<z<<" has max of " << *std::max_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize) << " and min of " << *std::min_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize));
+        //         // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	// 	Float* madfmData=madfm.data();
+	// 	Float *snrData=snr.data();
+	// 	for(int i=0;i<spatSize;i++){
+	// 	  if(madfmData[i]>0) snrAll[i+z*spatSize] = snrData[i]/madfmData[i];
+	// 	  else snrAll[i+z*spatSize] = 0.;
+	// 	}
+	// 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "SNR map @ z="<<z<<" has max of " << *std::max_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize) << " and min of " << *std::min_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize));
 
-            }
+        //     }
 
-            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
-            this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
-            this->itsCube.setReconFlag(true);
+        //     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
+        //     this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
+        //     this->itsCube.setReconFlag(true);
 
-            if (!this->itsCube.pars().getFlagUserThreshold()) {
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
-                this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
-                this->itsCube.pars().setFlagUserThreshold(true);
-            }
+        //     if (!this->itsCube.pars().getFlagUserThreshold()) {
+        //         ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+        //         this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+        //         this->itsCube.pars().setFlagUserThreshold(true);
+        //     }
 
-            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
-            // this->itsCube.ReconSearch();
-	    this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
-	    this->itsCube.updateDetectMap();
-	    if(this->itsCube.pars().getFlagLog())
-	      this->itsCube.logDetectionList();
+        //     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
+        //     // this->itsCube.ReconSearch();
+	//     this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
+	//     this->itsCube.updateDetectMap();
+	//     if(this->itsCube.pars().getFlagLog())
+	//       this->itsCube.logDetectionList();
 
 
-	    delete [] snrAll;
-	    delete [] imdim;
-        }
+	//     delete [] snrAll;
+	//     delete [] imdim;
+        // }
 
         //**************************************************************//
 
@@ -2663,7 +2689,11 @@ namespace askap {
 
 	  long *dim = getDim(sub);
 	  std::cout << this->itsCube.pars()<<"\n";
+	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
+	  bool flag=this->itsCube.pars().getFlagSmooth();
+	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagSmooth(true);
 	  this->itsCube.initialiseCube(dim);
+	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagSmooth(flag);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
 	  }
