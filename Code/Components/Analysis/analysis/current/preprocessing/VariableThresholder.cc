@@ -26,6 +26,10 @@ namespace askap {
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
 	    this->itsFlagWriteNoiseImage = parset.getBool("flagWriteNoiseImage",false);
 	    this->itsNoiseImageName = parset.getString("NoiseImageName","");
+	    this->itsInputImage="";
+	    this->itsSearchType = "spatial";
+	    this->itsCube = 0;
+	    this->itsFlagRobustStats = true;
 	}
 
 	VariableThresholder::VariableThresholder(const VariableThresholder& other)
@@ -112,7 +116,7 @@ namespace askap {
 			if(z==0) imWriter.create(this->itsThresholdImageName);
 			imWriter.write(thresh,loc);
 		    }
-		    casa::Array<Float> snr = (chanMapInput - middle) / spread;
+		    casa::Array<Float> snr = calcSNR(chanMapInput,middle,spread);
 		    if(this->itsFlagWriteSNRimage){
 			if(z==0) imWriter.create(this->itsSNRimageName);
 			imWriter.write(snr,loc);
@@ -146,7 +150,7 @@ namespace askap {
 			if(i==0) imWriter.create(this->itsThresholdImageName);
 			imWriter.write(thresh,loc);
 		    }
-		    casa::Array<Float> snr = (specInput - middle) / spread;
+		    casa::Array<Float> snr = calcSNR(specInput,middle,spread);
 		    if(this->itsFlagWriteSNRimage){
 			if(i==0) imWriter.create(this->itsSNRimageName);
 			imWriter.write(snr,loc);

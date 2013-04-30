@@ -32,11 +32,9 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <string>
 
-
 namespace askap {
 
     namespace analysis {
-
 
 	class VariableThresholder
 	{
@@ -45,7 +43,7 @@ namespace askap {
 	    VariableThresholder(const LOFAR::ParameterSet &parset);
 	    VariableThresholder(const VariableThresholder& other);
 	    VariableThresholder& operator= (const VariableThresholder& other);
-	    virtual ~VariableThresholder();
+	    virtual ~VariableThresholder(){};
 
 	    void initialise(duchamp::Cube &cube);
 	    void threshold();

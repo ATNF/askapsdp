@@ -68,6 +68,8 @@ using namespace LOFAR::TYPES;
 #include <imageaccess/CasaImageAccess.h>
 
 #include <parallelanalysis/DuchampParallel.h>
+#include <parallelanalysis/Weighter.h>
+#include <preprocessing/VariableThresholder.h>
 #include <extraction/SourceSpectrumExtractor.h>
 #include <extraction/SpectralBoxExtractor.h>
 #include <extraction/NoiseSpectrumExtractor.h>
@@ -608,7 +610,11 @@ namespace askap {
                     if (this->itsFlagDoMedianSearch) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
                         // this->medianSearch2D();
-                        this->medianSearch();
+//                        this->medianSearch();
+			VariableThresholder varThresh(this->itsParset.makeSubset("VariableThreshold."));
+			varThresh.initialise(this->itsCube);
+			varThresh.threshold();
+			varThresh.search();
 		    } else if (this->itsWeightImage != "" ){
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weighting");
 		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section());
@@ -2690,10 +2696,10 @@ namespace askap {
 	  long *dim = getDim(sub);
 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
-	  bool flag=this->itsCube.pars().getFlagSmooth();
-	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagSmooth(true);
+	  bool flag=this->itsCube.pars().getFlagATrous();
+	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagATrous(true);
 	  this->itsCube.initialiseCube(dim);
-	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagSmooth(flag);
+	  if(this->itsFlagDoMedianSearch || this->itsWeightImage!="") this->itsCube.pars().setFlagATrous(flag);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
 	  }
