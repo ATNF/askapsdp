@@ -139,7 +139,11 @@ The following table lists parameters that control different modes of Selavy. The
 |recon2D1D            |bool     |false     |Use the 2D1D wavelet reconstruction algorithm (provided by         |
 |                     |         |          |WALLABY). See the Preprocessing_ page for details.                 |
 +---------------------+---------+----------+-------------------------------------------------------------------+
-|doMedianSearch       |bool     |false     |If true, use a sliding box to find the noise local to a pixel and  |
+|WeightScaling        |bool     |false     |If true, scale the fluxes in the image by the normalised weights,  |
+|                     |         |          |to remove sensitivity varations. See the Thresholds_ page for      |
+|                     |         |          |details.                                                           |
++---------------------+---------+----------+-------------------------------------------------------------------+
+|VariableThreshold    |bool     |false     |If true, use a sliding box to find the noise local to a pixel and  |
 |                     |         |          |set the (spatially-varying) detection threshold accordingly. See   |
 |                     |         |          |the Thresholds_ page for details.                                  |
 +---------------------+---------+----------+-------------------------------------------------------------------+
