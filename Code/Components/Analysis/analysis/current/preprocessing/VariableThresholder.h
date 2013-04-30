@@ -28,6 +28,7 @@
 ///
 #ifndef ASKAP_ANALYSIS_VAR_THRESH_H_
 #define ASKAP_ANALYSIS_VAR_THRESH_H_
+#include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <duchamp/Cubes/cubes.hh>
 #include <string>
@@ -67,6 +68,7 @@ namespace askap {
 	    virtual ~VariableThresholder(){};
 
 	    void initialise(duchamp::Cube &cube);
+	    void setFilenames(askap::askapparallel::AskapParallel& comms);
 	    void calculate();
 	    void search();
 

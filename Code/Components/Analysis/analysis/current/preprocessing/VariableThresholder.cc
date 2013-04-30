@@ -49,6 +49,23 @@ namespace askap {
 	    this->itsFlagRobustStats = true;
 	}
 
+	void VariableThresholder::setFilenames(askap::askapparallel::AskapParallel& comms)
+	{
+	    /// @details Updates the output image names in the case of
+	    /// distributed processing. The names will have the worker
+	    /// number appended to them (so that instead of something
+	    /// like "image_snr" it will become "image_snr_6_9" for
+	    /// worker #6 out of 9.
+	    std::stringstream suffix;
+	    suffix << "_" << comms.rank() << "_"<<comms.nProcs();
+	    if(this->itsSNRimageName!="") this->itsSNRimageName += suffix.str();
+	    if(this->itsNoiseImageName!="") this->itsNoiseImageName += suffix.str();
+	    if(this->itsBoxSumImageName!="") this->itsBoxSumImageName += suffix.str();
+	    if(this->itsAverageImageName!="") this->itsAverageImageName += suffix.str();
+	    if(this->itsThresholdImageName!="") this->itsThresholdImageName += suffix.str();
+	}
+
+
 	VariableThresholder::VariableThresholder(const VariableThresholder& other)
 	{
 	    this->operator=(other);

@@ -180,12 +180,13 @@ namespace askap {
 	    this->itsFlagThresholdPerWorker = this->itsParset.getBool("thresholdPerWorker",false);
 	    
             if (this->itsWeightImage != "" ){
-	      this->itsWeighter = new Weighter(itsComms);
+	      this->itsWeighter = new Weighter(this->itsComms);
 	      if(itsComms.isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 	    }
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
 	    this->itsVarThresher = new VariableThresholder(this->itsParset.makeSubset("VariableThreshold."));
+	    this->itsVarThresher->setFilenames(this->itsComms);
 
 	    this->itsFlagOptimiseMask = this->itsParset.getBool("optimiseMask",false);
 
@@ -655,8 +656,6 @@ namespace askap {
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagVariableThreshold) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
-                        // this->medianSearch2D();
-//                        this->medianSearch();
 			this->itsVarThresher->initialise(this->itsCube);
 			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
@@ -777,7 +776,7 @@ namespace askap {
 //	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	    this->itsCube.getRecon()[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
+//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
 //	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
 	this->itsCube.setReconFlag(true);
 		
