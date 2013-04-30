@@ -41,6 +41,11 @@ namespace askap {
 	    return *this;
 	}
 
+	ImageWriter::ImageWriter(duchamp::Cube *cube)
+	{
+	    this->copyMetadata(cube);
+	}
+
 	void ImageWriter::copyMetadata(duchamp::Cube *cube)
 	{
 	    const LatticeBase* lattPtr = ImageOpener::openImage(cube->pars().getImageFile());

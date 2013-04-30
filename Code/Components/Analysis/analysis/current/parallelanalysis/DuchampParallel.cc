@@ -264,14 +264,30 @@ namespace askap {
 
 	void DuchampParallel::checkAndWarn(std::string oldParam, std::string newParam)
 	{
+	    /// @details A utility function to check for the existence
+	    /// in the parset of an out-of-date parameter (ie. one
+	    /// that has been deprecated). If it is present, a warning
+	    /// message is displayed, and, if it has been renamed this
+	    /// is also conveyed to the user. If the renamed parameter
+	    /// is not present in the parset, then it is assigned the
+	    /// value taken by the old one.
+	    /// @param oldParam The old, deprecated parameter name
+	    /// @param newParam The new parameter name. If there is no
+	    /// equivalent, give this as "".
+	    
 	    if(this->itsParset.isDefined(oldParam)){
-		if(!this->itsParset.isDefined(newParam)){
-		    std::string val=this->itsParset.getString(oldParam);
-		    ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Setting this to " << val << ", but you should change your parset!");
-		    this->itsParset.replace(newParam,val);
+		if(newParam == "" ){  // there is no equivalent anymore
+		    ASKAPLOG_WARN_STR(logger, "The parameter \""<<oldParam<<"\" has been deprecated and has no equivalent. Remove it from your parset!");
 		}
-		else{
-		    ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Your parset has this defined, so no change is made, but you should remove "<<oldParam<<" from your parset.");
+		else {
+		    if(!this->itsParset.isDefined(newParam)){
+			std::string val=this->itsParset.getString(oldParam);
+			ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Setting this to " << val << ", but you should change your parset!");
+			this->itsParset.replace(newParam,val);
+		    }
+		    else{
+			ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Your parset has this defined, so no change is made, but you should remove "<<oldParam<<" from your parset.");
+		    }
 		}
 	    }
 	}
@@ -279,16 +295,21 @@ namespace askap {
 	void DuchampParallel::deprecatedParameters()
 	{
 
+	    /// @details A check is made for the presence in the
+	    /// parset of parameters that have been deprecated. The
+	    /// parset is updated if need be according to the rules
+	    /// for DuchampParallel::checkAndWarn().
+
 	    this->checkAndWarn("doFit","Fitter.doFit");
 	    this->checkAndWarn("fitJustDetection", "Fitter.fitJustDetection");
 	    this->checkAndWarn("doMedianSearch","VariableThreshold");
 	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
 	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
-	    this->checkAndWarn("flagWriteSNRimage","VariableThreshold.writeSNRimage");
+	    this->checkAndWarn("flagWriteSNRimage","");
 	    this->checkAndWarn("SNRimageName","VariableThreshold.SNRimageName");
-	    this->checkAndWarn("flagWriteThresholdImage","VariableThreshold.writeThresholdImage");
+	    this->checkAndWarn("flagWriteThresholdImage","");
 	    this->checkAndWarn("ThresholdImageName","VariableThreshold.ThresholdImageName");
-	    this->checkAndWarn("flagWriteNoiseImage","VariableThreshold.writeNoiseImage");
+	    this->checkAndWarn("flagWriteNoiseImage","");
 	    this->checkAndWarn("NoiseImageName","VariableThreshold.NoiseImageName");
 
 	}
@@ -637,7 +658,7 @@ namespace askap {
                         // this->medianSearch2D();
 //                        this->medianSearch();
 			this->itsVarThresher->initialise(this->itsCube);
-			this->itsVarThresher->threshold();
+			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
 		    } else if (this->itsWeightImage != "" ){
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weighting");

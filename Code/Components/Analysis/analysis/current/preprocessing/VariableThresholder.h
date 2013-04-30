@@ -31,10 +31,31 @@
 #include <Common/ParameterSet.h>
 #include <duchamp/Cubes/cubes.hh>
 #include <string>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/IPosition.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <casa/aipstype.h>
 
 namespace askap {
 
     namespace analysis {
+
+	/// @brief Handle the calculation and application of a
+	/// threshold that varies with location in the image.
+
+	/// @details This class handles all operations related to the
+	/// calculation and application of a variable detection
+	/// threshold, as well as the output of maps of the threshold,
+	/// noise, S/N ratio. The threshold is calculated based on the
+	/// statistics within a sliding box, so that the noise
+	/// properties for a given pixel depend only on the pixels
+	/// within a box (2D or 1D) of a specified size centred on
+	/// that pixel. The statistics can be calculated based on
+	/// robust measures (median and MADFM), or traditional
+	/// mean/standard deviation. The threshold applied is a
+	/// constant signal-to-noise ratio.
+	///
+	/// The maps of various quantities can also be written to CASA images on disk. These quantities include the noise level, the threshold (in flux units), the signal-to-noise ratio
 
 	class VariableThresholder
 	{
@@ -46,13 +67,19 @@ namespace askap {
 	    virtual ~VariableThresholder(){};
 
 	    void initialise(duchamp::Cube &cube);
-	    void threshold();
+	    void calculate();
 	    void search();
 
 	    int boxSize(){return itsBoxSize;};
 
 	protected:
-	    void fixName(std::string &name, bool flag, std::string suffix);
+	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::IPosition &loc, bool doCreate);
+	    void defineChunk(casa::Array<casa::Float> &chunk, size_t ctr);
+	    void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
+	    void doBoxSum(casa::Array<casa::Float> &input, casa::IPosition &box, casa::IPosition &loc, bool doCreate);
+
+	    /// @brief The defining parset
+	    LOFAR::ParameterSet itsParset;
 
 	    /// Should we use robust (ie. median-based) statistics
 	    bool itsFlagRobustStats;
@@ -63,22 +90,21 @@ namespace askap {
 
 	    std::string itsInputImage;
 
-	    /// Whether to write a casa image containing the S/N ratio
-	    bool itsFlagWriteSNRimage;
 	    /// Name of S/N image to be written
 	    std::string itsSNRimageName;
-		
-	    /// Whether to write a casa image containing the Detection threshold
-	    bool itsFlagWriteThresholdImage;
 	    /// Name of Threshold image to be written
 	    std::string itsThresholdImageName;
-
-	    /// Whether to write a casa image containing the image noise
-	    bool itsFlagWriteNoiseImage;
 	    /// Name of Noise image to be written
 	    std::string itsNoiseImageName;
+	    /// Name of Mean image to be written
+	    std::string itsAverageImageName;
+	    /// Name of box sum image to be written
+	    std::string itsBoxSumImageName;
 
 	    duchamp::Cube *itsCube;
+
+	    casa::IPosition itsInputShape;
+	    casa::CoordinateSystem itsInputCoordSys;
 
 	};
 

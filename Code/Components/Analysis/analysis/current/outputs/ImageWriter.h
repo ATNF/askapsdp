@@ -46,6 +46,7 @@ namespace askap {
 	{
 	public:
 	    ImageWriter(){};
+	    ImageWriter(duchamp::Cube *cube);
 	    ImageWriter(const ImageWriter& other);
 	    ImageWriter& operator= (const ImageWriter& other);
 	    virtual ~ImageWriter(){};

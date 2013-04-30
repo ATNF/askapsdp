@@ -222,7 +222,8 @@ namespace askap {
 
             protected:
 
-		void checkAndWarn(std::string oldParam, std::string newParam);
+		/// @brief Check for the existence of deprecated parameters in the parset.
+		void checkAndWarn(std::string oldParam, std::string newParam="");
 
 
                 // Class for communications
