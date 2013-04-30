@@ -33,6 +33,7 @@
 #include <sourcefitting/Fitter.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <parallelanalysis/Weighter.h>
+#include <preprocessing/VariableThresholder.h>
 
 #include <analysisparallel/SubimageDef.h>
 
@@ -91,6 +92,9 @@ namespace askap {
                 /// @brief Default constructor
                 DuchampParallel(askap::askapparallel::AskapParallel& comms);
 
+		/// @brief Warning messages about previously-available parameters that are no longer used.
+		void deprecatedParameters();
+
                 virtual ~DuchampParallel() {};
 
                 /// @brief Return a reference to the duchamp::Cube object
@@ -99,8 +103,8 @@ namespace askap {
 		
                 /// @brief Get/set the flag saying whether to do median filtering prior to searching
                 /// @{
-                bool getFlagDoMedianSearch() {return itsFlagDoMedianSearch;};
-                void setFlagDoMedianSearch(bool f) {itsFlagDoMedianSearch = f;};
+                bool getFlagVariableThreshold() {return itsFlagVariableThreshold;};
+                void setFlagVariableThreshold(bool f) {itsFlagVariableThreshold = f;};
                 /// @}
 
 	        /// @brief Make sure the spectral index/curvature images have appropriate names.
@@ -243,29 +247,11 @@ namespace askap {
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
 
-                /// Shall we search after median-smoothing?
-                bool itsFlagDoMedianSearch;
-
-                /// The half-width of the box used for median filtering
-                int itsMedianBoxWidth;
-
-		/// Whether to write a casa image containing the S/N ratio
-		bool itsFlagWriteSNRimage;
-
-		/// Name of S/N image to be written
-		std::string itsSNRimageName;
+                /// Shall we search with a varying threshold?
+                bool itsFlagVariableThreshold;
 		
-		/// Whether to write a casa image containing the Detection threshold
-		bool itsFlagWriteThresholdImage;
-
-		/// Name of Threshold image to be written
-		std::string itsThresholdImageName;
-
-		/// Whether to write a casa image containing the image noise
-		bool itsFlagWriteNoiseImage;
-
-		/// Name of Noise image to be written
-		std::string itsNoiseImageName;
+		// How we do the variable-threshold searching
+		VariableThresholder *itsVarThresher;
 
 		/// Whether to extract spectra of detected sources, POSSUM-style
 		bool itsFlagExtractSpectra;
@@ -277,7 +263,7 @@ namespace askap {
                 std::vector<PixelInfo::Voxel> itsVoxelList;
 		std::map<PixelInfo::Voxel,float> itsVoxelMap;
 
-                /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)
+                /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagVariableThreshold is true)
                 std::vector<PixelInfo::Voxel> itsSNRVoxelList;
 
                 /// The Gaussian Fitting parameter class

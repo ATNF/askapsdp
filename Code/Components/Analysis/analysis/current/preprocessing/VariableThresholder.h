@@ -49,7 +49,8 @@ namespace askap {
 	    void threshold();
 	    void search();
 
-	    
+	    int boxSize(){return itsBoxSize;};
+
 	protected:
 	    void fixName(std::string name, bool flag, std::string suffix);
 
