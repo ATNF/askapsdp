@@ -214,13 +214,21 @@ namespace askap {
 
 	    this->itsFlagExtractSpectra = this->itsParset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
-	      ASKAPCHECK(this->itsParset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter.");
-	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << this->itsParset.getString("extractSpectra.spectralCube",""));
+		if(!this->itsParset.isDefined("extractSpectra.spectralCube")){
+		    ASKAPLOG_WARN_STR(logger, "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter. Turning off spectral extraction.");
+		    this->itsFlagExtractSpectra = false;
+		    this->itsParset.replace("extractSpectra",false);
+		}
+		else ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << this->itsParset.getString("extractSpectra.spectralCube",""));
 	    }
 	    this->itsFlagExtractNoiseSpectra = this->itsParset.getBool("extractNoiseSpectra",false);
 	    if(this->itsFlagExtractNoiseSpectra){
-	      ASKAPCHECK(this->itsParset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting noise spectra. Please use the \"spectralCube\" parameter.");
-	      ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << this->itsParset.getString("extractNoiseSpectra.spectralCube",""));
+		if(!this->itsParset.isDefined("extractNoiseSpectra.spectralCube")){
+		    ASKAPLOG_WARN_STR(logger, "Source cube not defined for extracting noise spectra. Please use the \"spectralCube\" parameter. Turning off noise spectra extraction.");
+		    this->itsFlagExtractNoiseSpectra = false;
+		    this->itsParset.replace("extractNoiseSpectra",false);
+		}
+		else ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << this->itsParset.getString("extractNoiseSpectra.spectralCube",""));
 	    }
 
 	    this->itsFitSummaryFile = this->itsParset.getString("fitResultsFile","duchamp-fitResults.txt");
@@ -254,32 +262,37 @@ namespace askap {
 	    
 	}
 
+	void DuchampParallel::checkAndWarn(std::string oldParam, std::string newParam)
+	{
+	    if(this->itsParset.isDefined(oldParam)){
+		if(!this->itsParset.isDefined(newParam)){
+		    std::string val=this->itsParset.getString(oldParam);
+		    ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Setting this to " << val << ", but you should change your parset!");
+		    this->itsParset.replace(newParam,val);
+		}
+		else{
+		    ASKAPLOG_WARN_STR(logger, "The parameter \"" << oldParam <<"\" should now be given as \""<<newParam<<"\". Your parset has this defined, so no change is made, but you should remove "<<oldParam<<" from your parset.");
+		}
+	    }
+	}
+
 	void DuchampParallel::deprecatedParameters()
 	{
 
-	    if(this->itsParset.isDefined("doFit")){
-		std::string val=this->itsParset.getString("doFit");
-		ASKAPLOG_WARN_STR(logger, "The parameter \"doFit\" should now be given as \"Fitter.doFit\". Setting this to " << val << ", but you should change your parset!");
-		this->itsParset.replace("Fitter.doFit",val);
-	    }
-	    if(this->itsParset.isDefined("fitJustDetection")){
-		std::string val=this->itsParset.getString("fitJustDetection");
-		ASKAPLOG_WARN_STR(logger, "The parameter \"fitJustDetection\" should now be given as \"Fitter.fitJustDetection\". Setting this to " << val << ", but you should change your parset!");
-		this->itsParset.replace("Fitter.fitJustDetection",val);
-	    }
-	    if(this->itsParset.isDefined("doMedianSearch")){
-		std::string val=this->itsParset.getString("doMedianSearch");
-		ASKAPLOG_WARN_STR(logger, "The parameter \"doMedianSearch\" should now be given as \"VariableThreshold\". Setting this to " << val << ", but you should change your parset!");
-		this->itsParset.replace("VariableThreshold",val);
-	    }
-	    if(this->itsParset.isDefined("medianBoxWidth")){
-		std::string val=this->itsParset.getString("medianBoxWidth");
-		ASKAPLOG_WARN_STR(logger, "The parameter \"medianBoxWidth\" should now be given as \"VariableThreshold.boxSize\". Setting this to " << val << ", but you should change your parset!");
-		this->itsParset.replace("VariableThreshold.boxSize",val);
-	    }
-
+	    this->checkAndWarn("doFit","Fitter.doFit");
+	    this->checkAndWarn("fitJustDetection", "Fitter.fitJustDetection");
+	    this->checkAndWarn("doMedianSearch","VariableThreshold");
+	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
+	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
+	    this->checkAndWarn("flagWriteSNRimage","VariableThreshold.writeSNRimage");
+	    this->checkAndWarn("SNRimageName","VariableThreshold.SNRimageName");
+	    this->checkAndWarn("flagWriteThresholdImage","VariableThreshold.writeThresholdImage");
+	    this->checkAndWarn("ThresholdImageName","VariableThreshold.ThresholdImageName");
+	    this->checkAndWarn("flagWriteNoiseImage","VariableThreshold.writeNoiseImage");
+	    this->checkAndWarn("NoiseImageName","VariableThreshold.NoiseImageName");
 
 	}
+
 
 	void DuchampParallel::checkSpectralTermImages()
 	{

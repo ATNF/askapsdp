@@ -94,6 +94,8 @@ namespace askap {
 
 		/// @brief Warning messages about previously-available parameters that are no longer used.
 		void deprecatedParameters();
+		/// @brief The parset, as used
+		LOFAR::ParameterSet &parset(){return itsParset;};
 
                 virtual ~DuchampParallel() {};
 
@@ -219,6 +221,9 @@ namespace askap {
 		void        setFitBoxAnnotationFile(std::string s){itsFitBoxAnnotationFile=s;};
 
             protected:
+
+		void checkAndWarn(std::string oldParam, std::string newParam);
+
 
                 // Class for communications
                 askap::askapparallel::AskapParallel& itsComms;

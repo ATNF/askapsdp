@@ -20,11 +20,11 @@ namespace askap {
 	VariableThresholder::VariableThresholder(const LOFAR::ParameterSet &parset)
 	{
 	    this->itsBoxSize = parset.getInt16("boxWidth",50);
-	    this->itsFlagWriteSNRimage = parset.getBool("flagWriteSNRimage", false);
+	    this->itsFlagWriteSNRimage = parset.getBool("writeSNRimage", false);
 	    this->itsSNRimageName = parset.getString("SNRimageName", "");
-	    this->itsFlagWriteThresholdImage = parset.getBool("flagWriteThresholdImage",false);
+	    this->itsFlagWriteThresholdImage = parset.getBool("writeThresholdImage",false);
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
-	    this->itsFlagWriteNoiseImage = parset.getBool("flagWriteNoiseImage",false);
+	    this->itsFlagWriteNoiseImage = parset.getBool("writeNoiseImage",false);
 	    this->itsNoiseImageName = parset.getString("NoiseImageName","");
 	    this->itsInputImage="";
 	    this->itsSearchType = "spatial";
@@ -56,11 +56,14 @@ namespace askap {
 	}
 
 	
-	void VariableThresholder::fixName(std::string name, bool flag, std::string suffix)
+	void VariableThresholder::fixName(std::string &name, bool flag, std::string suffix)
 	{
 	    if(name == "") {
 		// if it has not been specified, construct name from input image
 		name = this->itsInputImage;
+		// trim off leading directories, if present
+		size_t loc=name.rfind("/");
+		if(loc!=std::string::npos) name=name.substr(loc+1,name.size());
 		// trim .fits off name if present
 		if(name.substr(name.size()-5,5)==".fits") name=name.substr(0,name.size()-5);
 		name = name + "-" + suffix;

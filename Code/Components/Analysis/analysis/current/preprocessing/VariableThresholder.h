@@ -52,7 +52,7 @@ namespace askap {
 	    int boxSize(){return itsBoxSize;};
 
 	protected:
-	    void fixName(std::string name, bool flag, std::string suffix);
+	    void fixName(std::string &name, bool flag, std::string suffix);
 
 	    /// Should we use robust (ie. median-based) statistics
 	    bool itsFlagRobustStats;

@@ -97,9 +97,9 @@ class SelavyApp : public askap::Application
 
                 if(!comms.isParallel() || comms.isMaster())
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
-                if(!comms.isParallel() || comms.isMaster())
-                    ASKAPLOG_INFO_STR(logger, "Parset file as used:\n" << subset);
                 DuchampParallel finder(comms, subset);
+                if(!comms.isParallel() || comms.isMaster())
+                    ASKAPLOG_INFO_STR(logger, "Parset file as used:\n" << finder.parset());
 
                 finder.readData();
                 finder.setupLogfile(argc, const_cast<const char**>(argv));
