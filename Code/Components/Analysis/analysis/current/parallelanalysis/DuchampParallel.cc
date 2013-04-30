@@ -142,8 +142,10 @@ namespace askap {
                 : itsComms(comms)
         {
             this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
-	    this->itsWeighter = new Weighter(itsComms);
+	    this->itsWeighter = new Weighter(this->itsComms,LOFAR::ParameterSet());
+	    this->itsVarThresher = new VariableThresholder(LOFAR::ParameterSet());
         }
+
         //**************************************************************//
 
         DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
@@ -175,13 +177,14 @@ namespace askap {
 	    bool flagStatSubsection = this->itsParset.getBool("flagStatSec",false);
 	    this->itsBaseStatSubsection = this->itsParset.getString("statSec","");
 	    if(!flagStatSubsection) this->itsBaseStatSubsection = "";
-            this->itsWeightImage = this->itsParset.getString("weightsimage", "");
+//            this->itsWeightImage = this->itsParset.getString("weightsimage", "");
 
 	    this->itsFlagThresholdPerWorker = this->itsParset.getBool("thresholdPerWorker",false);
 	    
-            if (this->itsWeightImage != "" ){
-	      this->itsWeighter = new Weighter(this->itsComms);
-	      if(itsComms.isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
+            this->itsFlagWeightImage = this->itsParset.getBool("WeightScaling", false);
+            if (this->itsFlagWeightImage){
+		this->itsWeighter = new Weighter(this->itsComms, this->itsParset.makeSubset("WeightScaling"));
+//		if(itsComms.isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 	    }
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
@@ -636,8 +639,8 @@ namespace askap {
             /// the weight search the master needs to do the
             /// initialisation of itsWeighter.
 	  if(itsComms.isParallel() && itsComms.isMaster()){
-	    if(this->itsWeightImage != ""){
-	      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section(), !(itsComms.isParallel()&&itsComms.isMaster()));
+	    if(this->itsFlagWeightImage){
+	      this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
 	    }
 	  }	      
             if (itsComms.isWorker()) {
@@ -659,10 +662,12 @@ namespace askap {
 			this->itsVarThresher->initialise(this->itsCube);
 			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
-		    } else if (this->itsWeightImage != "" ){
+		    } else if (this->itsFlagWeightImage){
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weighting");
-		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section());
-		      this->weightSearch();
+		      this->itsWeighter->initialise(this->itsCube);
+//		      this->weightSearch();
+		      this->itsWeighter->search();
+		      delete this->itsWeighter;
                     } else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
@@ -765,30 +770,30 @@ namespace askap {
 
 
 
-        //**************************************************************//
-       void DuchampParallel::weightSearch()
-      {
+//         //**************************************************************//
+//        void DuchampParallel::weightSearch()
+//       {
 	
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating weighted image");
-//	float *snrAll = new float[this->itsCube.getSize()];
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining weighted image");
-	for(size_t i=0; i<size_t(this->itsCube.getSize());i++){
-//	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
-	    this->itsCube.getRecon()[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
-	}
-//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
-//	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
-	this->itsCube.setReconFlag(true);
+// 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating weighted image");
+// //	float *snrAll = new float[this->itsCube.getSize()];
+// 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining weighted image");
+// 	for(size_t i=0; i<size_t(this->itsCube.getSize());i++){
+// //	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
+// 	    this->itsCube.getRecon()[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
+// 	}
+// //	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
+// //	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
+// 	this->itsCube.setReconFlag(true);
 		
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching weighted image to threshold " << this->itsCube.stats().getThreshold());
-	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
-	this->itsCube.updateDetectMap();
-	if(this->itsCube.pars().getFlagLog())
-	  this->itsCube.logDetectionList();
+// 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching weighted image to threshold " << this->itsCube.stats().getThreshold());
+// 	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
+// 	this->itsCube.updateDetectMap();
+// 	if(this->itsCube.pars().getFlagLog())
+// 	  this->itsCube.logDetectionList();
 	
-//	delete [] snrAll;
-	delete this->itsWeighter; // don't need it anymore.
-      }
+// //	delete [] snrAll;
+// 	delete this->itsWeighter; // don't need it anymore.
+//       }
 
  
         //**************************************************************//
@@ -2362,9 +2367,9 @@ namespace askap {
 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
 	  bool flag=this->itsCube.pars().getFlagATrous();
-	  if(this->itsFlagVariableThreshold || this->itsWeightImage!="") this->itsCube.pars().setFlagATrous(true);
+	  if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(true);
 	  this->itsCube.initialiseCube(dim);
-	  if(this->itsFlagVariableThreshold || this->itsWeightImage!="") this->itsCube.pars().setFlagATrous(flag);
+	  if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(flag);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
 	  }

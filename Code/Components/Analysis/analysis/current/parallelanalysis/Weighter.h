@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #ifndef ASKAP_ANALYSIS_WEIGHTER_H_
 #define ASKAP_ANALYSIS_WEIGHTER_H_
@@ -41,28 +41,33 @@
 namespace askap {
     namespace analysis {
 
-      /// @brief A simple class to get the relative weight of a given pixel
+	/// @brief A simple class to get the relative weight of a given pixel
 
-      class Weighter
-      {
+	class Weighter
+	{
 
-      public:
-	Weighter(askap::askapparallel::AskapParallel& comms);
-	virtual ~Weighter(){};
+	public:
+	    Weighter(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet &parset);
+	    Weighter(const Weighter& other);
+	    Weighter& operator= (const Weighter& other);
+	    virtual ~Weighter(){};
 	
-	void initialise(std::string &weightsImage, duchamp::Section &section, bool doAllocation=true);
-	void findNorm();
-	void readWeights();
-	float weight(size_t i);
+	    void initialise(duchamp::Cube &cube, bool doAllocation=true);
+	    float weight(size_t i);
+	    void search();
 
-      protected:
-	askap::askapparallel::AskapParallel& itsComms;
-	std::string itsImage;
-	duchamp::Section itsSection;
-	float itsNorm;
-	casa::Vector<casa::Double> itsWeights;
+	protected:
+	    void findNorm();
+	    void readWeights();
 
-      };
+	    askap::askapparallel::AskapParallel *itsComms;
+	    std::string itsImage;
+	    duchamp::Section itsSection;
+	    duchamp::Cube *itsCube;
+	    float itsNorm;
+	    casa::Vector<casa::Double> itsWeights;
+
+	};
 
     }
 }

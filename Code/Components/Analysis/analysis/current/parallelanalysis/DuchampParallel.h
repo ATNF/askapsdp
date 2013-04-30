@@ -241,11 +241,11 @@ namespace askap {
 		/// The base statistics subsection of the image;
 		std::string itsBaseStatSubsection;
 
-                /// An image showing relative weights of pixels
-                std::string itsWeightImage;
-
 		/// Whether to work out a SNR threshold for each individual subimage.
 		bool itsFlagThresholdPerWorker;
+
+                /// An image showing relative weights of pixels
+		bool itsFlagWeightImage;
 
 		/// The weighting of each pixel
 		Weighter *itsWeighter;
