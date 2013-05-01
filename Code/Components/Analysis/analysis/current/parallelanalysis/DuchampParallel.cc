@@ -652,12 +652,12 @@ namespace askap {
 
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagVariableThreshold) {
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching with a variable threshold");
 			this->itsVarThresher->initialise(this->itsCube);
 			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
 		    } else if (this->itsFlagWeightImage){
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weighting");
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weight scaling");
 		      this->itsWeighter->initialise(this->itsCube);
 		      this->itsWeighter->search();
 		      delete this->itsWeighter;
