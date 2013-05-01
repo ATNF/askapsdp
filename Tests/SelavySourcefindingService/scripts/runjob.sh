@@ -239,6 +239,7 @@ chmod 644 "${FTP_OUTGOING_DIR}/${UUID}.log.gz"
 if [ \$ERR -eq 0 ]; then
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
+    echo "Bcc: $MANAGER_EMAIL" >> ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
     echo "Subject: Selavy job completed (SUCCESS)" >> ${UUID}.mail
     echo >> ${UUID}.mail
@@ -279,6 +280,7 @@ else
 
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
+    echo "Bcc: $MANAGER_EMAIL" >> ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
     echo "Subject: Selavy job completed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
