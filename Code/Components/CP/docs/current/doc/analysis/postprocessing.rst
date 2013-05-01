@@ -141,67 +141,112 @@ The expression used to calculate the reduced chi-squared as shown above is fine 
 
 Note that, leaving aside the formal requirements of the statistical test, this is primarily a problem when comparing different successful fits that have different numbers of Gaussians. The determination of the best fit for a given number of Gaussians should not be affected (although the second of our acceptance criteria might have to change).
 
+Output files
+............
+
+Several files are produced to show the results of the Gaussian fitting. The first, named by **Selavy.fitResultsFile** (defaulting to selavy-fitResults.txt), shows the final set of results from the Gaussian fitting. An example header plus a first line for the file is as follows below. 
+::
+
+ #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ #      ID           Name         RA        DEC          F_int         F_peak          F_int(fit)           F_pk(fit)  Maj(fit)  Min(fit) P.A.(fit) Maj(fit_deconv.) Min(fit_deconv.) P.A.(fit_deconv.)      Alpha       Beta                 Chisq(fit)          RMS(image)            RMS(fit) Nfree(fit) NDoF(fit) NPix(fit) NPix(obj) Guess?
+ #                             [deg]      [deg]           [Jy]      [Jy/beam]                  Jy             Jy/beam  [arcsec]  [arcsec]     [deg]         [arcsec]         [arcsec]             [deg]                                                              Jy/beam
+ #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        1a J033204-281638  53.017895 -28.277407     0.00015051     0.00028268          0.00034170          0.00028520    11.567     5.172    177.82            4.091            2.094            357.66    0.00000    0.00000                0.007044734          0.00003124          0.02654192          6         3        10        10      0
+
+
+To summarise the columns:
+
+* *F_int* and *F_peak* are as calculated by the Duchamp code, and reported in the Duchamp results file given by **Selavy.outFile**.
+* *F_int(fit)* and *F_pk(fit)* are the integrated & peak fluxes from the fitted Gaussians. 
+* Alpha and Beta are the spectral index and spectral curvature terms. These are only provided when the appropriate flags are set - see `Spectral Terms_`. 
+* *Maj*, *Min* and *P.A.* are the major and minor FWHMs and the position angle of the fitted Gaussian, quoted for both the fit and the fit deconvolved by the beam. 
+* The goodness of fit is indicated by the *Chisq(fit)* and *RMS(fit)* values, while *RMS(image)* gives the local noise surrounding the object. 
+* *Nfree(fit)* is the number of free parameters in the fit, and *NDoF(fit)* is the number of degrees of freedom.
+* *Npix(fit)* is the number of pixels used in doing the fit, and *Npix(obj)* is the number of pixels in the object itself (ie. detected pixels).
+* A value of 1 in the *Guess?* column indicates that the "fitted" parameters come from the initial estimate (the fitting procedure failed for some reason).
+
+If no fit was made, all the *(fit)* values are set to zero. A VOTable version of the fit results is also produced, with a .xml suffix. This is always produced whenever the fit results file is produced.
+
+Two Karma annotation files will also be produced:
+
+* **fitAnnotationFile** [selavy-fitResults.ann] - a Karma annotation file showing the fitting results (each Gaussian component is indicated by an ellipse given by the major & minor axes and position angle of the component).
+* **fitBoxAnnotationFile** [selavy-fitResults.boxes.ann] - a Karma annotation file showing the boxes used for the Gaussian fitting (if used). See Fitting_ for details.
+
+.._Spectral Terms:postprocessing.html#spectral-index-curvature
+
 Parameters for fitting
 ......................
 
 *Note* that from Selavy version 2.1 (12 December 2012), the **doFit** and **fitJustDetection** parameters are now hierarchically placed under **Selavy.Fitter**. Providing **Selavy.doFit** and **Selavy.fitJustDetection** will still work, but a warning message is provided. This check will likely be removed down the track...
 
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|*Parameter*                          |*Type*         |*Default*  |*Description*                                                                                      |
-+=====================================+===============+===========+===================================================================================================+
-|Selavy.distribFit                    |bool           |true       |If true, the edge sources are distributed by the master node to the workers for fitting. If false, |
-|                                     |               |           |the master node does all the fitting.                                                              |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.doFit                  |bool           |false      |Whether to fit Gaussian components to the detections                                               |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.fitJustDetection       |bool           |false      |Whether to use just the detected pixels in finding the fit. If false, a rectangular box is used.   |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.fitTypes               |vector<string> |[full,psf] |A vector of labels for the types of fit to be done. The input format needs to be *a comma-separated|
-|                                     |               |           |list enclosed by square brackets* (as in the default). There are two default options: "full", where|
-|                                     |               |           |all 6 parameters in the Gaussian are fitted, and "psf", where the major & minor axes and the       |
-|                                     |               |           |position angle are kept fixed to the beam size. There is also a third option, "shape", where the   |
-|                                     |               |           |location and shape are fitted, but the height of the Gaussian is kept at the object's peak flux    |
-|                                     |               |           |value. The "shape" option needs to be specifically requested.                                      |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.maxNumGauss            |int            |4          |The maximum number of Gaussians to fit to a single detection                                       |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.boxPadSize             |int            |3          |A border of at least this size is added around the detection to create a rectangular box in which  |
-|                                     |               |           |the fitting is done.                                                                               |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.maxReducedChisq        |float          |5.         |The maximum value for the reduced chi-squared for a fit to be acceptable.                          |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.chisqConfidence        |float          |-1.        |A probability value, between 0 and 1, used as a confidence level for accepting the chi-squared     |
-|                                     |               |           |value. If outside this range of values (as is the default), the test is done with the reduced      |
-|                                     |               |           |chi-squared value, using the **maxReducedChisq** parameter.                                        |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.maxRMS                 |float          |1.         |The value that is passed to the FitGaussian::fit() function.                                       |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.useNoise               |bool           |true       |Whether to measure the noise in a box surrounding the object and use that as the sigma value for   |
-|                                     |               |           |each point in the fit. Setting to false has the effect of setting the sigma to one for each point. |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.noiseBoxSize           |int            |101        |The side length of a box centred on the peak pixel that is used to estimate the noise level        |
-|                                     |               |           |(ie. the rms) for a source: this is used for the fitting.                                          |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.minFitSize             |int            |3          |The minimum number of pixels that an object has for it to be fit.                                  |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.numSubThresholds       |int            |20         |The number of levels between the detection threshold and the peak that is used to search for       |
-|                                     |               |           |subcomponents (these are used for initial guesses of the locations of Gaussian components).        |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.logarithmicThresholds  |bool           |true       |Whether the sub-thresholds should be evenly spaced in log-space (true) or linear-space (false)     |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.maxRetries             |int            |0          |The maximum number of retries used by the fitting routine (ie. the maxRetries parameter for        |
-|                                     |               |           |casa::FitGaussian::fit()).                                                                         |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.criterium              |double         |0.0001     |The convergence criterium for casa::FitGaussian::fit() (this does not seem to be used in the       |
-|                                     |               |           |fitting).                                                                                          |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.maxIter                |int            |1024       |The maximum number of iterations in the fit.                                                       |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.stopAfterFirstGoodFit  |bool           |false      |Whether to stop the fitting when an acceptable fit is found, without considering fits with more    |
-|                                     |               |           |Gaussian components.                                                                               |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
-|Selavy.Fitter.useGuessIfBad          |bool           |true       |Whether to print the initial estimates in the case that the fitting fails                          |
-+-------------------------------------+---------------+-----------+---------------------------------------------------------------------------------------------------+
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|*Parameter*                          |*Type*         |*Default*                   |*Description*                                                                       |
++=====================================+===============+============================+====================================================================================+
+|Selavy.distribFit                    |bool           |true                        |If true, the edge sources are distributed by the master node to the workers for     |
+|                                     |               |                            |fitting. If false, the master node does all the fitting.                            |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.doFit                  |bool           |false                       |Whether to fit Gaussian components to the detections                                |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.fitJustDetection       |bool           |false                       |Whether to use just the detected pixels in finding the fit. If false, a rectangular |
+|                                     |               |                            |box is used.                                                                        |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.fitTypes               |vector<string> |[full,psf]                  |A vector of labels for the types of fit to be done. The input format needs to be *a |
+|                                     |               |                            |comma-separated list enclosed by square brackets* (as in the default). There are two|
+|                                     |               |                            |default options: "full", where all 6 parameters in the Gaussian are fitted, and     |
+|                                     |               |                            |"psf", where the major & minor axes and the position angle are kept fixed to the    |
+|                                     |               |                            |beam size. There is also a third option, "shape", where the location and shape are  |
+|                                     |               |                            |fitted, but the height of the Gaussian is kept at the object's peak flux value. The |
+|                                     |               |                            |"shape" option needs to be specifically requested.                                  |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.maxNumGauss            |int            |4                           |The maximum number of Gaussians to fit to a single detection                        |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.boxPadSize             |int            |3                           |When **fitJustDetection=false**, a border of at least this size is added around the |
+|                                     |               |                            |detection to create a rectangular box in which the fitting is done.                 |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.maxReducedChisq        |float          |5.                          |The maximum value for the reduced chi-squared for a fit to be acceptable.           |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.chisqConfidence        |float          |-1.                         |A probability value, between 0 and 1, used as a confidence level for accepting the  |
+|                                     |               |                            |chi-squared value. If outside this range of values (as is the default), the test is |
+|                                     |               |                            |done with the reduced chi-squared value, using the **maxReducedChisq** parameter.   |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.maxRMS                 |float          |1.                          |The value that is passed to the FitGaussian::fit() function.                        |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.useNoise               |bool           |true                        |Whether to measure the noise in a box surrounding the object and use that as the    |
+|                                     |               |                            |sigma value for each point in the fit. Setting to false has the effect of setting   |
+|                                     |               |                            |the sigma to one for each point.                                                    |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.noiseBoxSize           |int            |101                         |The side length of a box centred on the peak pixel that is used to estimate the     |
+|                                     |               |                            |noise level (ie. the rms) for a source: this is used for the fitting.               |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.minFitSize             |int            |3                           |The minimum number of pixels that an object has for it to be fit.                   |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.numSubThresholds       |int            |20                          |The number of levels between the detection threshold and the peak that is used to   |
+|                                     |               |                            |search for subcomponents (these are used for initial guesses of the locations of    |
+|                                     |               |                            |Gaussian components).                                                               |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.logarithmicThresholds  |bool           |true                        |Whether the sub-thresholds should be evenly spaced in log-space (true) or           |
+|                                     |               |                            |linear-space (false)                                                                |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.maxRetries             |int            |0                           |The maximum number of retries used by the fitting routine (ie. the maxRetries       |
+|                                     |               |                            |parameter for casa::FitGaussian::fit()).                                            |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.criterium              |double         |0.0001                      |The convergence criterium for casa::FitGaussian::fit() (this does not seem to be    |
+|                                     |               |                            |used in the fitting).                                                               |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.maxIter                |int            |1024                        |The maximum number of iterations in the fit.                                        |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.stopAfterFirstGoodFit  |bool           |false                       |Whether to stop the fitting when an acceptable fit is found, without considering    |
+|                                     |               |                            |fits with more Gaussian components.                                                 |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.Fitter.useGuessIfBad          |bool           |true                        |Whether to print the initial estimates in the case that the fitting fails           |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.fitResultsFile                |string         |selavy-fitResults.txt       |The ASCII file containing the results of the Guassian fitting                       |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.fitAnnotationFile             |string         |selavy-fitResults.ann       |A Karma annotation file showing the location, size & shape of fitted components.    |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
+|Selavy.fitBoxAnnotationFile          |string         |selavy-fitResults.boxes.ann |A Karma annoation file showing the location and size of boxes used in the Gaussian  |
+|                                     |               |                            |fitting (only produced if Fitter.fitJustDetection = false).                         |
++-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
 
 
 
