@@ -35,6 +35,7 @@
 #include <vector>
 #include <list>
 #include <sstream>
+#include <inttypes.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -146,7 +147,7 @@ namespace utility {
 // I grabbed this code from one of my old programs to speed up the development.
 // It sat for a while inside GainCalibrationEquation, but now I need it in
 // other unrelated classes, so the code has been moved here.
-// If the appropriate code existing somewhere else in askap,
+// If the same code exists somewhere else in askap,
 // we can switch to use that code instead.
 
 /// @brief helper method to interpret string
@@ -196,8 +197,22 @@ struct NullDeleter {
     void operator()(void const *) const {}
 };
 
-
 } // namespace utility
+
+/// @brief static constant initialised with the number of microseconds per day
+static const uint64_t microsecondsPerDay = 86400000000ull;
+  
+/// @brief convert BAT to UTC Epoch via casa
+/// @param[in] bat BAT as 64-bit integer
+/// @return casa epoch measure in the UTC frame
+casa::MEpoch bat2epoch(const uint64_t &bat);
+
+
+/// @brief convert casa Epoch to BAT
+/// @param[in] epoch casa epoch measure, typically in UTC frame, but can be anything supported by casa
+/// @return BAT as 64-bit integer
+uint64_t epoch2bat(const casa::MEpoch &epoch);
+
 } // end namespace askap
 
 

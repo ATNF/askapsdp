@@ -39,9 +39,12 @@
 #include "casa/Quanta.h"
 #include "casa/Quanta/MVDirection.h"
 #include "casa/Quanta/MVAngle.h"
+#include "casa/Quanta/MVEpoch.h"
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/MPosition.h"
 #include "measures/Measures/MEpoch.h"
+#include "measures/Measures/MCEpoch.h"
+#include "measures/Measures/MeasConvert.h"
 
 namespace askap {
 
@@ -153,5 +156,32 @@ casa::MPosition asMPosition(const vector<string>& position)
     casa::MPosition pos(mvPos, type);
     return pos;
 }
+
+  
+  
+/// @brief convert BAT to UTC Epoch via casa
+/// @param[in] bat BAT as 64-bit integer
+/// @return casa epoch measure in the UTC frame
+casa::MEpoch bat2epoch(const uint64_t &bat)
+{
+  const casa::MVEpoch timeTAI(static_cast<casa::Double>(bat / microsecondsPerDay), 
+                              static_cast<casa::Double>(bat % microsecondsPerDay) /
+                              static_cast<casa::Double>(microsecondsPerDay));
+  const casa::MEpoch epoch = casa::MEpoch::Convert(casa::MEpoch(timeTAI, casa::MEpoch::Ref(casa::MEpoch::TAI)),
+                             casa::MEpoch::Ref(casa::MEpoch::UTC))();
+  return epoch;
+}
+
+/// @brief convert casa Epoch to BAT
+/// @param[in] epoch casa epoch measure, typically in UTC frame, but can be anything supported by casa
+/// @return BAT as 64-bit integer
+uint64_t epoch2bat(const casa::MEpoch &epoch)
+{
+   const casa::MVEpoch epochTAI= casa::MEpoch::Convert(epoch, 
+                  casa::MEpoch::Ref(casa::MEpoch::TAI))().getValue();
+   const uint64_t startOfDayBAT = static_cast<uint64_t>(epochTAI.getDay()*microsecondsPerDay);
+   return startOfDayBAT + static_cast<uint64_t>(epochTAI.getDayFraction()*microsecondsPerDay);
+}
+
 
 } // end namespace askap

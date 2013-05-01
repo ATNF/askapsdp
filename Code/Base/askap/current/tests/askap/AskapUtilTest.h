@@ -44,6 +44,7 @@ class AskapUtilTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testAsMDirection);
         CPPUNIT_TEST(testAsQuantity);
         CPPUNIT_TEST(testAsQuantityException);
+        CPPUNIT_TEST(testBATConversions);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -151,6 +152,21 @@ class AskapUtilTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_THROW(asQuantity("180deg", "Hz"), askap::AskapError);
             CPPUNIT_ASSERT_THROW(asQuantity("180deg", "Jy"), askap::AskapError);
             CPPUNIT_ASSERT_THROW(asQuantity("1mJy", "Hz"), askap::AskapError);
+        }
+
+        void testBATConversions() {
+            std::vector<std::string> epochVec(2);
+            epochVec[0] = "2007Mar07/10:20:30";
+            epochVec[1] = "UTC";
+            casa::MEpoch epoch = asMEpoch(epochVec);
+            CPPUNIT_ASSERT_EQUAL(54166, static_cast<int>(epoch.getValue().get()));
+            
+            const uint64_t bat = epoch2bat(epoch);
+            const uint64_t batCompare = microsecondsPerDay * 54166 + 1000000ull * (33 /* leap seconds in 2007 */ + 30 +
+                           60 * (20 + 60 * 10));
+            CPPUNIT_ASSERT_EQUAL(batCompare, bat);
+            casa::MVEpoch epoch2 = bat2epoch(bat).getValue();
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(epoch.getValue().get(), epoch2.get(), dblTolerance);
         }
 
     private:
