@@ -77,6 +77,7 @@ echo >> ${NOTIFICATION}
 echo "============================ Original Job Request Template ============================" >> ${UUID}.mail
 cat $JOB_FILE >> ${NOTIFICATION}
 /usr/sbin/sendmail -t < ${NOTIFICATION}
+rm -f ${NOTIFICATION}
 
 #
 # Create the selavy parset file
