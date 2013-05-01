@@ -88,7 +88,7 @@ echo "Selavy.imageFile = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
 # Add the weights image separately also, if it is requested
 WEIGHTS_IMG=`grep -i "Selavy.WeightScaling.weightsimage" ${JOB_FILE} | grep -e '^\#' -v |  cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
 if [ "$WEIGHTS_IMG" != "" ]; then
-    echo "Selavy.weightsimage = ${IMAGE_DIR}/${WEIGHTS_IMG}" >> ${PARSET}
+    echo "Selavy.WeightScaling.weightsimage = ${IMAGE_DIR}/${WEIGHTS_IMG}" >> ${PARSET}
 fi
 
 CUBE_FILE=`grep -i "Selavy.extractSpectra.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
