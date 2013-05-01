@@ -153,7 +153,7 @@ if [ $TOTAL_CORES -gt $MAX_CORES ]; then
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Duchamp job sumission failed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: Selavy job sumission failed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
@@ -210,11 +210,11 @@ echo "Running" > ${WORK_DIR}/status.txt
 # copy log config file to working directory
 cp ${SCRIPTS_DIR}/askap.log_cfg .
 
-echo "Running duchamp service request with UUID ${UUID}"
+echo "Running selavy service request with UUID ${UUID}"
 #export AIPSPATH=${ASKAP_SOFTWARE}/Code/Components/Synthesis/testdata/current
 export AIPSPATH=${ASKAP_SOFTWARE}/Code/Base/accessors/current
 
-# Run duchamp
+# Run selavy
 mpirun -bynode -np $TOTAL_CORES ${ASKAP_SOFTWARE}/Code/Components/Analysis/analysis/current/apps/selavy.sh -inputs ${PARSET} > ${UUID}.log
 ERR=\$?
 
@@ -240,11 +240,11 @@ if [ \$ERR -eq 0 ]; then
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Duchamp job completed (SUCCESS)" >> ${UUID}.mail
+    echo "Subject: Selavy job completed (SUCCESS)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
-    echo "Duchamp job completed successfully. Results can be downloaded from the following location:" >> ${UUID}.mail
+    echo "Selavy job completed successfully. Results can be downloaded from the following location:" >> ${UUID}.mail
     echo "ftp://${USER_NAME}@ftp.atnf.csiro.au/outgoing/${UUID}.tgz" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "A log of the job execution is available here:" >> ${UUID}.mail
@@ -280,7 +280,7 @@ else
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Duchamp job completed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: Selavy job completed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
@@ -354,9 +354,9 @@ BADALLOC=\`grep -c "St9bad_alloc" ${USER_NAME}.o*\`
 echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
 echo "From: $FROM_EMAIL" >> ${UUID}.mail
 if [ \${EXCEEDED} -ne 0 ]; then
-    echo "Subject: Duchamp job time limit exceeded (FAILURE)" >> ${UUID}.mail
+    echo "Subject: Selavy job time limit exceeded (FAILURE)" >> ${UUID}.mail
 else
-    echo "Subject: Duchamp job completed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: Selavy job completed (FAILURE)" >> ${UUID}.mail
 fi
 if [ \${SEGFAULT} -ne 0 ]; then
     echo "CC: ${MANAGER_EMAIL}" >> ${UUID}.mail
