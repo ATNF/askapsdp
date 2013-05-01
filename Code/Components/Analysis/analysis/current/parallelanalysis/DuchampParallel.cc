@@ -239,29 +239,42 @@ namespace askap {
 	    this->itsSubimageAnnotationFile = this->itsParset.getString("subimageAnnotationFile", "duchamp-SubimageLocations.ann");
 
             if (itsComms.isParallel()) {
-	      this->itsSubimageDef = SubimageDef(this->itsParset);
-	      bool overlapsChanged=false;
-	      // Need the overlap to be at least the boxPadSize used by the Fitting
-	      if(this->itsFitParams.doFit()){
-		overlapsChanged=true;
-		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), this->itsFitParams.boxPadSize()));
-		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), this->itsFitParams.boxPadSize()));
-		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), this->itsFitParams.boxPadSize()));
-	      }
+		this->itsSubimageDef = SubimageDef(this->itsParset);
+		int ovx=this->itsSubimageDef.overlapx();
+		int ovy=this->itsSubimageDef.overlapy();
+		int ovz=this->itsSubimageDef.overlapz();
+
+		// Need the overlap to be at least the boxPadSize used by the Fitting
+		if(this->itsFitParams.doFit()){
+		    if(this->itsSubimageDef.nsubx()>1)
+			this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), this->itsFitParams.boxPadSize()));
+		    if(this->itsSubimageDef.nsuby()>1)
+			this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), this->itsFitParams.boxPadSize()));
+		    // Don't need to change overlapz, as the fitting box only affects the spatial directions
+		}
 	      
-	      if(this->itsFlagVariableThreshold){
-		overlapsChanged=true;
-		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), 2*this->itsVarThresher->boxSize()));
-		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), 2*this->itsVarThresher->boxSize()));
-		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), 2*this->itsVarThresher->boxSize()));
-	      }
-	      if(overlapsChanged){
-		ASKAPLOG_DEBUG_STR(logger, "Changed Subimage overlaps to " << this->itsSubimageDef.overlapx() << ","
-				   << this->itsSubimageDef.overlapy() << ","<< this->itsSubimageDef.overlapz());
-		this->itsParset.replace(LOFAR::KVpair("overlapx",this->itsSubimageDef.overlapx()));
-		this->itsParset.replace(LOFAR::KVpair("overlapy",this->itsSubimageDef.overlapy()));
-		this->itsParset.replace(LOFAR::KVpair("overlapz",this->itsSubimageDef.overlapz()));
-	      }
+		// Need the overlap to be at least the full box width so we get full coverage in the variable threshold case.
+		if(this->itsFlagVariableThreshold){
+		    if(this->itsCube.pars().getSearchType()=="spatial"){
+			if(this->itsSubimageDef.nsubx()>1)
+			    this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), 2*this->itsVarThresher->boxSize()+1));
+			if(this->itsSubimageDef.nsuby()>1)
+			    this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), 2*this->itsVarThresher->boxSize()+1));
+		    }
+		    else{
+			if(this->itsSubimageDef.nsubz()>1)
+			    this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), 2*this->itsVarThresher->boxSize()));
+		    }
+		}
+
+		// If values have changed, alert user and update parset.
+		if((this->itsSubimageDef.overlapx()!=ovx)||(this->itsSubimageDef.overlapy()!=ovy)||(this->itsSubimageDef.overlapz()!=ovz)){
+		    ASKAPLOG_INFO_STR(logger, "Changed Subimage overlaps to " << this->itsSubimageDef.overlapx() << ","
+				       << this->itsSubimageDef.overlapy() << ","<< this->itsSubimageDef.overlapz());
+		    this->itsParset.replace(LOFAR::KVpair("overlapx",this->itsSubimageDef.overlapx()));
+		    this->itsParset.replace(LOFAR::KVpair("overlapy",this->itsSubimageDef.overlapy()));
+		    this->itsParset.replace(LOFAR::KVpair("overlapz",this->itsSubimageDef.overlapz()));
+		}
 	    }
 	    
 	}
