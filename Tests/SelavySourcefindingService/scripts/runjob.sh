@@ -66,6 +66,18 @@ fi
 REQUESTER_EMAIL=`echo $EMAIL_LINE | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
 echo "INFO: User ${USER_NAME} with email ${REQUESTER_EMAIL} has submitted job with ID ${UUID}"
 
+# Send an email to the manager
+NOTIFICATION=notification.mail
+echo "To: $MANAGER_EMAIL" > ${NOTIFICATION}
+echo "From: $FROM_EMAIL" >> ${NOTIFICATION}
+echo "Subject: Selavy job submission " >> ${NOTIFICATION}
+echo >> ${NOTIFICATION}
+echo "User ${USER_NAME} with email ${REQUESTER_EMAIL} has submitted job with ID ${UUID}" >> ${NOTIFICATION}
+echo >> ${NOTIFICATION}
+echo "============================ Original Job Request Template ============================" >> ${UUID}.mail
+cat $JOB_FILE >> ${NOTIFICATION}
+/usr/sbin/sendmail -t < ${NOTIFICATION}
+
 #
 # Create the selavy parset file
 #
@@ -152,6 +164,7 @@ if [ $TOTAL_CORES -gt $MAX_CORES ]; then
 
     # Send an email to the user
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
+    echo "Bcc: $MANAGER_EMAIL" > ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
     echo "Subject: Selavy job sumission failed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
