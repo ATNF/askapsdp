@@ -182,7 +182,7 @@ namespace askap {
 	    
             this->itsFlagWeightImage = this->itsParset.getBool("WeightScaling", false);
             if (this->itsFlagWeightImage){
-		this->itsWeighter = new Weighter(this->itsComms, this->itsParset.makeSubset("WeightScaling"));
+		this->itsWeighter = new Weighter(this->itsComms, this->itsParset.makeSubset("WeightScaling."));
 	    }
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
