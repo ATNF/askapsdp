@@ -30,7 +30,7 @@ cat > ${qsubfile} <<EOF
 
 cd \$PBS_O_WORKDIR
 
-cduchamp=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cduchamp.sh
+selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/selavy.sh
 cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cimstat.sh
 crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/crossmatch.sh
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
@@ -40,28 +40,28 @@ fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/f
 
 parset=analysis-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
-Cduchamp.image = ${CONTINUUMIMAGE}
-Cduchamp.flagSubsection = true
-Cduchamp.subsection = ${ANALYSIS_SUBSECTION}
-Cduchamp.snrCut = 6
-Cduchamp.flagGrowth = true
-Cduchamp.growthCut = 4
-Cduchamp.doMedianSearch = true
-Cduchamp.medianBoxWidth = 50
-Cduchamp.Fitter.doFit = true
-Cduchamp.Fitter.fitTypes = [full]
-Cduchamp.Fitter.fitJustDetection = true
-Cduchamp.Fitter.stopAfterFirstGoodFit = true
-Cduchamp.nsubx = 5
-Cduchamp.nsuby = 3
-Cduchamp.minPix = 3
-Cduchamp.minVoxels = 3
+Selavy.image = ${CONTINUUMIMAGE}
+Selavy.flagSubsection = true
+Selavy.subsection = ${ANALYSIS_SUBSECTION}
+Selavy.snrCut = 6
+Selavy.flagGrowth = true
+Selavy.growthCut = 4
+Selavy.VariableThreshold = true
+Selavy.VariableThreshold.boxSize = 50
+Selavy.Fitter.doFit = true
+Selavy.Fitter.fitTypes = [full]
+Selavy.Fitter.fitJustDetection = true
+Selavy.Fitter.stopAfterFirstGoodFit = true
+Selavy.nsubx = 5
+Selavy.nsuby = 3
+Selavy.minPix = 3
+Selavy.minVoxels = 3
 #
 Cimstat.image = ${CONTINUUMIMAGE}
 Cimstat.flagSubsection = true
 Cimstat.subsection = ${ANALYSIS_SUBSECTION}
 #
-Crossmatch.source.filename     = duchamp-fitResults.txt
+Crossmatch.source.filename     = selavy-fitResults.txt
 Crossmatch.source.database     = Selavy
 Crossmatch.source.trimsize     = 30
 Crossmatch.reference.filename  = ${skymodel}
@@ -72,7 +72,7 @@ Crossmatch.matchfile = matches.txt
 Crossmatch.missfile = misses.txt
 #
 Eval.refCatalogue = ${skymodel}
-Eval.sourceCatalogue = duchamp-fitResults.txt
+Eval.sourceCatalogue = selavy-fitResults.txt
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
@@ -94,7 +94,7 @@ ia.close()
 EOF_INNER
 
 statlog=log/cimstat-\${PBS_JOBID}.log
-sflog=log/cduchamp-\${PBS_JOBID}.log
+sflog=log/selavy-\${PBS_JOBID}.log
 cmlog=log/crossmatch-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
@@ -106,7 +106,7 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun \$cduchamp -c \$parset > \$sflog
+mpirun \$selavy -c \$parset > \$sflog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
@@ -148,10 +148,10 @@ madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$3}'\\\`
 madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$3}'\\\`
 stddev=\\\`grep Std.Dev \$statlog | awk '{print \\\$3}'\\\`
 numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
-if [ ! -e duchamp-fitResults.txt ] || [ \\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1}'\\\` == 0 ]; then
+if [ ! -e selavy-fitResults.txt ] || [ \\\`wc -l selavy-fitResults.txt | awk '{print \\\$1}'\\\` == 4 ]; then
     numcmpnt=0
 else
-    numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
+    numcmpnt=\\\`wc -l selavy-fitResults.txt | awk '{print \\\$1-4}'\\\`
 fi
 if [ ! -e misses.txt ]; then
     nummiss=0
