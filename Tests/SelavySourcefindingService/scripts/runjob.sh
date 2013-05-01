@@ -75,15 +75,18 @@ PARSETBASE=selavy-${UUID}.in
 PARSET=${WORK_DIR}/${PARSETBASE}
 
 
-# Copy the user params over, except the image name. Ignore commented-out params.
-grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -vi "Selavy.image" | grep -vi "Selavy.weightsimage" | grep -vi "fileoutputmask" | grep -vi "spectralcube" | grep -vi "spectraloutputbase" > ${PARSET}
+# Copy the user params over, except the image names. Ignore commented-out params.
+#grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -vi "Selavy.image" | grep -vi "Selavy.WeightScaling.weightsimage" | grep -vi "fileoutputmask" | grep -vi "spectralcube" | grep -vi "spectraloutputbase" > ${PARSET}
+grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -vi "Selavy.image" | grep -vi "Selavy.imageFile" | grep -vi "Selavy.WeightScaling.weightsimage" | grep -vi "Selavy.extractSpectra.spectralCube" | grep -vi "Selavy.extractNoiseSpectra.spectralCube" > ${PARSET}
 
 # Add the image separatly, so the images directory prefix can be added
 IMG_FILE=`grep -i "Selavy.image" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
 echo "Selavy.image = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
+IMG_FILE=`grep -i "Selavy.imageFile" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+echo "Selavy.imageFile = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
 
 # Add the weights image separately also, if it is requested
-WEIGHTS_IMG=`grep -i "Selavy.weightsimage" ${JOB_FILE} | grep -e '^\#' -v |  cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+WEIGHTS_IMG=`grep -i "Selavy.WeightScaling.weightsimage" ${JOB_FILE} | grep -e '^\#' -v |  cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
 if [ "$WEIGHTS_IMG" != "" ]; then
     echo "Selavy.weightsimage = ${IMAGE_DIR}/${WEIGHTS_IMG}" >> ${PARSET}
 fi
@@ -97,30 +100,30 @@ if [ "${CUBE_FILE}" != "" ]; then
     echo "Selavy.extractNoiseSpectra.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
 fi
 
-# Changing the mask image, to make it easy to include in the tarball
-MASK_IMG=`grep -i "Selavy.fileOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-if [ "$MASK_IMG" != "" ]; then
-    echo "Selavy.fileOutputMask = selavy-MASK-${MASK_IMG}" >> ${PARSET}
-else
-    FLAG_MASK=`grep -i "Selavy.flagOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-    if [ ${FLAG_MASK} == "true" ] || [ ${FLAG_MASK} == "1" ]; then
-	echo "Selavy.fileOutputMask = selavy-MASK-${IMG_FILE}" >> ${PARSET}
-    fi
-fi
-
-#Changing the prefix of the output spectra, to make it easy to include in the tarball
-FLAG_OUTPUT_SPECTRA=`grep -i "Selavy.extractSpectra" ${JOB_FILE} | grep -e '^\#' -v | grep -vi "extractSpectra\." | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-if [ ${FLAG_OUTPUT_SPECTRA} == "true" ] || [ ${FLAG_OUTPUT_SPECTRA} == "1" ]; then
-    SPECTRA_BASE=`grep -i "Selavy.extractSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-    echo "Selavy.extractSpectra.spectralOutputBase = selavy-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
-fi
-
-#Changing the prefix of the output noise spectra, to make it easy to include in the tarball
-FLAG_OUTPUT_NOISESPECTRA=`grep -i "Selavy.extractNoiseSpectra" ${JOB_FILE} | grep -e '^\#' -v | grep -vi "extractNoiseSpectra\." | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-if [ ${FLAG_OUTPUT_NOISESPECTRA} == "true" ] || [ ${FLAG_OUTPUT_NOISESPECTRA} == "1" ]; then
-    SPECTRA_BASE=`grep -i "Selavy.extractNoiseSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-    echo "Selavy.extractNoiseSpectra.spectralOutputBase = selavy-NOISE-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
-fi
+## Changing the mask image, to make it easy to include in the tarball
+#MASK_IMG=`grep -i "Selavy.fileOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#if [ "$MASK_IMG" != "" ]; then
+#    echo "Selavy.fileOutputMask = selavy-MASK-${MASK_IMG}" >> ${PARSET}
+#else
+#    FLAG_MASK=`grep -i "Selavy.flagOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#    if [ ${FLAG_MASK} == "true" ] || [ ${FLAG_MASK} == "1" ]; then
+#	echo "Selavy.fileOutputMask = selavy-MASK-${IMG_FILE}" >> ${PARSET}
+#    fi
+#fi
+#
+##Changing the prefix of the output spectra, to make it easy to include in the tarball
+#FLAG_OUTPUT_SPECTRA=`grep -i "Selavy.extractSpectra" ${JOB_FILE} | grep -e '^\#' -v | grep -vi "extractSpectra\." | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#if [ ${FLAG_OUTPUT_SPECTRA} == "true" ] || [ ${FLAG_OUTPUT_SPECTRA} == "1" ]; then
+#    SPECTRA_BASE=`grep -i "Selavy.extractSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#    echo "Selavy.extractSpectra.spectralOutputBase = selavy-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
+#fi
+#
+##Changing the prefix of the output noise spectra, to make it easy to include in the tarball
+#FLAG_OUTPUT_NOISESPECTRA=`grep -i "Selavy.extractNoiseSpectra" ${JOB_FILE} | grep -e '^\#' -v | grep -vi "extractNoiseSpectra\." | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#if [ ${FLAG_OUTPUT_NOISESPECTRA} == "true" ] || [ ${FLAG_OUTPUT_NOISESPECTRA} == "1" ]; then
+#    SPECTRA_BASE=`grep -i "Selavy.extractNoiseSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#    echo "Selavy.extractNoiseSpectra.spectralOutputBase = selavy-NOISE-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
+#fi
 
 #
 # Determine how many nodes and processors per node need to be allocated
