@@ -70,7 +70,7 @@ echo "INFO: User ${USER_NAME} with email ${REQUESTER_EMAIL} has submitted job wi
 NOTIFICATION=notification.mail
 echo "To: $MANAGER_EMAIL" > ${NOTIFICATION}
 echo "From: $FROM_EMAIL" >> ${NOTIFICATION}
-echo "Subject: Selavy job submission " >> ${NOTIFICATION}
+echo "Subject: [Selavy] Selavy job submission " >> ${NOTIFICATION}
 echo >> ${NOTIFICATION}
 echo "User ${USER_NAME} with email ${REQUESTER_EMAIL} has submitted job with ID ${UUID}" >> ${NOTIFICATION}
 echo >> ${NOTIFICATION}
@@ -166,7 +166,7 @@ if [ $TOTAL_CORES -gt $MAX_CORES ]; then
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "Bcc: $MANAGER_EMAIL" > ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Selavy job sumission failed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: [Selavy] Selavy job sumission failed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
@@ -254,7 +254,7 @@ if [ \$ERR -eq 0 ]; then
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "Bcc: $MANAGER_EMAIL" >> ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Selavy job completed (SUCCESS)" >> ${UUID}.mail
+    echo "Subject: [Selavy] Selavy job completed (SUCCESS)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
@@ -295,7 +295,7 @@ else
     echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
     echo "Bcc: $MANAGER_EMAIL" >> ${UUID}.mail
     echo "From: $FROM_EMAIL" >> ${UUID}.mail
-    echo "Subject: Selavy job completed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: [Selavy] Selavy job completed (FAILURE)" >> ${UUID}.mail
     echo >> ${UUID}.mail
     echo "JobId: ${UUID}" >> ${UUID}.mail
     echo >> ${UUID}.mail
