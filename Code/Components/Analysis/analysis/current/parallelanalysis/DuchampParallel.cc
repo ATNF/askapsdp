@@ -1792,8 +1792,9 @@ namespace askap {
                 outfile << "PA SKY\n";
                 outfile << "#FONT lucidasans-12\n";
                 std::ofstream outfile2;
+		bool doOutfile2 = this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
 
-                if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
+                if (doOutfile2) {
                     outfile2.open(this->itsFitBoxAnnotationFile.c_str());
                     outfile << "COLOR BLUE\n";
                     outfile << "COORD W\n";
@@ -1806,8 +1807,10 @@ namespace askap {
                     if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
                         outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
                         src->writeFitToAnnotationFile(outfile, true, false);
-                        outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                        src->writeFitToAnnotationFile(outfile2, false, true);
+			if(doOutfile2){
+			    outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+			    src->writeFitToAnnotationFile(outfile2, false, true);
+			}
                     } else {
                         outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
                         src->writeFitToAnnotationFile(outfile, true, true);
@@ -1816,7 +1819,7 @@ namespace askap {
 
                 outfile.close();
 
-                if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) outfile2.close();
+                if (doOutfile2) outfile2.close();
             }
         }
 
