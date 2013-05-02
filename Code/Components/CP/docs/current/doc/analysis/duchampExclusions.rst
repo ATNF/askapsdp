@@ -2,6 +2,7 @@ Exclusions from Duchamp
 =======================
 
 Selavy does not implement all of the features available in Duchamp. This is due to a number of factors:
+
 * We do not have the Duchamp graphics capabilities enabled, since pgplot is not included in the askapsoft code tree.
 * The FDR method is not implemented. This method uses all the data to find the optimum threshold, and it is not completely clear how this works in the distributed case, when a given worker only sees part of the data. It could potentially be included in the variable-threshold option, but would be very expensive computationally.
 * The baseline-subtraction option has not been impelemented - it would require additional work to pass the baseline values between the workers and the master, and has not been a priority.
