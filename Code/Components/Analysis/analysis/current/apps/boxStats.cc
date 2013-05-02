@@ -37,17 +37,23 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <patternmatching/CatalogueMatcher.h>
-#include <askapparallel/AskapParallel.h>
+
+#include <parallelanalysis/DuchampParallel.h>
+#include <preprocessing/VariableThresholder.h>
+#include <casainterface/CasaInterface.h>
+
 #include <duchamp/duchamp.hh>
+#include <duchamp/Cubes/cubes.hh>
+#include <duchamp/param.hh>
+#include <duchamp/Utils/Section.hh>
+#include <Common/ParameterSet.h>
 
 using namespace askap;
 using namespace askap::analysis;
-using namespace askap::analysis::matching;
 
-ASKAP_LOGGER(logger, "crossmatch.log");
+ASKAP_LOGGER(logger, "boxStats.log");
 
-class CrossmatchApp : public askap::Application
+class BoxstatsApp : public askap::Application
 {
     public:
         virtual int run(int argc, char* argv[])
@@ -57,21 +63,28 @@ class CrossmatchApp : public askap::Application
             // This class must have scope outside the main try/catch block
             askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
             try {
-                LOFAR::ParameterSet subset(config().makeSubset("Crossmatch."));
-                CatalogueMatcher matcher(subset);
-                if(matcher.read()){
-                    matcher.findMatches();
-                    matcher.findOffsets();
-                    matcher.addNewMatches();
-                    matcher.findOffsets();
-                    matcher.outputLists();
-                    matcher.outputSummary();
-                } else{
-                    if (matcher.srcListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
-                    if (matcher.refListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
-                }
+                LOFAR::ParameterSet subset(config().makeSubset("BoxStats."));
+
+		DuchampParallel parl(comms);
+		duchamp::Param par;
+		par.setImageFile(subset.getString("image"));
+		par.setCut(subset.getFloat("snrCut"));
+		par.setFlagRobustStats(subset.getBool("flagRobustStats",true));
+		par.setSearchType(subset.getString("searchType","spatial"));
+		std::vector<long> dim = analysisutilities::getCASAdimensions(par.getImageFile());
+		par.setFlagSubsection(subset.getBool("flagSubsection"));
+		par.setSubsection(subset.getString("subsection",duchamp::nullSection(dim.size())));
+		ASKAPCHECK(par.parseSubsections(dim)==duchamp::SUCCESS, "Could not parse subsection in param: " << par);
+		parl.cube().saveParam(par);
+		parl.setBaseSubsection(par.getSubsection());
+		parl.setFlagVariableThreshold(true);
+		parl.readData();
+
+		VariableThresholder varThresh(subset);
+		if(comms.isParallel()) varThresh.setFilenames(comms);
+		varThresh.initialise(parl.cube());
+		varThresh.calculate();
+
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
                 std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
@@ -94,6 +107,6 @@ class CrossmatchApp : public askap::Application
 // Main function
 int main(int argc, char *argv[])
 {
-    CrossmatchApp app;
+    BoxstatsApp app;
     return app.main(argc, argv);
 }

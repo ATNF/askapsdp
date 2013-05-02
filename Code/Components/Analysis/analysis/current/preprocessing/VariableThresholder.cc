@@ -12,6 +12,8 @@
 #include <casa/Arrays/IPosition.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/PagedImage.h>
 #include <images/Images/SubImage.h>
@@ -109,6 +111,8 @@ namespace askap {
 	    ASKAPCHECK((this->itsSearchType=="spectral")||(this->itsSearchType=="spatial"),
 		       "SearchType needs to be either 'spectral' or 'spatial' - you have " << this->itsSearchType);
 
+	    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	    const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
 	    if (lattPtr == 0)
 		ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
@@ -147,25 +151,32 @@ namespace askap {
 	    if(this->itsAverageImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the average background map to " << this->itsAverageImageName);
 	    if(this->itsThresholdImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the flux threshold map to " << this->itsThresholdImageName);
 
-	    const size_t spatsize=this->itsCube->getDimX() * this->itsCube->getDimY();
-	    const size_t specsize=this->itsCube->getDimZ();
 	    int specAxis=this->itsInputCoordSys.spectralAxisNumber();
 	    int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
 	    int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
+	    size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
+	    size_t specsize=(specAxis>=0) ? this->itsInputShape(specAxis) : 1;
+	    if(specsize<1) specsize=1;
 	    casa::IPosition chunkshape=this->itsInputShape;
+	    ASKAPLOG_DEBUG_STR(logger, "input shape = " << this->itsInputShape);
 	    casa::IPosition box;
 	    size_t maxCtr;
 	    if(this->itsSearchType == "spatial"){
-	    	chunkshape(specAxis)=1;
+	    	if(specAxis>=0) chunkshape(specAxis)=1;
 	    	box=casa::IPosition(2, this->itsBoxSize, this->itsBoxSize);
 		maxCtr=specsize;
 	    }
 	    else{
-		chunkshape(lngAxis) = chunkshape(latAxis) = 1;
+		if(lngAxis>=0) chunkshape(lngAxis) = 1;
+		if(latAxis>=0) chunkshape(latAxis) = 1;
 		box=casa::IPosition(1, this->itsBoxSize);
 		maxCtr=spatsize;
 	    }
+
+	    ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
+
 	    for(size_t ctr=0;ctr<maxCtr;ctr++){
+		ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
 		defineChunk(inputChunk,ctr);
@@ -175,17 +186,18 @@ namespace askap {
 
 		casa::IPosition loc(this->itsInputShape.size(),0);
 		if(this->itsSearchType == "spatial"){
-	    	    loc(specAxis) = ctr;
+	    	    if(specAxis>=0) loc(specAxis) = ctr;
 		}
 		else{
-		    loc(lngAxis) = ctr%this->itsCube->getDimX();
-		    loc(latAxis) = ctr/this->itsCube->getDimX();
+		    if(lngAxis>=0) loc(lngAxis) = ctr%this->itsCube->getDimX();
+		    if(latAxis>=0) loc(latAxis) = ctr/this->itsCube->getDimX();
 		}
 		casa::Array<Float> snr = calcSNR(inputChunk,middle,spread);
 
 		this->writeImages(middle,spread,snr,loc,isStart);
 		this->doBoxSum(inputChunk,box,loc,isStart);
 
+		ASKAPLOG_DEBUG_STR(logger, "About to save the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
 		this->saveSNRtoCube(snr,ctr);
 	    }
 
@@ -196,7 +208,9 @@ namespace askap {
 	void VariableThresholder::defineChunk(casa::Array<Float> &chunk, size_t ctr)
 	{
 	    casa::Array<Float>::iterator iter(chunk.begin());
-	    size_t spatsize=this->itsCube->getDimX()*this->itsCube->getDimY();
+	    int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
+	    int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
+	    size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
 	    if(this->itsSearchType == "spatial"){
 		for(size_t i=0;iter!=chunk.end();iter++,i++) *iter = this->itsCube->getArray()[i+ctr*spatsize];
 	    }
@@ -207,13 +221,19 @@ namespace askap {
 
 	void VariableThresholder::saveSNRtoCube(casa::Array<Float> &snr, size_t ctr)
 	{
-	    casa::Array<Float>::iterator iter(snr.begin());
-	    size_t spatsize=this->itsCube->getDimX()*this->itsCube->getDimY();
-	    if(this->itsSearchType == "spatial"){
-		for(size_t i=0;iter!=snr.end();iter++,i++) this->itsCube->getRecon()[i+ctr*spatsize] = *iter;
-	    }
+	    if(this->itsCube->getRecon()==0)
+		ASKAPLOG_ERROR_STR(logger, "The Cube's recon array not defined - cannot save SNR map");
 	    else{
-		for(size_t z=0;iter!=snr.end();iter++,z++) this->itsCube->getRecon()[ctr+z*spatsize] = *iter;
+		casa::Array<Float>::iterator iter(snr.begin());
+		int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
+		int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
+		size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
+		if(this->itsSearchType == "spatial"){
+		    for(size_t i=0;iter!=snr.end();iter++,i++) this->itsCube->getRecon()[i+ctr*spatsize] = *iter;
+		}
+		else{
+		    for(size_t z=0;iter!=snr.end();iter++,z++) this->itsCube->getRecon()[ctr+z*spatsize] = *iter;
+		}
 	    }
 	    
 	}
@@ -277,24 +297,27 @@ namespace askap {
 	    /// and the Duchamp log file can be written to (if
 	    /// required).
 
-	    if (!this->itsCube->pars().getFlagUserThreshold()) {
-		ASKAPLOG_DEBUG_STR(logger, "Setting user threshold to " << this->itsCube->pars().getCut() << " sigma");
-		this->itsCube->pars().setThreshold(this->itsCube->pars().getCut());
-		this->itsCube->pars().setFlagUserThreshold(true);
-		if(this->itsCube->pars().getFlagGrowth()){
-		    ASKAPLOG_DEBUG_STR(logger, "Setting user growth threshold to " << this->itsCube->pars().getGrowthCut() << " sigma");
-		    this->itsCube->pars().setGrowthThreshold(this->itsCube->pars().getGrowthCut());
-		    this->itsCube->pars().setFlagUserGrowthThreshold(true);
+	    if(this->itsCube->getRecon()==0)
+		ASKAPLOG_ERROR_STR(logger, "The Cube's recon array not defined - cannot search for sources.");
+	    else{
+		if (!this->itsCube->pars().getFlagUserThreshold()) {
+		    ASKAPLOG_DEBUG_STR(logger, "Setting user threshold to " << this->itsCube->pars().getCut() << " sigma");
+		    this->itsCube->pars().setThreshold(this->itsCube->pars().getCut());
+		    this->itsCube->pars().setFlagUserThreshold(true);
+		    if(this->itsCube->pars().getFlagGrowth()){
+			ASKAPLOG_DEBUG_STR(logger, "Setting user growth threshold to " << this->itsCube->pars().getGrowthCut() << " sigma");
+			this->itsCube->pars().setGrowthThreshold(this->itsCube->pars().getGrowthCut());
+			this->itsCube->pars().setFlagUserGrowthThreshold(true);
+		    }
 		}
-	    }
 	
-	    ASKAPLOG_DEBUG_STR(logger, "Searching SNR map");
-	    this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
-	    ASKAPLOG_DEBUG_STR(logger, "Number of sources found = " << this->itsCube->getNumObj());
-	    this->itsCube->updateDetectMap();
-	    if(this->itsCube->pars().getFlagLog()) 
-		this->itsCube->logDetectionList();
-
+		ASKAPLOG_DEBUG_STR(logger, "Searching SNR map");
+		this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
+		ASKAPLOG_DEBUG_STR(logger, "Number of sources found = " << this->itsCube->getNumObj());
+		this->itsCube->updateDetectMap();
+		if(this->itsCube->pars().getFlagLog()) 
+		    this->itsCube->logDetectionList();
+	    }
 	}
 	
 

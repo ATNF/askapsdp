@@ -13,6 +13,8 @@
 #include <images/Images/SubImage.h>
 #include <images/Images/ImageInfo.h>
 #include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
 
 #include <casainterface/CasaInterface.h>
 #include <casa/aipstype.h>
@@ -48,6 +50,8 @@ namespace askap {
 
 	void ImageWriter::copyMetadata(duchamp::Cube *cube)
 	{
+	    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	    const LatticeBase* lattPtr = ImageOpener::openImage(cube->pars().getImageFile());
 	    if (lattPtr == 0)
 		ASKAPTHROW(AskapError, "Requested image \"" << cube->pars().getImageFile() << "\" does not exist or could not be opened.");

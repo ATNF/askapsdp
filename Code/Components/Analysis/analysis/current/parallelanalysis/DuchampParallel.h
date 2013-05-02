@@ -103,6 +103,11 @@ namespace askap {
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 		duchamp::Cube *pCube(){return &itsCube;};
 		
+		void setBaseSubsection(std::string sec){itsBaseSubsection = sec;};
+		std::string baseSubsection(){return itsBaseSubsection;};
+		void setBaseStatSubsection(std::string sec){itsBaseStatSubsection = sec;};
+		std::string baseStatSubsection(){return itsBaseStatSubsection;};
+
                 /// @brief Get/set the flag saying whether to do median filtering prior to searching
                 /// @{
                 bool getFlagVariableThreshold() {return itsFlagVariableThreshold;};
