@@ -2377,6 +2377,8 @@ namespace askap {
 	// set up the various flux units
 	if (wcs->spec >= 0) this->itsCube.header().fixSpectralUnits(this->itsCube.pars().getSpectralUnits());
 
+	this->itsCube.header().setIntFluxUnits();
+
 	if(typeOfData == METADATA) this->itsCube.initialiseCube(dim, false);
 	delete [] dim;
 	return duchamp::SUCCESS;
