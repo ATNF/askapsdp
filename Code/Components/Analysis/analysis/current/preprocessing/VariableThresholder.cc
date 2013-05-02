@@ -58,13 +58,15 @@ namespace askap {
 	    /// number appended to them (so that instead of something
 	    /// like "image_snr" it will become "image_snr_6_9" for
 	    /// worker #6 out of 9.
-	    std::stringstream suffix;
-	    suffix << "_" << comms.rank() << "_"<<comms.nProcs();
-	    if(this->itsSNRimageName!="") this->itsSNRimageName += suffix.str();
-	    if(this->itsNoiseImageName!="") this->itsNoiseImageName += suffix.str();
-	    if(this->itsBoxSumImageName!="") this->itsBoxSumImageName += suffix.str();
-	    if(this->itsAverageImageName!="") this->itsAverageImageName += suffix.str();
-	    if(this->itsThresholdImageName!="") this->itsThresholdImageName += suffix.str();
+	    if(comms.isParallel()){
+		std::stringstream suffix;
+		suffix << "_" << comms.rank() << "_"<<comms.nProcs();
+		if(this->itsSNRimageName!="") this->itsSNRimageName += suffix.str();
+		if(this->itsNoiseImageName!="") this->itsNoiseImageName += suffix.str();
+		if(this->itsBoxSumImageName!="") this->itsBoxSumImageName += suffix.str();
+		if(this->itsAverageImageName!="") this->itsAverageImageName += suffix.str();
+		if(this->itsThresholdImageName!="") this->itsThresholdImageName += suffix.str();
+	    }
 	}
 
 
