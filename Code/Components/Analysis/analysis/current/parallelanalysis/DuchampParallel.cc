@@ -1867,6 +1867,7 @@ namespace askap {
 	else if (!this->itsFlagVariableThreshold &&
 		 (!this->itsCube.pars().getFlagUserThreshold() ||
 		  (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
+	  ASKAPLOG_INFO_STR(logger, "Finding stats via distributed analysis.");
 	  findMeans();
 	  combineMeans();
 	  broadcastMean();
@@ -2121,9 +2122,12 @@ namespace askap {
 
                 this->itsCube.stats().setStddev(stddev);
                 this->itsCube.stats().setRobust(false);
+		this->itsCube.stats().define(this->itsCube.stats().getMiddle(),0.F,this->itsCube.stats().getSpread(),1.F);
 
                 if (!this->itsCube.pars().getFlagUserThreshold()) {
+		  ASKAPLOG_INFO_STR(logger, "Setting threshold to be " << this->itsCube.pars().getCut() << " sigma");
                     this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
+		    ASKAPLOG_INFO_STR(logger, "Threshold now " << this->itsCube.stats().getThreshold() << " since middle = " << this->itsCube.stats().getMiddle() << " and spread = " << this->itsCube.stats().getSpread());
                     this->itsCube.pars().setFlagUserThreshold(true);
                     this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
                 }
