@@ -123,6 +123,8 @@ public class CpManager extends Ice.Application {
 					logger.warn("Not registered exception" + baseWarn);
 				} catch (Ice.ConnectFailedException e) {
 					logger.warn("Connect failed exception" + baseWarn);
+				} catch (Ice.DNSException e) {
+					logger.warn("DNS exception" + baseWarn);
 				}
 				if (!activated) {
 					try {
