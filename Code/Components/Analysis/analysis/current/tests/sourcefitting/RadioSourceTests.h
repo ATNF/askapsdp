@@ -227,7 +227,7 @@ namespace askap {
 	  }
 	  itsGaussSource.getFWHMestimate(fluxarray,pa,maj,min);
 	  CPPUNIT_ASSERT(fabs(maj-2)<1.e-6);
-	  CPPUNIT_ASSERT(fabs(min-0.5)<1.e-6);
+	  CPPUNIT_ASSERT(fabs(min-1.)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(pa-M_PI/2)<1.e-6);
 	  delete [] fluxarray;
 	}
