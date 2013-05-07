@@ -54,7 +54,7 @@ namespace swcorrelator {
 /// @param[in[ hdrProc optional shared pointer to the header preprocessor
 ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nChan, const size_t nAnt, 
          const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : BufferManager(nBeam, nChan, nAnt, hdrProc),
-         itsGroupCounter(-1), itsBuffers(nAnt, -1) 
+         itsGroupCounter(-1), itsBuffers(nAnt, -1), itsWaitingForNewCompleteSet(false) 
 {
   ASKAPDEBUGASSERT(nAnt >= 3);
   size_t nBaselines = nAnt * (nAnt - 1) / 2;
@@ -142,7 +142,15 @@ ExtendedBufferManager::ExtendedBufferManager(const size_t nBeam, const size_t nC
 BufferManager::BufferSet ExtendedBufferManager::getFilledBuffers() const
 {
   boost::unique_lock<boost::mutex> lock(itsGroupMutex);  
+  // pause the thread until we're sure no other thread attempts to request a new complete set 
+  // from the parent class, otherwise a race condition is possible
+  while (itsWaitingForNewCompleteSet) {
+     itsReleaseCV.wait(lock);
+  }
+  // there is exclusive part of the code and itsWaitingForNewCompleteSet is false here
+    
   // first check whether there are items still left in the iteration plan
+  // itsGroupCounter is initialised with -1, so the if-statement is bypassed on the first run
   if (itsGroupCounter++ >= 0) {      
       if (itsGroupCounter < int(itsPlan.size())) {
           ASKAPCHECK(!itsReleaseFlags[itsGroupCounter], "Logic error - attempted to correlate the same baseline triangle twice");          
@@ -151,15 +159,22 @@ BufferManager::BufferSet ExtendedBufferManager::getFilledBuffers() const
       }
   }
   // need to get a new complete set of data and start new iteration
+  // raise the flag so other threads do not attempt to get to the same stage
+  itsWaitingForNewCompleteSet = true;
   
   // wait until correlation is completed and buffers are ready to be released
   while (notAllReleased()) {
      itsReleaseCV.wait(lock);
   }
+  // this is exclusive part of the code, can now release the flag
+  itsWaitingForNewCompleteSet = false;
+  
   // now we can overwrite itsBuffers
   
   itsGroupCounter = 0;
-  // the following call will call newBufferSet which fills itsBuffers
+  // the following avoids dead lock if another thread is waiting for this one to get a new complete set of data 
+  itsReleaseCV.notify_all();
+  // the following call will call newBufferSet which fills itsBuffers with the first item in the plan
   return BufferManager::getFilledBuffers();
 }
 

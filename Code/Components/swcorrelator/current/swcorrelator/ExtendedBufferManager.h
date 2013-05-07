@@ -137,6 +137,11 @@ private:
    /// @details There is one item per baseline set stored in itsPlan. The element is true if a particular
    /// combination is not released. All elements false means that this channel/beam is either done or not started
    mutable casa::Vector<bool> itsReleaseFlags;
+   
+   /// @brief true if we are (already) waiting for a new complete set of data
+   /// @details This is an additional synchronisation flag to prevent a race condition when a number of threads
+   /// attempt to get a new complete set of data. It is protected by itsGroupMutex.
+   mutable bool itsWaitingForNewCompleteSet;
       
 }; // class ExtendedBufferManager
 
