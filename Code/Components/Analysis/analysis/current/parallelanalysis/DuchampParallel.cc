@@ -523,7 +523,12 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().getSubsection());
                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix()
                                           << "About to read data from image " << this->itsCube.pars().getFullImageFile());
+
+		    bool flag=this->itsCube.pars().getFlagATrous();
+		    if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(true);
                     result = this->itsCube.getCube();
+		    if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(flag);
+
                 } else { // if it's a CASA image
 		  result = getCASA(IMAGE);
                 }

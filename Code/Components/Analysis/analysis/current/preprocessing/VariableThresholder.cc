@@ -199,7 +199,7 @@ namespace askap {
 		this->writeImages(middle,spread,snr,loc,isStart);
 		this->doBoxSum(inputChunk,box,loc,isStart);
 
-		ASKAPLOG_DEBUG_STR(logger, "About to save the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
+		ASKAPLOG_DEBUG_STR(logger, "About to store the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
 		this->saveSNRtoCube(snr,ctr);
 	    }
 

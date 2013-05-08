@@ -101,6 +101,7 @@ namespace askap {
 			ASKAPLOG_ERROR_STR(logger, "Weights array not initialised!");
 		    // find maximum of weights and send to master
 		    float maxW = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+		    ASKAPLOG_DEBUG_STR(logger, "Local maximum weight = " << maxW);
 		    bs.resize(0);
 		    LOFAR::BlobOBufString bob(bs);
 		    LOFAR::BlobOStream out(bob);
@@ -160,6 +161,7 @@ namespace askap {
 	void Weighter::search()
 	{
 	    ASKAPASSERT(this->itsCube->getSize() == this->itsWeights.size());
+	    ASKAPASSERT(this->itsCube->getRecon() > 0);
 	    for(size_t i=0; i<this->itsCube->getSize();i++){
 		this->itsCube->getRecon()[i] = this->itsCube->getPixValue(i)*this->weight(i);
 	    }
