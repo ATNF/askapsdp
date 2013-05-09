@@ -51,7 +51,7 @@ using namespace askap::accessors;
 /// @param[in] seed1 a first seed to initialize the random generator
 /// @param[in] seed2 a second seed to initialize the random generator 
 GaussianNoiseME::GaussianNoiseME(double variance, casa::Int seed1, casa::Int seed2) :
-  itsGen(seed1, seed2), itsNoiseGen(&itsGen,0.,variance), itsExplicitVariance(true) {}
+  itsGen(variance,seed1, seed2), itsExplicitVariance(true) {}
 
 /// @brief constructor, initializes random distribution required.
 /// @details The required noise rms is obtained from the accessor. The
@@ -61,7 +61,7 @@ GaussianNoiseME::GaussianNoiseME(double variance, casa::Int seed1, casa::Int see
 /// @param[in] seed1 a first seed to initialize the random generator
 /// @param[in] seed2 a second seed to initialize the random generator 
 GaussianNoiseME::GaussianNoiseME(casa::Int seed1, casa::Int seed2)  :
-  itsGen(seed1, seed2), itsNoiseGen(&itsGen,0.,1.), itsExplicitVariance(false) {}
+  itsGen(1., seed1, seed2), itsExplicitVariance(false) {}
 
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This prediction is done for single chunk of data only. 
@@ -107,11 +107,3 @@ void GaussianNoiseME::calcEquations(const IConstDataAccessor &,
   ASKAPTHROW(AskapError, "GaussianNoiseME::calcEquations can not be called. There is probably a logical error.");
 }
 
-/// @brief a helper method to obtain a random complex number.
-/// @details It runs the generator twice for real and imaginary part,
-/// composes a complex number and returns it.
-/// @return a random complex number
-casa::Complex GaussianNoiseME::getRandomComplexNumber() const
-{
-  return casa::Complex(itsNoiseGen(),itsNoiseGen());
-}

@@ -64,10 +64,18 @@ casa::MVDirection convertDir(const std::string &ra, const std::string &dec) {
 
 void process() {
   // centres for each beam
-  casa::Vector<casa::MVDirection> centres(3);
+  casa::Vector<casa::MVDirection> centres(4);
+
+  centres[0] = convertDir("13:26:51.70","-42.45.38.90");
+  centres[1] = convertDir("13:24:08.26","-42.45.38.90");
+  centres[2] = convertDir("13:26:52.37","-43.15.38.87");
+  centres[3] = convertDir("13:24:07.59","-43.15.38.87");
+  /*
   centres[0] = convertDir("15:56:58.87","-79.14.04.28");
   centres[1] = convertDir("16:17:49.28","-77.17.18.49");
   centres[2] = convertDir("16:08:15.09","-78.16.24.53");
+  //centres[3] = convertDir("15:55:21.65","-79.40.36.30");
+  */
   const double cutoff = 5e-2;
   const double fwhm = 1.22*3e8/928e6/12;
   
@@ -105,7 +113,7 @@ void process() {
             for (size_t beam=1; beam<pixels.nelements(); ++beam) {
                  const double offsetThisBeam = world.separation(centres[beam]);
                  const double thisWt = exp(-offsetThisBeam*offsetThisBeam*4.*log(2.)/fwhm/fwhm);
-                 sumsqwt += thisWt*thisWt;
+                 sumsqwt += thisWt*thisWt; // * (beam == 3 ? 0.21 : 1.);
                  resflux += pixels[beam](curpos)*thisWt;
             }
             if (sqrt(sumsqwt)<cutoff) {

@@ -43,6 +43,7 @@
 
 // own includes
 #include <measurementequation/IMeasurementEquation.h>
+#include <utils/ComplexGaussianNoise.h>
 
 // casa includes
 #include <casa/BasicMath/Random.h>
@@ -110,13 +111,14 @@ protected:
   /// @details It runs the generator twice for real and imaginary part,
   /// composes a complex number and returns it.
   /// @return a random complex number
-  casa::Complex getRandomComplexNumber() const;
+  inline casa::Complex getRandomComplexNumber() const 
+  {
+    return itsGen();
+  }
   
 private:
   /// @brief random number generator
-  mutable casa::MLCG itsGen;
-  /// @brief random number distrubiton
-  mutable casa::Normal itsNoiseGen;
+  scimath::ComplexGaussianNoise itsGen;
   
   /// @brief true, if the variance given explicitly is to be used
   /// @details If the noise distribution is the same for all visibilities,
