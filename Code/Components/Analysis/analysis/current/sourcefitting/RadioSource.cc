@@ -1064,6 +1064,11 @@ namespace askap {
 		Slicer theBox=casa::Slicer(xrange, yrange);
 		casa::Vector<casa::Double> f = getPixelsInBox(imageName, theBox);
 
+		// The following checks for pixels that have been blanked, and sets them to zero.
+		for (size_t i=0;i<f.size();i++)
+		  if(isnan(f(i))) f(i)=0.;
+
+
 		ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
 
 		// Set up fit with same parameters and do the fit
