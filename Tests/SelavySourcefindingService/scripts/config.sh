@@ -70,9 +70,9 @@ MAX_IMG_SIZE=256000
 
 # ASKAP Software location
 # The various scripts use this instead of the more typical ASKAP_ROOT
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-2.0
-ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-2.1
+ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-3.0
 #
+# This is my local copy of the software, for debugging & pre-release testing.
 #ASKAP_SOFTWARE=/exported/whi550/ASKAP/askapsoft
 
 # Where the web page showing the status should go

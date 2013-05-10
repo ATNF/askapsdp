@@ -93,32 +93,66 @@ PARSET=${WORK_DIR}/${PARSETBASE}
 grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -vi "Selavy.image" | grep -vi "Selavy.imageFile" | grep -vi "Selavy.WeightScaling.weightsimage" | grep -vi "Selavy.extractSpectra.spectralCube" | grep -vi "Selavy.extractNoiseSpectra.spectralCube" > ${PARSET}
 
 # Add the image separatly, so the images directory prefix can be added
-IMG_FILE=`grep -i "Selavy.image" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-echo "Selavy.image = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
-IMG_FILE=`grep -i "Selavy.imageFile" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
-echo "Selavy.imageFile = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
-
+IMG_FILE=`grep -i "Selavy.imageFile" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
+if [ ${IMG_FILE} != "" ]; then
+    echo "Selavy.imageFile = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
+else
+    IMG_FILE=`grep -i "Selavy.image" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
+    if [ ${IMG_FILE} != "" ]; then
+	echo "Selavy.image = ${IMAGE_DIR}/${IMG_FILE}" >> ${PARSET}
+    fi
+fi
 # Add the weights image separately also, if it is requested
-WEIGHTS_IMG=`grep -i "Selavy.WeightScaling.weightsimage" ${JOB_FILE} | grep -e '^\#' -v |  cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+WEIGHTS_IMG=`grep -i "Selavy.WeightScaling.weightsimage" ${JOB_FILE} | grep -e '^\#' -v |  cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 if [ "$WEIGHTS_IMG" != "" ]; then
     echo "Selavy.WeightScaling.weightsimage = ${IMAGE_DIR}/${WEIGHTS_IMG}" >> ${PARSET}
 fi
 
-CUBE_FILE=`grep -i "Selavy.extractSpectra.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+CUBE_FILE=`grep -i "Selavy.extractSpectra.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 if [ "${CUBE_FILE}" != "" ]; then
     echo "Selavy.extractSpectra.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
 fi
-CUBE_FILE=`grep -i "Selavy.extractNoiseSpectra.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+CUBE_FILE=`grep -i "Selavy.extractNoiseSpectra.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 if [ "${CUBE_FILE}" != "" ]; then
     echo "Selavy.extractNoiseSpectra.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
 fi
 
+SPECTRALTERMS=`grep -i "Selavy.spectralTermImages" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
+if [ ${SPECTRALTERMS} != "" ]; then
+    if [ `echo ${SPECTRALTERMS} | cut -c 1` == "[" ]; then
+	
+	ALPHAIMAGE=`echo ${SPECTRALTERMS} | sed -e 's/\[//g' | sed -e 's/\]//g' |  awk -F',' '{print $1}'`
+	NIMAGES=`echo ${SPECTRALTERMS} | sed -e 's/\[//g' | sed -e 's/\]//g' | awk -F',' '{print NF}'`
+	
+	if [ $ALPHAIMAGE == "" ]; then
+	    ALPHAIMAGE = "\"\""
+	elif [ $ALPHAIMAGE != "\"\"" ]; then
+	    ALPHAIMAGE="${IMAGE_DIR}/${ALPHAIMAGE}"
+	fi
+	
+	BETAIMAGE="\"\""
+	if [ $NIMAGES -gt 1 ]; then
+	    BETAIMAGE=`echo ${SPECTRALTERMS} | sed -e 's/\[//g' | sed -e 's/\]//g' |  awk -F',' '{print $2}'`
+	    if [ $BETAIMAGE != "\"\"" ]; then
+		BETAIMAGE="${IMAGE_DIR}/${BETAIMAGE}"
+	    fi
+	fi
+    else
+# don't have a BETAIMAGE provided
+	ALPHAIMAGE=${IMAGE_DIR}/${SPECTRALTERMS}
+	BETAIMAGE="\"\""
+    fi
+    echo "Selavy.spectralTermImages = [${ALPHAIMAGE},${BETAIMAGE}]" >> ${PARSET}
+fi
+
+
+
 ## Changing the mask image, to make it easy to include in the tarball
-#MASK_IMG=`grep -i "Selavy.fileOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#MASK_IMG=`grep -i "Selavy.fileOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 #if [ "$MASK_IMG" != "" ]; then
 #    echo "Selavy.fileOutputMask = selavy-MASK-${MASK_IMG}" >> ${PARSET}
 #else
-#    FLAG_MASK=`grep -i "Selavy.flagOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+#    FLAG_MASK=`grep -i "Selavy.flagOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 #    if [ ${FLAG_MASK} == "true" ] || [ ${FLAG_MASK} == "1" ]; then
 #	echo "Selavy.fileOutputMask = selavy-MASK-${IMG_FILE}" >> ${PARSET}
 #    fi
@@ -370,9 +404,9 @@ BADALLOC=\`grep -c "St9bad_alloc" ${USER_NAME}.o*\`
 echo "To: $REQUESTER_EMAIL" > ${UUID}.mail
 echo "From: $FROM_EMAIL" >> ${UUID}.mail
 if [ \${EXCEEDED} -ne 0 ]; then
-    echo "Subject: Selavy job time limit exceeded (FAILURE)" >> ${UUID}.mail
+    echo "Subject: [Selavy] Selavy job time limit exceeded (FAILURE)" >> ${UUID}.mail
 else
-    echo "Subject: Selavy job completed (FAILURE)" >> ${UUID}.mail
+    echo "Subject: [Selavy] Selavy job completed (FAILURE)" >> ${UUID}.mail
 fi
 if [ \${SEGFAULT} -ne 0 ]; then
     echo "CC: ${MANAGER_EMAIL}" >> ${UUID}.mail
