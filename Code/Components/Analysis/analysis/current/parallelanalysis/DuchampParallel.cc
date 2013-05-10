@@ -1838,7 +1838,7 @@ namespace askap {
 	/// the master's itsCube statsContainer.
 	if (this->itsFlagVariableThreshold){
 	  if(this->itsCube.pars().getFlagUserThreshold())
-	    ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("
+	    ASKAPLOG_WARN_STR(logger, "Since a variable threshold has been requested, the threshold given ("
 			      <<this->itsCube.pars().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
 	  this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
@@ -2186,7 +2186,8 @@ namespace askap {
                     this->itsCube.stats().setRobust(false);
                     this->itsCube.stats().setMean(mean);
                     this->itsCube.stats().setStddev(stddev);
-
+		    this->itsCube.stats().define(this->itsCube.stats().getMiddle(),0.F,this->itsCube.stats().getSpread(),1.F);
+		    
 		    if (!this->itsCube.pars().getFlagUserThreshold()) {
 		      this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
 		      this->itsCube.pars().setFlagUserThreshold(true);
