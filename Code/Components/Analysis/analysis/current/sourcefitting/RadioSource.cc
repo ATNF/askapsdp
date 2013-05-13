@@ -1048,19 +1048,23 @@ namespace askap {
 		casa::Vector<casa::Double> flux_all = getPixelsInBox(imageName, theBox);
 		ASKAPLOG_DEBUG_STR(logger, "Read flux array in a box with " << flux_all.size() << " pixels");
 
+		std::vector<double> fluxvec;
+		for (size_t i=0;i<flux_all.size();i++) {
+		    if(!isnan(flux_all(i))){
+			fluxvec.push_back(flux_all(i));
+		    }
+		}
 		casa::Matrix<casa::Double> pos;
 		casa::Vector<casa::Double> sigma;
-		pos.resize(this->boxSize(), 2);
-		sigma.resize(this->boxSize());
+		pos.resize(fluxvec.size(), 2);
+		sigma.resize(fluxvec.size());
 		casa::Vector<casa::Double> curpos(2);
 		curpos = 0;
 
-		std::vector<double> fluxvec;
 		// The following checks for pixels that have been blanked, and ignore them
 		int counter=0;
 		for (size_t i=0;i<flux_all.size();i++) {
 		    if(!isnan(flux_all(i))){
-			fluxvec.push_back(flux_all(i));
 			sigma(counter)=1;
 			curpos(0) = i%this->boxXsize() + this->boxXmin();
 			curpos(1) = i/this->boxXsize() + this->boxYmin();
