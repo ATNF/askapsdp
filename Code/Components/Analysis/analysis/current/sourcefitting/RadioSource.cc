@@ -1042,6 +1042,12 @@ namespace askap {
 		ASKAPLOG_DEBUG_STR(logger, "About to find the "<<termtype[term]<<", for image " << imageName);
 
 		// Get taylor1 values for box, and define positions
+		Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
+		Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
+		Slicer theBox=casa::Slicer(xrange, yrange);
+		casa::Vector<casa::Double> flux_all = getPixelsInBox(imageName, theBox);
+		ASKAPLOG_DEBUG_STR(logger, "Read flux array in a box with " << flux_all.size() << " pixels");
+
 		casa::Matrix<casa::Double> pos;
 		casa::Vector<casa::Double> sigma;
 		pos.resize(this->boxSize(), 2);
@@ -1049,25 +1055,32 @@ namespace askap {
 		casa::Vector<casa::Double> curpos(2);
 		curpos = 0;
 
-		for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-		  for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-		    int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-		    sigma(i) = 1.;
-		    curpos(0) = x;
-		    curpos(1) = y;
-		    pos.row(i) = curpos;
-		  }
+		std::vector<double> fluxvec;
+		// The following checks for pixels that have been blanked, and ignore them
+		int counter=0;
+		for (size_t i=0;i<flux_all.size();i++) {
+		    if(!isnan(flux_all(i))){
+			fluxvec.push_back(flux_all(i));
+			sigma(counter)=1;
+			curpos(0) = i%this->boxXsize() + this->boxXmin();
+			curpos(1) = i/this->boxXsize() + this->boxYmin();
+			pos.row(counter) = curpos;
+			counter++;
+		    }
 		}
+		casa::Vector<casa::Double> f(fluxvec);
+		ASKAPLOG_DEBUG_STR(logger, "About to use a flux array with " << f.size() << " pixels");
+
+		// for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+		//   for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+		//     int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+		//     sigma(i) = 1.;
+		//     curpos(0) = x;
+		//     curpos(1) = y;
+		//     pos.row(i) = curpos;
+		//   }
+		// }
 		    
-		Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
-		Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
-		Slicer theBox=casa::Slicer(xrange, yrange);
-		casa::Vector<casa::Double> f = getPixelsInBox(imageName, theBox);
-
-		// The following checks for pixels that have been blanked, and sets them to zero.
-		for (size_t i=0;i<f.size();i++)
-		  if(isnan(f(i))) f(i)=0.;
-
 
 		ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
 
