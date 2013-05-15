@@ -89,7 +89,20 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         /// @param[in,out] chunk  the instance of VisChunk for which UVW
         ///                       coordinates are to be calculated.
         virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
+  
+    protected:
+        /// @brief obtain beam offsets in radians from the dish pointing centre
+        /// @details
+        /// @param[in] beam number of the beam of interest
+        /// @return offsets in x and y (as elements 0 and 1)
+        const casa::RigidVector<double, 2>& beamOffset(const casa::uInt beam) const;
 
+        /// @brief obtain ITRF coordinates of a given antenna
+        /// @details
+        /// @param[in] ant antenna index
+        /// @return 3-element vector with X,Y and Z
+        casa::Vector<double> antXYZ(const casa::uInt ant) const;
+ 
     private:
         // Calculates UVW coordinates for the specified "row" in the "chunk"
         void calcForRow(askap::cp::common::VisChunk::ShPtr chunk, const casa::uInt row);

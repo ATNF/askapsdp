@@ -106,9 +106,8 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // Shift per beam offsets
     const casa::uInt beam = chunk->beam1()(row);
-    ASKAPCHECK(beam < itsBeamOffset.size(), "Beam index (" << beam << ") is invalid");
-    RigidVector<double, 2> beamOffset = itsBeamOffset(beam);
-    fpc.shift(-beamOffset(0), beamOffset(1), True);
+    const RigidVector<double, 2>& offset = beamOffset(beam);
+    fpc.shift(-offset(0), offset(1), True);
 
     const double ra = fpc.getAngle().getValue()(0);
     const double dec = fpc.getAngle().getValue()(1);
@@ -125,10 +124,16 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     trans(2, 0) = -cd * cH0; trans(2, 1) = cd * sH0; trans(2, 2) = -sd;
 
     // Rotate antennas to correct frame
-    Matrix<double> antUVW(3, nAnt);
 
+    /*
+    // there is no need to calculate uvw per antenna here as we recalculate it per row
+    // caching it per row and beam would be the optimal approach in terms of the number of
+    // operations, but we leave such implementation for some time in the future
+
+    Matrix<double> antUVW(3, nAnt);
+    
     for (uInt i = 0; i < nAnt; ++i) {
-        antUVW.column(i) = casa::product(trans, itsAntXYZ.column(i));
+        antUVW.column(i) = casa::product(trans, antXYZ(i));
     }
 
     double x1 = antUVW(0, ant1), y1 = antUVW(1, ant1), z1 = antUVW(2, ant1);
@@ -137,9 +142,34 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     uvwvec(0) = x2 - x1;
     uvwvec(1) = y2 - y1;
     uvwvec(2) = z2 - z1;
+    */
+
+    const Vector<double> baseline = antXYZ(ant2) - antXYZ(ant1);
+    ASKAPDEBUGASSERT(baseline.nelements() == 3);
+    Vector<double> uvwvec = casa::product(trans,baseline);
+    ASKAPDEBUGASSERT(uvwvec.nelements() == 3);
 
     // Finally set the uvwvec in the VisChunk
     chunk->uvw()(row) = uvwvec;
+}
+
+/// @brief obtain beam offsets in radians from the dish pointing centre
+/// @details
+/// @param[in] beam number of the beam of interest
+/// @return offsets in x and y (as elements 0 and 1)
+const casa::RigidVector<double, 2>& CalcUVWTask::beamOffset(const casa::uInt beam) const
+{
+    ASKAPCHECK(beam < itsBeamOffset.size(), "Beam index (" << beam << ") is invalid");
+    return itsBeamOffset(beam);
+}
+
+/// @brief obtain ITRF coordinates of a given antenna
+/// @details
+/// @param[in] ant antenna index
+/// @return 3-element vector with X,Y and Z
+casa::Vector<double> CalcUVWTask::antXYZ(const casa::uInt ant) const
+{
+   return itsAntXYZ.column(ant);
 }
 
 void CalcUVWTask::createPositionMatrix(const Configuration& config)
