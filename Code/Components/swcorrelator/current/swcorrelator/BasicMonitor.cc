@@ -34,6 +34,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+#include <utils/DelayEstimator.h>
 
 
 #include <fstream>
@@ -214,49 +215,9 @@ casa::Vector<casa::Float> BasicMonitor::estimateDelays(const casa::Matrix<casa::
 {
   casa::Vector<casa::Float> result(vis.nrow(),0.);
   if (vis.ncolumn() >= 2) {
-      std::vector<float> phases(vis.ncolumn());
-      const float threshold = 3 * casa::C::pi / 2;
+      scimath::DelayEstimator de(1e6); // hard-coded 1 MHz resolution
       for (casa::uInt row = 0; row < vis.nrow(); ++row) {
-           // unambiguate phases
-           float wrapCompensation = 0.;
-           for (size_t chan=0; chan<phases.size(); ++chan) {
-                const casa::Float curPhase = arg(vis(row,casa::uInt(chan)));
-                if (chan > 0) {
-                    const float prevOrigPhase = phases[chan - 1] - wrapCompensation;
-                    const float diff = curPhase - prevOrigPhase;
-                    if (diff >= threshold) {
-                        wrapCompensation -= 2. * casa::C::pi;
-                    } else if (diff <= -threshold) {
-                        wrapCompensation += 2. * casa::C::pi;
-                    }
-                }
-                phases[chan] = curPhase + wrapCompensation;
-           }
-           /*
-           // for debugging
-           if (row == 0) {
-               std::ofstream os("phtest.dat");
-               for (size_t chan=0; chan<phases.size(); ++chan) {
-                   os<<chan<<" "<<phases[chan] / casa::C::pi * 180. <<" "<<arg(vis(row,casa::uInt(chan))) / casa::C::pi * 180.<< std::endl;
-               }
-           }
-           //
-           */
-           // do LSF into phase vs. channel
-           double sx = 0., sy = 0., sx2 = 0., sxy = 0.;
-           // could've combined two loops, but keep it easy for now
-           for (size_t chan=0; chan < phases.size(); ++chan) {
-                sx += double(chan);
-                sx2 += double(chan)*double(chan);
-                sy += double(phases[chan]);
-                sxy += double(chan)*double(phases[chan]);
-           }
-           sx /= double(phases.size());
-           sy /= double(phases.size());
-           sx2 /= double(phases.size());
-           sxy /= double(phases.size());
-           const double coeff = (sxy - sx * sy) / (sx2 - sx * sx);
-           result[row] = float(coeff / 2. / casa::C::pi / 1e6);
+           result[row] = float(de.getDelay(vis.row(row)));
       }
   }    
   return result;  
