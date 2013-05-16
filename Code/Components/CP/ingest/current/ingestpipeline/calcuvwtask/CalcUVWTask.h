@@ -91,17 +91,33 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
   
     protected:
-        /// @brief obtain beam offsets in radians from the dish pointing centre
-        /// @details
-        /// @param[in] beam number of the beam of interest
-        /// @return offsets in x and y (as elements 0 and 1)
-        const casa::RigidVector<double, 2>& beamOffset(const casa::uInt beam) const;
 
         /// @brief obtain ITRF coordinates of a given antenna
         /// @details
         /// @param[in] ant antenna index
         /// @return 3-element vector with X,Y and Z
         casa::Vector<double> antXYZ(const casa::uInt ant) const;
+
+        /// @brief obtain maximum number of antennas
+        /// @return maximum number of antennas
+        inline casa::uInt nAntennas() const { return itsAntXYZ.ncolumn(); }
+
+        /// @brief obtain maximum number of beams
+        /// @return maximum number of beams
+        inline casa::uInt nBeams() const { return itsBeamOffset.nelements(); }
+
+        /// @brief obtain phase centre for a given beam
+        /// @details This method encapsulates common operations to obtain the direction
+        /// of the phase centre for an (off-axis) beam by shifting dish pointing centre
+        /// @param[in] dishPointing pointing centre for the whole dish
+        /// @param[in] beam beam index to work 
+        /// @return direction measure for the phase centre
+        casa::MDirection phaseCentre(const casa::MDirection &dishPointing, const casa::uInt beam) const;
+
+        /// @brief obtain gmst for the given epoch
+        /// @param[in] epoch UTC epoch to convert to GMST
+        /// @return gmst in radians modulo 2pi
+        static double calcGMST(const casa::MVEpoch &epoch);
  
     private:
         // Calculates UVW coordinates for the specified "row" in the "chunk"

@@ -49,7 +49,8 @@ class TaskDesc {
             CalcUVWTask,
             ChannelAvgTask,
             CalTask,
-            MSSink
+            MSSink,
+            PhaseTrackTask
         };
 
         /// @brief Constructor

@@ -83,6 +83,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "MSSink") {
         return TaskDesc::MSSink;
     }
+    if (type == "PhaseTrackTask") {
+        return TaskDesc::PhaseTrackTask;
+    }
 
     ASKAPTHROW(AskapError, "Unknown task type");
 }

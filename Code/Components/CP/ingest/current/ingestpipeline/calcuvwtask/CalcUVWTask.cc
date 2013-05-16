@@ -82,33 +82,52 @@ void CalcUVWTask::process(VisChunk::ShPtr chunk)
     }
 }
 
+/// @brief obtain phase centre for a given beam
+/// @details This method encapsulates common operations to obtain the direction
+/// of the phase centre for an (off-axis) beam by shifting dish pointing centre
+/// @param[in] dishPointing pointing centre for the whole dish
+/// @param[in] beam beam index to work 
+/// @return direction measure for the phase centre
+casa::MDirection CalcUVWTask::phaseCentre(const casa::MDirection &dishPointing, const casa::uInt beam) const
+{
+    // Current phase center
+    casa::MDirection fpc(dishPointing);
+    ASKAPCHECK(beam < itsBeamOffset.size(), "Beam index (" << beam << ") is invalid");
+
+    // Shift per beam offsets
+    const RigidVector<double, 2> offset = itsBeamOffset(beam);
+    fpc.shift(-offset(0), offset(1), True);
+    return fpc;
+}
+
+/// @brief obtain gmst for the given epoch
+/// @param[in] epoch UTC epoch to convert to GMST
+/// @return gmst in radians modulo 2pi
+double CalcUVWTask::calcGMST(const casa::MVEpoch &epoch)
+{
+    // Determine Greenwich Mean Sidereal Time
+    MEpoch epUT1(epoch, MEpoch::UTC);
+    MEpoch::Ref refGMST1(MEpoch::GMST1);
+    MEpoch::Convert epGMST1(epUT1, refGMST1);
+    const double gmst = epGMST1().get("d").getValue("d");
+    return (gmst - Int(gmst)) * C::_2pi; // Into Radians
+}
+
 void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 {
     const casa::uInt ant1 = chunk->antenna1()(row);
     const casa::uInt ant2 = chunk->antenna2()(row);
 
-    // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.
-    // Rows are x, y, z and columns are indexed by antenna id.
-    const casa::uInt nAnt = itsAntXYZ.ncolumn();
+    const casa::uInt nAnt = nAntennas();
 
     ASKAPCHECK(ant1 < nAnt, "Antenna index (" << ant1 << ") is invalid");
     ASKAPCHECK(ant2 < nAnt, "Antenna index (" << ant2 << ") is invalid");
 
     // Determine Greenwich Mean Sidereal Time
-    MEpoch epUT1(chunk->time(), MEpoch::UTC);
-    MEpoch::Ref refGMST1(MEpoch::GMST1);
-    MEpoch::Convert epGMST1(epUT1, refGMST1);
-    double gmst = epGMST1().get("d").getValue("d");
-    gmst = (gmst - Int(gmst)) * C::_2pi; // Into Radians
+    const double gmst = calcGMST(chunk->time()); 
 
-    // Current phase center
-    casa::MDirection fpc = chunk->pointingDir1()(row);
-
-    // Shift per beam offsets
-    const casa::uInt beam = chunk->beam1()(row);
-    const RigidVector<double, 2>& offset = beamOffset(beam);
-    fpc.shift(-offset(0), offset(1), True);
-
+    // phase center for a given beam
+    const casa::MDirection fpc = phaseCentre(chunk->pointingDir1()(row),chunk->beam1()(row));
     const double ra = fpc.getAngle().getValue()(0);
     const double dec = fpc.getAngle().getValue()(1);
 
@@ -151,16 +170,6 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // Finally set the uvwvec in the VisChunk
     chunk->uvw()(row) = uvwvec;
-}
-
-/// @brief obtain beam offsets in radians from the dish pointing centre
-/// @details
-/// @param[in] beam number of the beam of interest
-/// @return offsets in x and y (as elements 0 and 1)
-const casa::RigidVector<double, 2>& CalcUVWTask::beamOffset(const casa::uInt beam) const
-{
-    ASKAPCHECK(beam < itsBeamOffset.size(), "Beam index (" << beam << ") is invalid");
-    return itsBeamOffset(beam);
 }
 
 /// @brief obtain ITRF coordinates of a given antenna
