@@ -82,6 +82,7 @@ namespace askap {
             std::stringstream ss(line);
 	    int flag;
 	    ss >> this->itsID >> this->itsName >> this->itsRA >> this->itsDec 
+	       >> this->itsX >> this->itsY
 	       >> this->itsFint >> this->itsFpeak >> this->itsFintFIT >> this->itsFpeakFIT
 	       >> this->itsMajFIT >> this->itsMinFIT >> this->itsPAFIT
 	       >> this->itsMajDECONV >> this->itsMinDECONV >> this->itsPADECONV
@@ -102,7 +103,7 @@ namespace askap {
 	    this->setFluxZero(this->itsFintFIT);
 	    this->itsFlagGuess = (flag==1);
 
-	    //	  ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << this->itsID <<": " << this->itsRA << " " << this->itsDec << " " << this->itsFintFIT << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
+	    ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << this->itsID <<": " << this->itsRA << " " << this->itsDec << " " << this->itsFintFIT << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
 
         }
 
@@ -118,6 +119,8 @@ namespace askap {
 
             ((Continuum &) *this) = c;
 	    this->itsName = c.itsName;	    
+	    this->itsX = c.itsX;
+	    this->itsY = c.itsY;
 	    this->itsFint = c.itsFint;	    
 	    this->itsFpeak = c.itsFpeak;	    
 	    this->itsFintFIT = c.itsFintFIT;   
@@ -158,6 +161,8 @@ namespace askap {
 		  << std::setw(14) << this->itsName << " " 
 		  << std::setw(15) << std::setprecision(5) << this->itsRA << " " 
 		  << std::setw(11) << std::setprecision(5) << this->itsDec << " "
+		  << std::setw(8) << std::setprecision(1) << this->itsX << " "
+		  << std::setw(8) << std::setprecision(1) << this->itsY << " "
 	          << std::setw(10) << std::setprecision(8) << this->itsFint << " "
 	          << std::setw(10) << std::setprecision(8) << this->itsFpeak << " "
 	          << std::setw(10) << std::setprecision(8) << this->itsFintFIT << " "

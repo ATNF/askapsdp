@@ -89,6 +89,8 @@ namespace askap {
 
             protected:
 		std::string itsName;
+		float itsX;
+		float itsY;
 		float itsFint;
 		float itsFpeak;
 		float itsFintFIT;
