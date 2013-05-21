@@ -160,7 +160,6 @@ namespace askap {
 	    size_t specsize=(specAxis>=0) ? this->itsInputShape(specAxis) : 1;
 	    if(specsize<1) specsize=1;
 	    casa::IPosition chunkshape=this->itsInputShape;
-	    ASKAPLOG_DEBUG_STR(logger, "input shape = " << this->itsInputShape);
 	    casa::IPosition box;
 	    size_t maxCtr;
 	    if(this->itsSearchType == "spatial"){
@@ -175,7 +174,7 @@ namespace askap {
 		maxCtr=spatsize;
 	    }
 
-	    ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
+	    ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in image of shape " << this->itsInputShape << " using  '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
 
 	    for(size_t ctr=0;ctr<maxCtr;ctr++){
 		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
