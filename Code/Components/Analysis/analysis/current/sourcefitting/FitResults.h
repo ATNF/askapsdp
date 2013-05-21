@@ -139,7 +139,7 @@ namespace askap {
                     float itsRMS;
                     /// @brief The number of degrees of freedom in the fit
                     int   itsNumDegOfFreedom;
-                    /// @brief The number of free parameters in the fit
+                    /// @brief The number of free parameters in the fit, per Gaussian
                     int   itsNumFreeParam;
 		    /// @brief The number of pixels included in the fit
 		    unsigned int   itsNumPix;

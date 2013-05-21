@@ -1624,10 +1624,11 @@ namespace askap {
 
 		if(this->itsFitParams.doFit()){
 
-		  duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
-		  
 		  for (size_t t = 0; t < outtypes.size(); t++) {
  		    
+		      duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
+		      setupCols(columns,this->itsSourceList,outtypes[t]);
+
 		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
 		    AskapAsciiCatalogueWriter writer(filename);
 		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);

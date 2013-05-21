@@ -289,6 +289,7 @@ namespace askap {
 	    void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter);
 
 	    duchamp::Catalogues::CatalogueSpecification fullCatalogue(duchamp::Catalogues::CatalogueSpecification inputSpec, duchamp::FitsHeader &header);
+	    void setupCols(duchamp::Catalogues::CatalogueSpecification &spec, std::vector<sourcefitting::RadioSource> &srclist, std::string fitType);
 
 
         }
