@@ -178,7 +178,7 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
 
 	    for(size_t ctr=0;ctr<maxCtr;ctr++){
-		ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
+		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
 		defineChunk(inputChunk,ctr);
