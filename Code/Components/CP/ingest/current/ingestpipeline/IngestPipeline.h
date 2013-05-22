@@ -46,7 +46,10 @@ namespace ingest {
 class IngestPipeline {
     public:
         /// @brief Constructor.
-        IngestPipeline(const LOFAR::ParameterSet& parset);
+        /// 
+        /// @param[in] rank the of this process (zero based)
+        /// @param[in] the numbers of tasks in this ingest pipeline.
+        IngestPipeline(const LOFAR::ParameterSet& parset, int rank, int ntasks);
 
         /// @brief Destructor.
         ~IngestPipeline();

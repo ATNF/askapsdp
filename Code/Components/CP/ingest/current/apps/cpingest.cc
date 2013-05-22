@@ -63,11 +63,18 @@ static std::string getNodeName(void)
     return nodename;
 }
 
-static std::string getRank(void)
+static int getRank(void)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    return utility::toString(rank);
+    return rank;
+}
+
+static int getNumTasks(void)
+{
+    int ntasks;
+    MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
+    return ntasks;
 }
 
 class CpIngestApp : public askap::Application
@@ -82,7 +89,7 @@ class CpIngestApp : public askap::Application
                 // To aid in debugging, the logger needs to know the
                 // MPI rank and nodename
                 ASKAPLOG_REMOVECONTEXT("mpirank");
-                ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
+                ASKAPLOG_PUTCONTEXT("mpirank", utility::toString(getRank()).c_str());
                 ASKAPLOG_REMOVECONTEXT("hostname");
                 ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
 
@@ -92,7 +99,7 @@ class CpIngestApp : public askap::Application
                 StatReporter stats;
 
                 // Run the pipeline
-                IngestPipeline pipeline(config());
+                IngestPipeline pipeline(config(), getRank(), getNumTasks());
                 pipeline.start();
 
                 stats.logSummary();

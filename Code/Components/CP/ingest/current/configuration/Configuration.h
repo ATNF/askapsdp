@@ -51,7 +51,17 @@ class Configuration {
     public:
 
         /// @brief Constructor
-        Configuration(const LOFAR::ParameterSet& parset);
+        ///
+        /// @param[in] the rank of the calling process (zero based).
+        /// @param[in] the number of tasks/processes.
+        Configuration(const LOFAR::ParameterSet& parset,
+                      int rank = 0, int ntasks = 1);
+
+        /// @brief Returns the rank of the calling process (zero based).
+        int rank(void) const;
+
+        /// @brief Returns the number of tasks/processes
+        int ntasks(void) const;
 
         casa::String arrayName(void) const;
         std::vector<TaskDesc> tasks(void) const;
@@ -60,6 +70,7 @@ class Configuration {
         Observation observation(void) const;
         TopicConfig metadataTopic(void) const;
         ServiceConfig calibrationDataService(void) const;
+        ServiceConfig MonitoringArchiverService(void) const;
 
     private:
         static std::string makeKey(const std::string& prefix,
@@ -67,6 +78,8 @@ class Configuration {
 
         static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
         const LOFAR::ParameterSet itsParset;
+        const int itsRank;
+        const int itsNTasks;
 };
 
 }

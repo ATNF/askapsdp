@@ -48,6 +48,7 @@
 #include "ingestpipeline/sourcetask/NoMetadataSource.h"
 #include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
+#include "monitoring/MonitoringSingleton.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -55,8 +56,9 @@ using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
-IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsConfig(parset), itsRunning(false)
+IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset,
+                               int rank, int ntasks)
+    : itsConfig(parset, rank, ntasks), itsRunning(false)
 {
 }
 
@@ -77,13 +79,16 @@ void IngestPipeline::abort(void)
 
 void IngestPipeline::ingest(void)
 {
-    // 0) Get task list from configuration
+    // 1) Get task list from configuration
     const std::vector<TaskDesc>& tasks = itsConfig.tasks();
 
-    // 1) Create a Task Factory
+    // 2) Configure the Monitoring Singleton
+    MonitoringSingleton::init(itsConfig);
+
+    // 3) Create a Task Factory
     TaskFactory factory(itsConfig);
 
-    // 2) Setup source
+    // 4) Setup source
     if (tasks.empty()) {
         ASKAPTHROW(AskapError, "No pipeline tasks specified");
     }
@@ -96,13 +101,13 @@ void IngestPipeline::ingest(void)
         ASKAPTHROW(AskapError, "First task should be a Source");
     }
 
-    // 3) Setup tasks
+    // 5) Setup tasks
     for (size_t i = 1; i < tasks.size(); ++i) {
         ITask::ShPtr task = factory.createTask(tasks[i]);
         itsTasks.push_back(task);
     }
 
-    // 4) Process correlator integrations, one at a time
+    // 6) Process correlator integrations, one at a time
     while (itsRunning)  {
         try {
             bool endOfStream = ingestOne();
@@ -112,8 +117,9 @@ void IngestPipeline::ingest(void)
         }
     }
 
-    // 5) Clean up tasks
+    // 7) Clean up
     itsSource.reset();
+    MonitoringSingleton::destroy();
 }
 
 bool IngestPipeline::ingestOne(void)

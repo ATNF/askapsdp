@@ -61,9 +61,18 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::ingest;
 
-Configuration::Configuration(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
+Configuration::Configuration(const LOFAR::ParameterSet& parset, int rank, int ntasks)
+    : itsParset(parset), itsRank(rank), itsNTasks(ntasks)
 {
+}
+
+int Configuration::rank(void) const
+{
+    return itsRank;
+}
+int Configuration::ntasks(void) const
+{
+    return itsNTasks;
 }
 
 casa::String Configuration::arrayName(void) const
@@ -179,6 +188,18 @@ ServiceConfig Configuration::calibrationDataService(void) const
     const string registryPort = itsParset.getString("cal_data_service.ice.locator_port");
     const string serviceName = itsParset.getString("cal_data_service.servicename");
     return ServiceConfig(registryHost, registryPort, serviceName);
+}
+
+ServiceConfig Configuration::MonitoringArchiverService(void) const
+{
+    if (itsParset.isDefined("monitoring.enabled") && itsParset.getBool("monitoring.enabled", false)) {
+        const string registryHost = itsParset.getString("monitoring.ice.locator_host");
+        const string registryPort = itsParset.getString("monitoring.ice.locator_port");
+        const string serviceName = itsParset.getString("monitoring.servicename");
+        return ServiceConfig(registryHost, registryPort, serviceName);
+    } else {
+        return ServiceConfig("", "", "");
+    }
 }
 
 std::string Configuration::makeKey(const std::string& prefix,

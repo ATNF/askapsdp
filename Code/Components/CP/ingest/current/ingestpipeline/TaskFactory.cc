@@ -32,7 +32,6 @@
 
 // System includes
 #include <string>
-#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -116,9 +115,8 @@ boost::shared_ptr< ISource > TaskFactory::createMergedSource(void)
     const unsigned int visPort = params.getUint32("vis_source.port");
     const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
-    int rank, numTasks;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
+    const int rank = itsConfig.rank();
+    const int numTasks = itsConfig.ntasks();
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // 3) Create and configure the merged source
@@ -137,9 +135,8 @@ boost::shared_ptr< ISource > TaskFactory::createNoMetadataSource(void)
     const unsigned int visPort = params.getUint32("vis_source.port");
     const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
-    int rank, numTasks;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
+    const int rank = itsConfig.rank();
+    const int numTasks = itsConfig.ntasks();
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // Create and configure the merged source

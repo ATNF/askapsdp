@@ -34,7 +34,6 @@
 #include <string>
 #include <sstream>
 #include <limits>
-#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -173,10 +172,8 @@ void MSSink::create(void)
     casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
     const casa::String filenamebase = itsParset.getString("filenamebase");
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
     std::ostringstream ss;
-    ss << filenamebase << rank << ".ms";
+    ss << filenamebase << itsConfig.rank() << ".ms";
     const casa::String filename = ss.str();
 
     if (bucketSize < 8192) {
