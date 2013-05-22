@@ -59,7 +59,7 @@ if __name__ == '__main__':
         logging.error('Eval.sourceCatalogue not provided. Doing no evaluation.')
         exit(0)
     if(not os.access(sourceCatFile,os.F_OK)):
-        logging.error("Eval.sourceCatalogue %s does not exist. Doing no evaluation."%matchfile)
+        logging.error("Eval.sourceCatalogue %s does not exist. Doing no evaluation."%sourceCatFile)
         exit(0)
     sourceCatType = inputPars.get_value('sourceCatalogueType','Selavy')
     sourceCat = readCat(sourceCatFile,sourceCatType)
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         logging.error('Eval.refCatalogue not provided. Doing no evaluation.')
         exit(0)
     if(not os.access(refCatFile,os.F_OK)):
-        logging.error("Eval.refCatalogue %s does not exist. Doing no evaluation."%matchfile)
+        logging.error("Eval.refCatalogue %s does not exist. Doing no evaluation."%refCatFile)
         exit(0)
     refCatType = inputPars.get_value('refCatalogueType','Selavy')
     refCat = readCat(refCatFile,refCatType)
@@ -220,33 +220,40 @@ if __name__ == '__main__':
             percent='%'
             lab = r'$\Delta S/S_{\rm cat} [\%s]$'%percent
 
+        #########################################
+
         plotcount = nextplot(plotcount)
         n, bins, patches = hist(arr[ind], 20)
         xlabel(lab,font)
         ylabel('Number',font)
+        xticks(rotation=-30)
 
         plotcount = nextplot(plotcount)
-        mu=median(arr)
-        sigma=madfmToRMS(madfm(arr))
+        mu=median(arr[ind])
+        sigma=madfmToRMS(madfm(arr[ind]))
         upper=mu+3.*sigma
         lower=mu-3.*sigma
-        upper = int(ceil(upper/10)*10.)
-        lower = int(floor(lower/10)*10.)
-        n, bins, patches = hist(arr, 20, range=[lower,upper], normed=1)
+        print "Median = %f, sigma=%f, so +-3sigma range is from %f to %f"%(mu,sigma,lower,upper)
+        #        upper = int(ceil(upper/10)*10.)
+        #lower = int(floor(lower/10)*10.)
+        n, bins, patches = hist(arr[ind], 20, range=[lower,upper], normed=1)
         axisrange = axis()
         ytemp1 = normpdf(bins,mu,sigma)
-        l1 = plot(bins, ytemp1, 'r-',label=r"$\Delta S$ mean&rms")
+        #        l1 = plot(bins, ytemp1, 'r-',label=r"$\Delta S$ mean&rms")
+        l1 = plot(bins, ytemp1, 'r-')
         if(loop==0):
             ytemp2 = normpdf(bins,mu,mean(imagerms[npf>0]))
-            l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-', label="image rms")
+            #l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-', label="image rms")
+            l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
         axisrange = axis()
         axis([lower,upper,axisrange[2],axisrange[3]])
-        setp(l1, 'linewidth', 2)
+        #        setp(l1, 'linewidth', 2)
         if(loop==0):
             setp(l2, 'linewidth', 2)
         xlabel(lab,font)
+        xticks(rotation=-30)
         ylabel('Number',font)
-        legend()
+        #legend()
 
         plotcount = nextplot(plotcount)
         temparr = arr[goodfit * (nfree==3)]
@@ -257,6 +264,7 @@ if __name__ == '__main__':
             n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
         xlabel(lab,font)
         ylabel('Number',font)
+        xticks(rotation=-30)
 
         plotcount = nextplot(plotcount)
         for i in ind:
@@ -272,39 +280,50 @@ if __name__ == '__main__':
         xlabel(r'Azimuth around field centre [deg]',font)
         ylabel(lab,font)
 
+        #########################################
+        
         plotcount = nextplot(plotcount)
         for i in ind:
             plot([fS[i]],[arr[i]],'o')
         xlabel(r'$S_{\rm Fit}$',font)
         ylabel(lab,font)
+        xlim(min(fS[ind])*0.9,max(fS[ind])*1.1)
+        yrange=ylim()
+        xticks(rotation=-30)
 
         plotcount = nextplot(plotcount)
         for i in ind:
             plot([fS[i]],[arr[i]],'o')
         semilogx(basex=10.)
-        axisrange = axis()
-        axis([min(fS)*0.9,max(fS)*1.1,axisrange[2],axisrange[3]])
         xlabel(r'$\log_{10}(S_{\rm Fit})$',font)
         ylabel(lab,font)
+        ylim(yrange)
+        xlim(min(fS[ind])*0.9,max(fS[ind])*1.1)
 
         plotcount = nextplot(plotcount)
-        bigBoxPlot(fS,arr,goodfit)
+        bigBoxPlot(fS[ind],arr[ind],goodfit[ind])
         xlabel(r'$\log_{10}(S_{\rm Fit})$',font)
         ylabel(lab,font)        
+        ylim(yrange)
+        xlim(min(fS[ind])*0.9,max(fS[ind])*1.1)
 
         plotcount = nextplot(plotcount)
         for i in ind:
             plot([snr[i]],[arr[i]],'o')
         semilogx(basex=10.)
-        axisrange = axis()
-        axis([min(snr)*0.9,max(snr)*1.1,axisrange[2],axisrange[3]])
+        #        axisrange = axis()
+        #        axis([min(snr)*0.9,max(snr)*1.1,axisrange[2],axisrange[3]])
         xlabel(r'$\log_{10}(S/N (Fit))$',font)
         ylabel(lab,font)
+        ylim(yrange)
+        xlim(min(snr[ind])*0.9,max(snr[ind])*1.1)
 
         plotcount = nextplot(plotcount)
-        bigBoxPlot(snr,arr,goodfit)
+        bigBoxPlot(snr[ind],arr[ind],goodfit[ind])
         xlabel(r'$\log_{10}(S/N (Fit))$',font)
         ylabel(lab,font)        
+        ylim(yrange)
+        xlim(min(snr[ind])*0.9,max(snr[ind])*1.1)
 
 #    show()
     print "Saving to fluxEval.png"

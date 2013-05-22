@@ -7,7 +7,7 @@ from pkg_resources import require
 require('numpy')
 require('matplotlib')
 from pylab import *
-from numpy import *
+import numpy as np
 import gc
 
 def posToDec(pos):
@@ -26,9 +26,9 @@ def madfm(array):
     """
     Return the median absolute deviation from the median for an array of values
     """
-    med = median(array)
-    adfm = abs(array-med)
-    return median(adfm)
+    med = np.median(array)
+    adfm = np.abs(array-med)
+    return np.median(adfm)
 
 ## @ingroup plotting
 # @param rms The rms value to be converted
