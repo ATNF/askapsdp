@@ -70,7 +70,7 @@ class Configuration {
         Observation observation(void) const;
         TopicConfig metadataTopic(void) const;
         ServiceConfig calibrationDataService(void) const;
-        ServiceConfig MonitoringArchiverService(void) const;
+        ServiceConfig monitoringArchiverService(void) const;
 
     private:
         static std::string makeKey(const std::string& prefix,

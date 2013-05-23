@@ -29,44 +29,99 @@
 
 // System includes
 #include <string>
-// ASKAPsoft includes
+#include <stdint.h>
 
 // Local package includes
+#include "monitoring/AbstractMonitorPoint.h"
 
 namespace askap {
-    namespace cp {
-        namespace ingest {
+namespace cp {
+namespace ingest {
 
-            template <typename T>
-            class MonitorPoint {
-                public:
-                    MonitorPoint(const std::string& name)
-                        : itsName(name)
-                    {
-                    }
+template <typename T>
+class MonitorPoint : public AbstractMonitorPoint<T> {
+};
 
-                    std::string name(void) const
-                    {
-                        return itsName;
-                    }
+template <>
+class MonitorPoint<bool> : public AbstractMonitorPoint<bool> {
+    public:
 
-                    T value() const
-                    {
-                        return itsValue;
-                    }
-
-                    T& value()
-                    {
-                        return itsValue;
-                    }
-                    
-                private:
-                    std::string itsName;
-                    T itsValue;
-            };
-
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<bool>(name) {
         }
-    }
-}
+
+    private:
+        void send(const std::string& name, const bool& value) {
+            itsDestination->sendBool(name, value);
+        }
+};
+
+template <>
+class MonitorPoint<float> : public AbstractMonitorPoint<float> {
+    public:
+
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<float>(name) {
+        }
+
+    private:
+        void send(const std::string& name, const float& value) {
+            itsDestination->sendFloat(name, value);
+        }
+};
+
+template <>
+class MonitorPoint<double> : public AbstractMonitorPoint<double> {
+    public:
+
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<double>(name) {
+        }
+
+    private:
+        void send(const std::string& name, const double& value) {
+            itsDestination->sendDouble(name, value);
+        }
+};
+
+template <>
+class MonitorPoint<int32_t> : public AbstractMonitorPoint<int32_t> {
+    public:
+
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<int32_t>(name) {
+        }
+
+    private:
+        void send(const std::string& name, const int32_t& value) {
+            itsDestination->sendInt32(name, value);
+        }
+};
+
+template <>
+class MonitorPoint<int64_t> : public AbstractMonitorPoint<int64_t> {
+    public:
+
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<int64_t>(name) {
+        }
+
+    private:
+        void send(const std::string& name, const int64_t& value) {
+            itsDestination->sendInt64(name, value);
+        }
+};
+
+template <>
+class MonitorPoint<std::string> : public AbstractMonitorPoint<std::string> {
+    public:
+
+        MonitorPoint(const std::string& name) : AbstractMonitorPoint<std::string>(name) {
+        }
+
+    private:
+        void send(const std::string& name, const std::string& value) {
+            itsDestination->sendString(name, value);
+        }
+};
+
+} // End namespace ingest
+} // End namespace cp
+} // End namespace askap
 
 #endif

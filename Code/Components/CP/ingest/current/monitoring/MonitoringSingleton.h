@@ -28,52 +28,101 @@
 #define ASKAP_CP_INGEST_MONITORINGSINGLETON_H
 
 // System includes
+#include <stdint.h>
+#include <string>
+#include <deque>
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "boost/thread.hpp"
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition.hpp"
+#include "Ice/Ice.h"
+#include "MoniCA.h" // ICE generated interface
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
-    namespace cp {
-        namespace ingest {
+namespace cp {
+namespace ingest {
 
-            class MonitoringSingleton {
-                public:
-                    /// @brief Obtain the singleton instance of the monitoring
-                    /// data interface singleton.
-                    ///
-                    /// @return the singleton instance.
-                    static MonitoringSingleton* instance(void);
+class MonitoringSingleton {
+    public:
+        /// @brief Obtain the singleton instance of the monitoring
+        /// data interface singleton.
+        ///
+        /// @return the singleton instance.
+        static MonitoringSingleton* instance(void);
 
-                    /// Initialise the singleton instance
-                    static void init(const Configuration& config);
+        /// Initialise the singleton instance
+        static void init(const Configuration& config);
 
-                    /// Destroy the singleton instance
-                    static void destroy();
+        /// Destroy the singleton instance
+        static void destroy();
 
-                    /// @brief Destructor.
-                    ~MonitoringSingleton();
+        /// @brief Destructor.
+        ~MonitoringSingleton();
 
-                private:
+        void sendBool(const std::string& name, bool value);
+        void sendFloat(const std::string& name, float value);
+        void sendDouble(const std::string& name, double value);
+        void sendInt32(const std::string& name, int32_t value);
+        void sendInt64(const std::string& name, int64_t value);
+        void sendString(const std::string& name, const std::string& value);
 
-                    /// @brief Constructor.
-                    MonitoringSingleton(const Configuration& config);
+    private:
 
-                    const Configuration itsConfig;
+        /// @brief Constructor.
+        MonitoringSingleton(const Configuration& config);
 
-                    static MonitoringSingleton* itsInstance;
+        // Adds a monitoring point update to the queue to be sent to MoniCA
+        void enqueue(const std::string& name, atnf::atoms::mon::comms::DataValuePtr value);
 
-                    // No support for assignment
-                    MonitoringSingleton& operator=(const MonitoringSingleton& rhs);
+        // Returns time since the epoch
+        long getTime(void) const;
 
-                    // No support for copy constructor
-                    MonitoringSingleton(const MonitoringSingleton& src);
-            };
+        // Entry method for sender thread
+        void senderrun(void);
 
-        }
-    }
+        // Singleton instance of this calss
+        static MonitoringSingleton* itsInstance;
+
+        // Configuration data
+        const Configuration itsConfig;
+
+        // Ice communicator
+        Ice::CommunicatorPtr itsComm;
+
+        // Proxy object for MoniCA service
+        atnf::atoms::mon::comms::MoniCAIcePrx itsMonicaProxy;
+
+        // Buffer to act as a mailbox between the caller and the sender thread
+        std::deque<atnf::atoms::mon::comms::PointDataIce> itsBuffer;
+
+        // Mutex to synchronise access to "itsBuffer"
+        boost::mutex itsMutex;
+
+        // Condition variable user for synchronisation between the thread that enqueues
+        // monitoring point updates, and the one that sends them
+        boost::condition itsCondVar;
+
+        // Thread for sending data to MoniCA
+        boost::shared_ptr<boost::thread> itsThread;
+
+        // The prefix that each monitoring point name will have prepended
+        // to it. Eg. "cp.ingest0"
+        std::string itsPrefix;
+
+        // No support for assignment
+        MonitoringSingleton& operator=(const MonitoringSingleton& rhs);
+
+        // No support for copy constructor
+        MonitoringSingleton(const MonitoringSingleton& src);
+};
+
+}
+}
 }
 
 #endif

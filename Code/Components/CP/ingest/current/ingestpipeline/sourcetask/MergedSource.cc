@@ -54,6 +54,7 @@
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
+#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".MergedSource");
 
@@ -164,6 +165,11 @@ VisChunk::ShPtr MergedSource::next(void)
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
             " of expected " << datagramsExpected << " visibility datagrams");
+
+    // Submit monitoring data
+    MonitorPoint<float> datagramLoss("datagram_loss");
+    datagramLoss.update((static_cast<float>(datagramsExpected) - static_cast<float>(datagramCount))
+            / static_cast<float>(datagramsExpected));
 
     // Apply any flagging specified in the TOS metadata
     doFlagging(chunk, *itsMetadata);
