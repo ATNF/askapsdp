@@ -44,6 +44,7 @@
 #include "ingestpipeline/caltask/CalTask.h"
 #include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
 #include "ingestpipeline/phasetracktask/PhaseTrackTask.h"
+#include "ingestpipeline/simplemonitortask/SimpleMonitorTask.h"
 #include "ingestpipeline/mssink/MSSink.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
@@ -85,6 +86,9 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::PhaseTrackTask :
             task.reset(new PhaseTrackTask(params, itsConfig));
+            break;
+        case TaskDesc::SimpleMonitorTask :
+            task.reset(new SimpleMonitorTask(params, itsConfig));
             break;
         default:
             ASKAPTHROW(AskapError, "Unknown task type specified");

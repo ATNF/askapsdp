@@ -86,6 +86,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "PhaseTrackTask") {
         return TaskDesc::PhaseTrackTask;
     }
+    if (type == "SimpleMonitorTask") {
+        return TaskDesc::SimpleMonitorTask;
+    }
 
     ASKAPTHROW(AskapError, "Unknown task type");
 }
