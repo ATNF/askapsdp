@@ -258,7 +258,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 
     const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
     const casa::uInt antenna2 = itsBaselineMap.idToAntenna2(vis.baselineid);
-    const casa::uInt beamid = vis.beamid;
+    const casa::uInt beamid = vis.beamid - 1;
 
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
@@ -283,7 +283,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 2) Check the indexes in the VisDatagram are valid
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
-    ASKAPCHECK(beamid < nBeams, "Beam index is invalid");
+    ASKAPCHECK(beamid < nBeams, "Beam index " << beamid << " is invalid");
     ASKAPCHECK(polidx < 4, "Only 4 polarisation products are supported");
 
     // 3) Find the row for the given beam and baseline

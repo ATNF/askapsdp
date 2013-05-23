@@ -232,7 +232,7 @@ tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, Channe
 #
 tasks.NoMetadataSource.type                             = NoMetadataSource
 tasks.NoMetadataSource.params.vis_source.port           = 3000
-tasks.NoMetadataSource.params.vis_source.buffer_size    = 459648
+tasks.NoMetadataSource.params.vis_source.buffer_size    = 89856
 
 # Number of channels a given ingest process is meant to receive/process
 tasks.NoMetadataSource.params.n_channels.0              = 8208

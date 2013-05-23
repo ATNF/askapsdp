@@ -113,7 +113,7 @@ boost::shared_ptr< ISource > TaskFactory::createMergedSource(void)
     // 2) Configure and create the visibility source
     const LOFAR::ParameterSet params = itsConfig.tasks().at(0).params();
     const unsigned int visPort = params.getUint32("vis_source.port");
-    const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
+    const unsigned int defaultBufSz = 78 * 36 * 16 * 2; // Tuned for BETA
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
     const int rank = itsConfig.rank();
     const int numTasks = itsConfig.ntasks();
@@ -133,7 +133,7 @@ boost::shared_ptr< ISource > TaskFactory::createNoMetadataSource(void)
     //  Configure and create the visibility source
     const LOFAR::ParameterSet params = itsConfig.tasks().at(0).params();
     const unsigned int visPort = params.getUint32("vis_source.port");
-    const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
+    const unsigned int defaultBufSz = 78 * 36 * 16 * 2; // Tuned for BETA
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
     const int rank = itsConfig.rank();
     const int numTasks = itsConfig.ntasks();
