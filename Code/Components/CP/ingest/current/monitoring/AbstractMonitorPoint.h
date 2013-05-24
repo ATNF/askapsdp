@@ -39,24 +39,46 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief The base-class for all monitoring points.
+/// This class exists so a generic MonitoringPoint can exist, with specialisations for
+/// each data type. This class contains the basic functionality common to all
+/// specialisations.
+///
+/// Subclasses must implement send()
 template <typename T>
 class AbstractMonitorPoint {
     public:
+        /// Constructor
+        /// @param[in] name the name of the monitoring point. For example:
+        ///                 "cp.ingest0.PacketLoss"
         AbstractMonitorPoint(const std::string& name)
                 : itsName(name), itsDestination(MonitoringSingleton::instance()) {
         }
 
+        /// Destructor
         virtual ~AbstractMonitorPoint() {
         }
 
+        /// Update the value of a monitoring point. The value will be pushed
+        /// to the monitoring service.
+        ///
+        /// @param[in] value    the value to set the monitoring point to.
         virtual void update(const T& value) {
             if (itsDestination) send(itsName, value);
         }
 
     protected:
-        virtual void send(const std::string& name, const T& value) = 0;
+        /// Subclasses implement this method
+        /// @param[in] name the name of the monitoring point. e.g. "cp.ingest0.PacketLoss"
+        /// @param[in] value    the value of the monitoring point
+        /// @param[in] alarm    the alarm state. True if the point is in an
+        ///                     alarm state, otherwise false
+        virtual void send(const std::string& name, const T& value, bool alarm = false) = 0;
 
+        /// The name of the monitoring point.
         const std::string itsName;
+
+        /// All communication to MoniCA is via the Monitoring Singleton.
         MonitoringSingleton* itsDestination;
 };
 

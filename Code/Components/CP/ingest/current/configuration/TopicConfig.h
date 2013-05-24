@@ -34,22 +34,31 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates the information needed to connect to
+/// an Ice pub/sub topic.
 class TopicConfig {
     public:
 
         /// @brief Constructor
+        /// @param[in] registryHost the hostname or IP address the registry is running on
+        /// @param[in] registryPort the network port the registry is running on
+        /// @param[in] topicManager the identity of the topic manager
+        /// @param[in] topic        the name of the topic itself.
         TopicConfig(const std::string& registryHost,
                     const std::string& registryPort,
                     const std::string& topicManager,
                     const std::string& topic);
 
+        /// @return the hostname or IP address the registry is running on
         std::string registryHost(void) const;
 
+        /// @return the network port the registry is running on
         std::string registryPort(void) const;
 
+        /// @return the identity of the topic manager
         std::string topicManager(void) const;
 
+        /// @return the name of the topic itself
         std::string topic(void) const;
 
     private:

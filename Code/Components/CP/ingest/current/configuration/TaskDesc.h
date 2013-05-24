@@ -39,7 +39,9 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates the description of a class.
+/// The class will be instantiated into the ingest pipeline based on the
+/// configuration described here.
 class TaskDesc {
     public:
 

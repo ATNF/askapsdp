@@ -27,6 +27,9 @@
 #ifndef ASKAP_CP_INGEST_SCAN_H
 #define ASKAP_CP_INGEST_SCAN_H
 
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
 #include "casa/BasicSL.h"
 #include "casa/Quanta.h"
@@ -37,7 +40,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates a "scan", a part of a larger observation.
 class Scan {
     public:
 
@@ -50,8 +53,10 @@ class Scan {
              const std::vector<casa::Stokes::StokesTypes>& stokes,
              const casa::uInt interval);
 
+        /// @brief Returns the name of the field being observed
         casa::String name(void) const;
 
+        /// @brief Returns the direction of the field being observed
         casa::MDirection fieldDirection(void) const;
 
         casa::Quantity startFreq(void) const;
@@ -62,6 +67,7 @@ class Scan {
 
         std::vector<casa::Stokes::StokesTypes> stokes(void) const;
 
+        /// @brief Returns, in microseconds, correlator integration interval.
         casa::uInt interval(void) const;
 
     private:

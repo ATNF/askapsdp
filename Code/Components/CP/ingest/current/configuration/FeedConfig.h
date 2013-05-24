@@ -38,7 +38,8 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulated the configuratin of a feed package such
+/// as a single-pixel feed or a PAF.
 class FeedConfig {
     public:
 

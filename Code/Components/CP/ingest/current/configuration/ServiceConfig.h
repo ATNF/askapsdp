@@ -34,19 +34,27 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates the information needed to connect to
+/// an Ice service.
 class ServiceConfig {
     public:
 
         /// @brief Constructor
+        /// @param[in] registryHost the hostname or IP address the registry is running on
+        /// @param[in] registryPort the network port the registry is running on
+        /// @param[in] serviceIdentity  the identity of the service as it is registered
+        ///                             in the registry
         ServiceConfig(const std::string& registryHost,
                       const std::string& registryPort,
                       const std::string& serviceIdentity);
 
+        /// @return the hostname or IP address the registry is running on
         std::string registryHost(void) const;
 
+        /// @return the network port the registry is running on
         std::string registryPort(void) const;
 
+        /// @return the identity of the service as it is registered in the registry
         std::string serviceIdentity(void) const;
 
     private:

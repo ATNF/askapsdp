@@ -64,12 +64,23 @@ class MonitoringSingleton {
         /// @brief Destructor.
         ~MonitoringSingleton();
 
-        void sendBool(const std::string& name, bool value);
-        void sendFloat(const std::string& name, float value);
-        void sendDouble(const std::string& name, double value);
-        void sendInt32(const std::string& name, int32_t value);
-        void sendInt64(const std::string& name, int64_t value);
-        void sendString(const std::string& name, const std::string& value);
+        // Send a monitoring point with value type "bool"
+        void sendBool(const std::string& name, bool value, bool alarm = false);
+
+        // Send a monitoring point with value type "float"
+        void sendFloat(const std::string& name, float value, bool alarm = false);
+
+        // Send a monitoring point with value type "double"
+        void sendDouble(const std::string& name, double value, bool alarm = false);
+
+        // Send a monitoring point with value type "int32_t"
+        void sendInt32(const std::string& name, int32_t value, bool alarm = false);
+
+        // Send a monitoring point with value type "int64_t"
+        void sendInt64(const std::string& name, int64_t value, bool alarm = false);
+
+        // Send a monitoring point with value type "string"
+        void sendString(const std::string& name, const std::string& value, bool alarm = false);
 
     private:
 
@@ -77,7 +88,9 @@ class MonitoringSingleton {
         MonitoringSingleton(const Configuration& config);
 
         // Adds a monitoring point update to the queue to be sent to MoniCA
-        void enqueue(const std::string& name, atnf::atoms::mon::comms::DataValuePtr value);
+        void enqueue(const std::string& name,
+                     atnf::atoms::mon::comms::DataValuePtr value,
+                     bool alarm);
 
         // Returns time since the epoch
         long getTime(void) const;

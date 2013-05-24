@@ -29,6 +29,7 @@
 
 // System includes
 #include <vector>
+#include <string>
 
 // ASKAPsoft includes
 #include "casa/BasicSL.h"
@@ -46,7 +47,9 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates and gives structure to the configuration
+/// information passed in the Parameter Set via the Ingest Pipeline command
+/// line.
 class Configuration {
     public:
 
@@ -60,26 +63,54 @@ class Configuration {
         /// @brief Returns the rank of the calling process (zero based).
         int rank(void) const;
 
-        /// @brief Returns the number of tasks/processes
-        int ntasks(void) const;
+        /// @brief Returns the number of processes
+        int nprocs(void) const;
 
+        /// @brief The name of the array. e.g. "BETA"
         casa::String arrayName(void) const;
+
+        /// @brief A sequence of tasks configuration.
         std::vector<TaskDesc> tasks(void) const;
+
+        /// @brief A sequence of antennas
         std::vector<Antenna> antennas(void) const;
+
+        /// @brief Mapping from the baseline ID that the Correlator IOC sends
+        ///  and the actual antenna pair and correlation product.
         BaselineMap bmap(void) const;
+
+        /// @brief Information about the observation itself, such as
+        ///  pointing directions, etc.
         Observation observation(void) const;
+
+        /// @brief Ice configuration for the TOS metadata topic.
         TopicConfig metadataTopic(void) const;
+
+        /// @brief Ice configuration for the calibration data service
         ServiceConfig calibrationDataService(void) const;
+
+        /// @brief Ice configuration for the monitoring archiver (MoniCA).
         ServiceConfig monitoringArchiverService(void) const;
 
     private:
-        static std::string makeKey(const std::string& prefix,
-                const std::string& suffix);
 
+        /// @brief Simple helper used to make parset keys.
+        /// @param[in] prefix   a prefix string
+        /// @param[in] suffix   a suffix string
+        /// @returns the concatenation: prefix + "." + suffix
+        static std::string makeKey(const std::string& prefix,
+                                   const std::string& suffix);
+
+        // This fnuction create a map of feed name/type to the actual feed configuration
         static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
+
         const LOFAR::ParameterSet itsParset;
+
+        /// The rank of this process
         const int itsRank;
-        const int itsNTasks;
+
+        /// The total number of processes
+        const int itsNProcs;
 };
 
 }

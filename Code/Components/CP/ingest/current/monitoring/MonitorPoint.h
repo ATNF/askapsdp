@@ -38,6 +38,9 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Monitoring point template with specialisations for each of the
+/// "value" types supported. There is no "generic" implementation, only the
+/// specialised implementations.
 template <typename T>
 class MonitorPoint : public AbstractMonitorPoint<T> {
 };
@@ -50,7 +53,7 @@ class MonitorPoint<bool> : public AbstractMonitorPoint<bool> {
         }
 
     private:
-        void send(const std::string& name, const bool& value) {
+        void send(const std::string& name, const bool& value, bool alarm = false) {
             itsDestination->sendBool(name, value);
         }
 };
@@ -63,7 +66,7 @@ class MonitorPoint<float> : public AbstractMonitorPoint<float> {
         }
 
     private:
-        void send(const std::string& name, const float& value) {
+        void send(const std::string& name, const float& value, bool alarm = false) {
             itsDestination->sendFloat(name, value);
         }
 };
@@ -76,7 +79,7 @@ class MonitorPoint<double> : public AbstractMonitorPoint<double> {
         }
 
     private:
-        void send(const std::string& name, const double& value) {
+        void send(const std::string& name, const double& value, bool alarm = false) {
             itsDestination->sendDouble(name, value);
         }
 };
@@ -89,7 +92,7 @@ class MonitorPoint<int32_t> : public AbstractMonitorPoint<int32_t> {
         }
 
     private:
-        void send(const std::string& name, const int32_t& value) {
+        void send(const std::string& name, const int32_t& value, bool alarm = false) {
             itsDestination->sendInt32(name, value);
         }
 };
@@ -102,7 +105,7 @@ class MonitorPoint<int64_t> : public AbstractMonitorPoint<int64_t> {
         }
 
     private:
-        void send(const std::string& name, const int64_t& value) {
+        void send(const std::string& name, const int64_t& value, bool alarm = false) {
             itsDestination->sendInt64(name, value);
         }
 };
@@ -115,7 +118,7 @@ class MonitorPoint<std::string> : public AbstractMonitorPoint<std::string> {
         }
 
     private:
-        void send(const std::string& name, const std::string& value) {
+        void send(const std::string& name, const std::string& value, bool alarm = false) {
             itsDestination->sendString(name, value);
         }
 };

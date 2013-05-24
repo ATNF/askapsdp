@@ -43,6 +43,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief This class encapsulates the instantiation of the ingest pipeline.
 class IngestPipeline {
     public:
         /// @brief Constructor.

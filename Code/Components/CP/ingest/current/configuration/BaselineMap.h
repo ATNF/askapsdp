@@ -40,14 +40,56 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief
+/// @brief Maps the baseline id, as is supplied in the VisDatagram by the
+/// Correlator IOC, to a pair of antennas and a correlation product.
+///
+/// Below is the complete entry for an example 3-antenna system:
+/// <PRE>
+/// baselinemap.baselineids            = [1..21]
+///
+/// baselinemap.1                      = [0, 0, XX]
+/// baselinemap.2                      = [0, 0, XY]
+/// baselinemap.3                      = [0, 1, XX]
+/// baselinemap.4                      = [0, 1, XY]
+/// baselinemap.5                      = [0, 2, XX]
+/// baselinemap.6                      = [0, 2, XY]
+/// baselinemap.7                      = [0, 0, YY]
+/// baselinemap.8                      = [0, 1, YX]
+/// baselinemap.9                      = [0, 1, YY]
+/// baselinemap.10                     = [0, 2, YX]
+/// baselinemap.11                     = [0, 2, YY]
+///
+/// baselinemap.12                     = [1, 1, XX]
+/// baselinemap.13                     = [1, 1, XY]
+/// baselinemap.14                     = [1, 2, XX]
+/// baselinemap.15                     = [1, 2, XY]
+/// baselinemap.16                     = [1, 1, YY]
+/// baselinemap.17                     = [1, 2, YX]
+/// baselinemap.18                     = [1, 2, YY]
+///
+/// baselinemap.19                     = [2, 2, XX]
+/// baselinemap.20                     = [2, 2, XY]
+/// baselinemap.21                     = [2, 2, YY]
+/// </PRE>
 class BaselineMap {
     public:
+
+        /// @brief Constructor.
+        /// @param[in] parset   a parset (i.e. a map from string to string)
+        ///     describing the range of entries and the contents of the entries.
+        ///     An example is shown in the class comments.
         BaselineMap(const LOFAR::ParameterSet& parset);
 
+        /// Given a baseline is, return antenna 1
         int32_t idToAntenna1(const uint32_t id) const;
+
+        /// Given a baseline is, return antenna 2
         int32_t idToAntenna2(const uint32_t id) const;
+
+        /// Given a baseline is, return the stokes type
         casa::Stokes::StokesTypes idToStokes(const uint32_t id) const;
+
+        /// Returns the number of entries in the map
         size_t size() const;
 
         /// @brief obtain largest id

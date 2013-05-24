@@ -39,6 +39,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Given a configuration set this factory allows pipeline tasks to be created.
 class TaskFactory {
     public:
 

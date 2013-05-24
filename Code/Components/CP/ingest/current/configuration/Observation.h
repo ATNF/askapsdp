@@ -40,7 +40,8 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates the description of an observation.
+/// The observation is modeled as a sequence of "scans".
 class Observation {
     public:
 

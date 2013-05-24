@@ -61,8 +61,8 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::ingest;
 
-Configuration::Configuration(const LOFAR::ParameterSet& parset, int rank, int ntasks)
-    : itsParset(parset), itsRank(rank), itsNTasks(ntasks)
+Configuration::Configuration(const LOFAR::ParameterSet& parset, int rank, int nprocs)
+    : itsParset(parset), itsRank(rank), itsNProcs(nprocs)
 {
 }
 
@@ -70,9 +70,9 @@ int Configuration::rank(void) const
 {
     return itsRank;
 }
-int Configuration::ntasks(void) const
+int Configuration::nprocs(void) const
 {
-    return itsNTasks;
+    return itsNProcs;
 }
 
 casa::String Configuration::arrayName(void) const

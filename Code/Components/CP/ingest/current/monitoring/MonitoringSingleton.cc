@@ -58,8 +58,8 @@ using namespace atnf::atoms::mon::comms;
 // Initialise statics
 MonitoringSingleton* MonitoringSingleton::itsInstance = 0;
 
-    MonitoringSingleton::MonitoringSingleton(const Configuration& config)
-: itsConfig(config)
+MonitoringSingleton::MonitoringSingleton(const Configuration& config)
+        : itsConfig(config)
 {
     // Create the prefix for all point names
     itsPrefix = "cp.ingest" + utility::toString(config.rank());
@@ -75,7 +75,6 @@ MonitoringSingleton::~MonitoringSingleton()
 {
     if (itsThread.get()) {
         itsThread->interrupt();
-        itsCondVar.notify_all();
         itsThread->join();
     }
 
@@ -106,43 +105,44 @@ void MonitoringSingleton::destroy()
     }
 }
 
-void MonitoringSingleton::sendBool(const std::string& name, bool value)
+void MonitoringSingleton::sendBool(const std::string& name, bool value, bool alarm)
 {
-    enqueue(name, new DataValueBoolean(DTBoolean, value));
+    enqueue(name, new DataValueBoolean(DTBoolean, value), alarm);
 }
 
-void MonitoringSingleton::sendFloat(const std::string& name, float value)
+void MonitoringSingleton::sendFloat(const std::string& name, float value, bool alarm)
 {
-    enqueue(name, new DataValueFloat(DTFloat, value));
+    enqueue(name, new DataValueFloat(DTFloat, value), alarm);
 }
 
-void MonitoringSingleton::sendDouble(const std::string& name, double value)
+void MonitoringSingleton::sendDouble(const std::string& name, double value, bool alarm)
 {
-    enqueue(name, new DataValueDouble(DTDouble, value));
+    enqueue(name, new DataValueDouble(DTDouble, value), alarm);
 }
 
-void MonitoringSingleton::sendInt32(const std::string& name, int32_t value)
+void MonitoringSingleton::sendInt32(const std::string& name, int32_t value, bool alarm)
 {
-    enqueue(name, new DataValueInt(DTInt, value));
+    enqueue(name, new DataValueInt(DTInt, value), alarm);
 }
 
-void MonitoringSingleton::sendInt64(const std::string& name, int64_t value)
+void MonitoringSingleton::sendInt64(const std::string& name, int64_t value, bool alarm)
 {
-    enqueue(name, new DataValueLong(DTLong, value));
+    enqueue(name, new DataValueLong(DTLong, value), alarm);
 }
 
-void MonitoringSingleton::sendString(const std::string& name, const std::string& value)
+void MonitoringSingleton::sendString(const std::string& name, const std::string& value, bool alarm)
 {
-    enqueue(name, new DataValueString(DTString, value));
+    enqueue(name, new DataValueString(DTString, value), alarm);
 }
 
-void MonitoringSingleton::enqueue(const std::string& name, atnf::atoms::mon::comms::DataValuePtr value)
+void MonitoringSingleton::enqueue(const std::string& name,
+                                  atnf::atoms::mon::comms::DataValuePtr value, bool alarm)
 {
     // Add monitoring point update to the front of the queue
     PointDataIce pd;
     pd.name = itsPrefix + name;
     pd.timestamp = getTime();
-    pd.alarm = false;
+    pd.alarm = alarm;
     pd.value = value;
     boost::mutex::scoped_lock lock(itsMutex);
     itsBuffer.push_front(pd);
@@ -173,6 +173,7 @@ void MonitoringSingleton::senderrun(void)
             // Check that the connection to Monica service has been made
             if (!itsMonicaProxy) {
                 const bool success = tryConnect();
+
                 if (!success) {
                     // Throttle the retry rate
                     boost::this_thread::sleep(boost::posix_time::seconds(60));
@@ -182,9 +183,9 @@ void MonitoringSingleton::senderrun(void)
 
             // Wait for some data to send
             boost::mutex::scoped_lock lock(itsMutex);
+
             while (itsBuffer.empty()) {
                 itsCondVar.wait(lock);
-                boost::this_thread::interruption_point();
             }
 
             // Extract the data from the buffer
@@ -218,11 +219,14 @@ bool MonitoringSingleton::tryConnect(void)
         // Setup ICE
         if (!itsComm) {
             const string registryHost = itsConfig.monitoringArchiverService().registryHost();
+
             if (registryHost.empty()) return false;
+
             const string registryPort = itsConfig.monitoringArchiverService().registryPort();
             CommunicatorConfig commconfig(registryHost, registryPort);
             CommunicatorFactory commFactory;
             itsComm = commFactory.createCommunicator(commconfig);
+
             if (!itsComm) return false;
         }
 
@@ -230,6 +234,7 @@ bool MonitoringSingleton::tryConnect(void)
             const string serviceName = itsConfig.monitoringArchiverService().serviceIdentity();
             Ice::ObjectPrx base = itsComm->stringToProxy(serviceName);
             itsMonicaProxy = atnf::atoms::mon::comms::MoniCAIcePrx::checkedCast(base);
+
             if (!itsMonicaProxy) return false;
         }
     } catch (Ice::ConnectionRefusedException& e) {

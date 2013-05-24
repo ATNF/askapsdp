@@ -120,11 +120,11 @@ boost::shared_ptr< ISource > TaskFactory::createMergedSource(void)
     const unsigned int defaultBufSz = 78 * 36 * 16 * 2; // Tuned for BETA
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
     const int rank = itsConfig.rank();
-    const int numTasks = itsConfig.ntasks();
+    const int numProcs = itsConfig.nprocs();
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // 3) Create and configure the merged source
-    boost::shared_ptr< MergedSource > source(new MergedSource(params, itsConfig, metadataSrc, visSrc, numTasks, rank));
+    boost::shared_ptr< MergedSource > source(new MergedSource(params, itsConfig, metadataSrc, visSrc, numProcs, rank));
     return source;
 }
 
@@ -140,10 +140,10 @@ boost::shared_ptr< ISource > TaskFactory::createNoMetadataSource(void)
     const unsigned int defaultBufSz = 78 * 36 * 16 * 2; // Tuned for BETA
     const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
     const int rank = itsConfig.rank();
-    const int numTasks = itsConfig.ntasks();
+    const int numProcs = itsConfig.nprocs();
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // Create and configure the merged source
-    boost::shared_ptr< NoMetadataSource > source(new NoMetadataSource(params, itsConfig, visSrc, numTasks, rank));
+    boost::shared_ptr< NoMetadataSource > source(new NoMetadataSource(params, itsConfig, visSrc, numProcs, rank));
     return source;
 }
