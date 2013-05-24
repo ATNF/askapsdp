@@ -55,6 +55,7 @@
 #include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
+#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".NoMetadataSource");
 
@@ -74,7 +75,7 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsInterrupted(false),
         itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1)
 {
-    // Trigger a dummy frame conversion with casa measures to ensure all chaches are setup
+    // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
     const casa::MVEpoch dummyEpoch(56000.);
 
     casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
@@ -151,6 +152,10 @@ VisChunk::ShPtr NoMetadataSource::next(void)
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
                        " of expected " << datagramsExpected << " visibility datagrams");
+
+    // Submit monitoring data
+    MonitorPoint<int32_t> packetsLost("PacketsLost");
+    packetsLost.update(datagramsExpected - datagramCount);
 
     return chunk;
 }

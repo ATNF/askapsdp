@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <exception>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -57,31 +58,17 @@ using namespace atnf::atoms::mon::comms;
 // Initialise statics
 MonitoringSingleton* MonitoringSingleton::itsInstance = 0;
 
-MonitoringSingleton::MonitoringSingleton(const Configuration& config)
-        : itsConfig(config)
+    MonitoringSingleton::MonitoringSingleton(const Configuration& config)
+: itsConfig(config)
 {
     // Create the prefix for all point names
-    itsPrefix = "cp.ingest_" + utility::toString(config.rank());
+    itsPrefix = "cp.ingest" + utility::toString(config.rank());
 
-    // Setup ICE
-    const string registryHost = config.monitoringArchiverService().registryHost();
-    const string registryPort = config.monitoringArchiverService().registryPort();
-    CommunicatorConfig commconfig(registryHost, registryPort);
-    CommunicatorFactory commFactory;
-    itsComm = commFactory.createCommunicator(commconfig);
+    // Setup Ice and try to connect to the MoniCA service
+    tryConnect();
 
-    ASKAPDEBUGASSERT(itsComm);
-
-    const string serviceName = config.monitoringArchiverService().serviceIdentity();
-    Ice::ObjectPrx base = itsComm->stringToProxy(serviceName);
-    itsMonicaProxy = atnf::atoms::mon::comms::MoniCAIcePrx::checkedCast(base);
-
-    if (!itsMonicaProxy) {
-        ASKAPLOG_WARN_STR(logger, "Failed to obtain MoniCA proxy");
-    } else {
-        // Start the thread
-        itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&MonitoringSingleton::senderrun, this)));
-    }
+    // Start the sender thread
+    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&MonitoringSingleton::senderrun, this)));
 }
 
 MonitoringSingleton::~MonitoringSingleton()
@@ -151,6 +138,7 @@ void MonitoringSingleton::sendString(const std::string& name, const std::string&
 
 void MonitoringSingleton::enqueue(const std::string& name, atnf::atoms::mon::comms::DataValuePtr value)
 {
+    // Add monitoring point update to the front of the queue
     PointDataIce pd;
     pd.name = itsPrefix + name;
     pd.timestamp = getTime();
@@ -158,6 +146,12 @@ void MonitoringSingleton::enqueue(const std::string& name, atnf::atoms::mon::com
     pd.value = value;
     boost::mutex::scoped_lock lock(itsMutex);
     itsBuffer.push_front(pd);
+
+    //  If the queue is too large, discard one from the end of the queue
+    //  (i.e.) discard older data
+    if (itsBuffer.size() > 1000) {
+        itsBuffer.pop_back();
+    }
 
     // Notify any waiters
     lock.unlock();
@@ -176,6 +170,15 @@ void MonitoringSingleton::senderrun(void)
 
     try {
         while (!(boost::this_thread::interruption_requested())) {
+            // Check that the connection to Monica service has been made
+            if (!itsMonicaProxy) {
+                const bool success = tryConnect();
+                if (!success) {
+                    // Throttle the retry rate
+                    boost::this_thread::sleep(boost::posix_time::seconds(60));
+                    continue;
+                }
+            }
 
             // Wait for some data to send
             boost::mutex::scoped_lock lock(itsMutex);
@@ -193,11 +196,61 @@ void MonitoringSingleton::senderrun(void)
             }
 
             // Send the batch
-            itsMonicaProxy->setData(names, values, "notused", "notused");
+            try {
+                itsMonicaProxy->setData(names, values, "notused", "notused");
+            } catch (Ice::Exception& e) {
+                ASKAPLOG_DEBUG_STR(logger, "Ice::Exception: " << e);
+            } catch (std::exception& e) {
+                ASKAPLOG_DEBUG_STR(logger, "Unexpected exception");
+            }
+
             names.clear();
             values.clear();
         }
     } catch (boost::thread_interrupted& e) {
         // Nothing to do, just return
     }
+}
+
+bool MonitoringSingleton::tryConnect(void)
+{
+    try {
+        // Setup ICE
+        if (!itsComm) {
+            const string registryHost = itsConfig.monitoringArchiverService().registryHost();
+            if (registryHost.empty()) return false;
+            const string registryPort = itsConfig.monitoringArchiverService().registryPort();
+            CommunicatorConfig commconfig(registryHost, registryPort);
+            CommunicatorFactory commFactory;
+            itsComm = commFactory.createCommunicator(commconfig);
+            if (!itsComm) return false;
+        }
+
+        if (!itsMonicaProxy) {
+            const string serviceName = itsConfig.monitoringArchiverService().serviceIdentity();
+            Ice::ObjectPrx base = itsComm->stringToProxy(serviceName);
+            itsMonicaProxy = atnf::atoms::mon::comms::MoniCAIcePrx::checkedCast(base);
+            if (!itsMonicaProxy) return false;
+        }
+    } catch (Ice::ConnectionRefusedException& e) {
+        ASKAPLOG_WARN_STR(logger, "Connection refused exception: " << e);
+        return false;
+    } catch (Ice::NoEndpointException& e) {
+        ASKAPLOG_WARN_STR(logger, "No endpoint exception: " << e);
+        return false;
+    } catch (Ice::NotRegisteredException& e) {
+        ASKAPLOG_WARN_STR(logger, "Not registered exception: " << e);
+        return false;
+    } catch (Ice::ConnectFailedException& e) {
+        ASKAPLOG_WARN_STR(logger, "Connection failed exception: " << e);
+        return false;
+    } catch (Ice::DNSException& e) {
+        ASKAPLOG_WARN_STR(logger, "DNS exception: " << e);
+        return false;
+    } catch (std::exception& e) {
+        ASKAPLOG_WARN_STR(logger, "Unexpected exception");
+        return false;
+    }
+
+    return true;
 }

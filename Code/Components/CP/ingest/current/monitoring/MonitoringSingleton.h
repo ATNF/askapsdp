@@ -85,6 +85,10 @@ class MonitoringSingleton {
         // Entry method for sender thread
         void senderrun(void);
 
+        /// Attempt to connect to the MoniCA service
+        /// @return returns true if connection succeeded
+        bool tryConnect(void);
+
         // Singleton instance of this calss
         static MonitoringSingleton* itsInstance;
 

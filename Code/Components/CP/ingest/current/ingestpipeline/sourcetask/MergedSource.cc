@@ -73,7 +73,7 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsChannelManager(params),
      itsBaselineMap(config.bmap())
 {
-  // trigger a dummy frame conversion with casa measures to ensure all chaches are setup
+  // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
   const casa::MVEpoch dummyEpoch(56000.);
 
   casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
@@ -167,9 +167,8 @@ VisChunk::ShPtr MergedSource::next(void)
             " of expected " << datagramsExpected << " visibility datagrams");
 
     // Submit monitoring data
-    MonitorPoint<float> datagramLoss("datagram_loss");
-    datagramLoss.update((static_cast<float>(datagramsExpected) - static_cast<float>(datagramCount))
-            / static_cast<float>(datagramsExpected));
+    MonitorPoint<int32_t> packetsLost("PacketsLost");
+    packetsLost.update(datagramsExpected - datagramCount);
 
     // Apply any flagging specified in the TOS metadata
     doFlagging(chunk, *itsMetadata);

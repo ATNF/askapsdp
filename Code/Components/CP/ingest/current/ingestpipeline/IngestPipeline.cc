@@ -83,7 +83,9 @@ void IngestPipeline::ingest(void)
     const std::vector<TaskDesc>& tasks = itsConfig.tasks();
 
     // 2) Configure the Monitoring Singleton
-    MonitoringSingleton::init(itsConfig);
+    if (!itsConfig.monitoringArchiverService().registryHost().empty()) {
+        MonitoringSingleton::init(itsConfig);
+    }
 
     // 3) Create a Task Factory
     TaskFactory factory(itsConfig);
@@ -119,7 +121,9 @@ void IngestPipeline::ingest(void)
 
     // 7) Clean up
     itsSource.reset();
-    MonitoringSingleton::destroy();
+    if (MonitoringSingleton::instance()) {
+        MonitoringSingleton::destroy();
+    }
 }
 
 bool IngestPipeline::ingestOne(void)
