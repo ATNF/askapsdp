@@ -31,6 +31,9 @@
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
 
+// casa includes
+#include <casa/Arrays/Matrix.h>
+
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
@@ -82,13 +85,11 @@ private:
    /// @brief time of the first data point (or a negative value upon initialisation)
    double itsStartTime;
 
-   /// @brief buffer for averaged visibility for each baseline, beam and polarisation
-   /// @note only parallel hand polarisation products are kept
-   casa::Cube<casa::Complex> itsVisBuffer;
+   /// @brief buffer for averaged visibility for each baseline/polarisation index and beam
+   casa::Matrix<casa::Complex> itsVisBuffer;
 
-   /// @brief buffer for delay for each baseline, beam and polarisation
-   /// @note only parallel hand polarisation products are kept
-   casa::Cube<casa::Double> itsDelayBuffer;
+   /// @brief buffer for delay for each baseline/polarisation index and beam
+   casa::Matrix<casa::Double> itsDelayBuffer;
 
 }; // PhaseTrackTask class
 

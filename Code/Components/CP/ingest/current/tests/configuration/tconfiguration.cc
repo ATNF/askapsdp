@@ -34,6 +34,7 @@
 #include "FeedConfigTest.h"
 #include "AntennaTest.h"
 #include "ConfigurationTest.h"
+#include "BaselineMapTest.h"
 
 int main(int argc, char *argv[])
 {
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::cp::ingest::FeedConfigTest::suite());
     runner.addTest(askap::cp::ingest::AntennaTest::suite());
     runner.addTest(askap::cp::ingest::ConfigurationTest::suite());
+    runner.addTest(askap::cp::ingest::BaselineMapTest::suite());
     const bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

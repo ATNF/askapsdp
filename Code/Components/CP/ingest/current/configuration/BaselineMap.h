@@ -49,6 +49,22 @@ class BaselineMap {
         casa::Stokes::StokesTypes idToStokes(const uint32_t id) const;
         size_t size() const;
 
+        /// @brief obtain largest id
+        /// @details This is required to initialise a flat array buffer holding
+        /// derived per-id information because the current implementation does not
+        /// explicitly prohibits sparse ids.
+        /// @return the largest id setup in the map
+        uint32_t maxID() const;
+
+        /// @brief find an id matching baseline/polarisation description
+        /// @details This is the reverse look-up operation.
+        /// @param[in] ant1 index of the first antenna
+        /// @param[in] ant2 index of the second antenna
+        /// @param[in] pol polarisation product
+        /// @return the index of the selected baseline/polarisation
+        /// @note an exception is thrown if there is no match
+        uint32_t getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const;
+
     private:
 
         size_t itsSize;
