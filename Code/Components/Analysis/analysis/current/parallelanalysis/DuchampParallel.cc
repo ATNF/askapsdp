@@ -105,6 +105,9 @@ using namespace LOFAR::TYPES;
 // #include <duchamp/Detection/columns.hh>
 #include <duchamp/Outputs/columns.hh>
 #include <duchamp/Outputs/CatalogueSpecification.hh>
+#include <duchamp/Outputs/KarmaAnnotationWriter.hh>
+#include <duchamp/Outputs/DS9AnnotationWriter.hh>
+#include <duchamp/Outputs/CasaAnnotationWriter.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
@@ -320,7 +323,6 @@ namespace askap {
 	    this->checkAndWarn("doFit","Fitter.doFit");
 	    this->checkAndWarn("fitJustDetection", "Fitter.fitJustDetection");
 	    this->checkAndWarn("doMedianSearch","VariableThreshold");
-	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
 	    this->checkAndWarn("medianBoxWidth","VariableThreshold.boxSize");
 	    this->checkAndWarn("flagWriteSNRimage","");
 	    this->checkAndWarn("SNRimageName","VariableThreshold.SNRimageName");
@@ -1661,7 +1663,7 @@ namespace askap {
 		  }
 		  
 
-		  if (this->itsFitParams.doFit()) this->writeFitAnnotation();
+		  if (this->itsFitParams.doFit()) this->writeFitAnnotations();
 
 		}
 
@@ -1782,52 +1784,111 @@ namespace askap {
       }
 
 
-        void DuchampParallel::writeFitAnnotation()
-        {
-            /// @details This function writes a Karma annotation file
-            /// showing the location and shape of the fitted 2D Gaussian
-            /// components. It makes use of the
-            /// RadioSource::writeFitToAnnotationFile() function. The file
-            /// written to is given by the input parameter
+	void DuchampParallel::writeFitAnnotations()
+	{
+	    /// @details This function writes an annotation file
+            /// showing the location and shape of the fitted 2D
+            /// Gaussian components. It makes use of the
+            /// RadioSource::writeFitToAnnotationFile() function. The
+            /// file written to is given by the input parameter
             /// fitAnnotationFile.
-            if (this->itsSourceList.size() > 0) {
-                std::ofstream outfile(this->itsFitAnnotationFile.c_str());
-                ASKAPLOG_INFO_STR(logger, "Writing to annotation file: " << this->itsFitAnnotationFile);
-                outfile << "COLOR BLUE\n";
-                outfile << "COORD W\n";
-                outfile << "PA SKY\n";
-                outfile << "#FONT lucidasans-12\n";
-                std::ofstream outfile2;
-		bool doOutfile2 = this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
 
-                if (doOutfile2) {
-                    outfile2.open(this->itsFitBoxAnnotationFile.c_str());
-                    outfile << "COLOR BLUE\n";
-                    outfile << "COORD W\n";
-                    outfile << "#FONT lucidasans-12\n";
-                }
+	    bool doBoxAnnot = this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
 
-                std::vector<sourcefitting::RadioSource>::iterator src;
+	    if(this->itsSourceList.size() > 0) {
 
-                for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-                    if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
-                        outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                        src->writeFitToAnnotationFile(outfile, true, false);
-			if(doOutfile2){
-			    outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-			    src->writeFitToAnnotationFile(outfile2, false, true);
+		for(int i=0;i<3;i++){
+		    AnnotationWriter *writerFit=0;
+		    AnnotationWriter *writerBox=0;
+		    switch(i){
+		    case 0: //Karma
+			if(this->itsCube.pars().getFlagKarma()){
+			    writerFit = new KarmaAnnotationWriter(this->itsFitAnnotationFile);
+			    ASKAPLOG_INFO_STR(logger, "Writing fit results to karma annotation file: " << this->itsFitAnnotationFile << " with address of writer = " << writerFit);
+			    if(doBoxAnnot)
+				writerBox = new KarmaAnnotationWriter(this->itsFitBoxAnnotationFile);
+			    break;
+			case 1://DS9
+			    if(this->itsCube.pars().getFlagDS9()){
+				std::string filename=itsFitAnnotationFile;
+				size_t loc=filename.rfind(".ann");
+				if(loc==std::string::npos) filename += ".reg";
+				else filename.replace(loc,4,".reg");
+				writerFit = new DS9AnnotationWriter(filename);
+				ASKAPLOG_INFO_STR(logger, "Writing fit results to DS9 annotation file: " << filename << " with address of writer = " << writerFit);
+				if(doBoxAnnot){
+				    filename = this->itsFitBoxAnnotationFile;
+				    size_t loc=filename.rfind(".ann");
+				    if(loc==std::string::npos) filename += ".reg";
+				    else filename.replace(loc,4,".reg");
+				    writerBox = new DS9AnnotationWriter(filename);
+				}
+			    }
+			    break;
+			case 2://CASA
+			    if(this->itsCube.pars().getFlagCasa()){
+				std::string filename=itsFitAnnotationFile;
+				size_t loc=filename.rfind(".ann");
+				if(loc==std::string::npos) filename += ".crf";
+				else filename.replace(loc,4,".crf");
+				writerFit = new CasaAnnotationWriter(filename);
+				ASKAPLOG_INFO_STR(logger, "Writing fit results to casa annotation file: " << filename << " with address of writer = " << writerFit);
+				if(doBoxAnnot){
+				    filename = this->itsFitBoxAnnotationFile;
+				    size_t loc=filename.rfind(".ann");
+				    if(loc==std::string::npos) filename += ".reg";
+				    else filename.replace(loc,4,".reg");
+				    writerBox = new DS9AnnotationWriter(filename);
+				}
+			    }
+			    break;	
 			}
-                    } else {
-                        outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                        src->writeFitToAnnotationFile(outfile, true, true);
-                    }
-                }
+		    }
+			
+		    if(writerFit!=0){
+			writerFit->setup(&this->itsCube);
+			writerFit->openCatalogue();
+			writerFit->setColourString("BLUE");
+			writerFit->writeHeader();
+			writerFit->writeParameters();
+			writerFit->writeStats();
+			writerFit->writeTableHeader();
+			// writer->writeEntries();
 
-                outfile.close();
+			if(writerBox != 0){
+			    writerBox->setup(&this->itsCube);
+			    writerBox->openCatalogue();
+			    writerFit->setColourString("BLUE");
+			    writerBox->writeHeader();
+			    writerBox->writeParameters();
+			    writerBox->writeStats();
+			    writerBox->writeTableHeader();
+			}
 
-                if (doOutfile2) outfile2.close();
-            }
-        }
+			std::vector<sourcefitting::RadioSource>::iterator src;
+			int num=1;
+			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+			    src->writeFitToAnnotationFile(writerFit, num, true, this->itsFitAnnotationFile == this->itsFitBoxAnnotationFile);
+			    if(doBoxAnnot && writerBox!=0) src->writeFitToAnnotationFile(writerBox, num, false, true);
+			    num++;
+			}
+
+			writerFit->writeFooter();
+			writerFit->closeCatalogue();
+			if(writerBox!=0){
+			    writerBox->writeFooter();
+			    writerBox->closeCatalogue();
+			}
+		    }
+
+		    if(writerFit!=0) delete writerFit;
+		    if(writerBox!=0) delete writerBox;
+		}
+		
+	    }
+
+	}
+
 
         //**************************************************************//
 

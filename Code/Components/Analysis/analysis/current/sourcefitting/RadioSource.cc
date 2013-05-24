@@ -1337,10 +1337,25 @@ namespace askap {
 	    else this->duchamp::Detection::printTableEntry(stream,column); // handles anything covered by duchamp code. If different column, use the following.
 	  }
 
-	  void RadioSource::writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox)
+	    void RadioSource::writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, int sourceNum, bool doEllipse, bool doBox)
 	  {
-	                   double *pix = new double[12];
-                double *world = new double[12];
+                /// @details
+                ///
+                /// This function writes the information about the
+                /// fitted Gaussian components to a given annotation
+                /// file. There are two different elements drawn for
+                /// each RadioSource object - the half-maximum
+                /// ellipse, and, optionally, the box given by
+                /// FittingParameters::boxPadSize(). We use the
+                /// Duchamp annotation file interface, to allow karma,
+                /// DS9 and CASA formats to be written.
+ 
+	      std::stringstream ss;
+	      ss<< "# Source " << sourceNum << ":";
+	      writer->writeCommentString(ss.str());
+	      
+	      double *pix = new double[12];
+	      double *world = new double[12];
 
                 for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
 
@@ -1380,71 +1395,6 @@ namespace askap {
                 delete [] world;
 
 	  }
-
-            void RadioSource::writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox)
-            {
-                /// @details
-                ///
-                /// This function writes the information about the fitted
-                /// Gaussian components to a Karma annotation file. There are
-                /// two different elements drawn for each RadioSource object.
-                ///
-                /// For each fitted component, an ellipse is drawn indicating
-                /// the size and orientation of the Gaussian. The central
-                /// position is converted to world coordinates, and the major
-                /// and minor axes are converted to elliptical
-                /// semimajor/semiminor axes by halving and dividing by 2*ln(2).
-                ///
-                /// Finally, a box is drawn around the detection, indicating the
-                /// area used in the fitting. It includes the border around the
-                /// detection given by FittingParameters::boxPadSize()
-
-                double *pix = new double[12];
-                double *world = new double[12];
-
-                for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
-
-                std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFitMap["best"].fitSet();
-                std::vector<casa::Gaussian2D<Double> >::iterator fit;
-
-                for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
-                    pix[0] = fit->xCenter();
-                    pix[1] = fit->yCenter();
-                    this->itsHeader->pixToWCS(pix, world);
-                    stream.setf(std::ios::fixed);
-                    stream.precision(6);
-
-                    if (doEllipse) {
-                        stream << "ELLIPSE "
-                            << world[0] << " "
-                            << world[1] << " "
-                            << fit->majorAxis() * this->itsHeader->getAvPixScale() / 2. << " "
-                            << fit->minorAxis() * this->itsHeader->getAvPixScale() / 2. << " "
-                            << fit->PA() * 180. / M_PI << "\n";
-                    }
-                }
-
-                pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
-                pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
-                pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
-                pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
-                this->itsHeader->pixToWCS(pix, world, 4);
-
-                if (doBox) {
-                    stream << "CLINES ";
-
-                    for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
-
-                    stream << world[0] << " " << world[1] << "\n";
-                }
-
-                delete [] pix;
-                delete [] world;
-            }
-
-
-
-
 
 	  void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter)
 	    {

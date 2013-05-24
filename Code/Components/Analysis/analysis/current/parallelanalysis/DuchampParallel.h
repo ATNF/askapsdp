@@ -177,8 +177,8 @@ namespace askap {
                 void calcObjectParams();
                 void calcObjectParamsOLD();
 
-                /// @brief Write a Karma annotation file showing the fits (on the master).
-                void writeFitAnnotation();
+                /// @brief Write a Karma/DS9/CASA annotation files showing the fits (on the master).
+                void writeFitAnnotations();
 
 		void writeToFITS();
 		

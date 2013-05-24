@@ -178,8 +178,7 @@ namespace askap {
 		    void printTableEntry(std::ostream &stream, duchamp::Catalogues::Column column, size_t fitNum=0, std::string fitType="best");
 	    
                     /// @brief Write the description of the fits to an annotation file.
-		    void writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox);
-                    void writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox);
+		    void writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, int sourceNum, bool doEllipse, bool doBox);
 
                     /// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
                     /// @name
