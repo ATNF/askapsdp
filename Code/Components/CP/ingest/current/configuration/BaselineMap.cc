@@ -150,7 +150,9 @@ uint32_t BaselineMap::getID(const int32_t ant1, const int32_t ant2, const casa::
            return static_cast<uint32_t>(ciAnt1->first);
        }
   }
-  ASKAPTHROW(AskapError, "Unable to find matching baseline/polarisation id for ant1="<<ant1<<" ant2="<<ant2<<
+  ASKAPTHROW(Unmapped, "Unable to find matching baseline/polarisation id for ant1="<<ant1<<" ant2="<<ant2<<
              " pol="<<casa::Stokes::name(pol));
 }
+
+BaselineMap::Unmapped::Unmapped(const std::string &descr) : AskapError(descr) {}
 

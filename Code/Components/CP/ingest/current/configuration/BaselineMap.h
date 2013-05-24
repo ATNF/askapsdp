@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "measures/Measures/Stokes.h"
+#include "askap/AskapError.h"
 
 namespace askap {
 namespace cp {
@@ -62,8 +63,15 @@ class BaselineMap {
         /// @param[in] ant2 index of the second antenna
         /// @param[in] pol polarisation product
         /// @return the index of the selected baseline/polarisation
-        /// @note an exception is thrown if there is no match
+        /// @note an exception of Unmapped type is thrown if there is no match
         uint32_t getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const;
+
+        /// @brief helper exception class
+        struct Unmapped : public AskapError {
+            /// @brief constructor of the exception class
+            /// @param[in] descr message
+            Unmapped(const std::string &descr);
+        };
 
     private:
 
@@ -72,6 +80,7 @@ class BaselineMap {
         std::map<int32_t, int32_t> itsAntenna2Map;
         std::map<int32_t, casa::Stokes::StokesTypes> itsStokesMap;
 };
+
 
 };
 };

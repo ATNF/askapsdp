@@ -30,6 +30,7 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
+#include "utils/DelayEstimator.h"
 
 // casa includes
 #include <casa/Arrays/Matrix.h>
@@ -38,6 +39,11 @@
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
+#include "configuration/BaselineMap.h"
+
+// std includes
+#include <fstream>
+#include <string>
 
 namespace askap {
 namespace cp {
@@ -69,14 +75,13 @@ public:
 
 protected:   
    /// @details Process one row of data.
-   /// @param[in] vis vis matrix for the given row to work with
-   ///                dimensions are channels and polarisations
+   /// @param[in] vis vis spectrum for the given baseline/pol index to work with
    /// @param[in] baseline baseline ID 
    /// @param[in] beam beam ID
-   void processRow(const casa::Matrix<casa::Complex> &vis, const casa::uInt baseline, const casa::uInt beam);
+   void processRow(const casa::Vector<casa::Complex> &vis, const casa::uInt baseline, const casa::uInt beam);
 
    /// @brief Publish the buffer
-   void publishBuffer() const;
+   void publishBuffer();
 
 private:
    /// @brief time corresponding to the active buffer
@@ -91,6 +96,24 @@ private:
    /// @brief buffer for delay for each baseline/polarisation index and beam
    casa::Matrix<casa::Double> itsDelayBuffer;
 
+   /// @brief baselines/polarisation indices to monitor
+   /// @details One can setup a subset of baselines to monitor. In particular, the current form of
+   /// monitoring is not very suitable for cross-pols. The mapping is setup the same way as for the 
+   /// main baseline map, but parset prefixes are different, for example:
+   ///
+   /// tasks.SimpleMonitor.params.baselineids = [0]
+   /// tasks.SimpleMonitor.params.0 = [1,2,XX]
+   ///
+   BaselineMap itsBaselineMap;
+
+   /// @brief delay estimator
+   scimath::DelayEstimator itsDelayEstimator;
+
+   /// @brief output file stream
+   std::ofstream itsOStream;
+
+   /// @brief output file name
+   std::string itsFileName;
 }; // PhaseTrackTask class
 
 } // ingest
