@@ -112,20 +112,27 @@ namespace askap {
 
 	bool filesOK = true;
 
-	this->itsSrcCatalogue.read();
-	this->itsRefCatalogue.read();
+	if(!this->itsSrcCatalogue.read()){
+	    ASKAPLOG_FATAL_STR(logger, "Could not read Source Catalogue");
+	    return false;
+	}
+	if(!this->itsRefCatalogue.read()){
+	    ASKAPLOG_FATAL_STR(logger, "Could not read Reference Catalogue");
+	    return false;
+	}
+	
 	filesOK = this->itsSrcCatalogue.pointList().size()>0 && this->itsRefCatalogue.pointList().size()>0;
 	if(this->itsSrcCatalogue.pointList().size()==0)
-	  ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsSrcCatalogue.filename());
+	    ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsSrcCatalogue.filename());
 	if(this->itsRefCatalogue.pointList().size()==0)
-	  ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsRefCatalogue.filename());
+	    ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsRefCatalogue.filename());
 	if(filesOK){
-	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size());
-	  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size());
+	    ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size());
+	    ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size());
 	}
-
+	
 	if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),this->itsEpsilon))
-	  ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
+	    ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
 
 	return filesOK;
       }

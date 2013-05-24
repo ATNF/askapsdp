@@ -68,9 +68,9 @@ class CrossmatchApp : public askap::Application
                     matcher.outputSummary();
                 } else{
                     if (matcher.srcListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
+                        ASKAPLOG_FATAL_STR(logger, "Source list has zero length - no matching done.");
                     if (matcher.refListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
+                        ASKAPLOG_FATAL_STR(logger, "Reference list has zero length - no matching done.");
                 }
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

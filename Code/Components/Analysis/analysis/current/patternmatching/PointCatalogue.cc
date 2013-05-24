@@ -105,12 +105,14 @@ namespace askap {
 	return *this;
       }
 
-      void PointCatalogue::read()
+      bool PointCatalogue::read()
       {
 	std::ifstream fin(this->itsFilename.c_str());
 	this->itsFullPointList = std::vector<Point>(0);
-	if(!fin.is_open())
+	if(!fin.is_open()){
 	  ASKAPLOG_WARN_STR(logger,"Could not open filename " << this->itsFilename << ".");
+	  return false;
+	}
 	else {
 	  std::string line;
 	  while (getline(fin, line),
@@ -134,7 +136,7 @@ namespace askap {
 	}
 	this->itsWorkingPointList = this->itsFullPointList;
 	this->makeTriangleList();
-
+	return true;
       }
 
       void PointCatalogue::makeTriangleList()

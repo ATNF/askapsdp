@@ -54,7 +54,7 @@ namespace askap {
 	PointCatalogue& operator= (const PointCatalogue& other);
 	virtual ~PointCatalogue(){};
 
-	void read();
+	bool read();
 	void makeTriangleList();
 	bool crudeMatch(std::vector<Point> &other, double maxSep);
 
