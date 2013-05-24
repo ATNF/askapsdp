@@ -60,6 +60,12 @@ public:
    /// @return delay in seconds
    double getDelay(const casa::Vector<casa::Complex> &vis) const;
 
+   /// @brief set new spectral resolution
+   /// @details The new value will apply to all subsequent calculations
+   /// @param[in] resolution the spectral resolution in Hz
+   void setResolution(const double resolution);
+   
+
 private:
    /// @brief spectral resolution
    double itsResolution;

@@ -88,6 +88,15 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    return coeff / 2. / casa::C::pi / itsResolution;
 }
 
+
+/// @brief set new spectral resolution
+/// @details The new value will apply to all subsequent calculations
+/// @param[in] resolution the spectral resolution in Hz
+void DelayEstimator::setResolution(const double resolution) 
+{
+  itsResolution = resolution;
+}
+
 } // namespace scimath
 
 } // namespace askap
