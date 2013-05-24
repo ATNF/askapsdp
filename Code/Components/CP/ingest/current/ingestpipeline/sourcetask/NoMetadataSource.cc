@@ -258,6 +258,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 
     const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
     const casa::uInt antenna2 = itsBaselineMap.idToAntenna2(vis.baselineid);
+    ASKAPCHECK(vis.beamid > 0, "Expected one-based indexing for beam ID");
     const casa::uInt beamid = vis.beamid - 1;
 
     // 1) Map from baseline to stokes type and find the  position on the stokes

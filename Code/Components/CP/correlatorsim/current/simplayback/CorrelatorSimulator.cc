@@ -161,7 +161,10 @@ bool CorrelatorSimulator::sendNext(void)
         payload.timestamp = static_cast<long>(startBAT);
         ASKAPCHECK(msc.feed1()(itsCurrentRow) == msc.feed2()(itsCurrentRow),
                 "feed1 and feed2 must be equal");
-        payload.beamid = msc.feed1()(itsCurrentRow);
+
+        // NOTE: The Correlator IOC uses one-based beam indexing, so need to add
+        // one to the zero-based indexes from the measurement set.
+        payload.beamid = msc.feed1()(itsCurrentRow) + 1;
 
         // Get the expansion factor, producing the actual number of channels
         // to simulate
