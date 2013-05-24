@@ -206,7 +206,7 @@ namespace askap {
 
                 for (g = 0; g < m.nrow(); g++) {
                     std::stringstream outmsg;
-		    outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
+		    outmsg << "Component Flux,X0,Y0,MAJ,MIN/MAJ,PA = ";
                     outmsg.precision(8);
                     outmsg.setf(ios::fixed);
                     outmsg << m(g, 0) << ", ";
@@ -293,6 +293,9 @@ namespace askap {
                     if (this->itsFitter.converged()) {
                         ASKAPLOG_DEBUG_STR(logger, "Fit converged. Solution Parameters follow: ");
                         logparameters(this->itsSolution);
+			ASKAPLOG_DEBUG_STR(logger, "Errors on solution parameters follow: ");
+			casa::Matrix<casa::Double> paramErrors = this->itsFitter.errors();
+			logparameters(paramErrors);
                     } else ASKAPLOG_DEBUG_STR(logger, "Fit did not converge");
 
                     std::string result;
