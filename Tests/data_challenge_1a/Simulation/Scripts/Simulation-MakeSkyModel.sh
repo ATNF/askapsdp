@@ -117,22 +117,22 @@ cat > \${cduchampParset} <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
-Cduchamp.imageFile = ${baseimage}-smooth.taylor.0
-Cduchamp.threshold = ${SFthresh}
-Cduchamp.flagGrowth = ${SFflagGrowth}
-Cduchamp.growthThreshold = ${SFgrowthThresh}
-#Cduchamp.nsubx = ${SFnsubx}
-#Cduchamp.nsuby = ${SFnsuby}
-Cduchamp.doFit = true
-Cduchamp.fitJustDetection = true
-Cduchamp.Fitter.useNoise = false
-Cduchamp.Fitter.noiseLevel = 1.e-3
-Cduchamp.Fitter.numSubThresholds = 1000
-Cduchamp.findSpectralIndex = true
+Selavy.imageFile = ${baseimage}-smooth.taylor.0
+Selavy.threshold = ${SFthresh}
+Selavy.flagGrowth = ${SFflagGrowth}
+Selavy.growthThreshold = ${SFgrowthThresh}
+#Selavy.nsubx = ${SFnsubx}
+#Selavy.nsuby = ${SFnsuby}
+Selavy.doFit = true
+Selavy.fitJustDetection = true
+Selavy.Fitter.useNoise = false
+Selavy.Fitter.noiseLevel = 1.e-3
+Selavy.Fitter.numSubThresholds = 1000
+Selavy.findSpectralIndex = true
 EOF_INNER
 
-output=${logdirSM}/cduchamp-smooth-\${PBS_JOBID}.log
-mpirun $cduchamp -inputs \${cduchampParset} > \${output}
+output=${logdirSM}/selavy-smooth-\${PBS_JOBID}.log
+mpirun $selavy -inputs \${cduchampParset} > \${output}
 
 exit \$?
 
@@ -141,7 +141,7 @@ EOF
     if [ $doSubmit == true ]; then
 
 	cduchampID=`qsub ${dependSM} $cduchampQsub`
-	echo Submitting Cduchamp job with ID $cduchampID
+	echo Submitting Selavy job with ID $cduchampID
 	if [ "$dependSM" == "" ]; then
 	    dependSM="-W depend=afterok:${cduchampID}"
 	else
