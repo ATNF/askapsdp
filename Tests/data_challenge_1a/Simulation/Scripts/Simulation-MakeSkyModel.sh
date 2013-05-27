@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-cduchamp=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cduchamp.sh
+selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/selavy.sh
 askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 mkdir -p $scriptdirSM
