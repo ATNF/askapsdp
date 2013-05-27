@@ -49,12 +49,12 @@ using namespace casa;
 
 BaselineMap::BaselineMap(const LOFAR::ParameterSet& parset)
 {
-    const vector<uint32_t> ids = parset.getUint32Vector("baselineids", true);
+    const vector<int32_t> ids = parset.getInt32Vector("baselineids", true);
     itsSize = ids.size();
 
-    for (vector<uint32_t>::const_iterator it = ids.begin();
+    for (vector<int32_t>::const_iterator it = ids.begin();
             it != ids.end(); ++it) {
-        const uint32_t id = *it;
+        const int32_t id = *it;
         if (!parset.isDefined(toString(id))) {
             ASKAPTHROW(AskapError, "Baseline mapping for id " << id << " not present");
         }
@@ -64,8 +64,8 @@ BaselineMap::BaselineMap(const LOFAR::ParameterSet& parset)
             ASKAPTHROW(AskapError, "Baseline mapping for id " << id << " is malformed");
         }
 
-        itsAntenna1Map[id] = fromString<uint32_t>(tuple[0]); 
-        itsAntenna2Map[id] = fromString<uint32_t>(tuple[1]); 
+        itsAntenna1Map[id] = fromString<int32_t>(tuple[0]); 
+        itsAntenna2Map[id] = fromString<int32_t>(tuple[1]); 
         itsStokesMap[id] = Stokes::type(tuple[2]);
     }
     ASKAPCHECK(itsAntenna1Map.size() == itsSize, "Antenna 1 Map is of invalid size");
@@ -73,27 +73,27 @@ BaselineMap::BaselineMap(const LOFAR::ParameterSet& parset)
     ASKAPCHECK(itsStokesMap.size() == itsSize, "Stokes type map is of invalid size");
 }
 
-int32_t BaselineMap::idToAntenna1(const uint32_t id) const
+int32_t BaselineMap::idToAntenna1(const int32_t id) const
 {
     std::map<int32_t, int32_t>::const_iterator it = itsAntenna1Map.find(id);
     if (it != itsAntenna1Map.end()) {
         return it->second;
     } else {
-        return 1;
+        return -1;
     }
 }
 
-int32_t BaselineMap::idToAntenna2(const uint32_t id) const
+int32_t BaselineMap::idToAntenna2(const int32_t id) const
 {
     std::map<int32_t, int32_t>::const_iterator it = itsAntenna2Map.find(id);
     if (it != itsAntenna2Map.end()) {
         return it->second;
     } else {
-        return 1;
+        return -1;
     }
 }
 
-casa::Stokes::StokesTypes BaselineMap::idToStokes(const uint32_t id) const
+casa::Stokes::StokesTypes BaselineMap::idToStokes(const int32_t id) const
 {
     std::map<int32_t, Stokes::StokesTypes>::const_iterator it = itsStokesMap.find(id);
     if (it != itsStokesMap.end()) {
@@ -113,16 +113,13 @@ size_t BaselineMap::size() const
 /// derived per-id information because the current implementation does not
 /// explicitly prohibits sparse ids.
 /// @return the largest id setup in the map
-uint32_t BaselineMap::maxID() const
+int32_t BaselineMap::maxID() const
 {
-  uint32_t result = 0;
+  int32_t result = 0;
   for (std::map<int32_t, int32_t>::const_iterator ci = itsAntenna1Map.begin(); 
        ci != itsAntenna1Map.end(); ++ci) {
        ASKAPCHECK(ci->first >= 0, "Encountered negative id="<<ci->first);
-       const uint32_t unsignedID = static_cast<uint32_t>(ci->first);
-       if (unsignedID > result) {
-           result = unsignedID;
-       }
+       result = max(result, ci->first);
   }
   return result;
 }
@@ -134,7 +131,7 @@ uint32_t BaselineMap::maxID() const
 /// @param[in] pol polarisation product
 /// @return the index of the selected baseline/polarisation
 /// @note an exception is thrown if there is no match
-uint32_t BaselineMap::getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const
+int32_t BaselineMap::getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const
 {
   std::map<int32_t, int32_t>::const_iterator ciAnt1 = itsAntenna1Map.begin();
   std::map<int32_t, int32_t>::const_iterator ciAnt2 = itsAntenna2Map.begin();
@@ -147,12 +144,8 @@ uint32_t BaselineMap::getID(const int32_t ant1, const int32_t ant2, const casa::
        ASKAPDEBUGASSERT(ciAnt1->first == ciAnt2->first);
        ASKAPDEBUGASSERT(ciAnt1->first == ciPol->first);
        if ((ciAnt1->second == ant1) && (ciAnt2->second == ant2) && (ciPol->second == pol)) {
-           return static_cast<uint32_t>(ciAnt1->first);
+           return ciAnt1->first;
        }
   }
-  ASKAPTHROW(Unmapped, "Unable to find matching baseline/polarisation id for ant1="<<ant1<<" ant2="<<ant2<<
-             " pol="<<casa::Stokes::name(pol));
+  return -1;
 }
-
-BaselineMap::Unmapped::Unmapped(const std::string &descr) : AskapError(descr) {}
-

@@ -42,9 +42,9 @@ namespace ingest {
 class BaselineMapTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(BaselineMapTest);
         CPPUNIT_TEST(testLookup);
-        CPPUNIT_TEST_EXCEPTION(testNoMatchAnt1,AskapError);
-        CPPUNIT_TEST_EXCEPTION(testNoMatchAnt2,AskapError);
-        CPPUNIT_TEST_EXCEPTION(testNoMatchPol,AskapError);
+        CPPUNIT_TEST(testNoMatchAnt1);
+        CPPUNIT_TEST(testNoMatchAnt2);
+        CPPUNIT_TEST(testNoMatchPol);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -57,46 +57,46 @@ class BaselineMapTest : public CppUnit::TestFixture {
             params.add("4","[3,1,YY]");
             BaselineMap bm(params);
 
-            CPPUNIT_ASSERT_EQUAL(1u, bm.getID(1,3,casa::Stokes::XY));
-            CPPUNIT_ASSERT_EQUAL(4u, bm.maxID());
+            CPPUNIT_ASSERT_EQUAL(1, bm.getID(1,3,casa::Stokes::XY));
+            CPPUNIT_ASSERT_EQUAL(4, bm.maxID());
             CPPUNIT_ASSERT_EQUAL(size_t(3), bm.size());
-            CPPUNIT_ASSERT_EQUAL(0, bm.idToAntenna1(0u));
-            CPPUNIT_ASSERT_EQUAL(0, bm.idToAntenna2(0u));
-            CPPUNIT_ASSERT_EQUAL(casa::Stokes::XX, bm.idToStokes(0u));
-            CPPUNIT_ASSERT_EQUAL(1, bm.idToAntenna1(1u));
-            CPPUNIT_ASSERT_EQUAL(3, bm.idToAntenna2(1u));
-            CPPUNIT_ASSERT_EQUAL(casa::Stokes::XY, bm.idToStokes(1u));
-            CPPUNIT_ASSERT_EQUAL(3, bm.idToAntenna1(4u));
-            CPPUNIT_ASSERT_EQUAL(1, bm.idToAntenna2(4u));
-            CPPUNIT_ASSERT_EQUAL(casa::Stokes::YY, bm.idToStokes(4u));
-            // the following should work fine
-            const uint32_t id = testNoMatch(3,1,casa::Stokes::XX);
-            CPPUNIT_ASSERT_EQUAL(0u,id);
+            CPPUNIT_ASSERT_EQUAL(0, bm.idToAntenna1(0));
+            CPPUNIT_ASSERT_EQUAL(0, bm.idToAntenna2(0));
+            CPPUNIT_ASSERT_EQUAL(casa::Stokes::XX, bm.idToStokes(0));
+            CPPUNIT_ASSERT_EQUAL(1, bm.idToAntenna1(1));
+            CPPUNIT_ASSERT_EQUAL(3, bm.idToAntenna2(1));
+            CPPUNIT_ASSERT_EQUAL(casa::Stokes::XY, bm.idToStokes(1));
+            CPPUNIT_ASSERT_EQUAL(3, bm.idToAntenna1(4));
+            CPPUNIT_ASSERT_EQUAL(1, bm.idToAntenna2(4));
+            CPPUNIT_ASSERT_EQUAL(casa::Stokes::YY, bm.idToStokes(4));
+
+            CPPUNIT_ASSERT_EQUAL(0, testNoMatch(3,1,casa::Stokes::XX));
         };
 
-        uint32_t testNoMatch(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) {
+        int32_t testNoMatch(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) {
             LOFAR::ParameterSet params;
             params.add("baselineids","[0]");
             params.add("0","[3,1,XX]");
             BaselineMap bm(params);
 
-            CPPUNIT_ASSERT_EQUAL(0u, bm.getID(3,1,casa::Stokes::XX));
-            CPPUNIT_ASSERT_EQUAL(0u, bm.maxID());
+            CPPUNIT_ASSERT_EQUAL(0, bm.getID(3,1,casa::Stokes::XX));
+            CPPUNIT_ASSERT_EQUAL(0, bm.maxID());
             CPPUNIT_ASSERT_EQUAL(size_t(1), bm.size());
-            // the following would generate an exception if ant1!=3 or ant2!=1 or pol!=XX
             return bm.getID(ant1,ant2,pol);
         }
         
         void testNoMatchAnt1() {
-            testNoMatch(1,1,casa::Stokes::XX);
+            CPPUNIT_ASSERT_EQUAL(-1, testNoMatch(1, 1, casa::Stokes::XX));
         }
 
         void testNoMatchAnt2() {
-            testNoMatch(3,2,casa::Stokes::XX);
+            CPPUNIT_ASSERT_EQUAL(-1, testNoMatch(3,2,casa::Stokes::XX));
         }
 
         void testNoMatchPol() {
-            testNoMatch(3,1,casa::Stokes::XY);
+            CPPUNIT_ASSERT_EQUAL(-1, testNoMatch(3, 1, casa::Stokes::XY));
+            CPPUNIT_ASSERT_EQUAL(-1, testNoMatch(3, 1, casa::Stokes::YY));
+            CPPUNIT_ASSERT_EQUAL(-1, testNoMatch(3, 1, casa::Stokes::XY));
         }
 };
 

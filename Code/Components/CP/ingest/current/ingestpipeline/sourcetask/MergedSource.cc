@@ -138,7 +138,7 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nBeams = itsMetadata->nBeams();
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected =itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
+    const casa::uInt datagramsExpected = itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -279,7 +279,8 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
-            itsBaselineMap.idToAntenna2(vis.baselineid) == -1) {
+        itsBaselineMap.idToAntenna2(vis.baselineid) == -1 ||
+        itsBaselineMap.idToStokes(vis.baselineid) == -1) {
             ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
                     << " has no valid mapping to antenna pair and stokes");
         return;

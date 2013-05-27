@@ -81,13 +81,19 @@ class BaselineMap {
         BaselineMap(const LOFAR::ParameterSet& parset);
 
         /// Given a baseline is, return antenna 1
-        int32_t idToAntenna1(const uint32_t id) const;
+        /// @return antennaid, or -1 in the case the baseline id mapping
+        ///         does not exist.
+        int32_t idToAntenna1(const int32_t id) const;
 
         /// Given a baseline is, return antenna 2
-        int32_t idToAntenna2(const uint32_t id) const;
+        /// @return antennaid, or -1 in the case the baseline id mapping
+        ///         does not exist.
+        int32_t idToAntenna2(const int32_t id) const;
 
         /// Given a baseline is, return the stokes type
-        casa::Stokes::StokesTypes idToStokes(const uint32_t id) const;
+        /// @return stokes type, or Stokes::Undefined in the case the baseline
+        ///         id mapping does not exist.
+        casa::Stokes::StokesTypes idToStokes(const int32_t id) const;
 
         /// Returns the number of entries in the map
         size_t size() const;
@@ -97,23 +103,16 @@ class BaselineMap {
         /// derived per-id information because the current implementation does not
         /// explicitly prohibits sparse ids.
         /// @return the largest id setup in the map
-        uint32_t maxID() const;
+        int32_t maxID() const;
 
         /// @brief find an id matching baseline/polarisation description
         /// @details This is the reverse look-up operation.
         /// @param[in] ant1 index of the first antenna
         /// @param[in] ant2 index of the second antenna
         /// @param[in] pol polarisation product
-        /// @return the index of the selected baseline/polarisation
-        /// @note an exception of Unmapped type is thrown if there is no match
-        uint32_t getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const;
-
-        /// @brief helper exception class
-        struct Unmapped : public AskapError {
-            /// @brief constructor of the exception class
-            /// @param[in] descr message
-            Unmapped(const std::string &descr);
-        };
+        /// @return the index of the selected baseline/polarisation, or -1 if
+        ///         the selected baseline/polarisation does not exist in the map.
+        int32_t getID(const int32_t ant1, const int32_t ant2, const casa::Stokes::StokesTypes pol) const;
 
     private:
 

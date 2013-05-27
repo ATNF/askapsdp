@@ -255,9 +255,10 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
-            itsBaselineMap.idToAntenna2(vis.baselineid) == -1) {
-        ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
-                              << " has no valid mapping to antenna pair and stokes");
+        itsBaselineMap.idToAntenna2(vis.baselineid) == -1 ||
+        itsBaselineMap.idToStokes(vis.baselineid) == -1) {
+            ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
+                    << " has no valid mapping to antenna pair and stokes");
         return;
     }
 

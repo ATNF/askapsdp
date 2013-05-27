@@ -50,7 +50,7 @@ SimpleMonitorTask::SimpleMonitorTask(const LOFAR::ParameterSet& parset,
              itsDelayEstimator(1.), itsFileName(parset.getString("prefix",""))
 {
   ASKAPLOG_DEBUG_STR(logger, "Constructor");
-  ASKAPCHECK(itsBaselineMap.size() == itsBaselineMap.maxID() + 1, 
+  ASKAPCHECK(itsBaselineMap.size() == static_cast<size_t>(itsBaselineMap.maxID() + 1), 
           "Only configuous baseline/polarisation IDs are supported by the monitor task for simplicity");
   casa::uInt nBeam = parset.getUint32("nbeam");
   itsVisBuffer.resize(itsBaselineMap.size(), nBeam);
@@ -122,16 +122,16 @@ void SimpleMonitorTask::process(askap::cp::common::VisChunk::ShPtr chunk)
             ASKAPDEBUGASSERT(thisRow.ncolumn() == 4);
             // we'd probably be better off with a forward lookup as number of baselines to monitor is
             // expected to be much less than the total number of baselines. Might change it in the future
-            try {
-               const casa::uInt idXX = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::XX);
-               processRow(thisRow.column(0), idXX, beam);
-               ++nMatch;
-            } catch (const BaselineMap::Unmapped &) {}
-            try {
-               const casa::uInt idYY = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::YY);
-               processRow(thisRow.column(3), idYY, beam);
-               ++nMatch;
-            } catch (const BaselineMap::Unmapped &) {}
+            const casa::Int idXX = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::XX);
+            if (idXX > -1) {
+                processRow(thisRow.column(0), static_cast<const casa::uInt>(idXX), beam);
+                ++nMatch;
+            }
+            const casa::Int idYY = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::YY);
+            if (idYY > -1) {
+                processRow(thisRow.column(3), static_cast<const casa::uInt>(idYY), beam);
+                ++nMatch;
+            }
         }
    }
    if ((itsBaselineMap.size() != 0) && (nMatch == 0)) {
