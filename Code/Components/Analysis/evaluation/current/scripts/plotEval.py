@@ -26,46 +26,46 @@ if __name__ == '__main__':
         logging.warning("Config file %s does not exist!  Using default parameter values."%options.inputfile)
         inputPars = parset.ParameterSet()
     else:
-        inputPars = parset.ParameterSet(options.inputfile)
+        inputPars = parset.ParameterSet(options.inputfile).Eval
 
     print inputPars
 
-    sourceCatFile = inputPars.get_value('Eval.sourceCatalogue','')
+    sourceCatFile = inputPars.get_value('sourceCatalogue','')
     if(sourceCatFile == ''):
         logging.error('Eval.sourceCatalogue not provided. Doing no evaluation.')
         exit(0)
     if(not os.access(sourceCatFile,os.F_OK)):
         logging.error("Eval.sourceCatalogue %s does not exist. Doing no evaluation."%sourceCatFile)
         exit(0)
-    sourceCatType = inputPars.get_value('Eval.sourceCatalogueType','Selavy')
+    sourceCatType = inputPars.get_value('sourceCatalogueType','Selavy')
     sourceCat = readCat(sourceCatFile,sourceCatType)
     print sourceCatFile
     
-    refCatFile = inputPars.get_value('Eval.refCatalogue','')
+    refCatFile = inputPars.get_value('refCatalogue','')
     if(refCatFile == ''):
         logging.error('Eval.refCatalogue not provided. Doing no evaluation.')
         exit(0)
     if(not os.access(refCatFile,os.F_OK)):
         logging.error("Eval.refCatalogue %s does not exist. Doing no evaluation."%refCatFile)
         exit(0)
-    refCatType = inputPars.get_value('Eval.refCatalogueType','Selavy')
+    refCatType = inputPars.get_value('refCatalogueType','Selavy')
     refCat = readCat(refCatFile,refCatType)
     print refCatFile
 
-    matchfile = inputPars.get_value('Eval.matchfile','matches.txt')
+    matchfile = inputPars.get_value('matchfile','matches.txt')
     if(not os.access(matchfile,os.F_OK)):
         logging.error("Match file %s does not exist. Doing no evaluation."%matchfile)
         exit(0)
     matchlist = readMatches(matchfile,sourceCat,refCat)
     
-    missfile = inputPars.get_value('Eval.missfile',"misses.txt")
+    missfile = inputPars.get_value('missfile',"misses.txt")
     if(not os.access(missfile,os.F_OK)):
         logging.error("Miss file %s does not exist. Doing no evaluation"%missfile)
         exit(0)
     srcmisslist = readMisses(missfile,sourceCat,'S')
     refmisslist = readMisses(missfile,refCat,'R')
 
-    plotRefMisses = inputPars.get_value('Eval.plotRefMisses',False)
+    plotRefMisses = inputPars.get_value('plotRefMisses',False)
 
     figure(1, figsize=(11.7,11.7), dpi=72)
     subplots_adjust(wspace=0.3,hspace=0.3)
@@ -92,6 +92,10 @@ if __name__ == '__main__':
         yS=append(yS,m.src.dec)
         xR=append(xR,m.ref.ra)
         yR=append(yR,m.ref.dec)
+#        xS=append(xS,m.src.x)
+#        yS=append(yS,m.src.y)
+#        xR=append(xR,m.ref.x)
+#        yR=append(yR,m.ref.y)
         matchType=append(matchType,m.type)
         if(sourceCatType=="Selavy"):
             imagerms=append(imagerms,m.src.RMSimage)

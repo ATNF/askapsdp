@@ -32,7 +32,7 @@ def bigBoxPlot (xvals, yvals, isGood, isLog=True):
         xpt = (minval+delta/2.)+i*delta
         t = yvals[isGood[xvals>0] * (abs(log10(xvals[xvals>0]) - xpt)<delta/2.)]
         if len(t)>0:
-            boxplot(t,positions=[10**xpt],widths=0.9*(10**(minval+(i+1)*delta)-10**(minval+i*delta)),sym='')
+            boxplot(t,positions=[10**xpt],widths=0.9*(10**(minval+(i+1)*delta)-10**(minval+i*delta)),sym='k.',patch_artist=False)
     semilogx(basex=10.)
 #    axis([min(xvals)*0.9,max(xvals)*1.1,axisrange[2],axisrange[3]])
     xlim(min(xvals[xvals>0])*0.9,max(xvals[xvals>0])*1.1)
@@ -102,6 +102,7 @@ if __name__ == '__main__':
     nfree=array([])
     rms=array([])
     chisq=array([])
+    offset=array([])
     for m in matchlist:
         xS=append(xS,m.src.ra)
         yS=append(yS,m.src.dec)
@@ -117,6 +118,7 @@ if __name__ == '__main__':
         nfree=append(nfree,m.src.nfreeFIT)
         rms=append(rms,m.src.rmsFIT)
         chisq=append(chisq,m.src.chisqFIT)
+        offset=append(offset,m.sep)
 
     x=array([])
     y=array([])
@@ -255,16 +257,22 @@ if __name__ == '__main__':
         ylabel('Number',font)
         #legend()
 
+#        plotcount = nextplot(plotcount)
+#        temparr = arr[goodfit * (nfree==3)]
+#        if((nfree==3).any()):
+#            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='red')
+#        temparr = arr[goodfit * (nfree==6)]
+#        if((nfree==6).any()):
+#            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
+#        xlabel(lab,font)
+#        ylabel('Number',font)
+#        xticks(rotation=-30)
+
         plotcount = nextplot(plotcount)
-        temparr = arr[goodfit * (nfree==3)]
-        if((nfree==3).any()):
-            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='red')
-        temparr = arr[goodfit * (nfree==6)]
-        if((nfree==6).any()):
-            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
-        xlabel(lab,font)
-        ylabel('Number',font)
-        xticks(rotation=-30)
+        for i in ind:
+            plot([offset[i]],[arr[i]],'o')
+        xlabel(r'Separation source-reference',font)
+        ylabel(lab,font)
 
         plotcount = nextplot(plotcount)
         for i in ind:
