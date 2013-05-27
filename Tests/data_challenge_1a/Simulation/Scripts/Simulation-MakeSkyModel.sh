@@ -132,7 +132,7 @@ Selavy.findSpectralIndex = true
 EOF_INNER
 
 output=${logdirSM}/selavy-smooth-\${PBS_JOBID}.log
-mpirun $selavy -inputs \${cduchampParset} > \${output}
+mpirun $selavy -c \${cduchampParset} > \${output}
 
 exit \$?
 
@@ -234,7 +234,7 @@ createFITS.minMinorAxis     = 0.000100
 EOF_INNER
 
 output=${logdirSM}/modelcomp-\${PBS_JOBID}.log
-mpirun \$createFITS -inputs \${modelcompParset} > \${output}
+mpirun \$createFITS -c \${modelcompParset} > \${output}
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$?

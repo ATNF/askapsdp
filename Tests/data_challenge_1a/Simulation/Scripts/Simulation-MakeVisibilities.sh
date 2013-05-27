@@ -135,7 +135,7 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       ${calibparset}
 EOF_INNER
 
-mpirun \${csim} -inputs \${mkVisParset} > \${mkVisLog}
+mpirun \${csim} -c \${mkVisParset} > \${mkVisLog}
 err=\$?
 exit \$err
 

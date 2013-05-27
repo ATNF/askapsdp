@@ -131,7 +131,7 @@ EOF_INNER
 
 crLog=${logdirCR}/createModel-\${PBS_JOBID}.log
 
-mpirun \$createFITS -inputs \$parset > \$crLog
+mpirun \$createFITS -c \$parset > \$crLog
 
 EOF
 
