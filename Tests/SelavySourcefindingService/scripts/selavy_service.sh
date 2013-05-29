@@ -55,7 +55,7 @@ if [ $DISKSIZE -ge 99 ]; then
     /usr/sbin/sendmail $FROM_EMAIL <<EOF
 To: $MANAGER_EMAIL
 From: $FROM_EMAIL
-Subject: Selavy Service - DISK FULL!
+Subject: [Selavy] Selavy Service - DISK FULL!
 The disk hosting the Selavy Source-finding Service is essentially full:
 
 > df -h ${DUCHAMP_SVC_BASE}
@@ -79,7 +79,7 @@ if [ ! -e ${IMAGE_DIR} ]; then
     /usr/sbin/sendmail $FROM_EMAIL <<EOF
 To: $MANAGER_EMAIL
 From: $FROM_EMAIL
-Subject: Selavy Service - IMAGE DIRECTORY INACCESSIBLE!
+Subject: [Selavy] Selavy Service - IMAGE DIRECTORY INACCESSIBLE!
 The image directory ${IMAGE_DIR} is not accessible.
 
 The service has been stopped - do something to fix this!
@@ -110,7 +110,7 @@ if [ $numpingerrs -gt 0 ]; then
     /usr/sbin/sendmail $FROM_EMAIL <<EOF
 To: $MANAGER_EMAIL
 From: $FROM_EMAIL
-Subject: Selavy Service - COMPUTE NODES OFFLINE!
+Subject: [Selavy] Selavy Service - COMPUTE NODES OFFLINE!
 At least one of the minicp compute nodes - ${badnode} - is not accessible.
 
 The service has been stopped - do something to fix this!
