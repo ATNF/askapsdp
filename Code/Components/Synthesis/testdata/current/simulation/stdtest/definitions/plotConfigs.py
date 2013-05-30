@@ -21,13 +21,18 @@ yav=y.mean()
 
 fig = plt.figure(1, figsize=(11.7,11.7), dpi=72)
 
+#offset=20
+#textsize='xx-small'
+offset=0
+textsize='medium'
+
 plt.plot(x-xav,y-yav,'.')
 plt.xlim(-3500,3500)
 plt.ylim(-3500,3500)
 #plt.text(x-xav+20,y-yav+20,pads)
 for i in range(1,37):
 #    plt.text(x[i-1]-xav,y[i-1]-yav,'%s'%i)
-    plt.text(x[i-1]-xav+20,y[i-1]-yav+20,'%s'%i,size='xx-small')
+    plt.text(x[i-1]-xav+offset,y[i-1]-yav+offset,'%s'%i,size=textsize)
 
 # plot BETA antennas in red
 for i in [0,2,5,7,8,14]:
