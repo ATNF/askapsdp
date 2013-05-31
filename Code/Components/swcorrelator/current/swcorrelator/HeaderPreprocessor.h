@@ -33,7 +33,7 @@
 #define ASKAP_SWCORRELATOR_HEADER_PREPROCESSOR
 
 // own includes
-#include <swcorrelator/IndexConverter.h>
+#include <askap/IndexConverter.h>
 #include <swcorrelator/BufferHeader.h>
 
 // boost includes
@@ -68,11 +68,11 @@ public:
   
 private:
   /// @brief antenna index converter
-  boost::shared_ptr<IndexConverter> itsAntIDConverter;
+  boost::shared_ptr<utility::IndexConverter> itsAntIDConverter;
   /// @brief beam index converter
-  boost::shared_ptr<IndexConverter> itsBeamIDConverter;
+  boost::shared_ptr<utility::IndexConverter> itsBeamIDConverter;
   /// @brief freq index converter
-  boost::shared_ptr<IndexConverter> itsFreqIDConverter;  
+  boost::shared_ptr<utility::IndexConverter> itsFreqIDConverter;  
   /// @brief if true beams become antennas and antennas become beams
   /// @details If done, swap happens early on before any index conversion takes place
   bool itsSwapBeamAndAnt;

@@ -26,17 +26,17 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef ASKAP_SWCORRELATOR_INDEX_CONVERTER_TEST_H
-#define ASKAP_SWCORRELATOR_INDEX_CONVERTER_TEST_H
+#ifndef ASKAP_UTILITY_INDEX_CONVERTER_TEST_H
+#define ASKAP_UTILITY_INDEX_CONVERTER_TEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
-#include <swcorrelator/IndexConverter.h>
+#include <askap/IndexConverter.h>
 
 #include <string>
 
 namespace askap {
 
-namespace swcorrelator {
+namespace utility {
 
 class IndexConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(IndexConverterTest);
@@ -85,9 +85,9 @@ public:
 
 };
 
-} // namespace swcorrelator
+} // namespace utility
 
 } // namespace askap
 
-#endif // #ifndef ASKAP_SWCORRELATOR_INDEX_CONVERTER_TEST_H
+#endif // #ifndef ASKAP_UTILITY_INDEX_CONVERTER_TEST_H
 

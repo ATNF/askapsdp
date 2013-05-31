@@ -54,21 +54,21 @@ HeaderPreprocessor::HeaderPreprocessor(const LOFAR::ParameterSet &parset) :
       const std::string antMap = parset.getString("antmap");
       if (antMap != "") {
           ASKAPLOG_INFO_STR(logger,  "Antenna IDs will be mapped according to <"<<antMap<<">");
-          itsAntIDConverter.reset(new IndexConverter(antMap));
+          itsAntIDConverter.reset(new utility::IndexConverter(antMap));
       }
   }
   if (parset.isDefined("beammap")) {
       const std::string beamMap = parset.getString("beammap");
       if (beamMap != "") {
           ASKAPLOG_INFO_STR(logger,  "Beam IDs will be mapped according to <"<<beamMap<<">");
-          itsBeamIDConverter.reset(new IndexConverter(beamMap));
+          itsBeamIDConverter.reset(new utility::IndexConverter(beamMap));
       }
   }
   if (parset.isDefined("freqmap")) {
       const std::string freqMap = parset.getString("freqmap");
       if (freqMap != "") {
           ASKAPLOG_INFO_STR(logger,  "Frequency IDs will be mapped according to <"<<freqMap<<">");
-          itsFreqIDConverter.reset(new IndexConverter(freqMap));
+          itsFreqIDConverter.reset(new utility::IndexConverter(freqMap));
       }
   }
 }   

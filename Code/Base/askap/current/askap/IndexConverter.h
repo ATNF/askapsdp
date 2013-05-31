@@ -32,16 +32,15 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef ASKAP_SWCORRELATOR_INDEX_CONVERTER
-#define ASKAP_SWCORRELATOR_INDEX_CONVERTER
+#ifndef ASKAP_UTILITY_INDEX_CONVERTER
+#define ASKAP_UTILITY_INDEX_CONVERTER
 
 #include <vector>
-#include <boost/utility.hpp>
-#include <boost/shared_ptr.hpp>
+#include <string>
 
 namespace askap {
 
-namespace swcorrelator {
+namespace utility {
 
 /// @brief Map antenna and/or beam indices into a continuous range
 /// @details During BETA3 experiments we plan to use antennas with
@@ -50,8 +49,7 @@ namespace swcorrelator {
 /// also one-based). This class simplifies mapping into a continuous 
 /// range of indices. Same functionality is likely to be required for
 /// beams. 
-/// @ingroup swcorrelator
-class IndexConverter : private boost::noncopyable {
+class IndexConverter  {
 public:
    /// @brief default index converter - no conversion
    IndexConverter();
@@ -85,11 +83,11 @@ private:
    std::vector<int> itsMap; 
 };
 
-} // namespace swcorrelator
+} // namespace utility
 
 } // namespace askap
 
 
-#endif // #ifndef ASKAP_SWCORRELATOR_INDEX_CONVERTER
+#endif // #ifndef ASKAP_UTILITY_INDEX_CONVERTER
 
 

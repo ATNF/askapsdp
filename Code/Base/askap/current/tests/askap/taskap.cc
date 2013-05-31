@@ -32,6 +32,7 @@
 #include <AskapUtilTest.h>
 #include <SignalManagerTest.h>
 #include <SignalCounterTest.h>
+#include <IndexConverterTest.h>
 
 
 const double askap::AskapUtilTest::dblTolerance;
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::AskapUtilTest::suite());
     runner.addTest(askap::SignalManagerTest::suite());
     runner.addTest(askap::SignalCounterTest::suite());
+    runner.addTest(askap::utility::IndexConverterTest::suite());
 
     bool wasSucessful = runner.run();
 

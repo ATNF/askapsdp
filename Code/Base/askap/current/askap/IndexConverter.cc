@@ -32,18 +32,18 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <swcorrelator/IndexConverter.h>
+#include <askap/IndexConverter.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
 namespace askap {
 
-namespace swcorrelator {
+namespace utility {
 
 /// @brief default index converter - no conversion
 IndexConverter::IndexConverter() 
 {
-  itsMap.reserve(30);
+  itsMap.reserve(36);
 }
    
 /// @brief setup conversion from a string
@@ -125,7 +125,7 @@ size_t IndexConverter::nRules() const
 }
 
 
-} // namespace swcorrelator
+} // namespace utility
 
 } // namespace askap
 

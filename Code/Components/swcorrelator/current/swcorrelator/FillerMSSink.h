@@ -37,7 +37,7 @@
 // own includes
 #include <swcorrelator/CorrProducts.h>
 #include <swcorrelator/ISink.h>
-#include <swcorrelator/IndexConverter.h>
+#include <askap/IndexConverter.h>
 
 // casa includes
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -251,7 +251,7 @@ private:
   int itsNumberOfBeams;    
 
   /// @brief index converter to translate beams into extra antennas
-  IndexConverter itsExtraAntennas;
+  utility::IndexConverter itsExtraAntennas;
 
   /// @brief id of the antenna, the beamformer of which gets the extra signals
   /// @note, it should be a non-negative number
