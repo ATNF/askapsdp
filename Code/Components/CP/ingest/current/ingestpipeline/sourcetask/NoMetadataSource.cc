@@ -73,7 +73,9 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsChannelManager(params),
         itsBaselineMap(config.bmap()),
         itsInterrupted(false),
-        itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1)
+        itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
+        itsMaxNBeams(params.getUint32("maxbeams",0)),
+        itsBeams2Receive(params.getUint32("beams2receive",0))
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
     const casa::MVEpoch dummyEpoch(56000.);
@@ -82,6 +84,23 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
                           casa::MEpoch::Ref(casa::MEpoch::UTC))();
     ASKAPCHECK(itsConfig.observation().scans().size() == 1,
                "NoMetadataSource supports only a single scan");
+
+    const std::string beamidmap = params.getString("beammap","");
+    if (beamidmap != "") {
+        ASKAPLOG_INFO_STR(logger, "Beam indices will be mapped according to <"<<beamidmap<<">");
+        itsBeamIDMap.add(beamidmap);
+    }
+    const casa::uInt nBeamsInConfig = itsConfig.antennas().at(0).feeds().nFeeds();
+    if (itsMaxNBeams == 0) {
+        itsMaxNBeams = nBeamsInConfig;
+    }
+    if (itsBeams2Receive == 0) {
+        itsBeams2Receive = nBeamsInConfig;
+    }
+    ASKAPLOG_INFO_STR(logger, "Number of beams: "<<nBeamsInConfig<<" (defined in configuration), "<<itsBeams2Receive<<" (to be received), "<<
+                      itsMaxNBeams<<" (to be written into MS)");
+    ASKAPDEBUGASSERT(itsMaxNBeams > 0);
+    ASKAPDEBUGASSERT(itsBeams2Receive > 0);
 
     // Setup a signal handler to catch SIGINT and SIGTERM
     itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
@@ -114,10 +133,9 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     const Scan scanInfo = itsConfig.observation().scans().at(0);
     const casa::uInt nAntenna = itsConfig.antennas().size();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nBeams = itsConfig.antennas().at(0).feeds().nFeeds();
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
                "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected = itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
+    const casa::uInt datagramsExpected = itsBaselineMap.size() * itsBeams2Receive * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -125,6 +143,8 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // In this case assume no more VisDatagrams for this integration will
     // be recieved and move on
     casa::uInt datagramCount = 0;
+
+    casa::uInt datagramsIgnored = 0;
 
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
         itsIOService.poll();
@@ -141,7 +161,9 @@ VisChunk::ShPtr NoMetadataSource::next(void)
         }
 
         datagramCount++;
-        addVis(chunk, *itsVis, nAntenna, nBeams);
+        if (addVis(chunk, *itsVis, nAntenna)) {
+            ++datagramsIgnored;
+        }
         itsVis = itsVisSrc->next(timeout);
 
         if (datagramCount == datagramsExpected) {
@@ -152,6 +174,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
                        " of expected " << datagramsExpected << " visibility datagrams");
+    ASKAPLOG_DEBUG_STR(logger, "     - ignored "<<datagramsIgnored<<" successfully received datagrams");
 
     // Submit monitoring data
     MonitorPoint<int32_t> packetsLost("PacketsLost");
@@ -166,10 +189,9 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(nAntenna > 0, "Must have at least one antenna defined");
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nBeams = itsConfig.antennas().at(0).feeds().nFeeds();
     const casa::uInt nPol = scanInfo.stokes().size();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
-    const casa::uInt nRow = nBaselines * nBeams;
+    const casa::uInt nRow = nBaselines * itsMaxNBeams;
     const casa::uInt period = scanInfo.interval(); // in microseconds
 
     VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
@@ -213,11 +235,11 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
 
     casa::uInt row = 0;
 
-    for (casa::uInt beam = 0; beam < nBeams; ++beam) {
+    for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
-                ASKAPCHECK(row <= nRow, "Row index (" << row <<
-                           ") should not exceed nRow (" << nRow << ")");
+                ASKAPCHECK(row < nRow, "Row index (" << row <<
+                           ") should be less than nRow (" << nRow << ")");
 
                 // TODO!!
                 // The handling of pointing directions below is not handled per beam.
@@ -250,8 +272,8 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     return chunk;
 }
 
-void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
-                              const casa::uInt nAntenna, const casa::uInt nBeams)
+bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
+                              const casa::uInt nAntenna)
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
@@ -259,13 +281,19 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
         itsBaselineMap.idToStokes(vis.baselineid) == -1) {
             ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
                     << " has no valid mapping to antenna pair and stokes");
-        return;
+        return true;
     }
 
     const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
     const casa::uInt antenna2 = itsBaselineMap.idToAntenna2(vis.baselineid);
-    ASKAPCHECK(vis.beamid > 0, "Expected one-based indexing for beam ID");
-    const casa::uInt beamid = vis.beamid - 1;
+    const casa::Int beamid = itsBeamIDMap(vis.beamid);
+    if (beamid < 0) {
+        // this beam ID is intentionally unmapped
+        return true;
+    }
+    ASKAPCHECK(beamid < static_cast<casa::Int>(itsMaxNBeams), 
+               "Received beam id vis.beamid="<<vis.beamid<<" mapped to beamid="<<beamid<<
+               " which is outside the beam index range, itsMaxNBeams="<<itsMaxNBeams);
 
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
@@ -283,14 +311,14 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     if (polidx < 0) {
         ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
                               << " is not configured for storage");
-        return;
+        return true;
     }
 
 
     // 2) Check the indexes in the VisDatagram are valid
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
-    ASKAPCHECK(beamid < nBeams, "Beam index " << beamid << " is invalid");
+    ASKAPCHECK(static_cast<casa::uInt>(beamid) < itsMaxNBeams, "Beam index " << beamid << " is invalid");
     ASKAPCHECK(polidx < 4, "Only 4 polarisation products are supported");
 
     // 3) Find the row for the given beam and baseline
@@ -298,12 +326,12 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     casa::uInt row = 0;
     casa::uInt idx = 0;
 
-    for (casa::uInt beam = 0; beam < nBeams; ++beam) {
+    for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
                 if (ant1 == antenna1 &&
                         ant2 == antenna2 &&
-                        beam == beamid) {
+                        beam == static_cast<casa::uInt>(beamid)) {
                     row = idx;
                     break;
                 }
@@ -316,8 +344,8 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     const std::string errorMsg = "Indexing failed to find row";
     ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
     ASKAPCHECK(chunk->antenna2()(row) == antenna2, errorMsg);
-    ASKAPCHECK(chunk->beam1()(row) == beamid, errorMsg);
-    ASKAPCHECK(chunk->beam2()(row) == beamid, errorMsg);
+    ASKAPCHECK(chunk->beam1()(row) == static_cast<casa::uInt>(beamid), errorMsg);
+    ASKAPCHECK(chunk->beam2()(row) == static_cast<casa::uInt>(beamid), errorMsg);
 
     // 4) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
@@ -342,6 +370,7 @@ void NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             }
         }
     }
+    return false;
 }
 
 void NoMetadataSource::signalHandler(const boost::system::error_code& error,
