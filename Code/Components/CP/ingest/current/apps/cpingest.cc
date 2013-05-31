@@ -82,16 +82,30 @@ class CpIngestApp : public askap::Application
     public:
         virtual int run(int argc, char* argv[])
         {
-            MPI_Init(&argc, &argv);
+            const bool standalone = parameterExists("standalone");
+            if (!standalone) {
+                MPI_Init(&argc, &argv);
+            }
 
             int error = 0;
             try {
-                // To aid in debugging, the logger needs to know the
-                // MPI rank and nodename
-                ASKAPLOG_REMOVECONTEXT("mpirank");
-                ASKAPLOG_PUTCONTEXT("mpirank", utility::toString(getRank()).c_str());
-                ASKAPLOG_REMOVECONTEXT("hostname");
-                ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
+                int rank = -1;
+                int numTasks = -1;
+                if (!standalone) {
+                    // MPI mode
+                    ASKAPLOG_REMOVECONTEXT("mpirank");
+                    ASKAPLOG_PUTCONTEXT("mpirank", utility::toString(getRank()).c_str());
+                    ASKAPLOG_REMOVECONTEXT("hostname");
+                    ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
+                    rank = getRank();
+                    numTasks = getNumTasks();
+                } else {
+                    // Standalone/Single-process mode
+                    rank = 0;
+                    numTasks = 1;
+                    ASKAPLOG_REMOVECONTEXT("mpirank");
+                    ASKAPLOG_PUTCONTEXT("mpirank", utility::toString(-1));
+                }
 
                 ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
                         << ASKAP_PACKAGE_VERSION);
@@ -99,7 +113,7 @@ class CpIngestApp : public askap::Application
                 StatReporter stats;
 
                 // Run the pipeline
-                IngestPipeline pipeline(config(), getRank(), getNumTasks());
+                IngestPipeline pipeline(config(), rank, numTasks);
                 pipeline.start();
 
                 stats.logSummary();
@@ -114,10 +128,12 @@ class CpIngestApp : public askap::Application
                 error = 1;
             }
 
-            if (error) {
-                MPI_Abort(MPI_COMM_WORLD, error);
-            } else {
-                MPI_Finalize();
+            if (!standalone) {
+                if (error) {
+                    MPI_Abort(MPI_COMM_WORLD, error);
+                } else {
+                    MPI_Finalize();
+                }
             }
 
             return error;
@@ -127,5 +143,6 @@ class CpIngestApp : public askap::Application
 int main(int argc, char *argv[])
 {
     CpIngestApp app;
+    app.addParameter("standalone", "s", "Run in standalone/single-process mode (no MPI)", false);
     return app.main(argc, argv);
 }
