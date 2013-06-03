@@ -71,6 +71,7 @@ parser.add_option('-p', '--preserve', dest='preserve',
                   action="store_true", default=False,
                   help='Keep pre-existing bootstrap files (though they maybe overwritten). Default is to remove.')
 
+networkx_path   = "Tools/networkx/networkx-1.5"
 rbuild_path     = "Tools/Dev/rbuild"
 templates_path  = "Tools/Dev/templates"
 testutils_path  = "Tools/Dev/testutils"
@@ -103,6 +104,13 @@ if os.path.exists(virtualenv_path):
     os.system("cd %s && %s bootstrap.py" % (virtualenv_path, python_exe))
 else:
     print ">>> %s does not exist." % os.path.abspath(virtualenv_path)
+    sys.exit()
+
+if os.path.exists(networkx_path):
+    print ">>> Attempting to bootstrap networkx python module needed by rbuild."
+    os.system("cd %s && %s bootstrap.py" % (networkx_path, python_exe))
+else:
+    print ">>> %s does not exist." % os.path.abspath(networkx_path)
     sys.exit()
 
 print ">>> Attempting to create initaskap.sh."
