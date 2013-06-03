@@ -92,7 +92,14 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
     }
     const casa::uInt nBeamsInConfig = itsConfig.antennas().at(0).feeds().nFeeds();
     if (itsMaxNBeams == 0) {
-        itsMaxNBeams = nBeamsInConfig;
+        for (int beam = 0; beam < static_cast<int>(nBeamsInConfig) + 1; ++beam) {
+             const int processedBeamIndex = itsBeamIDMap(beam);
+             if (processedBeamIndex > static_cast<int>(itsMaxNBeams)) {
+                 // negative values are automatically excluded by this condition
+                 itsMaxNBeams = static_cast<casa::uInt>(processedBeamIndex);
+             }
+        }
+        ++itsMaxNBeams;
     }
     if (itsBeams2Receive == 0) {
         itsBeams2Receive = nBeamsInConfig;
