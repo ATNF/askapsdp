@@ -27,8 +27,9 @@
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
 #include <modelcomponents/Ellipse.h>
+#include <iostream>
 #include <math.h>
-
+#include <algorithm>
 
 namespace askap {
 
@@ -41,10 +42,11 @@ namespace askap {
 	}
 
 	Ellipse::Ellipse(double x0, double y0, double maj, double min, double pa): 
-	    itsX0(x0),itsY0(y0),itsMaj(maj),itsMin(min),itsAngle(pa+M_PI/2.) 
+	    itsX0(x0),itsY0(y0),itsMaj(std::max(maj,min)),itsMin(std::min(maj,min)),itsAngle(pa+M_PI/2.) 
 	{
 	    this->initialise();
 	}
+
 
 	void Ellipse::initialise()
 	{	 
@@ -78,6 +80,12 @@ namespace askap {
 	    this->itsMinSin =  other.itsMinSin; 
 	    this->itsArea =    other.itsArea;   
 	    return *this;
+	}
+
+	std::ostream& operator<<(std::ostream &theStream, Ellipse &ell)
+	{
+	    theStream << "[ ("<<ell.itsX0<<","<<ell.itsY0<<"), "<<ell.itsMaj<<"x"<<ell.itsMin<<", "<<(ell.itsAngle-M_PI/2)*180./M_PI << " ]";
+	    return theStream;
 	}
 
 

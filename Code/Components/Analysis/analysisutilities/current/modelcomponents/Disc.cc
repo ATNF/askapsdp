@@ -97,11 +97,21 @@ namespace askap {
 	    bool pixIsValid = (x>=this->xmin() && x<=this->xmax() && y>=this->ymin() && y<=this->ymax());
 
 	    if(pixIsValid){
-		size_t dimx=this->xmax()-this->xmin()+1;
-		size_t pix=(x-this->xmin()) + dimx * (y-this->ymin());
-		return this->itsPixelSet[pix].flux();
+		if(this->itsPixelSet.size()==1) return 1.;
+		else{
+		    size_t dimx=this->xmax()-this->xmin()+1;
+		    size_t pix=(x-this->xmin()) + dimx * (y-this->ymin());
+		    return this->itsPixelSet[pix].flux() / this->itsEllipse.area();
+		}
 	    }
 	    else return 0.;
+	}
+
+	
+	std::ostream &operator<<(std::ostream &theStream, Disc &disc)
+	{
+	    theStream << disc.itsEllipse;
+	    return theStream;
 	}
 
 

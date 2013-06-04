@@ -57,7 +57,7 @@ namespace askap {
 	    double x0,y0,maj,min,pa;
 	    int xmin, xmax, ymin, ymax;
 	    int xOut,yOut,xIn,yIn,xEdge,yEdge;
-	    double fluxOut,fluxIn,fluxEdge;
+	    double fluxOut,fluxIn,fluxEdge,area;
 
 	public:
 
@@ -78,7 +78,8 @@ namespace askap {
 		xOut=3; yOut=2; fluxOut=0.;
 		xIn=5; yIn=5; fluxIn=1.;
 		xEdge=5; yEdge=3; fluxEdge=0.79102;
-
+		
+		area=M_PI*maj*min;
 
 	    }
 
@@ -93,9 +94,9 @@ namespace askap {
 	    }
 
 	    void testFluxes(){
-		CPPUNIT_ASSERT(fabs(itsDisc.flux(xOut,yOut)-fluxOut)<1.e-5);
-		CPPUNIT_ASSERT(fabs(itsDisc.flux(xIn,yIn)-fluxIn)<1.e-5);
-		CPPUNIT_ASSERT(fabs(itsDisc.flux(xEdge,yEdge)-fluxEdge)<1.e-5);
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xOut,yOut)-fluxOut/area)<1.e-5);
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xIn,yIn)-fluxIn/area)<1.e-5);
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xEdge,yEdge)-fluxEdge/area)<1.e-5);
 
 	    }
 

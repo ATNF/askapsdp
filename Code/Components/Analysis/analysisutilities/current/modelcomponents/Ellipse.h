@@ -28,6 +28,7 @@
 ///
 #ifndef ASKAP_ANALYSIS_ELLIPSE_H_
 #define ASKAP_ANALYSIS_ELLIPSE_H_
+#include <iostream>
 #include <math.h>
 
 namespace askap {
@@ -50,6 +51,10 @@ namespace askap {
 	    virtual double nonRotY(double x, double y){return -(x-itsX0)*itsSin+(y-itsY0)*itsCos;};
 	    virtual bool isIn(double x, double y){return ( nonRotX(x,y)*nonRotX(x,y)/(itsMaj*itsMaj) + nonRotY(x,y)*nonRotY(x,y)/(itsMin*itsMin)) < 1.;};
 	    virtual double area(){return itsArea;};
+	    virtual bool is2D(){return itsMin>0.;};
+
+	    friend std::ostream& operator<<(std::ostream &theStream, Ellipse &ell);
+
 
 	protected:
 	    double itsX0;

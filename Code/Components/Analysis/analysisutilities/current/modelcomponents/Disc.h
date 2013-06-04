@@ -58,6 +58,9 @@ namespace askap {
 
 	    double flux(int x, int y);
 
+	    Ellipse &ellipse(){return itsEllipse;};
+	    friend std::ostream& operator<<(std::ostream &theStream, Disc &disc);
+
 	protected:
 	    DiscEllipse itsEllipse;
 	    std::vector<DiscPixel> itsPixelSet;
