@@ -86,8 +86,8 @@ namespace askap {
 	    }
 
 	    int dimx=this->itsXmax-this->itsXmin+1;
-	    int oldx,oldy;
-	    size_t oldpos;
+	    int oldx=0,oldy=0;
+	    size_t oldpos=0;
 	    double tstep=2.*M_PI/double(numberOfSteps);
 	    for(unsigned int i=0;i<numberOfSteps;i++) {
 		double t=i*tstep;
