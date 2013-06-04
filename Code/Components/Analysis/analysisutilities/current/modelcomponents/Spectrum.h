@@ -36,6 +36,9 @@ namespace askap {
 
     namespace analysisutilities {
 
+	/// @brief Type of component - point source, Gaussian, or disc (uniform surface brightness out to an elliptical border)
+	enum ComponentType {POINT, GAUSSIAN, DISC};
+
         /// @brief Base class to hold information on a spectral profile.
         /// @details This class holds information on a profile that
         /// changes with spectral coordinate. This is the base class, that holds
@@ -54,6 +57,9 @@ namespace askap {
 
 		/// @brief Define using a line of input from an ascii file
 		virtual void define(const std::string &line);
+
+		/// @brief Return the component type
+		virtual ComponentType type() {if(itsMaj > 0.) return GAUSSIAN; else return POINT;};
 
 		/// @brief Return the ID
 		std::string id() {return itsID;};

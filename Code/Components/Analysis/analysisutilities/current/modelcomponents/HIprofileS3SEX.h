@@ -84,7 +84,7 @@ namespace askap {
 		void prepareForUse(long num1, long num2);
 
                 /// @brief What source type is this?
-                GALTYPE type() {return itsSourceType;};
+                GALTYPE galtype() {return itsSourceType;};
 
                 /// @brief Return the flux at a given frequency
                 double flux(double nu, int istokes=0);

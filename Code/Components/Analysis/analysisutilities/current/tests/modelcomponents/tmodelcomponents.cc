@@ -36,6 +36,7 @@
 #include <ContinuumNVSSTests.h>
 #include <ContinuumS3SEXTests.h>
 #include <FullStokesContinuumTests.h>
+#include <EllipseTests.h>
 
 int main(int argc, char *argv[])
 {
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::analysisutilities::ContinuumNVSSTest::suite());
     runner.addTest(askap::analysisutilities::ContinuumS3SEXTest::suite());
     runner.addTest(askap::analysisutilities::FullStokesContinuumTest::suite());
+    runner.addTest(askap::analysisutilities::EllipseTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

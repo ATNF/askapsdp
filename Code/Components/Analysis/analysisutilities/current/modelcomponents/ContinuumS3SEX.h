@@ -78,6 +78,9 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		void define(const std::string &line);
 
+		/// @brief Return the component type. Discs for structure=lobe(2) or SF disc (4). Point source for structure=core(1) or hotspot(3)
+		virtual ComponentType type() {if(itsStructure==2 || itsStructure==4) return DISC; else return POINT;};
+
 		/// @brief Set the type of SED to apply
 		void setSEDtype(SEDTYPE type){itsSEDtype=type;};
 		void defaultSEDtype(){itsSEDtype = FIT;};
