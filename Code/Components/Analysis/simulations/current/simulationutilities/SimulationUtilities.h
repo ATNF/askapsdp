@@ -30,6 +30,7 @@
 #define ASKAP_SIMS_SIMUTIL_H_
 
 #include <simulationutilities/FluxGenerator.h>
+#include <modelcomponents/Disc.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -68,11 +69,14 @@ namespace askap {
         /// @brief Add a 1D Gaussian (in the case of a thin 2D component) to an array of fluxes
         void add1DGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen, bool verbose);
 
+	bool addDisc(float *array, std::vector<unsigned int> axes, Disc &disc, FluxGenerator &fluxGen, bool verbose);
+
         /// @brief Add a single point source to an array of fluxes.
         bool addPointSource(float *array, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen, bool verbose);
 
         bool doAddGaussian(std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss);
         bool doAddPointSource(std::vector<unsigned int> axes, double *pix);
+	bool doAddDisc(std::vector<unsigned int> axes, Disc &disc);
 
     }
 

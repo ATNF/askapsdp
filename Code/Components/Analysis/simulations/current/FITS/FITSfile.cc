@@ -569,6 +569,7 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
 
 	  casa::Gaussian2D<casa::Double> gauss;
+	  analysisutilities::Disc disc;
 	  const double arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
 
 	  if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
@@ -584,7 +585,7 @@ namespace askap {
 		countLines++;
 		
 	      src = this->itsModelFactory.read(line);
-	      //	      ASKAPLOG_DEBUG_STR(logger, "Read source " << src->ra() << " " << src->dec() << " " << src->fluxZero() << " " << src->maj() << " " << src->min() << " " << src->pa());
+//	      ASKAPLOG_DEBUG_STR(logger, "Read source ID=" << src->id()<<": " << src->ra() << " " << src->dec() << " " << src->fluxZero() << " " << src->maj() << " " << src->min() << " " << src->pa());
 
 // 	      src->prepareForUse();
 
@@ -629,7 +630,10 @@ namespace askap {
 
 	      bool lookAtSource = (this->itsArrayAllocated && this->itsAddSources) || this->itsDryRun;
 
-	      if(src->maj() > 0) {
+	      ComponentType sourceType = src->type();
+
+//	      if(src->maj() > 0) {
+	      if(sourceType == GAUSSIAN){
 
 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
@@ -653,8 +657,18 @@ namespace askap {
 
 		  lookAtSource = lookAtSource && doAddGaussian(this->itsAxes, gauss);
 	      }
-	      else{
+//	      else{
+	      else if(sourceType == POINT){
 		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
+	      }
+	      else if(sourceType == DISC){
+		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
+// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
+		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  disc.setup(pix[0],pix[1],src->maj(),src->min(),casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+		  lookAtSource = lookAtSource && doAddDisc(this->itsAxes, disc);
 	      }
 
 	      lookAtSource = lookAtSource && src->freqRangeOK(this->minFreq(),this->maxFreq());
@@ -686,7 +700,8 @@ namespace askap {
 
 		  bool addedSource=false;
 		  if(this->itsFlagVerboseSources) ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
-		  if (src->maj() > 0) {
+		  // if (src->maj() > 0) {
+		  if(sourceType == GAUSSIAN){
 
 		    if (!this->itsDryRun){
 			addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians, this->itsFlagVerboseSources);
@@ -701,7 +716,8 @@ namespace askap {
 		      }
 		      else countMiss++;
 		    }
-		  } else {
+		  // } else {
+		  } else if(sourceType == POINT) {
 		    if (!this->itsDryRun){
 			addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen,this->itsFlagVerboseSources);
 		    }
@@ -716,6 +732,22 @@ namespace askap {
 		      else countMiss++;
 		    }
 		  }
+		  else if(sourceType==DISC) {
+		      if( !this->itsDryRun){
+			  addedSource=addDisc(this->itsArray, this->itsAxes, disc, fluxGen,this->itsFlagVerboseSources);
+		      }
+		      else{
+			  addedSource=doAddDisc(this->itsAxes, disc);
+			  if ( addedSource ){
+			      countPoint++;
+			      if( this->itsDatabaseOrigin == "POSSUM") 
+				  if(this->itsFlagVerboseSources)
+				      ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+			  }
+			  else countMiss++;
+		      }
+		  }
+
 		  if(addedSource){
 		    if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
 		      if (this->itsPosType == "dms") 
@@ -783,6 +815,17 @@ namespace askap {
 	  // for(int i=0;i<smoother.getKernelWidth()*smoother.getKernelWidth();i++)
 	  //   std::cerr << i << " " << i%smoother.getKernelWidth() << " " << i/smoother.getKernelWidth() << "    " << smoother.getKernel()[i] << "\n";
 	  ASKAPLOG_DEBUG_STR(logger, "Smoothing kernel width = " << smoother.getKernelWidth() << ", stddev scale = " << smoother.getStddevScale());
+
+	  float scaleFactor = 1.;
+	  // size_t width=smoother.getKernelWidth();
+	  // size_t hw=width/2;
+	  // if(this->itsBunit.getName()=="Jy/beam") scaleFactor = smoother.getKernel()[hw*width+hw]; // scale by the peak of the beam
+	  // ASKAPLOG_DEBUG_STR(logger, "Kernel has width " << width << " and central position ("<<hw*width+hw<<") has value " << smoother.getKernel()[hw*width+hw] << " which means for bunit="<<this->itsBunit.getName()<<" we have a scaleFactor of " << scaleFactor);
+	  if(this->itsBunit.getName()=="Jy/beam"){
+	      duchamp::Beam beam(maj,min,pa);
+	      scaleFactor = 1./beam.area();
+	      ASKAPLOG_DEBUG_STR(logger, "Since bunit="<<this->itsBunit.getName() << " we scale by the area of the beam, which is " << scaleFactor);
+	  }
 	  
 	  ASKAPASSERT(this->itsDim<=4);
 	  size_t xySize = this->itsAxes[0]*this->itsAxes[1];
@@ -793,8 +836,10 @@ namespace askap {
 	    for(int j=0;j<stokesdim;j++){
 	      	for(size_t pix=0;pix<xySize;pix++) image[pix] = this->itsArray[z*xySize+pix+j*specdim*xySize];
 		float *newArray = smoother.smooth(image, this->itsAxes[0], this->itsAxes[1],SCALEBYCOVERAGE);
+
+		//float *newArray = smoother.smooth(image, this->itsAxes[0], this->itsAxes[1],EQUALTOEDGE);
 		// ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
-		for (size_t pix=0;pix<xySize;pix++) this->itsArray[z*xySize+pix+j*specdim*xySize] = newArray[pix];
+		for (size_t pix=0;pix<xySize;pix++) this->itsArray[z*xySize+pix+j*specdim*xySize] = newArray[pix]/scaleFactor;
 		delete [] newArray;
 	    }
 	  }

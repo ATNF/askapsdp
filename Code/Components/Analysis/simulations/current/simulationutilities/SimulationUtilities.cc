@@ -231,6 +231,18 @@ namespace askap {
             return (xpix >= 0 && xpix < int(axes[0]) && ypix >= 0 && ypix < int(axes[1]));
         }
 
+	bool doAddDisc(std::vector<unsigned int> axes, Disc &disc)
+	{
+	    // ranges of pixels that will have flux added to them
+	    int xmin = std::max(disc.xmin(), 0);
+	    int xmax = std::min(disc.xmax(), int(axes[0]-1));
+	    int ymin = std::max(disc.ymin(), 0);
+	    int ymax = std::min(disc.ymax(), int(axes[1]-1));
+
+	    return (xmax >= xmin) && (ymax >= ymin);
+
+	}
+
 
       void findEllipseLimits(double major, double minor, double pa, float &xmin, float &xmax, float &ymin, float &ymax)
       {
@@ -579,7 +591,43 @@ namespace askap {
 
         }
 
-    
+	bool addDisc(float *array, std::vector<unsigned int> axes, Disc &disc, FluxGenerator &fluxGen, bool verbose)
+	{
+	    
+	    // ranges of pixels that will have flux added to them
+	    int xmin = std::max(disc.xmin(), 0);
+	    int xmax = std::min(disc.xmax(), int(axes[0]-1));
+	    int ymin = std::max(disc.ymin(), 0);
+	    int ymax = std::min(disc.ymax(), int(axes[1]-1));
+
+	    bool addSource  = (xmax >= xmin) && (ymax >= ymin);
+	    if (addSource) {  // if there are object pixels falling within the image boundaries
+
+		if(verbose)
+		    ASKAPLOG_DEBUG_STR(logger, "Adding Disc " << disc <<  " with x=[" << xmin<<","<<xmax<<"] & y=[" << ymin << ","<< ymax << "] and flux0=" << fluxGen.getFlux(0) << " to  axes = [" << axes[0] << "," << axes[1] << "]");
+
+		
+		for(int y=ymin; y<=ymax; y++){
+		    for(int x=xmin; x<=xmax; x++) {
+
+
+			double discFlux = disc.flux(x,y);
+
+			for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
+			    for (int z = 0 ; z < fluxGen.nChan(); z++) {
+				size_t loc=x + axes[0] * y + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
+				array[loc] += discFlux * fluxGen.getFlux(z,istokes);
+			    }
+			}
+
+		    }
+		}
+
+	    }
+
+	    return addSource;
+
+	}
 
 
     }
