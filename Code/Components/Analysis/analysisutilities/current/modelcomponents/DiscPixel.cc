@@ -28,6 +28,11 @@
 ///
 #include <modelcomponents/DiscPixel.h>
 #include <modelcomponents/Ellipse.h>
+#include <vector>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+ASKAP_LOGGER(logger, ".discpixel");
 
 namespace askap {
 
@@ -56,6 +61,7 @@ namespace askap {
 	    this->itsEllipse = other.itsEllipse;
 	    this->itsResolutionLimit = other.itsResolutionLimit;
 	    this->itsIsEdge = other.itsIsEdge;
+	    this->itsDecimationFactor = other.itsDecimationFactor;
 	    return *this;    
 	}
 
@@ -72,6 +78,7 @@ namespace askap {
 		outlist[i].itsTmin=-1.;
 		outlist[i].itsTmax=-1.;
 	    }
+	    // ASKAPLOG_DEBUG_STR(logger, "Returning decimated sublist of length " << outlist.size() << "   (should be " << num<<")");
 	    return outlist;
 	}
 
@@ -93,6 +100,7 @@ namespace askap {
 		}
 		else {
 		    std::vector<DiscPixel> subpixels = this->processedSublist();
+		    // ASKAPLOG_DEBUG_STR(logger, "Got list of subpixels of length " << subpixels.size());
 		    double flux=0;
 		    for(size_t i=0;i<subpixels.size();i++) flux += subpixels[i].flux();
 		    return flux;
@@ -122,7 +130,9 @@ namespace askap {
 		    int xloc= lround((x-xmin-pixstep/2.)/pixstep);
 		    int yloc= lround((y-ymin-pixstep/2.)/pixstep);
 		    oldpos=(oldx) + (oldy)*this->itsDecimationFactor;
+		    ASKAPASSERT(oldpos<subpixels.size());
 		    size_t newpos=(xloc) + (yloc)*this->itsDecimationFactor;
+		    ASKAPASSERT(newpos<subpixels.size());
 		    if(xloc!=oldx || yloc!=oldy || t==this->itsTmin){
 			if(t>this->itsTmin) subpixels[oldpos].addTmax(t);
 			oldx=xloc;
