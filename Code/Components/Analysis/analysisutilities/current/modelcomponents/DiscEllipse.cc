@@ -36,6 +36,11 @@ namespace askap {
 
     namespace analysisutilities {
 
+	DiscEllipse::DiscEllipse():
+	    Ellipse()
+	{
+	}
+
 	DiscEllipse::DiscEllipse(double x0, double y0, double maj, double min, double pa): 
 	    Ellipse(x0,y0,maj,min,pa)
 	{

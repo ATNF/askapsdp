@@ -40,6 +40,7 @@ namespace askap {
 	class DiscEllipse : public Ellipse
 	{
 	public:
+	    DiscEllipse();
 	    DiscEllipse(double x0, double y0, double maj, double min, double pa);
 	    DiscEllipse(const DiscEllipse& other);
 	    DiscEllipse& operator= (const DiscEllipse& other);

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Unit tests for Ellipse class
+/// Unit tests for DiscEllipse class
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,6 +33,8 @@
 #include <askap/AskapError.h>
 
 #include <modelcomponents/Ellipse.h>
+#include <modelcomponents/DiscEllipse.h>
+#include <modelcomponents/DiscPixel.h>
 
 #include <iostream>
 #include <sstream>
@@ -41,18 +43,17 @@ namespace askap {
 
     namespace analysisutilities {
     
- 	class EllipseTest : public CppUnit::TestFixture {
-	    CPPUNIT_TEST_SUITE(EllipseTest);
-	    CPPUNIT_TEST(testArea);
-	    CPPUNIT_TEST(testIsIn);
-	    CPPUNIT_TEST(testCoords);
+ 
+	class DiscEllipseTest : public CppUnit::TestFixture {
+	    CPPUNIT_TEST_SUITE(DiscEllipseTest);
+	    CPPUNIT_TEST(testBoundingSet);
 	    CPPUNIT_TEST_SUITE_END();
 	
 	private:
 	    // members
-	    Ellipse itsEllipse;
+	    DiscEllipse itsEllipse;
 	    double x0,y0,maj,min,pa;
-	    double area, parametricx_t0,parametricy_t0, parametricx_t90,parametricy_t90;
+	    int xmin, xmax, ymin, ymax;
 
 	public:
 
@@ -63,41 +64,32 @@ namespace askap {
 		min=2.5;
 		pa=M_PI/6.;
 
-		itsEllipse=Ellipse(x0,y0,maj,min,pa);
+		itsEllipse=DiscEllipse(x0,y0,maj,min,pa);
 
-		area=M_PI*maj*min;
-		parametricx_t0= x0 + maj*cos(pa+M_PI/2.);
-		parametricy_t0= y0 + maj*sin(pa+M_PI/2.);
-		parametricx_t90= x0 - min*sin(pa+M_PI/2.);
-		parametricy_t90= y0 + min*cos(pa+M_PI/2.);
-		
+		xmin=1;
+		xmax=9;
+		ymin=2;
+		ymax=10;
+
 	    }
-	
+
 	    void tearDown(){
 	    }
 
-	    void testArea(){
-		CPPUNIT_ASSERT(fabs(itsEllipse.area()-area)<1.e-6);
+	    void testBoundingSet(){
+		std::vector<DiscPixel> boundingset=itsEllipse.boundingSet(1000);
+		int count=0;
+		for(int y=ymin;y<=ymax;y++){
+		    for(int x=xmin;x<=xmax;x++){
+			CPPUNIT_ASSERT(boundingset[count].x()==x);
+			CPPUNIT_ASSERT(boundingset[count].y()==y);
+			count++;
+		    }
+		}
 	    }
 
-	    void testIsIn(){
-		CPPUNIT_ASSERT(itsEllipse.isIn(3.5,6.5));
-		CPPUNIT_ASSERT(!itsEllipse.isIn(1.5,6.5));
-	    }
-
-	    void testCoords(){
-		CPPUNIT_ASSERT(fabs(itsEllipse.parametricX(0.)-parametricx_t0)<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.parametricY(0.)-parametricy_t0)<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotX(parametricx_t0,parametricy_t0)-maj)<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotY(parametricx_t0,parametricy_t0))<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.parametricX(M_PI/2.)-parametricx_t90)<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.parametricY(M_PI/2.)-parametricy_t90)<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotX(parametricx_t90,parametricy_t90))<1.e-6);
-		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotY(parametricx_t90,parametricy_t90)-min)<1.e-6);
-	    }
-
-	    };
-
-	}
+	};
 
     }
+
+}
