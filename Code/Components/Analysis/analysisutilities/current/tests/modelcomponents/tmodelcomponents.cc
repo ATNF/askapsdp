@@ -39,6 +39,7 @@
 #include <EllipseTests.h>
 #include <DiscEllipseTests.h>
 #include <DiscPixelTests.h>
+#include <DiscTests.h>
 
 int main(int argc, char *argv[])
 {
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::analysisutilities::EllipseTest::suite());
     runner.addTest(askap::analysisutilities::DiscEllipseTest::suite());
     runner.addTest(askap::analysisutilities::DiscPixelTest::suite());
+    runner.addTest(askap::analysisutilities::DiscTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

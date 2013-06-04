@@ -122,7 +122,7 @@ namespace askap {
 	    double pixstep=subpixels[0].itsWidth;
 	    int oldx=0,oldy=0;
 	    size_t oldpos=0;
-	    double tstep=(this->itsTmax-this->itsTmin)/tScaleFactor;
+	    double tstep=(this->itsTmax-this->itsTmin)/defaultTresolution;
 	    for(double t=this->itsTmin; t<this->itsTmax; t += tstep){ 
 		double x=this->itsEllipse->parametricX(t);
 		double y=this->itsEllipse->parametricY(t);

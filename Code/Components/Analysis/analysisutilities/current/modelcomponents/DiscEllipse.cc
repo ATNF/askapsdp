@@ -31,6 +31,9 @@
 #include <modelcomponents/DiscPixel.h>
 #include <math.h>
 
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+ASKAP_LOGGER(logger, ".discellipse");
 
 namespace askap {
 
@@ -56,6 +59,10 @@ namespace askap {
 	{
 	    if(this == &other) return *this;
             ((Ellipse &) *this) = other;
+	    this->itsXmin = other.itsXmin;
+	    this->itsXmax = other.itsXmax;
+	    this->itsYmin = other.itsYmin;
+	    this->itsYmax = other.itsYmax;
 	    return *this;
 	}
 
@@ -63,8 +70,13 @@ namespace askap {
 	std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
 	{
 	    std::vector<DiscPixel> pixlist;
-	    for(int y=lround(this->itsY0-this->itsMaj); y<=lround(this->itsY0+this->itsMaj); y++){ 
-		for(int x=lround(this->itsX0-this->itsMaj); x<=lround(this->itsX0+this->itsMaj); x++){ 
+	    this->itsXmin = lround(this->itsX0-this->itsMaj);
+	    this->itsXmax = lround(this->itsX0+this->itsMaj);
+	    this->itsYmin = lround(this->itsY0-this->itsMaj);
+	    this->itsYmax = lround(this->itsY0+this->itsMaj);
+
+	    for(int y=this->itsYmin; y<=this->itsYmax; y++){ 
+		for(int x=this->itsXmin; x<=this->itsXmax; x++){ 
 
 		    DiscPixel pix(x,y);
 		    pix.setEllipse(this);
@@ -75,21 +87,23 @@ namespace askap {
 
 	    int xmin=lround(this->itsX0-this->itsMaj),ymin=lround(this->itsY0-this->itsMaj);
 	    int xmax=lround(this->itsX0+this->itsMaj),ymax=lround(this->itsY0+this->itsMaj);
-	    int dim=xmax-xmin+1,oldx,oldy;
+	    int dimx=xmax-xmin+1,oldx,oldy;
+	    int dimy=ymax-ymin+1;
+	    ASKAPASSERT(dimy==dimx);
 	    double tstep=2.*M_PI/double(numberOfSteps);
 	    for(unsigned int i=0;i<numberOfSteps;i++) {
 		double t=i*tstep;
 		int xloc = lround(this->parametricX(t));
 		int yloc = lround(this->parametricY(t));
 		if(xloc!=oldx || yloc!=oldy || i==0){
-		    if(i>0) pixlist[(oldx-xmin)+(oldy-ymin)*dim].addTmax(t);
+		    if(i>0) pixlist[(oldx-xmin)+(oldy-ymin)*dimx].addTmax(t);
 		    oldx=xloc;
 		    oldy=yloc;
-		    pixlist[(xloc-xmin)+(yloc-ymin)*dim].addTmin(t-tstep);
+		    pixlist[(xloc-xmin)+(yloc-ymin)*dimx].addTmin(t-tstep);
 		}
-		pixlist[(xloc-xmin)+(yloc-ymin)*dim].setIsEdge(true);
+		pixlist[(xloc-xmin)+(yloc-ymin)*dimx].setIsEdge(true);
 	    }
-	    pixlist[(oldx-xmin)+(oldy-ymin)*dim].addTmax(2*M_PI);
+	    pixlist[(oldx-xmin)+(oldy-ymin)*dimx].addTmax(2*M_PI);
 
 	    return pixlist;
 	}

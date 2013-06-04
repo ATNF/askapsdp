@@ -36,7 +36,7 @@ namespace askap {
     namespace analysisutilities {
 
 	const double defaultResolution = 1.e-3;
-	const double tScaleFactor = 1000.;
+	const double defaultTresolution = 1000.;
 	const unsigned int defaultDecimationFactor = 10;
 
 	class DiscPixel

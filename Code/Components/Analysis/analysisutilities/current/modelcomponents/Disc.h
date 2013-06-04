@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Class to handle basic calculations needed for ellipses
+/// Class to calculate pixel fluxes for a uniform-surface-brightness elliptical disc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,48 +26,50 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#ifndef ASKAP_ANALYSIS_DISCELLIPSE_H_
-#define ASKAP_ANALYSIS_DISCELLIPSE_H_
-#include <modelcomponents/Ellipse.h>
+#ifndef ASKAP_ANALYSIS_DISC_H_
+#define ASKAP_ANALYSIS_DISC_H_
+#include <modelcomponents/DiscEllipse.h>
 #include <modelcomponents/DiscPixel.h>
-#include <vector>
+#include <modelcomponents/Spectrum.h>
+#include <Common/ParameterSet.h>
 
-namespace askap {
-
+namespace askap { 
+    
     namespace analysisutilities {
 
-	class DiscEllipse : public Ellipse
+
+	class Disc
 	{
 	public:
-	    DiscEllipse();
-	    DiscEllipse(double x0, double y0, double maj, double min, double pa);
-	    DiscEllipse(const DiscEllipse& other);
-	    DiscEllipse& operator= (const DiscEllipse& other);
-	    virtual ~DiscEllipse(){};
+	    Disc();
+	    Disc(const LOFAR::ParameterSet &parset);
+	    Disc(const Disc& other);
+	    Disc& operator= (const Disc& other);
+	    virtual ~Disc(){};
 
-	    std::vector<DiscPixel> boundingSet(unsigned int numberOfSteps);
+	    void setup(double x0, double y0, double maj, double min, double pa);
+	    /* void setup(Spectrum *spec, double x0, double y0); */
+	    /* void populate(float *arr); */
 
-	    int xmin(){return itsXmin;};
-	    int xmax(){return itsXmax;};
-	    int ymin(){return itsYmin;};
-	    int ymax(){return itsYmax;};
+	    int xmin(){return itsEllipse.xmin();};
+	    int xmax(){return itsEllipse.xmax();};
+	    int ymin(){return itsEllipse.ymin();};
+	    int ymax(){return itsEllipse.ymax();};
+
+	    double flux(int x, int y);
 
 	protected:
+	    DiscEllipse itsEllipse;
+	    std::vector<DiscPixel> itsPixelSet;
 
-	    int itsXmin;
-	    int itsXmax;
-	    int itsYmin;
-	    int itsYmax;
-    
+	    double itsResolutionLimit;
+	    double itsTresolution;
+	    unsigned int itsDecimationFactor;
+
 	};
-
 
 
     }
 
 }
-
-
-
-
 #endif

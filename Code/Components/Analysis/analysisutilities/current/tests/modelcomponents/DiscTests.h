@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Unit tests for DiscEllipse class
+/// Unit tests for Disc class
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -35,6 +35,7 @@
 #include <modelcomponents/Ellipse.h>
 #include <modelcomponents/DiscEllipse.h>
 #include <modelcomponents/DiscPixel.h>
+#include <modelcomponents/Disc.h>
 
 #include <iostream>
 #include <sstream>
@@ -44,16 +45,19 @@ namespace askap {
     namespace analysisutilities {
     
  
-	class DiscEllipseTest : public CppUnit::TestFixture {
-	    CPPUNIT_TEST_SUITE(DiscEllipseTest);
-	    CPPUNIT_TEST(testBoundingSet);
+	class DiscTest : public CppUnit::TestFixture {
+	    CPPUNIT_TEST_SUITE(DiscTest);
+	    CPPUNIT_TEST(testRanges);
+	    CPPUNIT_TEST(testFluxes);
 	    CPPUNIT_TEST_SUITE_END();
 	
 	private:
 	    // members
-	    DiscEllipse itsEllipse;
+	    Disc itsDisc;
 	    double x0,y0,maj,min,pa;
 	    int xmin, xmax, ymin, ymax;
+	    int xOut,yOut,xIn,yIn,xEdge,yEdge;
+	    double fluxOut,fluxIn,fluxEdge;
 
 	public:
 
@@ -64,33 +68,37 @@ namespace askap {
 		min=2.5;
 		pa=M_PI/6.;
 
-		itsEllipse=DiscEllipse(x0,y0,maj,min,pa);
+		itsDisc.setup(x0,y0,maj,min,pa);
 
 		xmin=1;
 		xmax=9;
 		ymin=2;
 		ymax=10;
 
+		xOut=3; yOut=2; fluxOut=0.;
+		xIn=5; yIn=5; fluxIn=1.;
+		xEdge=5; yEdge=3; fluxEdge=0.79102;
+
+
 	    }
 
 	    void tearDown(){
 	    }
 
-	    void testBoundingSet(){
-		std::vector<DiscPixel> boundingset=itsEllipse.boundingSet(1000);
-		CPPUNIT_ASSERT(itsEllipse.xmin()==xmin);
-		CPPUNIT_ASSERT(itsEllipse.xmax()==xmax);
-		CPPUNIT_ASSERT(itsEllipse.ymin()==ymin);
-		CPPUNIT_ASSERT(itsEllipse.ymax()==ymax);
-		int count=0;
-		for(int y=ymin;y<=ymax;y++){
-		    for(int x=xmin;x<=xmax;x++){
-			CPPUNIT_ASSERT(boundingset[count].x()==x);
-			CPPUNIT_ASSERT(boundingset[count].y()==y);
-			count++;
-		    }
-		}
+	    void testRanges(){
+		CPPUNIT_ASSERT(itsDisc.xmin()==xmin);
+		CPPUNIT_ASSERT(itsDisc.xmax()==xmax);
+		CPPUNIT_ASSERT(itsDisc.ymin()==ymin);
+		CPPUNIT_ASSERT(itsDisc.ymax()==ymax);
 	    }
+
+	    void testFluxes(){
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xOut,yOut)-fluxOut)<1.e-5);
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xIn,yIn)-fluxIn)<1.e-5);
+		CPPUNIT_ASSERT(fabs(itsDisc.flux(xEdge,yEdge)-fluxEdge)<1.e-5);
+
+	    }
+
 
 	};
 
