@@ -88,6 +88,7 @@ namespace askap {
 		CPPUNIT_ASSERT(itsPixels[pixOut].x()==xOut);
 		CPPUNIT_ASSERT(itsPixels[pixOut].y()==yOut);
 		CPPUNIT_ASSERT(!itsEllipse.isIn(xOut,yOut));
+		CPPUNIT_ASSERT(!itsPixels[pixOut].isEdge());
 		CPPUNIT_ASSERT(fabs(itsPixels[pixOut].flux()-fluxOut)<1.e-5);
 	    }
 
@@ -95,12 +96,14 @@ namespace askap {
 		CPPUNIT_ASSERT(itsPixels[pixIn].x()==xIn);
 		CPPUNIT_ASSERT(itsPixels[pixIn].y()==yIn);
 		CPPUNIT_ASSERT(itsEllipse.isIn(xIn,yIn));
+		CPPUNIT_ASSERT(!itsPixels[pixIn].isEdge());
 		CPPUNIT_ASSERT(fabs(itsPixels[pixIn].flux()-fluxIn)<1.e-5);
 	    }
 
 	    void testFluxesEdge(){
 		CPPUNIT_ASSERT(itsPixels[pixEdge].x()==xEdge);
 		CPPUNIT_ASSERT(itsPixels[pixEdge].y()==yEdge);
+		CPPUNIT_ASSERT(itsPixels[pixEdge].isEdge());
 		CPPUNIT_ASSERT(fabs(itsPixels[pixEdge].flux()-fluxEdge)<1.e-5);
 	    }
 
