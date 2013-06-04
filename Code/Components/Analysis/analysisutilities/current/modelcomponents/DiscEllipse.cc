@@ -85,25 +85,25 @@ namespace askap {
 		}
 	    }
 
-	    int xmin=lround(this->itsX0-this->itsMaj),ymin=lround(this->itsY0-this->itsMaj);
-	    int xmax=lround(this->itsX0+this->itsMaj),ymax=lround(this->itsY0+this->itsMaj);
-	    int dimx=xmax-xmin+1,oldx,oldy;
-	    int dimy=ymax-ymin+1;
-	    ASKAPASSERT(dimy==dimx);
+	    int dimx=this->itsXmax-this->itsXmin+1;
+	    int oldx,oldy;
+	    size_t oldpos;
 	    double tstep=2.*M_PI/double(numberOfSteps);
 	    for(unsigned int i=0;i<numberOfSteps;i++) {
 		double t=i*tstep;
 		int xloc = lround(this->parametricX(t));
 		int yloc = lround(this->parametricY(t));
+		oldpos=(oldx-this->itsXmin)+(oldy-this->itsYmin)*dimx;
+		size_t newpos=(xloc-this->itsXmin)+(yloc-this->itsYmin)*dimx;
 		if(xloc!=oldx || yloc!=oldy || i==0){
-		    if(i>0) pixlist[(oldx-xmin)+(oldy-ymin)*dimx].addTmax(t);
+		    if(i>0) pixlist[oldpos].addTmax(t);
 		    oldx=xloc;
 		    oldy=yloc;
-		    pixlist[(xloc-xmin)+(yloc-ymin)*dimx].addTmin(t-tstep);
+		    pixlist[newpos].addTmin(t-tstep);
 		}
-		pixlist[(xloc-xmin)+(yloc-ymin)*dimx].setIsEdge(true);
+		pixlist[newpos].setIsEdge(true);
 	    }
-	    pixlist[(oldx-xmin)+(oldy-ymin)*dimx].addTmax(2*M_PI);
+	    pixlist[oldpos].addTmax(2*M_PI);
 
 	    return pixlist;
 	}

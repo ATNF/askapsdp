@@ -129,9 +129,9 @@ namespace askap {
 		if(fabs(x-this->itsX)<this->itsWidth/2. && fabs(y-this->itsY)<this->itsWidth/2.){
 		    int xloc= lround((x-xmin-pixstep/2.)/pixstep);
 		    int yloc= lround((y-ymin-pixstep/2.)/pixstep);
-		    oldpos=(oldx) + (oldy)*this->itsDecimationFactor;
+		    oldpos=oldx + oldy*this->itsDecimationFactor;
 		    ASKAPASSERT(oldpos<subpixels.size());
-		    size_t newpos=(xloc) + (yloc)*this->itsDecimationFactor;
+		    size_t newpos=xloc + yloc*this->itsDecimationFactor;
 		    ASKAPASSERT(newpos<subpixels.size());
 		    if(xloc!=oldx || yloc!=oldy || t==this->itsTmin){
 			if(t>this->itsTmin) subpixels[oldpos].addTmax(t);
