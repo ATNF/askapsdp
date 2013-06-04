@@ -93,6 +93,7 @@ namespace askap {
       double itsDistance;
       double itsRedshift;
       double itsCosVA;
+      double itsInputMin;
 
       double itsStokesRefFreq;
       double itsStokesIref;

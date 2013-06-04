@@ -94,7 +94,7 @@ namespace askap {
             ss >> this->itsComponentNum >> this->itsClusterID >> this->itsGalaxyNum 
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
-	       >> this->itsPA >> this->itsMaj >> this->itsMin 
+	       >> this->itsPA >> this->itsMaj >> this->itsInputMin
 	       >> this->itsI151 >> this->itsI610 >> this->itsStokesIref 
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
 	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
@@ -102,6 +102,9 @@ namespace askap {
 	    std::stringstream idstring;
 	    idstring << this->itsComponentNum;
 	    this->itsID = idstring.str();
+
+	    if(this->itsStructure == 4) this->itsMin = this->itsMaj * this->itsCosVA;
+	    else this->itsMin = this->itsInputMin;
 
 	    this->itsFreqValues=std::vector<float>(5);
 	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
@@ -132,7 +135,7 @@ namespace askap {
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setprecision(3)<<std::setw(11)<<this->itsDistance << std::setprecision(6)<<std::setw(11)<<this->itsRedshift;
 	theStream.precision(3);
-	theStream << std::setw(10)<<this->itsPA << std::setw(10)<<this->itsMaj << std::setw(10)<<this->itsMin;
+	theStream << std::setw(10)<<this->itsPA << std::setw(10)<<this->itsMaj << std::setw(10)<<this->itsInputMin;
 	theStream.precision(4);
 	theStream << std::setw(10)<<this->itsI151 << std::setw(10)<<this->itsI610;
 	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
@@ -167,6 +170,7 @@ namespace askap {
 	    this->itsDistance = c.itsDistance;
 	    this->itsRedshift = c.itsRedshift;
 	    this->itsCosVA = c.itsCosVA;
+	    this->itsInputMin = c.itsInputMin;
 	    this->itsStokesRefFreq = c.itsStokesRefFreq;
 	    this->itsStokesQref = c.itsStokesQref;
 	    this->itsStokesUref = c.itsStokesUref;
