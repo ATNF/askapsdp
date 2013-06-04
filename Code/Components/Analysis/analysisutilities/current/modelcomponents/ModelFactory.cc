@@ -36,6 +36,7 @@
 #include <modelcomponents/ContinuumS3SEX.h>
 #include <modelcomponents/ContinuumSelavy.h>
 #include <modelcomponents/ContinuumNVSS.h>
+#include <modelcomponents/ContinuumSUMSS.h>
 #include <modelcomponents/GaussianProfile.h>
 #include <modelcomponents/FLASHProfile.h>
 #include <modelcomponents/HIprofileS3SEX.h>
@@ -90,8 +91,8 @@ namespace askap {
 
       bool ModelFactory::checkType()
       {
-	const size_t numTypes=10;
-	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","POSSUMHI","NVSS","S3SEX","S3SAX","Gaussian","FLASH"};
+	const size_t numTypes=11;
+	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","POSSUMHI","NVSS","SUMSS","S3SEX","S3SAX","Gaussian","FLASH"};
 	bool isOK=false;
 	for(size_t i=0;i<numTypes;i++) isOK = isOK || (this->itsDatabaseOrigin == allowedTypes[i]);
 	return isOK;
@@ -143,6 +144,12 @@ namespace askap {
 	    nvss->setNuZero(this->itsBaseFreq);
 	    nvss->define(line);
 	    src = &(*nvss);
+	  }
+	  else if(this->itsDatabaseOrigin == "SUMSS"){
+	    ContinuumSUMSS *sumss = new ContinuumSUMSS;
+	    sumss->setNuZero(this->itsBaseFreq);
+	    sumss->define(line);
+	    src = &(*sumss);
 	  }
 	  else if (this->itsDatabaseOrigin == "S3SEX") {
 	    if(this->itsSourceListType == "continuum"){
