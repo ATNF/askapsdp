@@ -276,7 +276,7 @@ tasks.ChannelAvgTask.params.averaging   = 54
 # MSSink
 #
 tasks.MSSink.type                       = MSSink
-tasks.MSSink.params.filenamebase        = ingest_test
+tasks.MSSink.params.filename            = ingest_test%w.ms
 tasks.MSSink.params.stman.bucketsize    = 1048576
 tasks.MSSink.params.stman.tilencorr     = 4
 tasks.MSSink.params.stman.tilenchan     = 1

@@ -77,6 +77,25 @@ class MSSink : public askap::cp::ingest::ITask {
         virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     private:
+        /// @brief make substitution in the file name
+        /// @details To simplify configuring the pipeline for different purposes certain
+        /// expressions are recognised and substituted by this methiod
+        /// %w is replaced by the rank, %d is replaced by the date (in YYYY-MM-DD format),
+        /// %t is replaced by the time (in HHMMSS format). Note, both date and time are 
+        /// obtained on the rank zero and then broadcast to other ranks, unless in the standalone
+        /// mode.
+        /// @param[in] in input file name (may contain patterns to substitute)
+        /// @return file name with patterns substituted
+        std::string substituteFileName(const std::string &in) const;
+
+        /// @brief make two-character string
+        /// @details Helper method to convert unsigned integer into a 2-character string.
+        /// It is used to form the file name with date and time.
+        /// @param[in] in input number
+        /// @return two-element string
+        static std::string makeTwoElementString(const casa::uInt in);
+          
+
         // Initialises the ANTENNA table
         void initAntennas(void);
 

@@ -38,6 +38,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include <askap/AskapUtil.h>
 #include "cpcommon/VisChunk.h"
 
 // Casecore includes
@@ -47,6 +48,7 @@
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
 #include "casa/Arrays/MatrixMath.h"
+#include "casa/OS/Time.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
@@ -57,6 +59,12 @@
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
+
+
+// name substitution should get the same name for all ranks, we need MPI for that
+// it would be nicer to get all MPI-related stuff to a single (top-level?) file eventually
+#include <mpi.h>
+
 
 ASKAP_LOGGER(logger, ".MSSink");
 
@@ -164,17 +172,106 @@ void MSSink::process(VisChunk::ShPtr chunk)
 // Private methods
 //////////////////////////////////
 
+/// @brief make substitution in the file name
+/// @details To simplify configuring the pipeline for different purposes certain
+/// expressions are recognised and substituted by this methiod
+/// %w is replaced by the rank, %d is replaced by the date (in YYYY-MM-DD format),
+/// %t is replaced by the time (in HHMMSS format). Note, both date and time are 
+/// obtained on the rank zero and then broadcast to other ranks, unless in the standalone
+/// mode.
+/// @param[in] in input file name (may contain patterns to substitute)
+/// @return file name with patterns substituted
+std::string MSSink::substituteFileName(const std::string &in) const
+{
+   // special structure to have full control over it, otherwise could've used casa::Time
+   struct TimeBuf {
+     casa::uInt year;
+     casa::uInt month;
+     casa::uInt day;
+     casa::uInt hour;
+     casa::uInt min;
+     casa::uInt sec;
+
+     // technically we don't need a constructor, but it is neater to have it
+     TimeBuf() : year(0), month(0), day(0), hour(0), min(0), sec(0) {}
+   };
+   // first just a sanity check
+   if (itsConfig.nprocs() > 1) {
+       ASKAPCHECK(in.find("%w") != std::string::npos, "File name should contain %w in the MPI case to provide different names for different ranks");
+   }
+
+   // this instance is used only if a date or time substitution is required
+   TimeBuf tbuf;
+   if ((in.find("%d") != std::string::npos) || (in.find("%t") != std::string::npos)) {
+       // need date/time later on
+       if ( (itsConfig.nprocs() == 1) || (itsConfig.rank() == 0) ) {
+            casa::Time tm;
+            tm.now();
+            tbuf.year = tm.year();
+            tbuf.month = tm.month();
+            tbuf.day = tm.dayOfMonth();
+            tbuf.hour = tm.hours();
+            tbuf.min = tm.minutes();
+            tbuf.sec = tm.seconds();
+       }
+       if (itsConfig.nprocs() > 1) {
+           // broadcast the value to all ranks
+           // of course, it would be nicer to have all MPI-related stuff at the top level only, but keep it as it is for now
+           const int response = MPI_Bcast((void*)&tbuf, sizeof(tbuf), MPI_INTEGER, 0, MPI_COMM_WORLD);
+           ASKAPCHECK(response == MPI_SUCCESS, "Erroneous response from MPI_Bcast = "<<response);
+       }
+   }
+   std::string result;
+   for (size_t cursor = 0; cursor < in.size(); ++cursor) {
+       size_t pos = in.find("%",cursor);
+       if (pos == std::string::npos) {
+           result += in.substr(cursor);
+           break; 
+       }
+       result += in.substr(cursor, pos - cursor);
+       if (++pos == in.size()) {
+           result += in[pos-1];
+           break;
+       }
+       if (in[pos] == 'w') {
+          result += utility::toString(itsConfig.rank());
+       } else if (in[pos] == 'd') {
+          result += utility::toString(tbuf.year)+"-"+makeTwoElementString(tbuf.month)+"-"+makeTwoElementString(tbuf.day);
+       } else if (in[pos] == 't') {
+          result += makeTwoElementString(tbuf.hour)+makeTwoElementString(tbuf.min)+
+                    makeTwoElementString(tbuf.sec);
+       } else {
+          // unrecognised symbol, pass it as is
+          result += in.substr(pos-1,2);
+       }
+       cursor = pos;
+   }
+   return result;
+}
+
+/// @brief make two-character string
+/// @details Helper method to convert unsigned integer into a 2-character string.
+/// It is used to form the file name with date and time.
+/// @param[in] in input number
+/// @return two-element string
+std::string MSSink::makeTwoElementString(const casa::uInt in)
+{
+  ASKAPASSERT(in<100);
+  std::string result;
+  if (in<10) {
+      result += "0";
+  }
+  result += utility::toString(in);
+  return result;
+}
+
 void MSSink::create(void)
 {
     // Get configuration first to ensure all parameters are present
     casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 128 * 1024);
     casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
     casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
-    const casa::String filenamebase = itsParset.getString("filenamebase");
-
-    std::ostringstream ss;
-    ss << filenamebase << itsConfig.rank() << ".ms";
-    const casa::String filename = ss.str();
+    const casa::String filename = substituteFileName(itsParset.getString("filename"));
 
     if (bucketSize < 8192) {
         bucketSize = 8192;
