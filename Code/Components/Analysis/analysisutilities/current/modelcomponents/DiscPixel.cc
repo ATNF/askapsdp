@@ -117,8 +117,11 @@ namespace askap {
 	    std::vector<DiscPixel> subpixels=this->decimate();
 	    if(this->itsTmin > this->itsTmax) this->itsTmax += 2.*M_PI;
 
+	    // min & max values for x & y for this pixel
 	    double xmin=this->itsX-this->itsWidth/2.;
 	    double ymin=this->itsY-this->itsWidth/2.;
+	    double xmax=this->itsX+this->itsWidth/2.;
+	    double ymax=this->itsY+this->itsWidth/2.;
 	    double pixstep=subpixels[0].itsWidth;
 	    int oldx=0,oldy=0;
 	    size_t oldpos=0;
@@ -126,13 +129,14 @@ namespace askap {
 	    for(double t=this->itsTmin; t<this->itsTmax; t += tstep){ 
 		double x=this->itsEllipse->parametricX(t);
 		double y=this->itsEllipse->parametricY(t);
-		if(fabs(x-this->itsX)<this->itsWidth/2. && fabs(y-this->itsY)<this->itsWidth/2.){
+		// only consider points within the pixel. Ignore those on the border.
+		if(x>xmin && y>ymin && x<xmax && y<ymax){
 		    int xloc= lround((x-xmin-pixstep/2.)/pixstep);
 		    int yloc= lround((y-ymin-pixstep/2.)/pixstep);
 		    oldpos=oldx + oldy*this->itsDecimationFactor;
-		    ASKAPASSERT(oldpos<subpixels.size());
 		    size_t newpos=xloc + yloc*this->itsDecimationFactor;
-		    ASKAPASSERT(newpos<subpixels.size());
+		    ASKAPCHECK(newpos<subpixels.size(),"DiscPixel::processedSublist: current position " << newpos << " out of range ("<<subpixels.size()<<"). Have xloc="
+			       <<xloc<<" ("<<(x-xmin-pixstep/2.)/pixstep<<"), yloc="<<yloc <<"("<<(y-ymin-pixstep/2.)/pixstep<<"), dim="<<itsDecimationFactor);
 		    if(xloc!=oldx || yloc!=oldy || t==this->itsTmin){
 			if(t>this->itsTmin) subpixels[oldpos].addTmax(t);
 			oldx=xloc;
