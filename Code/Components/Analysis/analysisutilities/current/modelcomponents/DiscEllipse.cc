@@ -91,8 +91,9 @@ namespace askap {
 	    double tstep=2.*M_PI/double(numberOfSteps);
 	    for(unsigned int i=0;i<numberOfSteps;i++) {
 		double t=i*tstep;
-		int xloc = lround(this->parametricX(t));
-		int yloc = lround(this->parametricY(t));
+		std::pair<double,double> pos=this->parametric(t);
+		int xloc = lround(pos.first);
+		int yloc = lround(pos.second);
 		oldpos=(oldx-this->itsXmin)+(oldy-this->itsYmin)*dimx;
 		size_t newpos=(xloc-this->itsXmin)+(yloc-this->itsYmin)*dimx;
 		if(xloc!=oldx || yloc!=oldy || i==0){

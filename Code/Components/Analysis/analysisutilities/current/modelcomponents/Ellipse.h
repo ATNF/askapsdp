@@ -47,9 +47,11 @@ namespace askap {
 
 	    virtual double parametricX(double t){return itsX0 + itsMajCos*cos(t) - itsMinSin*sin(t);};
 	    virtual double parametricY(double t){return itsY0 + itsMajSin*cos(t) + itsMinCos*sin(t);};
+	    virtual std::pair<double,double> parametric(double t){double cost=cos(t); double sint=sin(t); return std::pair<double,double>(itsX0+itsMajCos*cost-itsMinSin*sint,itsY0+itsMajSin*cost+itsMinCos*sint);};
 	    virtual double nonRotX(double x, double y){return (x-itsX0)*itsCos+(y-itsY0)*itsSin;};
 	    virtual double nonRotY(double x, double y){return -(x-itsX0)*itsSin+(y-itsY0)*itsCos;};
-	    virtual bool isIn(double x, double y){return ( nonRotX(x,y)*nonRotX(x,y)/(itsMaj*itsMaj) + nonRotY(x,y)*nonRotY(x,y)/(itsMin*itsMin)) < 1.;};
+	    virtual std::pair<double,double> nonRot(double x, double y){std::pair<double,double> pos; pos.first=(x-itsX0)*itsCos+(y-itsY0)*itsSin; pos.second=-(x-itsX0)*itsSin+(y-itsY0)*itsCos; return pos;};
+	    virtual bool isIn(double x, double y){std::pair<double,double> pos=nonRot(x,y); return ( pos.first*pos.first/(itsMaj*itsMaj) + pos.second*pos.second/(itsMin*itsMin)) < 1.;};
 	    virtual double area(){return itsArea;};
 	    virtual bool is2D(){return itsMin>0.;};
 

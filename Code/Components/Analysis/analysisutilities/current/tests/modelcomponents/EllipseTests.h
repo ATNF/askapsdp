@@ -86,6 +86,7 @@ namespace askap {
 	    }
 
 	    void testCoords(){
+		// test individual parametric calculations
 		CPPUNIT_ASSERT(fabs(itsEllipse.parametricX(0.)-parametricx_t0)<1.e-6);
 		CPPUNIT_ASSERT(fabs(itsEllipse.parametricY(0.)-parametricy_t0)<1.e-6);
 		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotX(parametricx_t0,parametricy_t0)-maj)<1.e-6);
@@ -94,6 +95,20 @@ namespace askap {
 		CPPUNIT_ASSERT(fabs(itsEllipse.parametricY(M_PI/2.)-parametricy_t90)<1.e-6);
 		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotX(parametricx_t90,parametricy_t90))<1.e-6);
 		CPPUNIT_ASSERT(fabs(itsEllipse.nonRotY(parametricx_t90,parametricy_t90)-min)<1.e-6);
+		// test pair-wise parametric calculation
+		std::pair<double,double> pos0=itsEllipse.parametric(0);
+		std::pair<double,double> nonrot0=itsEllipse.nonRot(parametricx_t0,parametricy_t0);
+		std::pair<double,double> pos90=itsEllipse.parametric(M_PI/2.);
+		std::pair<double,double> nonrot90=itsEllipse.nonRot(parametricx_t90,parametricy_t90);
+		CPPUNIT_ASSERT(fabs(pos0.first-parametricx_t0)<1.e-6);
+		CPPUNIT_ASSERT(fabs(pos0.second-parametricy_t0)<1.e-6);
+		CPPUNIT_ASSERT(fabs(nonrot0.first-maj)<1.e-6);
+		CPPUNIT_ASSERT(fabs(nonrot0.second)<1.e-6);
+		CPPUNIT_ASSERT(fabs(pos90.first-parametricx_t90)<1.e-6);
+		CPPUNIT_ASSERT(fabs(pos90.second-parametricy_t90)<1.e-6);
+		CPPUNIT_ASSERT(fabs(nonrot90.first)<1.e-6);
+		CPPUNIT_ASSERT(fabs(nonrot90.second-min)<1.e-6);
+	
 	    }
 
 	    };
