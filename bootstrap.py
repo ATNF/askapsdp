@@ -73,6 +73,7 @@ parser.add_option('-p', '--preserve', dest='preserve',
 
 networkx_path   = "Tools/networkx/networkx-1.5"
 rbuild_path     = "Tools/Dev/rbuild"
+epicsdb_path     = "Tools/Dev/epicsdb"
 templates_path  = "Tools/Dev/templates"
 testutils_path  = "Tools/Dev/testutils"
 virtualenv_path = "Tools/virtualenv"
@@ -127,6 +128,13 @@ if os.path.exists(rbuild_path):
 else:
     print ">>> %s does not exist." % os.path.abspath(rbuild_path)
     sys.exit()
+
+if os.path.exists(epicsdb_path):
+    print ">>> Attempting to clean and build rbuild."
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q clean"
+                % epicsdb_path)
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q install"
+                % epicsdb_path)
 
 if os.path.exists(templates_path):
     print ">>> Attempting to add templates."
