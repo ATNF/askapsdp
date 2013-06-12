@@ -699,7 +699,8 @@ namespace askap {
 		    fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
 
 		  bool addedSource=false;
-		  if(this->itsFlagVerboseSources) ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
+		  if(this->itsFlagVerboseSources && sourceType!=POINT) 
+		      ASKAPLOG_DEBUG_STR(logger, "Source " << src->id() << " has axes " << src->maj() << " x " << src->min() << " pix");
 		  // if (src->maj() > 0) {
 		  if(sourceType == GAUSSIAN){
 
