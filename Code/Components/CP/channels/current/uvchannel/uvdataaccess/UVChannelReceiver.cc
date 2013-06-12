@@ -83,7 +83,7 @@ askap::cp::common::VisChunk::ShPtr UVChannelReceiver::pop(const casa::uInt chan)
     boost::mutex::scoped_lock lock(itsMutex);
     while (itsQueue[chan].empty() && !itsEndOfStreamSignaled[chan]) {
         boost::xtime xt;
-        boost::xtime_get(&xt, boost::TIME_UTC);
+        boost::xtime_get(&xt, boost::TIME_UTC_);
         xt.sec += 1;
         itsCondVar.timed_wait(lock, xt);
     }

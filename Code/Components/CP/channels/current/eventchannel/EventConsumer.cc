@@ -77,7 +77,7 @@ EventMessageSharedPtr EventConsumer::receive(const int timeout)
 
     // Determine when to sleep to if timeout is set
     boost::xtime xt;
-    boost::xtime_get(&xt, boost::TIME_UTC);
+    boost::xtime_get(&xt, boost::TIME_UTC_);
 
     // Note: The timeout parameter is in milliseconds
     if (timeout > 0) {
