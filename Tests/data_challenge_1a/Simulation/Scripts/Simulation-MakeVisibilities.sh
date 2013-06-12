@@ -129,6 +129,8 @@ Csimulator.gridder.${gridder}.offsetsupport      =       true
 Csimulator.noise                                 =       ${doNoise}
 Csimulator.noise.Tsys                            =       \${Tsys}
 Csimulator.noise.efficiency                      =       0.8   
+Csimulator.noise.seed1                           =       time
+Csimulator.noise.seed2                           =       ${INDEX}
 #
 Csimulator.corrupt                               =       ${doCorrupt}
 Csimulator.calibaccess                           =       parset
