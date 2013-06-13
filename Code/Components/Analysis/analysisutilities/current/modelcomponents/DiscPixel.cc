@@ -78,7 +78,7 @@ namespace askap {
 		outlist[i].itsTmin=-1.;
 		outlist[i].itsTmax=-1.;
 	    }
-	    // ASKAPLOG_DEBUG_STR(logger, "Returning decimated sublist of length " << outlist.size() << "   (should be " << num<<")");
+	    // ASKAPLOG_DEBUG_STR(logger, "Returning decimated sublist of length " << outlist.size() << " (should be " << num<<"). The width of the output pixels is " << outlist[0].itsWidth);
 	    return outlist;
 	}
 
@@ -126,7 +126,8 @@ namespace askap {
 	    int oldx=0,oldy=0;
 	    size_t oldpos=0;
 	    double tstep=(this->itsTmax-this->itsTmin)/defaultTresolution;
-	    for(double t=this->itsTmin; t<this->itsTmax; t += tstep){ 
+	    for(int it=0;it<int(defaultTresolution)+1;it++){
+		double t = this->itsTmin + it * tstep;
 		std::pair<double,double> pos=this->itsEllipse->parametric(t);
 		// only consider points within the pixel. Ignore those on the border.
 		if(pos.first>xmin && pos.second>ymin && pos.first<xmax && pos.second<ymax){
@@ -136,8 +137,8 @@ namespace askap {
 		    size_t newpos=xloc + yloc*this->itsDecimationFactor;
 		    ASKAPCHECK(newpos<subpixels.size(),"DiscPixel::processedSublist: current position " << newpos << " out of range ("<<subpixels.size()<<"). Have xloc="
 			       <<xloc<<" ("<<(pos.first-xmin-pixstep/2.)/pixstep<<"), yloc="<<yloc <<"("<<(pos.second-ymin-pixstep/2.)/pixstep<<"), dim="<<itsDecimationFactor);
-		    if(xloc!=oldx || yloc!=oldy || t==this->itsTmin){
-			if(t>this->itsTmin) subpixels[oldpos].addTmax(t);
+		    if(xloc!=oldx || yloc!=oldy || it==0){
+			if(it>0) subpixels[oldpos].addTmax(t);
 			oldx=xloc;
 			oldy=yloc;
 			subpixels[newpos].addTmin(t-tstep);
