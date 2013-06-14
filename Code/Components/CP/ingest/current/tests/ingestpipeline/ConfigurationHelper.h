@@ -126,6 +126,33 @@ class ConfigurationHelper {
             parset.add("antennas.A5.mount" , "equatorial");
             parset.add("antennas.A5.feed_config" , "PAF");
 
+            // Baseline ID Map
+            parset.add("baselinemap.baselineids","[1..21]");
+
+            parset.add("baselinemap.1", "[0, 0, XX]");     
+            parset.add("baselinemap.2", "[0, 0, XY]");     
+            parset.add("baselinemap.3", "[0, 1, XX]");     
+            parset.add("baselinemap.4", "[0, 1, XY]");     
+            parset.add("baselinemap.5", "[0, 2, XX]");     
+            parset.add("baselinemap.6", "[0, 2, XY]");     
+            parset.add("baselinemap.7", "[0, 0, YY]");     
+            parset.add("baselinemap.8", "[0, 1, YX]");     
+            parset.add("baselinemap.9", "[0, 1, YY]");     
+            parset.add("baselinemap.10", "[0, 2, YX]");    
+            parset.add("baselinemap.11", "[0, 2, YY]");    
+
+            parset.add("baselinemap.12", "[1, 1, XX]");    
+            parset.add("baselinemap.13", "[1, 1, XY]");    
+            parset.add("baselinemap.14", "[1, 2, XX]");    
+            parset.add("baselinemap.15", "[1, 2, XY]");    
+            parset.add("baselinemap.16", "[1, 1, YY]");    
+            parset.add("baselinemap.17", "[1, 2, YX]");    
+            parset.add("baselinemap.18", "[1, 2, YY]");    
+
+            parset.add("baselinemap.19", "[2, 2, XX]");    
+            parset.add("baselinemap.20", "[2, 2, XY]");    
+            parset.add("baselinemap.21", "[2, 2, YY]");
+
             return Configuration(parset);
         }
 };
