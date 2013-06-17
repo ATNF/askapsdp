@@ -11,6 +11,10 @@ pkg = env.AskapPackage("imager")
 pkg.AddSubPackage("distributedimager")
 pkg.AddSubPackage("messages")
 
+# Disable "shared" as MPE2 is not built with fPIC
+pkg.build_shared = False;
+pkg.build_static = True;
+
 env["CC"] = "mpicc"
 env["CXX"] = "mpicxx"
 env["LINK"] = "mpicxx"
@@ -18,6 +22,7 @@ env["SHLINK"] = "mpicxx"
 
 env.AppendUnique(CCFLAGS='-g')
 env.AppendUnique(CCFLAGS='-O3')
+
 
 # run the build process
 pkg()
