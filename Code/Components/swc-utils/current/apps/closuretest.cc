@@ -59,6 +59,7 @@ using namespace askap::accessors;
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
   sel->chooseFeed(1);
+  sel->chooseCrossCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -82,10 +83,18 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() >= 1);
        // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
-       // of the closure phase
-       ASKAPCHECK(it->antenna2()[0] == it->antenna1()[1], "Expect baselines in the order 1-2,2-3 and 1-3");
-       ASKAPCHECK(it->antenna1()[0] == it->antenna1()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
-       ASKAPCHECK(it->antenna2()[1] == it->antenna2()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
+       // of the closure phase.
+       // the order is different for software and hardware correlator. Just hard code the differences
+       const bool useSWCorrelator = false;
+       if (useSWCorrelator) {
+           ASKAPCHECK(it->antenna2()[0] == it->antenna1()[1], "Expect baselines in the order 1-2,2-3 and 1-3");
+           ASKAPCHECK(it->antenna1()[0] == it->antenna1()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
+           ASKAPCHECK(it->antenna2()[1] == it->antenna2()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
+       } else {
+           ASKAPCHECK(it->antenna2()[0] == it->antenna1()[2], "Expect baselines in the order 1-2,1-3 and 2-3");
+           ASKAPCHECK(it->antenna1()[0] == it->antenna1()[1], "Expect baselines in the order 1-2,1-3 and 2-3");
+           ASKAPCHECK(it->antenna2()[1] == it->antenna2()[2], "Expect baselines in the order 1-2,1-3 and 2-3");
+       }
        //
        casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
@@ -99,7 +108,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        
        if (++counter == nAvg) {
            buf /= float(nAvg);
-           const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
+           const float phClosure = arg(useSWCorrelator ? buf[0]*buf[1]*conj(buf[2]) : buf[0]*conj(buf[1])*buf[2])/casa::C::pi*180.; 
            os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
            for (casa::uInt baseline = 0; baseline<3; ++baseline) {
                 os<<" "<<arg(buf[baseline])/casa::C::pi*180.;

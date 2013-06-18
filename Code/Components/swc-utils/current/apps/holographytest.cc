@@ -196,7 +196,7 @@ casa::Matrix<casa::Complex> processOnePoint(const IConstDataSource &ds, const in
 }
 
 void process(const IConstDataSource &ds, const casa::uInt size) {
-   const double resolutionInRad = 0.25 / 180. * casa::C::pi; // in radians
+   const double resolutionInRad = 0.5 / 180. * casa::C::pi; // in radians
    ASKAPDEBUGASSERT(size % 2 == 1);
    ASKAPDEBUGASSERT(size > 1);
    const int halfSize = (int(size) - 1) / 2;
@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds,9);
+     process(ds,17);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }

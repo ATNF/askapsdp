@@ -87,6 +87,8 @@ casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, con
 void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
+  sel->chooseCrossCorrelations();
+  //sel->chooseFeed(0);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(56150.0,"d"),

@@ -189,10 +189,10 @@ void makeRaster() {
   casa::MVDirection tangent(convertQuantity("04h08m20.38","rad"),convertQuantity("-65.45.09.1","rad"));
 
   //const double size = 4.9; // in degrees
-  const double size = 4.2; // in degrees
+  const double size = 8.4; // in degrees
 
   std::cout<<"Making a raster file for "<<size<<" by "<<size<<" deg about tangent: "<<printDirection(tangent)<<std::endl;
-  const double resolution = 0.25; // in degrees
+  const double resolution = 0.5; // in degrees
   // we always include 0 offset, so the number of points each side will always be odd
   const int halfNOffsets = int(size/2./resolution);
   const int nOffsets = 2*halfNOffsets+1;
@@ -224,21 +224,22 @@ void doTest() {
   //const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   
   // 1610-771
-  const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
+  //const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
 
   // 1936-623
   //const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
   
   // 1547-795
-  //const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
+  const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
   
 
-  casa::MVDirection testDir = tangent;
+  //casa::MVDirection testDir = tangent;
   // Virgo
   //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
   // 1934-638
   //casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
   //casa::MVDirection testDir(convertQuantity("07h12m43.98","rad"),convertQuantity("18.57.52.4","rad"));
+  casa::MVDirection testDir(convertQuantity("13h25m29.98","rad"),convertQuantity("-43.00.40.72","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
@@ -249,7 +250,10 @@ void doTest() {
   offset1 = sin(dir.getLong() - tangent.getLong()) * cos(dir.getLat());
   offset2 = sin(dir.getLat()) * cos(tangent.getLat()) - cos(dir.getLat()) * sin(tangent.getLat())
                                                   * cos(dir.getLong() - tangent.getLong());
- 
+  
+  // for explicit offsets
+  offset1 = -0.5 / 180. * casa::C::pi;
+  offset2 = -0.5 / 180. * casa::C::pi;
 
   std::cout<<"separation (dir vs. tangent): "<<dir.separation(tangent)*180./casa::C::pi<<" deg, offsets (deg): "
      <<offset1*180./casa::C::pi<<" "<<offset2*180./casa::C::pi<<std::endl;

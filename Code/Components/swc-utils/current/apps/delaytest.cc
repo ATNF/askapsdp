@@ -62,6 +62,8 @@ using namespace askap::accessors;
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
   sel->chooseFeed(0);
+  sel->chooseCrossCorrelations();
+  //sel->chooseAutoCorrelations();
   if (ctrl >=0 ) {
       sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
   }
@@ -80,6 +82,8 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
   casa::uInt nRow = 0;
   double startTime = 0;
   double stopTime = 0;
+  
+  casa::Vector<casa::uInt> ant1ids, ant2ids;
     
   std::ofstream os2("avgts.dat");  
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
@@ -91,6 +95,12 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
            buf2.resize(nRow,nChan);
            buf2.set(casa::Complex(0.,0.));
            freq = it->frequency();
+           ant1ids = it->antenna1();
+           ant2ids = it->antenna2();
+           std::cout<<"Baseline order is as follows: "<<std::endl;
+           for (casa::uInt row = 0; row<nRow; ++row) {
+                std::cout<<"baseline (1-based) = "<<row+1<<" is "<<ant1ids[row]<<" - "<<ant2ids[row]<<std::endl; 
+           }           
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
@@ -100,13 +110,21 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() > 1);
-       // we require that 3 baselines come in certain order, just to be sure
+       // check that the products come in consistent way across the interations
+       for (casa::uInt row = 0; row<nRow; ++row) {
+            ASKAPCHECK(it->antenna1()[row] == ant1ids[row], "Inconsistent antenna 1 ids at row = "<<row);
+            ASKAPCHECK(it->antenna2()[row] == ant2ids[row], "Inconsistent antenna 2 ids at row = "<<row);             
+       }
+       
+       /*
+       // we require that 3 baselines come in certain order for sw-correlator, just to be sure
        for (casa::uInt row = 0; row<nRow; row+=3) {
             ASKAPCHECK(it->antenna2()[row] == it->antenna1()[row+1], "Expect baselines in the order 1-2,2-3 and 1-3");
             ASKAPCHECK(it->antenna1()[row] == it->antenna1()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
             ASKAPCHECK(it->antenna2()[row+1] == it->antenna2()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
        }
        //
+       */
        
        // add new spectrum to the buffer
        for (casa::uInt row=0; row<nRow; ++row) {
@@ -122,9 +140,12 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             // flagging based on the amplitude (to remove extreme outliers)
             casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
             
-            if ((casa::abs(currentAvgVis) > 0.05) && (row % 3 == 2)) {
+            /*
+            if ((casa::abs(currentAvgVis) > 0.5) && (row % 3 == 2)) {
                 flagged = true;
             } 
+            */
+            
             /*
             // optional flagging based on time-range
             if ((counter>1) && ((it->time() - startTime)/60.>1050.)) {
