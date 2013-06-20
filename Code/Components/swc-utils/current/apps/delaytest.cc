@@ -104,6 +104,10 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
+           if (nRow != it->nRow()) {
+               std::cerr<<"Number of rows changed was "<<nRow<<" now "<<it->nRow()<<std::endl;
+               continue;
+           }
            ASKAPCHECK(nRow == it->nRow(), 
                   "Number of rows seem to have been changed, previously "<<nRow<<" now "<<it->nRow());
        }
