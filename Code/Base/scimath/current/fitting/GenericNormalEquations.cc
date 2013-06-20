@@ -399,15 +399,15 @@ void GenericNormalEquations::add(const ComplexDiffMatrix &cdm, const PolXProduct
                       
                       const ComplexDiff &cd1 = cdm(p,p1);
                       const casa::Complex rowParDerivRe1 = cd1.derivRe(*iterRow);
-                      const casa::Complex colParDerivRe1 = cd1.derivRe(*iterCol);
+                      //const casa::Complex colParDerivRe1 = cd1.derivRe(*iterCol);
                       const casa::Complex rowParDerivIm1 = cd1.derivIm(*iterRow);
-                      const casa::Complex colParDerivIm1 = cd1.derivIm(*iterCol);
+                      //const casa::Complex colParDerivIm1 = cd1.derivIm(*iterCol);
                                             
                       for (casa::uInt p2 = 0; p2<nDataPoints; ++p2) {
                            const ComplexDiff &cd2 = cdm(p,p2);
-                           const casa::Complex rowParDerivRe2 = cd2.derivRe(*iterRow);
+                           //const casa::Complex rowParDerivRe2 = cd2.derivRe(*iterRow);
                            const casa::Complex colParDerivRe2 = cd2.derivRe(*iterCol);
-                           const casa::Complex rowParDerivIm2 = cd2.derivIm(*iterRow);
+                           //const casa::Complex rowParDerivIm2 = cd2.derivIm(*iterRow);
                            const casa::Complex colParDerivIm2 = cd2.derivIm(*iterCol);
                            const casa::Complex modelProduct = pxp.getModelProduct(p1,p2);
                            nmElementBuf(0,0) += real(conj(rowParDerivRe1) * colParDerivRe2 * modelProduct);

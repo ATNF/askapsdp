@@ -111,7 +111,6 @@ namespace askap {
             uInt numberPixels = this->itsModel.shape().product();
             T targetChisq = square(this->control()->targetObjectiveFunction()) * numberPixels;
             T chisq;
-            T fit;
 
             Array<T> trialModel(this->model().shape());
             trialModel.set(T(0.0));
@@ -138,7 +137,6 @@ namespace askap {
             do {
                 // Find the current fit
                 chisq = sum(square(this->dirty()));
-                fit = sqrt(chisq / targetChisq);
 
                 Matrix<T> GDG(this->itsEntropy->formGDGStep(this->model(), this->dirty(), step));
 

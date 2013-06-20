@@ -316,7 +316,7 @@ void TableVisGridder::save(const std::string& name) {
 	        casa::Cube<casa::Float> imgBuffer(support, support, nPlanes);
 	        imgBuffer.set(0.);
 	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
-	            unsigned int peakX = 0, peakY = 0;
+	            //unsigned int peakX = 0, peakY = 0;
 	            casa::Float peakVal = -1.;
 	            for (int x = 0; x<int(imgBuffer.nrow()); ++x) {
 	                 for (int y = 0; y<int(imgBuffer.ncolumn()); ++y) {
@@ -332,8 +332,8 @@ void TableVisGridder::save(const std::string& name) {
 	                      }
 	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x - xOff,y - yOff));
 	                      if (peakVal < imgBuffer(x,y,plane)) {
-	                           peakX = x;
-	                           peakY = y;
+	                           //peakX = x;
+	                           //peakY = y;
 	                           peakVal = imgBuffer(x,y,plane);
 	                      }
 	                      imgBuffer(x,y,plane) = casa::real(thisCF(x - xOff,y - yOff));
