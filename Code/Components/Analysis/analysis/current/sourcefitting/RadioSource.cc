@@ -1075,19 +1075,6 @@ namespace askap {
 		casa::Vector<casa::Double> f(fluxvec);
 		ASKAPLOG_DEBUG_STR(logger, "About to use a flux array with " << f.size() << " pixels");
 
-		// for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-		//   for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-		//     int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-		//     sigma(i) = 1.;
-		//     curpos(0) = x;
-		//     curpos(1) = y;
-		//     pos.row(i) = curpos;
-		//   }
-		// }
-		    
-
-		ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
-
 		// Set up fit with same parameters and do the fit
 		std::vector<std::string>::iterator type;
 		std::vector<std::string> typelist = availableFitTypes;
@@ -1357,42 +1344,42 @@ namespace askap {
 	      double *pix = new double[12];
 	      double *world = new double[12];
 
-                for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
+	      for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
 
-                std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFitMap["best"].fitSet();
-                std::vector<casa::Gaussian2D<Double> >::iterator fit;
+	      std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFitMap["best"].fitSet();
+	      std::vector<casa::Gaussian2D<Double> >::iterator fit;
 
-                for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
-                    pix[0] = fit->xCenter();
-                    pix[1] = fit->yCenter();
-                    this->itsHeader->pixToWCS(pix, world);
-
-                    if (doEllipse) {
+	      if (doEllipse) {
+		  for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
+		      pix[0] = fit->xCenter();
+		      pix[1] = fit->yCenter();
+		      this->itsHeader->pixToWCS(pix, world);
+		      
 		      writer->ellipse(world[0],
-				     world[1],
-				     fit->majorAxis() * this->itsHeader->getAvPixScale() / 2.,
-				     fit->minorAxis() * this->itsHeader->getAvPixScale() / 2.,
-				     fit->PA() * 180. / M_PI);
-                    }
-                }
+				      world[1],
+				      fit->majorAxis() * this->itsHeader->getAvPixScale() / 2.,
+				      fit->minorAxis() * this->itsHeader->getAvPixScale() / 2.,
+				      fit->PA() * 180. / M_PI);
+		  }
+	      }
 		
-		pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
-                pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
-                pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
-                pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
-                this->itsHeader->pixToWCS(pix, world, 4);
+	      if (doBox) {
+		  pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
+		  pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
+		  pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
+		  pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
+		  this->itsHeader->pixToWCS(pix, world, 4);
 
-                if (doBox) {
 		  std::vector<double> x,y;
 		  for(int i=0;i<=4;i++){
-		    x.push_back(world[(i%4)*3]);
-		    y.push_back(world[(i%4)*3+1]);
+		      x.push_back(world[(i%4)*3]);
+		      y.push_back(world[(i%4)*3+1]);
 		  }
 		  writer->joinTheDots(x,y);
-                }
+	      }
 
-                delete [] pix;
-                delete [] world;
+	      delete [] pix;
+	      delete [] world;
 
 	  }
 
