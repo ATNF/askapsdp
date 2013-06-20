@@ -109,11 +109,12 @@ private:
    /// @brief delay estimator
    scimath::DelayEstimator itsDelayEstimator;
 
-   /// @brief output file stream
+   /// @brief output file stream for time series
    std::ofstream itsOStream;
 
    /// @brief output file name
    std::string itsFileName;
+
 }; // PhaseTrackTask class
 
 } // ingest

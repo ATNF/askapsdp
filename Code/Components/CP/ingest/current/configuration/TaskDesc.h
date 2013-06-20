@@ -50,6 +50,7 @@ class TaskDesc {
             NoMetadataSource,
             CalcUVWTask,
             ChannelAvgTask,
+            ChannelSelTask,
             CalTask,
             MSSink,
             PhaseTrackTask,

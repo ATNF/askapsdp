@@ -51,7 +51,7 @@ SimpleMonitorTask::SimpleMonitorTask(const LOFAR::ParameterSet& parset,
 {
   ASKAPLOG_DEBUG_STR(logger, "Constructor");
   ASKAPCHECK(itsBaselineMap.size() == static_cast<size_t>(itsBaselineMap.maxID() + 1), 
-          "Only configuous baseline/polarisation IDs are supported by the monitor task for simplicity");
+          "Only contiguous baseline/polarisation IDs are supported by the monitor task for simplicity");
   casa::uInt nBeam = parset.getUint32("nbeam");
   itsVisBuffer.resize(itsBaselineMap.size(), nBeam);
   itsDelayBuffer.resize(itsBaselineMap.size(), nBeam);
@@ -150,6 +150,7 @@ void SimpleMonitorTask::processRow(const casa::Vector<casa::Complex> &vis, const
   ASKAPDEBUGASSERT(beam < itsDelayBuffer.ncolumn());
   // average visibilities in frequency
   if (vis.nelements() > 0) {
+      //const casa::Complex avgVis = vis[150];
       const casa::Complex avgVis = casa::sum(vis) / float(vis.nelements());
       itsVisBuffer(baseline,beam) = avgVis;
   }
@@ -158,6 +159,19 @@ void SimpleMonitorTask::processRow(const casa::Vector<casa::Complex> &vis, const
   if (vis.nelements() >= 2) {
       itsDelayBuffer(baseline,beam) = itsDelayEstimator.getDelay(vis);
   }
+  // temporary code to export the spectrum for debugging of the hw correlator. 
+  // the expectation is that it would be hard to keep up if we export everything. If
+  // something like this is necessary then we probably need to write a separate task.
+  if (beam == 0) {
+      // we don't need to cater for the full MPI case
+      ASKAPDEBUGASSERT(itsFileName.find("_0") != std::string::npos);
+      const std::string fname = "spectra" + utility::toString(baseline)+".dat";
+      std::ofstream os(fname.c_str());
+      for (casa::uInt ch = 0; ch<vis.nelements(); ++ch) {
+           os<<ch<<" "<<abs(vis[ch])<<" "<<arg(vis[ch]) * 180. / casa::C::pi<<std::endl;
+      }
+  }
+  //
 }
 
 /// @brief Publish the buffer
