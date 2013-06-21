@@ -26,10 +26,6 @@ pkg.AddSubPackage("preprocessing")
 pkg.AddSubPackage("patternmatching")
 pkg.AddSubPackage("outputs")
 
-## Disable "shared" as Duchamp is not built with fPIC
-#pkg.build_shared = False;
-#pkg.build_static = True;
-
 # run the build process
 pkg()
 
