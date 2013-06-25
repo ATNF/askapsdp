@@ -275,6 +275,14 @@ namespace askap {
 	if(!this->itsModelFactory.checkType())
 	  ASKAPLOG_ERROR_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") not a valid type.");
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
+	this->itsUseGaussians=true;
+	if(this->itsDatabaseOrigin == "POSSUM" || this->itsDatabaseOrigin == "POSSUMHI"){
+	    this->itsUseGaussians = parset.getBool("useGaussians",false);
+	    if(this->itsUseGaussians) 
+		ASKAPLOG_DEBUG_STR(logger, "Expressing disc components as 2D gaussians");
+	    else
+		ASKAPLOG_DEBUG_STR(logger, "Leaving disc components as discs");
+	}
 	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
 	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
 	this->itsFlagVerboseSources = parset.getBool("verboseSources",true);
@@ -633,7 +641,10 @@ namespace askap {
 	      ComponentType sourceType = src->type();
 
 //	      if(src->maj() > 0) {
-	      if(sourceType == GAUSSIAN){
+	      if(sourceType == POINT){
+		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
+	      }
+	      else if(sourceType == GAUSSIAN || this->itsUseGaussians){
 
 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
@@ -656,10 +667,6 @@ namespace askap {
 		  // ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
 
 		  lookAtSource = lookAtSource && doAddGaussian(this->itsAxes, gauss);
-	      }
-//	      else{
-	      else if(sourceType == POINT){
-		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
 	      }
 	      else if(sourceType == DISC){
 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
@@ -702,8 +709,21 @@ namespace askap {
 		  if(this->itsFlagVerboseSources && sourceType!=POINT) 
 		      ASKAPLOG_DEBUG_STR(logger, "Source " << src->id() << " has axes " << src->maj() << " x " << src->min() << " pix");
 		  // if (src->maj() > 0) {
-		  if(sourceType == GAUSSIAN){
-
+		  if(sourceType == POINT) {
+		    if (!this->itsDryRun){
+			addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen,this->itsFlagVerboseSources);
+		    }
+		    else{
+		      addedSource=doAddPointSource(this->itsAxes, pix);
+		      if ( addedSource ){
+			countPoint++;
+			if( this->itsDatabaseOrigin == "POSSUM") 
+			    if(this->itsFlagVerboseSources)
+				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+		      }
+		      else countMiss++;
+		    }
+		  } else if(sourceType == GAUSSIAN || this->itsUseGaussians){
 		    if (!this->itsDryRun){
 			addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians, this->itsFlagVerboseSources);
 		    }
@@ -718,22 +738,7 @@ namespace askap {
 		      else countMiss++;
 		    }
 		  // } else {
-		  } else if(sourceType == POINT) {
-		    if (!this->itsDryRun){
-			addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen,this->itsFlagVerboseSources);
-		    }
-		    else{
-		      addedSource=doAddPointSource(this->itsAxes, pix);
-		      if ( addedSource ){
-			countPoint++;
-			if( this->itsDatabaseOrigin == "POSSUM") 
-			    if(this->itsFlagVerboseSources)
-				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
-		      }
-		      else countMiss++;
-		    }
-		  }
-		  else if(sourceType==DISC) {
+		  } else if(sourceType==DISC) {
 		      if( !this->itsDryRun){
 			  addedSource=addDisc(this->itsArray, this->itsAxes, disc, fluxGen,this->itsFlagVerboseSources);
 		      }
