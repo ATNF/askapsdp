@@ -109,7 +109,7 @@ else:
 
 if os.path.exists(networkx_path):
     print ">>> Attempting to bootstrap networkx python module needed by rbuild."
-    os.system("cd %s && %s bootstrap.py" % (networkx_path, python_exe))
+    os.system("cd %s && %s setup.py -q install" % (networkx_path, python_exe))
 else:
     print ">>> %s does not exist." % os.path.abspath(networkx_path)
     sys.exit()
