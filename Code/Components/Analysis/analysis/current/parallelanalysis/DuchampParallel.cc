@@ -1748,7 +1748,7 @@ namespace askap {
 	      LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
 	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for " << this->itsSourceList.size() << " sources");
 	      for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-		if(objectChoice[src->getID()-1]){
+		if(objectChoice.at(src->getID()-1)){
 		  SourceSpectrumExtractor extractor(extractSubset);
 		  extractor.setSource(&*src);
 		  extractor.extract();
@@ -1763,7 +1763,7 @@ namespace askap {
 	      LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
 	      ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for " << this->itsSourceList.size() << " sources");
 	      for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-		if(objectChoice[src->getID()-1]){
+		if(objectChoice.at(src->getID()-1)){
 		  NoiseSpectrumExtractor extractor(extractSubset);
 		  extractor.setSource(&*src);
 		  extractor.extract();
