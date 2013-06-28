@@ -2,6 +2,8 @@
 # SConstruct build script for this module.
 #
 
+import os
+
 # Always import this
 from askapenv import env
 
@@ -12,10 +14,12 @@ pkg.AddSubPackage("configuration")
 pkg.AddSubPackage("monitoring")
 pkg.AddSubPackage("ingestpipeline")
 
-env["CC"] = "mpicc"
-env["CXX"] = "mpicxx"
-env["LINK"] = "mpicxx"
-env["SHLINK"] = "mpicxx"
+# Use MPI compiler wrapper (except on Cray where cc and c++ are wrappers)
+if not os.environ.has_key("CRAYOS_VERSION"):
+    env["CC"] = "mpicc"
+    env["CXX"] = "mpicxx"
+    env["LINK"] = "mpicxx"
+    env["SHLINK"] = "mpicxx"
 
 env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O2'])

@@ -2,6 +2,8 @@
 # SConstruct build script for this module.
 #
 
+import os
+
 # Always import this
 from askapenv import env
 
@@ -16,11 +18,12 @@ env.Append(CCFLAGS=['-g'])
 env.Append(CCFLAGS=['-O2'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])
 
-# Use MPI compiler wrapper
-env["CC"] = "mpicc"
-env["CXX"] = "mpicxx"
-env["LINK"] = "mpicxx"
-env["SHLINK"] = "mpicxx"
+# Use MPI compiler wrapper (except on Cray where cc and c++ are wrappers)
+if not os.environ.has_key("CRAYOS_VERSION"):
+    env["CC"] = "mpicc"
+    env["CXX"] = "mpicxx"
+    env["LINK"] = "mpicxx"
+    env["SHLINK"] = "mpicxx"
 
 # run the build process
 pkg()
