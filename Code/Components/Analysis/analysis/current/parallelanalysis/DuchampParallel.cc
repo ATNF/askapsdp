@@ -680,10 +680,12 @@ namespace askap {
                     }
                 }
 
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects.");
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects. Now merging.");
 
                 // merge the objects, and grow them if necessary.
 		this->itsCube.ObjectMerger();
+
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Merged list has " << this->itsCube.getNumObj() << " objects.");
 
 		if(this->itsFlagOptimiseMask){
 		  // Use the mask optimisation routine provided by WALLABY
@@ -1690,6 +1692,8 @@ namespace askap {
 		LOFAR::BlobOBufString bob(bs);
 		LOFAR::BlobOStream out(bob);
 		out.putStart("extsrc", 1);
+		// the first time we write to each worker, send the total number of sources
+		if(i/(itsComms.nProcs()-1)==0) out << (unsigned int)(this->itsSourceList.size());
 		out << (i<this->itsSourceList.size());
 		if(i<this->itsSourceList.size()){
 		  this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
@@ -1711,6 +1715,7 @@ namespace askap {
 	  
 	  if(this->itsComms.isWorker()){
 	    
+	    unsigned int totalSourceCount=0;
 	    if(this->itsComms.isParallel()){
 	      
 	      LOFAR::BlobString bs;
@@ -1724,6 +1729,7 @@ namespace askap {
 		LOFAR::BlobIStream in(bib);
 		int version = in.getStart("extsrc");
 		ASKAPASSERT(version == 1);
+		if(totalSourceCount == 0) in >> totalSourceCount;
 		in >> isOK;
 		if(isOK){
 		  in >> src;
@@ -1733,8 +1739,9 @@ namespace askap {
 	      }
 	      
 	    }
+	    else totalSourceCount = (unsigned int)(this->itsSourceList.size());
 	    
-	    std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(this->itsSourceList.size());
+	    std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(totalSourceCount);
 	    
 	    if(this->itsFlagExtractSpectra){
 	      std::vector<sourcefitting::RadioSource>::iterator src;
