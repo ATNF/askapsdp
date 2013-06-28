@@ -39,6 +39,10 @@
 #include "casa/OS/Timer.h"
 #include <casa/Arrays/Array.h>
 
+// other 3rd party
+#include <Common/ParameterSet.h>
+
+
 // ASKAPsoft includes
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
@@ -62,20 +66,59 @@ casa::MVDirection convertDir(const std::string &ra, const std::string &dec) {
   return casa::MVDirection(tmpra,tmpdec);  
 }
 
+// helper method to load beam offsets from the parset file sharing the same format
+// as csimulator feed definition. Due to lack of proper phase tracking per beam in the first experiments
+// we have to set all beam offsets in the MS to zero. Therefore, this information has to be supplied 
+// by other means.
+casa::Vector<casa::MVDirection> loadBeamOffsets(const std::string &fname, const casa::MVDirection &centre)
+{
+   ASKAPLOG_INFO_STR(logger,  "Loading beam offsets from "<<fname);
+   LOFAR::ParameterSet parset(fname);
+   const std::vector<std::string> beamNames(parset.getStringVector("feeds.names"));
+   const casa::uInt nBeams = beamNames.size();
+   ASKAPLOG_INFO_STR(logger,  "File contains description for "<<nBeams<<" beams");
+   ASKAPCHECK(nBeams > 0, "No beams specified");
+   casa::Vector<casa::MVDirection> result(nBeams, centre);
+   double spacing = 1.;
+   if (parset.isDefined("feeds.spacing")) {
+       casa::Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
+       spacing = qspacing.getValue("rad");
+       ASKAPLOG_INFO_STR(logger, "Scaling beam offsets by " << qspacing);       
+   } 
+   for (casa::uInt beam = 0; beam < nBeams; ++beam) {
+        const std::string parName = "feeds." + beamNames[beam];
+        const std::vector<double> xy(parset.getDoubleVector(parName));
+        ASKAPCHECK(xy.size() == 2, "Expect two elements for each offset");
+        result[beam].shift(-xy[0]*spacing, xy[1]*spacing, casa::True);
+   }
+   return result;
+}
+
 void process() {
+  
   // centres for each beam
+  const casa::Vector<casa::MVDirection> centres = 
+     loadBeamOffsets("beamoffsets.in", convertDir("13h25m29.98","-43.00.40.72"));
+
+  /*
   casa::Vector<casa::MVDirection> centres(4);
 
   centres[0] = convertDir("13:26:51.70","-42.45.38.90");
   centres[1] = convertDir("13:24:08.26","-42.45.38.90");
   centres[2] = convertDir("13:26:52.37","-43.15.38.87");
   centres[3] = convertDir("13:24:07.59","-43.15.38.87");
+  */
   /*
   centres[0] = convertDir("15:56:58.87","-79.14.04.28");
   centres[1] = convertDir("16:17:49.28","-77.17.18.49");
   centres[2] = convertDir("16:08:15.09","-78.16.24.53");
   //centres[3] = convertDir("15:55:21.65","-79.40.36.30");
   */
+  
+  for (casa::uInt beam = 0; beam<centres.nelements(); ++beam) {
+       ASKAPLOG_INFO_STR(logger,  "Beam "<<beam + 1<<" pointing centre is "<<printDirection(centres[beam]));
+  }
+  
   const double cutoff = 5e-2;
   const double fwhm = 1.22*3e8/928e6/12;
   
@@ -121,8 +164,10 @@ void process() {
             } else {
                 resflux /= sqrt(sumsqwt);
             }
-            pixels[0](curpos) = sqrt(sumsqwt); //resflux;
-            //pixels[0](curpos) = resflux;
+            // for weight
+            //pixels[0](curpos) = sqrt(sumsqwt); //resflux;
+            // for image
+            pixels[0](curpos) = resflux;
        }
   }
  
