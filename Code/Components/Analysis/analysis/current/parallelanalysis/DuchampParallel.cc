@@ -221,7 +221,7 @@ namespace askap {
 		if(!this->itsParset.isDefined("extractSpectra.spectralCube")){
 		    ASKAPLOG_WARN_STR(logger, "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter. Turning off spectral extraction.");
 		    this->itsFlagExtractSpectra = false;
-		    this->itsParset.replace("extractSpectra",false);
+		    this->itsParset.replace("extractSpectra","false");
 		}
 		else ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << this->itsParset.getString("extractSpectra.spectralCube",""));
 	    }
@@ -230,7 +230,7 @@ namespace askap {
 		if(!this->itsParset.isDefined("extractNoiseSpectra.spectralCube")){
 		    ASKAPLOG_WARN_STR(logger, "Source cube not defined for extracting noise spectra. Please use the \"spectralCube\" parameter. Turning off noise spectra extraction.");
 		    this->itsFlagExtractNoiseSpectra = false;
-		    this->itsParset.replace("extractNoiseSpectra",false);
+		    this->itsParset.replace("extractNoiseSpectra","false");
 		}
 		else ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << this->itsParset.getString("extractNoiseSpectra.spectralCube",""));
 	    }
