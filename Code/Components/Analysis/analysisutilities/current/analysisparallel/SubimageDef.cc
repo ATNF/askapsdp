@@ -314,6 +314,9 @@ namespace askap {
 	    fullImageSubsection.parse(this->itsFullImageDim);
 
 	    duchamp::KarmaAnnotationWriter writer(filename);
+	    writer.openCatalogue();
+	    if(writer.isOpen()) ASKAPLOG_INFO_STR(logger, "Opened annotation file " << writer.name() << " for writing the subimage outlines");
+	    else                ASKAPLOG_WARN_STR(logger, "Could not open " << writer.name() << " for writing subimage outlines");
 	    writer.setColourString("YELLOW");
 	    writer.writeTableHeader();
 
