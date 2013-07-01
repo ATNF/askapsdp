@@ -215,7 +215,8 @@ namespace askap {
 	    par.setFileOutputRecon(parset.getString("fileOutputRecon",par.getFileOutputRecon()));
 	    par.setFlagOutputResid(parset.getBool("flagOutputResid",par.getFlagOutputResid()));
 	    par.setFileOutputResid(parset.getString("fileOutputResid",par.getFileOutputResid()));
-	    par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
+	    // par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
+	    par.setFlagVOT(parset.getBool("flagVOT",true));
 	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
             par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));

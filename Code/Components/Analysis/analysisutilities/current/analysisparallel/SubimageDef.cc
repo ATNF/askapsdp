@@ -348,6 +348,8 @@ namespace askap {
             delete [] pix;
             delete [] wld;
 
+	    writer.closeCatalogue();
+
         }
 
       std::set<int> SubimageDef::affectedWorkers(int x, int y, int z)
