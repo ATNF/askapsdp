@@ -65,7 +65,7 @@ namespace askap {
 	/// @brief Return a whole-image subsection string for an image
 	std::string getFullSection(std::string filename);
         /// @brief Return the dimensions of the image
-        std::vector<long> getCASAdimensions(std::string filename);
+        std::vector<size_t> getCASAdimensions(std::string filename);
 
         /// @ingroup analysisutilities
         /// @brief Read the beam information from a casa image
@@ -96,7 +96,7 @@ namespace askap {
         float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
 
         /// @brief Return a vector of pixel values in a box subsection of an image.
-        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlicer=true);
+        casa::Array<casa::Float> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlicer=true);
 
 	/// @brief Increase the length of a Slicer by adding degenerate dimensions on the end
 	void lengthenSlicer(Slicer &slice, int ndim);

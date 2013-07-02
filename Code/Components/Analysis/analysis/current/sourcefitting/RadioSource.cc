@@ -1045,13 +1045,16 @@ namespace askap {
 		Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
 		Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
 		Slicer theBox=casa::Slicer(xrange, yrange);
-		casa::Vector<casa::Double> flux_all = getPixelsInBox(imageName, theBox);
+		// casa::Vector<casa::Double> flux_all = getPixelsInBox(imageName, theBox);
+		casa::Array<casa::Float> flux_all = getPixelsInBox(imageName, theBox);
 		ASKAPLOG_DEBUG_STR(logger, "Read flux array in a box with " << flux_all.size() << " pixels");
 
 		std::vector<double> fluxvec;
 		for (size_t i=0;i<flux_all.size();i++) {
-		    if(!isnan(flux_all(i))){
-			fluxvec.push_back(flux_all(i));
+		    // if(!isnan(flux_all(i))){
+			// fluxvec.push_back(flux_all(i));
+		    if(!isnan(flux_all.data()[i])){
+			fluxvec.push_back(flux_all.data()[i]);
 		    }
 		}
 		casa::Matrix<casa::Double> pos;
@@ -1064,7 +1067,8 @@ namespace askap {
 		// The following checks for pixels that have been blanked, and ignore them
 		int counter=0;
 		for (size_t i=0;i<flux_all.size();i++) {
-		    if(!isnan(flux_all(i))){
+		    // if(!isnan(flux_all(i))){
+		    if(!isnan(flux_all.data()[i])){
 			sigma(counter)=1;
 			curpos(0) = i%this->boxXsize() + this->boxXmin();
 			curpos(1) = i/this->boxXsize() + this->boxYmin();

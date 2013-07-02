@@ -214,7 +214,7 @@ namespace askap {
 
        //**************************************************************//
 
-        std::vector<long> getCASAdimensions(std::string filename)
+        std::vector<size_t> getCASAdimensions(std::string filename)
         {
             /// @details Equivalent of getFITSdimensions, but for
             /// casa images. Returns a vector with the axis dimensions of the given image
@@ -229,7 +229,7 @@ namespace askap {
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
-            std::vector<long> dim(shape.size());
+            std::vector<size_t> dim(shape.size());
 
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
@@ -302,7 +302,7 @@ namespace askap {
 
         //**************************************************************//
 
-        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlice)
+        casa::Array<casa::Float> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlice)
         {
             /// @details Extract a set of pixel values from a region of
             /// an image. The region is defined by a casa::Slicer
@@ -330,15 +330,15 @@ namespace askap {
 	      fixSlicer(newSlicer, tempwcs);
 	    }
 
-	    casa::Array<Float> array;
-	    array = imagePtr->getSlice(newSlicer,true);
-            float *data = array.data();
-            casa::Vector<Double> vec(array.size());
+	    casa::Array<Float> array = imagePtr->getSlice(newSlicer,true);
+            // float *data = array.data();
+            // casa::Vector<Double> vec(array.size());
 
-            for (size_t i = 0; i < vec.size(); i++) vec(i) = casa::Double(data[i]);
+            // for (size_t i = 0; i < vec.size(); i++) vec(i) = casa::Double(data[i]);
 
             delete lattPtr;
-            return vec;
+            // return vec;
+	    return array;
         }
 
         //**************************************************************//

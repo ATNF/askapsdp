@@ -65,7 +65,7 @@ namespace askap {
 	    duchamp::Section itsSection;
 	    duchamp::Cube *itsCube;
 	    float itsNorm;
-	    casa::Vector<casa::Double> itsWeights;
+	    casa::Array<casa::Float> itsWeights;
 
 	};
 

@@ -71,10 +71,12 @@ class BoxstatsApp : public askap::Application
 		par.setCut(subset.getFloat("snrCut"));
 		par.setFlagRobustStats(subset.getBool("flagRobustStats",true));
 		par.setSearchType(subset.getString("searchType","spatial"));
-		std::vector<long> dim = analysisutilities::getCASAdimensions(par.getImageFile());
+		std::vector<size_t> dim = analysisutilities::getCASAdimensions(par.getImageFile());
+		std::vector<long> diml(dim.size());
+		for(size_t i=0;i<dim.size();i++) diml[i]=dim[i];
 		par.setFlagSubsection(subset.getBool("flagSubsection"));
 		par.setSubsection(subset.getString("subsection",duchamp::nullSection(dim.size())));
-		ASKAPCHECK(par.parseSubsections(dim)==duchamp::SUCCESS, "Could not parse subsection in param: " << par);
+		ASKAPCHECK(par.parseSubsections(diml)==duchamp::SUCCESS, "Could not parse subsection in param: " << par);
 		parl.cube().saveParam(par);
 		parl.setBaseSubsection(par.getSubsection());
 		parl.setFlagVariableThreshold(true);

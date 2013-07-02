@@ -31,17 +31,20 @@
 
 #include <analysisparallel/SubimageDef.h>
 #include <askapparallel/AskapParallel.h>
+#include <casainterface/CasaInterface.h>
 
 #include <string>
 #include <vector>
 
 #include <Common/ParameterSet.h>
 #include <casa/namespace.h>
+#include <casa/Arrays/Array.h>
 #include <scimath/Functionals/Gaussian2D.h>
 
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 #include <duchamp/FitsIO/Beam.hh>
+#include <duchamp/Detection/detection.hh>
 
 namespace askap {
     namespace analysis {
@@ -97,6 +100,8 @@ namespace askap {
 	/// @brief Return the Gaussian after deconvolution with the given beam
 	std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
 	
+	void calcObjectParamsFromCutout(duchamp::Detection &object, size_t padding, std::string imageName);
+
     }
 }
 

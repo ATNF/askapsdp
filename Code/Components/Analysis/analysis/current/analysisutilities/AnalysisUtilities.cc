@@ -681,6 +681,31 @@ namespace askap {
 
       }
 
+	void calcObjectParamsFromCutout(duchamp::Detection &object, size_t padding, std::string imageName, duchamp::FitsHeader &header)
+	{
+	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
+	    size_t xmin = std::max(0LU, object.getXmin() - padding);
+	    size_t ymin = std::max(0LU, object.getYmin() - padding);
+	    size_t zmin = std::max(0LU, object.getZmin() - padding);
+	    size_t xmax = std::min(dim[0], object.getXmax() + padding);
+	    size_t ymax = std::min(dim[1], object.getYmax() + padding);
+	    size_t zmax = (dim.size()>2) ? std::min(dim[2], object.getZmax() + padding) : 0;
+
+	    Slice xrange=casa::Slice(xmin,xmax-xmin+1,1);
+	    Slice yrange=casa::Slice(ymin,ymax-ymin+1,1);
+	    Slice zrange=casa::Slice(zmin,zmax-zmin+1,1);
+	    Slicer theBox=casa::Slicer(xrange, yrange, zrange);
+	    casa::Array<casa::Float> fluxarray = analysisutilities::getPixelsInBox(imageName, theBox);
+
+	    object.addOffsets(-xmin,-ymin,-zmin);
+	    object.calcFluxes(fluxarray.data(),dim.data());
+	    object.findShape(fluxarray.data(),dim.data(),header);
+	    object.calcWCSparams(header);
+	    object.calcIntegFlux(fluxarray.data(),dim.data(),header);
+	    object.addOffsets(xmin,ymin,zmin);
+
+	}
+
 
     }
 }

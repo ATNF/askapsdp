@@ -100,7 +100,8 @@ namespace askap {
 		    if(this->itsWeights.size()==0)
 			ASKAPLOG_ERROR_STR(logger, "Weights array not initialised!");
 		    // find maximum of weights and send to master
-		    float maxW = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+//		    float maxW = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+		    float maxW = max(this->itsWeights);
 		    ASKAPLOG_DEBUG_STR(logger, "Local maximum weight = " << maxW);
 		    bs.resize(0);
 		    LOFAR::BlobOBufString bob(bs);
@@ -144,7 +145,8 @@ namespace askap {
 	    }
 	    else { 
 		// serial mode - read entire weights image, so can just measure maximum directly
-		this->itsNorm = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+		// this->itsNorm = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+		this->itsNorm = max(this->itsWeights);
 	    }
 
 	    ASKAPLOG_INFO_STR(logger, "Normalising weights image to maximum " << this->itsNorm);
@@ -155,7 +157,8 @@ namespace askap {
 	float Weighter::weight(size_t i)
 	{
 	    ASKAPCHECK(i < this->itsWeights.size(), "Index out of bounds for weights array : index="<<i<<", weights array is size " << this->itsWeights.size());
-	    return sqrt(this->itsWeights(i)/this->itsNorm);
+	    // return sqrt(this->itsWeights(i)/this->itsNorm);
+	    return sqrt(this->itsWeights.data()[i]/this->itsNorm);
 	}
 
 	void Weighter::search()
