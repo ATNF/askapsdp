@@ -1,4 +1,4 @@
-Central Processor Framework Documentation
+Central Processor Utilities Documentation
 =========================================
 
 **Contents:**
@@ -7,4 +7,5 @@ Central Processor Framework Documentation
    :maxdepth: 1
 
    cmodel.rst
+   cflag.rst
    makecube.rst

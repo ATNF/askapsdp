@@ -7,4 +7,4 @@ ASKAP Central Processor User Documentation
    
    synthesis/index.rst
    analysis/index.rst
-   cp_framework/index.rst
+   cp_utils/index.rst
