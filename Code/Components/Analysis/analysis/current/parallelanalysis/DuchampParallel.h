@@ -173,9 +173,8 @@ namespace askap {
 		/// @brief Extract spectra from a cube for each detected object
 		void extractSpectra();
 
-                /// @brief Calculate the object parameters on the master.
+                /// @brief Calculate the object parameters on the workers
                 void calcObjectParams();
-                void calcObjectParamsOLD();
 
                 /// @brief Write a Karma/DS9/CASA annotation files showing the fits (on the master).
                 void writeFitAnnotations();

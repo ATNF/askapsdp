@@ -129,7 +129,27 @@ namespace askap {
 
             //**************************************************************//
 
-            RadioSource& RadioSource::operator= (const RadioSource& src)
+            RadioSource& RadioSource::operator= (const duchamp::Detection& det)
+            {
+	      ((duchamp::Detection &) *this) = det;
+	      this->hasFit = false;
+	      this->atEdge = false;
+	      this->itsFitParams = FittingParameters();
+	      this->itsNoiseLevel = this->itsFitParams.noiseLevel();
+	      std::vector<std::string>::iterator type;
+	      std::vector<std::string> typelist = availableFitTypes;
+	      
+	      for (type = typelist.begin(); type < typelist.end(); type++) {
+		this->itsAlphaMap[*type] = std::vector<float>(1, -99.);
+		this->itsBetaMap[*type] = std::vector<float>(1, -99.);
+	      }
+	      
+	      this->itsAlphaMap["best"] = std::vector<float>(1, -99.);
+	      this->itsBetaMap["best"] = std::vector<float>(1, -99.);
+	      return *this;
+            }
+
+           RadioSource& RadioSource::operator= (const RadioSource& src)
             {
                 ((duchamp::Detection &) *this) = src;
                 this->atEdge = src.atEdge;
@@ -164,6 +184,13 @@ namespace askap {
 		  start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
 		  end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
 		}
+		ASKAPLOG_DEBUG_STR(logger, "DefineBox: start = " << start << " end="<<end << " section="<<sec.getSection() 
+				   << ", sec.start: " << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(spectralAxis)
+				   << ", sec.end: " << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(spectralAxis)
+				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
+				     <<", mins: " <<this->getXmin() << " " << this->getYmin() << " " << this->getZmin()
+				     <<", maxs: " <<this->getXmax() << " " << this->getYmax() << " " << this->getZmax()
+				     <<", boxpadsize: " << fitParams.boxPadSize());
 		if(start>=end){
 		  ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox failing : sec="<<sec.getSection()
 				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset

@@ -43,6 +43,10 @@
 
 #include <casa/namespace.h>
 #include <scimath/Functionals/Gaussian2D.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
+#include <images/Images/ImageOpener.h>
+#include <images/Images/SubImage.h>
 
 #include <iostream>
 #include <iomanip>
@@ -681,28 +685,137 @@ namespace askap {
 
       }
 
-	void calcObjectParamsFromCutout(duchamp::Detection &object, size_t padding, std::string imageName, duchamp::FitsHeader &header)
+	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header)
 	{
 	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
-	    size_t xmin = std::max(0LU, object.getXmin() - padding);
-	    size_t ymin = std::max(0LU, object.getYmin() - padding);
-	    size_t zmin = std::max(0LU, object.getZmin() - padding);
-	    size_t xmax = std::min(dim[0], object.getXmax() + padding);
-	    size_t ymax = std::min(dim[1], object.getYmax() + padding);
-	    size_t zmax = (dim.size()>2) ? std::min(dim[2], object.getZmax() + padding) : 0;
+	    size_t lng=header.getWCS()->lng;
+	    size_t lat=header.getWCS()->lat;
+	    size_t spec=header.getWCS()->spec;
+	    long xoff=object->getXOffset();
+	    long yoff=object->getYOffset();
+	    long zoff=object->getZOffset();
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim size = " << dim.size());
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim = " << dim[0] << " " << dim[1] << " " << dim[2] << " " << dim[3]);
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin() << "   " << padding);
+	    long zero=0;
+	    size_t xmin = size_t(std::max(zero, object->getXmin() - padding));
+	    size_t ymin = size_t(std::max(zero, object->getYmin() - padding));
+	    //	    size_t zmin = size_t(std::max(zero, object->getZmin() - padding));
+	    size_t zmin=0;
+	    size_t xmax = std::min(dim[0]-1, size_t(object->getXmax() + padding));
+	    size_t ymax = std::min(dim[1]-1, size_t(object->getYmax() + padding));
+	    //	    size_t zmax = (dim.size()>2) ? std::min(dim[spec]-1, size_t(object->getZmax() + padding)) : 0;
+	    size_t zmax = dim[spec]-1;
+	    ASKAPLOG_DEBUG_STR(logger, "mins: " << xmin << " " << ymin << " " << zmin << "   maxs: " << xmax << " " << ymax << " " << zmax);
 
-	    Slice xrange=casa::Slice(xmin,xmax-xmin+1,1);
-	    Slice yrange=casa::Slice(ymin,ymax-ymin+1,1);
-	    Slice zrange=casa::Slice(zmin,zmax-zmin+1,1);
-	    Slicer theBox=casa::Slicer(xrange, yrange, zrange);
-	    casa::Array<casa::Float> fluxarray = analysisutilities::getPixelsInBox(imageName, theBox);
+// 	    Slice xrange=casa::Slice(xmin,xmax-xmin+1,1);
+// 	    Slice yrange=casa::Slice(ymin,ymax-ymin+1,1);
+// 	    Slice zrange=casa::Slice(zmin,zmax-zmin+1,1);
+// 	    ASKAPLOG_DEBUG_STR(logger, "Slices to be used for object " << object->getID()<<" : x=(" << xrange << ") y=(" << yrange << ") z=(" << zrange<<")");
 
-	    object.addOffsets(-xmin,-ymin,-zmin);
-	    object.calcFluxes(fluxarray.data(),dim.data());
-	    object.findShape(fluxarray.data(),dim.data(),header);
-	    object.calcWCSparams(header);
-	    object.calcIntegFlux(fluxarray.data(),dim.data(),header);
-	    object.addOffsets(xmin,ymin,zmin);
+	    casa::IPosition start(dim.size(),0);
+	    casa::IPosition length(dim.size(),1);
+	    start[lng]=xmin;
+	    start[lat]=ymin;
+	    if(spec>=0) start[spec]=zmin;
+	    length[lng]=xmax-xmin+1;
+	    length[lat]=ymax-ymin+1;
+	    if(spec>=0) length[spec]=zmax-zmin+1;
+
+	    ASKAPLOG_DEBUG_STR(logger, "Defining slicer with start = " << start << " and length = " << length);
+
+	    Slicer theBox=casa::Slicer(start,length);
+	    ASKAPLOG_DEBUG_STR(logger, "Slicer to be used is " << theBox);
+
+	    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+	    
+            if (lattPtr == 0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
+	    
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	    
+	    const SubImage<Float> *subimagePtr = new SubImage<Float>(*imagePtr,theBox);
+	    casa::Array<casa::Float> fluxarray = subimagePtr->get();
+
+	    wcsprm *wcs = analysisutilities::casaImageToWCS(subimagePtr);
+	    duchamp::FitsHeader newhead(header);
+	    newhead.setWCS(wcs);
+
+	    //	    casa::Array<casa::Float> fluxarray = analysisutilities::getPixelsInBox(imageName, theBox,false);
+	    std::vector<size_t> shape(3);
+	    shape[0]=size_t(fluxarray.shape()(lng));
+	    shape[1]=size_t(fluxarray.shape()(lat));
+	    shape[2]=(spec>=0) ? size_t(fluxarray.shape()(spec)) : 0;
+	    ASKAPLOG_DEBUG_STR(logger, "Flux array has size " << fluxarray.size() << " and shape " << fluxarray.shape() << " but we use " << shape[0] << ","<<shape[1]<<","<<shape[2]);
+
+	    object->setXOffset(-xmin);
+	    object->setYOffset(-ymin);
+	    object->setZOffset(-zmin);
+	    object->addOffsets();
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+// 	    header.getWCS()->crpix[lng] = header.getWCS()->crpix[lng] - xmin;
+// 	    header.getWCS()->crpix[lat] = header.getWCS()->crpix[lat] - ymin;
+// 	    if(spec>=0) header.getWCS()->crpix[spec] = header.getWCS()->crpix[spec] - zmin;
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin());
+
+	    object->calcFluxes(fluxarray.data(),shape.data());
+	    object->findShape(fluxarray.data(),shape.data(),newhead);
+	    object->calcIntegFlux(fluxarray.data(),shape.data(),newhead);
+
+	    object->setXOffset(xmin);
+	    object->setYOffset(ymin);
+	    object->setZOffset(zmin);
+	    object->addOffsets();
+ 	    object->setXOffset(xoff);
+ 	    object->setYOffset(yoff);
+ 	    object->setZOffset(zoff);
+// 	    header.getWCS()->crpix[lng] = header.getWCS()->crpix[lng] + xmin;
+// 	    header.getWCS()->crpix[lat] = header.getWCS()->crpix[lat] + ymin;
+// 	    if(spec>=0) header.getWCS()->crpix[spec] = header.getWCS()->crpix[spec] + zmin;
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+
+	    object->calcWCSparams(header);
+
+	}
+
+
+	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header)
+	{
+
+	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
+	    const int lng=header.getWCS()->lng;
+	    const int lat=header.getWCS()->lat;
+	    const int spec=header.getWCS()->spec;
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim size = " << dim.size());
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim = " << dim[0] << " " << dim[1] << " " << dim[2] << " " << dim[3]);
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin() << "   " << padding);
+	    long zero=0;
+	    size_t xmin = size_t(std::max(zero, object->getXmin() - padding));
+	    size_t ymin = size_t(std::max(zero, object->getYmin() - padding));
+	    //	    size_t zmin = size_t(std::max(zero, object->getZmin() - padding));
+	    size_t zmin=0;
+	    size_t xmax = std::min(dim[0]-1, size_t(object->getXmax() + padding));
+	    size_t ymax = std::min(dim[1]-1, size_t(object->getYmax() + padding));
+	    //	    size_t zmax = (dim.size()>2) ? std::min(dim[spec]-1, size_t(object->getZmax() + padding)) : 0;
+	    size_t zmax = dim[spec]-1;
+
+	    std::stringstream subsectionString;
+	    subsectionString << "[";
+	    for(int i=0;i<int(dim.size());i++){
+	      if(i==lng)              subsectionString << xmin+1 << ":" << xmax+1;
+	      else if (i==lat)        subsectionString << ymin+1 << ":" << ymax+1;
+	      else if (i==spec)       subsectionString << zmin+1 << ":" << zmax+1;
+	      else                    subsectionString << "*";
+	      if(i<int(dim.size()-1)) subsectionString << ",";
+	    }
+	    subsectionString << "]";
+	  
+	    return subsectionString.str();
 
 	}
 

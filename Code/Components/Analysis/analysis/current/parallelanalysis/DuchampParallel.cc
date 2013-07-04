@@ -1294,8 +1294,12 @@ namespace askap {
 	  }
 	  else if(itsComms.isWorker()){
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
-	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
-	    this->getMetadata();
+ 	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
+ 	    this->getMetadata();
+
+	    std::vector<RadioSource> srclist, srclistWithParams;
+
+	    bool USE_VOXEL_LIST = true;
 
 	    // now read individual sources
 	    LOFAR::BlobString bs;
@@ -1311,15 +1315,21 @@ namespace askap {
 	      if(objsize>0){
 		sourcefitting::RadioSource src;
 		in >> src;
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read object of size " << src.getSize() << " from Master");
-		this->itsCube.addObject(src);
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read object " << src.getID() << " at x="<<src.getXcentre() << " y="<<src.getYcentre() << " z=" << src.getZcentre() << " of size " << src.getSize() << " from Master");
+		if(USE_VOXEL_LIST) this->itsCube.addObject(src);
+		else               srclist.push_back(src);
 	      }
 	      in.getEnd();
 	    }
 
-	    if(this->itsCube.getNumObj() > 0){
+	    int numObj = USE_VOXEL_LIST ? this->itsCube.getNumObj() : srclist.size();
+
+	    if(numObj > 0){
+	    //	    if(this->itsCube.getNumObj() > 0){
+	    //if(srclist.size() > 0){
 	      int numVox = this->itsVoxelList.size();
-	      int numObj = this->itsCube.getNumObj();
+	      //	      int numObj = this->itsCube.getNumObj();
+	      //int numObj = srclist.size();
 
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read all " << numObj << " objects. Now have to get voxels from list of " << numVox);
 
@@ -1327,7 +1337,7 @@ namespace askap {
                 for (int i = 0; i < numObj; i++) {
 
 		  // for each object, make a vector list of voxels that appear in it.
-		  std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
+		  std::vector<PixelInfo::Voxel> objVoxList = USE_VOXEL_LIST ? this->itsCube.getObject(i).getPixelSet() : srclist[i].getPixelSet();
 		  std::vector<PixelInfo::Voxel>::iterator vox;
 		  
 		  // get the fluxes of each voxel
@@ -1343,8 +1353,47 @@ namespace askap {
                 }
 		
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocated fluxes to voxel lists. Now calculating parameters");
-		
-		this->itsCube.calcObjectWCSparams(this->itsVoxelMap);
+
+		if(USE_VOXEL_LIST){
+		  this->itsCube.calcObjectWCSparams(this->itsVoxelMap);
+		}
+		else {
+//  		for(size_t o=0;o<this->itsCube.getNumObj();o++)
+//  		  calcObjectParamsFromCutout(this->itsCube.pObject(o),3,this->itsCube.pars().getImageFile(),this->itsCube.header());
+
+		  std::string fullSection = this->itsBaseSubsection;
+		  long xoff=this->itsCube.pars().getXOffset();
+		  long yoff=this->itsCube.pars().getYOffset();
+		  long zoff=this->itsCube.pars().getZOffset();
+		  this->itsCube.pars().setFlagSubsection(true);
+		  for(size_t i=0;i<srclist.size();i++){
+		    
+		    std::string objectSubsection = objectToSubsection(&srclist[i],3,this->itsCube.pars().getImageFile(),this->itsCube.header());
+		    
+		    ASKAPLOG_DEBUG_STR(logger, "About to set params for object #"<<i<<" or ID=" << srclist[i].getID() << " with subsection " << objectSubsection);
+		    this->itsCube.pars().setSubsection(objectSubsection);
+		    this->itsBaseSubsection = objectSubsection;
+		    this->getCASA(IMAGE);
+		    this->itsCube.clearDetectionList();
+		    srclist[i].addOffsets(-this->itsCube.pars().getXOffset(),-this->itsCube.pars().getYOffset(),-this->itsCube.pars().getZOffset());
+		    this->itsCube.addObject(srclist[i]);
+		    this->itsCube.calcObjectWCSparams();
+		    ASKAPLOG_DEBUG_STR(logger, "Done.");
+		    duchamp::Detection obj = this->itsCube.getObject(0);
+		    srclist[i].addOffsets(this->itsCube.pars().getXOffset(),this->itsCube.pars().getYOffset(),this->itsCube.pars().getZOffset());
+		    obj.setXOffset(xoff);
+		    obj.setYOffset(yoff);
+		    obj.setZOffset(zoff);
+		    obj.addOffsets();
+		    srclistWithParams.push_back(obj);
+		    
+		  }
+		  
+		  this->itsCube.pars().setSubsection(fullSection);
+		  this->itsBaseSubsection = fullSection;
+		  this->getMetadata();
+		  
+		}
 	      }
 
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Done the WCS parameter calculation. About to send back to master");
@@ -1355,10 +1404,23 @@ namespace askap {
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("final", 1);
 	      out << int(numObj);
-	      for(int i=0;i<numObj;i++){
-		sourcefitting::RadioSource src=this->itsCube.getObject(i);
-		src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-		out << src;
+
+	      if(USE_VOXEL_LIST){
+		for(int i=0;i<numObj;i++){
+		  sourcefitting::RadioSource src=this->itsCube.getObject(i);
+		  src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		  out << src;
+		}
+		
+	      }
+	      else {
+
+// 	      out << int(srclistWithParams.size());
+		for(size_t i=0;i<srclistWithParams.size();i++){
+		  srclistWithParams[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		  out << srclistWithParams[i];
+		}
+		
 	      }
 	      out.putEnd();
 	      itsComms.sendBlob(bs, 0);
@@ -1369,53 +1431,6 @@ namespace askap {
 
       }
 
-
-      void DuchampParallel::calcObjectParamsOLD()
-        {
-            /// @details A function to calculate object parameters
-            /// (including WCS parameters), making use of the this->itsVoxelList
-            /// set of voxels. The function finds the voxels that appear in
-            /// each object in itsCube, making a vector of vectors of
-            /// voxels, then passes this vector to
-            /// duchamp::Cube::calcObjectWCSparams().
-            size_t numVox = this->itsVoxelList.size();
-            size_t numObj = this->itsCube.getNumObj();
-
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to calculate parameters for all " << numObj << " objects");
-            if (numObj > 0) {
-                std::vector<PixelInfo::Voxel> templist[numObj];
-
-                for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
-
-                    // for each object, make a vector list of voxels that appear in it.
-		    std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
-		    std::vector<PixelInfo::Voxel>::iterator vox;
-
-                    // get the fluxes of each voxel
-                    for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
-		      size_t ct = 0;
-
-                        while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
-                            ct++;
-                        }
-
-                        if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-                            ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
-					       << vox->getX() << "," << vox->getY() 
-					       << ") in the object lists that doesn't appear in the base list.");
-                        } else vox->setF(this->itsVoxelList[ct].getF());
-                    }
-
-                    templist[i] = objVoxList;
-                }
-
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocated fluxes to voxel lists. Now calculating parameters");
-
-                std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
-                this->itsCube.calcObjectWCSparams(bigVoxSet);
-
-            }
-        }
 
         //**************************************************************//
 
@@ -2346,7 +2361,7 @@ namespace askap {
 	  }
 
 	  long *dim = getDim(sub);
-	  std::cout << this->itsCube.pars()<<"\n";
+// 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
 	  bool flag=this->itsCube.pars().getFlagATrous();
 	  if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(true);

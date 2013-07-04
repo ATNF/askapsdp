@@ -100,7 +100,8 @@ namespace askap {
 	/// @brief Return the Gaussian after deconvolution with the given beam
 	std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
 	
-	void calcObjectParamsFromCutout(duchamp::Detection &object, size_t padding, std::string imageName);
+	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
+	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
 
     }
 }

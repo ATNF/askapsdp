@@ -94,6 +94,7 @@ namespace askap {
 
                     /// @brief Assignment operator for RadioSource.
                     RadioSource& operator= (const RadioSource& r);
+		    RadioSource& operator= (const duchamp::Detection& det);
 
                     /// @brief Destructor
                     virtual ~RadioSource() {};
