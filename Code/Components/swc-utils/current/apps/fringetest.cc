@@ -117,6 +117,10 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
        } else { 
            ASKAPCHECK(buf.ncolumn() == padding*it->frequency().nelements(), 
                   "Number of channels seem to have been changed, previously "<<buf.ncolumn()<<" now "<<it->frequency().nelements());
+           if (imgBuf.nplane() != it->nRow()) {
+               std::cerr << "The number of rows in the accessor is "<<it->nRow()<<", previously "<<imgBuf.nplane()<<" - ignoring"<<std::endl;
+               continue;
+           }
            ASKAPCHECK(imgBuf.nplane() == it->nRow(), "The number of rows in the accessor "<<it->nRow()<<
                       " is different to the maximum number of baselines");
            ASKAPDEBUGASSERT(ant1IDs.nelements() == it->nRow());
@@ -163,6 +167,8 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   std::cout<<imgBuf.shape()<<" "<<currentStep<<std::endl;
   scimath::saveAsCasaImage("fringe.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
+  //scimath::saveAsCasaImage("fringe.img", casa::phase(imgBuf(casa::IPosition(3,0,0,0),
+  //               casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   // exporting first row into a dat file
   if ((currentStep>0) || (counter!=0)) {
       std::ofstream os("fringe.dat");
