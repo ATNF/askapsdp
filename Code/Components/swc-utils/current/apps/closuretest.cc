@@ -56,9 +56,23 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
+casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) {
+  //return in;
+  casa::Matrix<casa::Complex> result(in);
+  for (casa::uInt row=0;row<result.nrow(); ++row) {
+       for (casa::uInt col=0; col<result.ncolumn(); ++col) {
+            if (casa::abs(result(row,col))>2e6) {
+                result(row,col) = 0.;
+            }
+       }
+  }
+  return result;
+}
+
+
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(1);
+  sel->chooseFeed(0);
   sel->chooseCrossCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
@@ -69,6 +83,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   casa::Vector<casa::Complex> buf(3, casa::Complex(0.,0.));
   casa::uInt nChan = 0;
   double startTime = 0;
+  double curTime = 0;
     
   std::ofstream os("phclosure.dat");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
@@ -79,7 +94,13 @@ void process(const IConstDataSource &ds, size_t nAvg) {
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
        }
-       ASKAPCHECK(it->nRow() == 3, "Expect 3 baselines, the accessor has "<<it->nRow()<<" rows");
+       
+       //ASKAPCHECK(it->nRow() == 3, "Expect 3 baselines, the accessor has "<<it->nRow()<<" rows");
+       if (it->nRow()!=3) {
+           std::cerr<<"Expect 3 baselines, encountered integration at time "<<(it->time() - startTime)/60<<" with "<<it->nRow()<<
+              " rows - ignoring"<<std::endl;
+           continue;
+       }
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() >= 1);
        // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
@@ -98,18 +119,21 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        //
        casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
-            freqAvBuf += it->visibility().xyPlane(0).column(ch);
+            casa::Matrix<casa::Complex> allChan = flagOutliers(it->visibility().xyPlane(0));
+            freqAvBuf += allChan.column(ch);
        }
        freqAvBuf /= float(it->nChannel());
        buf += freqAvBuf;
+       
        if (counter == 0) {
-           startTime = it->time();
+           curTime = it->time() - startTime;
        }
+       
        
        if (++counter == nAvg) {
            buf /= float(nAvg);
            const float phClosure = arg(useSWCorrelator ? buf[0]*buf[1]*conj(buf[2]) : buf[0]*conj(buf[1])*buf[2])/casa::C::pi*180.; 
-           os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
+           os<<std::scientific<<std::setprecision(15)<<curTime/60.<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
            for (casa::uInt baseline = 0; baseline<3; ++baseline) {
                 os<<" "<<arg(buf[baseline])/casa::C::pi*180.;
            }
@@ -122,7 +146,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   if (counter!=0) {
       buf /= float(counter);
       const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-      os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
+      os<<std::scientific<<std::setprecision(15)<<curTime/60.<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
       for (casa::uInt baseline = 0; baseline<3; ++baseline) {
            os<<" "<<arg(buf[baseline])/casa::C::pi*180.;
       }

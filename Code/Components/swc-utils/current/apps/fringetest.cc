@@ -71,6 +71,19 @@ void analyseDelay(const casa::Matrix<casa::Complex> &fringes, const casa::uInt p
   }
 }
 
+casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) {
+  //return in;
+  casa::Matrix<casa::Complex> result(in);
+  for (casa::uInt row=0;row<result.nrow(); ++row) {
+       for (casa::uInt col=0; col<result.ncolumn(); ++col) {
+            if (casa::abs(result(row,col))>2e6) {
+                result(row,col) = 0.;
+            }
+       }
+  }
+  return result;
+}
+
 casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, const casa::uInt factor) {
    if (factor == 1) {
        return in;
@@ -98,7 +111,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   double avgTime = 0.;
   size_t counter = 0;
   casa::Cube<casa::Complex> imgBuf;
-  const casa::uInt maxSteps = 1360;
+  const casa::uInt maxSteps = 2000;
   casa::uInt currentStep = 0;
   casa::Vector<casa::uInt> ant1IDs;
   casa::Vector<casa::uInt> ant2IDs;
@@ -135,7 +148,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
        ASKAPASSERT(it->nRow() == buf.nrow());
        ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
-       buf += padSecond(it->visibility().xyPlane(0),padding);
+       buf += flagOutliers(padSecond(it->visibility().xyPlane(0),padding));
        avgTime += it->time();
        if (++counter == nAvg) {
            buf /= float(nAvg);

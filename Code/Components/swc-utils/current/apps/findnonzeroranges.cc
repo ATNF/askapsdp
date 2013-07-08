@@ -60,11 +60,25 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
+casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) {
+  //return in;
+  casa::Matrix<casa::Complex> result(in);
+  for (casa::uInt row=0;row<result.nrow(); ++row) {
+       for (casa::uInt col=0; col<result.ncolumn(); ++col) {
+            if (casa::abs(result(row,col))>2e6) {
+                result(row,col) = 0.;
+            }
+       }
+  }
+  return result;
+}
+
+
 void process(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   sel->chooseFeed(0);
-  //sel->chooseCrossCorrelations();
-  sel->chooseAutoCorrelations();
+  sel->chooseCrossCorrelations();
+  //sel->chooseAutoCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -98,6 +112,7 @@ void process(const IConstDataSource &ds) {
            freq = it->frequency();
            ant1ids = it->antenna1();
            ant2ids = it->antenna2();
+           startTime = it->time();
            std::cout<<"Baseline order is as follows: "<<std::endl;
            for (casa::uInt row = 0; row<nRow; ++row) {
                 std::cout<<"baseline (1-based) = "<<row+1<<" is "<<ant1ids[row]<<" - "<<ant2ids[row]<<std::endl; 
@@ -106,7 +121,8 @@ void process(const IConstDataSource &ds) {
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
            if (nRow != it->nRow()) {
-               std::cerr<<"Number of rows changed was "<<nRow<<" now "<<it->nRow()<<std::endl;
+               std::cerr<<"Number of rows changed at time="<<(it->time() - startTime)/60.<<
+                          " min, was "<<nRow<<" now "<<it->nRow()<<std::endl;
                continue;
            }
            ASKAPCHECK(nRow == it->nRow(), 
@@ -121,14 +137,15 @@ void process(const IConstDataSource &ds) {
             ASKAPCHECK(it->antenna2()[row] == ant2ids[row], "Inconsistent antenna 2 ids at row = "<<row);             
        }
        
-       for (casa::uInt row=0; row<nRow; ++row) {            
+       for (casa::uInt row=0; row<nRow; ++row) {  
             casa::Vector<casa::Bool> flags = it->flag().xyPlane(0).row(row);
             bool flagged = false;
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
                  flagged |= flags[ch];
             }            
             
-            casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
+            casa::Matrix<casa::Complex> allChan = flagOutliers(it->visibility().xyPlane(0));
+            casa::Vector<casa::Complex> measuredRow = allChan.row(row);
             
             
             // flagging based on the amplitude (to remove extreme outliers)
@@ -159,7 +176,7 @@ void process(const IConstDataSource &ds) {
                ++nBadRows;
             } else {
                 ++nGoodRows;
-                if ((ant1ids[row] != 0) || (ant2ids[row] != 0)) {
+                if ((ant1ids[row] != 0) || (ant2ids[row] != 1)) {
                     continue;
                 }
                 std::vector<casa::uInt> newStarts;
@@ -167,7 +184,7 @@ void process(const IConstDataSource &ds) {
                 int prevCh = -1;
                 ASKAPDEBUGASSERT(measuredRow.nelements()>1);
                 for (casa::uInt ch=0; ch<measuredRow.nelements(); ++ch) {
-                   if (casa::abs(measuredRow[ch])>1) {
+                   if (casa::abs(measuredRow[ch])>1e5) {
                        if (prevCh == -1) {
                            prevCh = int(ch);
                        }
