@@ -1,6 +1,8 @@
 /// @file mssplit.cc
 ///
-/// @brief
+/// @brief A simple tool used to split measurement sets based on spectral
+/// channel. It can also average spectral channels at the same time, and
+/// can be used to just do averaging (i.e. one input MS and out output MS).
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -64,7 +66,7 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 
-ASKAP_LOGGER(logger, ".msplit");
+ASKAP_LOGGER(logger, ".mssplit");
 
 using namespace askap;
 using namespace casa;
@@ -526,7 +528,7 @@ int split(const std::string& invis, const std::string& outvis,
         return 1;
     }
 
-    const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 128 * 1024);
+    const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 64 * 1024);
     const casa::uInt tileNcorr = parset.getUint32("stman.tilencorr", 4);
     const casa::uInt tileNchan = parset.getUint32("stman.tilenchan", 1);
     boost::shared_ptr<casa::MeasurementSet> out(create(outvis, bucketSize, tileNcorr, tileNchan));
