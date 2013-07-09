@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
                                            secondCoordinates, refShape);
     const casa::IPosition cubeShape(4, refShape(0), refShape(1), refShape(2), nChan);
     const double size = static_cast<double>(cubeShape.product()) * sizeof(float);
-    ASKAPLOG_INFO_STR(logger, "Creating image cube of size approximatly " << std::setprecision(2)
+    ASKAPLOG_INFO_STR(logger, "Creating image cube of size approximately " << std::setprecision(2)
                           << (size / 1024.0 / 1024.0 / 1024.0) << "GB. This may take a few minutes.");
 
     casa::PagedImage<float> cube(casa::TiledShape(cubeShape), newCsys, cubename);

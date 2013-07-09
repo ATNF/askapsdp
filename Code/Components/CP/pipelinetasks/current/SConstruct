@@ -12,6 +12,7 @@ pkg = env.AskapPackage("pipelinetasks")
 
 pkg.AddSubPackage("cmodel")
 pkg.AddSubPackage("cflag")
+pkg.AddSubPackage("makecube")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
