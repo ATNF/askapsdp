@@ -498,7 +498,7 @@ Examples
 
 Simple example:
 
-::
+.. code-block:: bash
 
     Cimager.gridder                                 = WProject
     Cimager.gridder.WProject.wmax                   = 15000
@@ -509,7 +509,7 @@ Simple example:
 
 Example with ATCA illumination pattern:
 
-::
+.. code-block:: bash
 
     Cimager.gridder                                   = AProjectWStack
     Cimager.gridder.alldatapsf                        = true

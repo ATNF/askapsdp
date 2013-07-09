@@ -168,7 +168,7 @@ Example 1
 
 This first example demonstrates configuration using the *Sky Model Data Service* as the global sky model source.
 
-::
+.. code-block:: bash
 
     # The below specifies the GSM source is the Sky Model Service
     Cmodel.gsm.database       = dataservice
@@ -198,7 +198,8 @@ Example 2
 This second example demonstrates configuration using an output file from the VOTable
 source finder as the global sky model source.
 
-::
+
+.. code-block:: bash
 
     # The below specifies the GSM source is a duchamp output file
     Cmodel.gsm.database       = votable

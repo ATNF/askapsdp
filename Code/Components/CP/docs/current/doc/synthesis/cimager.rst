@@ -425,7 +425,7 @@ All parameters given in the following table have **Cimager.Images* prefix**, e.g
 Example
 -------
 
-::
+.. code-block:: bash
 
     Cimager.dataset                                 = 10uJy_stdtest.ms
 
@@ -435,6 +435,7 @@ Example
     Cimager.Images.image.i.10uJy_clean_stdtest.frequency    = [1.420e9,1.420e9]
     Cimager.Images.image.i.10uJy_clean_stdtest.nchan        = 1
     Cimager.Images.image.i.10uJy_clean_stdtest.direction    = [12h30m00.00, -45.00.00.00, J2000]
+
     #
     # Use a multiscale Clean solver
     #
@@ -448,13 +449,16 @@ Example
 
     Cimager.threshold.minorcycle                    = [0.27mJy, 10%]
     Cimager.threshold.majorcycle                    = 0.3mJy
-    # 
-    Cimager.ncycles                                 = 10
+
+    Cimager.ncycles                                 = 10a
+
     #
     # Restore the image at the end
     #
+
     Cimager.restore                                 = True
     Cimager.restore.beam                            = [30arcsec, 30arcsec, 0deg]
+
     #
     # Use preconditioning for deconvolution
     #

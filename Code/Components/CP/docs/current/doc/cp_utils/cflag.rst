@@ -38,7 +38,7 @@ Configuration Parameters
 
 +----------------------+------------+-----------------------+---------------------------------------------+
 |*Parameter*           |*Default*   |*Example*              |*Description*                                |
-+----------------------+------------+-----------------------+---------------------------------------------+
++======================+============+=======================+=============================================+
 |Cflag.dataset         |*None*      |fornax.ms              |The measurement set (uv-dataset) to be       |
 |                      |            |                       |flagged. This file has flagging applied in   |
 |                      |            |                       |place (i.e. it is modified)                  |
@@ -131,7 +131,7 @@ Configuration Example
 This example demonstrates configuration of the Stokes-V (dynamic) flagger and the
 selection based flagger with two rules specified.
 
-::
+.. code-block:: bash
 
     # The path/filename for the measurement set
     Cflag.dataset                           = target.ms

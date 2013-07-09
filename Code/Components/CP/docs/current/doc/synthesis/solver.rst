@@ -269,7 +269,7 @@ Examples
 Multi-scale Clean Solver
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: bash
 
     Cimager.solver                                  = Clean
     Cimager.solver.Clean.algorithm                  = MultiScale
@@ -291,7 +291,7 @@ Multi-scale Clean Solver
 Dirty Solver
 ~~~~~~~~~~~~
 
-::
+.. code-block:: bash
 
     Cimager.solver                                  = Dirty
     Cimager.solver.Dirty.tolerance                  = 0.1
