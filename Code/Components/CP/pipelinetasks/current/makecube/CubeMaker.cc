@@ -57,6 +57,7 @@ namespace askap {
 		this->itsCubeName = parset.getString("outputCube","");
 		this->itsRestFrequency = parset.getDouble("restFrequency",-1.);
 		this->itsBeamReference = parset.getString("beamReference","mid");
+		this->itsBeamFile = parset.getString("beamFile","");
 		this->itsCube = 0;
 	    }
 
@@ -113,7 +114,8 @@ namespace askap {
 		    
 		const casa::IPosition cubeShape(4, this->itsRefShape(0), this->itsRefShape(1), this->itsRefShape(2), this->itsNumChan);
 		const double size = static_cast<double>(cubeShape.product()) * sizeof(float);
-		ASKAPLOG_INFO_STR(logger, "Creating image cube of size approximately " << std::setprecision(2)
+		ASKAPLOG_INFO_STR(logger, "Creating image cube " << this->itsCubeName 
+				  << "  of size approximately " << std::setprecision(2)
 				  << (size / 1024.0 / 1024.0 / 1024.0) << "GB. This may take a few minutes.");
 
 		this->itsCube = new casa::PagedImage<float>(casa::TiledShape(cubeShape), newCsys, this->itsCubeName);
@@ -186,7 +188,23 @@ namespace askap {
 		    return false;
 		}
 
-	    }	    
+	    }
+
+	    void CubeMaker::recordBeams()
+	    {
+		if(this->itsBeamFile!=""){
+		    std::ofstream fbeam(this->itsBeamFile.c_str());
+		    for(size_t i=0;i<this->itsInputNames.size();i++){
+			casa::PagedImage<float> img(this->itsInputNames[i]);
+			casa::Vector<Quantum<Double> > beam=img.imageInfo().restoringBeam();
+			fbeam << this->itsInputNames[i] << " " 
+			      << beam[0].getValue("arcsec") << " " 
+			      << beam[1].getValue("arcsec") << " " 
+			      << beam[2].getValue("deg") <<"\n";
+		    }
+		    
+		}
+	    }
 
 	}
     }

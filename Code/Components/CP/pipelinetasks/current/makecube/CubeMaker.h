@@ -51,6 +51,7 @@ namespace askap {
 		void createCube();
 		void setImageInfo();
 		void writeSlices();
+		void recordBeams();
 
 	    protected:
 		void getReferenceData();
@@ -64,6 +65,7 @@ namespace askap {
 		
 		std::string itsBeamReference;
 		size_t itsBeamImageNum;
+		std::string itsBeamFile;
 
 		int itsNumChan;
 		casa::IPosition itsRefShape;

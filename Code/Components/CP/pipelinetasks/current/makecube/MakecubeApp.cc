@@ -67,6 +67,7 @@ int MakecubeApp::run(int argc, char* argv[])
 	cube.createCube();
 	cube.setImageInfo();
 	cube.writeSlices();
+	cube.recordBeams();
 	    
 	stats.logSummary();
 
