@@ -9,3 +9,4 @@ Central Processor Utilities Documentation
    cmodel.rst
    cflag.rst
    makecube.rst
+   mssplit.rst
