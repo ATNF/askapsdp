@@ -46,6 +46,7 @@
 #include "cflag/IFlagStrategy.h"
 #include "cflag/SelectionStrategy.h"
 #include "cflag/StokesVStrategy.h"
+#include "cflag/ElevationStrategy.h"
 
 ASKAP_LOGGER(logger, ".StrategyFactory");
 
@@ -77,6 +78,13 @@ std::vector< boost::shared_ptr<IFlagStrategy> > StrategyFactory::build(
     if (parset.isDefined(key) && parset.getBool(key)) {
         const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_strategy.");
         flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new StokesVStrategy(subset, ms)));
+    }
+
+    // Create elevation based strategy
+    key = "elevation_strategy.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("elevation_strategy.");
+        flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new ElevationStrategy(subset, ms)));
     }
 
     return flaggers;
