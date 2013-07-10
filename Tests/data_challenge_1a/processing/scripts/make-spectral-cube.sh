@@ -13,6 +13,7 @@
 #     * FIRSTCH - the first channel number
 #     * FINALCH - the last channel number
 #     * OUTPUTCUBE - the name of the final cube
+#     * RESTFREQ - the rest frequency. If not set, the output cube will not have it set
 #   - input images must be of the form prefix[FIRSTCH..FINALCH]suffix (prefix & suffix can be anything.
 #   - the final cube will have its spectral coordinates corrected by a CASA script
 #####################
@@ -24,6 +25,11 @@ fi
 if [ "${OUTPUTCUBE}" == "" ]; then
     echo "Have not set \$OUTPUTCUBE, so not running make-spectral-cube"
     return 1
+fi
+if [ "${RESTFREQ}" == "" ]; then
+    RESTFREQUENCY=-1
+else
+    RESTFREQUENCY=${RESTFREQ}
 fi
 
 IMAGERANGE="${IMAGEPREFIX}[${FIRSTCH}..${FINALCH}]${IMAGESUFFIX}"
@@ -59,9 +65,17 @@ while [ \$C -le ${FINALCH} ]; do
     C=\`expr \$C + 1\`
 done
 
+parset=make-spectral-cube--${OUTPUTCUBE}-\${PBS_JOBID}.log
+cat > \$parset <<EOF_INNER
+Makecube.inputNamePattern = ${IMAGERANGE}
+Makecube.outputCube = ${OUTPUTCUBE}
+Makecube.restFrequency = ${RESTFREQUENCY}
+Makecube.beamReference = mid
+Makecube.beamFile = beamFile.${OUTPUTCUBE}.dat
+EOF_INNER
+
 # Run makecube
-#\$makecube \${base} ${FIRSTCH} ${FINALCH} ${OUTPUTCUBE} > \$outfile
-\$makecube "${IMAGERANGE}" ${OUTPUTCUBE} > \$outfile
+\$makecube -c \$parset > \$outfile
 err=\$?
 if [ \$err != 0 ]; then
     echo "Makecube failed with error \$err"
