@@ -53,6 +53,11 @@ namespace askap {
 
 	    CubeMaker::CubeMaker(const LOFAR::ParameterSet &parset)
 	    {
+		/// @details Read the input parameters from the
+		/// ParameterSet. Accepted parameters:
+		/// 'inputNamePattern', 'outputCube', 'restFrequency',
+		/// 'beamReference', 'beamFile'. Also initialises the
+		/// cube pointer to zero.
 		this->itsInputNamePattern = parset.getString("inputNamePattern","");
 		this->itsCubeName = parset.getString("outputCube","");
 		this->itsRestFrequency = parset.getDouble("restFrequency",-1.);
@@ -68,6 +73,13 @@ namespace askap {
 
 	    void CubeMaker::initialise()
 	    {
+		/// @details Takes the input name pattern and expands
+		/// to a vector list of input filenames, using the
+		/// expandPattern function. Parses the beamReference
+		/// parameter to get the image number from which to
+		/// read the beam information that will be stored in
+		/// the output cube. Calls getReferenceData().
+
 		this->itsInputNames = expandPattern(this->itsInputNamePattern);
 		if (this->itsInputNames.size() < 2) ASKAPTHROW(AskapError,"Insufficient input files");
 		this->itsNumChan = this->itsInputNames.size();
@@ -85,28 +97,37 @@ namespace askap {
 		}
 
 		this->getReferenceData();
-		this->getSecondCoordinates();
 	    }
 
 	    void CubeMaker::getReferenceData()
 	    {
-		// Get reference data. This will be used to construct the cube, and later
-		// verified to be consistant in the rest of the images
+		/// @details The reference data details the shape of
+		/// the input images, their units and
+		/// coordinates. These are used for construction of
+		/// the cube and verification of all input images. The
+		/// reference data is read from the first image in the
+		/// vector list. The coordinate system of the second
+		/// image in that list is also extracted - the
+		/// spectral increment will be determined from these
+		/// two coordinate systems.
+
 		const casa::PagedImage<float> refImage(this->itsInputNames[0]);
 		this->itsRefShape = refImage.shape();
 		this->itsRefCoordinates = refImage.coordinates();
 		this->itsRefUnits = refImage.units();
-	    }
 
-	    void CubeMaker::getSecondCoordinates()
-	    {
 		const casa::PagedImage<float> secondImage(this->itsInputNames[1]);
 		this->itsSecondCoordinates = secondImage.coordinates();
 	    }
 
 	    void CubeMaker::createCube()
 	    {
-		// Create new image cube
+		/// @details The coordinate system for the cube is
+		/// constructed using the makeCoordinates function. If
+		/// required, the rest frequency is added. The cube is
+		/// then created using the reference shape and the
+		/// number of channels in the input file list.
+
 		casa::CoordinateSystem newCsys = makeCoordinates(this->itsRefCoordinates,
 								 this->itsSecondCoordinates, this->itsRefShape);
 
@@ -123,6 +144,13 @@ namespace askap {
 
 	    void CubeMaker::setRestFreq(casa::CoordinateSystem &csys)
 	    {
+		/// @details The rest frequency, as provided in the
+		/// input parameter set, is added to the coordinate
+		/// system, replacing any previous value that is
+		/// already there.
+		/// @param csys The coordinate system to which the
+		/// rest frequency is to be added.
+
 		assertValidCoordinates(csys);
 		const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
 		casa::SpectralCoordinate speccoord = csys.spectralCoordinate(whichSpectral);
@@ -136,6 +164,10 @@ namespace askap {
 
 	    void CubeMaker::setImageInfo()
 	    {
+		/// @details If the output cube has been created, the
+		/// reference units and the requested reference beam
+		/// shape are added to the cube.
+
 		if(this->itsCube){
 		    this->itsCube->setUnits(this->itsRefUnits);
 		    casa::PagedImage<float> midImage(this->itsInputNames[this->itsBeamImageNum]);
@@ -145,6 +177,8 @@ namespace askap {
 
 	    void CubeMaker::writeSlices()
 	    {
+		/// @details Each input channel image is added in order to the output cube.
+
 		for (size_t i = 0; i < this->itsInputNames.size(); ++i) {
 		    if(!this->writeSlice(i))
 			ASKAPTHROW(AskapError,"Could not write slice #"<<i);
@@ -153,8 +187,27 @@ namespace askap {
 
 	    bool CubeMaker::writeSlice(size_t i)
 	    {
+		/// @details An individual channel image is added to
+		/// the cube in the appropriate location. Checks are
+		/// performed to verify that the channel image has the
+		/// same shape and units as the reference (ie. the
+		/// first in the vector list), and has compatible
+		/// coordinates (as defined by the
+		/// compatibleCoordinates function).
+		/// @param The number of the image in the vector list
+		/// of input images.
+		/// @return Returns true if things work. If any checks
+		/// fail, the index is out of bounds, or the cube is
+		/// not yet open, then false is returned (and an ERROR
+		/// log message written).
+
 		if(this->itsCube){
 		    
+		    if(i > this->itsInputNames.size()){
+			ASKAPLOG_ERROR_STR(logger, "writeSlice - index " << i << " out of bounds");
+			return false;
+		    }
+
 		    ASKAPLOG_INFO_STR(logger, "Adding slice from image " << this->itsInputNames[i]);
 		    casa::PagedImage<float> img(this->itsInputNames[i]);
 
@@ -192,12 +245,19 @@ namespace askap {
 
 	    void CubeMaker::recordBeams()
 	    {
+		/// @details The beam shape for each input image is
+		/// written to an ascii file (given by the beamFile
+		/// input parameter). Each line corresponds to one
+		/// file, and has columns: number | image name | major
+		/// axis [arcsec] | minor axis [arcsec] | position
+		/// angle [deg]. Columns are separated by a single space. 
+
 		if(this->itsBeamFile!=""){
 		    std::ofstream fbeam(this->itsBeamFile.c_str());
 		    for(size_t i=0;i<this->itsInputNames.size();i++){
 			casa::PagedImage<float> img(this->itsInputNames[i]);
 			casa::Vector<Quantum<Double> > beam=img.imageInfo().restoringBeam();
-			fbeam << this->itsInputNames[i] << " " 
+			fbeam << i << " " << this->itsInputNames[i] << " " 
 			      << beam[0].getValue("arcsec") << " " 
 			      << beam[1].getValue("arcsec") << " " 
 			      << beam[2].getValue("deg") <<"\n";

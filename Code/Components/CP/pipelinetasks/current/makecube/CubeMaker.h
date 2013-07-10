@@ -41,22 +41,41 @@ namespace askap {
     namespace cp {
 	namespace pipelinetasks {
 
+	    /// @brief Class to handle functionality for the makecube application.
+
+	    /// @details This class handles most of the aspects of the
+	    /// combination of individual channel images into a
+	    /// spectral cube. It allows ParameterSet specification of
+	    /// input and output parameters, the rest frequency (if
+	    /// needed), and the recording of the beam shapes for the
+	    /// individual channel images.
 	    class CubeMaker
 	    {
 	    public:
 		CubeMaker(const LOFAR::ParameterSet &parset);
 		virtual ~CubeMaker();
 
+		/// @brief Set up the list of input files and the reference data 
 		void initialise();
+
+		/// @brief Create the output cube
 		void createCube();
+
+		/// @brief Set the units and beam for the output cube
 		void setImageInfo();
+
+		/// @brief Write the individual channel images to the output cube
 		void writeSlices();
+
+		/// @brief Record the beams of the input images
 		void recordBeams();
 
 	    protected:
+		/// @brief Read the reference coordinate system data
 		void getReferenceData();
-		void getSecondCoordinates();
+		/// @brief Write the rest frequency to a coordinate system
 		void setRestFreq(casa::CoordinateSystem &csys);
+		/// @brief Write an individual channel image to the cube
 		bool writeSlice(size_t i);
 
 		std::string itsInputNamePattern;

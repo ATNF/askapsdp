@@ -100,6 +100,12 @@ namespace askap {
 	    bool compatibleCoordinates(const casa::CoordinateSystem& c1,
 				       const casa::CoordinateSystem& c2)
 	    {
+		/// @details Ensures the two coordinate systems are
+		/// compatible, in that they have the same number of
+		/// coordinates, pixel axes and world axes, the same
+		/// type, and matching coordinate numbers for the
+		/// SPECTRAL, STOKES and DIRECTION coordinates.
+
 		return ((c1.nCoordinates() == c2.nCoordinates())
 			&& c1.type() == c2.type()
 			&& c1.nPixelAxes() == c2.nPixelAxes()
@@ -111,6 +117,9 @@ namespace askap {
 
 	    void assertValidCoordinates(const casa::CoordinateSystem& csys)
 	    {
+		/// @details Ensures the coordinate system has a
+		/// single spectral coordinate axis.
+		
 		const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
 		ASKAPCHECK(whichSpectral > -1,
 			   "No spectral coordinate present in the coordinate system of the first image.");
@@ -123,6 +132,10 @@ namespace askap {
 
 	    double getChanFreq(const casa::CoordinateSystem& csys)
 	    {
+		/// @details Return the frequency value for channel
+		/// zero of the spectral axis within the provided
+		/// coordinate system.
+
 		assertValidCoordinates(csys);
 		const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
 		const casa::Vector<casa::Int> axesSpectral = csys.pixelAxes(whichSpectral);
@@ -136,6 +149,10 @@ namespace askap {
 	    double getFreqIncrement(const casa::CoordinateSystem& c1,
 				    const casa::CoordinateSystem& c2)
 	    {
+		/// @details Returns the increment between two
+		/// coordinate systems. The channel-zero frequencies
+		/// are extracted for each coodinate system, and the
+		/// differnce is returned.
 		return getChanFreq(c2) - getChanFreq(c1);
 	    }
 
@@ -143,6 +160,16 @@ namespace askap {
 						   const casa::CoordinateSystem& c2,
 						   const casa::IPosition& refShape)
 	    {
+		/// @details A new coordinate system is
+		/// constructed. All coordinates from the first system
+		/// are kept, with the exception of the spectral
+		/// coordinate. This starts with that of the first,
+		/// and has its frequency increment set to the
+		/// difference between the zero-channel frequencies of
+		/// the two systems. The reference pixel is set to
+		/// zero and the reference value set to the
+		/// zero-channel frequency of the first system.
+
 		assertValidCoordinates(c1);
 		assertValidCoordinates(c2);
 		const int whichSpectral = c1.findCoordinate(casa::Coordinate::SPECTRAL);
