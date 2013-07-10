@@ -41,6 +41,9 @@ namespace askap {
     namespace cp {
 	namespace pipelinetasks {
 
+	    /// @brief Rest frequency of the HI fine-structure line [Hz]
+	    const double REST_FREQ_HI=1420405751.786;
+
 	    /// @brief Class to handle functionality for the makecube application.
 
 	    /// @details This class handles most of the aspects of the

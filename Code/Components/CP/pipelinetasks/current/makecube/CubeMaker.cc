@@ -60,10 +60,14 @@ namespace askap {
 		/// cube pointer to zero.
 		this->itsInputNamePattern = parset.getString("inputNamePattern","");
 		this->itsCubeName = parset.getString("outputCube","");
-		this->itsRestFrequency = parset.getDouble("restFrequency",-1.);
+		std::string restFreqString = parset.getString("restFrequency","-1.");
 		this->itsBeamReference = parset.getString("beamReference","mid");
 		this->itsBeamFile = parset.getString("beamFile","");
 		this->itsCube = 0;
+
+		if(restFreqString == "HI") this->itsRestFrequency = REST_FREQ_HI;
+		else this->itsRestFrequency = atof(restFreqString.c_str());
+
 	    }
 
 	    CubeMaker::~CubeMaker()
