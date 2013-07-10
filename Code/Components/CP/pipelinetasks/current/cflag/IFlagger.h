@@ -1,4 +1,4 @@
-/// @file IFlagStrategy.h
+/// @file IFlagger.h
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -39,11 +39,11 @@ namespace cp {
 namespace pipelinetasks {
 
 /// @brief An interface for classes that perform flagging on a per row basis.
-class IFlagStrategy {
+class IFlagger {
     public:
 
         /// Destructor
-        virtual ~IFlagStrategy();
+        virtual ~IFlagger();
 
         /// Perform flagging (if necessary) for the row with index "row".
         ///

@@ -1,4 +1,4 @@
-/// @file StrategyFactory.cc
+/// @file FlaggerFactory.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "StrategyFactory.h"
+#include "FlaggerFactory.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -43,21 +43,21 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 
 // Local package includes
-#include "cflag/IFlagStrategy.h"
-#include "cflag/SelectionStrategy.h"
-#include "cflag/StokesVStrategy.h"
-#include "cflag/ElevationStrategy.h"
+#include "cflag/IFlagger.h"
+#include "cflag/SelectionFlagger.h"
+#include "cflag/StokesVFlagger.h"
+#include "cflag/ElevationFlagger.h"
 
-ASKAP_LOGGER(logger, ".StrategyFactory");
+ASKAP_LOGGER(logger, ".FlaggerFactory");
 
 using namespace std;
 using namespace askap;
 using namespace askap::cp::pipelinetasks;
 
-std::vector< boost::shared_ptr<IFlagStrategy> > StrategyFactory::build(
+std::vector< boost::shared_ptr<IFlagger> > FlaggerFactory::build(
     const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
 {
-    vector< boost::shared_ptr<IFlagStrategy> > flaggers;
+    vector< boost::shared_ptr<IFlagger> > flaggers;
 
     // Create Selection flaggers
     string key = "selection_flagger.rules";
@@ -69,22 +69,22 @@ std::vector< boost::shared_ptr<IFlagStrategy> > StrategyFactory::build(
             stringstream ss;
             ss << "selection_flagger." << *it << ".";
             const LOFAR::ParameterSet subset = parset.makeSubset(ss.str());
-            flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new SelectionStrategy(subset, ms)));
+            flaggers.push_back(boost::shared_ptr<IFlagger>(new SelectionFlagger(subset, ms)));
         }
     }
 
-    // Create Stokes V strategy
-    key = "stokesv_strategy.enable";
+    // Create Stokes V flagger
+    key = "stokesv_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
-        const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_strategy.");
-        flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new StokesVStrategy(subset, ms)));
+        const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(subset, ms)));
     }
 
-    // Create elevation based strategy
-    key = "elevation_strategy.enable";
+    // Create elevation based flagger
+    key = "elevation_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
-        const LOFAR::ParameterSet subset = parset.makeSubset("elevation_strategy.");
-        flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new ElevationStrategy(subset, ms)));
+        const LOFAR::ParameterSet subset = parset.makeSubset("elevation_flagger.");
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new ElevationFlagger(subset, ms)));
     }
 
     return flaggers;

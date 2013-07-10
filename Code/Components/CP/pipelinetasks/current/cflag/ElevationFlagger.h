@@ -1,4 +1,4 @@
-/// @file ElevationStrategy.h
+/// @file ElevationFlagger.h
 ///
 /// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_ELEVATIONSTRATEGY_H
-#define ASKAP_CP_PIPELINETASKS_ELEVATIONSTRATEGY_H
+#ifndef ASKAP_CP_PIPELINETASKS_ELEVATIONFLAGGER_H
+#define ASKAP_CP_PIPELINETASKS_ELEVATIONFLAGGER_H
 
 // System includes
 
@@ -37,7 +37,7 @@
 #include "casa/Quanta/Quantum.h"
 
 // Local package includes
-#include "cflag/IFlagStrategy.h"
+#include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
 
 namespace askap {
@@ -47,18 +47,18 @@ namespace pipelinetasks {
 /// @brief Applies flagging based on elevation. This flagger will flag any visibilities
 /// where one or both of the antennas have an elevation either lower than the lower threshold
 /// or higher than the upper threshold.
-class ElevationStrategy : public IFlagStrategy {
+class ElevationFlagger : public IFlagger {
     public:
 
         /// @brief Constructor
-        ElevationStrategy(const LOFAR::ParameterSet& parset,
+        ElevationFlagger(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
-        /// @see IFlagStrategy::processRow()
+        /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
-        /// @see IFlagStrategy::stats()
+        /// @see IFlagger::stats()
         virtual FlaggingStats stats(void) const;
 
     private:

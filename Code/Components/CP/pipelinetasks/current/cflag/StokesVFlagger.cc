@@ -1,4 +1,4 @@
-/// @file StokesVStrategy.cc
+/// @file StokesVFlagger.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "StokesVStrategy.h"
+#include "StokesVFlagger.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -51,27 +51,27 @@
 // Local package includes
 #include "cflag/FlaggingStats.h"
 
-ASKAP_LOGGER(logger, ".StokesVStrategy");
+ASKAP_LOGGER(logger, ".StokesVFlagger");
 
 using namespace std;
 using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-StokesVStrategy:: StokesVStrategy(const LOFAR::ParameterSet& parset,
+StokesVFlagger:: StokesVFlagger(const LOFAR::ParameterSet& parset,
                                   const casa::MeasurementSet& /*ms*/)
-        : itsStats("StokesVStrategy")
+        : itsStats("StokesVFlagger")
 {
     itsThreshold = parset.getFloat("threshold", 5.0);
     ASKAPCHECK(itsThreshold > 0.0, "Threshold must be greater than zero");
 }
 
-FlaggingStats StokesVStrategy::stats(void) const
+FlaggingStats StokesVFlagger::stats(void) const
 {
     return itsStats;
 }
 
-casa::StokesConverter& StokesVStrategy::getStokesConverter(
+casa::StokesConverter& StokesVFlagger::getStokesConverter(
     const casa::ROMSPolarizationColumns& polc, const casa::Int polId)
 {
     const casa::Vector<Int> corrType = polc.corrType()(polId);
@@ -86,7 +86,7 @@ casa::StokesConverter& StokesVStrategy::getStokesConverter(
     return itsConverterCache[polId];
 }
 
-void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
+void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
                                  const bool dryRun)
 {
     // Get a description of what correlation products are in the data table.

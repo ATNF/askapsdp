@@ -1,4 +1,4 @@
-/// @file IFlagStrategy.cc
+/// @file IFlagger.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,11 +25,11 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "cflag/IFlagStrategy.h"
+#include "cflag/IFlagger.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
 
-askap::cp::pipelinetasks::IFlagStrategy::~IFlagStrategy()
+askap::cp::pipelinetasks::IFlagger::~IFlagger()
 {
 }

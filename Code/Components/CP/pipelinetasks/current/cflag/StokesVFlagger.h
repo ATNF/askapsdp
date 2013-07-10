@@ -1,4 +1,4 @@
-/// @file StokesVStrategy.h
+/// @file StokesVFlagger.h
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_STOKESVSTRATEGY_H
-#define ASKAP_CP_PIPELINETASKS_STOKESVSTRATEGY_H
+#ifndef ASKAP_CP_PIPELINETASKS_STOKESVFLAGGER_H
+#define ASKAP_CP_PIPELINETASKS_STOKESVFLAGGER_H
 
 // System includes
 #include <vector>
@@ -40,7 +40,7 @@
 #include "ms/MeasurementSets/StokesConverter.h"
 
 // Local package includes
-#include "cflag/IFlagStrategy.h"
+#include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
 
 namespace askap {
@@ -55,25 +55,25 @@ namespace pipelinetasks {
 /// 
 /// The one parameter that is read from the parset passed to the constructor is
 /// "threshold". To flag at the five-sigma point specify a valud of "5.0".
-class StokesVStrategy : public IFlagStrategy {
+class StokesVFlagger : public IFlagger {
     public:
 
         /// @brief Constructor
-        StokesVStrategy(const LOFAR::ParameterSet& parset,
+        StokesVFlagger(const LOFAR::ParameterSet& parset,
                         const casa::MeasurementSet& ms);
 
-        /// @see IFlagStrategy::processRow()
+        /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
-        /// @see IFlagStrategy::stats()
+        /// @see IFlagger::stats()
         virtual FlaggingStats stats(void) const;
 
     private:
         /// Returns an instance of a stokes converter that will convert to Stokes-V.
         /// The converter is cached, and as such a reference to the
         /// appropriate converter in the cache is returned. The reference is valid
-        /// as long as the instance of this StokesVStrategy class exists.
+        /// as long as the instance of this StokesVFlagger class exists.
         ///
         /// @param[in] polc a reference to the polarisation table data. This data
         ///                 describes which polarisation products exist in a

@@ -44,8 +44,8 @@
 #include "ms/MeasurementSets/MSColumns.h"
 
 // Local package includes
-#include "cflag/StrategyFactory.h"
-#include "cflag/IFlagStrategy.h"
+#include "cflag/FlaggerFactory.h"
+#include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
 
 // Using
@@ -65,7 +65,7 @@ int CflagApp::run(int argc, char* argv[])
     casa::MeasurementSet ms(dataset, casa::Table::Update);
 
     // Create a vector of all the flagging strategies specified in the parset
-    std::vector< boost::shared_ptr<IFlagStrategy> > flaggers = StrategyFactory::build(subset, ms);
+    std::vector< boost::shared_ptr<IFlagger> > flaggers = FlaggerFactory::build(subset, ms);
 
     // Is this a dry run?
     const bool dryRun = subset.getBool("dryrun", false);
@@ -76,11 +76,11 @@ int CflagApp::run(int argc, char* argv[])
     // Iterate over each row in the main table
     MSColumns msc(ms);
     const casa::uInt nRows = msc.nrow();
-    std::vector< boost::shared_ptr<IFlagStrategy> >::iterator it;
+    std::vector< boost::shared_ptr<IFlagger> >::iterator it;
     unsigned long rowsAlreadyFlagged = 0;
     for (casa::uInt i = 0; i < nRows; ++i) {
         if (!msc.flagRow()(i)) {
-            // Invoke each strategy for this row, but only while the row isn't flagged
+            // Invoke each flagger for this row, but only while the row isn't flagged
             for (it = flaggers.begin(); it != flaggers.end(); ++it) {
                 if (msc.flagRow()(i)) {
                     break;

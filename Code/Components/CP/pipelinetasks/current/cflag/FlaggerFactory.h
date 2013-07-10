@@ -1,4 +1,4 @@
-/// @file StrategyFactory.h
+/// @file FlaggerFactory.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -36,18 +36,18 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 
 // Local package includes
-#include "cflag/IFlagStrategy.h"
+#include "cflag/IFlagger.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
 /// @brief A factory that, given a Parameter Set, will create a flagging
-/// strategy instance for each strategy enabled in the parset.
-class StrategyFactory {
+/// flagger instance for each flagger enabled in the parset.
+class FlaggerFactory {
     public:
 
-        /// Builds flagging strategy objects based on the configuration in
+        /// Builds flagging flagger objects based on the configuration in
         /// the parameter set.
         ///
         /// @param[in] parset   the parameter set which contains an ASCII description
@@ -55,7 +55,7 @@ class StrategyFactory {
         /// @param[in] ms       a reference to the measurement set that will
         ///                     be the subject of flagging.
         /// @return a vector containing pointers to the flagging strategies.
-        static std::vector< boost::shared_ptr<IFlagStrategy> > build(
+        static std::vector< boost::shared_ptr<IFlagger> > build(
             const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms);
 };
 

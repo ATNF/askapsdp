@@ -35,7 +35,7 @@ namespace cp {
 namespace pipelinetasks {
 
 /// @brief Simple structure containing flagging statistics.
-/// Each flagging strategy is expected to return an instance of this structure.
+/// Each flagging flagger is expected to return an instance of this structure.
 class FlaggingStats {
     public:
         FlaggingStats(const std::string& n)

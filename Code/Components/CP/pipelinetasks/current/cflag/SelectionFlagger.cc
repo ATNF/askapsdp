@@ -1,4 +1,4 @@
-/// @file SelectionStrategy.cc
+/// @file SelectionFlagger.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "SelectionStrategy.h"
+#include "SelectionFlagger.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -51,15 +51,15 @@
 // Local package includes
 #include "cflag/FlaggingStats.h"
 
-ASKAP_LOGGER(logger, ".SelectionStrategy");
+ASKAP_LOGGER(logger, ".SelectionFlagger");
 
 using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-SelectionStrategy:: SelectionStrategy(const LOFAR::ParameterSet& parset,
+SelectionFlagger:: SelectionFlagger(const LOFAR::ParameterSet& parset,
                                       const casa::MeasurementSet& ms)
-        : itsStats("SelectionStrategy"), itsFlagAutoCorr(false),
+        : itsStats("SelectionFlagger"), itsFlagAutoCorr(false),
         itsDetailedCriteriaExists(false)
 {
     itsSelection.resetMS(ms);
@@ -103,22 +103,24 @@ SelectionStrategy:: SelectionStrategy(const LOFAR::ParameterSet& parset,
 
     if (parset.isDefined("uvrange")) {
         itsSelection.setUvDistExpr(parset.getString("uvrange"));
-        ASKAPTHROW(AskapError, "UVRange selection not yet implemented");
-        itsRowCriteria.push_back(UVRANGE);
+        // Specifying a uvrange does results in flagging of baselines
+        itsRowCriteria.push_back(BASELINE);
     }
 
     if (parset.isDefined("autocorr")) {
         itsFlagAutoCorr = parset.getBool("autocorr");
-        itsRowCriteria.push_back(AUTOCORR);
+        if (itsFlagAutoCorr) {
+            itsRowCriteria.push_back(AUTOCORR);
+        }
     }
 }
 
-FlaggingStats SelectionStrategy::stats(void) const
+FlaggingStats SelectionFlagger::stats(void) const
 {
     return itsStats;
 }
 
-void SelectionStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
+void SelectionFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
                                    const bool dryRun)
 {
     const bool rowCriteriaMatches = dispatch(itsRowCriteria, msc, row);
@@ -137,7 +139,7 @@ void SelectionStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
     }
 }
 
-bool SelectionStrategy::checkBaseline(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkBaseline(casa::MSColumns& msc, const casa::uInt row)
 {
     const Matrix<casa::Int> m = itsSelection.getBaselineList();
     if (m.empty()) {
@@ -157,7 +159,7 @@ bool SelectionStrategy::checkBaseline(casa::MSColumns& msc, const casa::uInt row
     return false;
 }
 
-bool SelectionStrategy::checkField(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkField(casa::MSColumns& msc, const casa::uInt row)
 {
     const casa::Int fieldId = msc.fieldId()(row);
     const Vector<casa::Int> v = itsSelection.getFieldList();
@@ -169,7 +171,7 @@ bool SelectionStrategy::checkField(casa::MSColumns& msc, const casa::uInt row)
     return false;
 }
 
-bool SelectionStrategy::checkTimerange(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkTimerange(casa::MSColumns& msc, const casa::uInt row)
 {
     const Matrix<casa::Double> timeList = itsSelection.getTimeList();
     if (timeList.empty()) {
@@ -187,7 +189,7 @@ bool SelectionStrategy::checkTimerange(casa::MSColumns& msc, const casa::uInt ro
     }
 }
 
-bool SelectionStrategy::checkScan(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkScan(casa::MSColumns& msc, const casa::uInt row)
 {
     const casa::Int scanNum = msc.scanNumber()(row);
     const Vector<casa::Int> v = itsSelection.getScanList();
@@ -199,7 +201,7 @@ bool SelectionStrategy::checkScan(casa::MSColumns& msc, const casa::uInt row)
     return false;
 }
 
-bool SelectionStrategy::checkFeed(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkFeed(casa::MSColumns& msc, const casa::uInt row)
 {
     const casa::Int feed1 = msc.feed1()(row);
     const casa::Int feed2 = msc.feed2()(row);
@@ -212,12 +214,7 @@ bool SelectionStrategy::checkFeed(casa::MSColumns& msc, const casa::uInt row)
     }
 }
 
-bool SelectionStrategy::checkUVRange(casa::MSColumns& msc, const casa::uInt row)
-{
-    return false;
-}
-
-bool SelectionStrategy::checkAutocorr(casa::MSColumns& msc, const casa::uInt row)
+bool SelectionFlagger::checkAutocorr(casa::MSColumns& msc, const casa::uInt row)
 {
     ASKAPDEBUGASSERT(itsFlagAutoCorr);
 
@@ -226,31 +223,28 @@ bool SelectionStrategy::checkAutocorr(casa::MSColumns& msc, const casa::uInt row
     return (ant1 == ant2);
 }
 
-bool SelectionStrategy::dispatch(const std::vector<SelectionCriteria>& v,
+bool SelectionFlagger::dispatch(const std::vector<SelectionCriteria>& v,
                                  casa::MSColumns& msc, const casa::uInt row)
 {
     std::vector<SelectionCriteria>::const_iterator it;
     for (it = v.begin(); it != v.end(); ++it) {
         switch (*it) {
-            case SelectionStrategy::BASELINE:
+            case SelectionFlagger::BASELINE:
                 if (!checkBaseline(msc, row)) return false;
                 break;
-            case SelectionStrategy::FIELD:
+            case SelectionFlagger::FIELD:
                 if (!checkField(msc, row)) return false;
                 break;
-            case SelectionStrategy::TIMERANGE:
+            case SelectionFlagger::TIMERANGE:
                 if (!checkTimerange(msc, row)) return false;
                 break;
-            case SelectionStrategy::SCAN:
+            case SelectionFlagger::SCAN:
                 if (!checkScan(msc, row)) return false;
                 break;
-            case SelectionStrategy::FEED:
+            case SelectionFlagger::FEED:
                 if (!checkFeed(msc, row)) return false;
                 break;
-            case SelectionStrategy::UVRANGE:
-                if (!checkUVRange(msc, row)) return false;
-                break;
-            case SelectionStrategy::AUTOCORR:
+            case SelectionFlagger::AUTOCORR:
                 if (!checkAutocorr(msc, row)) return false;
                 break;
             default:
@@ -260,7 +254,7 @@ bool SelectionStrategy::dispatch(const std::vector<SelectionCriteria>& v,
     return true;
 }
 
-void SelectionStrategy::checkDetailed(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
+void SelectionFlagger::checkDetailed(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
 {
     const Matrix<casa::Int> chanList = itsSelection.getChanList();
     if (chanList.empty()) {
@@ -302,7 +296,7 @@ void SelectionStrategy::checkDetailed(casa::MSColumns& msc, const casa::uInt row
     }
 }
 
-void SelectionStrategy::flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
+void SelectionFlagger::flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
 {
     Matrix<casa::Bool> flags = msc.flag()(row);
     flags = true;

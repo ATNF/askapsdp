@@ -1,4 +1,4 @@
-/// @file ElevationStrategy.cc
+/// @file ElevationFlagger.cc
 ///
 /// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "ElevationStrategy.h"
+#include "ElevationFlagger.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -47,27 +47,27 @@
 // Local package includes
 #include "cflag/FlaggingStats.h"
 
-ASKAP_LOGGER(logger, ".ElevationStrategy");
+ASKAP_LOGGER(logger, ".ElevationFlagger");
 
 using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-ElevationStrategy:: ElevationStrategy(const LOFAR::ParameterSet& parset,
+ElevationFlagger:: ElevationFlagger(const LOFAR::ParameterSet& parset,
                                       const casa::MeasurementSet& /*ms*/)
-        : itsStats("ElevationStrategy"),
+        : itsStats("ElevationFlagger"),
         itsHighLimit(parset.getFloat("high", 90.0), "deg"),
         itsLowLimit(parset.getFloat("low", 0.0), "deg"),
         itsTimeElevCalculated(0.0)
 {
 }
 
-FlaggingStats ElevationStrategy::stats(void) const
+FlaggingStats ElevationFlagger::stats(void) const
 {
     return itsStats;
 }
 
-void ElevationStrategy::updateElevations(casa::MSColumns& msc,
+void ElevationFlagger::updateElevations(casa::MSColumns& msc,
                                          const casa::uInt row)
 {
     // 1: Ensure the antenna elevation array is the correct size
@@ -98,7 +98,7 @@ void ElevationStrategy::updateElevations(casa::MSColumns& msc,
     itsTimeElevCalculated = msc.time()(row);
 }
 
-void ElevationStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
+void ElevationFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
                                    const bool dryRun)
 {
     // 1: If new timestamp then update the antenna elevations
@@ -119,7 +119,7 @@ void ElevationStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
     }
 }
 
-void ElevationStrategy::flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
+void ElevationFlagger::flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
 {
     Matrix<casa::Bool> flags = msc.flag()(row);
     flags = true;

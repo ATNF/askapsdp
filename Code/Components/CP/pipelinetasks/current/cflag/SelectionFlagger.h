@@ -1,4 +1,4 @@
-/// @file SelectionStrategy.h
+/// @file SelectionFlagger.h
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -40,34 +40,34 @@
 #include "ms/MeasurementSets/MSSelection.h"
 
 // Local package includes
-#include "cflag/IFlagStrategy.h"
+#include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief A selection based flagging strategy. This allows flagging based on:
+/// @brief A selection based flagging flagger. This allows flagging based on:
 /// - Baseline (i.e. an antenna or a pair of antennas)
 /// - Field index number
 /// - Time range
 /// - Scan index number
 /// - Feed/beam index number
-/// - UVRange (not yet impelemented)
+/// - UVRange
 /// - Autocorrelations only
 /// - Spectral (e.g. channel index number or frequency)
-class SelectionStrategy : public IFlagStrategy {
+class SelectionFlagger : public IFlagger {
     public:
 
         /// @brief Constructor
-        SelectionStrategy(const LOFAR::ParameterSet& parset,
+        SelectionFlagger(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
-        /// @see IFlagStrategy::processRow()
+        /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
-        /// @see IFlagStrategy::stats()
+        /// @see IFlagger::stats()
         virtual FlaggingStats stats(void) const;
 
     private:
@@ -77,7 +77,6 @@ class SelectionStrategy : public IFlagStrategy {
             TIMERANGE,
             SCAN,
             FEED,
-            UVRANGE,
             AUTOCORR
         };
 
@@ -86,7 +85,6 @@ class SelectionStrategy : public IFlagStrategy {
         bool checkTimerange(casa::MSColumns& msc, const casa::uInt row);
         bool checkScan(casa::MSColumns& msc, const casa::uInt row);
         bool checkFeed(casa::MSColumns& msc, const casa::uInt row);
-        bool checkUVRange(casa::MSColumns& msc, const casa::uInt row);
         bool checkAutocorr(casa::MSColumns& msc, const casa::uInt row);
 
         bool dispatch(const std::vector<SelectionCriteria>& v,
