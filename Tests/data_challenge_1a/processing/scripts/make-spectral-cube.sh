@@ -65,7 +65,7 @@ while [ \$C -le ${FINALCH} ]; do
     C=\`expr \$C + 1\`
 done
 
-parset=make-spectral-cube--${OUTPUTCUBE}-\${PBS_JOBID}.log
+parset=config/make-spectral-cube--${OUTPUTCUBE}-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
 Makecube.inputNamePattern = ${IMAGERANGE}
 Makecube.outputCube = ${OUTPUTCUBE}
