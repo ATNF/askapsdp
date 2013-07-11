@@ -256,15 +256,22 @@ namespace askap {
 		/// axis [arcsec] | minor axis [arcsec] | position
 		/// angle [deg]. Columns are separated by a single space. 
 
+		casa::PagedImage<float> firstimg(this->itsInputNames[0]);
+		casa::Vector<Quantum<Double> > firstbeam=firstimg.imageInfo().restoringBeam();
+		
 		if(this->itsBeamFile!=""){
-		    std::ofstream fbeam(this->itsBeamFile.c_str());
-		    for(size_t i=0;i<this->itsInputNames.size();i++){
-			casa::PagedImage<float> img(this->itsInputNames[i]);
-			casa::Vector<Quantum<Double> > beam=img.imageInfo().restoringBeam();
-			fbeam << i << " " << this->itsInputNames[i] << " " 
-			      << beam[0].getValue("arcsec") << " " 
-			      << beam[1].getValue("arcsec") << " " 
-			      << beam[2].getValue("deg") <<"\n";
+		    if(firstbeam.size()==0)
+			ASKAPLOG_WARN_STR(logger, "The first input image " << this->itsInputNames[0] << " has no beam, so not making the beamFile " << this->itsBeamFile);
+		    else{
+			std::ofstream fbeam(this->itsBeamFile.c_str());
+			for(size_t i=0;i<this->itsInputNames.size();i++){
+			    casa::PagedImage<float> img(this->itsInputNames[i]);
+			    casa::Vector<Quantum<Double> > beam=img.imageInfo().restoringBeam();
+			    fbeam << i << " " << this->itsInputNames[i] << " " 
+				  << beam[0].getValue("arcsec") << " " 
+				  << beam[1].getValue("arcsec") << " " 
+				  << beam[2].getValue("deg") <<"\n";
+			}
 		    }
 		    
 		}
