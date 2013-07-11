@@ -68,7 +68,7 @@ EOF_INNER
 
 basefreq=${SPECTRAL_CUBE_BASEFREQ}
 dfreq=-18.5185185e3
-freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",$1+$2*$3}'\`
+freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1+\$2*\$3}'\`
 
 cat > \${CIMAGERPARSET} << EOF_INNER
 Cimager.dataset                                 = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
