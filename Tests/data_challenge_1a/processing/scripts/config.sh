@@ -116,7 +116,7 @@ if [ $BETA_MODE == "small" ]; then
 # number of workers used for spectral-line cubes, and qsub range
     NUM_WORKERS_SPECTRAL_CUBE=8208
     QSUB_RANGE_SPECTRAL_CUBE_1="0-4103"
-    QSUB_RANGE_SPECTRAL_CUBE_1="4104-8207"
+    QSUB_RANGE_SPECTRAL_CUBE_2="4104-8207"
     QSUB_RANGE_SPECTRAL_CUBE_FULL="0-8207"
 # final channel used for the make-spectral-cube call for continuum cubes
     SPECTRAL_CUBE_FINALCH=8207
@@ -171,7 +171,7 @@ elif [ ${BETA_MODE} == "full" ]; then
 # number of workers used for spectral-line cubes, and qsub range
     NUM_WORKERS_SPECTRAL_CUBE=16416
     QSUB_RANGE_SPECTRAL_CUBE_1="0-8207"
-    QSUB_RANGE_SPECTRAL_CUBE_1="8208-16415"
+    QSUB_RANGE_SPECTRAL_CUBE_2="8208-16415"
     QSUB_RANGE_SPECTRAL_CUBE_FULL="0-16415"
 # final channel used for the make-spectral-cube call for continuum cubes
     SPECTRAL_CUBE_FINALCH=16415
