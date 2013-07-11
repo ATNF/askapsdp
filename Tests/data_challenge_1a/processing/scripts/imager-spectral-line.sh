@@ -161,19 +161,22 @@ FINALCH=${SPECTRAL_CUBE_FINALCH}
 RESTFREQ="HI"
 
 IMAGESUFFIX=".restored"
-IMAGEPREFIX="image.i.spectral."
+IMAGEPREFIX="${SL_WORK_DIR}/image.i.spectral."
 OUTPUTCUBE=image.i.cube.spectral.restored
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
 IMAGESUFFIX=""
-IMAGEPREFIX="psf.i.spectral."
+OUTPUTCUBE=image.i.cube.spectral
+. ${SCRIPTDIR}/make-spectral-cube.sh
+
+IMAGEPREFIX="${SL_WORK_DIR}/psf.i.spectral."
 OUTPUTCUBE=psf.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
-IMAGEPREFIX="sensitivity.i.spectral."
+IMAGEPREFIX="${SL_WORK_DIR}/sensitivity.i.spectral."
 OUTPUTCUBE=sensitivity.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
-IMAGEPREFIX="weights.i.spectral."
+IMAGEPREFIX="${SL_WORK_DIR}/weights.i.spectral."
 OUTPUTCUBE=weights.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
