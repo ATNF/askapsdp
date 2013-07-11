@@ -66,7 +66,7 @@ channel     = \${CHAN}
 width       = 1
 EOF_INNER
 
-basefreq=${SPECTRAL_CUBE_BASEFREQ}
+basefreq=${SPECTRAL_CUBE_ZERO_CHAN}
 dfreq=-18.5185185e3
 freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1+\$2*\$3}'\`
 
