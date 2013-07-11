@@ -162,18 +162,18 @@ RESTFREQ="HI"
 
 IMAGESUFFIX=".restored"
 IMAGEPREFIX="image.i.spectral."
-OUTPUTCUBE=image.cube.i.spectral.restored
+OUTPUTCUBE=image.i.cube.spectral.restored
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
 IMAGESUFFIX=""
 IMAGEPREFIX="psf.i.spectral."
-OUTPUTCUBE=psf.cube.i.spectral
+OUTPUTCUBE=psf.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
 IMAGEPREFIX="sensitivity.i.spectral."
-OUTPUTCUBE=sensitivity.cube.i.spectral
+OUTPUTCUBE=sensitivity.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
 IMAGEPREFIX="weights.i.spectral."
-OUTPUTCUBE=weights.cube.i.spectral
+OUTPUTCUBE=weights.i.cube.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
