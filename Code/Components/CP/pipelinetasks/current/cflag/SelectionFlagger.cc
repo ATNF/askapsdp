@@ -266,16 +266,16 @@ void SelectionFlagger::checkDetailed(casa::MSColumns& msc, const casa::uInt row,
 
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
 
-    ASKAPLOG_DEBUG_STR(logger, "Channel flagging list size: " << chanList.nrow());
+    //ASKAPLOG_DEBUG_STR(logger, "Channel flagging list size: " << chanList.nrow());
     for (size_t i = 0; i < chanList.nrow(); ++i) {
         const casa::Int spwID = chanList(i, 0);
         const casa::Int startCh = chanList(i, 1);
         const casa::Int stopCh = chanList(i, 2);
         const casa::Int step = chanList(i, 3);
-        ASKAPLOG_DEBUG_STR(logger, "spwID: " << spwID
-                               << ", startCh: " << startCh
-                               << ", stopCh: " << stopCh
-                               << ", step: " << step);
+        //ASKAPLOG_DEBUG_STR(logger, "spwID: " << spwID
+        //                       << ", startCh: " << startCh
+        //                       << ", stopCh: " << stopCh
+        //                       << ", step: " << step);
         ASKAPCHECK(step > 0, "Step must be greater than zero to avoid infinite loop");
         const casa::Int dataDescId = msc.dataDescId()(row);
         const casa::Int descSpwId = ddc.spectralWindowId()(dataDescId);

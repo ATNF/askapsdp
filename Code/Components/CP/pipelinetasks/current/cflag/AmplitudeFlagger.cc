@@ -109,7 +109,7 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
     for (size_t corr = 0; corr < data.nrow(); ++corr) {
         // If this row doesn't contain a product we are meant to be flagging,
         // then ignore it
-        if (!itsStokes.empty() && (itsStokes.find(Stokes::type(stokesTypesInt(corr))) != itsStokes.end())) {
+        if (!itsStokes.empty() && (itsStokes.find(Stokes::type(stokesTypesInt(corr))) == itsStokes.end())) {
             continue;
         }
 
