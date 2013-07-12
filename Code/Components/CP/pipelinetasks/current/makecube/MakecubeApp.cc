@@ -31,56 +31,52 @@
 #include <askap_pipelinetasks.h>
 
 // System includes
-#include <string>
+#include <cstdlib>
 
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 #include <askap/StatReporter.h>
-
 #include <Common/ParameterSet.h>
 
+// Local package includes
 #include <makecube/CubeMaker.h>
 
-// Local package includes
-
 // Using
+using namespace std;
 using namespace askap;
 using namespace askap::cp::pipelinetasks;
-using namespace casa;
 
 ASKAP_LOGGER(logger, ".MakecubeApp");
 
 int MakecubeApp::run(int argc, char* argv[])
 {
     try {
+        StatReporter stats;
 
-	StatReporter stats;
-	
-	LOFAR::ParameterSet parset;
-	parset.adoptCollection(config());
-	LOFAR::ParameterSet subset(parset.makeSubset("Makecube."));
-	
-	CubeMaker cube(subset);
-	cube.initialise();
-	cube.createCube();
-	cube.setImageInfo();
-	cube.writeSlices();
-	cube.recordBeams();
-	    
-	stats.logSummary();
+        LOFAR::ParameterSet parset;
+        parset.adoptCollection(config());
+        LOFAR::ParameterSet subset(parset.makeSubset("Makecube."));
 
-    } catch (const askap::AskapError& x) {
-	ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-	std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
-    } catch (const std::exception& x) {
-	ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-	std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
+        CubeMaker cube(subset);
+        cube.initialise();
+        cube.createCube();
+        cube.setImageInfo();
+        cube.writeSlices();
+        cube.recordBeams();
+
+        stats.logSummary();
+
+    } catch (const askap::AskapError& e) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
+        cerr << "Askap error in " << argv[0] << ": " << e.what() << endl;
+        exit(1);
+    } catch (const std::exception& e) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
+        cerr << "Unexpected exception in " << argv[0] << ": " << e.what() << endl;
+        exit(1);
     }
-
 
     return 0;
 }

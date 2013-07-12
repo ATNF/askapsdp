@@ -30,21 +30,19 @@
 // ASKAPsoft includes
 #include <askap/Application.h>
 
-// Local package includes
-
 namespace askap {
-    namespace cp {
-	namespace pipelinetasks {
+namespace cp {
+namespace pipelinetasks {
 
-	    /// @brief Implementation of the Makecube application
-	    class MakecubeApp : public askap::Application {
-	    public:
-		/// Run the application
-		virtual int run(int argc, char* argv[]);
-	    };
+/// @brief Implementation of the Makecube application
+class MakecubeApp : public askap::Application {
+    public:
+        /// Run the application
+        virtual int run(int argc, char* argv[]);
+};
 
-	}
-    }
+}
+}
 }
 
 #endif

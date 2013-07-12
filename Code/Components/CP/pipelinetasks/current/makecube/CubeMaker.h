@@ -29,83 +29,86 @@
 #ifndef ASKAP_CP_PIPELINETASKS_CUBEMAKER_H
 #define ASKAP_CP_PIPELINETASKS_CUBEMAKER_H
 
-#include <Common/ParameterSet.h>
-#include <casa/Arrays/IPosition.h>
-#include <coordinates/Coordinates/CoordinateSystem.h>
-#include <images/Images/PagedImage.h>
-#include <casa/Quanta/Unit.h>
+// System includes
 #include <vector>
 #include <string>
 
+// ASKAPsoft includes
+#include <Common/ParameterSet.h>
+#include <boost/scoped_ptr.hpp>
+#include <casa/Arrays/IPosition.h>
+#include <casa/Quanta/Unit.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <images/Images/PagedImage.h>
+
 namespace askap {
-    namespace cp {
-	namespace pipelinetasks {
+namespace cp {
+namespace pipelinetasks {
 
-	    /// @brief Rest frequency of the HI fine-structure line [Hz]
-	    const double REST_FREQ_HI=1420405751.786;
+/// @brief Class to handle functionality for the makecube application.
+///
+/// @details This class handles most of the aspects of the combination of
+/// individual channel images into a spectral cube. It allows ParameterSet
+/// specification of input and output parameters, the rest frequency (if
+/// needed), and the recording of the beam shapes for the individual channel
+/// images.
+class CubeMaker {
+    public:
+        /// Constructor
+        CubeMaker(const LOFAR::ParameterSet& parset);
 
-	    /// @brief Class to handle functionality for the makecube application.
+        /// Destructor
+        virtual ~CubeMaker();
 
-	    /// @details This class handles most of the aspects of the
-	    /// combination of individual channel images into a
-	    /// spectral cube. It allows ParameterSet specification of
-	    /// input and output parameters, the rest frequency (if
-	    /// needed), and the recording of the beam shapes for the
-	    /// individual channel images.
-	    class CubeMaker
-	    {
-	    public:
-		CubeMaker(const LOFAR::ParameterSet &parset);
-		virtual ~CubeMaker();
+        /// @brief Set up the list of input files and the reference data
+        void initialise();
 
-		/// @brief Set up the list of input files and the reference data 
-		void initialise();
+        /// @brief Create the output cube
+        void createCube();
 
-		/// @brief Create the output cube
-		void createCube();
+        /// @brief Set the units and beam for the output cube
+        void setImageInfo();
 
-		/// @brief Set the units and beam for the output cube
-		void setImageInfo();
+        /// @brief Write the individual channel images to the output cube
+        void writeSlices();
 
-		/// @brief Write the individual channel images to the output cube
-		void writeSlices();
+        /// @brief Record the beams of the input images
+        void recordBeams();
 
-		/// @brief Record the beams of the input images
-		void recordBeams();
+        /// @brief Rest frequency of the HI fine-structure line [Hz]
+        static const double REST_FREQ_HI = 1420405751.786;
 
-	    protected:
-		/// @brief Read the reference coordinate system data
-		void getReferenceData();
-		/// @brief Write the rest frequency to a coordinate system
-		void setRestFreq(casa::CoordinateSystem &csys);
-		/// @brief Write an individual channel image to the cube
-		bool writeSlice(size_t i);
+    private:
+        /// @brief Read the reference coordinate system data
+        void getReferenceData();
 
-		std::string itsInputNamePattern;
-		std::vector<std::string> itsInputNames;
-		double itsRestFrequency;
-		
-		std::string itsBeamReference;
-		size_t itsBeamImageNum;
-		std::string itsBeamFile;
+        /// @brief Write the rest frequency to a coordinate system
+        void setRestFreq(casa::CoordinateSystem& csys);
 
-		int itsNumChan;
-		casa::IPosition itsRefShape;
-		casa::CoordinateSystem itsRefCoordinates;
-		casa::CoordinateSystem itsSecondCoordinates;
-		casa::Unit itsRefUnits;
+        /// @brief Write an individual channel image to the cube
+        bool writeSlice(size_t i);
 
-		std::string itsCubeName;
-		casa::PagedImage<float> *itsCube;
-	    };
+        const std::string itsInputNamePattern;
+        const std::string itsCubeName;
+        const std::string itsBeamReference;
+        const std::string itsBeamFile;
 
+        std::vector<std::string> itsInputNames;
+        double itsRestFrequency;
 
-	}
-    }
+        size_t itsBeamImageNum;
+
+        int itsNumChan;
+        casa::IPosition itsRefShape;
+        casa::CoordinateSystem itsRefCoordinates;
+        casa::CoordinateSystem itsSecondCoordinates;
+        casa::Unit itsRefUnits;
+
+        boost::scoped_ptr< casa::PagedImage<float> > itsCube;
+};
+
+}
+}
 }
 
-
-
-
 #endif
-

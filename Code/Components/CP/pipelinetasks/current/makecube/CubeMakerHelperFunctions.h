@@ -2,7 +2,7 @@
 ///
 /// Utilitye functions to help with execution of makecube
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -26,34 +26,60 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_CP_PIPELINETASKS_CUBEMAKERHELPER_H
-#define ASKAP_CP_PIPELINETASKS_CUBEMAKERHELPER_H
+#ifndef ASKAP_CP_PIPELINETASKS_CUBEMAKERHELPERFUNCTIONS_H
+#define ASKAP_CP_PIPELINETASKS_CUBEMAKERHELPERFUNCTIONS_H
 
+// System includes
 #include <vector>
 #include <string>
 
+// ASKAPsoft includes
 #include <coordinates/Coordinates/CoordinateSystem.h>
 
 namespace askap {
-    namespace cp {
-	namespace pipelinetasks {
+namespace cp {
+ namespace pipelinetasks {
 
-	    std::vector<std::string> expandPattern(const std::string &pattern);
-	    bool compatibleCoordinates(const casa::CoordinateSystem& c1,
-				       const casa::CoordinateSystem& c2);
-	    void assertValidCoordinates(const casa::CoordinateSystem& csys);
-	    double getChanFreq(const casa::CoordinateSystem& csys);
-	    double getFreqIncrement(const casa::CoordinateSystem& c1,
-				    const casa::CoordinateSystem& c2);
-	    casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
-						   const casa::CoordinateSystem& c2,
-						   const casa::IPosition& refShape);
+    // @details Expands the string such as: "image.i.[0..15].spectral" into a
+    // vector of strings from: "image.i.0.spectral" to "image.i.15.spectral"
+    //
+    // @param[in] pattern  a string containing the pattern of the image filesnames.
+    //                     See the description for an example of this pattern.
+    // @return A vector of filenames, that is, the expansion of the input pattern.
+    // @throw AskapError   If the input pattern is inavlid.
+    std::vector<std::string> expandPattern(const std::string& pattern);
 
+    /// @details Ensures the two coordinate systems are compatible, in that they
+    /// have the same number of coordinates, pixel axes and world axes, the same
+    /// type, and matching coordinate numbers for the SPECTRAL, STOKES and
+    /// DIRECTION coordinates.
+    bool compatibleCoordinates(const casa::CoordinateSystem& c1,
+                               const casa::CoordinateSystem& c2);
 
-	}
-    }
+    /// Ensures the coordinate system has a single spectral coordinate axis.
+    void assertValidCoordinates(const casa::CoordinateSystem& csys);
+
+    /// @details Return the frequency value for channel zero of the spectral
+    /// axis within the provided coordinate system.
+    double getChanFreq(const casa::CoordinateSystem& csys);
+
+    /// Returns the increment between two coordinate systems. The channel-zero
+    /// frequencies are extracted for each coodinate system, and the differnce
+    /// is returned.
+    double getFreqIncrement(const casa::CoordinateSystem& c1,
+                            const casa::CoordinateSystem& c2);
+
+    /// A new coordinate system is constructed. All coordinates from the first
+    /// system are kept, with the exception of the spectral coordinate. This
+    /// starts with that of the first, and has its frequency increment set to
+    /// the difference between the zero-channel frequencies of the two systems.
+    /// The reference pixel is set to zero and the reference value set to the
+    /// zero-channel frequency of the first system.
+    casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
+                                           const casa::CoordinateSystem& c2,
+                                           const casa::IPosition& refShape);
 }
-
-
+}
+}
 
 #endif
