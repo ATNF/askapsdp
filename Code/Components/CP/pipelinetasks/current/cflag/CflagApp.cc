@@ -66,6 +66,10 @@ int CflagApp::run(int argc, char* argv[])
 
     // Create a vector of all the flagging strategies specified in the parset
     std::vector< boost::shared_ptr<IFlagger> > flaggers = FlaggerFactory::build(subset, ms);
+    if (flaggers.empty()) {
+        ASKAPLOG_ERROR_STR(logger, "No flaggers configured - Aborting");
+        return 1;
+    }
 
     // Is this a dry run?
     const bool dryRun = subset.getBool("dryrun", false);

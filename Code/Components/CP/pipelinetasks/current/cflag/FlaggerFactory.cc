@@ -47,6 +47,7 @@
 #include "cflag/SelectionFlagger.h"
 #include "cflag/StokesVFlagger.h"
 #include "cflag/ElevationFlagger.h"
+#include "cflag/AmplitudeFlagger.h"
 
 ASKAP_LOGGER(logger, ".FlaggerFactory");
 
@@ -73,18 +74,25 @@ std::vector< boost::shared_ptr<IFlagger> > FlaggerFactory::build(
         }
     }
 
-    // Create Stokes V flagger
+    // Create Stokes V statistical flagger
     key = "stokesv_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
         const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
         flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(subset, ms)));
     }
 
-    // Create elevation based flagger
+    // Create elevation thresholding flagger
     key = "elevation_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
         const LOFAR::ParameterSet subset = parset.makeSubset("elevation_flagger.");
         flaggers.push_back(boost::shared_ptr<IFlagger>(new ElevationFlagger(subset, ms)));
+    }
+
+    // Create amplitude thresholding flagger
+    key = "amplitude_flagger.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("amplitude_flagger.");
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new AmplitudeFlagger(subset, ms)));
     }
 
     return flaggers;

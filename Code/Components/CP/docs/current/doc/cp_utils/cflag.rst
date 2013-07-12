@@ -13,6 +13,7 @@ parameters for these flaggers. Current supported strategies are:
 - Selection (i.e. manual selection)
 - Elevation thresholding
 - Stokes-V thresholding
+- Amplitude thresholding
 
 These flaggers are described in more detail below, along with the description of
 parameters.
@@ -126,8 +127,8 @@ the horizon or the zenith.
 +----------------------------------+------------+------------+---------------------------------------------+
 
 
-Stokes-V Flagging
-~~~~~~~~~~~~~~~~~
+Stokes-V Thresholding
+~~~~~~~~~~~~~~~~~~~~~
 
 Performs flagging based on Stokes-V thresholding. For each row the mean
 and standard deviation for all Stokes-V correlations (i.e. all channels
@@ -145,6 +146,40 @@ channel in that row will be flagged.
 |                                  |            |            |exceeds the (average + (stddev * threshold)) |
 |                                  |            |            |all correlations for that spectral channel in|
 |                                  |            |            |the row will be flagged.                     |
++----------------------------------+------------+------------+---------------------------------------------+
+
+Amplitude Thresholding 
+~~~~~~~~~~~~~~~~~~~~~~
+
+The "amplitude thresholding" flagger is a very basic flagger used to flag visibilities
+which fall outside some amplitude bounds. This was designed for ASKAP comissioning to
+potentially work around some correlator problems.
+
++----------------------------------+------------+------------+---------------------------------------------+
+|*Parameter*                       |*Default*   |*Example*   |*Description*                                |
++==================================+============+============+=============================================+
+|Cflag.amplitude_flagger.enable    |false       |true        |Enable amplitude threshold flagging          |
++----------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.low       |*None*      |1e-17       |The lower bound for valid visibilities. Any  |
+|                                  |            |            |visibility with a lower amplitude will be    |
+|                                  |            |            |flagged. If this parameter is not present in |
+|                                  |            |            |the parset, then no lower bound will be      |
+|                                  |            |            |enforced.                                    |
++----------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.high      |*None*      |12345.0     |The upper bound for valid visibilities. Any  |
+|                                  |            |            |visibility with a higher amplitude will be   |
+|                                  |            |            |flagged. If this parameter is not present in |
+|                                  |            |            |the parset, then no upper bound will be      |
+|                                  |            |            |enforced.                                    |
++----------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.stokes    |*None*      |[XX, YY]    |Specifies which correlation products are to  |
+|                                  |            |            |be subject to flagging. If this parameter is |
+|                                  |            |            |not specified then **all** products will be  |
+|                                  |            |            |subject to flagging. To just flag XX, then   |
+|                                  |            |            |specify "[XX]". For XX & YY, "[XX, YY]", and |
+|                                  |            |            |so on. No stokes conversion is done, so only |
+|                                  |            |            |the products contained in the measurement set|
+|                                  |            |            |should be specified.                         |
 +----------------------------------+------------+------------+---------------------------------------------+
 
 
@@ -166,6 +201,11 @@ selection based flagger with two rules specified.
     # Elevation based flagging
     Cflag.elevation_flagger.enable          = true
     Cflag.elevation_flagger.low             = 12.0
+
+    # Amplitude based flagging
+    Cflag.amplitude_flagger.enable          = true
+    Cflag.amplitude_flagger.high            = 10.25
+    Cflag.amplitude_flagger.low             = 1e-3
 
     # Enable selection based flagging with two rules
     Cflag.selection_flagger.rules           = [rule1, rule2]
