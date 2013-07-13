@@ -46,6 +46,7 @@
 #include "ingestpipeline/chanseltask/ChannelSelTask.h"
 #include "ingestpipeline/phasetracktask/PhaseTrackTask.h"
 #include "ingestpipeline/simplemonitortask/SimpleMonitorTask.h"
+#include "ingestpipeline/chanflag/ChannelFlagTask.h"
 #include "ingestpipeline/mssink/MSSink.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
@@ -93,6 +94,9 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::SimpleMonitorTask :
             task.reset(new SimpleMonitorTask(params, itsConfig));
+            break;
+        case TaskDesc::ChannelFlagTask :
+            task.reset(new ChannelFlagTask(params, itsConfig));
             break;
         default:
             ASKAPTHROW(AskapError, "Unknown task type specified");

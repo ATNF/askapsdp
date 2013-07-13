@@ -54,7 +54,8 @@ class TaskDesc {
             CalTask,
             MSSink,
             PhaseTrackTask,
-            SimpleMonitorTask
+            SimpleMonitorTask,
+            ChannelFlagTask
         };
 
         /// @brief Constructor
