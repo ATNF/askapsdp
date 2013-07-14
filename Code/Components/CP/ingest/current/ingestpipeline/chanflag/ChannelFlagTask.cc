@@ -68,7 +68,7 @@ ChannelFlagTask::ChannelFlagTask(const LOFAR::ParameterSet& parset, const Config
        while (is) {
           int buf;
           is>>buf;
-          if (!is) {
+          if (is) {
               ASKAPCHECK((buf>=0) && (buf<16416), "Each channel number is expected to be between 0 and 16415 inclusive");
               itsChannelsToFlag[i].push_back(size_t(buf));
           }
@@ -148,6 +148,13 @@ void ChannelFlagTask::processRow(casa::Vector<casa::Complex> &vis, casa::Vector<
        ASKAPCHECK(*ci < vis.nelements(), "Encountered channel "<<*ci<<" during flagging which exceeds the total number of channels "<<vis.nelements());
        vis[*ci] = 0.;
        flag[*ci] = casa::True;
+  }
+  // additional hardcoded flagging of extreme outliers (probably spurious memory read outs)
+  for (casa::uInt ch=0; ch<vis.nelements(); ++ch) {
+       if (casa::abs(vis[ch]) > 1e5) {
+           vis[ch] = 0.;
+           flag[ch] = casa::True;
+       }
   }
 }
 

@@ -76,9 +76,11 @@ public:
 protected:   
    /// @details Process one row of data.
    /// @param[in] vis vis spectrum for the given baseline/pol index to work with
+   /// @param[in] flag flag spectrum for the given baseline/pol index to work with
    /// @param[in] baseline baseline ID 
    /// @param[in] beam beam ID
-   void processRow(const casa::Vector<casa::Complex> &vis, const casa::uInt baseline, const casa::uInt beam);
+   void processRow(const casa::Vector<casa::Complex> &vis, const casa::Vector<casa::Bool> &flag,
+                   const casa::uInt baseline, const casa::uInt beam);
 
    /// @brief Publish the buffer
    void publishBuffer();

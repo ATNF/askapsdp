@@ -119,17 +119,18 @@ void SimpleMonitorTask::process(askap::cp::common::VisChunk::ShPtr chunk)
         const casa::uInt beam = beam1[row];
         if (beam < itsVisBuffer.ncolumn()) {
             casa::Matrix<casa::Complex> thisRow  = chunk->visibility().yzPlane(row);
+            casa::Matrix<casa::Bool> thisFlagRow  = chunk->flag().yzPlane(row);
             ASKAPDEBUGASSERT(thisRow.ncolumn() == 4);
             // we'd probably be better off with a forward lookup as number of baselines to monitor is
             // expected to be much less than the total number of baselines. Might change it in the future
             const casa::Int idXX = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::XX);
             if (idXX > -1) {
-                processRow(thisRow.column(0), static_cast<const casa::uInt>(idXX), beam);
+                processRow(thisRow.column(0), thisFlagRow.column(0), static_cast<const casa::uInt>(idXX), beam);
                 ++nMatch;
             }
             const casa::Int idYY = itsBaselineMap.getID(antenna1[row], antenna2[row], casa::Stokes::YY);
             if (idYY > -1) {
-                processRow(thisRow.column(3), static_cast<const casa::uInt>(idYY), beam);
+                processRow(thisRow.column(3), thisFlagRow.column(3), static_cast<const casa::uInt>(idYY), beam);
                 ++nMatch;
             }
         }
@@ -143,15 +144,31 @@ void SimpleMonitorTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 
 /// @details Process one row of data.
 /// @param[in] vis vis spectrum for the given baseline/pol index to work with
+/// @param[in] flag flag spectrum for the given baseline/pol index to work with
 /// @param[in] baseline baseline ID 
 /// @param[in] beam beam ID
-void SimpleMonitorTask::processRow(const casa::Vector<casa::Complex> &vis, const casa::uInt baseline, const casa::uInt beam)
+void SimpleMonitorTask::processRow(const casa::Vector<casa::Complex> &vis, const casa::Vector<casa::Bool> &flag,
+            const casa::uInt baseline, const casa::uInt beam)
 {
   ASKAPDEBUGASSERT(beam < itsDelayBuffer.ncolumn());
+  bool hasData = false;
   // average visibilities in frequency
   if (vis.nelements() > 0) {
       //const casa::Complex avgVis = vis[150];
-      const casa::Complex avgVis = casa::sum(vis) / float(vis.nelements());
+      //const casa::Complex avgVis = casa::sum(vis) / float(vis.nelements());
+      casa::Complex avgVis(0.,0.);
+      ASKAPDEBUGASSERT(vis.nelements() == flag.nelements());
+      casa::uInt count = 0;
+      for (casa::uInt chan = 0; chan<vis.nelements(); ++chan) {
+           if (!flag[chan]) {
+               avgVis += vis[chan];
+               ++count;
+               hasData = true;
+           }
+      }
+      if (count > 0) {
+          avgVis /= (float)(count);
+      }
       itsVisBuffer(baseline,beam) = avgVis;
   }
 
@@ -162,13 +179,15 @@ void SimpleMonitorTask::processRow(const casa::Vector<casa::Complex> &vis, const
   // temporary code to export the spectrum for debugging of the hw correlator. 
   // the expectation is that it would be hard to keep up if we export everything. If
   // something like this is necessary then we probably need to write a separate task.
-  if (beam == 0) {
+  if (hasData && (beam == 0)) {
       // we don't need to cater for the full MPI case
       ASKAPDEBUGASSERT(itsFileName.find("_0") != std::string::npos);
       const std::string fname = "spectra" + utility::toString(baseline)+".dat";
       std::ofstream os(fname.c_str());
       for (casa::uInt ch = 0; ch<vis.nelements(); ++ch) {
-           os<<ch<<" "<<abs(vis[ch])<<" "<<arg(vis[ch]) * 180. / casa::C::pi<<std::endl;
+           if (!flag[ch]) {
+               os<<ch<<" "<<abs(vis[ch])<<" "<<arg(vis[ch]) * 180. / casa::C::pi<<std::endl;
+           }
       }
   }
   //
