@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(0);
+  sel->chooseFeed(1);
   sel->chooseCrossCorrelations();
   //sel->chooseAutoCorrelations();
   if (ctrl >=0 ) {

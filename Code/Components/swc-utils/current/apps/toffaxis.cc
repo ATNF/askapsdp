@@ -17,6 +17,11 @@ ASKAP_LOGGER(logger, "");
 
 // casa
 #include <measures/Measures/MFrequency.h>
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/MEpoch.h>
+#include <casa/Quanta/MVTime.h>
+#include <measures/Measures/MCDirection.h>
+#include <measures/Measures/MeasConvert.h>
 #include <tables/Tables/Table.h>
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -235,30 +240,74 @@ void doTest() {
 
   //casa::MVDirection testDir = tangent;
   // Virgo
-  //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
+  casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.28.01","rad"));
   // 1934-638
   //casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
+
   //casa::MVDirection testDir(convertQuantity("07h12m43.98","rad"),convertQuantity("18.57.52.4","rad"));
-  casa::MVDirection testDir(convertQuantity("13h25m29.98","rad"),convertQuantity("-43.00.40.72","rad"));
+  //casa::MVDirection testDir(convertQuantity("15h39m16.97","rad"),convertQuantity("-78.42.06.17","rad"));
+
+  /*
+  // Sun @ MRO
+  //casa::MPosition mroPos(casa::MVPosition(casa::Quantity(370.81, "m"), casa::Quantity(116.6310372795, "deg"),
+  //                       casa::Quantity(-26.6991531922, "deg")), casa::MPosition::Ref(casa::MPosition::WGS84));
+  casa::MPosition mroPos(casa::MVPosition(casa::Quantity(370.81, "m"), casa::Quantity(-26.6991531922, "deg"), 
+           casa::Quantity(116.6310372795, "deg")),casa::MPosition::Ref(casa::MPosition::WGS84));
+  casa::Quantity q;
+  ASKAPCHECK(casa::MVTime::read(q, "today"), "MVTime::read failed");
+  std::cout<<"Current UT MJD: "<<q<<std::endl;
+  casa::MEpoch when(casa::MVEpoch(q), casa::MEpoch::Ref(casa::MEpoch::UTC));
+  casa::MeasFrame frame(mroPos, when);
+  casa::MVDirection testDir = casa::MDirection::Convert(casa::MDirection(casa::MDirection::SUN), casa::MDirection::Ref(casa::MDirection::J2000,frame))().getValue();
+ 
+  // */
+  //casa::MVDirection testDir(convertQuantity("07h35m00.9","rad"),convertQuantity("21.38.32.1","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
   std::cout<<"test direction: "<<printDirection(testDir)<<std::endl;
   double offset1 = 0., offset2 = 0.;
-  const double factor = +0.5;
+  const double factor = -1;
 
   offset1 = sin(dir.getLong() - tangent.getLong()) * cos(dir.getLat());
   offset2 = sin(dir.getLat()) * cos(tangent.getLat()) - cos(dir.getLat()) * sin(tangent.getLat())
                                                   * cos(dir.getLong() - tangent.getLong());
   
   // for explicit offsets
-  offset1 = -0.5 / 180. * casa::C::pi;
+  const double ofq = sqrt(3.)/2.;
+  offset1 = ofq / 180. * casa::C::pi;
   offset2 = -0.5 / 180. * casa::C::pi;
 
   std::cout<<"separation (dir vs. tangent): "<<dir.separation(tangent)*180./casa::C::pi<<" deg, offsets (deg): "
      <<offset1*180./casa::C::pi<<" "<<offset2*180./casa::C::pi<<std::endl;
+  
+  const casa::MVDirection backupTestDir(testDir);
+
   testDir.shift(offset1*factor,offset2*factor, casa::True);
   std::cout<<"offset applied to test direction: "<<printDirection(testDir)<<std::endl;
+
+  // for multiple offsets
+  std::vector<double> xOffsets, yOffsets;
+  xOffsets.push_back(0.); yOffsets.push_back(0.);
+  xOffsets.push_back(-ofq); yOffsets.push_back(-0.5);
+  xOffsets.push_back(-ofq); yOffsets.push_back(0.5);
+  xOffsets.push_back(-ofq); yOffsets.push_back(1.5);
+  xOffsets.push_back(0.); yOffsets.push_back(1.);
+  xOffsets.push_back(ofq); yOffsets.push_back(1.5);
+  xOffsets.push_back(ofq); yOffsets.push_back(0.5);
+  xOffsets.push_back(ofq); yOffsets.push_back(-0.5);
+  //xOffsets.push_back(0.); yOffsets.push_back(-1.5);
+  xOffsets.push_back(0.); yOffsets.push_back(-1.);
+  
+  ASKAPDEBUGASSERT(xOffsets.size() == yOffsets.size());
+  for (size_t i=0; i<xOffsets.size(); ++i) {
+      offset1 = xOffsets[i] / 180. * casa::C::pi;
+      offset2 = yOffsets[i] / 180. * casa::C::pi;
+      testDir = backupTestDir;
+      testDir.shift(offset1*factor,offset2*factor, casa::True);
+      std::cout<<"offset ("<<xOffsets[i]<<","<<yOffsets[i]<<") applied to test direction: "<<printDirection(testDir)<<std::endl;
+  }
+
 }
 
 int main(int argc, char **argv) {

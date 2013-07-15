@@ -61,7 +61,7 @@ casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) 
   casa::Matrix<casa::Complex> result(in);
   for (casa::uInt row=0;row<result.nrow(); ++row) {
        for (casa::uInt col=0; col<result.ncolumn(); ++col) {
-            if (casa::abs(result(row,col))>2e6) {
+            if (casa::abs(result(row,col))>1) {
                 result(row,col) = 0.;
             }
        }
@@ -72,7 +72,7 @@ casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) 
 
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(0);
+  sel->chooseFeed(7);
   sel->chooseCrossCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");

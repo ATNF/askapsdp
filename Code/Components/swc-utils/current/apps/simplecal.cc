@@ -71,7 +71,8 @@ std::string printComplex(const casa::Complex &val) {
 
 void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
-  //sel->chooseFeed(1);
+  sel->chooseCrossCorrelations();
+  //sel->chooseFeed(7);
   if (ctrl >=0 ) {
       sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
   }
@@ -89,7 +90,13 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
   casa::uInt nRow = 0;
   double startTime = 0;
   double stopTime = 0;
+
+  casa::Vector<casa::uInt> ant1IDs;
+  casa::Vector<casa::uInt> ant2IDs;
     
+  // the assumed baseline order depends on this parameter
+  const bool useSWCorrelator = false;
+
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (nChan == 0) {
            nChan = it->nChannel();
@@ -97,6 +104,8 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
            buf.resize(nRow,nChan);
            buf.set(casa::Complex(0.,0.));
            freq = it->frequency();
+           ant1IDs = it->antenna1().copy();
+           ant2IDs = it->antenna2().copy();
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
@@ -106,15 +115,32 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
                std::cerr<<"Number of rows has been changed, initially "<<nRow<<" now "<<it->nRow()<<", integration cycle = "<<counter+1<<std::endl;
                continue;
            }
+           //
+           ASKAPDEBUGASSERT(ant1IDs.nelements() == it->nRow());
+           ASKAPDEBUGASSERT(ant2IDs.nelements() == it->nRow());
+           for (casa::uInt row = 0; row<it->nRow(); ++row) {
+                ASKAPCHECK(ant1IDs[row] == it->antenna1()[row], "Mismatch of antenna 1 index for row "<<row<<
+                           " - got "<<it->antenna1()[row]<<" expected "<<ant1IDs[row]);
+                ASKAPCHECK(ant2IDs[row] == it->antenna2()[row], "Mismatch of antenna 2 index for row "<<row<<
+                           " - got "<<it->antenna2()[row]<<" expected "<<ant2IDs[row]);
+           }
        }
        
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() > 1);
-       // we require that 3 baselines come in certain order, just to be sure
+       // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
+       // of the closure phase.
+       // the order is different for software and hardware correlator. Just hard code the differences
        for (casa::uInt row = 0; row<nRow; row+=3) {
-            ASKAPCHECK(it->antenna2()[row] == it->antenna1()[row+1], "Expect baselines in the order 1-2,2-3 and 1-3");
-            ASKAPCHECK(it->antenna1()[row] == it->antenna1()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
-            ASKAPCHECK(it->antenna2()[row+1] == it->antenna2()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
+            if (useSWCorrelator) {
+                ASKAPCHECK(it->antenna2()[row] == it->antenna1()[row+1], "Expect baselines in the order 1-2,2-3 and 1-3");
+                ASKAPCHECK(it->antenna1()[row] == it->antenna1()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
+                ASKAPCHECK(it->antenna2()[row+1] == it->antenna2()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
+             } else {
+                ASKAPCHECK(it->antenna2()[row] == it->antenna1()[row+2], "Expect baselines in the order 1-2,1-3 and 2-3");
+                ASKAPCHECK(it->antenna1()[row] == it->antenna1()[row+1], "Expect baselines in the order 1-2,1-3 and 2-3");
+                ASKAPCHECK(it->antenna2()[row+1] == it->antenna2()[row+2], "Expect baselines in the order 1-2,1-3 and 2-3");
+             }
        }
        //
        
@@ -142,7 +168,12 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        if (++counter == 1) {
            startTime = it->time();
        }
-       stopTime = it->time() + 1; // 1s integration time is hardcoded
+       stopTime = it->time() + (useSWCorrelator ? 1 : 5); // 1s or 5s integration time is hardcoded
+       /*
+       if (counter == 3) {
+           break;
+       }
+       */
   }
   if (counter!=0) {
       buf /= float(counter);
@@ -171,8 +202,15 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
            casa::Vector<casa::Complex> spAvg(3,casa::Complex(0.,0.));
            for (casa::uInt baseline = 0; baseline<spAvg.nelements(); ++baseline) {
                 casa::Vector<casa::Complex> thisRow = buf.row(row+baseline);
+                //casa::Vector<casa::Complex> thisRow = buf.row(row+baseline)(casa::Slice(38,32));
                 spAvg[baseline] = casa::sum(thisRow);
                 spAvg[baseline] /= float(buf.ncolumn());
+           }
+           if (!useSWCorrelator) {
+              // the hw-correlator has a different baseline order: 0-1, 0-2 and 1-2, we need to swap last two baselines to get 0-1,1-2,0-2 everywhere 
+              const casa::Complex tempBuf = spAvg[2];
+              spAvg[2] = spAvg[1];
+              spAvg[1] = tempBuf;
            }
            const float ph1 = -arg(spAvg[0]);
            const float ph2 = -arg(spAvg[2]);
