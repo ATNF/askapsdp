@@ -51,6 +51,8 @@ class AmplitudeFlagger : public IFlagger {
     public:
 
         /// @brief Constructor
+        /// @throw AskapError   If an upper or lower threshold is not specified
+        ///                     in the parset.
         AmplitudeFlagger(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 

@@ -60,6 +60,8 @@ class SelectionFlagger : public IFlagger {
     public:
 
         /// @brief Constructor
+        /// @throw AskapError   If no selection criteria is specified
+        ///                     in the parset.
         SelectionFlagger(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 

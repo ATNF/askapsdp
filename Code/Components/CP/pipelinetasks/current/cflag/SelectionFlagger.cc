@@ -113,6 +113,10 @@ SelectionFlagger:: SelectionFlagger(const LOFAR::ParameterSet& parset,
             itsRowCriteria.push_back(AUTOCORR);
         }
     }
+
+    if (itsRowCriteria.empty() && !itsDetailedCriteriaExists) {
+        ASKAPTHROW(AskapError, "No selection criteria for rule specified");
+    }
 }
 
 FlaggingStats SelectionFlagger::stats(void) const

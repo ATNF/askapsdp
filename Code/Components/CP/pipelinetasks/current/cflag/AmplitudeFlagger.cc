@@ -57,7 +57,8 @@ using namespace askap::cp::pipelinetasks;
 
 AmplitudeFlagger:: AmplitudeFlagger(const LOFAR::ParameterSet& parset,
                                     const casa::MeasurementSet& /*ms*/)
-        : itsStats("AmplitudeFlagger")
+        : itsStats("AmplitudeFlagger"), itsHasHighLimit(false),
+          itsHasLowLimit(false)
 {
     if (parset.isDefined("high")) {
         itsHasHighLimit = true;
@@ -67,6 +68,10 @@ AmplitudeFlagger:: AmplitudeFlagger(const LOFAR::ParameterSet& parset,
     if (parset.isDefined("low")) {
         itsHasLowLimit = true;
         itsLowLimit = parset.getFloat("low");
+    }
+
+    if (!itsHasHighLimit && !itsHasLowLimit) {
+        ASKAPTHROW(AskapError, "No amplitude thresholds have been defined");
     }
 
     // Converts Stokes vector string to StokesType
