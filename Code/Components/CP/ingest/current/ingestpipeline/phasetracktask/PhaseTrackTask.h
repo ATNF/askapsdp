@@ -37,6 +37,9 @@
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
+// std includes
+#include <vector>
+
 namespace askap {
 namespace cp {
 namespace ingest {
@@ -76,6 +79,17 @@ private:
    /// @brief configuration (need scan information)
    Configuration itsConfig;
 
+   /// @brief do delay tracking
+   /// @details This is to control experimental feature to track delays and phases entirely in the software. 
+   /// This is intended to take the saw-tooth out, but may not be adequate for some positions in the sky
+   bool itsTrackDelay;
+
+   /// @brief fixed delay component in ns
+   /// @details This attribute constrols whether fixed delays are added. The values (one delay per antenna) are simply added
+   /// to the geometric delay if tracked or applied as they are. If antenna ID exceeds the size of the vector, the delay is assumed to be zero.
+   /// Zero length means no application of the fixed delay. 
+   /// @note if itsTrackDelay is false and the length of this vector is zero, only phase rotation is applied
+   std::vector<double> itsFixedDelays;
 }; // PhaseTrackTask class
 
 } // ingest
