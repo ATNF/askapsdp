@@ -47,6 +47,14 @@ namespace pipelinetasks {
 class FlaggerFactory {
     public:
 
+        /// Appends one vector of flaggers to another. Vector "v2" is appended
+        /// to vector "v1"
+        ///
+        /// @param[in,out]  v1  the vector that will be appended to.
+        /// @param[in]      v2  the vector that will be appended to v1.
+        static void appendFlaggers(vector< boost::shared_ptr<IFlagger> >& v1,
+                                   const vector< boost::shared_ptr<IFlagger> > v2);
+
         /// Builds flagging flagger objects based on the configuration in
         /// the parameter set.
         ///

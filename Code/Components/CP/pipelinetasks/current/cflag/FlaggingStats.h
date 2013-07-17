@@ -29,6 +29,7 @@
 
 // System includes
 #include <string>
+#include <stdint.h>
 
 namespace askap {
 namespace cp {
@@ -39,11 +40,14 @@ namespace pipelinetasks {
 class FlaggingStats {
     public:
         FlaggingStats(const std::string& n)
-                : name(n), rowsflagged(0), visflagged(0) {}
+                : name(n), rowsFlagged(0), visFlagged(0),
+                  rowsAlreadyFlagged(0), visAlreadyFlagged(0) {}
 
         std::string name;
-        unsigned long rowsflagged;
-        unsigned long visflagged;
+        uint64_t rowsFlagged;
+        uint64_t visFlagged;
+        uint64_t rowsAlreadyFlagged;
+        uint64_t visAlreadyFlagged;
 };
 
 }

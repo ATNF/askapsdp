@@ -40,6 +40,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -56,6 +57,26 @@ ASKAP_LOGGER(logger, ".SelectionFlagger");
 using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
+
+vector< boost::shared_ptr<IFlagger> > SelectionFlagger::build(
+        const LOFAR::ParameterSet& parset,
+        const casa::MeasurementSet& ms)
+{
+    vector< boost::shared_ptr<IFlagger> > flaggers;
+    const string key = "selection_flagger.rules";
+    if (parset.isDefined(key)) {
+        const vector<string> rules = parset.getStringVector(key);
+        vector<string>::const_iterator it;
+        for (it = rules.begin(); it != rules.end(); ++it) {
+            ASKAPLOG_DEBUG_STR(logger, "Processing rule: " << *it);
+            stringstream ss;
+            ss << "selection_flagger." << *it << ".";
+            const LOFAR::ParameterSet subset = parset.makeSubset(ss.str());
+            flaggers.push_back(boost::shared_ptr<IFlagger>(new SelectionFlagger(subset, ms)));
+        }
+    }
+    return flaggers;
+}
 
 SelectionFlagger:: SelectionFlagger(const LOFAR::ParameterSet& parset,
                                       const casa::MeasurementSet& ms)
@@ -290,7 +311,7 @@ void SelectionFlagger::checkDetailed(casa::MSColumns& msc, const casa::uInt row,
         for (casa::Int chan = startCh; chan <= stopCh; chan += step) {
             for (casa::uInt pol = 0; pol < flags.nrow(); ++pol) {
                 flags(pol, chan) = true;
-                itsStats.visflagged++;
+                itsStats.visFlagged++;
             }
         }
     }
@@ -305,8 +326,8 @@ void SelectionFlagger::flagRow(casa::MSColumns& msc, const casa::uInt row, const
     Matrix<casa::Bool> flags = msc.flag()(row);
     flags = true;
 
-    itsStats.visflagged += flags.size();
-    itsStats.rowsflagged++;
+    itsStats.visFlagged += flags.size();
+    itsStats.rowsFlagged++;
 
     if (!dryRun) {
         msc.flagRow().put(row, true);

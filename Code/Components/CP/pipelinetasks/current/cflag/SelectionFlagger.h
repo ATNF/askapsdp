@@ -35,6 +35,7 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
+#include "boost/shared_ptr.hpp"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 #include "ms/MeasurementSets/MSSelection.h"
@@ -59,9 +60,19 @@ namespace pipelinetasks {
 class SelectionFlagger : public IFlagger {
     public:
 
+        /// @brief Constructs zero or more instances of the SelectionFlagger.
+        /// The flagger is responsible for reading the "parset" and constructing
+        /// zero or more instances of itself, depending on the configuration.
+        ///
+        /// @throw AskapError   If no selection criteria is specified
+        ///                     in the parset for a listed rule.
+        static vector< boost::shared_ptr<IFlagger> > build(
+                const LOFAR::ParameterSet& parset,
+                const casa::MeasurementSet& ms);
+
         /// @brief Constructor
         /// @throw AskapError   If no selection criteria is specified
-        ///                     in the parset.
+        ///                     in the parset for a listed rule.
         SelectionFlagger(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 

@@ -31,8 +31,6 @@
 #include "askap_pipelinetasks.h"
 
 // System includes
-#include <string>
-#include <sstream>
 #include <vector>
 
 // ASKAPsoft includes
@@ -45,8 +43,8 @@
 // Local package includes
 #include "cflag/IFlagger.h"
 #include "cflag/SelectionFlagger.h"
-#include "cflag/StokesVFlagger.h"
 #include "cflag/ElevationFlagger.h"
+#include "cflag/StokesVFlagger.h"
 #include "cflag/AmplitudeFlagger.h"
 
 ASKAP_LOGGER(logger, ".FlaggerFactory");
@@ -55,45 +53,24 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::pipelinetasks;
 
+void FlaggerFactory::appendFlaggers(vector< boost::shared_ptr<IFlagger> >& v1,
+                                    const vector< boost::shared_ptr<IFlagger> > v2)
+{
+    v1.insert(v1.end(), v2.begin(), v2.end());
+}
+
 std::vector< boost::shared_ptr<IFlagger> > FlaggerFactory::build(
     const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
 {
     vector< boost::shared_ptr<IFlagger> > flaggers;
 
-    // Create Selection flaggers
-    string key = "selection_flagger.rules";
-    if (parset.isDefined(key)) {
-        const vector<string> rules = parset.getStringVector(key);
-        vector<string>::const_iterator it;
-        for (it = rules.begin(); it != rules.end(); ++it) {
-            ASKAPLOG_DEBUG_STR(logger, "Processing rule: " << *it);
-            stringstream ss;
-            ss << "selection_flagger." << *it << ".";
-            const LOFAR::ParameterSet subset = parset.makeSubset(ss.str());
-            flaggers.push_back(boost::shared_ptr<IFlagger>(new SelectionFlagger(subset, ms)));
-        }
-    }
-
-    // Create Stokes V statistical flagger
-    key = "stokesv_flagger.enable";
-    if (parset.isDefined(key) && parset.getBool(key)) {
-        const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
-        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(subset, ms)));
-    }
-
-    // Create elevation thresholding flagger
-    key = "elevation_flagger.enable";
-    if (parset.isDefined(key) && parset.getBool(key)) {
-        const LOFAR::ParameterSet subset = parset.makeSubset("elevation_flagger.");
-        flaggers.push_back(boost::shared_ptr<IFlagger>(new ElevationFlagger(subset, ms)));
-    }
-
-    // Create amplitude thresholding flagger
-    key = "amplitude_flagger.enable";
-    if (parset.isDefined(key) && parset.getBool(key)) {
-        const LOFAR::ParameterSet subset = parset.makeSubset("amplitude_flagger.");
-        flaggers.push_back(boost::shared_ptr<IFlagger>(new AmplitudeFlagger(subset, ms)));
-    }
+    // Flaggers are responsible for inspecting the parset and instantiating
+    // zero or more instances of themself as is required. New flaggers should
+    // be added here:
+    appendFlaggers(flaggers, SelectionFlagger::build(parset, ms));
+    appendFlaggers(flaggers, ElevationFlagger::build(parset, ms));
+    appendFlaggers(flaggers, StokesVFlagger::build(parset, ms));
+    appendFlaggers(flaggers, AmplitudeFlagger::build(parset, ms));
 
     return flaggers;
 }

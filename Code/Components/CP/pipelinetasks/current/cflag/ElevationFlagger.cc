@@ -32,10 +32,12 @@
 
 // System includes
 #include <limits>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "measures/Measures/MDirection.h"
@@ -53,8 +55,20 @@ using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-ElevationFlagger:: ElevationFlagger(const LOFAR::ParameterSet& parset,
-                                      const casa::MeasurementSet& /*ms*/)
+vector< boost::shared_ptr<IFlagger> > ElevationFlagger::build(
+        const LOFAR::ParameterSet& parset,
+        const casa::MeasurementSet& /*ms*/)
+{
+    vector< boost::shared_ptr<IFlagger> > flaggers;
+    const string key = "elevation_flagger.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("elevation_flagger.");
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new ElevationFlagger(subset)));
+    }
+    return flaggers;
+}
+
+ElevationFlagger:: ElevationFlagger(const LOFAR::ParameterSet& parset)
         : itsStats("ElevationFlagger"),
         itsHighLimit(parset.getFloat("high", 90.0), "deg"),
         itsLowLimit(parset.getFloat("low", 0.0), "deg"),
@@ -124,8 +138,8 @@ void ElevationFlagger::flagRow(casa::MSColumns& msc, const casa::uInt row, const
     Matrix<casa::Bool> flags = msc.flag()(row);
     flags = true;
 
-    itsStats.visflagged += flags.size();
-    itsStats.rowsflagged++;
+    itsStats.visFlagged += flags.size();
+    itsStats.rowsFlagged++;
 
     if (!dryRun) {
         msc.flagRow().put(row, true);

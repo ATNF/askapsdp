@@ -28,9 +28,11 @@
 #define ASKAP_CP_PIPELINETASKS_ELEVATIONFLAGGER_H
 
 // System includes
+#include <vector>
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
@@ -50,9 +52,15 @@ namespace pipelinetasks {
 class ElevationFlagger : public IFlagger {
     public:
 
+        /// @brief Constructs zero or more instances of the ElevationFlagger.
+        /// The flagger is responsible for reading the "parset" and constructing
+        /// zero or more instances of itself, depending on the configuration.
+        static vector< boost::shared_ptr<IFlagger> > build(
+                const LOFAR::ParameterSet& parset,
+                const casa::MeasurementSet& ms);
+
         /// @brief Constructor
-        ElevationFlagger(const LOFAR::ParameterSet& parset,
-                          const casa::MeasurementSet& ms);
+        ElevationFlagger(const LOFAR::ParameterSet& parset);
 
         /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,

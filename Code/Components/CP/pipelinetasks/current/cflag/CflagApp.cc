@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <iomanip>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -49,6 +50,7 @@
 #include "cflag/FlaggingStats.h"
 
 // Using
+using namespace std;
 using namespace askap;
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
@@ -98,12 +100,17 @@ int CflagApp::run(int argc, char* argv[])
 
     // Write out flagging statistics
     ASKAPLOG_INFO_STR(logger, "Summary:");
-    ASKAPLOG_INFO_STR(logger, "  Rows already flagged: " << rowsAlreadyFlagged);
+    float rowPercent = static_cast<float>(rowsAlreadyFlagged) / nRows * 100.0;
+    ASKAPLOG_INFO_STR(logger, "  Rows already flagged: " << rowsAlreadyFlagged
+            << " (" << setprecision(2) << rowPercent << "%)");
     for (it = flaggers.begin(); it != flaggers.end(); ++it) {
         const FlaggingStats stats = (*it)->stats();
+        rowPercent = static_cast<float>(stats.rowsFlagged) / nRows * 100.0;
+        ASKAPDEBUGASSERT(rowPercent <= 100.0);
         ASKAPLOG_INFO_STR(logger, "  " << stats.name
-                              << " - Entire rows flagged: " << stats.rowsflagged
-                              << ", Visibilities flagged: " << stats.visflagged);
+                              << " - Entire rows flagged: " << stats.rowsFlagged
+                              << " (" << setprecision(2) << rowPercent << "%)"
+                              << ", Visibilities flagged: " << stats.visFlagged);
     }
 
     stats.logSummary();

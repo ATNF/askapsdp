@@ -33,6 +33,7 @@
 // System includes
 #include <limits>
 #include <set>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -55,8 +56,20 @@ using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-AmplitudeFlagger:: AmplitudeFlagger(const LOFAR::ParameterSet& parset,
-                                    const casa::MeasurementSet& /*ms*/)
+vector< boost::shared_ptr<IFlagger> > AmplitudeFlagger::build(
+        const LOFAR::ParameterSet& parset,
+        const casa::MeasurementSet& /*ms*/)
+{
+    vector< boost::shared_ptr<IFlagger> > flaggers;
+    const string key = "amplitude_flagger.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("amplitude_flagger.");
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new AmplitudeFlagger(subset)));
+    }
+    return flaggers;
+}
+
+AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
         : itsStats("AmplitudeFlagger"), itsHasHighLimit(false),
           itsHasLowLimit(false)
 {
@@ -119,7 +132,10 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
         }
 
         for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
-            if (flags(corr, chan)) continue;
+            if (flags(corr, chan)) {
+                itsStats.visAlreadyFlagged++;
+                continue;
+            }
 
             const float amp = abs(data(corr, chan));
 
@@ -127,7 +143,7 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
                     || (itsHasHighLimit && (amp > itsHighLimit))) {
                 flags(corr, chan) = true;
                 wasUpdated = true;
-                itsStats.visflagged++;
+                itsStats.visFlagged++;
             }
         }
     }

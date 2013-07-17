@@ -29,9 +29,11 @@
 
 // System includes
 #include <set>
+#include <vector>
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
@@ -50,11 +52,20 @@ namespace pipelinetasks {
 class AmplitudeFlagger : public IFlagger {
     public:
 
+        /// @brief Constructs zero or more instances of the AmplitudeFlagger.
+        /// The flagger is responsible for reading the "parset" and constructing
+        /// zero or more instances of itself, depending on the configuration.
+        ///
+        /// @throw AskapError   If an upper or lower threshold is not specified
+        ///                     in the parset.
+        static vector< boost::shared_ptr<IFlagger> > build(
+                const LOFAR::ParameterSet& parset,
+                const casa::MeasurementSet& ms);
+
         /// @brief Constructor
         /// @throw AskapError   If an upper or lower threshold is not specified
         ///                     in the parset.
-        AmplitudeFlagger(const LOFAR::ParameterSet& parset,
-                          const casa::MeasurementSet& ms);
+        AmplitudeFlagger(const LOFAR::ParameterSet& parset);
 
         /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,

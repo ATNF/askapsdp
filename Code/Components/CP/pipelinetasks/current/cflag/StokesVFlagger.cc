@@ -33,10 +33,12 @@
 // System includes
 #include <map>
 #include <limits>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "casa/Arrays/ArrayMath.h"
@@ -58,11 +60,24 @@ using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-StokesVFlagger:: StokesVFlagger(const LOFAR::ParameterSet& parset,
-                                  const casa::MeasurementSet& /*ms*/)
-        : itsStats("StokesVFlagger")
+vector< boost::shared_ptr<IFlagger> > StokesVFlagger::build(
+        const LOFAR::ParameterSet& parset,
+        const casa::MeasurementSet& /*ms*/)
 {
-    itsThreshold = parset.getFloat("threshold", 5.0);
+    vector< boost::shared_ptr<IFlagger> > flaggers;
+    const string key = "stokesv_flagger.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
+        const float threshold = parset.getFloat("threshold", 5.0);
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(threshold)));
+    }
+    return flaggers;
+}
+
+StokesVFlagger:: StokesVFlagger(float threshold)
+    : itsStats("StokesVFlagger"),
+      itsThreshold(threshold)
+{
     ASKAPCHECK(itsThreshold > 0.0, "Threshold must be greater than zero");
 }
 
@@ -137,7 +152,7 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
                 flags(pol, i) = true;
                 wasUpdated = true;
             }
-            itsStats.visflagged += flags.nrow();
+            itsStats.visFlagged += flags.nrow();
         }
     }
 
