@@ -45,7 +45,7 @@ if [ $doCsim == true ]; then
 
     if [ $doCorrupt == true ]; then
 	# Create the random gains parset
-	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/randomgains.sh ${randomgainsArgs} ${calibparset}
+	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh ${randomgainsArgs} ${calibparset}
     fi
 
     cat > $qsubfile <<EOF
@@ -61,8 +61,8 @@ if [ $doCsim == true ]; then
 cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
-csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh
-rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/randomgains.sh
+csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.sh
+rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 IND=${INDEX}

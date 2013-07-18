@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/selavy.sh
+selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/selavy.sh
 askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 mkdir -p $scriptdirSM
@@ -194,7 +194,7 @@ cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=${AIPSPATH}
 export CASACOREDIR=\${ASKAP_ROOT}/3rdParty/casacore/casacore-1.4.0
-createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/install/bin/createFITS.sh
+createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 imagecalc=\${CASACOREDIR}/install/bin/imagecalc
 
 modelcompParset=${parsetdirSM}/modelcomp-\${PBS_JOBID}.in

@@ -48,7 +48,7 @@ cat > ${qsubfile} <<EOF
 
 cd \$PBS_O_WORKDIR
 
-makecube=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/install/bin/makecube.sh
+makecube=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/makecube.sh
 
 outfile=${LOGDIR}/makecube-\${PBS_JOBID}.log
 

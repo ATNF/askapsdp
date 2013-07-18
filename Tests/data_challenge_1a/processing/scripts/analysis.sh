@@ -30,9 +30,9 @@ cat > ${qsubfile} <<EOF
 
 cd \$PBS_O_WORKDIR
 
-selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/selavy.sh
-cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cimstat.sh
-crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/crossmatch.sh
+selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/selavy.sh
+cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/cimstat.sh
+crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/crossmatch.sh
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
 fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/fluxEval.py
 

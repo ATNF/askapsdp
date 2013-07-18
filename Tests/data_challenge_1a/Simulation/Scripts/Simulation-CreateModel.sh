@@ -84,7 +84,7 @@ if [ $doCreateCR == true ]; then
 cd \$PBS_O_WORKDIR
 
 module load openmpi
-createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/install/bin/createFITS.sh
+createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 
 parset=${parsetdirCR}/createModel-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
@@ -170,7 +170,7 @@ cd \$PBS_O_WORKDIR
 
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
-cubeslice=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cubeslice.sh
+cubeslice=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubeslice.sh
 
 slLog=${logdirCR}/cubeslice-continuum-\${PBS_JOBID}.log
 

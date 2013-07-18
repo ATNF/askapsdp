@@ -21,10 +21,10 @@ class SynthesisProgramRunner:
 
       if 'AIPSPATH' not in os.environ:
          os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Base/accessors/current')
-      self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh')
-      self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh')
-      self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/ccalibrator.sh')
-      self.imgstat = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh')
+      self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/apps/csimulator.sh')
+      self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/apps/cimager.sh')
+      self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh')
+      self.imgstat = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/apps/imgstat.sh')
 
       if not os.path.exists(self.simulator):
           raise RuntimeError, "csimulator is missing at %s" % self.simulator
@@ -69,7 +69,7 @@ class SynthesisProgramRunner:
 
          cmd - command
       '''
-      res = os.system("%s -inputs %s" % (cmd, self.tmp_parset))
+      res = os.system("%s -c %s" % (cmd, self.tmp_parset))
       if res != 0:
          raise RuntimeError, "Command %s failed with error %s" % (cmd,res)
 
