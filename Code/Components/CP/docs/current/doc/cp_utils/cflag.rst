@@ -51,6 +51,14 @@ Configuration Parameters
 |                      |            |                       |flagging would have taken place if "dryrun"  |
 |                      |            |                       |was set to false.                            |
 +----------------------+------------+-----------------------+---------------------------------------------+
+|Cflag.summary         |true        |false                  |If "true" then a summary of the measurement  |
+|                      |            |                       |set is displayed before flagging. This       |
+|                      |            |                       |contains information such as previous        |
+|                      |            |                       |flagging. However, an extra pass over the    |
+|                      |            |                       |data is done, so for very large measurement  |
+|                      |            |                       |sets this can be avoided by setting this     |
+|                      |            |                       |parameter to "false"                         |
++----------------------+------------+-----------------------+---------------------------------------------+
     
 Selection Base Flagging
 ~~~~~~~~~~~~~~~~~~~~~~~
