@@ -35,6 +35,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <unistd.h>
+#include <iostream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -148,10 +149,10 @@ void Application::processCmdLineArgs(int argc, char *argv[])
 
 void Application::initLogging(const std::string& argv0)
 {
-    if (parameterExists("logcfg")) {
+    if (parameterExists("log-config")) {
         // 1: First try the file passed on the command line (fail if it was passed
         // but cannot be accessed.
-        const std::string filename = parameter("logcfg");
+        const std::string filename = parameter("log-config");
         std::ifstream config(filename.c_str(), std::ifstream::in);
         if (!config) {
             std::cerr << "Error: Failed to open log config file: " << filename << std::endl;
@@ -182,12 +183,12 @@ void Application::initLogging(const std::string& argv0)
 
 void Application::initConfig()
 {
-    if (itsVarMap.count("config")) {
-        LOFAR::ParameterSet parset(itsVarMap["config"].as<std::string>(),
+    if (parameterExists("config")) {
+        LOFAR::ParameterSet parset(parameter("config"),
                 LOFAR::StringUtil::Compare::NOCASE);
         itsParset = parset;
-    } else if (itsVarMap.count("inputs")) {
-        LOFAR::ParameterSet parset(itsVarMap["inputs"].as<std::string>(),
+    } else if (parameterExists("inputs")) {
+        LOFAR::ParameterSet parset(parameter("inputs"),
                 LOFAR::StringUtil::Compare::NOCASE);
         itsParset = parset;
     } else {
