@@ -92,7 +92,7 @@ casa::StokesConverter& StokesVFlagger::getStokesConverter(
     const casa::Vector<Int> corrType = polc.corrType()(polId);
     std::map<casa::Int, casa::StokesConverter>::iterator it = itsConverterCache.find(polId);
     if (it == itsConverterCache.end()) {
-        ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
+        //ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
         const casa::Vector<Int> target(1, Stokes::V);
         itsConverterCache.insert(pair<casa::Int, casa::StokesConverter>(polId,
                                  casa::StokesConverter(target, corrType)));

@@ -48,6 +48,7 @@
 #include "cflag/FlaggerFactory.h"
 #include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
+#include "cflag/MSFlaggingSummary.h"
 
 // Using
 using namespace std;
@@ -64,13 +65,20 @@ int CflagApp::run(int argc, char* argv[])
 
     // Open the measurement set
     const std::string dataset = subset.getString("dataset");
+    ASKAPLOG_INFO_STR(logger, "Opening Measurement Set: " << dataset);
     casa::MeasurementSet ms(dataset, casa::Table::Update);
+    MSColumns msc(ms);
 
     // Create a vector of all the flagging strategies specified in the parset
     std::vector< boost::shared_ptr<IFlagger> > flaggers = FlaggerFactory::build(subset, ms);
     if (flaggers.empty()) {
         ASKAPLOG_ERROR_STR(logger, "No flaggers configured - Aborting");
         return 1;
+    }
+
+    // Print a summary if needed
+    if (subset.getBool("summary", true)) {
+        MSFlaggingSummary::printToLog(msc);
     }
 
     // Is this a dry run?
@@ -80,7 +88,6 @@ int CflagApp::run(int argc, char* argv[])
     }
 
     // Iterate over each row in the main table
-    MSColumns msc(ms);
     const casa::uInt nRows = msc.nrow();
     std::vector< boost::shared_ptr<IFlagger> >::iterator it;
     unsigned long rowsAlreadyFlagged = 0;
