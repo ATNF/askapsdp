@@ -44,8 +44,8 @@ class MSFlaggingSummary {
 
         /// @brief Print summary for a single chunk of data.
         /// This is a utility function used by printToLog()
-        /// A chunk is defined as a contigious series of rows with the same
-        /// observation id, scan id, and data description id.
+        /// A chunk is defined as a contiguous series of rows with the same
+        /// observation id, scan id, field id, and data description id.
         ///
         /// @param[in] msc  Measurement set columns
         /// @param[in] row  The row to start reading from
@@ -54,7 +54,7 @@ class MSFlaggingSummary {
         /// @return the row index for "1" row past the end of the current chunk.
         ///         (i.e. the next chunk starts at this row, or this row is
         ///         past the end of the table in the case the last chunk
-        ///         was being proceessed).
+        ///         was being processed).
         static casa::uInt summariseChunk(const casa::MSColumns& msc,
                                          casa::uInt row, casa::uInt chunkId);
 };

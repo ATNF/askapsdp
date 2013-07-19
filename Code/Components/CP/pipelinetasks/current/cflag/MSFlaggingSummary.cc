@@ -62,6 +62,7 @@ casa::uInt MSFlaggingSummary::summariseChunk(const casa::MSColumns& msc, casa::u
     const casa::Int scanId = msc.scanNumber()(start);
     const casa::Int obsId = msc.observationId()(start);
     const casa::Int dataDescId = msc.dataDescId()(start);
+    const casa::Int fieldId = msc.fieldId()(start);
 
     //
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
@@ -69,7 +70,6 @@ casa::uInt MSFlaggingSummary::summariseChunk(const casa::MSColumns& msc, casa::u
     const casa::ROMSFieldColumns& fieldc = msc.field();
     const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
 
-    const casa::Int fieldId = msc.fieldId()(start);
     const casa::uInt descPolId = ddc.polarizationId()(dataDescId);
     const casa::uInt descSpwId = ddc.spectralWindowId()(dataDescId);
 
@@ -86,7 +86,8 @@ casa::uInt MSFlaggingSummary::summariseChunk(const casa::MSColumns& msc, casa::u
     while (row < msc.nrow()
             && scanId == msc.scanNumber()(row)
             && obsId == msc.observationId()(row)
-            && dataDescId == msc.dataDescId()(row)) {
+            && dataDescId == msc.dataDescId()(row)
+            && fieldId == msc.fieldId()(row)) {
 
         // Count times 
         timeset.insert(msc.time()(row));
@@ -140,10 +141,10 @@ casa::uInt MSFlaggingSummary::summariseChunk(const casa::MSColumns& msc, casa::u
             << feedset.size() << " beams, "
             << row - start << " rows");
 
-    const float rowFlagPercent = nRowsFlagged / (row - start) * 100.0;
+    const float rowFlagPercent = static_cast<float>(nRowsFlagged) / (row - start) * 100.0;
     ASKAPLOG_INFO_STR(logger, nRowsFlagged << " out of " << row - start << " ("
             << setprecision(2) << rowFlagPercent << "%) rows are flagged");
-    const float visFlagPercent = nVisFlagged / nVis * 100.0;
+    const float visFlagPercent = static_cast<float>(nVisFlagged) / nVis * 100.0;
     ASKAPLOG_INFO_STR(logger, nVisFlagged << " out of " << nVis << " ("
             << setprecision(2) << visFlagPercent << "%) visibilities are flagged");
 
