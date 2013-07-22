@@ -89,7 +89,7 @@ casa::Vector<casa::MVDirection> loadBeamOffsets(const std::string &fname, const 
         const std::string parName = "feeds." + beamNames[beam];
         const std::vector<double> xy(parset.getDoubleVector(parName));
         ASKAPCHECK(xy.size() == 2, "Expect two elements for each offset");
-        result[beam].shift(-xy[0]*spacing, xy[1]*spacing, casa::True);
+        result[beam].shift(xy[0]*spacing, xy[1]*spacing, casa::True);
    }
    return result;
 }
@@ -98,7 +98,10 @@ void process() {
   
   // centres for each beam
   const casa::Vector<casa::MVDirection> centres = 
-     loadBeamOffsets("beamoffsets.in", convertDir("13h25m29.98","-43.00.40.72"));
+     loadBeamOffsets("beamoffsets.in", convertDir("15h56m58.871","-79.14.04.28"));
+
+     // first attempt at MRO
+     //loadBeamOffsets("beamoffsets.in", convertDir("15h39m16.97","-78.42.06.17"));
 
   /*
   casa::Vector<casa::MVDirection> centres(4);
@@ -119,7 +122,7 @@ void process() {
        ASKAPLOG_INFO_STR(logger,  "Beam "<<beam + 1<<" pointing centre is "<<printDirection(centres[beam]));
   }
   
-  const double cutoff = 5e-2;
+  const double cutoff = 1e-2;
   const double fwhm = 1.22*3e8/928e6/12;
   
   accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
