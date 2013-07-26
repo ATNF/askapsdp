@@ -48,7 +48,7 @@ basefreq=${CONT_CUBE_FREQ_ZERO_CHAN}
 dfreq=1.e6
 freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1-\$2*\$3}'\`
 
-parset=config/cimager-cont-cube-dirty-\${PBS_JOBID}.in
+parset=../config/cimager-cont-cube-dirty-\${PBS_JOBID}.in
 cat > \$parset << EOF_INNER
 Cimager.dataset                                 = \$ms
 
@@ -101,7 +101,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-log=log/cimager-cont-cube-dirty-\${PBS_JOBID}.log
+log=../log/cimager-cont-cube-dirty-\${PBS_JOBID}.log
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \$parset > \$log
 EOF
