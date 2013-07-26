@@ -42,7 +42,7 @@ cat > cimager-cont-cube-dirty.qsub << EOF
 cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
 
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
-ms=MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
+ms=../MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
 basefreq=${CONT_CUBE_FREQ_ZERO_CHAN}
 dfreq=1.e6
