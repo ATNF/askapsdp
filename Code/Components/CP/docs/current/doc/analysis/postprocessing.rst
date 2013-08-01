@@ -158,7 +158,7 @@ To summarise the columns:
 
 * *F_int* and *F_peak* are as calculated by the Duchamp code, and reported in the Duchamp results file given by **Selavy.outFile**.
 * *F_int(fit)* and *F_pk(fit)* are the integrated & peak fluxes from the fitted Gaussians. 
-* Alpha and Beta are the spectral index and spectral curvature terms. These are only provided when the appropriate flags are set - see `Spectral Terms_`. 
+* Alpha and Beta are the spectral index and spectral curvature terms. These are only provided when the appropriate flags are set - see `Spectral Terms`_. 
 * *Maj*, *Min* and *P.A.* are the major and minor FWHMs and the position angle of the fitted Gaussian, quoted for both the fit and the fit deconvolved by the beam. 
 * The goodness of fit is indicated by the *Chisq(fit)* and *RMS(fit)* values, while *RMS(image)* gives the local noise surrounding the object. 
 * *Nfree(fit)* is the number of free parameters in the fit, and *NDoF(fit)* is the number of degrees of freedom.
@@ -172,7 +172,7 @@ Two Karma annotation files will also be produced:
 * **fitAnnotationFile** [selavy-fitResults.ann] - a Karma annotation file showing the fitting results (each Gaussian component is indicated by an ellipse given by the major & minor axes and position angle of the component).
 * **fitBoxAnnotationFile** [selavy-fitResults.boxes.ann] - a Karma annotation file showing the boxes used for the Gaussian fitting (if used). See Fitting_ for details.
 
-.._Spectral Terms:postprocessing.html#spectral-index-curvature
+.. _Spectral Terms: postprocessing.html#spectral-index-curvature
 
 Parameters for fitting
 ......................
