@@ -1,4 +1,4 @@
 log4cxx=3rdParty/log4cxx/log4cxx-0.10.0
-casacore=3rdParty/casacore/casacore-1.4.0
+casacore=3rdParty/casacore/casacore-1.6.0a
 boost=3rdParty/boost/boost-1.53.0
 common=3rdParty/LOFAR/Common/Common-3.3
