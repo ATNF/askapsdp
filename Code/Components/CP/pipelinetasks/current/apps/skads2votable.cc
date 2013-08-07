@@ -37,23 +37,34 @@
 #include <iterator>
 #include <cmath>
 #include <vector>
+#include <utility>
+#include <exception>
+#include <stdlib.h>
+#include <limits>
 
 // ASKAPsoft include
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 #include "boost/lexical_cast.hpp"
 #include "casa/Quanta/Quantum.h"
+#include "scimath/Fitting/LinearFit.h"
+#include "scimath/Functionals/Polynomial.h"
+#include "scimath/Mathematics/AutoDiff.h"
+#include "casa/BasicMath/Math.h"
+#include "casa/Arrays/Vector.h"
 #include "votable/VOTable.h" // includes VOTable*.h
 
 using namespace std;
 using namespace askap;
 using namespace askap::accessors;
 
+ASKAP_LOGGER(logger, ".skads2votable");
+
 template <typename T>
 static std::string toString(const T& val, int precision)
 {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(precision);
+    ss << std::setprecision(precision);
     ss << val;
     return ss.str();
 }
@@ -145,12 +156,71 @@ static void addFields(VOTableTable& tab)
     }
 }
 
+// Given a fitting solution (polynomial) verify the solution can correctly evaluate for x
+//
+// @param[in] solution  the solution to evaluate, must be degree 2
+// @param[in] y         the expected value
+// @param[in] x         the x value at which to evaluate the polynomial
+// @param[in] freqstr   the string indicating the frequency being tested
+static void verifyFit(const casa::Vector<double>& solution, double y, double x,
+               const std::string& freqstr)
+{
+    // Assert Preconditions
+    ASKAPCHECK(solution.size() == 3, "Expected 3 polynomial coefficients, got "
+            << solution.size());
+
+    // Test the result
+    casa::Polynomial<double> poly(2);
+    poly.setCoefficient(0, solution[0]);
+    poly.setCoefficient(1, solution[1]);
+    poly.setCoefficient(2, solution[2]);
+
+    //const double tolerance = 1e-12;
+    const double tolerance = std::numeric_limits<float>::epsilon();
+    const double expected = y;
+    const double actual = poly(x);
+    ASKAPCHECK(casa::near(expected, actual, tolerance),
+            "Fitting error " << freqstr << " - Expected: " << expected << ", actual: " << actual);
+}
+
+// Returns the pair (spectral index, spectral curvature)
+static pair<double, double> fluxFit(double i_610, double i_1400, double i_4860)
+{
+    // Assemble input data
+    const size_t n = 3;
+
+    casa::Vector<double> x(n);
+    x(0) = log10(610.0 / 1400.0);
+    x(1) = log10(1400.0 / 1400.0);
+    x(2) = log10(4860.0 / 1400.0);
+
+    casa::Vector<double> fluxes(n);
+    fluxes(0) = i_610;
+    fluxes(1) = i_1400;
+    fluxes(2) = i_4860;
+
+    // Create a fitter
+    casa::LinearFit<double> fitter;
+    casa::Polynomial<casa::AutoDiff<double> > combination(2);
+    fitter.setFunction(combination);
+
+    // Do fitting
+    const casa::Vector<double> solution = fitter.fit(x, fluxes);
+
+    // Verify the fit result can recover the three nput fluxes
+    verifyFit(solution, fluxes(0), x(0), "i_610");
+    verifyFit(solution, fluxes(1), x(1), "i_1400");
+    verifyFit(solution, fluxes(2), x(2), "i_4860");
+
+    return make_pair<double, double>(solution(1), solution(2));
+}
+
 static VOTableRow processLine(const std::string& line)
 {
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
-    tokens.reserve(22); // Expect 22 tokens
+    tokens.reserve(13); // Expect 13 tokens
     copy(istream_iterator<string>(iss),
             istream_iterator<string>(),
             back_inserter<vector<string> >(tokens));
@@ -167,7 +237,7 @@ static VOTableRow processLine(const std::string& line)
     const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[3]), deg);
     const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[4]), deg);
 
-    // Process Flux (integrated flux in mJy)
+    // Process Flux (log10 of integrated flux)
     const casa::Quantity flux(pow(10.0, boost::lexical_cast<casa::Double>(tokens[10])), Jy);
 
     // Process major axis (arcsec)
@@ -186,8 +256,13 @@ static VOTableRow processLine(const std::string& line)
     row.addCell(toString(minorAxis.getValue(arcsec), 2));
     row.addCell(toString(majorAxis.getValue(arcsec), 2));
     row.addCell(toString(positionAngle.getValue(deg), 2));
-    row.addCell(toString(0.0, 2)); // Spectral index
-    row.addCell(toString(0.0, 2)); // Spectral curvature
+    const pair<double, double> fluxChange = fluxFit(
+            boost::lexical_cast<casa::Double>(tokens[9]),
+            boost::lexical_cast<casa::Double>(tokens[10]),
+            boost::lexical_cast<casa::Double>(tokens[11]));
+
+    row.addCell(toString(fluxChange.first, 8)); // Spectral index
+    row.addCell(toString(fluxChange.second, 8)); // Spectral curvature
 
     return row;
 }
@@ -200,63 +275,76 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::ifstream in(argv[1]);
-    if (!in) {
-        std::cerr << "Error: Failed to open input file " << argv[1] << std::endl;
-        return 1;
-    }
+    ASKAPLOG_INIT("askap.log_cfg");
 
-    // Begin building the VOTable
-    VOTable vot;
-    VOTableResource vores;
-    vores.setName("SKADS Catalog or catalog extract");
+    try {
+        std::ifstream in(argv[1]);
+        if (!in) {
+            std::cerr << "Error: Failed to open input file " << argv[1] << std::endl;
+            return 1;
+        }
 
-    VOTableTable vottab;
-    vottab.setName("catalog");
-    vottab.setDescription("Square Kilometre Array Design Studies (SKADS) Simulation");
+        // Begin building the VOTable
+        VOTable vot;
+        VOTableResource vores;
+        vores.setName("SKADS Catalog or catalog extract");
 
-    // Add group
-    VOTableGroup grp;
-    grp.setID("J2000");
-    grp.setUType("stc:AstroCoords");
-    {
-        VOTableParam p;
-        p.setDatatype("char");
-        p.setArraysize("*");
-        p.setUCD("pos.frame");
-        p.setName("cooframe");
-        p.setUType("stc:AstroCoords.coord_system_id");
-        p.setValue("UTC-ICRS-TOPO");
-        grp.addParam(p);
-    }
-    grp.addFieldRef("col1");
-    grp.addFieldRef("col2");
-    vottab.addGroup(grp);
+        VOTableTable vottab;
+        vottab.setName("catalog");
+        vottab.setDescription("Square Kilometre Array Design Studies (SKADS) Simulation");
 
-    // Add fields
-    addFields(vottab);
+        // Add group
+        VOTableGroup grp;
+        grp.setID("J2000");
+        grp.setUType("stc:AstroCoords");
+        {
+            VOTableParam p;
+            p.setDatatype("char");
+            p.setArraysize("*");
+            p.setUCD("pos.frame");
+            p.setName("cooframe");
+            p.setUType("stc:AstroCoords.coord_system_id");
+            p.setValue("UTC-ICRS-TOPO");
+            grp.addParam(p);
+        }
+        grp.addFieldRef("col1");
+        grp.addFieldRef("col2");
+        vottab.addGroup(grp);
 
-    // Add rows
-    string line;
-    unsigned long count = 0;
-    while (getline(in, line)) {
-        if (line.find_first_of("#") == string::npos) {
-            const VOTableRow row = processLine(line);
-            vottab.addRow(row);
-            ++count;
-            if (count % 100000 == 0) {
-                cout << "Processed " << count << " rows" << endl;
+        // Add fields
+        addFields(vottab);
+
+        // Add rows
+        string line;
+        unsigned long count = 0;
+        while (getline(in, line)) {
+            if (line.find_first_of("#") == string::npos) {
+                const VOTableRow row = processLine(line);
+                vottab.addRow(row);
+                ++count;
+                if (count % 100000 == 0) {
+                    cout << "Processed " << count << " rows" << endl;
+                }
             }
         }
+        cout << "Processed " << count << " rows" << endl;
+
+        vores.addTable(vottab);
+        vot.addResource(vores);
+
+        // Write the VOTable out
+        cout << "Writing XML output" << endl;
+        vot.toXML(argv[2]);
+
+    } catch (const askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        return 1;
+    } catch (const std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        return 1;
     }
-    cout << "Processed " << count << " rows" << endl;
-
-    vores.addTable(vottab);
-    vot.addResource(vores);
-
-    // Write the VOTable out
-    cout << "Writing XML output" << endl;
-    vot.toXML(argv[2]);
 
     return 0;
 }
