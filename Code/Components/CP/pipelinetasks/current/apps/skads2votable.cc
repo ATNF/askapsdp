@@ -207,7 +207,7 @@ static pair<double, double> fluxFit(double i_610, double i_1400, double i_4860)
     // Do fitting
     const casa::Vector<double> solution = fitter.fit(x, fluxes);
 
-    // Verify the fit result can recover the three nput fluxes
+    // Verify the fit result can recover the three input fluxes
     verifyFit(solution, fluxes(0), x(0), "i_610");
     verifyFit(solution, fluxes(1), x(1), "i_1400");
     verifyFit(solution, fluxes(2), x(2), "i_4860");
