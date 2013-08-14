@@ -116,8 +116,7 @@ namespace askap {
 	ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Using box width value from parset of " << this->itsBoxWidth << "pix");
       }
       else{
-	casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
-	casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
+	casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
 	double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
 	double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
 	double beamAreaInPix = M_PI * fwhmMajPix * fwhmMinPix;

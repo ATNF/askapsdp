@@ -103,6 +103,12 @@ namespace askap {
 	std::string itsOutputFilenameBase;
 	std::string itsOutputFilename;
 	casa::Array<Float> itsArray;
+
+	casa::CoordinateSystem itsInputCoords;
+	int  itsLngAxis;
+	int  itsLatAxis;
+	int  itsSpcAxis;
+	int  itsStkAxis;
       };
 
     }

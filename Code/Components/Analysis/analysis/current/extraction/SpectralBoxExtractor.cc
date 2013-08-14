@@ -94,7 +94,7 @@ namespace askap {
       // Form itsArray and initialise to zero
       this->itsInputCube = this->itsInputCubeList.at(0);
       this->openInput();
-      int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
+      int specsize = this->itsInputCubePtr->shape()(this->itsSpcAxis);
       casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
       ASKAPLOG_DEBUG_STR(logger, "Extraction: Initialising array to zero with shape " << shape);
       this->itsArray = casa::Array<Float>(shape,0.0);
@@ -143,13 +143,8 @@ namespace askap {
 
       this->openInput();
       IPosition shape = this->itsInputCubePtr->shape();
-      CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-      ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
-      ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
-      int specAxis=coords.spectralAxisNumber();
-      int stkAxis=coords.polarizationAxisNumber();
-      int lngAxis=coords.directionAxesNumbers()[0];
-      int latAxis=coords.directionAxesNumbers()[1];
+      ASKAPCHECK(this->itsInputCoords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
+      ASKAPCHECK(this->itsInputCoords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
 	
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
@@ -160,9 +155,9 @@ namespace askap {
 	int yloc = int(this->itsYloc) + this->itsSource->getYOffset();
 	int zero=0;
 	xmin = std::max(zero, xloc-hw);
-	xmax=std::min(int(shape(lngAxis)-1),xloc+hw);
+	xmax=std::min(int(shape(this->itsLngAxis)-1),xloc+hw);
 	ymin = std::max(zero, yloc-hw);
-	ymax=std::min(int(shape(latAxis)-1),yloc+hw);
+	ymax=std::min(int(shape(this->itsLatAxis)-1),yloc+hw);
       }
       else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
 	xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
@@ -171,11 +166,11 @@ namespace askap {
 	ymax = this->itsSource->getYmax() + this->itsSource->getYOffset();
       }
       casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
-      blc(lngAxis)=xmin; blc(latAxis)=ymin; blc(specAxis)=0;
-      trc(lngAxis)=xmax; trc(latAxis)=ymax; trc(specAxis)=shape(specAxis)-1;
-      if(stkAxis>-1){
+      blc(this->itsLngAxis)=xmin; blc(this->itsLatAxis)=ymin; blc(this->itsSpcAxis)=0;
+      trc(this->itsLngAxis)=xmax; trc(this->itsLatAxis)=ymax; trc(this->itsSpcAxis)=shape(this->itsSpcAxis)-1;
+      if(this->itsStkAxis>-1){
 	casa::Stokes stk;
-	blc(stkAxis) = trc(stkAxis) = coords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+	blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
       }
       ASKAPLOG_DEBUG_STR(logger, "Defining slicer for " << this->itsInputCubePtr->name() << " based on blc="<<blc <<", trc="<<trc);
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
@@ -193,10 +188,9 @@ namespace askap {
       this->itsInputCube = this->itsInputCubeList[0];
       this->openInput();
       IPosition inshape = this->itsInputCubePtr->shape();
-      CoordinateSystem incoords = this->itsInputCubePtr->coordinates();
       casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
-      casa::DirectionCoordinate dircoo(incoords.directionCoordinate(incoords.findCoordinate(casa::Coordinate::DIRECTION)));
-      casa::SpectralCoordinate spcoo(incoords.spectralCoordinate(incoords.findCoordinate(casa::Coordinate::SPECTRAL)));
+      casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
+      casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
       casa::Vector<Int> svec(this->itsStokesList.size());
       for(size_t i=0;i<svec.size();i++) svec[i]=this->itsStokesList[i];
       casa::StokesCoordinate stkcoo(svec);
@@ -210,7 +204,7 @@ namespace askap {
       int spcAxis=newcoo.spectralAxisNumber();
       int stkAxis=newcoo.polarizationAxisNumber();
       casa::IPosition outshape(4,1);
-      outshape(spcAxis)=inshape(incoords.spectralAxisNumber());
+      outshape(spcAxis)=inshape(this->itsSpcAxis);
       outshape(stkAxis)=svec.size();
       casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
       shift(lngAxis)=this->itsXloc;

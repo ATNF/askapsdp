@@ -103,6 +103,11 @@ namespace askap {
       this->itsOutputFilenameBase = other.itsOutputFilenameBase;
       this->itsOutputFilename = other.itsOutputFilename;
       this->itsArray = other.itsArray;
+      this->itsInputCoords = other.itsInputCoords;
+      this->itsLngAxis = other.itsLngAxis;
+      this->itsLatAxis = other.itsLatAxis;
+      this->itsSpcAxis = other.itsSpcAxis;
+      this->itsStkAxis = other.itsStkAxis;
       return *this;
     }
 
@@ -205,6 +210,14 @@ namespace askap {
 	if (this->itsLatticePtr == 0)
 	  ASKAPTHROW(AskapError, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
 	this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(this->itsLatticePtr);
+
+	this->itsInputCoords = this->itsInputCubePtr->coordinates();
+	this->itsLngAxis=this->itsInputCoords.directionAxesNumbers()[0];
+	this->itsLatAxis=this->itsInputCoords.directionAxesNumbers()[1];
+	this->itsSpcAxis=this->itsInputCoords.spectralAxisNumber();
+	this->itsStkAxis=this->itsInputCoords.polarizationAxisNumber();
+
+
       }
     }
 

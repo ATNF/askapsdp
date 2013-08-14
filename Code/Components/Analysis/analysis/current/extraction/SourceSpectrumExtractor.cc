@@ -124,8 +124,7 @@ namespace askap {
 	}
 	else{
 
-	  casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
-	  casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
+	  casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
 	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
 	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
 
@@ -206,25 +205,20 @@ namespace askap {
 	else {
 	  ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
 	  IPosition shape = this->itsInputCubePtr->shape();
-	  CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-	  int lngAxis=coords.directionAxesNumbers()[0];
-	  int latAxis=coords.directionAxesNumbers()[1];
-	  int specAxis=coords.spectralAxisNumber();
-	  int stkAxis=coords.polarizationAxisNumber();
 
 	  PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
 	  casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
-	  trc(specAxis)=shape[specAxis]-1;
-	  if(stkAxis>-1){
+	  trc(this->itsSpcAxis)=shape[this->itsSpcAxis]-1;
+	  if(this->itsStkAxis>-1){
 	    casa::Stokes stk;
-	    blc(stkAxis) = trc(stkAxis) = coords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+	    blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
 	  }
 
 	  for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
 	    for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
 	      if(spatmap.isInObject(x,y)){
-		blc(lngAxis)=trc(lngAxis)=x-this->itsSource->getXmin(); 
-		blc(latAxis)=trc(latAxis)=y-this->itsSource->getYmin();
+		blc(this->itsLngAxis)=trc(this->itsLngAxis)=x-this->itsSource->getXmin(); 
+		blc(this->itsLatAxis)=trc(this->itsLatAxis)=y-this->itsSource->getYmin();
 		casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
 		this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
 	      }
