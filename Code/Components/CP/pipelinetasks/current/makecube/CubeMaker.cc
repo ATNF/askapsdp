@@ -39,6 +39,7 @@
 // ASKAPsoft includes
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
+#include <imageaccess/BeamLogger.h>
 #include <boost/scoped_ptr.hpp>
 #include <Common/ParameterSet.h>
 #include <casa/Arrays/IPosition.h>
@@ -54,14 +55,15 @@ ASKAP_LOGGER(logger, ".CubeMaker");
 
 using namespace askap::cp::pipelinetasks;
 
-// Read the input parameters from the ParameterSet. Accepted parameters:
-// 'inputNamePattern', 'outputCube', 'restFrequency', 'beamReference', 'beamFile'.
-// Also initialises the cube pointer to zero.
+/// @details
+/// Read the input parameters from the ParameterSet. Accepted parameters:
+/// 'inputNamePattern', 'outputCube', 'restFrequency', 'beamReference', 'beamLog'.
+/// Also initialises the cube pointer to zero.
 CubeMaker::CubeMaker(const LOFAR::ParameterSet& parset)
     : itsInputNamePattern(parset.getString("inputNamePattern", "")),
       itsCubeName(parset.getString("outputCube", "")),
       itsBeamReference(parset.getString("beamReference", "mid")),
-      itsBeamFile(parset.getString("beamFile", ""))
+      itsBeamLog(parset.getString("beamLog", ""))
 {
     const std::string restFreqString = parset.getString("restFrequency", "-1.");
     if (restFreqString == "HI") {
@@ -75,10 +77,11 @@ CubeMaker::~CubeMaker()
 {
 }
 
-// Takes the input name pattern and expands to a vector list of input filenames,
-// using the expandPattern function. Parses the beamReference parameter to get
-// the image number from which to read the beam information that will be stored
-// in the output cube. Calls getReferenceData().
+/// @details
+/// Takes the input name pattern and expands to a vector list of input filenames,
+/// using the expandPattern function. Parses the beamReference parameter to get
+/// the image number from which to read the beam information that will be stored
+/// in the output cube. Calls getReferenceData().
 void CubeMaker::initialise()
 {
     itsInputNames = expandPattern(itsInputNamePattern);
@@ -107,12 +110,13 @@ void CubeMaker::initialise()
     getReferenceData();
 }
 
-// The reference data details the shape of the input images, their units and
-// coordinates. These are used for construction of the cube and verification
-// of all input images. The reference data is read from the first image in the
-// vector list. The coordinate system of the second image in that list is also
-// extracted - the spectral increment will be determined from these two coordinate
-// systems.
+/// @details
+/// The reference data details the shape of the input images, their units and
+/// coordinates. These are used for construction of the cube and verification
+/// of all input images. The reference data is read from the first image in the
+/// vector list. The coordinate system of the second image in that list is also
+/// extracted - the spectral increment will be determined from these two coordinate
+/// systems.
 void CubeMaker::getReferenceData()
 {
     const casa::PagedImage<float> refImage(itsInputNames[0]);
@@ -124,9 +128,10 @@ void CubeMaker::getReferenceData()
     itsSecondCoordinates = secondImage.coordinates();
 }
 
-// The coordinate system for the cube is constructed using the makeCoordinates
-// function. If required, the rest frequency is added. The cube is then created
-// using the reference shape and the number of channels in the input file list.
+/// @details
+/// The coordinate system for the cube is constructed using the makeCoordinates
+/// function. If required, the rest frequency is added. The cube is then created
+/// using the reference shape and the number of channels in the input file list.
 void CubeMaker::createCube()
 {
     casa::CoordinateSystem newCsys = makeCoordinates(itsRefCoordinates,
@@ -143,11 +148,12 @@ void CubeMaker::createCube()
     itsCube.reset(new casa::PagedImage<float>(casa::TiledShape(cubeShape), newCsys, itsCubeName));
 }
 
-// The rest frequency, as provided in the input parameter set, is added to the
-// coordinate system, replacing any previous value that is already there.
-//
-// @param csys  The coordinate system to which the
-//              rest frequency is to be added.
+/// @details
+/// The rest frequency, as provided in the input parameter set, is added to the
+/// coordinate system, replacing any previous value that is already there.
+///
+/// @param csys  The coordinate system to which the
+///              rest frequency is to be added.
 void CubeMaker::setRestFreq(casa::CoordinateSystem& csys)
 {
 
@@ -165,8 +171,9 @@ void CubeMaker::setRestFreq(casa::CoordinateSystem& csys)
     }
 }
 
-// If the output cube has been created, the reference units and the requested
-// reference beam shape are added to the cube.
+/// @details
+/// If the output cube has been created, the reference units and the requested
+/// reference beam shape are added to the cube.
 void CubeMaker::setImageInfo()
 {
     if (itsCube.get()) {
@@ -176,7 +183,8 @@ void CubeMaker::setImageInfo()
     }
 }
 
-// Each input channel image is added in order to the output cube.
+/// @details
+/// Each input channel image is added in order to the output cube.
 void CubeMaker::writeSlices()
 {
     for (size_t i = 0; i < itsInputNames.size(); ++i) {
@@ -185,17 +193,18 @@ void CubeMaker::writeSlices()
     }
 }
 
-// An individual channel image is added to the cube in the appropriate location.
-// Checks are performed to verify that the channel image has the same shape and
-// units as the reference (ie. the first in the vector list), and has compatible
-// coordinates (as defined by the compatibleCoordinates function).
-// 
-// @param[in] i The number of the image in the vector list
-//              of input images.
-//
-// @return  Returns true if things work. If any checks fail, the index is out
-//          of bounds, or the cube is not yet open, then false is returned
-//          (and an ERROR log message written).
+//// @details
+/// An individual channel image is added to the cube in the appropriate location.
+/// Checks are performed to verify that the channel image has the same shape and
+/// units as the reference (ie. the first in the vector list), and has compatible
+/// coordinates (as defined by the compatibleCoordinates function).
+/// 
+/// @param[in] i The number of the image in the vector list
+///              of input images.
+///
+/// @return  Returns true if things work. If any checks fail, the index is out
+///          of bounds, or the cube is not yet open, then false is returned
+///          (and an ERROR log message written).
 bool CubeMaker::writeSlice(size_t i)
 {
     if (itsCube.get()) {
@@ -237,31 +246,25 @@ bool CubeMaker::writeSlice(size_t i)
     }
 }
 
-// The beam shape for each input image is written to an ascii file (given by the
-// beamFile input parameter). Each line corresponds to one file, and has columns:
-// number | image name | major axis [arcsec] | minor axis [arcsec] | position
-// angle [deg].
-// Columns are separated by a single space.
+/// @details
+/// The beam shape for each input image is written to an ascii file (given by the
+/// beamLog input parameter). Each line corresponds to one file, and has columns:
+/// number | image name | major axis [arcsec] | minor axis [arcsec] | position
+/// angle [deg].
+/// Columns are separated by a single space.
 void CubeMaker::recordBeams()
 {
-    const casa::PagedImage<float> firstimg(itsInputNames[0]);
-    const casa::Vector<Quantum<Double> > firstbeam = firstimg.imageInfo().restoringBeam();
+    if (itsBeamLog != "") {
+	const casa::PagedImage<float> firstimg(itsInputNames[0]);
+	const casa::Vector<Quantum<Double> > firstbeam = firstimg.imageInfo().restoringBeam();
 
-    if (itsBeamFile != "") {
         if (firstbeam.size() == 0) {
             ASKAPLOG_WARN_STR(logger, "The first input image " << itsInputNames[0]
-                    << " has no beam, so not making the beamFile " << itsBeamFile);
+                    << " has no beam, so not making the beamLog " << itsBeamLog);
         } else {
-            std::ofstream fbeam(itsBeamFile.c_str());
-
-            for (size_t i = 0; i < itsInputNames.size(); i++) {
-                const casa::PagedImage<float> img(itsInputNames[i]);
-                const casa::Vector<Quantum<Double> > beam = img.imageInfo().restoringBeam();
-                fbeam << i << " " << itsInputNames[i] << " "
-                << beam[0].getValue("arcsec") << " "
-                << beam[1].getValue("arcsec") << " "
-                << beam[2].getValue("deg") << "\n";
-            }
+	    accessors::BeamLogger beamlog(itsBeamLog);
+	    beamlog.extractBeams(itsInputNames);
+	    beamlog.write();
         }
     }
 }

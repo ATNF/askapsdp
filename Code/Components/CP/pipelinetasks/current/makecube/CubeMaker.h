@@ -91,7 +91,7 @@ class CubeMaker {
         const std::string itsInputNamePattern;
         const std::string itsCubeName;
         const std::string itsBeamReference;
-        const std::string itsBeamFile;
+        const std::string itsBeamLog;
 
         std::vector<std::string> itsInputNames;
         double itsRestFrequency;
