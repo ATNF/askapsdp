@@ -62,180 +62,242 @@ ASKAP_LOGGER(logger, ".sourcespectrumextractor");
 
 namespace askap {
 
-  namespace analysis {
+    namespace analysis {
 
-    SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset):
-      SpectralBoxExtractor(parset)
-    {
-      /// @details Initialise the extractor from a LOFAR parset. This
-      /// sets the input cube, the box width, the scaling flag, the
-      /// base name for the output spectra files (these will have _X
-      /// appended, where X is the ID of the object in question), and
-      /// the set of polarisation products to extract.
+	SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset):
+	    SpectralBoxExtractor(parset)
+	{
+	    /// @details Initialise the extractor from a LOFAR parset. This
+	    /// sets the input cube, the box width, the scaling flag, the
+	    /// base name for the output spectra files (these will have _X
+	    /// appended, where X is the ID of the object in question), and
+	    /// the set of polarisation products to extract.
 
-      this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
-      if(this->itsFlagUseDetection){
-	this->itsBoxWidth = -1;
-	if(parset.isDefined("spectralBoxWidth")) ASKAPLOG_WARN_STR(logger, "useDetectedPixels option selected, so setting spectralBoxWidth=-1");
-      }
+	    this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
+	    if(this->itsFlagUseDetection){
+		this->itsBoxWidth = -1;
+		if(parset.isDefined("spectralBoxWidth")) ASKAPLOG_WARN_STR(logger, "useDetectedPixels option selected, so setting spectralBoxWidth=-1");
+	    }
 
-      this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
+	    this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
+	    this->itsBeamFile = parset.getString("beamFile","");
 
-      this->initialiseArray();
+	    this->initialiseArray();
 
-    }
+	}
 
-    SourceSpectrumExtractor::SourceSpectrumExtractor(const SourceSpectrumExtractor& other)
-    {
-      this->operator=(other);
-    }
+	SourceSpectrumExtractor::SourceSpectrumExtractor(const SourceSpectrumExtractor& other)
+	{
+	    this->operator=(other);
+	}
 
-    SourceSpectrumExtractor& SourceSpectrumExtractor::operator=(const SourceSpectrumExtractor& other)
-    {
-      if(this == &other) return *this;
-      ((SpectralBoxExtractor &) *this) = other;
-      this->itsFlagDoScale = other.itsFlagDoScale;
-      this->itsFlagUseDetection = other.itsFlagUseDetection;
-      this->itsBeamScaleFactor = other.itsBeamScaleFactor;
-      return *this;
-    }
+	SourceSpectrumExtractor& SourceSpectrumExtractor::operator=(const SourceSpectrumExtractor& other)
+	{
+	    if(this == &other) return *this;
+	    ((SpectralBoxExtractor &) *this) = other;
+	    this->itsFlagDoScale = other.itsFlagDoScale;
+	    this->itsFlagUseDetection = other.itsFlagUseDetection;
+	    this->itsBeamScaleFactor = other.itsBeamScaleFactor;
+	    this->itsBeamFile = other.itsBeamFile;
+	    return *this;
+	}
 
  
-    void SourceSpectrumExtractor::setBeamScale()
-    {
-      /// @details This sets the scale factor used to correct the peak
-      /// flux of an unresolved source to a total flux. The beam
-      /// information is read from the input image, and the beam
-      /// weighting is integrated over the same size box as will be
-      /// used to extract the spectrum.
-      ///
-      /// If the input image has no beam information, or if the flag
-      /// itsFlagDoScale=false, then the scale factor is set to 1.
+	void SourceSpectrumExtractor::setBeamScale()
+	{
+	    /// @details This sets the scale factor used to correct the peak
+	    /// flux of an unresolved source to a total flux. The beam
+	    /// information is read from the input image, and the beam
+	    /// weighting is integrated over the same size box as will be
+	    /// used to extract the spectrum.
+	    ///
+	    /// If the input image has no beam information, or if the flag
+	    /// itsFlagDoScale=false, then the scale factor is set to 1.
 
-      if(!this->itsFlagDoScale) this->itsBeamScaleFactor = 1.;
-      else{
+	    this->itsBeamScaleFactor = std::vector<float>();
 
- 	this->openInput();
- 	Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
-	ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
-	if(inputBeam.size()==0) {
-	  ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
-	  this->itsBeamScaleFactor = 1.;
-	}
-	else{
+	    if(this->itsFlagDoScale){
 
-	  casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
-	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
-	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
+		this->openInput();
+	
+		std::vector< Vector<Quantum<Double> > > beamvec;
+		
+		casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
 
-	  if(this->itsFlagUseDetection){
-	    double bpaDeg = inputBeam[2].getValue("deg");
-	    duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
-	    this->itsBeamScaleFactor = beam.area();
-	    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
-	  }
-	  else{
+		ASKAPLOG_DEBUG_STR(logger, "Setting beam scaling factor. BeamFile="<<this->itsBeamFile<<", image beam = " << inputBeam);
+
+		if(this->itsBeamFile == ""){
+		    if(inputBeam.size()==0) {
+			ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
+			this->itsBeamScaleFactor.push_back(1.);
+		    }
+		    else{
+			beamvec.push_back(inputBeam);
+			ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
+		    } 
+		}
+		else{
+		    std::ifstream beamfile(this->itsBeamFile.c_str());
+		    double bmaj,bmin,bpa;
+		    int ct;
+		    std::string channelImage,line;
+		    while( getline(beamfile,line),
+			   !beamfile.eof()){
+			if(line[0]!='#'){
+			    std::stringstream ss(line);
+			    ss >> ct >> channelImage >> bmaj >> bmin >> bpa;
+			    Vector<Quantum<Double> > currentbeam(3);
+			    currentbeam[0]=Quantum<Double>(bmaj,"arcsec");
+			    currentbeam[1]=Quantum<Double>(bmin,"arcsec");
+			    currentbeam[2]=Quantum<Double>(bpa,"deg");
+			    beamvec.push_back(currentbeam);
+			}
+		    }
+		    if(int(beamvec.size()) != this->itsInputCubePtr->shape()(this->itsSpcAxis)){
+			ASKAPLOG_ERROR_STR(logger, "Beam file " << this->itsBeamFile << " has " << beamvec.size() 
+					   << " entries - was expecting " << this->itsInputCubePtr->shape()(this->itsSpcAxis));
+			beamvec=std::vector< Vector<Quantum<Double> > >(1,inputBeam);
+		    }
+		}
+
+		if(beamvec.size() > 0) {
+
+		    for(size_t i=0;i<beamvec.size();i++){
+
+			casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
+			double fwhmMajPix = beamvec[i][0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
+			double fwhmMinPix = beamvec[i][1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
+
+			if(this->itsFlagUseDetection){
+			    double bpaDeg = beamvec[i][2].getValue("deg");
+			    duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
+			    this->itsBeamScaleFactor.push_back(beam.area());
+			    if(this->itsBeamFile=="")
+				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
+			}
+			else{
 	    
-	    double costheta = cos(inputBeam[2].getValue("rad"));
-	    double sintheta = sin(inputBeam[2].getValue("rad"));
-	    
-	    double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
-	    double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
-	    
-	    int hw = (this->itsBoxWidth - 1)/2;
-	    this->itsBeamScaleFactor = 0.;
-	    for(int y=-hw; y<=hw; y++){
-	      for(int x=-hw; x<=hw; x++){
-		double u=x*costheta + y*sintheta;
-		double v=x*sintheta - y*costheta;
-		this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
-	      }
+			    double costheta = cos(beamvec[i][2].getValue("rad"));
+			    double sintheta = sin(beamvec[i][2].getValue("rad"));
+		    
+			    double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
+			    double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
+		    
+			    int hw = (this->itsBoxWidth - 1)/2;
+			    double scaleFactor = 0.;
+			    for(int y=-hw; y<=hw; y++){
+				for(int x=-hw; x<=hw; x++){
+				    double u=x*costheta + y*sintheta;
+				    double v=x*sintheta - y*costheta;
+				    scaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
+				}
+			    }
+			    this->itsBeamScaleFactor.push_back(scaleFactor);
+
+			    if(this->itsBeamFile=="")
+				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
+		    
+			}
+		    }
+
+		}
+
+		ASKAPLOG_DEBUG_STR(logger, "Defined the beam scale factor vector of size " << this->itsBeamScaleFactor.size());
+
+		this->closeInput();
 	    }
 
-	    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
-
-	  }
-
 	}
 
-	this->closeInput();
-      }
+	void SourceSpectrumExtractor::extract()
+	{
+	    /// @details The main function that extracts the spectrum from
+	    /// the desired input. The input cube is opened for reading by
+	    /// the SourceDataExtractor::openInput() function. A box of
+	    /// required width is centred on the peak pixel of the
+	    /// RadioSource, extending over the full spectral range of the
+	    /// input cube. The box will be truncated at the spatial edges
+	    /// if necessary. The output spectrum is determined one channel
+	    /// at a time, summing all pixels within the box and scaling by
+	    /// the beam if so required. The output spectrum is stored in
+	    /// itsArray, ready for later access or export.
 
-    }
+		this->setBeamScale();
 
-    void SourceSpectrumExtractor::extract()
-    {
-      /// @details The main function that extracts the spectrum from
-      /// the desired input. The input cube is opened for reading by
-      /// the SourceDataExtractor::openInput() function. A box of
-      /// required width is centred on the peak pixel of the
-      /// RadioSource, extending over the full spectral range of the
-      /// input cube. The box will be truncated at the spatial edges
-      /// if necessary. The output spectrum is determined one channel
-      /// at a time, summing all pixels within the box and scaling by
-      /// the beam if so required. The output spectrum is stored in
-      /// itsArray, ready for later access or export.
+	    for(size_t stokes=0; stokes<this->itsStokesList.size(); stokes++){
 
-      for(size_t stokes=0; stokes<this->itsStokesList.size(); stokes++){
+		this->itsInputCube = this->itsInputCubeList[stokes%this->itsInputCubeList.size()]; // get either the matching image for the current stokes value, or the first&only in the input list
+		this->itsCurrentStokes = this->itsStokesList[stokes];
+		this->defineSlicer();
+		this->openInput();
+		casa::Stokes stk;
+		ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " with shape " << this->itsInputCubePtr->shape() 
+				  << " for source ID " << this->itsSource->getID() 
+				  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
 
-	this->itsInputCube = this->itsInputCubeList[stokes%this->itsInputCubeList.size()]; // get either the matching image for the current stokes value, or the first&only in the input list
-	this->itsCurrentStokes = this->itsStokesList[stokes];
-	this->setBeamScale();
-	this->defineSlicer();
-	this->openInput();
-	casa::Stokes stk;
-	ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " with shape " << this->itsInputCubePtr->shape() 
-			  << " for source ID " << this->itsSource->getID() 
-			  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
+		const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+		ASKAPASSERT(sub->size()>0);
+		const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+		casa::Array<Float> subarray(sub->shape());
+		subarray = msub;
 
-	const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-	ASKAPASSERT(sub->size()>0);
-	const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-	casa::Array<Float> subarray(sub->shape());
-	subarray = msub;
+		casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+		outBLC(2) = outTRC(2) = stokes;
 
-	casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
-	outBLC(2) = outTRC(2) = stokes;
+		if(!this->itsFlagUseDetection){
+		    casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1));
+		    this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
 
-	if(!this->itsFlagUseDetection){
-	  casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1));
-	  this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
+		}
+		else {
+		    ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
+		    IPosition shape = this->itsInputCubePtr->shape();
 
-	}
-	else {
-	  ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
-	  IPosition shape = this->itsInputCubePtr->shape();
+		    PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
+		    casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
+		    trc(this->itsSpcAxis)=shape[this->itsSpcAxis]-1;
+		    if(this->itsStkAxis>-1){
+			casa::Stokes stk;
+			blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+		    }
 
-	  PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
-	  casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
-	  trc(this->itsSpcAxis)=shape[this->itsSpcAxis]-1;
-	  if(this->itsStkAxis>-1){
-	    casa::Stokes stk;
-	    blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
-	  }
-
-	  for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
-	    for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
-	      if(spatmap.isInObject(x,y)){
-		blc(this->itsLngAxis)=trc(this->itsLngAxis)=x-this->itsSource->getXmin(); 
-		blc(this->itsLatAxis)=trc(this->itsLatAxis)=y-this->itsSource->getYmin();
-		casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
-		this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
-	      }
-	    }
-	  }
-	}
+		    for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
+			for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
+			    if(spatmap.isInObject(x,y)){
+				blc(this->itsLngAxis)=trc(this->itsLngAxis)=x-this->itsSource->getXmin(); 
+				blc(this->itsLatAxis)=trc(this->itsLatAxis)=y-this->itsSource->getYmin();
+				casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
+				this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
+			    }
+			}
+		    }
+		}
       
-	delete sub;
+		delete sub;
 
-	this->closeInput();
+		this->closeInput();
 
-      }
+	    }
 
-      this->itsArray /= this->itsBeamScaleFactor;
 
+	    if(this->itsFlagDoScale){
+		
+		if(this->itsBeamScaleFactor.size()==1){
+		    this->itsArray /= this->itsBeamScaleFactor[0];
+		}
+		else{
+		    casa::IPosition start(this->itsArray.ndim(),0),end=this->itsArray.shape()-1;
+		    start(this->itsLngAxis)=start(this->itsLatAxis)=0;
+		    for(int z=0;z<this->itsArray.shape()(this->itsSpcAxis);z++){
+			start(this->itsSpcAxis) = end(this->itsSpcAxis) = z;
+			this->itsArray(start,end) = this->itsArray(start,end) / this->itsBeamScaleFactor[z];
+		    }
+		}
+
+	    }
+		
+	}
+	
+	
     }
-    
-
-  }
 }

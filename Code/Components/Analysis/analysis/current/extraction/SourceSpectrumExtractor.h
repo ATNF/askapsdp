@@ -32,53 +32,53 @@
 #include <extraction/SourceDataExtractor.h>
 #include <extraction/SpectralBoxExtractor.h>
 #include <Common/ParameterSet.h>
-#include <utils/PolConverter.h>
-#include <casa/Arrays/Vector.h>
+#include <vector>
 
 namespace askap {
 
-  namespace analysis {
+    namespace analysis {
     
-    /// @brief Class to handle the extraction of a spectrum for a given RadioSource. 
+	/// @brief Class to handle the extraction of a spectrum for a given RadioSource. 
 
-    /// @details This class is aimed primarily at solving the problem
-    /// of extracting the integrated spectrum from a cube for a
-    /// previously-detected object, usually a continuum source. One
-    /// example would be extracting the spectra in all Stokes
-    /// parameters of a continuum source detected in Stokes I (for
-    /// instance, in an MFS image).
-    ///
-    /// The spectrum is extracted by summing over an NxN box, centred
-    /// on the peak pixel of the RadioSource. The summed flux can be
-    /// optionally scaled by the beam size to give the flux of an
-    /// unresolved object.
+	/// @details This class is aimed primarily at solving the problem
+	/// of extracting the integrated spectrum from a cube for a
+	/// previously-detected object, usually a continuum source. One
+	/// example would be extracting the spectra in all Stokes
+	/// parameters of a continuum source detected in Stokes I (for
+	/// instance, in an MFS image).
+	///
+	/// The spectrum is extracted by summing over an NxN box, centred
+	/// on the peak pixel of the RadioSource. The summed flux can be
+	/// optionally scaled by the beam size to give the flux of an
+	/// unresolved object.
 
-   class SourceSpectrumExtractor : public SpectralBoxExtractor
-    {
-    public:
-      SourceSpectrumExtractor(){};
-      SourceSpectrumExtractor(const LOFAR::ParameterSet& parset);
-      virtual ~SourceSpectrumExtractor(){};
-      SourceSpectrumExtractor(const SourceSpectrumExtractor& other);
-      SourceSpectrumExtractor& operator=(const SourceSpectrumExtractor& other);
+	class SourceSpectrumExtractor : public SpectralBoxExtractor
+	{
+	public:
+	    SourceSpectrumExtractor(){};
+	    SourceSpectrumExtractor(const LOFAR::ParameterSet& parset);
+	    virtual ~SourceSpectrumExtractor(){};
+	    SourceSpectrumExtractor(const SourceSpectrumExtractor& other);
+	    SourceSpectrumExtractor& operator=(const SourceSpectrumExtractor& other);
       
-      void setBoxWidth(int w){itsBoxWidth=w; setBeamScale();};
-      bool doScale(){return itsFlagDoScale;};
-      void setFlagDoScale(bool b){itsFlagDoScale=b; setBeamScale();};
+	    void setBoxWidth(int w){itsBoxWidth=w;};
+	    bool doScale(){return itsFlagDoScale;};
+	    void setFlagDoScale(bool b){itsFlagDoScale=b;};
 
-      void setBeamScale();
+	    void setBeamScale();
 
-      void extract();
+	    void extract();
 
-    protected:
-      bool itsFlagDoScale;
-      float itsBeamScaleFactor;
-      bool itsFlagUseDetection;
+	protected:
+	    bool itsFlagDoScale;
+	    std::vector<float> itsBeamScaleFactor;
+	    bool itsFlagUseDetection;
+	    std::string itsBeamFile;
 
-    };
+	};
 
 
-  }
+    }
 
 }
 

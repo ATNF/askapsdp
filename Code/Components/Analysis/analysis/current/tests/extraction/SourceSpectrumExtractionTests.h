@@ -63,12 +63,13 @@ namespace askap {
       CPPUNIT_TEST(extractSpectrum);
       CPPUNIT_TEST(extractSpectrumPowerlaw);
       CPPUNIT_TEST(extractSpectrumBeam);
+      CPPUNIT_TEST(extractSpectrumBeamFile);
       CPPUNIT_TEST_SUITE_END();
 
     private:
       SourceSpectrumExtractor extractor;
       LOFAR::ParameterSet parset; // used for defining the subdef
-      std::string tempImage,tempImageGauss,tempImagePL;
+      std::string tempImage,tempImageGauss,tempImagePL,tempBeamfile;
       std::string basePolList;
       std::string outfile;
       RadioSource object,gaussobject;
@@ -80,9 +81,13 @@ namespace askap {
 
       void setUp() {
 		  
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: setUp");
+
 	tempImage="tempImageForExtractionTest";
 	tempImagePL="tempImagePowerlawForExtractionTest";
 	tempImageGauss="tempImageGaussianForExtractionTest";
+	tempBeamfile="tempBeamFileForExtractionTest";
 	outfile="tempOutputFromExtractionTest";
 	basePolList="IQUV";
 	alpha=0.5;
@@ -131,6 +136,7 @@ namespace askap {
 	    }
 	  }
 	}
+
 	accessors::CasaImageAccess ia;
 	ia.create(tempImage,shape,coo);
 	ia.write(tempImage,array);
@@ -176,6 +182,10 @@ namespace askap {
 	ia.write(tempImageGauss,gaussarray);
 	ia.setBeamInfo(tempImageGauss,bmaj*10./3600.*M_PI/180.,bmin*10./3600.*M_PI/180.,bpa);
 	ia.setUnits(tempImageGauss,"Jy/beam");
+	std::ofstream beamfile(tempBeamfile.c_str());
+	for(int z=0;z<10;z++)
+	    beamfile << z << " " << "channel_"<<z << " " << (bmaj)*10. << " " << (bmin)*10 << " " << bpa*180./M_PI << "\n";
+	beamfile.close();
 	    
 	mask = std::vector<bool>(81,false); //just the first channel
 	for(size_t i=0;i<81;i++) mask[i]=(gaussarrSml.data()[i]>0.9);
@@ -185,18 +195,18 @@ namespace askap {
 	gaussobject.calcFluxes(gaussarrSml.data(),dim); // should now have the peak position.
 	gaussobject.setID(1);
 
-	//	std::vector<std::string> inputvec(1,tempImage)
-	  //parset.add("spectralCube",tempImage);
-	  parset.add("spectralCube","["+tempImage+"]");
-	  //	parset.add("spectralCube",inputvec);
+	parset.add("spectralCube","["+tempImage+"]");
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
 	parset.add(LOFAR::KVpair("scaleSpectraByBeam",doScale));
 	parset.add("spectralOutputBase",outfile);
 	parset.add("polarisation",basePolList);
-	std::cout << parset << "\n";
+
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void readParset() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: readParset");
 	extractor = SourceSpectrumExtractor(parset);
 	CPPUNIT_ASSERT(extractor.inputCubeList().size() == 1);
 	CPPUNIT_ASSERT(extractor.inputCubeList()[0] == tempImage);
@@ -207,16 +217,22 @@ namespace askap {
 	std::string pollist;
 	for(size_t i=0;i<pols.size();i++) pollist+=pols[i];
 	CPPUNIT_ASSERT(pollist==basePolList);
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void loadSource() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: loadSource");
 	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(&object);
 	std::string shouldget=outfile + "_1";
 	CPPUNIT_ASSERT(extractor.outputFile() == shouldget);
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void extractSpectrum() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: extractSpectrum");
 	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(&object);
 	for(int width=1;width<=9;width += 2){
@@ -229,9 +245,12 @@ namespace askap {
 	    }
 	  }
 	}
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void extractSpectrumPowerlaw() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: extractSpectrumPowerlaw");
 	parset.replace("spectralCube",tempImagePL);
 	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(&object);
@@ -245,14 +264,18 @@ namespace askap {
 	    }
 	  }
 	}
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void extractSpectrumBeam() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: extractSpectrumBeam");
 	parset.replace("spectralCube",tempImageGauss);
+	parset.replace("scaleSpectraByBeam","true");
 	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(&gaussobject);
-	extractor.setFlagDoScale(true);
 	for(int width=1;width<=9;width += 2){
+	    ASKAPLOG_DEBUG_STR(logger, "Starting test with width = " << width);
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
 	  CPPUNIT_ASSERT(extractor.array().shape()==outShape);
@@ -262,9 +285,35 @@ namespace askap {
 	    }
 	  }
 	}
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
+      }
+
+      void extractSpectrumBeamFile() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: extractSpectrumBeamFile");
+	  ASKAPLOG_DEBUG_STR(logger, "Initialising");
+	parset.replace("spectralCube",tempImageGauss);
+	parset.replace("beamFile",tempBeamfile);
+	parset.replace("scaleSpectraByBeam","true");
+	extractor = SourceSpectrumExtractor(parset);
+	extractor.setSource(&gaussobject);
+	for(int width=1;width<=9;width += 2){
+	    ASKAPLOG_DEBUG_STR(logger, "Starting test with width = " << width);
+	  extractor.setBoxWidth(width);
+	  extractor.extract();
+	  CPPUNIT_ASSERT(extractor.array().shape()==outShape);
+	  for(int s=0;s<outShape(2);s++){
+	    for(int z=0;z<outShape(3);z++){
+	      CPPUNIT_ASSERT(fabs(extractor.array()(IPosition(4,0,0,s,z))-1.)<1.e-5);
+	    }
+	  }
+	}
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
       void tearDown() {
+	  ASKAPLOG_DEBUG_STR(logger, "================================");
+	  ASKAPLOG_DEBUG_STR(logger, "=== EXTRACTION TEST: tearDown");
 	std::stringstream ss;
 	ss << "rm -rf " << tempImage;
 	system(ss.str().c_str());
@@ -274,6 +323,7 @@ namespace askap {
 	ss.str();
 	ss << "rm -rf " << tempImageGauss;
 	system(ss.str().c_str());
+	ASKAPLOG_DEBUG_STR(logger, "---------------------------------");
       }
 
     };
