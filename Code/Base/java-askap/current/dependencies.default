@@ -1,5 +1,5 @@
 java-logappenders=Code/Base/java-logappenders/current
-ice=3rdParty/Ice/Ice-3.4.1
+ice=3rdParty/Ice/Ice-3.5.0
 javaiceinterfaces=Code/Interfaces/java/current
 iceutils=Code/Base/py-iceutils/current
 atoms-java=3rdParty/atoms-java/atoms-java-r5209

@@ -1,2 +1,2 @@
-ice=3rdParty/Ice/Ice-3.4.1
+ice=3rdParty/Ice/Ice-3.5.0
 interfaces=Code/Interfaces/slice/current

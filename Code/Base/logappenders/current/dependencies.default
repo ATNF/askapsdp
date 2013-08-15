@@ -1,5 +1,5 @@
 log4cxx=3rdParty/log4cxx/log4cxx-0.10.0
-ice=3rdParty/Ice/Ice-3.4.1;IceStorm Ice IceUtil
+ice=3rdParty/Ice/Ice-3.5.0;IceStorm Ice IceUtil
 cppiceinterfaces=Code/Interfaces/cpp/current
 iceutils=Code/Base/py-iceutils/current
 # for functests
