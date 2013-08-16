@@ -37,6 +37,7 @@
 #include <sourcefitting/RadioSource.h>
 
 #include <imageaccess/CasaImageAccess.h>
+#include <imageaccess/BeamLogger.h>
 
 #include <duchamp/PixelMap/Object2D.hh>
 
@@ -80,7 +81,7 @@ namespace askap {
 	    }
 
 	    this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
-	    this->itsBeamFile = parset.getString("beamFile","");
+	    this->itsBeamLog = parset.getString("beamLog","");
 
 	    this->initialiseArray();
 
@@ -98,7 +99,7 @@ namespace askap {
 	    this->itsFlagDoScale = other.itsFlagDoScale;
 	    this->itsFlagUseDetection = other.itsFlagUseDetection;
 	    this->itsBeamScaleFactor = other.itsBeamScaleFactor;
-	    this->itsBeamFile = other.itsBeamFile;
+	    this->itsBeamLog = other.itsBeamLog;
 	    return *this;
 	}
 
@@ -120,13 +121,13 @@ namespace askap {
 
 		this->openInput();
 	
-		std::vector< Vector<Quantum<Double> > > beamvec;
+		std::vector< casa::Vector<Quantum<Double> > > beamvec;
 		
 		casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
 
-		ASKAPLOG_DEBUG_STR(logger, "Setting beam scaling factor. BeamFile="<<this->itsBeamFile<<", image beam = " << inputBeam);
+		ASKAPLOG_DEBUG_STR(logger, "Setting beam scaling factor. BeamLog="<<this->itsBeamLog<<", image beam = " << inputBeam);
 
-		if(this->itsBeamFile == ""){
+		if(this->itsBeamLog == ""){
 		    if(inputBeam.size()==0) {
 			ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
 			this->itsBeamScaleFactor.push_back(1.);
@@ -137,24 +138,12 @@ namespace askap {
 		    } 
 		}
 		else{
-		    std::ifstream beamfile(this->itsBeamFile.c_str());
-		    double bmaj,bmin,bpa;
-		    int ct;
-		    std::string channelImage,line;
-		    while( getline(beamfile,line),
-			   !beamfile.eof()){
-			if(line[0]!='#'){
-			    std::stringstream ss(line);
-			    ss >> ct >> channelImage >> bmaj >> bmin >> bpa;
-			    Vector<Quantum<Double> > currentbeam(3);
-			    currentbeam[0]=Quantum<Double>(bmaj,"arcsec");
-			    currentbeam[1]=Quantum<Double>(bmin,"arcsec");
-			    currentbeam[2]=Quantum<Double>(bpa,"deg");
-			    beamvec.push_back(currentbeam);
-			}
-		    }
+		    accessors::BeamLogger beamlog(this->itsBeamLog);
+		    beamlog.read();
+		    beamvec = beamlog.beamlist();
+
 		    if(int(beamvec.size()) != this->itsInputCubePtr->shape()(this->itsSpcAxis)){
-			ASKAPLOG_ERROR_STR(logger, "Beam file " << this->itsBeamFile << " has " << beamvec.size() 
+			ASKAPLOG_ERROR_STR(logger, "Beam log " << this->itsBeamLog << " has " << beamvec.size() 
 					   << " entries - was expecting " << this->itsInputCubePtr->shape()(this->itsSpcAxis));
 			beamvec=std::vector< Vector<Quantum<Double> > >(1,inputBeam);
 		    }
@@ -172,7 +161,7 @@ namespace askap {
 			    double bpaDeg = beamvec[i][2].getValue("deg");
 			    duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
 			    this->itsBeamScaleFactor.push_back(beam.area());
-			    if(this->itsBeamFile=="")
+			    if(this->itsBeamLog=="")
 				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
 			}
 			else{
@@ -194,7 +183,7 @@ namespace askap {
 			    }
 			    this->itsBeamScaleFactor.push_back(scaleFactor);
 
-			    if(this->itsBeamFile=="")
+			    if(this->itsBeamLog=="")
 				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
 		    
 			}

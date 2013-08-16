@@ -73,7 +73,7 @@ namespace askap {
 	    bool itsFlagDoScale;
 	    std::vector<float> itsBeamScaleFactor;
 	    bool itsFlagUseDetection;
-	    std::string itsBeamFile;
+	    std::string itsBeamLog;
 
 	};
 
