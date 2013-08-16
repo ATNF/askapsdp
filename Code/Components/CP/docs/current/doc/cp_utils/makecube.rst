@@ -40,10 +40,11 @@ The key parameters to be provided are the output cube name, and the pattern desc
 It is possible to specify a rest frequency to be applied to the output cube (since *cimager* will not provide this). A common value for this, that of the fine-structure line of neutral hydrogen (HI), or 1420405751.786 Hz, can be requested by setting the rest frequency to "HI" in the parameter set. If no rest frequency is provided, or a negative value is given, no rest frequency will be written to the cube.
 
 The image info (which essentially means the beam information) for the output cube is copied from a designated input image. This is, by default, the middle image of the range (specifically, (number of images) / 2, with integer division), but this can be changed by setting *beamReference* to 'first', 'last', or a number in the range. The individual beam sizes for each of the input images (assuming they are defined) can be written to an ascii text file for future reference. The file has columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]
-Here is an example of the start of a beam file:
+Here is an example of the start of a beam log:
 
 ::
 
+  #Channel Image_name BMAJ[arcsec] BMIN[arcsec] BPA[deg]
   0 image.i.cube.clean_ch0.restored 65.7623 36.4139 -54.7139
   1 image.i.cube.clean_ch1.restored 65.7981 36.4222 -54.7605
   2 image.i.cube.clean_ch2.restored 65.8365 36.4324 -54.7985
@@ -68,7 +69,7 @@ The following table describes the possible parameters.
 |                          |             |            |from. Options include: 'mid' (middle image of list), 'first',   |
 |                          |             |            |'last', or a number indicating the image (list is zero-based).  |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.beamFile         |string       |""          |Name of the ascii text file to which the beam information for   |
+|Makecube.beamLog          |string       |""          |Name of the ascii text file to which the beam information for   |
 |                          |             |            |every input file is written.                                    |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
 
@@ -80,7 +81,7 @@ The following demonstrates a parset for a continuum cube (no rest frequency):
   Makecube.outputCube = image.i.cube.clean.restored
   Makecube.restFrequency = -1.
   Makecube.beamReference = mid
-  Makecube.beamFile = beamFile.image.i.cube.clean.restored.dat
+  Makecube.beamLog = beamFile.image.i.cube.clean.restored.dat
 
 and the following demonstrates a parset for a small spectral-line cube focussed on HI emisison:
 
