@@ -62,6 +62,9 @@ CommunicatorConfig::CommunicatorConfig(const std::string& locatorHost,
     // Increase maximum message size from 1MB to 128MB
     // This can however be overridden by a call to setProperty()
     setProperty("Ice.MessageSizeMax", "131072");
+
+    // Disable IPv6. As of Ice 3.5 it is enabled by default
+    setProperty("Ice.IPv6", "0");
 }
 
 void CommunicatorConfig::setProperty(const std::string& key, const std::string& value)

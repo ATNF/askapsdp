@@ -3,3 +3,5 @@
 #
 Ice.Default.Locator=IceGrid/Locator:tcp -p 4061
 
+# Disable IPv6 (as it is not enabled by default on Debian Lenny)
+Ice.IPv6=0

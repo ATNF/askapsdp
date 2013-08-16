@@ -87,6 +87,7 @@ public class IceAppender extends AppenderSkeleton {
 			Ice.Properties props = Ice.Util.createProperties();
 			props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h "
 					+ itsLocatorHost + " -p " + itsLocatorPort);
+			props.setProperty("Ice.IPv6", "0");
 
 			Ice.InitializationData id = new Ice.InitializationData();
 			id.properties = props;
