@@ -71,7 +71,7 @@ Makecube.inputNamePattern = ${IMAGERANGE}
 Makecube.outputCube = ${OUTPUTCUBE}
 Makecube.restFrequency = ${RESTFREQUENCY}
 Makecube.beamReference = mid
-Makecube.beamFile = beamFile.${OUTPUTCUBE}.dat
+Makecube.beamLog = beamLog.${OUTPUTCUBE}.dat
 EOF_INNER
 
 # Run makecube
