@@ -49,32 +49,29 @@
 namespace askap {
     namespace analysis {
 
+	/// @ingroup analysisutilities
+	/// @{
+
 	/// @brief A simple way of printing the worker number
 	std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms);
       
         /// @brief Return an array of axis dimensions for a FITS file.
-        /// @ingroup analysisutilities
         std::vector<long> getFITSdimensions(std::string filename);
 
         /// @brief Return the probability of obtaining a chisq value by
         ///        chance, for a certain number of degrees of freedom.
-        /// @ingroup analysisutilities
         float chisqProb(float ndof, float chisq);
 
         /// @brief Check for the use of a particular parameter in a ParameterSet and warn the user it is not used.
-        /// @ingroup analysisutilities
 	void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
 
         /// @brief Parse a ParameterSet and define duchamp::param parameters.
-        /// @ingroup analysisutilities
         duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
 
         /// @brief Find an rms for an array given a mean value
-        /// @ingroup analysisutilities
         double findSpread(bool robust, double middle, int size, float *array);
 
         /// @brief Find an rms for an array given a mean value, with masking of pixels.
-        /// @ingroup analysisutilities
         double findSpread(bool robust, double middle, int size, float *array, bool *mask);
 
         /// @brief Remove blank spaces from the beginning of a string
@@ -102,6 +99,8 @@ namespace askap {
 	
 	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
 	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
+
+	/// @}
 
     }
 }
