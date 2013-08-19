@@ -75,6 +75,7 @@ using namespace LOFAR::TYPES;
 #include <extraction/SourceSpectrumExtractor.h>
 #include <extraction/SpectralBoxExtractor.h>
 #include <extraction/NoiseSpectrumExtractor.h>
+#include <extraction/MomentMapExtractor.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
@@ -1786,6 +1787,22 @@ namespace askap {
 		  extractor.writeImage();
 		}
 	      }
+	    }
+
+	    if(this->itsParset.getBool("extractMomentMap")){
+	      std::vector<sourcefitting::RadioSource>::iterator src;
+	      std::vector<bool>::iterator choice=objectChoice.begin();
+	      LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractMomentMap.");
+	      ASKAPLOG_INFO_STR(logger, "Extracting moment-0 maps for " << this->itsSourceList.size() << " sources");
+	      for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+		if(objectChoice.at(src->getID()-1)){
+		    MomentMapExtractor extractor(extractSubset);
+		    extractor.setSource(&*src);
+		    extractor.extract();
+		    extractor.writeImage();
+		}
+	      }
+		
 	    }
 	    
 	  }
