@@ -59,9 +59,7 @@ namespace askap {
       this->itsSource=0;
       this->itsInputCube = ""; // start off with this blank. Needs to be set before calling openInput()
       this->itsInputCubeList = parset.getStringVector("spectralCube",std::vector<std::string>(0));
-      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
       this->itsCentreType = parset.getString("pixelCentre","peak");
-      ASKAPCHECK(this->itsOutputFilenameBase != "", "Extraction: No output base name has been provided for the spectral output. Use spectralOutputBase.");
 
       // Take the following from SynthesisParamsHelper.cc in Synthesis
       // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
@@ -118,6 +116,43 @@ namespace askap {
       casa::IPosition shape=this->itsInputCubePtr->shape();
       this->closeInput();
       return shape;
+    }
+
+    void SourceDataExtractor::setSource(RadioSource* src)
+    {
+      /// @details Sets the source to be used. Also sets the output
+      /// filename correctly with the suffix indicating the object's
+      /// ID.  
+      /// @param src The RadioSource detection used to centre the
+      /// spectrum. The central pixel will be chosen to be the peak
+      /// pixel, so this needs to be defined.
+
+      this->itsSource = src;
+
+      if(this->itsSource){
+	// Append the source's ID string to the output filename
+	int ID=this->itsSource->getID();
+	std::stringstream ss;
+	ss << this->itsOutputFilenameBase << "_" << ID;
+	this->itsOutputFilename = ss.str();
+	this->getLocation();
+      }
+    }
+
+
+    void SourceDataExtractor::getLocation()
+    {
+
+      if(this->itsSource){
+
+	std::string srcCentreType = this->itsSource->getCentreType();
+	this->itsSource->setCentreType(this->itsCentreType);
+	this->itsXloc = this->itsSource->getXcentre();
+	this->itsYloc = this->itsSource->getYcentre();
+	this->itsSource->setCentreType(srcCentreType);
+
+      }
+
     }
 
     void SourceDataExtractor::checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest)

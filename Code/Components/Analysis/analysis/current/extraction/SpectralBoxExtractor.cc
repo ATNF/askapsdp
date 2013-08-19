@@ -72,6 +72,9 @@ namespace askap {
 
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
 
+      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+      ASKAPCHECK(this->itsOutputFilenameBase != "", "Extraction: No output base name has been provided for the spectral output. Use spectralOutputBase.");
+
     }
 
     SpectralBoxExtractor::SpectralBoxExtractor(const SpectralBoxExtractor& other)
@@ -100,43 +103,6 @@ namespace askap {
       this->itsArray = casa::Array<Float>(shape,0.0);
       this->closeInput();
     }
-
-    void SpectralBoxExtractor::setSource(RadioSource* src)
-    {
-      /// @details Sets the source to be used. Also sets the output
-      /// filename correctly with the suffix indicating the object's
-      /// ID.  
-      /// @param src The RadioSource detection used to centre the
-      /// spectrum. The central pixel will be chosen to be the peak
-      /// pixel, so this needs to be defined.
-
-      this->itsSource = src;
-
-      if(this->itsSource){
-	// Append the source's ID string to the output filename
-	int ID=this->itsSource->getID();
-	std::stringstream ss;
-	ss << this->itsOutputFilenameBase << "_" << ID;
-	this->itsOutputFilename = ss.str();
-	this->getLocation();
-      }
-    }
-
-    void SpectralBoxExtractor::getLocation()
-    {
-
-      if(this->itsSource){
-
-	std::string srcCentreType = this->itsSource->getCentreType();
-	this->itsSource->setCentreType(this->itsCentreType);
-	this->itsXloc = this->itsSource->getXcentre();
-	this->itsYloc = this->itsSource->getYcentre();
-	this->itsSource->setCentreType(srcCentreType);
-
-      }
-
-    }
-    
 
     void SpectralBoxExtractor::defineSlicer()
     {
@@ -191,9 +157,9 @@ namespace askap {
       casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
       casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
       casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-      casa::Vector<Int> svec(this->itsStokesList.size());
-      for(size_t i=0;i<svec.size();i++) svec[i]=this->itsStokesList[i];
-      casa::StokesCoordinate stkcoo(svec);
+      casa::Vector<Int> stkvec(this->itsStokesList.size());
+      for(size_t i=0;i<stkvec.size();i++) stkvec[i]=this->itsStokesList[i];
+      casa::StokesCoordinate stkcoo(stkvec);
       newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
       newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
       newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
@@ -205,7 +171,7 @@ namespace askap {
       int stkAxis=newcoo.polarizationAxisNumber();
       casa::IPosition outshape(4,1);
       outshape(spcAxis)=inshape(this->itsSpcAxis);
-      outshape(stkAxis)=svec.size();
+      outshape(stkAxis)=stkvec.size();
       casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
       shift(lngAxis)=this->itsXloc;
       shift(latAxis)=this->itsYloc;

@@ -66,11 +66,8 @@ namespace askap {
 	SourceDataExtractor(const SourceDataExtractor& other);
 	SourceDataExtractor& operator=(const SourceDataExtractor& other);
 
-	virtual void setSource(RadioSource *src){itsSource = src;};
-
-	virtual void verifyInputs();
-
-	virtual void defineSlicer()=0;
+	/// @brief Set the pointer to the source, and define the output filename based on its ID
+	virtual void setSource(RadioSource *src);
 
 	virtual void extract()=0;
 	
@@ -87,6 +84,9 @@ namespace askap {
       protected:
 	void openInput();
 	void closeInput();
+	virtual void verifyInputs();
+	void getLocation();
+	virtual void defineSlicer()=0;
 	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
 	casa::IPosition getShape(std::string image);
 	virtual void initialiseArray() = 0;
@@ -103,6 +103,9 @@ namespace askap {
 	std::string itsOutputFilenameBase;
 	std::string itsOutputFilename;
 	casa::Array<Float> itsArray;
+
+	float itsXloc;
+	float itsYloc;
 
 	casa::CoordinateSystem itsInputCoords;
 	int  itsLngAxis;

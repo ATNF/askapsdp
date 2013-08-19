@@ -63,23 +63,15 @@ namespace askap {
       int boxWidth(){return itsBoxWidth;};
       virtual void setBoxWidth(int w){itsBoxWidth=w;};
 
-      /// @brief Set the pointer to the source, and define the output filename based on its ID
-      void setSource(RadioSource* src);
-
-      void getLocation();
-
-      virtual void defineSlicer();
-
       virtual void extract() = 0;
 
       void writeImage();
 
     protected:
+      virtual void defineSlicer();
       void initialiseArray();
 
       int itsBoxWidth;
-      float itsXloc;
-      float itsYloc;
 
     };
 
