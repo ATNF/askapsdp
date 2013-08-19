@@ -36,8 +36,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_DOPPLER_CONVERTER_H
-#define I_DOPPLER_CONVERTER_H
+#ifndef ASKAP_ACCESSORS_I_DOPPLER_CONVERTER_H
+#define ASKAP_ACCESSORS_I_DOPPLER_CONVERTER_H
 
 // CASA includes
 #include <measures/Measures/MFrequency.h>

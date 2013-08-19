@@ -1,7 +1,7 @@
-/// @file
+/// @file CasaImageAccess.h
 /// @brief Access casa image
 /// @details This class implements IImageAccess interface for CASA image
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,13 +28,12 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef CASA_IMAGE_ACCESS_H
-#define CASA_IMAGE_ACCESS_H
+#ifndef ASKAP_ACCESSORS_CASA_IMAGE_ACCESS_H
+#define ASKAP_ACCESSORS_CASA_IMAGE_ACCESS_H
 
 #include <imageaccess/IImageAccess.h>
 
 namespace askap {
-
 namespace accessors {
 
 /// @brief Access casa image
@@ -42,81 +41,83 @@ namespace accessors {
 /// @ingroup imageaccess
 struct CasaImageAccess : public IImageAccess {
 
-  // reading methods
-  
-  /// @brief obtain the shape
-  /// @param[in] name image name
-  /// @return full shape of the given image
-  virtual casa::IPosition shape(const std::string &name) const;
-  
-  /// @brief read full image
-  /// @param[in] name image name
-  /// @return array with pixels
-  virtual casa::Array<float> read(const std::string &name) const;
-  
-  /// @brief read part of the image 
-  /// @param[in] name image name
-  /// @param[in] blc bottom left corner of the selection
-  /// @param[in] trc top right corner of the selection
-  /// @return array with pixels for the selection only
-  virtual casa::Array<float> read(const std::string &name, const casa::IPosition &blc,
-                                  const casa::IPosition &trc) const;
-  
-  /// @brief obtain coordinate system info
-  /// @param[in] name image name
-  /// @return coordinate system object
-  virtual casa::CoordinateSystem coordSys(const std::string &name) const;
-  
-  /// @brief obtain beam info
-  /// @param[in] name image name
-  /// @return beam info vector
-  virtual casa::Vector<casa::Quantum<double> > beamInfo(const std::string &name) const;
+    //////////////////
+    // Reading methods
+    //////////////////
 
- // writing methods
-  
-  /// @brief create a new image
-  /// @details A call to this method should preceed any write calls. The actual
-  /// image may be created only upon the first write call. Details depend on the
-  /// implementation. 
-  /// @param[in] name image name
-  /// @param[in] shape full shape of the image
-  /// @param[in] csys coordinate system of the full image
-  virtual void create(const std::string &name, const casa::IPosition &shape, 
-                      const casa::CoordinateSystem &csys);
-                      
-  /// @brief write full image
-  /// @param[in] name image name
-  /// @param[in] arr array with pixels
-  virtual void write(const std::string &name, const casa::Array<float> &arr);
-  
-  /// @brief write a slice of an image
-  /// @param[in] name image name
-  /// @param[in] arr array with pixels
-  /// @param[in] where bottom left corner where to put the slice to (trc is deduced from the array shape)
-  virtual void write(const std::string &name, const casa::Array<float> &arr, 
-               const casa::IPosition &where);  
-  
-  /// @brief set brightness units of the image
-  /// @details
-  /// @param[in] name image name
-  /// @param[in] units string describing brightness units of the image (e.g. "Jy/beam")
-  virtual void setUnits(const std::string &name, const std::string &units);
-  
-  /// @brief set restoring beam info
-  /// @details For the restored image we want to carry size and orientation of the restoring beam
-  /// with the image. This method allows to assign this info.
-  /// @param[in] name image name
-  /// @param[in] maj major axis in radians
-  /// @param[in] min minor axis in radians
-  /// @param[in] pa position angle in radians
-  virtual void setBeamInfo(const std::string &name, double maj, double min, double pa);
-                    
-}; 
+    /// @brief obtain the shape
+    /// @param[in] name image name
+    /// @return full shape of the given image
+    virtual casa::IPosition shape(const std::string &name) const;
+
+    /// @brief read full image
+    /// @param[in] name image name
+    /// @return array with pixels
+    virtual casa::Array<float> read(const std::string &name) const;
+
+    /// @brief read part of the image
+    /// @param[in] name image name
+    /// @param[in] blc bottom left corner of the selection
+    /// @param[in] trc top right corner of the selection
+    /// @return array with pixels for the selection only
+    virtual casa::Array<float> read(const std::string &name, const casa::IPosition &blc,
+                                    const casa::IPosition &trc) const;
+
+    /// @brief obtain coordinate system info
+    /// @param[in] name image name
+    /// @return coordinate system object
+    virtual casa::CoordinateSystem coordSys(const std::string &name) const;
+
+    /// @brief obtain beam info
+    /// @param[in] name image name
+    /// @return beam info vector
+    virtual casa::Vector<casa::Quantum<double> > beamInfo(const std::string &name) const;
+
+    //////////////////
+    // Writing methods
+    //////////////////
+
+    /// @brief create a new image
+    /// @details A call to this method should preceed any write calls. The actual
+    /// image may be created only upon the first write call. Details depend on the
+    /// implementation.
+    /// @param[in] name image name
+    /// @param[in] shape full shape of the image
+    /// @param[in] csys coordinate system of the full image
+    virtual void create(const std::string &name, const casa::IPosition &shape,
+                        const casa::CoordinateSystem &csys);
+
+    /// @brief write full image
+    /// @param[in] name image name
+    /// @param[in] arr array with pixels
+    virtual void write(const std::string &name, const casa::Array<float> &arr);
+
+    /// @brief write a slice of an image
+    /// @param[in] name image name
+    /// @param[in] arr array with pixels
+    /// @param[in] where bottom left corner where to put the slice to (trc is deduced from the array shape)
+    virtual void write(const std::string &name, const casa::Array<float> &arr,
+                       const casa::IPosition &where);
+
+    /// @brief set brightness units of the image
+    /// @details
+    /// @param[in] name image name
+    /// @param[in] units string describing brightness units of the image (e.g. "Jy/beam")
+    virtual void setUnits(const std::string &name, const std::string &units);
+
+    /// @brief set restoring beam info
+    /// @details For the restored image we want to carry size and orientation of the restoring beam
+    /// with the image. This method allows to assign this info.
+    /// @param[in] name image name
+    /// @param[in] maj major axis in radians
+    /// @param[in] min minor axis in radians
+    /// @param[in] pa position angle in radians
+    virtual void setBeamInfo(const std::string &name, double maj, double min, double pa);
+};
 
 
 } // namespace accessors
-
 } // namespace askap
 
-#endif // #ifndef CASA_IMAGE_ACCESS_H
+#endif
 

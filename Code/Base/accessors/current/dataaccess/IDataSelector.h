@@ -27,8 +27,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_DATA_SELECTOR_H
-#define I_DATA_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_I_DATA_SELECTOR_H
+#define ASKAP_ACCESSORS_I_DATA_SELECTOR_H
 
 #include <casa/aips.h>
 #include <casa/Quanta/MVFrequency.h>

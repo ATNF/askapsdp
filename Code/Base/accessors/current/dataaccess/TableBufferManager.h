@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_BUFFER_MANAGER_H
-#define TABLE_BUFFER_MANAGER_H
+#ifndef ASKAP_ACCESSORS_TABLE_BUFFER_MANAGER_H
+#define ASKAP_ACCESSORS_TABLE_BUFFER_MANAGER_H
 
 #include <dataaccess/IBufferManager.h>
 #include <dataaccess/TableHolder.h>

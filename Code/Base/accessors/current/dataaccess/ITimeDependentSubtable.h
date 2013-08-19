@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TIME_DEPENDENT_SUBTABLE_H
-#define I_TIME_DEPENDENT_SUBTABLE_H
+#ifndef ASKAP_ACCESSORS_I_TIME_DEPENDENT_SUBTABLE_H
+#define ASKAP_ACCESSORS_I_TIME_DEPENDENT_SUBTABLE_H
 
 // casa includes
 #include <measures/Measures/MEpoch.h>

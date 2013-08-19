@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_BUFFER_MANAGER_H
-#define I_BUFFER_MANAGER_H
+#ifndef ASKAP_ACCESSORS_I_BUFFER_MANAGER_H
+#define ASKAP_ACCESSORS_I_BUFFER_MANAGER_H
 
 // std includes
 #include <string>

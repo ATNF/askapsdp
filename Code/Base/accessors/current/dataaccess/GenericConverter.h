@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef GENERIC_CONVERTER_H
-#define GENERIC_CONVERTER_H
+#ifndef ASKAP_ACCESSORS_GENERIC_CONVERTER_H
+#define ASKAP_ACCESSORS_GENERIC_CONVERTER_H
 
 // CASA includes
 #include <measures/Measures/MEpoch.h>

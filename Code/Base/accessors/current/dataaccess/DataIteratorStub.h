@@ -26,8 +26,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef DATA_ITERATOR_STUB_H
-#define DATA_ITERATOR_STUB_H
+#ifndef ASKAP_ACCESSORS_DATA_ITERATOR_STUB_H
+#define ASKAP_ACCESSORS_DATA_ITERATOR_STUB_H
 
 #include <string>
 

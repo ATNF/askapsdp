@@ -38,8 +38,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_SUBTABLE_INFO_HOLDER_H
-#define I_SUBTABLE_INFO_HOLDER_H
+#ifndef ASKAP_ACCESSORS_I_SUBTABLE_INFO_HOLDER_H
+#define ASKAP_ACCESSORS_I_SUBTABLE_INFO_HOLDER_H
 
 #include <dataaccess/IHolder.h>
 #include <dataaccess/ITableDataDescHolder.h>

@@ -39,8 +39,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef FEED_SUBTABLE_HANDLER_H
-#define FEED_SUBTABLE_HANDLER_H
+#ifndef ASKAP_ACCESSORS_FEED_SUBTABLE_HANDLER_H
+#define ASKAP_ACCESSORS_FEED_SUBTABLE_HANDLER_H
 
 // casa includes
 #include <tables/Tables/Table.h>

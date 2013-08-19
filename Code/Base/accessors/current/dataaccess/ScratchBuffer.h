@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef SCRATCH_BUFFER_H
-#define SCRATCH_BUFFER_H
+#ifndef ASKAP_ACCESSORS_SCRATCH_BUFFER_H
+#define ASKAP_ACCESSORS_SCRATCH_BUFFER_H
 
 #include <casa/Arrays/Cube.h>
 #include <casa/BasicSL/Complex.h>

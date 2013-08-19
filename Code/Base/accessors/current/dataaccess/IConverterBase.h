@@ -31,8 +31,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_CONVERTER_BASE_H
-#define I_CONVERTER_BASE_H
+#ifndef ASKAP_ACCESSORS_I_CONVERTER_BASE_H
+#define ASKAP_ACCESSORS_I_CONVERTER_BASE_H
 
 // CASA includes
 #include <measures/Measures/MeasFrame.h>

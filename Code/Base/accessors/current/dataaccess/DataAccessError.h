@@ -26,8 +26,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef DATA_ACCESS_ERROR_H
-#define DATA_ACCESS_ERROR_H
+#ifndef ASKAP_ACCESSORS_DATA_ACCESS_ERROR_H
+#define ASKAP_ACCESSORS_DATA_ACCESS_ERROR_H
 
 /// std includes
 #include <string>

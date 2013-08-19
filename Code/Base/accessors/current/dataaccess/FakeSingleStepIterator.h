@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef FAKE_SINGLE_STEP_ITERATOR_H
-#define FAKE_SINGLE_STEP_ITERATOR_H
+#ifndef ASKAP_ACCESSORS_FAKE_SINGLE_STEP_ITERATOR_H
+#define ASKAP_ACCESSORS_FAKE_SINGLE_STEP_ITERATOR_H
 
 #include <string>
 #include <map>

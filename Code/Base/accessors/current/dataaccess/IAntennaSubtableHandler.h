@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_ANTENNA_SUBTABLE_HANLDER_H
-#define I_ANTENNA_SUBTABLE_HANLDER_H
+#ifndef ASKAP_ACCESSORS_I_ANTENNA_SUBTABLE_HANLDER_H
+#define ASKAP_ACCESSORS_I_ANTENNA_SUBTABLE_HANLDER_H
 
 // casa includes
 #include <measures/Measures/MPosition.h>

@@ -36,8 +36,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef DATA_ITERATOR_ADAPTER_H
-#define DATA_ITERATOR_ADAPTER_H
+#ifndef ASKAP_ACCESSORS_DATA_ITERATOR_ADAPTER_H
+#define ASKAP_ACCESSORS_DATA_ITERATOR_ADAPTER_H
 
 // own includes
 #include <dataaccess/IConstDataIterator.h>

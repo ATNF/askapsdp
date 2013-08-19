@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef UVW_MACHINE_CACHE_H
-#define UVW_MACHINE_CACHE_H
+#ifndef ASKAP_ACCESSORS_UVW_MACHINE_CACHE_H
+#define ASKAP_ACCESSORS_UVW_MACHINE_CACHE_H
 
 // std includes
 #include <vector>

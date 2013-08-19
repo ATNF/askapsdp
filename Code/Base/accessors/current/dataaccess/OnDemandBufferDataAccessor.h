@@ -34,8 +34,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef ON_DEMAND_BUFFER_DATA_ACCESSOR_H
-#define ON_DEMAND_BUFFER_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_ON_DEMAND_BUFFER_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_ON_DEMAND_BUFFER_DATA_ACCESSOR_H
 
 // own includes
 #include <dataaccess/MetaDataAccessor.h>

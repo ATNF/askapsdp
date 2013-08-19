@@ -2,7 +2,7 @@
 /// @brief Build an appropriate image access class
 /// @details This file contains a factory method generating a shared pointer to the image
 /// accessor from the parset file
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef IMAGE_ACCESS_FACTORY_H
-#define IMAGE_ACCESS_FACTORY_H
+#ifndef ASKAP_ACCESSORS_IMAGE_ACCESS_FACTORY_H
+#define ASKAP_ACCESSORS_IMAGE_ACCESS_FACTORY_H
 
 #include <Common/ParameterSet.h>
 #include <boost/shared_ptr.hpp>
@@ -38,7 +38,6 @@
 #include <imageaccess/IImageAccess.h>
 
 namespace askap {
-
 namespace accessors {
 
 /// @brief Build an appropriate image access class
@@ -46,12 +45,11 @@ namespace accessors {
 /// accessor from the parset file
 /// @param[in] parset parameters containing description of image accessor to be constructed
 /// @return shared pointer to the image access object
-/// @note CASA images are used by default 
+/// @note CASA images are used by default
 boost::shared_ptr<IImageAccess> imageAccessFactory(const LOFAR::ParameterSet &parset);
 
 } // namespace accessors
-
 } // namespace askap
 
-#endif // #ifndef IMAGE_ACCESS_FACTORY_H
+#endif
 

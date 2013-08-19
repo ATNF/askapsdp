@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_MEASURE_FIELD_SELECTOR_H
-#define I_TABLE_MEASURE_FIELD_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_I_TABLE_MEASURE_FIELD_SELECTOR_H
+#define ASKAP_ACCESSORS_I_TABLE_MEASURE_FIELD_SELECTOR_H
 
 // casa includes
 #include <tables/Tables/ExprNode.h>

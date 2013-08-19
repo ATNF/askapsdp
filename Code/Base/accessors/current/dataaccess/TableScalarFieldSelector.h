@@ -34,8 +34,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_SCALAR_FIELD_SELECTOR_H
-#define TABLE_SCALAR_FIELD_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_SCALAR_FIELD_SELECTOR_H
+#define ASKAP_ACCESSORS_TABLE_SCALAR_FIELD_SELECTOR_H
 
 // casa includes
 #include <tables/Tables/ExprNode.h>

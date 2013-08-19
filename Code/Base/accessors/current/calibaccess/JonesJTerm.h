@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CALDATASERVICE_JONESJTERM_H
-#define ASKAP_CP_CALDATASERVICE_JONESJTERM_H
+#ifndef ASKAP_ACCESSORS_JONESJTERM_H
+#define ASKAP_ACCESSORS_JONESJTERM_H
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"

@@ -32,8 +32,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_TIME_STAMP_SELECTOR_H
-#define TABLE_TIME_STAMP_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_TIME_STAMP_SELECTOR_H
+#define ASKAP_ACCESSORS_TABLE_TIME_STAMP_SELECTOR_H
 
 // casa
 #include <tables/Tables/Table.h>

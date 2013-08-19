@@ -30,8 +30,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_DATA_SELECTOR_H
-#define TABLE_DATA_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_DATA_SELECTOR_H
+#define ASKAP_ACCESSORS_TABLE_DATA_SELECTOR_H
 
 // std includes
 #include <string>

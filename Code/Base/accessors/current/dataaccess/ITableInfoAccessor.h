@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_INFO_ACCESSOR_H
-#define I_TABLE_INFO_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_I_TABLE_INFO_ACCESSOR_H
+#define ASKAP_ACCESSORS_I_TABLE_INFO_ACCESSOR_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

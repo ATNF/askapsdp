@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_FIELD_SUBTABLE_HANLDER_H
-#define I_FIELD_SUBTABLE_HANLDER_H
+#ifndef ASKAP_ACCESSORS_I_FIELD_SUBTABLE_HANLDER_H
+#define ASKAP_ACCESSORS_I_FIELD_SUBTABLE_HANLDER_H
 
 // casa includes
 #include <measures/Measures/MEpoch.h>

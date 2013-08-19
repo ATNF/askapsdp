@@ -36,8 +36,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef BEST_W_PLANE_DATA_ACCESSOR_H
-#define BEST_W_PLANE_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_BEST_W_PLANE_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_BEST_W_PLANE_DATA_ACCESSOR_H
 
 // own includes
 #include <dataaccess/DataAccessorAdapter.h>

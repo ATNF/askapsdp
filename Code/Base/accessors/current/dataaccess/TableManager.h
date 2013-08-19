@@ -52,8 +52,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_MANAGER_H
-#define TABLE_MANAGER_H
+#ifndef ASKAP_ACCESSORS_TABLE_MANAGER_H
+#define ASKAP_ACCESSORS_TABLE_MANAGER_H
 
 // casa includes
 #include <tables/Tables/Table.h>

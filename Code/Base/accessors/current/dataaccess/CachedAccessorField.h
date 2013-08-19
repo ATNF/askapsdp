@@ -8,8 +8,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef CACHED_ACCESSOR_FIELD_H
-#define CACHED_ACCESSOR_FIELD_H
+#ifndef ASKAP_ACCESSORS_CACHED_ACCESSOR_FIELD_H
+#define ASKAP_ACCESSORS_CACHED_ACCESSOR_FIELD_H
 
 #include <askap/AskapError.h>
 

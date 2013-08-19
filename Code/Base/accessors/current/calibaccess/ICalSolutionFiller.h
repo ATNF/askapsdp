@@ -29,12 +29,13 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef I_CAL_SOLUTION_FILLER_H
-#define I_CAL_SOLUTION_FILLER_H
+#ifndef ASKAP_ACCESSORS_I_CAL_SOLUTION_FILLER_H
+#define ASKAP_ACCESSORS_I_CAL_SOLUTION_FILLER_H
+
+#include <utility>
 
 #include <casa/Arrays/Cube.h>
 #include <casa/BasicSL/Complex.h>
-#include <utility>
 
 namespace askap {
 
@@ -104,6 +105,4 @@ struct ICalSolutionFiller {
 
 } // namespace askap
 
-#endif // #ifndef I_CAL_SOLUTION_FILLER_H
-
-
+#endif

@@ -27,8 +27,8 @@
 ///
 
 
-#ifndef BASIC_DATA_CONVERTER_H
-#define BASIC_DATA_CONVERTER_H
+#ifndef ASKAP_ACCESSORS_BASIC_DATA_CONVERTER_H
+#define ASKAP_ACCESSORS_BASIC_DATA_CONVERTER_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

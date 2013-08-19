@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef PARSET_INTERFACE_H
-#define PARSET_INTERFACE_H
+#ifndef ASKAP_ACCESSORS_PARSET_INTERFACE_H
+#define ASKAP_ACCESSORS_PARSET_INTERFACE_H
 
 // own includes
 #include <dataaccess/IDataConverter.h>

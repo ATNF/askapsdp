@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEM_ANTENNA_SUBTABLE_HANLDER_H
-#define MEM_ANTENNA_SUBTABLE_HANLDER_H
+#ifndef ASKAP_ACCESSORS_MEM_ANTENNA_SUBTABLE_HANLDER_H
+#define ASKAP_ACCESSORS_MEM_ANTENNA_SUBTABLE_HANLDER_H
 
 // casa includes
 #include <tables/Tables/Table.h>

@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef ASKAP_ACCESSORS_TEMP_UVW_MACHINE_H
-#define ASKAP_ACCESSORS_TEMP_UVW_MACHINE_H
+#ifndef ASKAP_ACCESSORS_ASKAP_ACCESSORS_TEMP_UVW_MACHINE_H
+#define ASKAP_ACCESSORS_ASKAP_ACCESSORS_TEMP_UVW_MACHINE_H
 
 // casa includes
 #include <measures/Measures.h>

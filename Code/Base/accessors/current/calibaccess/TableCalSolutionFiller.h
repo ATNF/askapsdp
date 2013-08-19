@@ -35,8 +35,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef TABLE_CAL_SOLUTION_FILLER_H
-#define TABLE_CAL_SOLUTION_FILLER_H
+#ifndef ASKAP_ACCESSORS_TABLE_CAL_SOLUTION_FILLER_H
+#define ASKAP_ACCESSORS_TABLE_CAL_SOLUTION_FILLER_H
 
 // CASA includes
 #include <tables/Tables/Table.h>
@@ -174,5 +174,4 @@ private:
 
 } // askap
 
-#endif // #ifndef TABLE_CAL_SOLUTION_FILLER_H
-
+#endif

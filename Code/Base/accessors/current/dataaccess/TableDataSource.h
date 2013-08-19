@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_DATA_SOURCE_H
-#define TABLE_DATA_SOURCE_H
+#ifndef ASKAP_ACCESSORS_TABLE_DATA_SOURCE_H
+#define ASKAP_ACCESSORS_TABLE_DATA_SOURCE_H
 
 #include <dataaccess/TableConstDataSource.h>
 #include <dataaccess/IDataSource.h>

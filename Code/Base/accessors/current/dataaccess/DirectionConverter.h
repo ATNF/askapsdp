@@ -31,8 +31,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef DIRECTION_CONVERTER_H
-#define DIRECTION_CONVERTER_H
+#ifndef ASKAP_ACCESSORS_DIRECTION_CONVERTER_H
+#define ASKAP_ACCESSORS_DIRECTION_CONVERTER_H
 
 // CASA includes
 #include <measures/Measures/MDirection.h>

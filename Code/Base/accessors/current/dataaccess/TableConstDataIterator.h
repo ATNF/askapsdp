@@ -31,8 +31,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_CONST_DATA_ITERATOR_H
-#define TABLE_CONST_DATA_ITERATOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_CONST_DATA_ITERATOR_H
+#define ASKAP_ACCESSORS_TABLE_CONST_DATA_ITERATOR_H
 
 // std includes
 #include <string>

@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_DATA_CONVERTER_IMPL_H
-#define I_DATA_CONVERTER_IMPL_H
+#ifndef ASKAP_ACCESSORS_I_DATA_CONVERTER_IMPL_H
+#define ASKAP_ACCESSORS_I_DATA_CONVERTER_IMPL_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

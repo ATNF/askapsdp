@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef ON_DEMAND_NOISE_AND_FLAG_DA_H
-#define ON_DEMAND_NOISE_AND_FLAG_DA_H
+#ifndef ASKAP_ACCESSORS_ON_DEMAND_NOISE_AND_FLAG_DA_H
+#define ASKAP_ACCESSORS_ON_DEMAND_NOISE_AND_FLAG_DA_H
 
 // own includes
 #include <dataaccess/MemBufferDataAccessor.h>

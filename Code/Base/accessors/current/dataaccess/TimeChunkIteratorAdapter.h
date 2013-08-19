@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TIME_CHUNK_ITERATOR_ADAPTER_H
-#define TIME_CHUNK_ITERATOR_ADAPTER_H
+#ifndef ASKAP_ACCESSORS_TIME_CHUNK_ITERATOR_ADAPTER_H
+#define ASKAP_ACCESSORS_TIME_CHUNK_ITERATOR_ADAPTER_H
 
 #include <dataaccess/DataIteratorAdapter.h>
 #include <utils/ChangeMonitor.h>

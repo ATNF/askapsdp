@@ -34,8 +34,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef MEM_CAL_SOLUTION_ACCESSOR_H
-#define MEM_CAL_SOLUTION_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_MEM_CAL_SOLUTION_ACCESSOR_H
+#define ASKAP_ACCESSORS_MEM_CAL_SOLUTION_ACCESSOR_H
 
 // own includes
 #include <calibaccess/ICalSolutionAccessor.h>
@@ -193,5 +193,4 @@ private:
 
 } // namepspace askap
 
-#endif // #ifndef MEM_CAL_SOLUTION_ACCESSOR_H
-
+#endif

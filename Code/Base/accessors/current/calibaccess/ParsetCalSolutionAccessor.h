@@ -32,8 +32,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef PARSET_CAL_SOLUTION_ACCESSOR_H
-#define PARSET_CAL_SOLUTION_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_PARSET_CAL_SOLUTION_ACCESSOR_H
+#define ASKAP_ACCESSORS_PARSET_CAL_SOLUTION_ACCESSOR_H
 
 // own includes
 #include <calibaccess/CachedCalSolutionAccessor.h>
@@ -113,5 +113,4 @@ private:
 
 } // namespace askap
 
-#endif // #ifndef PARSET_CAL_SOLUTION_ACCESSOR_H
-
+#endif

@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_DATA_DESC_HOLDER_H
-#define I_TABLE_DATA_DESC_HOLDER_H
+#ifndef ASKAP_ACCESSORS_I_TABLE_DATA_DESC_HOLDER_H
+#define ASKAP_ACCESSORS_I_TABLE_DATA_DESC_HOLDER_H
 
 // std includes
 #include <vector>

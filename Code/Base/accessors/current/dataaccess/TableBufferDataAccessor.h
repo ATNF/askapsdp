@@ -30,8 +30,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_BUFFER_DATA_ACCESSOR_H
-#define TABLE_BUFFER_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_BUFFER_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_TABLE_BUFFER_DATA_ACCESSOR_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

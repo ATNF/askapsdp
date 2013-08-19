@@ -29,8 +29,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEM_TABLE_POLARISATION_HOLDER_H
-#define MEM_TABLE_POLARISATION_HOLDER_H
+#ifndef ASKAP_ACCESSORS_MEM_TABLE_POLARISATION_HOLDER_H
+#define ASKAP_ACCESSORS_MEM_TABLE_POLARISATION_HOLDER_H
 
 // casa includes
 #include <casa/Arrays/Vector.h>

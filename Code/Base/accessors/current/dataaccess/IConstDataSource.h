@@ -28,8 +28,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_CONST_DATA_SOURCE_H
-#define I_CONST_DATA_SOURCE_H
+#ifndef ASKAP_ACCESSORS_I_CONST_DATA_SOURCE_H
+#define ASKAP_ACCESSORS_I_CONST_DATA_SOURCE_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

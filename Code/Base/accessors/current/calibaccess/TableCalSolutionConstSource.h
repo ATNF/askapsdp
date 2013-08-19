@@ -30,8 +30,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef TABLE_CAL_SOLUTION_CONST_SOURCE_H
-#define TABLE_CAL_SOLUTION_CONST_SOURCE_H
+#ifndef ASKAP_ACCESSORS_TABLE_CAL_SOLUTION_CONST_SOURCE_H
+#define ASKAP_ACCESSORS_TABLE_CAL_SOLUTION_CONST_SOURCE_H
 
 // own includes
 #include <calibaccess/ICalSolutionConstSource.h>
@@ -111,8 +111,4 @@ public:
  
 } // namespace askap
 
-
-
-#endif // #ifndef TABLE_CAL_SOLUTION_CONST_SOURCE_H
-
-
+#endif

@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_FEED_SUBTABLE_HANDLER_H
-#define I_FEED_SUBTABLE_HANDLER_H
+#ifndef ASKAP_ACCESSORS_I_FEED_SUBTABLE_HANDLER_H
+#define ASKAP_ACCESSORS_I_FEED_SUBTABLE_HANDLER_H
 
 // casa includes
 #include <measures/Measures/MEpoch.h>

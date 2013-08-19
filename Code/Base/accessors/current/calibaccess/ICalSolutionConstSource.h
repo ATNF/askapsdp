@@ -28,8 +28,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef I_CAL_SOLUTION_CONST_SOURCE_H
-#define I_CAL_SOLUTION_CONST_SOURCE_H
+#ifndef ASKAP_ACCESSORS_I_CAL_SOLUTION_CONST_SOURCE_H
+#define ASKAP_ACCESSORS_I_CAL_SOLUTION_CONST_SOURCE_H
 
 #include <calibaccess/ICalSolutionConstAccessor.h>
 
@@ -82,5 +82,4 @@ struct ICalSolutionConstSource {
 
 } // namespace askap
 
-#endif // #ifndef I_CAL_SOLUTION_CONST_SOURCE_H
-
+#endif

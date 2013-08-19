@@ -30,8 +30,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_DATA_ACCESSOR_H
-#define TABLE_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_TABLE_DATA_ACCESSOR_H
 
 // casa includes
 #include <casa/Arrays/IPosition.h>

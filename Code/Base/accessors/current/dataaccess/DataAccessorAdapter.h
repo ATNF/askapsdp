@@ -33,8 +33,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef DATA_ACCESSOR_ADAPTER_H
-#define DATA_ACCESSOR_ADAPTER_H
+#ifndef ASKAP_ACCESSORS_DATA_ACCESSOR_ADAPTER_H
+#define ASKAP_ACCESSORS_DATA_ACCESSOR_ADAPTER_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

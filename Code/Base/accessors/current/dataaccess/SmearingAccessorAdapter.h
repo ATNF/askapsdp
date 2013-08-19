@@ -32,8 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef SMEARING_ACCESSOR_ADAPTER_H
-#define SMEARING_ACCESSOR_ADAPTER_H
+#ifndef ASKAP_ACCESSORS_SMEARING_ACCESSOR_ADAPTER_H
+#define ASKAP_ACCESSORS_SMEARING_ACCESSOR_ADAPTER_H
 
 // own includes
 #include <dataaccess/OnDemandNoiseAndFlagDA.h>

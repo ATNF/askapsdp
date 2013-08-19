@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_MANAGER_H
-#define I_TABLE_MANAGER_H
+#ifndef ASKAP_ACCESSORS_I_TABLE_MANAGER_H
+#define ASKAP_ACCESSORS_I_TABLE_MANAGER_H
 
 // own includes
 #include <dataaccess/ISubtableInfoHolder.h>

@@ -31,8 +31,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_HOLDER_H
-#define I_HOLDER_H
+#ifndef ASKAP_ACCESSORS_I_HOLDER_H
+#define ASKAP_ACCESSORS_I_HOLDER_H
 
 
 namespace askap {

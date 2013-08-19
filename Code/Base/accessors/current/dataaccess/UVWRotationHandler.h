@@ -31,8 +31,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef UVW_ROTATION_HANDLER_H
-#define UVW_ROTATION_HANDLER_H
+#ifndef ASKAP_ACCESSORS_UVW_ROTATION_HANDLER_H
+#define ASKAP_ACCESSORS_UVW_ROTATION_HANDLER_H
 
 #include <dataaccess/UVWMachineCache.h>
 #include <dataaccess/IConstDataAccessor.h>

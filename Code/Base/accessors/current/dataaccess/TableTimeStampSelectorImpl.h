@@ -28,8 +28,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_TIME_STAMP_SELECTOR_IMPL_H
-#define TABLE_TIME_STAMP_SELECTOR_IMPL_H
+#ifndef ASKAP_ACCESSORS_TABLE_TIME_STAMP_SELECTOR_IMPL_H
+#define ASKAP_ACCESSORS_TABLE_TIME_STAMP_SELECTOR_IMPL_H
 
 // casa includes
 #include <tables/Tables/Table.h>

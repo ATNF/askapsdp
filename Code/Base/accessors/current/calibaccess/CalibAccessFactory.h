@@ -32,8 +32,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-#ifndef CALIB_ACCESS_FACTORY_H
-#define CALIB_ACCESS_FACTORY_H
+#ifndef ASKAP_ACCESSORS_CALIB_ACCESS_FACTORY_H
+#define ASKAP_ACCESSORS_CALIB_ACCESS_FACTORY_H
 
 #include <calibaccess/ICalSolutionConstSource.h>
 #include <calibaccess/ICalSolutionSource.h>
@@ -94,4 +94,4 @@ protected:
 
 } // namespace askap
 
-#endif // #ifndef CALIB_ACCESS_FACTORY_H
+#endif

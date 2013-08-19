@@ -34,8 +34,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_DATA_ADAPTER_H
-#define I_DATA_ADAPTER_H
+#ifndef ASKAP_ACCESSORS_I_DATA_ADAPTER_H
+#define ASKAP_ACCESSORS_I_DATA_ADAPTER_H
 
 #include <casa/Arrays/Cube.h>
 #include <string>

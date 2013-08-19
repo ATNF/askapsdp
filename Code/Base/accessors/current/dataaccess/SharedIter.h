@@ -31,8 +31,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_SHARED_ITER_H
-#define I_SHARED_ITER_H
+#ifndef ASKAP_ACCESSORS_I_SHARED_ITER_H
+#define ASKAP_ACCESSORS_I_SHARED_ITER_H
 
 // std includes
 #include <string>

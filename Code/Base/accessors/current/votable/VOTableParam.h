@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
-#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
+#ifndef ASKAP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
+#define ASKAP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
 
 // System includes
 #include <string>

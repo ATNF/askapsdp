@@ -34,8 +34,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_HOLDER_H
-#define TABLE_HOLDER_H
+#ifndef ASKAP_ACCESSORS_TABLE_HOLDER_H
+#define ASKAP_ACCESSORS_TABLE_HOLDER_H
 
 // own includes
 #include <dataaccess/ITableHolder.h>

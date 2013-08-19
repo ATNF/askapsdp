@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_INFO_ACCESSOR_H
-#define TABLE_INFO_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_TABLE_INFO_ACCESSOR_H
+#define ASKAP_ACCESSORS_TABLE_INFO_ACCESSOR_H
 
 // casa includes
 #include <tables/Tables/Table.h>

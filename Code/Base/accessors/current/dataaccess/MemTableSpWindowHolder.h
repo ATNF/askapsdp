@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEM_TABLE_SP_WINDOW_HOLDER_H
-#define MEM_TABLE_SP_WINDOW_HOLDER_H
+#ifndef ASKAP_ACCESSORS_MEM_TABLE_SP_WINDOW_HOLDER_H
+#define ASKAP_ACCESSORS_MEM_TABLE_SP_WINDOW_HOLDER_H
 
 // casa includes
 #include <measures/Measures/MFrequency.h>

@@ -25,8 +25,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef DATA_ACCESSOR_STUB_H
-#define DATA_ACCESSOR_STUB_H
+#ifndef ASKAP_ACCESSORS_DATA_ACCESSOR_STUB_H
+#define ASKAP_ACCESSORS_DATA_ACCESSOR_STUB_H
 
 #include <dataaccess/IFlagDataAccessor.h>
 

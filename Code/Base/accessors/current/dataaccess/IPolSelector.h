@@ -28,8 +28,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_POL_SELECTOR_H
-#define I_POL_SELECTOR_H
+#ifndef ASKAP_ACCESSORS_I_POL_SELECTOR_H
+#define ASKAP_ACCESSORS_I_POL_SELECTOR_H
 
 namespace askap {
 

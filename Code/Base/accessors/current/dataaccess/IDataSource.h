@@ -33,8 +33,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_DATA_SOURCE_H
-#define I_DATA_SOURCE_H
+#ifndef ASKAP_ACCESSORS_I_DATA_SOURCE_H
+#define ASKAP_ACCESSORS_I_DATA_SOURCE_H
 
 // own includes
 #include <dataaccess/IConstDataSource.h>

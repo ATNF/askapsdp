@@ -33,8 +33,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_FLAG_DATA_ACCESSOR_H
-#define I_FLAG_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_I_FLAG_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_I_FLAG_DATA_ACCESSOR_H
 
 #include <dataaccess/IDataAccessor.h>
 

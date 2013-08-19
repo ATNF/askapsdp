@@ -36,8 +36,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_DATA_ITERATOR_H
-#define I_DATA_ITERATOR_H
+#ifndef ASKAP_ACCESSORS_I_DATA_ITERATOR_H
+#define ASKAP_ACCESSORS_I_DATA_ITERATOR_H
 
 #include <string>
 

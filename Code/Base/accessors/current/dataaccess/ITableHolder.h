@@ -34,8 +34,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_HOLDER_H
-#define I_TABLE_HOLDER_H
+#ifndef ASKAP_ACCESSORS_I_TABLE_HOLDER_H
+#define ASKAP_ACCESSORS_I_TABLE_HOLDER_H
 
 // casa includes
 #include <tables/Tables/Table.h>

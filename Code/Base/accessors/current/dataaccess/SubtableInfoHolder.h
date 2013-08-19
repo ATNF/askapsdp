@@ -37,8 +37,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef SUBTABLE_INFO_HOLDER_H
-#define SUBTABLE_INFO_HOLDER_H
+#ifndef ASKAP_ACCESSORS_SUBTABLE_INFO_HOLDER_H
+#define ASKAP_ACCESSORS_SUBTABLE_INFO_HOLDER_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

@@ -34,8 +34,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TIME_DEPENDENT_SUBTABLE_H
-#define TIME_DEPENDENT_SUBTABLE_H
+#ifndef ASKAP_ACCESSORS_TIME_DEPENDENT_SUBTABLE_H
+#define ASKAP_ACCESSORS_TIME_DEPENDENT_SUBTABLE_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>

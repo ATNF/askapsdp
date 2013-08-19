@@ -1,4 +1,4 @@
-/// @file
+/// @file BeamLogger.h
 ///
 /// Class to log the restoring beams of individual channels of a spectral cube
 ///
@@ -26,66 +26,66 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef BEAM_LOGGER_H
-#define BEAM_LOGGER_H
+#ifndef ASKAP_ACCESSORS_BEAM_LOGGER_H
+#define ASKAP_ACCESSORS_BEAM_LOGGER_H
 
-#include <casa/Arrays/Vector.h>
-#include <casa/Quanta/Quantum.h>
-#include <Common/ParameterSet.h>
+// System includes
 #include <string>
 #include <vector>
 
+// ASKAPsoft includes
+#include <casa/Arrays/Vector.h>
+#include <casa/Quanta/Quantum.h>
+#include <Common/ParameterSet.h>
+
 namespace askap {
-    
-    namespace accessors {
-	
-	/// @brief Class to handle writing & reading of channel-level
-	/// beam information for a spectral cube.  
-	/// @details This class wraps up the functionality required to
-	/// create and access the beam log files. These files are
-	/// created by the makecube application to record the
-	/// restoring beam of the individual channel images that are
-	/// combined to form the spectral cube. The class also
-	/// provides the ability to straightforwardly read the beam
-	/// log to extract the channel-level beam information.
+namespace accessors {
 
-	class BeamLogger
-	{
-	public:
-	    BeamLogger();
-	    BeamLogger(const LOFAR::ParameterSet &parset);
-	    BeamLogger(const std::string &filename);
-	    BeamLogger(const BeamLogger& other);
-	    BeamLogger& operator= (const BeamLogger& other);
-	    virtual ~BeamLogger(){};
+/// @brief Class to handle writing & reading of channel-level
+/// beam information for a spectral cube.
+/// @details This class wraps up the functionality required to
+/// create and access the beam log files. These files are
+/// created by the makecube application to record the
+/// restoring beam of the individual channel images that are
+/// combined to form the spectral cube. The class also
+/// provides the ability to straightforwardly read the beam
+/// log to extract the channel-level beam information.
 
-	    /// Set the name of the beam log file
-	    void setFilename(std::string filename){itsFilename=filename;};
+class BeamLogger {
+    public:
+        BeamLogger();
+        BeamLogger(const LOFAR::ParameterSet &parset);
+        BeamLogger(const std::string &filename);
+        BeamLogger(const BeamLogger& other);
+        BeamLogger& operator= (const BeamLogger& other);
+        virtual ~BeamLogger() {};
 
-	    /// @brief Extract the beam information for each channel image
-	    void extractBeams(std::vector<std::string> imageList);
+        /// Set the name of the beam log file
+        void setFilename(const std::string& filename) {itsFilename = filename;};
 
-	    /// @brief Write the beam information to the beam log
-	    void write();
+        /// @brief Extract the beam information for each channel image
+        void extractBeams(const std::vector<std::string>& imageList);
 
-	    /// @brief Read the beam information from a beam log
-	    void read();
+        /// @brief Write the beam information to the beam log
+        void write();
 
-	    /// Return the beam information
-	    std::vector< casa::Vector<casa::Quantum<double> > > beamlist(){return itsBeamList;};
+        /// @brief Read the beam information from a beam log
+        void read();
 
-	    /// Return the list of channel images
-	    std::vector<std::string> imageList(){return itsImageList;};
+        /// Return the beam information
+        std::vector< casa::Vector<casa::Quantum<double> > > beamlist() const {return itsBeamList;};
 
-	protected:
-	    std::string itsFilename;
-	    std::vector<std::string> itsImageList;
-	    std::vector< casa::Vector<casa::Quantum<double> > > itsBeamList;
-	    
-	};
+        /// Return the list of channel images
+        std::vector<std::string> imageList() const {return itsImageList;};
 
-    }
+    protected:
+        std::string itsFilename;
+        std::vector<std::string> itsImageList;
+        std::vector< casa::Vector<casa::Quantum<double> > > itsBeamList;
+
+};
 
 }
+}
 
-#endif   // #ifndef BEAM_LOGGER_H
+#endif

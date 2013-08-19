@@ -29,8 +29,8 @@
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
 
-#ifndef I_CAL_SOLUTION_SOURCE_H
-#define I_CAL_SOLUTION_SOURCE_H
+#ifndef ASKAP_ACCESSORS_I_CAL_SOLUTION_SOURCE_H
+#define ASKAP_ACCESSORS_I_CAL_SOLUTION_SOURCE_H
 
 // own includes
 #include <calibaccess/ICalSolutionConstSource.h>
@@ -77,5 +77,4 @@ struct ICalSolutionSource : virtual public ICalSolutionConstSource {
 
 } // namespace accessors 
 
-#endif // #ifndef I_CAL_SOLUTION_SOURCE_H
-
+#endif

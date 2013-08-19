@@ -28,8 +28,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEM_TABLE_DATA_DESC_HOLDER_H
-#define MEM_TABLE_DATA_DESC_HOLDER_H
+#ifndef ASKAP_ACCESSORS_MEM_TABLE_DATA_DESC_HOLDER_H
+#define ASKAP_ACCESSORS_MEM_TABLE_DATA_DESC_HOLDER_H
 
 // std includes
 #include <utility>

@@ -30,8 +30,8 @@
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 /// Based on the original version of this interface by Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef I_CAL_SOLUTION_CONST_ACCESSOR_H
-#define I_CAL_SOLUTION_CONST_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_I_CAL_SOLUTION_CONST_ACCESSOR_H
+#define ASKAP_ACCESSORS_I_CAL_SOLUTION_CONST_ACCESSOR_H
 
 // casa includes
 #include <casa/aipstype.h>
@@ -151,5 +151,4 @@ struct ICalSolutionConstAccessor {
 } // namespace accessors
 } // namespace askap
 
-#endif // #ifndef I_CAL_SOLUTION_CONST_ACCESSOR_H
-
+#endif

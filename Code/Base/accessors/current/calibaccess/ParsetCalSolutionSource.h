@@ -30,9 +30,8 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-
-#ifndef PARSET_CAL_SOLUTION_SOURCE_H
-#define PARSET_CAL_SOLUTION_SOURCE_H
+#ifndef ASKAP_ACCESSORS_PARSET_CAL_SOLUTION_SOURCE_H
+#define ASKAP_ACCESSORS_PARSET_CAL_SOLUTION_SOURCE_H
 
 #include <calibaccess/ICalSolutionSource.h>
 #include <calibaccess/ParsetCalSolutionAccessor.h>
@@ -67,7 +66,4 @@ struct ParsetCalSolutionSource : public CalSolutionSourceStub {
 
 } // namespace askap
 
-
-#endif // #ifndef PARSET_CAL_SOLUTION_SOURCE_H
-
-
+#endif

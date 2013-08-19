@@ -30,8 +30,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef EPOCH_CONVERTER_H
-#define EPOCH_CONVERTER_H
+#ifndef ASKAP_ACCESSORS_EPOCH_CONVERTER_H
+#define ASKAP_ACCESSORS_EPOCH_CONVERTER_H
 
 // CASA includes
 #include <measures/Measures/MEpoch.h>

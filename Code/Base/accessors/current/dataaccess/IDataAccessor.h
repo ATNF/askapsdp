@@ -32,8 +32,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_DATA_ACCESSOR_H
-#define I_DATA_ACCESSOR_H
+#ifndef ASKAP_ACCESSORS_I_DATA_ACCESSOR_H
+#define ASKAP_ACCESSORS_I_DATA_ACCESSOR_H
 
 #include <dataaccess/IConstDataAccessor.h>
 
