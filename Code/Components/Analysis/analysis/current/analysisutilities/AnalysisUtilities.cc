@@ -183,6 +183,7 @@ namespace askap {
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
 	    par.setSubsection(parset.getString("subsection", ""));
 	    if(!par.getFlagSubsection()) par.setSubsection("");
+	    // par.setFlaggedChannels(parset.getString("flaggedChannels",""));
 	    checkUnusedParameter(parset,"flagReconExists");
 	    checkUnusedParameter(parset,"reconFile");
 	    checkUnusedParameter(parset,"flagSmoothExists");

@@ -1694,7 +1694,7 @@ namespace askap {
       void DuchampParallel::extractSpectra()
       {
 
-	if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra){
+	  if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra || this->itsParset.getBool("extractMomentMap")){
 
 	  if(this->itsComms.isMaster()) {
 	    if(this->itsComms.isParallel()){

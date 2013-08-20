@@ -176,7 +176,7 @@ namespace askap {
       shift(lngAxis)=this->itsXloc;
       shift(latAxis)=this->itsYloc;
       casa::Vector<Int> newshape=outshape.asVector();
-      newcoo.subImage(shift,incrFrac,newshape);
+      newcoo.subImageInSitu(shift,incrFrac,newshape);
 
       Array<Float> newarray(this->itsArray.reform(outshape));
 

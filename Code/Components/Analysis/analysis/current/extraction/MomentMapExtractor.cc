@@ -115,6 +115,7 @@ namespace askap {
 	    else ASKAPTHROW(AskapError,"Incorrect value for method ('"<<this->itsSpatialMethod<<"') in cube cutout");
 
 	    this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
+	    ASKAPLOG_DEBUG_STR(logger, "Defined slicer for moment map extraction as : " << this->itsSlicer);
 	    this->initialiseArray();
 
 	}
@@ -136,7 +137,7 @@ namespace askap {
 	    this->defineSlicer();
 	    this->openInput();
 	    
-	    ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
+	    ASKAPLOG_INFO_STR(logger, "Extracting moment map from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 	    
 	    const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
 	    ASKAPASSERT(sub->size()>0);
@@ -145,13 +146,19 @@ namespace askap {
 	    subarray = msub;
 
 	    casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-	    double specIncr = spcoo.increment()[0];
+	    // double specIncr = fabs(spcoo.increment()[0]);
+	    // ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
+	    double vel1,vel2;
+	    spcoo.pixelToVelocity(vel1,0);
+	    spcoo.pixelToVelocity(vel2,1);
+	    double specIncr = fabs(vel1-vel2);
+	    ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
 
-	    casa::IPosition loc(4,0);
+	    casa::IPosition outloc(4,0),inloc(4,0);
 	    for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
-		loc(this->itsLatAxis)=y;
+		outloc(this->itsLatAxis)=inloc(this->itsLatAxis)=y-this->itsSlicer.start()(this->itsLatAxis);
 		for(int x=this->itsSlicer.start()(this->itsLngAxis);x<=this->itsSlicer.end()(this->itsLngAxis);x++){
-		    loc(this->itsLngAxis)=x;
+		    outloc(this->itsLngAxis)=inloc(this->itsLngAxis)=x-this->itsSlicer.start()(this->itsLngAxis);
 		    // for each pixel in the moment map...
 		    
 		    int zmin,zmax;
@@ -165,10 +172,13 @@ namespace askap {
 		    }
 
 		    for(int z=zmin;z<=zmax;z++){
-			loc(this->itsSpcAxis)=z;
-			this->itsArray(loc) += subarray(loc);
+			if(this->itsSource->isInObject(x,y,z)){
+			    inloc(this->itsSpcAxis)=z-this->itsSlicer.start()(this->itsSpcAxis);
+			    this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
+			    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << z << " yes " << outloc << " " << inloc << " "<< this->itsArray(outloc));
+			}
 		    }
-		    this->itsArray(loc) *= specIncr;
+		    this->itsArray(outloc) *= specIncr;
 
 		}
 	    }
@@ -204,11 +214,16 @@ namespace askap {
 	    outshape(lngAxis)=this->itsSlicer.length()(this->itsLngAxis);
 	    outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
 	    outshape(stkAxis)=stkvec.size();
-	    casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
-	    shift(lngAxis)=this->itsXloc;
-	    shift(latAxis)=this->itsYloc;
+	    casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
+	    shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;//this->itsXloc-outshape(lngAxis)/2;
+	    shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;//this->itsYloc-outshape(latAxis)/2;
 	    casa::Vector<Int> newshape=outshape.asVector();
-	    newcoo.subImage(shift,incrFrac,newshape);
+
+	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
+	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
+	    newcoo.subImageInSitu(shift,incrFac,newshape);
+	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
+	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
 
 	    Array<Float> newarray(this->itsArray.reform(outshape));
 
@@ -218,7 +233,9 @@ namespace askap {
       
 	    // write the array
 	    ia.write(this->itsOutputFilename,newarray);
-	    ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
+
+	    std::string newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.velocityUnit();
+	    ia.setUnits(this->itsOutputFilename, newunits);
 
 	    this->closeInput();
 
