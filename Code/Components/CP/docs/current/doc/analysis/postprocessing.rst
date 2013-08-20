@@ -34,7 +34,9 @@ Note that the flux etc that is calculated for the object after the mask optimisa
 
 The result of the mask optimisation does depend somewhat on what is done in the source-detection prior to its use. Using the growing method of Duchamp (**flagGrowth=true** and **growthCut** or **growthThreshold**) allows a good initial estimate of both the spectral range and the ellipse fitted to the moment-0 map. The optimised mask still tends to be larger than that from Duchamp-growing alone (at least from the limited testing done so far).
 
-To aid evaluation of this algorithm, the mask FITS output of Duchamp has been enabled in Selavy, although *only for the serial case*. If running a multiple-node job, the mask will not be written. When written, the mask will be called *selavy-MASK-IMG.fits*, where the IMG refers to the input image. There are also capacity constraints in running this on the Selavy service (to prevent, say, 30GB mask cubes being created repeatedly). Refer to the [[Wiki_sup_wg_2_sourcefinding_service|Selavy page]] for details.
+To aid evaluation of this algorithm, the mask FITS output of Duchamp has been enabled in Selavy, although *only for the serial case*. If running a multiple-node job, the mask will not be written. When written, the mask will be called *selavy-MASK-IMG.fits*, where the IMG refers to the input image. There are also capacity constraints in running this on the Selavy service (to prevent, say, 30GB mask cubes being created repeatedly). Refer to the `Selavy page`_ for details.
+
+ .. _`Selavy page`: https://pm.atnf.csiro.au/askap/projects/sup/wiki/Wiki_sup_wg_2_sourcefinding_service
 
 Mask optimisation parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
