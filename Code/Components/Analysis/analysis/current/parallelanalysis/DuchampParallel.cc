@@ -1695,7 +1695,7 @@ namespace askap {
 	void DuchampParallel::extractSpectra()
 	{
 
-	    if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra || this->itsParset.getBool("extractMomentMap") || this->itsParset.getBool("extractCubelet")){
+	    if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra || this->itsParset.getBool("extractMomentMap",false) || this->itsParset.getBool("extractCubelet",false)){
 
 		if(this->itsComms.isMaster()) {
 		    if(this->itsComms.isParallel()){
@@ -1790,7 +1790,7 @@ namespace askap {
 			}
 		    }
 
-		    if(this->itsParset.getBool("extractMomentMap")){
+		    if(this->itsParset.getBool("extractMomentMap",false)){
 			std::vector<sourcefitting::RadioSource>::iterator src;
 			std::vector<bool>::iterator choice=objectChoice.begin();
 			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractMomentMap.");
@@ -1805,7 +1805,7 @@ namespace askap {
 			}
 		    }
 		
-		    if(this->itsParset.getBool("extractCubelet")){
+		    if(this->itsParset.getBool("extractCubelet",false)){
 			std::vector<sourcefitting::RadioSource>::iterator src;
 			std::vector<bool>::iterator choice=objectChoice.begin();
 			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractCubelet.");
