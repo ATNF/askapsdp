@@ -26,7 +26,7 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#include <extraction/MomentMapExtractor.h>
+#include <extraction/CubeletExtractor.h>
 #include <askap_analysis.h>
 #include <extraction/SourceDataExtractor.h>
 
@@ -52,8 +52,6 @@
 #include <coordinates/Coordinates/StokesCoordinate.h>
 #include <measures/Measures/Stokes.h>
 
-#include <duchamp/PixelMap/Voxel.hh>
-
 #include <Common/ParameterSet.h>
 
 using namespace askap::analysis::sourcefitting;
@@ -66,36 +64,37 @@ namespace askap {
 
     namespace analysis { 
 
-	MomentMapExtractor::MomentMapExtractor(const LOFAR::ParameterSet& parset):
+	CubeletExtractor::CubeletExtractor(const LOFAR::ParameterSet& parset):
 	    SourceDataExtractor(parset)
 	{
-	    this->itsSpatialMethod = parset.getString("SpatialMethod","box");
-	    if(this->itsSpatialMethod != "fullfield" && this->itsSpatialMethod != "box"){
-		ASKAPLOG_WARN_STR(logger, "The value of SpatialMethod='"<<this->itsSpatialMethod<<"' is not recognised - setting SpatialMethod='box'");
-		this->itsSpatialMethod="box";
-	    }
+	    std::vector<unsigned int> padsizes = parset.getUintVector("padsize",std::vector<unsigned int>(2,5));
+	    if(padsizes.size()>2) ASKAPLOG_WARN_STR(logger, "Only using the first two elements of the padsize vector");
+	    this->itsSpatialPad = padsizes[0];
+	    if(padsizes.size()>1) 
+		this->itsSpectralPad = padsizes[1];
+	    else
+		this->itsSpectralPad = padsizes[0];	    
 
-	    this->itsPadSize = parset.getUint("padsize",5);
+	    this->itsOutputFilenameBase = parset.getString("cubeletOutputBase","");
 
-	    this->itsOutputFilenameBase = parset.getString("momentOutputBase","");
 
 	}
 	
-	MomentMapExtractor::MomentMapExtractor(const MomentMapExtractor& other)
+	CubeletExtractor::CubeletExtractor(const CubeletExtractor& other)
 	{
 	    this->operator=(other);
 	}
 
-	MomentMapExtractor& MomentMapExtractor::operator= (const MomentMapExtractor& other)
+	CubeletExtractor& CubeletExtractor::operator= (const CubeletExtractor& other)
 	{
 	    if(this == &other) return *this;
 	    ((SourceDataExtractor &) *this) = other;
-	    this->itsSpatialMethod = other.itsSpatialMethod;
-	    this->itsPadSize = other.itsPadSize;
+	    this->itsSpatialPad = other.itsSpatialPad;
+	    this->itsSpectralPad = other.itsSpectralPad;
 	    return *this;
 	}
 	
-	void MomentMapExtractor::defineSlicer()
+	void CubeletExtractor::defineSlicer()
 	{
 
 	    this->openInput();
@@ -103,107 +102,58 @@ namespace askap {
 	    casa::IPosition blc(shape.size(),0);
 	    casa::IPosition trc=shape-1;
 
-	    if(this->itsSpatialMethod == "box") {
-		long zero=0;
-		blc(this->itsLngAxis) = std::max(zero, this->itsSource->getXmin()-this->itsPadSize);
-		blc(this->itsLatAxis) = std::max(zero, this->itsSource->getYmin()-this->itsPadSize);
-		trc(this->itsLngAxis) = std::min(shape(this->itsLngAxis)-1, this->itsSource->getXmax()+this->itsPadSize);
-		trc(this->itsLatAxis) = std::min(shape(this->itsLatAxis)-1, this->itsSource->getYmax()+this->itsPadSize);
-		/// @todo Not yet dealing with Stokes axis properly.
-	    }
-	    else if(this->itsSpatialMethod == "fullfield") {
-		// Don't need to do anything here, as we use the Slicer based on the full image shape.
-	    }
-	    else ASKAPTHROW(AskapError,"Incorrect value for method ('"<<this->itsSpatialMethod<<"') in cube cutout");
+	    long zero=0;
+	    blc(this->itsLngAxis) = std::max(zero, this->itsSource->getXmin()-this->itsSpatialPad);
+	    blc(this->itsLatAxis) = std::max(zero, this->itsSource->getYmin()-this->itsSpatialPad);
+	    blc(this->itsSpcAxis) = std::max(zero, this->itsSource->getZmin()-this->itsSpectralPad);
+
+	    trc(this->itsLngAxis) = std::min(shape(this->itsLngAxis)-1, this->itsSource->getXmax()+this->itsSpatialPad);
+	    trc(this->itsLatAxis) = std::min(shape(this->itsLatAxis)-1, this->itsSource->getYmax()+this->itsSpatialPad);
+	    trc(this->itsSpcAxis) = std::min(shape(this->itsSpcAxis)-1, this->itsSource->getZmax()+this->itsSpectralPad);
+	    /// @todo Not yet dealing with Stokes axis properly.
 
 	    this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
-	    ASKAPLOG_DEBUG_STR(logger, "Defined slicer for moment map extraction as : " << this->itsSlicer);
 	    this->initialiseArray();
 
 	}
 
-	void MomentMapExtractor::initialiseArray()
+	void CubeletExtractor::initialiseArray()
 	{
 	    this->openInput();
 	    int lngsize = this->itsSlicer.length()(this->itsLngAxis);
 	    int latsize = this->itsSlicer.length()(this->itsLatAxis);
-	    casa::IPosition shape(4,lngsize,latsize,1,1);
-	    ASKAPLOG_DEBUG_STR(logger, "Moment map extraction: Initialising array to zero with shape " << shape);
+	    int spcsize = this->itsSlicer.length()(this->itsSpcAxis);
+	    casa::IPosition shape(this->itsInputCubePtr->shape().size(),1);
+	    shape(this->itsLngAxis)=lngsize;
+	    shape(this->itsLatAxis)=latsize;
+	    shape(this->itsSpcAxis)=spcsize;
+	    ASKAPLOG_DEBUG_STR(logger, "Cubelet extraction: Initialising array to zero with shape " << shape);
 	    this->itsArray = casa::Array<Float>(shape,0.0);
 	    this->closeInput();
 	}
 
 
-	void MomentMapExtractor::extract()
+	void CubeletExtractor::extract()
 	{
 	    this->defineSlicer();
 	    this->openInput();
 	    
-	    ASKAPLOG_INFO_STR(logger, "Extracting moment map from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
+	    ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 	    
 	    const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
 	    ASKAPASSERT(sub->size()>0);
 	    const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-	    casa::Array<Float> subarray(sub->shape());
-	    subarray = msub;
-
-	    casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-	    // double specIncr = fabs(spcoo.increment()[0]);
-	    // ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
-	    double vel1,vel2;
-	    spcoo.pixelToVelocity(vel1,0);
-	    spcoo.pixelToVelocity(vel2,1);
-	    double specIncr = fabs(vel1-vel2);
-	    ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
-
-	    casa::IPosition outloc(4,0),inloc(4,0);
-	    casa::IPosition start=this->itsSlicer.start();
-	    std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
-	    std::vector<PixelInfo::Voxel>::iterator vox;
-	    for(vox=voxlist.begin();vox!=voxlist.end();vox++){
-		outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
-		outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
-		inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
-		this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
-	    }
-	    this->itsArray(outloc) *= specIncr;
-
-	    // for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
-	    // 	outloc(this->itsLatAxis)=inloc(this->itsLatAxis)=y-this->itsSlicer.start()(this->itsLatAxis);
-	    // 	for(int x=this->itsSlicer.start()(this->itsLngAxis);x<=this->itsSlicer.end()(this->itsLngAxis);x++){
-	    // 	    outloc(this->itsLngAxis)=inloc(this->itsLngAxis)=x-this->itsSlicer.start()(this->itsLngAxis);
-	    // 	    // for each pixel in the moment map...
-		    
-	    // 	    int zmin,zmax;
-	    // 	    if(this->itsSpatialMethod=="box"){
-	    // 		zmin = this->itsSource->getZmin();
-	    // 		zmax = this->itsSource->getZmax();
-	    // 	    }
-	    // 	    else{
-	    // 		zmin = this->itsSlicer.start()(this->itsSpcAxis);
-	    // 		zmax = this->itsSlicer.end()(this->itsSpcAxis);
-	    // 	    }
-
-	    // 	    for(int z=zmin;z<=zmax;z++){
-	    // 		if(this->itsSource->isInObject(x,y,z)){
-	    // 		    inloc(this->itsSpcAxis)=z-this->itsSlicer.start()(this->itsSpcAxis);
-	    // 		    this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
-	    // 		    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << z << " yes " << outloc << " " << inloc << " "<< this->itsArray(outloc));
-	    // 		}
-	    // 	    }
-	    // 	    this->itsArray(outloc) *= specIncr;
-
-	    // 	}
-	    // }
+	    ASKAPASSERT(this->itsArray.size() == msub.size());
+	    this->itsArray = msub;
 
 	    delete sub;
 	    
 	    this->closeInput();
 	}
 
-	void MomentMapExtractor::writeImage()
+	void CubeletExtractor::writeImage()
 	{
-	    ASKAPLOG_INFO_STR(logger, "Writing moment map to " << this->itsOutputFilename);
+	    ASKAPLOG_INFO_STR(logger, "Writing cube cutout to " << this->itsOutputFilename);
 	    accessors::CasaImageAccess ia;
 
 	    this->itsInputCube = this->itsInputCubeList[0];
@@ -222,14 +172,17 @@ namespace askap {
 	    // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
 	    int lngAxis=newcoo.directionAxesNumbers()[0];
 	    int latAxis=newcoo.directionAxesNumbers()[1];
+	    int spcAxis=newcoo.spectralAxisNumber();
 	    int stkAxis=newcoo.polarizationAxisNumber();
 	    casa::IPosition outshape(4,1);
 	    outshape(lngAxis)=this->itsSlicer.length()(this->itsLngAxis);
 	    outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
+	    outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
 	    outshape(stkAxis)=stkvec.size();
 	    casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
-	    shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;//this->itsXloc-outshape(lngAxis)/2;
-	    shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;//this->itsYloc-outshape(latAxis)/2;
+	    shift(lngAxis)=this->itsSource->getXmin()-this->itsSpatialPad;
+	    shift(latAxis)=this->itsSource->getYmin()-this->itsSpatialPad;
+	    shift(spcAxis)=this->itsSource->getZmin()-this->itsSpectralPad;
 	    casa::Vector<Int> newshape=outshape.asVector();
 
 	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
@@ -252,6 +205,7 @@ namespace askap {
 
 	    this->closeInput();
 
+	    
 	}
 
     }
