@@ -184,13 +184,13 @@ namespace askap {
 		  start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
 		  end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
 		}
-		ASKAPLOG_DEBUG_STR(logger, "DefineBox: start = " << start << " end="<<end << " section="<<sec.getSection() 
-				   << ", sec.start: " << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(spectralAxis)
-				   << ", sec.end: " << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(spectralAxis)
-				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
-				     <<", mins: " <<this->getXmin() << " " << this->getYmin() << " " << this->getZmin()
-				     <<", maxs: " <<this->getXmax() << " " << this->getYmax() << " " << this->getZmax()
-				     <<", boxpadsize: " << fitParams.boxPadSize());
+		// ASKAPLOG_DEBUG_STR(logger, "DefineBox: start = " << start << " end="<<end << " section="<<sec.getSection() 
+		// 		   << ", sec.start: " << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(spectralAxis)
+		// 		   << ", sec.end: " << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(spectralAxis)
+		// 		     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
+		// 		     <<", mins: " <<this->getXmin() << " " << this->getYmin() << " " << this->getZmin()
+		// 		     <<", maxs: " <<this->getXmax() << " " << this->getYmax() << " " << this->getZmax()
+		// 		     <<", boxpadsize: " << fitParams.boxPadSize());
 		if(start>=end){
 		  ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox failing : sec="<<sec.getSection()
 				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
