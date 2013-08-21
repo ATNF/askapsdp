@@ -1361,7 +1361,7 @@ namespace askap {
 		}
 		else {
 //  		for(size_t o=0;o<this->itsCube.getNumObj();o++)
-//  		  calcObjectParamsFromCutout(this->itsCube.pObject(o),3,this->itsCube.pars().getImageFile(),this->itsCube.header());
+//  		  calcObjectParamsFromCutout(this->itsCube.pObject(o),3,this->itsCube.pars().getImageFile(),this->itsCube.header(),this->itsCube.pars());
 
 		  std::string fullSection = this->itsBaseSubsection;
 		  long xoff=this->itsCube.pars().getXOffset();

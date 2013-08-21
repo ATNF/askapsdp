@@ -686,7 +686,7 @@ namespace askap {
 
       }
 
-	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header)
+	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header, duchamp::Param &par)
 	{
 	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
 	    size_t lng=header.getWCS()->lng;
@@ -765,7 +765,7 @@ namespace askap {
 
 	    object->calcFluxes(fluxarray.data(),shape.data());
 	    object->findShape(fluxarray.data(),shape.data(),newhead);
-	    object->calcIntegFlux(fluxarray.data(),shape.data(),newhead);
+	    object->calcIntegFlux(fluxarray.data(),shape.data(),newhead,par);
 
 	    object->setXOffset(xmin);
 	    object->setYOffset(ymin);
