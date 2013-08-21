@@ -153,7 +153,6 @@ namespace askap {
 
       this->itsInputCube = this->itsInputCubeList[0];
       this->openInput();
-      IPosition inshape = this->itsInputCubePtr->shape();
       casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
       casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
       casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
@@ -170,7 +169,7 @@ namespace askap {
       int spcAxis=newcoo.spectralAxisNumber();
       int stkAxis=newcoo.polarizationAxisNumber();
       casa::IPosition outshape(4,1);
-      outshape(spcAxis)=inshape(this->itsSpcAxis);
+      outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
       outshape(stkAxis)=stkvec.size();
       casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
       shift(lngAxis)=this->itsXloc;

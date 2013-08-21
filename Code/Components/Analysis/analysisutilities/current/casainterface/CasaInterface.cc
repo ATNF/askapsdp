@@ -84,10 +84,10 @@ namespace askap {
 
   namespace analysisutilities {
 
-     long *getDim(const ImageInterface<Float>* imagePtr)
+      size_t *getDim(const ImageInterface<Float>* imagePtr)
       {
 	IPosition shape = imagePtr->shape();
-	long *dim = new long[shape.size()];
+	size_t *dim = new size_t[shape.size()];
 
 	for (size_t i = 0; i < shape.size(); i++) {
 	  dim[i] = shape(i);

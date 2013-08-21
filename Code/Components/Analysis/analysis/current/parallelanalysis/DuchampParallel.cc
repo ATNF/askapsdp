@@ -2327,7 +2327,7 @@ namespace askap {
       //**************************************************************//
 
  	
-      void reportDim(long *dim, size_t size)
+      void reportDim(size_t *dim, size_t size)
       {
 
 	std::stringstream ss;
@@ -2393,7 +2393,7 @@ namespace askap {
 	      this->itsCube.pars().setFlagBlankPix(true);
 	  }
 
-	  long *dim = getDim(sub);
+	  size_t *dim = getDim(sub);
 // 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
 	  bool flag=this->itsCube.pars().getFlagATrous();
@@ -2435,7 +2435,7 @@ namespace askap {
 	this->itsSubimageDef.define(wcs);
 	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
 	this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
-	long *dim = getDim(imagePtr);
+	size_t *dim = getDim(imagePtr);
 	reportDim(dim,imagePtr->ndim());
 	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
 	
@@ -2491,7 +2491,7 @@ namespace askap {
 	/// @param imagePtr The image, already opened
 	/// @param typeOfData Either IMAGE or METADATA
 
-	long *dim = getDim(imagePtr);
+	size_t *dim = getDim(imagePtr);
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining WCS and putting into type \""<<this->itsCube.pars().getSpectralType()<<"\"");
 	this->itsCube.header().defineWCS(wcs,1,dim,this->itsCube.pars());

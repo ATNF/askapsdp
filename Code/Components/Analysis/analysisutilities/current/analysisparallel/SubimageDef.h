@@ -77,7 +77,9 @@ namespace askap {
                 /// @{
                 void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];};
                 void setImageDim(std::vector<long> dim) {itsFullImageDim = dim;};
+                void setImageDim(std::vector<size_t> dim) {itsFullImageDim = std::vector<long>(dim.size()); for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];};
 		void setImageDim(long *dim, size_t size) {itsFullImageDim = std::vector<long>(size); for (size_t i = 0; i < size; i++) itsFullImageDim[i] = dim[i];};
+		void setImageDim(size_t *dim, size_t size) {itsFullImageDim = std::vector<long>(size); for (size_t i = 0; i < size; i++) itsFullImageDim[i] = dim[i];};
                 std::vector<long> getImageDim() {return itsFullImageDim;};
                 ///@}
 
