@@ -704,10 +704,10 @@ namespace askap {
 				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()+det->getW50()); 
 		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmax=int(pix[2]);
+		    int zmax=std::min(int(this->itsCube.getDimZ()-1),int(pix[2]));
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()-det->getW50()); 
 		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmin=int(pix[2]);
+		    int zmin=std::max(0,int(pix[2]));
 		    grower.setMaxMinZ(zmax,zmin);
 		    ASKAPLOG_DEBUG_STR(logger, "Central pixel ("<<det->getXcentre() <<","<<det->getYcentre()<<","<<det->getZcentre()
 				       <<") with " << det->getSize() <<" pixels, filling z range " << zmin << " to " << zmax);
