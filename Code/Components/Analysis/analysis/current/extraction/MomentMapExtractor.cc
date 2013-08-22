@@ -247,8 +247,6 @@ namespace askap {
 
 		ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
 
-		/// @todo save the new units - if units were per beam, remove this factor
-      
 		// write the array
 		ia.write(this->itsOutputFilename,newarray);
 

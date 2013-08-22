@@ -132,10 +132,8 @@ namespace askap {
 	void ExtractionFactory::extract()
 	{
 
-	    if(this->itsObjectChoice.size() != this->itsSourceList.size()){
-		ASKAPLOG_ERROR_STR(logger, "Extraction - object choice and source list vectors do not match. No extraction performed.");
-	    }
-	    else{
+	    if(this->itsComms.isWorker()){
+
 
 		const unsigned int numTypes = 4;
 
@@ -175,7 +173,8 @@ namespace askap {
 
 	}
 
-
     }
 
+
 }
+

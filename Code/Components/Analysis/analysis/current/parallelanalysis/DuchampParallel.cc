@@ -1691,6 +1691,11 @@ namespace askap {
 	void DuchampParallel::extract()
 	{
 
+	    for(size_t i=0;i<this->itsSourceList.size();i++){
+		// make sure the boxes are defined for each of the sources prior to distribution
+		this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+	    }
+
 	    ExtractionFactory extractor(this->itsComms, this->itsParset);
 	    extractor.setParams(this->itsCube.pars());
 	    extractor.setSourceList(this->itsSourceList);
