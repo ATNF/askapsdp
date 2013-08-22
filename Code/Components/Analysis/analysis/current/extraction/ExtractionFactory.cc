@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #include <extraction/ExtractionFactory.h>
 #include <askap_analysis.h>
@@ -60,6 +60,10 @@ namespace askap {
 
     namespace analysis {
 
+	/// @details Constructor, setting the AskapParallel MPI
+	/// communications, and the parameter set. The pointer to the
+	/// duchamp params is set to zero, and the source list and
+	/// object choice list set to blank vectors.
 	ExtractionFactory::ExtractionFactory(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset):
 	    itsComms(comms), itsParset(parset)
 	{
@@ -68,6 +72,14 @@ namespace askap {
 	    this->itsObjectChoice = std::vector<bool>();
 	}
 
+	/// @details When run in parallel mode, the master node sends
+	/// the objects to the workers in a round-robin fashion,
+	/// thereby spreading the load. *The source list needs to be
+	/// set with setSourceList() prior to calling*. Each worker is
+	/// also sent the full size of the object list. The duchamp
+	/// params are used to initialise the objectChoice vector,
+	/// using the full size, so *the params need to be set with
+	/// setParams() prior to calling*.
 	void ExtractionFactory::distribute()
 	{
 	    
@@ -129,6 +141,15 @@ namespace askap {
 	    }
 	}
 
+
+	/// @details Runs the extraction for each of the different
+	/// types: Spectra, NoiseSpectra, MomentMap and Cubelet. For
+	/// each case, the parset is first read to test for the
+	/// boolean parameter extract<type>. If this is true (the
+	/// default is false, so it needs to be present), the relevant
+	/// extractor is initialised with the parset and run. This is
+	/// done for each source, assuming it is a valid choice given
+	/// the 'objectChoice' input parameter.
 	void ExtractionFactory::extract()
 	{
 

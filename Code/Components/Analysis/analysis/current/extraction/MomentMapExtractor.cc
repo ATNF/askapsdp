@@ -74,6 +74,7 @@ namespace askap {
 		ASKAPLOG_WARN_STR(logger, "The value of SpatialMethod='"<<this->itsSpatialMethod<<"' is not recognised - setting SpatialMethod='box'");
 		this->itsSpatialMethod="box";
 	    }
+	    this->itsFlagUseDetection = parset.getBool("useDetectedPixels",true);
 
 	    this->itsPadSize = parset.getUint("padsize",5);
 
@@ -161,13 +162,22 @@ namespace askap {
 		
 		casa::IPosition outloc(4,0),inloc(4,0);
 		casa::IPosition start=this->itsSlicer.start();
-		std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
-		std::vector<PixelInfo::Voxel>::iterator vox;
-		for(vox=voxlist.begin();vox!=voxlist.end();vox++){
-		    outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
-		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
-		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
-		    this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
+
+		if(this->itsFlagUseDetection){
+		    std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
+		    std::vector<PixelInfo::Voxel>::iterator vox;
+		    for(vox=voxlist.begin();vox!=voxlist.end();vox++){
+			outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
+			outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
+			inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
+			this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
+		    }
+		}
+		else{
+		    // just sum each spectrum over the slicer's range.
+		    casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+		    casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,2));
+		    this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
 		}
 		this->itsArray(outloc) *= specIncr;
 		
@@ -233,8 +243,8 @@ namespace askap {
 		outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
 		outshape(stkAxis)=stkvec.size();
 		casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
-		shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;//this->itsXloc-outshape(lngAxis)/2;
-		shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;//this->itsYloc-outshape(latAxis)/2;
+		shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;
+		shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;
 		casa::Vector<Int> newshape=outshape.asVector();
 
 		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());

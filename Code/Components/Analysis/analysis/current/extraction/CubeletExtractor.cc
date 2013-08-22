@@ -56,7 +56,7 @@
 
 using namespace askap::analysis::sourcefitting;
 
-ASKAP_LOGGER(logger, ".cubecutoutextractor");
+ASKAP_LOGGER(logger, ".cubeletextractor");
 
 
 

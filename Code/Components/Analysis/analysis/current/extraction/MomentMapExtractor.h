@@ -59,6 +59,9 @@ namespace askap {
 	    /// For the box method, how many pixels to pad around the source?
 	    unsigned int itsPadSize;
 
+	    /// Use just the detected pixels for the calculation?
+	    bool itsFlagUseDetection;
+
 	};
 
     }
