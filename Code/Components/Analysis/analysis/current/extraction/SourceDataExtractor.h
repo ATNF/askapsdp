@@ -82,7 +82,7 @@ namespace askap {
 	virtual void writeImage()=0;
 
       protected:
-	void openInput();
+	bool openInput();
 	void closeInput();
 	virtual void verifyInputs();
 	void getLocation();

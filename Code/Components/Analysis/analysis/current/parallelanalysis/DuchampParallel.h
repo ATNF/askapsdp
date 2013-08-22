@@ -170,8 +170,8 @@ namespace askap {
 		void fitRemaining();
 		void distributeVoxelList();
 
-		/// @brief Extract spectra from a cube for each detected object
-		void extractSpectra();
+		/// @brief Extract spectra/moment-maps/cubelets from a cube for each detected object
+		void extract();
 
                 /// @brief Calculate the object parameters on the workers
                 void calcObjectParams();

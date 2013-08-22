@@ -91,7 +91,7 @@ public:
       duchamp.receiveObjects();
       duchamp.cleanup();      
       ASKAPLOG_INFO_STR(logger, "Extracting requested spectra");
-      duchamp.extractSpectra();
+      duchamp.extract();
 	    
       stats.logSummary();
       ///==============================================================================

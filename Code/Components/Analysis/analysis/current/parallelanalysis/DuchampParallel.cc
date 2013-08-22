@@ -72,11 +72,7 @@ using namespace LOFAR::TYPES;
 #include <parallelanalysis/DuchampParallel.h>
 #include <parallelanalysis/Weighter.h>
 #include <preprocessing/VariableThresholder.h>
-#include <extraction/SourceSpectrumExtractor.h>
-#include <extraction/SpectralBoxExtractor.h>
-#include <extraction/NoiseSpectrumExtractor.h>
-#include <extraction/MomentMapExtractor.h>
-#include <extraction/CubeletExtractor.h>
+#include <extraction/ExtractionFactory.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
@@ -1299,7 +1295,7 @@ namespace askap {
  	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
  	    this->getMetadata();
 
-	    std::vector<RadioSource> srclist, srclistWithParams;
+	    std::vector<sourcefitting::RadioSource> srclist, srclistWithParams;
 
 	    bool USE_VOXEL_LIST = true;
 
@@ -1647,7 +1643,7 @@ namespace askap {
 
 		  for (size_t t = 0; t < outtypes.size(); t++) {
  		    
-		      duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
+		      duchamp::Catalogues::CatalogueSpecification columns = sourcefitting::fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
 		      setupCols(columns,this->itsSourceList,outtypes[t]);
 
 		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
@@ -1692,138 +1688,14 @@ namespace askap {
 
         //**************************************************************//
 
-	void DuchampParallel::extractSpectra()
+	void DuchampParallel::extract()
 	{
 
-	    if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra || this->itsParset.getBool("extractMomentMap",false) || this->itsParset.getBool("extractCubelet",false)){
-
-		if(this->itsComms.isMaster()) {
-		    if(this->itsComms.isParallel()){
-			int16 rank;
-			LOFAR::BlobString bs;
-	      
-			// now send the individual sources to each worker in turn
-			for(size_t i=0;i<this->itsSourceList.size()+itsComms.nProcs()-1;i++){
-			    rank = i % (itsComms.nProcs() - 1);
-			    bs.resize(0);
-			    LOFAR::BlobOBufString bob(bs);
-			    LOFAR::BlobOStream out(bob);
-			    out.putStart("extsrc", 1);
-			    // the first time we write to each worker, send the total number of sources
-			    if(i/(itsComms.nProcs()-1)==0) out << (unsigned int)(this->itsSourceList.size());
-			    out << (i<this->itsSourceList.size());
-			    if(i<this->itsSourceList.size()){
-				this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-				out << this->itsSourceList[i];
-			    }
-			    out.putEnd();
-			    itsComms.sendBlob(bs, rank + 1);
-// 		if(i<this->itsSourceList.size()) itsComms.sendBlob(bs, rank + 1);
-//		else {
-//		  // notify all workers that we're finished
-//		  for (int i = 1; i < itsComms.nProcs(); ++i) {
-//		    itsComms.sendBlob(bs, i);
-//		  }
-//		}
-		
-			}
-	      
-		    }
-		}
-	  
-		if(this->itsComms.isWorker()){
-	    
-		    unsigned int totalSourceCount=0;
-		    if(this->itsComms.isParallel()){
-	      
-			LOFAR::BlobString bs;
-			// now read individual sources
-			bool isOK=true;
-			this->itsSourceList.clear();
-			while(isOK) {	    
-			    sourcefitting::RadioSource src;
-			    itsComms.receiveBlob(bs, 0);
-			    LOFAR::BlobIBufString bib(bs);
-			    LOFAR::BlobIStream in(bib);
-			    int version = in.getStart("extsrc");
-			    ASKAPASSERT(version == 1);
-			    if(totalSourceCount == 0) in >> totalSourceCount;
-			    in >> isOK;
-			    if(isOK){
-				in >> src;
-				this->itsSourceList.push_back(src);
-			    }
-			    in.getEnd();
-			}
-	      
-		    }
-		    else totalSourceCount = (unsigned int)(this->itsSourceList.size());
-	    
-		    std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(totalSourceCount);
-	    
-		    if(this->itsFlagExtractSpectra){
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
-			ASKAPLOG_INFO_STR(logger, "Extracting spectra for " << this->itsSourceList.size() << " sources");
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    if(objectChoice.at(src->getID()-1)){
-				SourceSpectrumExtractor extractor(extractSubset);
-				extractor.setSource(&*src);
-				extractor.extract();
-				extractor.writeImage();
-			    }
-			}
-		    }
-	    
-		    if(this->itsFlagExtractNoiseSpectra){
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			std::vector<bool>::iterator choice=objectChoice.begin();
-			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
-			ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for " << this->itsSourceList.size() << " sources");
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    if(objectChoice.at(src->getID()-1)){
-				NoiseSpectrumExtractor extractor(extractSubset);
-				extractor.setSource(&*src);
-				extractor.extract();
-				extractor.writeImage();
-			    }
-			}
-		    }
-
-		    if(this->itsParset.getBool("extractMomentMap",false)){
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			std::vector<bool>::iterator choice=objectChoice.begin();
-			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractMomentMap.");
-			ASKAPLOG_INFO_STR(logger, "Extracting moment-0 maps for " << this->itsSourceList.size() << " sources");
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    if(objectChoice.at(src->getID()-1)){
-				MomentMapExtractor extractor(extractSubset);
-				extractor.setSource(&*src);
-				extractor.extract();
-				extractor.writeImage();
-			    }
-			}
-		    }
-		
-		    if(this->itsParset.getBool("extractCubelet",false)){
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			std::vector<bool>::iterator choice=objectChoice.begin();
-			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractCubelet.");
-			ASKAPLOG_INFO_STR(logger, "Extracting cube cutouts for " << this->itsSourceList.size() << " sources");
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    if(objectChoice.at(src->getID()-1)){
-				CubeletExtractor extractor(extractSubset);
-				extractor.setSource(&*src);
-				extractor.extract();
-				extractor.writeImage();
-			    }
-			}
-		
-		    }
-	    
-		}
-	  
-	    }
+	    ExtractionFactory extractor(this->itsComms, this->itsParset);
+	    extractor.setParams(this->itsCube.pars());
+	    extractor.setSourceList(this->itsSourceList);
+	    extractor.distribute();
+	    extractor.extract();
 	
 	}
 
@@ -1837,7 +1709,7 @@ namespace askap {
 	      this->itsCube.writeToFITS(); 
 	  }
 
-      }
+	}
 
 
 	void DuchampParallel::writeFitAnnotations()

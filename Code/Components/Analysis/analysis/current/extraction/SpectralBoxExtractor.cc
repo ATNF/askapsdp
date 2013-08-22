@@ -96,54 +96,57 @@ namespace askap {
     {
       // Form itsArray and initialise to zero
       this->itsInputCube = this->itsInputCubeList.at(0);
-      this->openInput();
-      int specsize = this->itsInputCubePtr->shape()(this->itsSpcAxis);
-      casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
-      ASKAPLOG_DEBUG_STR(logger, "Extraction: Initialising array to zero with shape " << shape);
-      this->itsArray = casa::Array<Float>(shape,0.0);
-      this->closeInput();
+      if(this->openInput()){
+	  int specsize = this->itsInputCubePtr->shape()(this->itsSpcAxis);
+	  casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
+	  ASKAPLOG_DEBUG_STR(logger, "Extraction: Initialising array to zero with shape " << shape);
+	  this->itsArray = casa::Array<Float>(shape,0.0);
+	  this->closeInput();
+      }
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
     }
 
     void SpectralBoxExtractor::defineSlicer()
     {
 
-      this->openInput();
-      IPosition shape = this->itsInputCubePtr->shape();
-      ASKAPCHECK(this->itsInputCoords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
-      ASKAPCHECK(this->itsInputCoords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
+      if(this->openInput()){
+	  IPosition shape = this->itsInputCubePtr->shape();
+	  ASKAPCHECK(this->itsInputCoords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
+	  ASKAPCHECK(this->itsInputCoords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
 	
-      // define the slicer based on the source's peak pixel location and the box width.
-      // Make sure we don't go over the edges of the image.
-      int xmin,ymin,xmax,ymax;
-      if( this->itsBoxWidth>0){
-	int hw = (this->itsBoxWidth - 1)/2;
-	int xloc = int(this->itsXloc) + this->itsSource->getXOffset();
-	int yloc = int(this->itsYloc) + this->itsSource->getYOffset();
-	int zero=0;
-	xmin = std::max(zero, xloc-hw);
-	xmax=std::min(int(shape(this->itsLngAxis)-1),xloc+hw);
-	ymin = std::max(zero, yloc-hw);
-	ymax=std::min(int(shape(this->itsLatAxis)-1),yloc+hw);
-      }
-      else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
-	xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
-	xmax = this->itsSource->getXmax() + this->itsSource->getXOffset();
-	ymin = this->itsSource->getYmin() + this->itsSource->getYOffset();
-	ymax = this->itsSource->getYmax() + this->itsSource->getYOffset();
-      }
-      casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
-      blc(this->itsLngAxis)=xmin; blc(this->itsLatAxis)=ymin; blc(this->itsSpcAxis)=0;
-      trc(this->itsLngAxis)=xmax; trc(this->itsLatAxis)=ymax; trc(this->itsSpcAxis)=shape(this->itsSpcAxis)-1;
-      if(this->itsStkAxis>-1){
-	casa::Stokes stk;
-	blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
-      }
-      ASKAPLOG_DEBUG_STR(logger, "Defining slicer for " << this->itsInputCubePtr->name() << " based on blc="<<blc <<", trc="<<trc);
-      this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
+	  // define the slicer based on the source's peak pixel location and the box width.
+	  // Make sure we don't go over the edges of the image.
+	  int xmin,ymin,xmax,ymax;
+	  if( this->itsBoxWidth>0){
+	      int hw = (this->itsBoxWidth - 1)/2;
+	      int xloc = int(this->itsXloc) + this->itsSource->getXOffset();
+	      int yloc = int(this->itsYloc) + this->itsSource->getYOffset();
+	      int zero=0;
+	      xmin = std::max(zero, xloc-hw);
+	      xmax=std::min(int(shape(this->itsLngAxis)-1),xloc+hw);
+	      ymin = std::max(zero, yloc-hw);
+	      ymax=std::min(int(shape(this->itsLatAxis)-1),yloc+hw);
+	  }
+	  else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
+	      xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
+	      xmax = this->itsSource->getXmax() + this->itsSource->getXOffset();
+	      ymin = this->itsSource->getYmin() + this->itsSource->getYOffset();
+	      ymax = this->itsSource->getYmax() + this->itsSource->getYOffset();
+	  }
+	  casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
+	  blc(this->itsLngAxis)=xmin; blc(this->itsLatAxis)=ymin; blc(this->itsSpcAxis)=0;
+	  trc(this->itsLngAxis)=xmax; trc(this->itsLatAxis)=ymax; trc(this->itsSpcAxis)=shape(this->itsSpcAxis)-1;
+	  if(this->itsStkAxis>-1){
+	      casa::Stokes stk;
+	      blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+	  }
+	  ASKAPLOG_DEBUG_STR(logger, "Defining slicer for " << this->itsInputCubePtr->name() << " based on blc="<<blc <<", trc="<<trc);
+	  this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
-      this->closeInput();
-
-    }
+	  this->closeInput();
+      }
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
+   }
  
  
     void SpectralBoxExtractor::writeImage()
@@ -152,43 +155,44 @@ namespace askap {
       accessors::CasaImageAccess ia;
 
       this->itsInputCube = this->itsInputCubeList[0];
-      this->openInput();
-      casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
-      casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
-      casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-      casa::Vector<Int> stkvec(this->itsStokesList.size());
-      for(size_t i=0;i<stkvec.size();i++) stkvec[i]=this->itsStokesList[i];
-      casa::StokesCoordinate stkcoo(stkvec);
-      newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
-      newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
-      newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
+      if(this->openInput()){
+	  casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
+	  casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
+	  casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
+	  casa::Vector<Int> stkvec(this->itsStokesList.size());
+	  for(size_t i=0;i<stkvec.size();i++) stkvec[i]=this->itsStokesList[i];
+	  casa::StokesCoordinate stkcoo(stkvec);
+	  newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
+	  newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
+	  newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
 
-      // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
-      int lngAxis=newcoo.directionAxesNumbers()[0];
-      int latAxis=newcoo.directionAxesNumbers()[1];
-      int spcAxis=newcoo.spectralAxisNumber();
-      int stkAxis=newcoo.polarizationAxisNumber();
-      casa::IPosition outshape(4,1);
-      outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
-      outshape(stkAxis)=stkvec.size();
-      casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
-      shift(lngAxis)=this->itsXloc;
-      shift(latAxis)=this->itsYloc;
-      casa::Vector<Int> newshape=outshape.asVector();
-      newcoo.subImageInSitu(shift,incrFrac,newshape);
+	  // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
+	  int lngAxis=newcoo.directionAxesNumbers()[0];
+	  int latAxis=newcoo.directionAxesNumbers()[1];
+	  int spcAxis=newcoo.spectralAxisNumber();
+	  int stkAxis=newcoo.polarizationAxisNumber();
+	  casa::IPosition outshape(4,1);
+	  outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
+	  outshape(stkAxis)=stkvec.size();
+	  casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
+	  shift(lngAxis)=this->itsXloc;
+	  shift(latAxis)=this->itsYloc;
+	  casa::Vector<Int> newshape=outshape.asVector();
+	  newcoo.subImageInSitu(shift,incrFrac,newshape);
 
-      Array<Float> newarray(this->itsArray.reform(outshape));
+	  Array<Float> newarray(this->itsArray.reform(outshape));
 
-      ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
+	  ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
 
-      /// @todo save the new units - if units were per beam, remove this factor
+	  /// @todo save the new units - if units were per beam, remove this factor
       
-      // write the array
-      ia.write(this->itsOutputFilename,newarray);
-      ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
+	  // write the array
+	  ia.write(this->itsOutputFilename,newarray);
+	  ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
 
-      this->closeInput();
-      
+	  this->closeInput();
+      }      
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
     }
 
 

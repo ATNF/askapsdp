@@ -97,58 +97,63 @@ namespace askap {
 	void CubeletExtractor::defineSlicer()
 	{
 
-	    this->openInput();
-	    IPosition shape = this->itsInputCubePtr->shape();
-	    casa::IPosition blc(shape.size(),0);
-	    casa::IPosition trc=shape-1;
+	    if(this->openInput()){
+		IPosition shape = this->itsInputCubePtr->shape();
+		casa::IPosition blc(shape.size(),0);
+		casa::IPosition trc=shape-1;
 
-	    long zero=0;
-	    blc(this->itsLngAxis) = std::max(zero, this->itsSource->getXmin()-this->itsSpatialPad);
-	    blc(this->itsLatAxis) = std::max(zero, this->itsSource->getYmin()-this->itsSpatialPad);
-	    blc(this->itsSpcAxis) = std::max(zero, this->itsSource->getZmin()-this->itsSpectralPad);
+		long zero=0;
+		blc(this->itsLngAxis) = std::max(zero, this->itsSource->getXmin()-this->itsSpatialPad);
+		blc(this->itsLatAxis) = std::max(zero, this->itsSource->getYmin()-this->itsSpatialPad);
+		blc(this->itsSpcAxis) = std::max(zero, this->itsSource->getZmin()-this->itsSpectralPad);
 
-	    trc(this->itsLngAxis) = std::min(shape(this->itsLngAxis)-1, this->itsSource->getXmax()+this->itsSpatialPad);
-	    trc(this->itsLatAxis) = std::min(shape(this->itsLatAxis)-1, this->itsSource->getYmax()+this->itsSpatialPad);
-	    trc(this->itsSpcAxis) = std::min(shape(this->itsSpcAxis)-1, this->itsSource->getZmax()+this->itsSpectralPad);
-	    /// @todo Not yet dealing with Stokes axis properly.
+		trc(this->itsLngAxis) = std::min(shape(this->itsLngAxis)-1, this->itsSource->getXmax()+this->itsSpatialPad);
+		trc(this->itsLatAxis) = std::min(shape(this->itsLatAxis)-1, this->itsSource->getYmax()+this->itsSpatialPad);
+		trc(this->itsSpcAxis) = std::min(shape(this->itsSpcAxis)-1, this->itsSource->getZmax()+this->itsSpectralPad);
+		/// @todo Not yet dealing with Stokes axis properly.
 
-	    this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
-	    this->initialiseArray();
-
+		this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
+		this->closeInput();
+		this->initialiseArray();
+	    }
+	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
 
 	void CubeletExtractor::initialiseArray()
 	{
-	    this->openInput();
-	    int lngsize = this->itsSlicer.length()(this->itsLngAxis);
-	    int latsize = this->itsSlicer.length()(this->itsLatAxis);
-	    int spcsize = this->itsSlicer.length()(this->itsSpcAxis);
-	    casa::IPosition shape(this->itsInputCubePtr->shape().size(),1);
-	    shape(this->itsLngAxis)=lngsize;
-	    shape(this->itsLatAxis)=latsize;
-	    shape(this->itsSpcAxis)=spcsize;
-	    ASKAPLOG_DEBUG_STR(logger, "Cubelet extraction: Initialising array to zero with shape " << shape);
-	    this->itsArray = casa::Array<Float>(shape,0.0);
-	    this->closeInput();
+	    if(this->openInput()){
+		int lngsize = this->itsSlicer.length()(this->itsLngAxis);
+		int latsize = this->itsSlicer.length()(this->itsLatAxis);
+		int spcsize = this->itsSlicer.length()(this->itsSpcAxis);
+		casa::IPosition shape(this->itsInputCubePtr->shape().size(),1);
+		shape(this->itsLngAxis)=lngsize;
+		shape(this->itsLatAxis)=latsize;
+		shape(this->itsSpcAxis)=spcsize;
+		ASKAPLOG_DEBUG_STR(logger, "Cubelet extraction: Initialising array to zero with shape " << shape);
+		this->itsArray = casa::Array<Float>(shape,0.0);
+		this->closeInput();
+	    }
+	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
-
-
+	    
 	void CubeletExtractor::extract()
 	{
 	    this->defineSlicer();
-	    this->openInput();
+	    if(this->openInput()){
 	    
-	    ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
-	    
-	    const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-	    ASKAPASSERT(sub->size()>0);
-	    const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-	    ASKAPASSERT(this->itsArray.size() == msub.size());
-	    this->itsArray = msub;
-
-	    delete sub;
-	    
-	    this->closeInput();
+		ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
+		
+		const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+		ASKAPASSERT(sub->size()>0);
+		const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+		ASKAPASSERT(this->itsArray.size() == msub.size());
+		this->itsArray = msub;
+		
+		delete sub;
+		
+		this->closeInput();
+	    }
+	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
 
 	void CubeletExtractor::writeImage()
@@ -157,52 +162,51 @@ namespace askap {
 	    accessors::CasaImageAccess ia;
 
 	    this->itsInputCube = this->itsInputCubeList[0];
-	    this->openInput();
-	    IPosition inshape = this->itsInputCubePtr->shape();
-	    casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
-	    casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
-	    casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-	    casa::Vector<Int> stkvec(this->itsStokesList.size());
-	    for(size_t i=0;i<stkvec.size();i++) stkvec[i]=this->itsStokesList[i];
-	    casa::StokesCoordinate stkcoo(stkvec);
-	    newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
-	    newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
-	    newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
-
-	    // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
-	    int lngAxis=newcoo.directionAxesNumbers()[0];
-	    int latAxis=newcoo.directionAxesNumbers()[1];
-	    int spcAxis=newcoo.spectralAxisNumber();
-	    int stkAxis=newcoo.polarizationAxisNumber();
-	    casa::IPosition outshape(4,1);
-	    outshape(lngAxis)=this->itsSlicer.length()(this->itsLngAxis);
-	    outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
-	    outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
-	    outshape(stkAxis)=stkvec.size();
-	    casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
-	    shift(lngAxis)=this->itsSource->getXmin()-this->itsSpatialPad;
-	    shift(latAxis)=this->itsSource->getYmin()-this->itsSpatialPad;
-	    shift(spcAxis)=this->itsSource->getZmin()-this->itsSpectralPad;
-	    casa::Vector<Int> newshape=outshape.asVector();
-
-	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
-	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
-	    newcoo.subImageInSitu(shift,incrFac,newshape);
-	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
-	    // ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
-
-	    Array<Float> newarray(this->itsArray.reform(outshape));
-
-	    ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
-
-	    /// @todo save the new units - if units were per beam, remove this factor
-      
-	    // write the array
-	    ia.write(this->itsOutputFilename,newarray);
-
-	    this->closeInput();
-
-	    
+	    if(this->openInput()){
+		IPosition inshape = this->itsInputCubePtr->shape();
+		casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
+		casa::DirectionCoordinate dircoo(this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION)));
+		casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
+		casa::Vector<Int> stkvec(this->itsStokesList.size());
+		for(size_t i=0;i<stkvec.size();i++) stkvec[i]=this->itsStokesList[i];
+		casa::StokesCoordinate stkcoo(stkvec);
+		newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
+		newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
+		newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
+		
+		// shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
+		int lngAxis=newcoo.directionAxesNumbers()[0];
+		int latAxis=newcoo.directionAxesNumbers()[1];
+		int spcAxis=newcoo.spectralAxisNumber();
+		int stkAxis=newcoo.polarizationAxisNumber();
+		casa::IPosition outshape(4,1);
+		outshape(lngAxis)=this->itsSlicer.length()(this->itsLngAxis);
+		outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
+		outshape(spcAxis)=this->itsSlicer.length()(this->itsSpcAxis);
+		outshape(stkAxis)=stkvec.size();
+		casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
+		shift(lngAxis)=this->itsSource->getXmin()-this->itsSpatialPad;
+		shift(latAxis)=this->itsSource->getYmin()-this->itsSpatialPad;
+		shift(spcAxis)=this->itsSource->getZmin()-this->itsSpectralPad;
+		casa::Vector<Int> newshape=outshape.asVector();
+		
+		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
+		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
+		newcoo.subImageInSitu(shift,incrFac,newshape);
+		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
+		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
+		
+		Array<Float> newarray(this->itsArray.reform(outshape));
+		
+		ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
+		
+		// write the array
+		ia.write(this->itsOutputFilename,newarray);
+		
+		this->closeInput();
+		
+	    }		
+	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
 
     }

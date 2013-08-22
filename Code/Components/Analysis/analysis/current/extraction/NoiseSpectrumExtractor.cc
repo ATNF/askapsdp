@@ -109,27 +109,28 @@ namespace askap {
     void NoiseSpectrumExtractor::setBoxWidth()
     {
       
-      this->openInput();
-      Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
-      ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
-      if(inputBeam.size()==0) {
-	ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Using box width value from parset of " << this->itsBoxWidth << "pix");
-      }
-      else{
-	casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
-	double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
-	double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
-	double beamAreaInPix = M_PI * fwhmMajPix * fwhmMinPix;
+      if(this->openInput()){
+	  Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
+	  ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
+	  if(inputBeam.size()==0) {
+	      ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Using box width value from parset of " << this->itsBoxWidth << "pix");
+	  }
+	  else{
+	      casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
+	      double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
+	      double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
+	      double beamAreaInPix = M_PI * fwhmMajPix * fwhmMinPix;
 	
-	this->itsBoxWidth = int(ceil(sqrt(this->itsAreaInBeams*beamAreaInPix)));
+	      this->itsBoxWidth = int(ceil(sqrt(this->itsAreaInBeams*beamAreaInPix)));
 
-	ASKAPLOG_INFO_STR(logger, "Noise Extractor: Using box of area " << this->itsAreaInBeams << " beams (of area " << beamAreaInPix 
-			  << " pix), or a square of " << this->itsBoxWidth << " pix on the side");
+	      ASKAPLOG_INFO_STR(logger, "Noise Extractor: Using box of area " << this->itsAreaInBeams << " beams (of area " << beamAreaInPix 
+				<< " pix), or a square of " << this->itsBoxWidth << " pix on the side");
 
+	  }
+
+	  this->closeInput();
       }
-
-      this->closeInput();
-
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
     }
 
 
@@ -147,27 +148,28 @@ namespace askap {
       /// itsArray, ready for later access or export.
 
       this->defineSlicer();
-      this->openInput();
+      if(this->openInput()){
 
-      ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
+	  ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 
-      const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-      casa::Array<Float> subarray=sub->get();
+	  const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+	  casa::Array<Float> subarray=sub->get();
 
-      casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
-      casa::Array<Float> noisearray;
-      if(this->itsRobustFlag)
-	noisearray = partialMadfms(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape()) / Statistics::correctionFactor;
-      else
-	noisearray = partialRmss(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
+	  casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+	  casa::Array<Float> noisearray;
+	  if(this->itsRobustFlag)
+	      noisearray = partialMadfms(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape()) / Statistics::correctionFactor;
+	  else
+	      noisearray = partialRmss(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
 
-      this->itsArray(outBLC,outTRC) = noisearray;
+	  this->itsArray(outBLC,outTRC) = noisearray;
 
-      delete sub;
+	  delete sub;
 
-      this->closeInput();
-
-    }
+	  this->closeInput();
+      }
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
+   }
 
 
   }

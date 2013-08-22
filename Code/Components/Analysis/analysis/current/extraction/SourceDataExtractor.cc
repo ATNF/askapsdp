@@ -112,9 +112,11 @@ namespace askap {
     casa::IPosition SourceDataExtractor::getShape(std::string image)
     {
       this->itsInputCube = image;
-      this->openInput();
-      casa::IPosition shape=this->itsInputCubePtr->shape();
-      this->closeInput();
+      casa::IPosition shape;
+      if(this->openInput()){
+	  shape=this->itsInputCubePtr->shape();
+	  this->closeInput();
+      }
       return shape;
     }
 
@@ -161,24 +163,25 @@ namespace askap {
       this->itsInputCube = image;
       std::vector<casa::Stokes::StokesTypes> stokesvec(1,stokes);
       std::string polstring=scimath::PolConverter::toString(stokesvec)[0];
-      this->openInput();
-      int stokeCoo = this->itsInputCubePtr->coordinates().polarizationCoordinateNumber();
-      int stokeAxis = this->itsInputCubePtr->coordinates().polarizationAxisNumber();
-      if(stokeCoo==-1 || stokeAxis==-1) {
-	ASKAPCHECK(polstring=="I","Extraction: Input cube "<<image<<" has no polarisation axis, but you requested " << polstring);
+      if(this->openInput()){
+	  int stokeCoo = this->itsInputCubePtr->coordinates().polarizationCoordinateNumber();
+	  int stokeAxis = this->itsInputCubePtr->coordinates().polarizationAxisNumber();
+	  if(stokeCoo==-1 || stokeAxis==-1) {
+	      ASKAPCHECK(polstring=="I","Extraction: Input cube "<<image<<" has no polarisation axis, but you requested " << polstring);
+	  }
+	  else{
+	      int nstoke=this->itsInputCubePtr->shape()[stokeAxis];
+	      ASKAPCHECK(nstoke=nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
+	      bool haveMatch=false;
+	      for(int i=0;i<nstoke;i++){
+		  haveMatch = haveMatch || (this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[i] == stokes);
+	      }
+	      ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
+	  }
+	  
+	  this->closeInput();
       }
-      else{
-	int nstoke=this->itsInputCubePtr->shape()[stokeAxis];
-	ASKAPCHECK(nstoke=nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
-	bool haveMatch=false;
-	for(int i=0;i<nstoke;i++){
-	  haveMatch = haveMatch || (this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[i] == stokes);
-	}
-	ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
-      }
-      
-      this->closeInput();
-
+      else ASKAPLOG_ERROR_STR(logger, "Could not open image");
     }
     
     void SourceDataExtractor::verifyInputs()
@@ -236,24 +239,30 @@ namespace askap {
       }
     }
 
-    void SourceDataExtractor::openInput()
+    bool SourceDataExtractor::openInput()
     {
-      if(this->itsInputCubePtr==0){ // if non-zero, we have already opened the cube
+	bool isOK = (this->itsInputCubePtr == 0); // if non-zero, we have already opened the cube
+	isOK = isOK && (this->itsInputCube != "");
+
+      if(isOK){ 
 	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	this->itsLatticePtr = ImageOpener::openImage(this->itsInputCube);
-	if (this->itsLatticePtr == 0)
-	  ASKAPTHROW(AskapError, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
-	this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(this->itsLatticePtr);
+	if (this->itsLatticePtr == 0){
+	    ASKAPLOG_ERROR_STR(logger, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
+	    isOK=false;
+	}
+	else{
+	    this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(this->itsLatticePtr);
 
-	this->itsInputCoords = this->itsInputCubePtr->coordinates();
-	this->itsLngAxis=this->itsInputCoords.directionAxesNumbers()[0];
-	this->itsLatAxis=this->itsInputCoords.directionAxesNumbers()[1];
-	this->itsSpcAxis=this->itsInputCoords.spectralAxisNumber();
-	this->itsStkAxis=this->itsInputCoords.polarizationAxisNumber();
-
-
+	    this->itsInputCoords = this->itsInputCubePtr->coordinates();
+	    this->itsLngAxis=this->itsInputCoords.directionAxesNumbers()[0];
+	    this->itsLatAxis=this->itsInputCoords.directionAxesNumbers()[1];
+	    this->itsSpcAxis=this->itsInputCoords.spectralAxisNumber();
+	    this->itsStkAxis=this->itsInputCoords.polarizationAxisNumber();
+	}
       }
+      return isOK;
     }
 
     void SourceDataExtractor::closeInput()

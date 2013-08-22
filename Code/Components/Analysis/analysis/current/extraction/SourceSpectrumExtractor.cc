@@ -119,81 +119,83 @@ namespace askap {
 
 	    if(this->itsFlagDoScale){
 
-		this->openInput();
+		if(this->openInput()){
 	
-		std::vector< casa::Vector<Quantum<Double> > > beamvec;
+		    std::vector< casa::Vector<Quantum<Double> > > beamvec;
 		
-		casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
+		    casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
 
-		ASKAPLOG_DEBUG_STR(logger, "Setting beam scaling factor. BeamLog="<<this->itsBeamLog<<", image beam = " << inputBeam);
+		    ASKAPLOG_DEBUG_STR(logger, "Setting beam scaling factor. BeamLog="<<this->itsBeamLog<<", image beam = " << inputBeam);
 
-		if(this->itsBeamLog == ""){
-		    if(inputBeam.size()==0) {
-			ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
-			this->itsBeamScaleFactor.push_back(1.);
-		    }
-		    else{
-			beamvec.push_back(inputBeam);
-			ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
-		    } 
-		}
-		else{
-		    accessors::BeamLogger beamlog(this->itsBeamLog);
-		    beamlog.read();
-		    beamvec = beamlog.beamlist();
-
-		    if(int(beamvec.size()) != this->itsInputCubePtr->shape()(this->itsSpcAxis)){
-			ASKAPLOG_ERROR_STR(logger, "Beam log " << this->itsBeamLog << " has " << beamvec.size() 
-					   << " entries - was expecting " << this->itsInputCubePtr->shape()(this->itsSpcAxis));
-			beamvec=std::vector< Vector<Quantum<Double> > >(1,inputBeam);
-		    }
-		}
-
-		if(beamvec.size() > 0) {
-
-		    for(size_t i=0;i<beamvec.size();i++){
-
-			casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
-			double fwhmMajPix = beamvec[i][0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
-			double fwhmMinPix = beamvec[i][1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
-
-			if(this->itsFlagUseDetection){
-			    double bpaDeg = beamvec[i][2].getValue("deg");
-			    duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
-			    this->itsBeamScaleFactor.push_back(beam.area());
-			    if(this->itsBeamLog=="")
-				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
+		    if(this->itsBeamLog == ""){
+			if(inputBeam.size()==0) {
+			    ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
+			    this->itsBeamScaleFactor.push_back(1.);
 			}
 			else{
-	    
-			    double costheta = cos(beamvec[i][2].getValue("rad"));
-			    double sintheta = sin(beamvec[i][2].getValue("rad"));
-		    
-			    double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
-			    double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
-		    
-			    int hw = (this->itsBoxWidth - 1)/2;
-			    double scaleFactor = 0.;
-			    for(int y=-hw; y<=hw; y++){
-				for(int x=-hw; x<=hw; x++){
-				    double u=x*costheta + y*sintheta;
-				    double v=x*sintheta - y*costheta;
-				    scaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
-				}
-			    }
-			    this->itsBeamScaleFactor.push_back(scaleFactor);
+			    beamvec.push_back(inputBeam);
+			    ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
+			} 
+		    }
+		    else{
+			accessors::BeamLogger beamlog(this->itsBeamLog);
+			beamlog.read();
+			beamvec = beamlog.beamlist();
 
-			    if(this->itsBeamLog=="")
-				ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
-		    
+			if(int(beamvec.size()) != this->itsInputCubePtr->shape()(this->itsSpcAxis)){
+			    ASKAPLOG_ERROR_STR(logger, "Beam log " << this->itsBeamLog << " has " << beamvec.size() 
+					       << " entries - was expecting " << this->itsInputCubePtr->shape()(this->itsSpcAxis));
+			    beamvec=std::vector< Vector<Quantum<Double> > >(1,inputBeam);
 			}
 		    }
 
+		    if(beamvec.size() > 0) {
+
+			for(size_t i=0;i<beamvec.size();i++){
+
+			    casa::DirectionCoordinate dirCoo = this->itsInputCoords.directionCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::DIRECTION));
+			    double fwhmMajPix = beamvec[i][0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
+			    double fwhmMinPix = beamvec[i][1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
+
+			    if(this->itsFlagUseDetection){
+				double bpaDeg = beamvec[i][2].getValue("deg");
+				duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
+				this->itsBeamScaleFactor.push_back(beam.area());
+				if(this->itsBeamLog=="")
+				    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
+			    }
+			    else{
+	    
+				double costheta = cos(beamvec[i][2].getValue("rad"));
+				double sintheta = sin(beamvec[i][2].getValue("rad"));
+		    
+				double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
+				double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
+		    
+				int hw = (this->itsBoxWidth - 1)/2;
+				double scaleFactor = 0.;
+				for(int y=-hw; y<=hw; y++){
+				    for(int x=-hw; x<=hw; x++){
+					double u=x*costheta + y*sintheta;
+					double v=x*sintheta - y*costheta;
+					scaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
+				    }
+				}
+				this->itsBeamScaleFactor.push_back(scaleFactor);
+
+				if(this->itsBeamLog=="")
+				    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
+		    
+			    }
+			}
+
+		    }
+
+		    ASKAPLOG_DEBUG_STR(logger, "Defined the beam scale factor vector of size " << this->itsBeamScaleFactor.size());
+
+		    this->closeInput();
 		}
-
-		ASKAPLOG_DEBUG_STR(logger, "Defined the beam scale factor vector of size " << this->itsBeamScaleFactor.size());
-
-		this->closeInput();
+		else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	    }
 
 	}
@@ -218,54 +220,55 @@ namespace askap {
 		this->itsInputCube = this->itsInputCubeList[stokes%this->itsInputCubeList.size()]; // get either the matching image for the current stokes value, or the first&only in the input list
 		this->itsCurrentStokes = this->itsStokesList[stokes];
 		this->defineSlicer();
-		this->openInput();
-		casa::Stokes stk;
-		ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " with shape " << this->itsInputCubePtr->shape() 
-				  << " for source ID " << this->itsSource->getID() 
-				  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
+		if(this->openInput()){
+		    casa::Stokes stk;
+		    ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " with shape " << this->itsInputCubePtr->shape() 
+				      << " for source ID " << this->itsSource->getID() 
+				      << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
 
-		const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-		ASKAPASSERT(sub->size()>0);
-		const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-		casa::Array<Float> subarray(sub->shape());
-		subarray = msub;
+		    const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+		    ASKAPASSERT(sub->size()>0);
+		    const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+		    casa::Array<Float> subarray(sub->shape());
+		    subarray = msub;
 
-		casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
-		outBLC(2) = outTRC(2) = stokes;
+		    casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+		    outBLC(2) = outTRC(2) = stokes;
 
-		if(!this->itsFlagUseDetection){
-		    casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1));
-		    this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
+		    if(!this->itsFlagUseDetection){
+			casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1));
+			this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
 
-		}
-		else {
-		    ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
-		    IPosition shape = this->itsInputCubePtr->shape();
-
-		    PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
-		    casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
-		    trc(this->itsSpcAxis)=shape[this->itsSpcAxis]-1;
-		    if(this->itsStkAxis>-1){
-			casa::Stokes stk;
-			blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
 		    }
+		    else {
+			ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
+			IPosition shape = this->itsInputCubePtr->shape();
 
-		    for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
-			for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
-			    if(spatmap.isInObject(x,y)){
-				blc(this->itsLngAxis)=trc(this->itsLngAxis)=x-this->itsSource->getXmin(); 
-				blc(this->itsLatAxis)=trc(this->itsLatAxis)=y-this->itsSource->getYmin();
-				casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
-				this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
+			PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
+			casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
+			trc(this->itsSpcAxis)=shape[this->itsSpcAxis]-1;
+			if(this->itsStkAxis>-1){
+			    casa::Stokes stk;
+			    blc(this->itsStkAxis) = trc(this->itsStkAxis) = this->itsInputCoords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+			}
+
+			for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
+			    for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
+				if(spatmap.isInObject(x,y)){
+				    blc(this->itsLngAxis)=trc(this->itsLngAxis)=x-this->itsSource->getXmin(); 
+				    blc(this->itsLatAxis)=trc(this->itsLatAxis)=y-this->itsSource->getYmin();
+				    casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
+				    this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
+				}
 			    }
 			}
 		    }
-		}
       
-		delete sub;
+		    delete sub;
 
-		this->closeInput();
-
+		    this->closeInput();
+		}
+		else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	    }
 
 
