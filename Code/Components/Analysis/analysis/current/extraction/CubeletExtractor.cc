@@ -200,9 +200,6 @@ namespace askap {
 	    // write the array
 	    ia.write(this->itsOutputFilename,newarray);
 
-	    std::string newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.velocityUnit();
-	    ia.setUnits(this->itsOutputFilename, newunits);
-
 	    this->closeInput();
 
 	    
