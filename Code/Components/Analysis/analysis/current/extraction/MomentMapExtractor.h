@@ -62,9 +62,9 @@ namespace askap {
 	    std::string outfile(int moment);
 	    double getSpectralIncrement();
 	    double getSpecVal(int z);
-	    void getMom0(casa::Array<Float> &subarray);
-	    void getMom1(casa::Array<Float> &subarray);
-	    void getMom2(casa::Array<Float> &subarray);
+	    void getMom0(const casa::Array<Float> &subarray);
+	    void getMom1(const casa::Array<Float> &subarray);
+	    void getMom2(const casa::Array<Float> &subarray);
 
 	    /// What sort of cutout to do - full field or box around the source?
 	    std::string itsSpatialMethod;

@@ -312,7 +312,7 @@ namespace askap {
 	}
 
 
-	void MomentMapExtractor::getMom0(casa::Array<Float> &subarray)
+	void MomentMapExtractor::getMom0(const casa::Array<Float> &subarray)
 	{
 		
 	    this->itsMom0map = casa::Array<Float>(this->arrayShape(),0.0);
@@ -336,7 +336,7 @@ namespace askap {
 		casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,2));
 		this->itsMom0map(outBLC,outTRC) = sumarray.reform(this->itsMom0map(outBLC,outTRC).shape());
 	    }
-	    this->itsMom0map(outloc) *= this->getSpectralIncrement();
+	    this->itsMom0map *= float(this->getSpectralIncrement());
 		
 	    // for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
 	    // 	outloc(this->itsLatAxis)=inloc(this->itsLatAxis)=y-this->itsSlicer.start()(this->itsLatAxis);
@@ -382,18 +382,17 @@ namespace askap {
 	    return specval;
 	}
 
-	void MomentMapExtractor::getMom1(casa::Array<Float> &subarray)
+	void MomentMapExtractor::getMom1(const casa::Array<Float> &subarray)
 	{
 	    this->itsMom1map = casa::Array<Float>(this->arrayShape(),0.0);
 
-	    casa::IPosition outloc(4,0),inloc(4,0);
 	    casa::IPosition start=this->itsSlicer.start();
 	    
 	    if(this->itsMom0map.size()==0) this->getMom0(subarray);
 	    casa::Array<Float> sumNuS(this->itsMom1map.shape(),0.0);
-	    // casa::Array<Float> sumS = this->itsMom0map / this->getSpectralIncrement();
-	    casa::Array<Float> sumS(this->itsMom1map.shape(),0.0);
+	     casa::Array<Float> sumS = this->itsMom0map / this->getSpectralIncrement();
 	    if(this->itsFlagUseDetection){
+		casa::IPosition outloc(4,0),inloc(4,0);
 		std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
 		std::vector<PixelInfo::Voxel>::iterator vox;
 		for(vox=voxlist.begin();vox!=voxlist.end();vox++){
@@ -401,8 +400,6 @@ namespace askap {
 		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
 		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
 		    sumNuS(outloc) = sumNuS(outloc) + subarray(inloc) * this->getSpecVal(vox->getZ());
-		    sumS(outloc) = sumS(outloc) + subarray(inloc);
-		    // ASKAPLOG_DEBUG_STR(logger, vox->getZ() << " --> " << this->getSpecVal(vox->getZ()));
 		}
 	    }
 	    else{
@@ -413,27 +410,17 @@ namespace askap {
 		    casa::IPosition blc(subarray.ndim(),0), trc=subarray.shape()-1;
 		    blc(this->itsSpcAxis) = trc(this->itsSpcAxis) = z;
 		    nuArray(blc,trc) = this->getSpecVal(z + start(this->itsSpcAxis));
-		    ASKAPLOG_DEBUG_STR(logger, z << " --> " << z + start(this->itsSpcAxis) << " ==> " << this->getSpecVal(z + start(this->itsSpcAxis)) << " " << blc << " " << trc);
 		}
-		std::cerr << nuArray << "\n";
 		casa::Array<Float> nuSubarray = nuArray * subarray;
 		casa::Array<Float> sumarray = partialSums(nuSubarray,casa::IPosition(1,this->itsSpcAxis));
 		sumNuS(outBLC,outTRC) = sumarray.reform(sumNuS(outBLC,outTRC).shape());
-		sumarray = partialSums(subarray,casa::IPosition(1,this->itsSpcAxis));
-		sumS(outBLC,outTRC) = sumarray.reform(sumS(outBLC,outTRC).shape());
 	    }
 	    
-//	    this->itsMom1map = (sumNuS / this->itsMom0map) * this->getSpectralIncrement();
-	    this->itsMom1map = sumNuS / sumS;
-	    ASKAPLOG_DEBUG_STR(logger, "At [10,10]: sumS=" << sumS(casa::IPosition(4,10,10,0,0)) 
-			       << " sumNuS="<<sumNuS(casa::IPosition(4,10,10,0,0)) 
-			       << " mom1="<<this->itsMom1map(casa::IPosition(4,10,10,0,0))
-			       << " mom0="<<this->itsMom0map(casa::IPosition(4,10,10,0,0)));
-		
+	    this->itsMom1map = (sumNuS / this->itsMom0map) * this->getSpectralIncrement();
 
 	}
 
-	void MomentMapExtractor::getMom2(casa::Array<Float> &subarray)
+	void MomentMapExtractor::getMom2(const casa::Array<Float> &subarray)
 	{
 	    this->itsMom2map = casa::Array<Float>(this->arrayShape(),0.0);
 	}
