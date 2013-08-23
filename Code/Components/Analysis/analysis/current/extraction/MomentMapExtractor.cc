@@ -33,6 +33,10 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
+#include <string>
+#include <iostream>
+#include <sstream>
+
 #include <sourcefitting/RadioSource.h>
 
 #include <imageaccess/CasaImageAccess.h>
@@ -80,6 +84,22 @@ namespace askap {
 
 	    this->itsOutputFilenameBase = parset.getString("momentOutputBase","");
 
+	    for(int i=0;i<3;i++) this->itsMomentRequest[i]=false;
+	    std::vector<int> request = parset.getIntVector("moments",std::vector<int>(1,0));
+	    bool haveDud=false;
+	    for(size_t i=0;i<request.size();i++){
+		if(request[i]<0 || request[i]>2) haveDud=true;
+		else this->itsMomentRequest[i]=true;
+	    }
+	    std::vector<int> momentsUsed;
+	    for(int i=0;i<3;i++) if(this->itsMomentRequest[i]) momentsUsed.push_back(i);
+	    if(haveDud) ASKAPLOG_WARN_STR(logger, "You requested invalid moments. Only doing " << casa::Vector<Int>(momentsUsed));
+	    else ASKAPLOG_INFO_STR(logger, "Will compute the following moments " << casa::Vector<Int>(momentsUsed));
+
+	    this->itsMom0map=casa::Array<Float>();
+	    this->itsMom1map=casa::Array<Float>();
+	    this->itsMom2map=casa::Array<Float>();
+
 	}
 	
 	MomentMapExtractor::MomentMapExtractor(const MomentMapExtractor& other)
@@ -93,6 +113,10 @@ namespace askap {
 	    ((SourceDataExtractor &) *this) = other;
 	    this->itsSpatialMethod = other.itsSpatialMethod;
 	    this->itsPadSize = other.itsPadSize;
+	    this->itsMomentRequest = other.itsMomentRequest;
+	    this->itsMom0map = other.itsMom0map;
+	    this->itsMom1map = other.itsMom1map;
+	    this->itsMom2map = other.itsMom2map;
 	    return *this;
 	}
 	
@@ -104,8 +128,11 @@ namespace askap {
 		casa::IPosition blc(shape.size(),0);
 		casa::IPosition trc=shape-1;
 		
+		long zero=0;
+		blc(this->itsSpcAxis) = std::max(zero, this->itsSource->getZmin()-3);
+		trc(this->itsSpcAxis) = std::min(shape(this->itsSpcAxis)-1, this->itsSource->getZmax()+3);
+
 		if(this->itsSpatialMethod == "box") {
-		    long zero=0;
 		    blc(this->itsLngAxis) = std::max(zero, this->itsSource->getXmin()-this->itsPadSize);
 		    blc(this->itsLatAxis) = std::max(zero, this->itsSource->getYmin()-this->itsPadSize);
 		    trc(this->itsLngAxis) = std::min(shape(this->itsLngAxis)-1, this->itsSource->getXmax()+this->itsPadSize);
@@ -125,12 +152,18 @@ namespace askap {
 	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
 
+	casa::IPosition MomentMapExtractor::arrayShape()
+	{
+	    int lngsize = this->itsSlicer.length()(this->itsLngAxis);
+	    int latsize = this->itsSlicer.length()(this->itsLatAxis);
+	    casa::IPosition shape(4,lngsize,latsize,1,1);
+	    return shape;
+	}
+
 	void MomentMapExtractor::initialiseArray()
 	{
 	    if(this->openInput()){
-		int lngsize = this->itsSlicer.length()(this->itsLngAxis);
-		int latsize = this->itsSlicer.length()(this->itsLatAxis);
-		casa::IPosition shape(4,lngsize,latsize,1,1);
+		casa::IPosition shape=this->arrayShape();
 		ASKAPLOG_DEBUG_STR(logger, "Moment map extraction: Initialising array to zero with shape " << shape);
 		this->itsArray = casa::Array<Float>(shape,0.0);
 		this->closeInput();
@@ -150,64 +183,10 @@ namespace askap {
 		const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
 		casa::Array<Float> subarray(sub->shape());
 		subarray = msub;
-		
-		casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
-		// double specIncr = fabs(spcoo.increment()[0]);
-		// ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
-		double vel1,vel2;
-		spcoo.pixelToVelocity(vel1,0);
-		spcoo.pixelToVelocity(vel2,1);
-		double specIncr = fabs(vel1-vel2);
-		ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
-		
-		casa::IPosition outloc(4,0),inloc(4,0);
-		casa::IPosition start=this->itsSlicer.start();
 
-		if(this->itsFlagUseDetection){
-		    std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
-		    std::vector<PixelInfo::Voxel>::iterator vox;
-		    for(vox=voxlist.begin();vox!=voxlist.end();vox++){
-			outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
-			outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
-			inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
-			this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
-		    }
-		}
-		else{
-		    // just sum each spectrum over the slicer's range.
-		    casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
-		    casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,2));
-		    this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
-		}
-		this->itsArray(outloc) *= specIncr;
-		
-		// for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
-		// 	outloc(this->itsLatAxis)=inloc(this->itsLatAxis)=y-this->itsSlicer.start()(this->itsLatAxis);
-		// 	for(int x=this->itsSlicer.start()(this->itsLngAxis);x<=this->itsSlicer.end()(this->itsLngAxis);x++){
-		// 	    outloc(this->itsLngAxis)=inloc(this->itsLngAxis)=x-this->itsSlicer.start()(this->itsLngAxis);
-		// 	    // for each pixel in the moment map...
-		
-		// 	    int zmin,zmax;
-		// 	    if(this->itsSpatialMethod=="box"){
-		// 		zmin = this->itsSource->getZmin();
-		// 		zmax = this->itsSource->getZmax();
-		// 	    }
-		// 	    else{
-		// 		zmin = this->itsSlicer.start()(this->itsSpcAxis);
-		// 		zmax = this->itsSlicer.end()(this->itsSpcAxis);
-		// 	    }
-
-		// 	    for(int z=zmin;z<=zmax;z++){
-		// 		if(this->itsSource->isInObject(x,y,z)){
-		// 		    inloc(this->itsSpcAxis)=z-this->itsSlicer.start()(this->itsSpcAxis);
-		// 		    this->itsArray(outloc) = this->itsArray(outloc) + subarray(inloc);
-		// 		    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << z << " yes " << outloc << " " << inloc << " "<< this->itsArray(outloc));
-		// 		}
-		// 	    }
-		// 	    this->itsArray(outloc) *= specIncr;
-
-		// 	}
-		// }
+		if(this->itsMomentRequest[0]) this->getMom0(subarray);
+		if(this->itsMomentRequest[1]) this->getMom1(subarray);
+		if(this->itsMomentRequest[2]) this->getMom2(subarray);
 
 		delete sub;
 	    
@@ -218,7 +197,6 @@ namespace askap {
 
 	void MomentMapExtractor::writeImage()
 	{
-	    ASKAPLOG_INFO_STR(logger, "Writing moment map to " << this->itsOutputFilename);
 	    accessors::CasaImageAccess ia;
 
 	    this->itsInputCube = this->itsInputCubeList[0];
@@ -253,20 +231,213 @@ namespace askap {
 		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
 		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
 
-		Array<Float> newarray(this->itsArray.reform(outshape));
+		for(int i=0;i<3;i++){
+		    if(this->itsMomentRequest[i]){
+			
+			std::string newunits;
+			switch(i){
+			case 0:
+			    this->itsArray = this->itsMom0map; 
+			    if(spcoo.restFrequency() > 0.) 
+				newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.velocityUnit();
+			    else 
+				newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.worldAxisUnits()[0];
+			    break;
+			case 1: 
+			    this->itsArray = this->itsMom1map; 
+			    if(spcoo.restFrequency() > 0.) 
+				newunits=spcoo.velocityUnit();
+			    else 
+				newunits=spcoo.worldAxisUnits()[0];
+			    break;
+			case 2:
+			    this->itsArray = this->itsMom2map; 
+			    if(spcoo.restFrequency() > 0.) 
+				newunits=spcoo.velocityUnit();
+			    else 
+				newunits=spcoo.worldAxisUnits()[0];
+			    break;
+			}
 
-		ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
+			Array<Float> newarray(this->itsArray.reform(outshape));
+			
+			std::string filename=this->outfile(i);
+			ASKAPLOG_INFO_STR(logger, "Writing moment-"<<i<<" map to '"<<filename <<"'");
+			ia.create(filename,newarray.shape(),newcoo);
 
-		// write the array
-		ia.write(this->itsOutputFilename,newarray);
+			// write the array
+			ia.write(filename,newarray);
+			
+			ia.setUnits(filename, newunits);
 
-		std::string newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.velocityUnit();
-		ia.setUnits(this->itsOutputFilename, newunits);
-
+		    }
+		}
+			
 		this->closeInput();
 	    }
 	    else ASKAPLOG_ERROR_STR(logger, "Could not open image");
 	}
+
+	std::string MomentMapExtractor::outfile(int moment)
+	{
+	    std::stringstream ss;
+	    ss << moment;
+	    std::string filename=this->itsOutputFilename;
+	    size_t loc;
+	    while(loc=filename.find("%m"),
+		  loc!=std::string::npos){
+		filename.replace(loc,2,ss.str());
+	    }
+	    return filename;
+	}
+
+	double MomentMapExtractor::getSpectralIncrement()
+	{
+	    double specIncr;
+	    casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
+	    if(spcoo.restFrequency() > 0.){
+		// can convert to velocity
+		double vel1,vel2;
+		spcoo.pixelToVelocity(vel1,0);
+		spcoo.pixelToVelocity(vel2,1);
+		specIncr = fabs(vel1-vel2);
+		ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
+	    }
+	    else{
+		// can't do velocity conversion, so just use the WCS spectral units
+		specIncr = fabs(spcoo.increment()[0]);
+		ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
+	    }
+	    return specIncr;
+	}
+
+
+	void MomentMapExtractor::getMom0(casa::Array<Float> &subarray)
+	{
+		
+	    this->itsMom0map = casa::Array<Float>(this->arrayShape(),0.0);
+
+	    casa::IPosition outloc(4,0),inloc(4,0);
+	    casa::IPosition start=this->itsSlicer.start();
+
+	    if(this->itsFlagUseDetection){
+		std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
+		std::vector<PixelInfo::Voxel>::iterator vox;
+		for(vox=voxlist.begin();vox!=voxlist.end();vox++){
+		    outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
+		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
+		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
+		    this->itsMom0map(outloc) = this->itsMom0map(outloc) + subarray(inloc);
+		}
+	    }
+	    else{
+		// just sum each spectrum over the slicer's range.
+		casa::IPosition outBLC(4,0),outTRC(this->itsMom0map.shape()-1);
+		casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,2));
+		this->itsMom0map(outBLC,outTRC) = sumarray.reform(this->itsMom0map(outBLC,outTRC).shape());
+	    }
+	    this->itsMom0map(outloc) *= this->getSpectralIncrement();
+		
+	    // for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
+	    // 	outloc(this->itsLatAxis)=inloc(this->itsLatAxis)=y-this->itsSlicer.start()(this->itsLatAxis);
+	    // 	for(int x=this->itsSlicer.start()(this->itsLngAxis);x<=this->itsSlicer.end()(this->itsLngAxis);x++){
+	    // 	    outloc(this->itsLngAxis)=inloc(this->itsLngAxis)=x-this->itsSlicer.start()(this->itsLngAxis);
+	    // 	    // for each pixel in the moment map...
+		
+	    // 	    int zmin,zmax;
+	    // 	    if(this->itsSpatialMethod=="box"){
+	    // 		zmin = this->itsSource->getZmin();
+	    // 		zmax = this->itsSource->getZmax();
+	    // 	    }
+	    // 	    else{
+	    // 		zmin = this->itsSlicer.start()(this->itsSpcAxis);
+	    // 		zmax = this->itsSlicer.end()(this->itsSpcAxis);
+	    // 	    }
+
+	    // 	    for(int z=zmin;z<=zmax;z++){
+	    // 		if(this->itsSource->isInObject(x,y,z)){
+	    // 		    inloc(this->itsSpcAxis)=z-this->itsSlicer.start()(this->itsSpcAxis);
+	    // 		    this->itsMom0map(outloc) = this->itsMom0map(outloc) + subarray(inloc);
+	    // 		    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << z << " yes " << outloc << " " << inloc << " "<< this->itsMom0map(outloc));
+	    // 		}
+	    // 	    }
+	    // 	    this->itsMom0map(outloc) *= this->getSpectralIncrement();
+
+	    // 	}
+	    // }
+	    
+
+	}
+
+	double MomentMapExtractor::getSpecVal(int z)
+	{
+	    casa::SpectralCoordinate spcoo(this->itsInputCoords.spectralCoordinate(this->itsInputCoords.findCoordinate(casa::Coordinate::SPECTRAL)));
+	    double specval;
+	    if(spcoo.restFrequency()>0.){
+		casa::Quantum<Double> vel;
+		ASKAPASSERT(spcoo.pixelToVelocity(vel,double(z)));
+		specval=vel.getValue();
+	    }
+	    else ASKAPASSERT(spcoo.toWorld(specval,double(z)));
+	    return specval;
+	}
+
+	void MomentMapExtractor::getMom1(casa::Array<Float> &subarray)
+	{
+	    this->itsMom1map = casa::Array<Float>(this->arrayShape(),0.0);
+
+	    casa::IPosition outloc(4,0),inloc(4,0);
+	    casa::IPosition start=this->itsSlicer.start();
+	    
+	    if(this->itsMom0map.size()==0) this->getMom0(subarray);
+	    casa::Array<Float> sumNuS(this->itsMom1map.shape(),0.0);
+	    // casa::Array<Float> sumS = this->itsMom0map / this->getSpectralIncrement();
+	    casa::Array<Float> sumS(this->itsMom1map.shape(),0.0);
+	    if(this->itsFlagUseDetection){
+		std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
+		std::vector<PixelInfo::Voxel>::iterator vox;
+		for(vox=voxlist.begin();vox!=voxlist.end();vox++){
+		    outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
+		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
+		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
+		    sumNuS(outloc) = sumNuS(outloc) + subarray(inloc) * this->getSpecVal(vox->getZ());
+		    sumS(outloc) = sumS(outloc) + subarray(inloc);
+		    // ASKAPLOG_DEBUG_STR(logger, vox->getZ() << " --> " << this->getSpecVal(vox->getZ()));
+		}
+	    }
+	    else{
+		// just sum each spectrum over the slicer's range.
+		casa::IPosition outBLC(this->itsMom1map.ndim(),0),outTRC(this->itsMom1map.shape()-1);
+		casa::Array<Float> nuArray(subarray.shape(),0.);
+		for (int z=0;z<subarray.shape()(this->itsSpcAxis);z++){
+		    casa::IPosition blc(subarray.ndim(),0), trc=subarray.shape()-1;
+		    blc(this->itsSpcAxis) = trc(this->itsSpcAxis) = z;
+		    nuArray(blc,trc) = this->getSpecVal(z + start(this->itsSpcAxis));
+		    ASKAPLOG_DEBUG_STR(logger, z << " --> " << z + start(this->itsSpcAxis) << " ==> " << this->getSpecVal(z + start(this->itsSpcAxis)) << " " << blc << " " << trc);
+		}
+		std::cerr << nuArray << "\n";
+		casa::Array<Float> nuSubarray = nuArray * subarray;
+		casa::Array<Float> sumarray = partialSums(nuSubarray,casa::IPosition(1,this->itsSpcAxis));
+		sumNuS(outBLC,outTRC) = sumarray.reform(sumNuS(outBLC,outTRC).shape());
+		sumarray = partialSums(subarray,casa::IPosition(1,this->itsSpcAxis));
+		sumS(outBLC,outTRC) = sumarray.reform(sumS(outBLC,outTRC).shape());
+	    }
+	    
+//	    this->itsMom1map = (sumNuS / this->itsMom0map) * this->getSpectralIncrement();
+	    this->itsMom1map = sumNuS / sumS;
+	    ASKAPLOG_DEBUG_STR(logger, "At [10,10]: sumS=" << sumS(casa::IPosition(4,10,10,0,0)) 
+			       << " sumNuS="<<sumNuS(casa::IPosition(4,10,10,0,0)) 
+			       << " mom1="<<this->itsMom1map(casa::IPosition(4,10,10,0,0))
+			       << " mom0="<<this->itsMom0map(casa::IPosition(4,10,10,0,0)));
+		
+
+	}
+
+	void MomentMapExtractor::getMom2(casa::Array<Float> &subarray)
+	{
+	    this->itsMom2map = casa::Array<Float>(this->arrayShape(),0.0);
+	}
+
 
     }
 
