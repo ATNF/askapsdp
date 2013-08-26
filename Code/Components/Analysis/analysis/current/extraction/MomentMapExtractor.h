@@ -79,10 +79,13 @@ namespace askap {
 	    std::map<int,bool> itsMomentRequest;
 	    /// Array containing the moment-0 map
 	    casa::Array<Float> itsMom0map;
+	    casa::LogicalArray itsMom0mask;
 	    /// Array containing the moment-1 map
 	    casa::Array<Float> itsMom1map;
+	    casa::LogicalArray itsMom1mask;
 	    /// Array containing the moment-2 map
 	    casa::Array<Float> itsMom2map;
+	    casa::LogicalArray itsMom2mask;
 
 	};
 

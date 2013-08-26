@@ -43,6 +43,7 @@
 
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayLogical.h>
 #include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/ImageOpener.h>
@@ -234,10 +235,13 @@ namespace askap {
 		for(int i=0;i<3;i++){
 		    if(this->itsMomentRequest[i]){
 			
+			casa::LogicalArray theMask;
 			std::string newunits;
 			switch(i){
 			case 0:
 			    this->itsArray = this->itsMom0map; 
+			    ASKAPLOG_DEBUG_STR(logger , this->itsMom0map.shape() << " " << this->itsMom0mask.shape() << " " << outshape );
+			    theMask = this->itsMom0mask.reform(outshape);
 			    if(spcoo.restFrequency() > 0.) 
 				newunits=this->itsInputCubePtr->units().getName() + " " + spcoo.velocityUnit();
 			    else 
@@ -245,6 +249,8 @@ namespace askap {
 			    break;
 			case 1: 
 			    this->itsArray = this->itsMom1map; 
+			    ASKAPLOG_DEBUG_STR(logger , this->itsMom1map.shape() << " " << this->itsMom1mask.shape() << " " << outshape );
+			    theMask = this->itsMom1mask.reform(outshape);;
 			    if(spcoo.restFrequency() > 0.) 
 				newunits=spcoo.velocityUnit();
 			    else 
@@ -252,6 +258,8 @@ namespace askap {
 			    break;
 			case 2:
 			    this->itsArray = this->itsMom2map; 
+			    ASKAPLOG_DEBUG_STR(logger , this->itsMom2map.shape() << " " << this->itsMom2mask.shape() << " " << outshape );
+			    theMask = this->itsMom2mask.reform(outshape);;
 			    if(spcoo.restFrequency() > 0.) 
 				newunits=spcoo.velocityUnit();
 			    else 
@@ -269,6 +277,13 @@ namespace askap {
 			ia.write(filename,newarray);
 			
 			ia.setUnits(filename, newunits);
+
+			 this->writeBeam(filename);
+
+			casa::PagedImage<float> img(filename);
+			ASKAPLOG_DEBUG_STR(logger, img.shape() << " " << theMask.shape());
+			img.makeMask(filename);
+			img.pixelMask().put(theMask);
 
 		    }
 		}
@@ -301,12 +316,12 @@ namespace askap {
 		spcoo.pixelToVelocity(vel1,0);
 		spcoo.pixelToVelocity(vel2,1);
 		specIncr = fabs(vel1-vel2);
-		ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
+		// ASKAPLOG_DEBUG_STR(logger, "Velocity increment = " << specIncr << " " << spcoo.velocityUnit());
 	    }
 	    else{
 		// can't do velocity conversion, so just use the WCS spectral units
 		specIncr = fabs(spcoo.increment()[0]);
-		ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
+		// ASKAPLOG_DEBUG_STR(logger, "Spectral increment = " << specIncr << " " << spcoo.worldAxisUnits()[0]);
 	    }
 	    return specIncr;
 	}
@@ -315,7 +330,11 @@ namespace askap {
 	void MomentMapExtractor::getMom0(const casa::Array<Float> &subarray)
 	{
 		
+	    ASKAPLOG_INFO_STR(logger, "Extracting moment-0 map");
 	    this->itsMom0map = casa::Array<Float>(this->arrayShape(),0.0);
+	    uint zeroInt=0;
+	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    this->itsMom0mask = casa::LogicalArray(this->arrayShape(),false);
 
 	    casa::IPosition outloc(4,0),inloc(4,0);
 	    casa::IPosition start=this->itsSlicer.start();
@@ -328,14 +347,17 @@ namespace askap {
 		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
 		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
 		    this->itsMom0map(outloc) = this->itsMom0map(outloc) + subarray(inloc);
+		    this->itsMom0mask(outloc) = true;
 		}
 	    }
 	    else{
 		// just sum each spectrum over the slicer's range.
 		casa::IPosition outBLC(4,0),outTRC(this->itsMom0map.shape()-1);
-		casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,2));
+		casa::Array<Float> sumarray = partialSums(subarray,casa::IPosition(1,this->itsSpcAxis));
 		this->itsMom0map(outBLC,outTRC) = sumarray.reform(this->itsMom0map(outBLC,outTRC).shape());
+		this->itsMom0mask(outBLC,outTRC) = true;
 	    }
+	    this->itsMom0mask = this->itsMom0mask && basemask;
 	    this->itsMom0map *= float(this->getSpectralIncrement());
 		
 	    // for(int y=this->itsSlicer.start()(this->itsLatAxis);y<=this->itsSlicer.end()(this->itsLatAxis);y++){
@@ -384,7 +406,11 @@ namespace askap {
 
 	void MomentMapExtractor::getMom1(const casa::Array<Float> &subarray)
 	{
+	    ASKAPLOG_INFO_STR(logger, "Extracting moment-1 map");
 	    this->itsMom1map = casa::Array<Float>(this->arrayShape(),0.0);
+	    uint zeroInt=0;
+	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    this->itsMom1mask = casa::LogicalArray(this->arrayShape(),false);
 
 	    casa::IPosition start=this->itsSlicer.start();
 	    
@@ -400,6 +426,7 @@ namespace askap {
 		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
 		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
 		    sumNuS(outloc) = sumNuS(outloc) + subarray(inloc) * this->getSpecVal(vox->getZ());
+		    this->itsMom1mask(outloc) = true;
 		}
 	    }
 	    else{
@@ -414,15 +441,24 @@ namespace askap {
 		casa::Array<Float> nuSubarray = nuArray * subarray;
 		casa::Array<Float> sumarray = partialSums(nuSubarray,casa::IPosition(1,this->itsSpcAxis));
 		sumNuS(outBLC,outTRC) = sumarray.reform(sumNuS(outBLC,outTRC).shape());
+		this->itsMom1mask(outBLC,outTRC) = true;
 	    }
 	    
+	    float zero=0.;
+	    this->itsMom1mask = this->itsMom1mask && basemask;
+	    this->itsMom1mask = this->itsMom1mask && (this->itsMom0map > zero);
+
 	    this->itsMom1map = (sumNuS / this->itsMom0map) * this->getSpectralIncrement();
 
 	}
 
 	void MomentMapExtractor::getMom2(const casa::Array<Float> &subarray)
 	{
+	    ASKAPLOG_INFO_STR(logger, "Extracting moment-2 map");
 	    this->itsMom2map = casa::Array<Float>(this->arrayShape(),0.0);
+	    uint zeroInt=0;
+	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    this->itsMom2mask = casa::LogicalArray(this->arrayShape(),false);
 	    casa::IPosition start=this->itsSlicer.start();
 
 	    if(this->itsMom1map.size()==0) this->getMom1(subarray);
@@ -437,23 +473,38 @@ namespace askap {
 		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
 		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
 		    sumNu2S(outloc) = sumNu2S(outloc) + subarray(inloc) * (this->getSpecVal(vox->getZ())-this->itsMom1map(outloc))*(this->getSpecVal(vox->getZ())-this->itsMom1map(outloc));
+		    this->itsMom2mask(outloc) = true;
 		}
 	    }
 	    else {
 		// just sum each spectrum over the slicer's range.
 		casa::IPosition outBLC(this->itsMom2map.ndim(),0),outTRC(this->itsMom2map.shape()-1);
-		casa::Array<Float> nu2Array(subarray.shape(),0.);
+		casa::IPosition shapeIn(subarray.shape());
+		casa::IPosition shapeMap(shapeIn); shapeMap(this->itsSpcAxis)=1;
+		casa::Array<Float> nu2Array(shapeIn,0.);
+		casa::Array<Float> meanNu(this->itsMom1map.reform(shapeMap));
+		ASKAPLOG_DEBUG_STR(logger, meanNu.shape());
 		for (int z=0;z<subarray.shape()(this->itsSpcAxis);z++){
 		    casa::IPosition blc(subarray.ndim(),0), trc=subarray.shape()-1;
 		    blc(this->itsSpcAxis) = trc(this->itsSpcAxis) = z;
 		    nu2Array(blc,trc) = this->getSpecVal(z + start(this->itsSpcAxis));
+		    nu2Array(blc,trc) = (nu2Array(blc,trc) - meanNu);
 		}
-		casa::Array<Float> nu2Subarray = (nu2Array-this->itsMom1map)*(nu2Array-this->itsMom1map) * subarray;
+		// casa::Array<Float> nu2Subarray = (nu2Array-this->itsMom1map)*(nu2Array-this->itsMom1map) * subarray;
+		casa::Array<Float> nu2Subarray = nu2Array * nu2Array * subarray;
 		casa::Array<Float> sumarray = partialSums(nu2Subarray,casa::IPosition(1,this->itsSpcAxis));
 		sumNu2S(outBLC,outTRC) = sumarray.reform(sumNu2S(outBLC,outTRC).shape());
+		this->itsMom2mask(outBLC,outTRC) = true;
 	    }
 
-	    this->itsMom2map = sqrt( (sumNu2S / this->itsMom0map) * this->getSpectralIncrement() );
+	    this->itsMom2map =  (sumNu2S / this->itsMom0map) * this->getSpectralIncrement();
+
+	    float zero=0.;
+	    this->itsMom2mask = this->itsMom2mask && basemask;
+	    this->itsMom2mask = this->itsMom2mask && (this->itsMom0map > zero);
+	    this->itsMom2mask = this->itsMom2mask && (this->itsMom2map > zero);
+
+	    this->itsMom2map = sqrt(this->itsMom2map);
 
 
 	}

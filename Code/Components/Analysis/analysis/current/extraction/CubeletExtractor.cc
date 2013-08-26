@@ -202,7 +202,14 @@ namespace askap {
 		
 		// write the array
 		ia.write(this->itsOutputFilename,newarray);
+
+		this->writeBeam(this->itsOutputFilename);
 		
+		casa::LogicalArray mask(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer).reform(outshape));
+		casa::PagedImage<float> img(this->itsOutputFilename);
+		img.makeMask(this->itsOutputFilename);
+		img.pixelMask().put(mask);
+
 		this->closeInput();
 		
 	    }		

@@ -90,6 +90,7 @@ namespace askap {
 	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
 	casa::IPosition getShape(std::string image);
 	virtual void initialiseArray() = 0;
+	void writeBeam(std::string &filename);
 
 	RadioSource* itsSource;
 	std::string itsCentreType;

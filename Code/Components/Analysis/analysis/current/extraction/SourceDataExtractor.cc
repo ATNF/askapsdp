@@ -34,6 +34,8 @@
 
 #include <string>
 #include <sourcefitting/RadioSource.h>
+#include <imageaccess/CasaImageAccess.h>
+
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
 #include <casa/BasicSL/String.h>
@@ -238,6 +240,15 @@ namespace askap {
 	}
       }
     }
+
+      
+      void SourceDataExtractor::writeBeam(std::string &filename)
+      {
+	  casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
+	  accessors::CasaImageAccess ia;
+	  ia.setBeamInfo(filename, inputBeam[0].getValue("rad"), inputBeam[1].getValue("rad"), inputBeam[2].getValue("rad"));
+      }
+
 
     bool SourceDataExtractor::openInput()
     {
