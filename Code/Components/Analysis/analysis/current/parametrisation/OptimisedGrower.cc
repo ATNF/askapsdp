@@ -96,7 +96,7 @@ namespace askap {
       }
       else ASKAPLOG_DEBUG_STR(logger, "Initial object size = " << this->itsObj->getSize());
 
-      for(int iter=0; iter<this->maxIterations && keepGoing; iter++){
+      for(int iter=0; (this->maxIterations<0 || iter<this->maxIterations) && keepGoing; iter++){
 
 	// after growMask, check if flux of newObj is positive.
 	// If yes:
