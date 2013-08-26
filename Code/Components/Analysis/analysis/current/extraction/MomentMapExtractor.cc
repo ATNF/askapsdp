@@ -423,6 +423,39 @@ namespace askap {
 	void MomentMapExtractor::getMom2(const casa::Array<Float> &subarray)
 	{
 	    this->itsMom2map = casa::Array<Float>(this->arrayShape(),0.0);
+	    casa::IPosition start=this->itsSlicer.start();
+
+	    if(this->itsMom1map.size()==0) this->getMom1(subarray);
+	    casa::Array<Float> sumNu2S(this->itsMom2map.shape(),0.0);
+	    casa::Array<Float> sumS = this->itsMom0map / this->getSpectralIncrement();
+	    if(this->itsFlagUseDetection){
+		casa::IPosition outloc(4,0),inloc(4,0);
+		std::vector<PixelInfo::Voxel> voxlist=this->itsSource->getPixelSet();
+		std::vector<PixelInfo::Voxel>::iterator vox;
+		for(vox=voxlist.begin();vox!=voxlist.end();vox++){
+		    outloc(this->itsLngAxis) = inloc(this->itsLngAxis) = vox->getX() - start(this->itsLngAxis);
+		    outloc(this->itsLatAxis) = inloc(this->itsLatAxis) = vox->getY() - start(this->itsLatAxis);
+		    inloc(this->itsSpcAxis) = vox->getZ() - start(this->itsSpcAxis);
+		    sumNu2S(outloc) = sumNu2S(outloc) + subarray(inloc) * (this->getSpecVal(vox->getZ())-this->itsMom1map(outloc))*(this->getSpecVal(vox->getZ())-this->itsMom1map(outloc));
+		}
+	    }
+	    else {
+		// just sum each spectrum over the slicer's range.
+		casa::IPosition outBLC(this->itsMom2map.ndim(),0),outTRC(this->itsMom2map.shape()-1);
+		casa::Array<Float> nu2Array(subarray.shape(),0.);
+		for (int z=0;z<subarray.shape()(this->itsSpcAxis);z++){
+		    casa::IPosition blc(subarray.ndim(),0), trc=subarray.shape()-1;
+		    blc(this->itsSpcAxis) = trc(this->itsSpcAxis) = z;
+		    nu2Array(blc,trc) = this->getSpecVal(z + start(this->itsSpcAxis));
+		}
+		casa::Array<Float> nu2Subarray = (nu2Array-this->itsMom1map)*(nu2Array-this->itsMom1map) * subarray;
+		casa::Array<Float> sumarray = partialSums(nu2Subarray,casa::IPosition(1,this->itsSpcAxis));
+		sumNu2S(outBLC,outTRC) = sumarray.reform(sumNu2S(outBLC,outTRC).shape());
+	    }
+
+	    this->itsMom2map = sqrt( (sumNu2S / this->itsMom0map) * this->getSpectralIncrement() );
+
+
 	}
 
 
