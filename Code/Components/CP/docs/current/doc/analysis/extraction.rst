@@ -1,5 +1,7 @@
-Extraction of Spectra
-=====================
+Extraction of Spectra, Images and Cubelets
+==========================================
+
+This page describes the way spectral and image data products can be extracted for each detected source. Using these tools, the user can get integrated spectra, noise spectra, moment maps, and cube cutouts for each (or a selection) of the detected sources.
 
 
 Spectral Extraction
@@ -44,13 +46,10 @@ Parameters for spectral extraction
 |                                  |                |                   |                                                                                                    |
 +----------------------------------+----------------+-------------------+----------------------------------------------------------------------------------------------------+
 |extractSpectra.spectralOutputBase |string          |""                 |The base used for the output spectra. The filename for a given source will be this string appended  |
-|                                  |                |                   |with "_ID", where ID is the source's ID number from the results list. When run through the Selavy   |
-|                                  |                |                   |service, the filename will have "selavy-SPECTRA-" prepended to it.                                  |
-|                                  |                |                   |                                                                                                    |
+|                                  |                |                   |with "_ID", where ID is the source's ID number from the results list.                               |
 +----------------------------------+----------------+-------------------+----------------------------------------------------------------------------------------------------+
 |extractSpectra.polarisation       |vector<string>  |I                  |The set of Stokes parameters for which spectra should be extracted.  Multiple polarisations can be  |
 |                                  |                |                   |provided in a number of ways: "IQUV", ["I","Q","U","V"] etc. See text for requirements.             |
-|                                  |                |                   |                                                                                                    |
 +----------------------------------+----------------+-------------------+----------------------------------------------------------------------------------------------------+
 |extractSpectra.spectralBoxWidth   |int             |5                  |The width of the box to be applied in the extraction.                                               |
 +----------------------------------+----------------+-------------------+----------------------------------------------------------------------------------------------------+
@@ -101,9 +100,7 @@ Parameters for noise spectra extraction
 |extractNoiseSpectra.spectralCube       |vector<string> |[]          |As above. If more than one cube is given, only the |
 |                                       |               |            |first is used.                                     |
 +---------------------------------------+---------------+------------+---------------------------------------------------+
-|extractNoiseSpectra.spectralOutputBase |string         |""          |As above. When run through the Selavy service, the |
-|                                       |               |            |filename will have "selavy-NOISE-SPECTRA-"         |
-|                                       |               |            |prepended to it.                                   |
+|extractNoiseSpectra.spectralOutputBase |string         |""          |As above.                                          |
 +---------------------------------------+---------------+------------+---------------------------------------------------+
 |extractNoiseSpectra.polarisation       |vector<string> |I           |As above. If more than one is provided, only the   |
 |                                       |               |            |first is used.                                     |
@@ -114,3 +111,79 @@ Parameters for noise spectra extraction
 |extractNoiseSpectra.robust             |bool           |true        |Whether to use robust methods to estimate the      |
 |                                       |               |            |noise.                                             |
 +---------------------------------------+---------------+------------+---------------------------------------------------+
+
+
+Moment-map extraction
+---------------------
+
+Similar facilities exist for creating and extracting moment maps for spectral-line detections. This is capable of creating the total intensity (moment-0) map, the intensity-weighted mean velocity field (moment-1 map) and the intensity-weighted velocity dispersion (moment-2 map). The default behaviour is to produce all three, although one may use the **moments** parameter to select individual maps (e.g. **moments=[0,1]** to select just the total intensity and mean velocity field maps).
+
+There is one key choice to be made that affects the appearance of these maps, and that is what voxels to include in the calculations. By setting **useDetectedPixels=true**, the only pixels included in the calculations will be those that actually form part of the detected object. Pixels that do not form part of the object are masked in the final images. If **useDetectedPixels=false**, then the moment maps will be made with all pixels within the channel range of the detected object, whether or now they formed part of that object. 
+
+The spatial size of the maps is determined in one of two ways. If **spatialMethod=box**, then the spatial size is at least the size of the detected object, padded out on each side by a given number of pixels if desired (by using the **padSize** parameter). If **spatialMethod=fullfield**, then the full spatial size of the input cube is used.
+
+The output filenames can be specified using a special wildcard: '%m' will be replaced with the moment number, so that if one provides **momentOutputBase=myImage_mom%m**, then the first object's moment-0 map will go into myImage_mom0_1 and its moment-1 map will go to myImage_mom1_1. As above, the object ID is appended to the base name in the form "_ID".
+
+As above, the output images are created in *CASA format*.
+ 
+
+Parameters for moment-map extraction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|*Parameter*                            |*Type*         |*Default*   |*Explanation*                                                   |
++=======================================+===============+============+================================================================+
+|extractMomentMap                       |bool           |false       |Whether to extract moment maps.                                 |       
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractMomentMap.spectralCube          |vector<string> |[]          |As above. If more than one cube is given, only the first is     |       
+|                                       |               |            |used.                                                           |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractMomentMap.momentOutputBase      |string         |""          |Base name for the moment maps. If more than one moment is being |       
+|                                       |               |            |used, use '%m' to represent the moment number.  The name is     |
+|                                       |               |            |appended with "_ID", where ID is the object ID number.          |       
++---------------------------------------+---------------+------------+----------------------------------------------------------------+       
+|extractMomentMap.moments               |vector<int>    |[0]         |Which moment maps to create.                                    |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractMomentMap.spatialMethod         |string         |box         |Either "box" (cutout is restricted to the immediate vicinity of |
+|                                       |               |            |the detection, padded by **padSize**), or "fullfield" (the      |
+|                                       |               |            |entire spatial size of the input cube).                         |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractMomentMap.padSize               |int            |5           |When using **spatialMethod=box**, a border of this many pixels  |
+|                                       |               |            |is added to the edges of the image, surrounding the spatial     |
+|                                       |               |            |extent of the detection.                                        |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractMomentMap.useDetectedPixels     |bool           |true        |Whether to just use the detected pixels in calculating the      |
+|                                       |               |            |moment maps (**true**) or to use all pixels within the detected |
+|                                       |               |            |object's spectral range.                                        |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+
+
+Cubelet extraction
+------------------
+
+The final form of data product extraction is to extract 'cubelets' - cutout cubes surrounding the detected object. These have no processing applied to them other than the trimming, and so provide a way of looking at the data directly relevant to the detected object without having to load the entire input image cube.
+
+The cubelet size is taken from the outer dimensions of the detected object, and can be padded by a certain number of pixels in the spatial and spectral directions. To specify the padding amount, use the **padSize** parameter, giving a vector with two elements. The first is the pad size used in the spatial direction, the second is for the spectral direction. If only one value is given it is applied to both directions.
+
+The input data need not be a cube, of course - it is possible to run this on a continuum image and it will work in the same way.
+
+As above, the output cubes are created in *CASA format*.
+ 
+Parameters for cubelet extraction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|*Parameter*                            |*Type*         |*Default*   |*Explanation*                                                   |
++=======================================+===============+============+================================================================+
+|extractCubelet                         |bool           |false       |Whether to extract cubelets.                                    |       
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractCubelet.spectralCube            |vector<string> |[]          |As above. If more than one cube is given, only the first is     |       
+|                                       |               |            |used.                                                           |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
+|extractCubelet.cubeletOutputBase       |string         |""          |Base name for the cubelet files.                                |       
++---------------------------------------+---------------+------------+----------------------------------------------------------------+       
+|extractCubelet.padSize                 |vector<int>    |[5,5]       |Number of pixels to add to the edge of the detection in the     |
+|                                       |               |            |spatial and spectral directions respectively. If a single       |
+|                                       |               |            |integer is provided, this is applied to both spatial and        |
+|                                       |               |            |spectral directions.                                            |
++---------------------------------------+---------------+------------+----------------------------------------------------------------+
