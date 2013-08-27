@@ -67,8 +67,8 @@ namespace askap {
 	CubeletExtractor::CubeletExtractor(const LOFAR::ParameterSet& parset):
 	    SourceDataExtractor(parset)
 	{
-	    std::vector<unsigned int> padsizes = parset.getUintVector("padsize",std::vector<unsigned int>(2,5));
-	    if(padsizes.size()>2) ASKAPLOG_WARN_STR(logger, "Only using the first two elements of the padsize vector");
+	    std::vector<unsigned int> padsizes = parset.getUintVector("padSize",std::vector<unsigned int>(2,5));
+	    if(padsizes.size()>2) ASKAPLOG_WARN_STR(logger, "Only using the first two elements of the padSize vector");
 	    this->itsSpatialPad = padsizes[0];
 	    if(padsizes.size()>1) 
 		this->itsSpectralPad = padsizes[1];

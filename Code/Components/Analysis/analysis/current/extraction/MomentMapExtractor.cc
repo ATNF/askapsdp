@@ -81,7 +81,7 @@ namespace askap {
 	    }
 	    this->itsFlagUseDetection = parset.getBool("useDetectedPixels",true);
 
-	    this->itsPadSize = parset.getUint("padsize",5);
+	    this->itsPadSize = parset.getUint("padSize",5);
 
 	    this->itsOutputFilenameBase = parset.getString("momentOutputBase","");
 
