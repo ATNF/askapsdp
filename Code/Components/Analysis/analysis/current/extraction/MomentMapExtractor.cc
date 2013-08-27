@@ -74,9 +74,9 @@ namespace askap {
 	MomentMapExtractor::MomentMapExtractor(const LOFAR::ParameterSet& parset):
 	    SourceDataExtractor(parset)
 	{
-	    this->itsSpatialMethod = parset.getString("SpatialMethod","box");
+	    this->itsSpatialMethod = parset.getString("spatialMethod","box");
 	    if(this->itsSpatialMethod != "fullfield" && this->itsSpatialMethod != "box"){
-		ASKAPLOG_WARN_STR(logger, "The value of SpatialMethod='"<<this->itsSpatialMethod<<"' is not recognised - setting SpatialMethod='box'");
+		ASKAPLOG_WARN_STR(logger, "The value of spatialMethod='"<<this->itsSpatialMethod<<"' is not recognised - setting spatialMethod='box'");
 		this->itsSpatialMethod="box";
 	    }
 	    this->itsFlagUseDetection = parset.getBool("useDetectedPixels",true);
@@ -213,7 +213,6 @@ namespace askap {
 		newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
 		newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
 
-		// shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
 		int lngAxis=newcoo.directionAxesNumbers()[0];
 		int latAxis=newcoo.directionAxesNumbers()[1];
 		int stkAxis=newcoo.polarizationAxisNumber();
@@ -221,16 +220,15 @@ namespace askap {
 		outshape(lngAxis)=this->itsSlicer.length()(this->itsLngAxis);
 		outshape(latAxis)=this->itsSlicer.length()(this->itsLatAxis);
 		outshape(stkAxis)=stkvec.size();
-		casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
-		shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;
-		shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;
-		casa::Vector<Int> newshape=outshape.asVector();
-
-		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
-		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
-		newcoo.subImageInSitu(shift,incrFac,newshape);
-		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref vals = " << newcoo.referenceValue());
-		// ASKAPLOG_DEBUG_STR(logger, "New coordinate ref pixs = " << newcoo.referencePixel());
+		if(this->itsSpatialMethod == "box"){
+		    // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
+		    // only want to do this if we are trimming.
+		    casa::Vector<Float> shift(outshape.size(),0), incrFac(outshape.size(),1);
+		    shift(lngAxis)=this->itsSource->getXmin()-this->itsPadSize;
+		    shift(latAxis)=this->itsSource->getYmin()-this->itsPadSize;
+		    casa::Vector<Int> newshape=outshape.asVector();
+		    newcoo.subImageInSitu(shift,incrFac,newshape);
+		}
 
 		for(int i=0;i<3;i++){
 		    if(this->itsMomentRequest[i]){
