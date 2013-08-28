@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_TRACING_H
-#define ASKAP_CP_TRACING_H
+#ifndef ASKAP_CP_SIMAGER_TRACING_H
+#define ASKAP_CP_SIMAGER_TRACING_H
 
 // System includes
 #include <string>

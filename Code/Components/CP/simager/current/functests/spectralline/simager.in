@@ -1,0 +1,21 @@
+Simager.dataset                                = [10uJy_stdtest_0.ms, 10uJy_stdtest_1.ms]
+#
+Simager.Images.name                            = image.i.10uJy_spectralline
+Simager.Images.shape                           = [2048,2048]
+Simager.Images.frequency                       = [1.420e9,1.420e9]
+Simager.Images.cellsize                        = [6.0arcsec, 6.0arcsec]
+Simager.Images.direction                       = [12h30m00.00, -45.00.00.00, J2000]
+#
+Simager.gridder                                = WProject
+Simager.gridder.WProject.wmax                  = 15000
+Simager.gridder.WProject.nwplanes              = 11
+Simager.gridder.WProject.oversample            = 4
+Simager.gridder.WProject.maxsupport            = 512
+#
+Simager.solver                                 = Dirty
+Simager.solver.Dirty.tolerance                 = 0.1
+Simager.solver.Dirty.verbose                   = True
+Simager.ncycles                                = 0
+
+Simager.preconditioner.Names                   = None
+

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IMESSAGE_H
-#define ASKAP_CP_IMESSAGE_H
+#ifndef ASKAP_CP_SIMAGER_IMESSAGE_H
+#define ASKAP_CP_SIMAGER_IMESSAGE_H
 
 // Boost includes
 #include <boost/shared_ptr.hpp>
@@ -40,11 +40,6 @@ namespace askap {
         {
             public:
                 enum MessageType {
-                    UPDATE_MODEL,
-                    PREDIFFER_REQUEST,
-                    PREDIFFER_RESPONSE,
-                    CLEAN_REQUEST,
-                    CLEAN_RESPONSE,
                     SPECTRALLINE_WORKUNIT,
                     SPECTRALLINE_WORKREQUEST
                 };

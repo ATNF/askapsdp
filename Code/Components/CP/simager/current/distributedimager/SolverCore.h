@@ -24,10 +24,11 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SOLVERCORE_H
-#define ASKAP_CP_SOLVERCORE_H
+#ifndef ASKAP_CP_SIMAGER_SOLVERCORE_H
+#define ASKAP_CP_SIMAGER_SOLVERCORE_H
 
 // System includes
+#include <string>
 
 // ASKAPsoft includes
 #include <Common/ParameterSet.h>
@@ -39,7 +40,7 @@
 #include <casa/Arrays/Vector.h>
 
 // Local includes
-#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/IBasicComms.h"
 
 namespace askap {
     namespace cp {

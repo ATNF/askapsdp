@@ -24,11 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SPECTRALLINEWORKREQUEST_H
-#define ASKAP_CP_SPECTRALLINEWORKREQUEST_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_SIMAGER_SPECTRALLINEWORKREQUEST_H
+#define ASKAP_CP_SIMAGER_SPECTRALLINEWORKREQUEST_H
 
 // ASKAPsoft includes
 #include <messages/IMessage.h>
@@ -66,7 +63,6 @@ namespace askap {
                 /// @param[in] is the input stream
                 virtual void readFromBlob(LOFAR::BlobIStream& is);
 
-            private:
         };
 
     };

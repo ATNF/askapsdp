@@ -24,12 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IBASICCOMMS_H
-#define ASKAP_CP_IBASICCOMMS_H
-
-// System includes
-#include <string>
-#include <vector>
+#ifndef ASKAP_CP_SIMAGER_IBASICCOMMS_H
+#define ASKAP_CP_SIMAGER_IBASICCOMMS_H
 
 // ASKAPsoft includes
 #include <messages/IMessage.h>

@@ -29,13 +29,8 @@
 
 // Classes to test
 #include <messages/IMessage.h>
-#include <messages/CleanRequest.h>
-#include <messages/CleanResponse.h>
-#include <messages/PreDifferRequest.h>
-#include <messages/PreDifferResponse.h>
 #include <messages/SpectralLineWorkRequest.h>
 #include <messages/SpectralLineWorkUnit.h>
-#include <messages/UpdateModel.h>
 
 namespace askap
 {
@@ -44,39 +39,11 @@ namespace askap
         class AllMessagesTest : public CppUnit::TestFixture
         {
             CPPUNIT_TEST_SUITE(AllMessagesTest);
-            CPPUNIT_TEST(testCleanRequest);
-            CPPUNIT_TEST(testCleanResponse);
-            CPPUNIT_TEST(testPreDifferRequest);
-            CPPUNIT_TEST(testPreDifferResponse);
             CPPUNIT_TEST(testSpectralLineWorkRequest);
             CPPUNIT_TEST(testSpectralLineWorkUnit);
-            CPPUNIT_TEST(testUpdateModel);
             CPPUNIT_TEST_SUITE_END();
 
             public:
-            void testCleanRequest()
-            {
-                CleanRequest msg;
-                CPPUNIT_ASSERT(msg.getMessageType() == IMessage::CLEAN_REQUEST);
-            };
-
-            void testCleanResponse()
-            {
-                CleanResponse msg;
-                CPPUNIT_ASSERT(msg.getMessageType() == IMessage::CLEAN_RESPONSE);
-            };
-
-            void testPreDifferRequest()
-            {
-                PreDifferRequest msg;
-                CPPUNIT_ASSERT(msg.getMessageType() == IMessage::PREDIFFER_REQUEST);
-            };
-
-            void testPreDifferResponse()
-            {
-                PreDifferResponse msg;
-                CPPUNIT_ASSERT(msg.getMessageType() == IMessage::PREDIFFER_RESPONSE);
-            };
 
             void testSpectralLineWorkRequest()
             {
@@ -90,11 +57,6 @@ namespace askap
                 CPPUNIT_ASSERT(msg.getMessageType() == IMessage::SPECTRALLINE_WORKUNIT);
             };
 
-            void testUpdateModel()
-            {
-                UpdateModel msg;
-                CPPUNIT_ASSERT(msg.getMessageType() == IMessage::UPDATE_MODEL);
-            };
         };
 
     }   // End namespace cp

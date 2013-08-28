@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SPECTRALLINEWORKUNIT_H
-#define ASKAP_CP_SPECTRALLINEWORKUNIT_H
+#ifndef ASKAP_CP_SIMAGER_SPECTRALLINEWORKUNIT_H
+#define ASKAP_CP_SIMAGER_SPECTRALLINEWORKUNIT_H
 
 // System includes
 #include <string>

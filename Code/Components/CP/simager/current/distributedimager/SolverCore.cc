@@ -50,9 +50,8 @@
 #include <casa/OS/Timer.h>
 
 // Local includes
-#include "distributedimager/common/IBasicComms.h"
-#include "distributedimager/common/DistributedImageSolverFactory.h"
-#include "distributedimager/common/Tracing.h"
+#include "distributedimager/IBasicComms.h"
+#include "distributedimager/Tracing.h"
 
 // Using
 using namespace askap;
@@ -69,16 +68,7 @@ SolverCore::SolverCore(LOFAR::ParameterSet& parset,
 {
     const std::string solver_par = itsParset.getString("solver");
     const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
-    const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
-    const std::string mode = itsParset.getString("mode","Continuum");
-    // There is a distributed MultiScale Clean implementation in this processing
-    // element, so use it if appropriate
-    if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
-            distributed_par == "True" && mode == "Continuum") {
-        itsSolver = DistributedImageSolverFactory::make(itsParset, itsComms);
-    } else {
-        itsSolver = ImageSolverFactory::make(itsParset);
-    }
+    itsSolver = ImageSolverFactory::make(itsParset);
 }
 
 SolverCore::~SolverCore()

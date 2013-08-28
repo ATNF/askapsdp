@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MPIBASICCOMMS_H
-#define ASKAP_CP_MPIBASICCOMMS_H
+#ifndef ASKAP_CP_SIMAGER_MPIBASICCOMMS_H
+#define ASKAP_CP_SIMAGER_MPIBASICCOMMS_H
 
 // Include own header file first
 #include "IBasicComms.h"

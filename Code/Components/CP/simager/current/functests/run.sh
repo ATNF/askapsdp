@@ -7,28 +7,6 @@ echo Running test cases...
 
 FAIL=0
 
-# Non-cycling Continuum Imager Test
-cd continuum
-./run.sh
-if [ $? -eq 0 ]; then
-    R1="continuum           PASS"
-else
-    R1="continuum           FAIL"
-    FAIL=1
-fi
-cd $INITIALDIR
-
-# Cycling Continuum Imager Test
-cd continuum-cycling
-./run.sh
-if [ $? -eq 0 ]; then
-    R2="continuum-cycling   PASS"
-else
-    R2="continuum-cycling   FAIL"
-    FAIL=1
-fi
-cd $INITIALDIR
-
 # Non-cycling Spectral Line Imager Test
 cd spectralline
 ./run.sh

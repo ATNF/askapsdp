@@ -4,8 +4,8 @@ OUTPUT=output.txt
 
 export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
-if [ ! -x ../../apps/imager.sh ]; then
-    echo imager.sh does not exit
+if [ ! -x ../../apps/simager.sh ]; then
+    echo simager.sh does not exit
 fi
 
 IMAGE=image.i.10uJy_spectralline_ch
@@ -30,7 +30,7 @@ tar zxf ../10uJy_stdtest.ms.tgz
 mv -f 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
-mpirun -np 3 ../../apps/imager.sh -c imager.in | tee $OUTPUT
+mpirun -np 3 ../../apps/simager.sh -c simager.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1

@@ -1,4 +1,4 @@
-/// @file PreDifferMaster.h
+/// @file SpectralLineMaster.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,31 +24,31 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PREDIFFERMASTER_H
-#define ASKAP_CP_PREDIFFERMASTER_H
+#ifndef ASKAP_CP_SIMAGER_SPECTRALLINEMASTER_H
+#define ASKAP_CP_SIMAGER_SPECTRALLINEMASTER_H
 
 // System includes
+#include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include <Common/ParameterSet.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/common/IBasicComms.h"
-#include "distributedimager/continuum/IPreDifferTask.h"
+#include "distributedimager/IBasicComms.h"
 
 namespace askap {
     namespace cp {
 
-        class PreDifferMaster : public IPreDifferTask
+        class SpectralLineMaster
         {
             public:
-                PreDifferMaster(LOFAR::ParameterSet& parset,
+                SpectralLineMaster(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
-                virtual ~PreDifferMaster();
+                ~SpectralLineMaster();
 
-                virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p);
+                void run(void);
+
 
             private:
 
@@ -70,10 +70,9 @@ namespace askap {
                 ///     
                 /// @param[in] parset   the parameterset to use as input.
                 /// @return a vector containing in each element one dataset.
-                std::vector<std::string> getDatasets(LOFAR::ParameterSet& itsParset);
+                std::vector<std::string> getDatasets(const LOFAR::ParameterSet& itsParset);
 
-                /// Normal equations
-                askap::scimath::INormalEquations::ShPtr itsNormalEquation_p;
+                int getNumChannels(const std::string& ms);
 
                 /// Parameter set
                 LOFAR::ParameterSet& itsParset;
@@ -81,14 +80,11 @@ namespace askap {
                 /// Communications class
                 askap::cp::IBasicComms& itsComms;
 
-                /// Model
-                askap::scimath::Params::ShPtr itsModel;
-
                 // No support for assignment
-                PreDifferMaster& operator=(const PreDifferMaster& rhs);
+                SpectralLineMaster& operator=(const SpectralLineMaster& rhs);
 
                 // No support for copy constructor
-                PreDifferMaster(const PreDifferMaster& src);
+                SpectralLineMaster(const SpectralLineMaster& src);
         };
 
     };

@@ -1,4 +1,4 @@
-/// @file SolverWorker.h
+/// @file SpectralLineImager.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,52 +24,54 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SOLVERWORKER_H
-#define ASKAP_CP_SOLVERWORKER_H
+// Include own header file first
+#include "SpectralLineImager.h"
+
+// Include package level header file
+#include <askap_simager.h>
 
 // System includes
 #include <string>
 
 // ASKAPsoft includes
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 #include <Common/ParameterSet.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/common/IBasicComms.h"
-#include "distributedimager/continuum/ISolverTask.h"
+#include "distributedimager/IBasicComms.h"
+#include "distributedimager/SpectralLineMaster.h"
+#include "distributedimager/SpectralLineWorker.h"
 
-namespace askap {
-    namespace cp {
+ASKAP_LOGGER(logger, ".SpectralLineImager");
 
-        class SolverWorker : public ISolverTask
-        {
-            public:
-                SolverWorker(LOFAR::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
-                        askap::scimath::Params::ShPtr model_p);
+using namespace askap::cp;
+using namespace askap;
 
-                virtual ~SolverWorker();
+SpectralLineImager::SpectralLineImager(LOFAR::ParameterSet& parset,
+        askap::cp::MPIBasicComms& comms) : itsParset(parset), itsComms(comms)
+{
+    if (isMaster()) {
+        ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Spectral Line Imager - " << ASKAP_PACKAGE_VERSION);
+    }
+}
 
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
+SpectralLineImager::~SpectralLineImager()
+{
+}
 
-                virtual void writeModel(const std::string& postfix);
+void SpectralLineImager::run(void)
+{
+    if (isMaster()) {
+        SpectralLineMaster master(itsParset, itsComms);
+        master.run();
+    } else {
+        SpectralLineWorker worker(itsParset, itsComms);
+        worker.run();
+    }
+}
 
-            private:
-                // No support for assignment
-                SolverWorker& operator=(const SolverWorker& rhs);
-
-                // No support for copy constructor
-                SolverWorker(const SolverWorker& src);
-
-                // Parameter set
-                LOFAR::ParameterSet& itsParset;
-
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
-        };
-
-    };
-};
-
-#endif
+bool SpectralLineImager::isMaster(void)
+{
+    return (itsComms.getId() == itsMaster) ? true : false;
+}

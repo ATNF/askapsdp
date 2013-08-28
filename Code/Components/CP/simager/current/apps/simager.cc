@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include package level header file
-#include <askap_imager.h>
+#include <askap_simager.h>
 
 // System includes
 #include <string>
@@ -43,9 +43,8 @@
 #include <Common/ParameterSet.h>
 
 // Local Package includes
-#include "distributedimager/continuum/ContinuumImager.h"
-#include "distributedimager/spectralline/SpectralLineImager.h"
-#include "distributedimager/common/MPIBasicComms.h"
+#include "distributedimager/SpectralLineImager.h"
+#include "distributedimager/MPIBasicComms.h"
 
 using namespace askap;
 using namespace askap::cp;
@@ -66,7 +65,7 @@ class ImagerApp : public askap::Application
 
             try {
                 // Create a subset
-                LOFAR::ParameterSet subset(config().makeSubset("Cimager."));
+                LOFAR::ParameterSet subset(config().makeSubset("Simager."));
 
                 // Instantiate the comms class
                 comms_p.reset(new MPIBasicComms(argc, argv));
@@ -77,16 +76,8 @@ class ImagerApp : public askap::Application
                 }
 
                 // Instantiate the Distributed Imager
-                const std::string mode = subset.getString("mode","Continuum");
-                if (mode == "Continuum") {
-                    ContinuumImager imager(subset, *comms_p);
-                    imager.run();
-                } else if (mode == "SpectralLine") {
-                    SpectralLineImager imager(subset, *comms_p);
-                    imager.run();
-                } else {
-                    ASKAPTHROW(std::runtime_error, "Invalid imaging mode specified.");
-                }
+                SpectralLineImager imager(subset, *comms_p);
+                imager.run();
             } catch (const askap::AskapError& e) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
                 std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;

@@ -1,4 +1,4 @@
-/// @file ContinuumImager.h
+/// @file SpectralLineWorker.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,60 +24,65 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CONTINUUMIMAGER_H
-#define ASKAP_CP_CONTINUUMIMAGER_H
+#ifndef ASKAP_CP_SIMAGER_SPECTRALLINEWORKER_H
+#define ASKAP_CP_SIMAGER_SPECTRALLINEWORKER_H
+
+// System includes
+#include <string>
 
 // ASKAPsoft includes
 #include <Common/ParameterSet.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
+#include <dataaccess/TableDataSource.h>
+#include <gridding/IVisGridder.h>
 
-// Local package includes
-#include "distributedimager/common/MPIBasicComms.h"
+// Local includes
+#include "distributedimager/IBasicComms.h"
+#include "messages/SpectralLineWorkUnit.h"
 
 namespace askap {
     namespace cp {
 
-        /// @brief Main class for the Distributed imager.
-        class ContinuumImager
+        class SpectralLineWorker
         {
             public:
-                /// @brief Construct a Distributed Imager.
-                /// 
-                /// @param[in]  parset  the parameter set containing
-                ///                     the configuration.
-                /// @param[in]  comms   an instance of IBasicComms.
-                ContinuumImager(LOFAR::ParameterSet& parset,
-                        askap::cp::MPIBasicComms& comms);
+                SpectralLineWorker(LOFAR::ParameterSet& parset,
+                        askap::cp::IBasicComms& comms);
+                ~SpectralLineWorker();
 
-                /// @brief Destructor.
-                ~ContinuumImager();
-
-                /// @brief Run the distrbuted imager.
                 void run(void);
 
+
             private:
+                // Process a workunit
+                void processWorkUnit(const SpectralLineWorkUnit& wu);
 
-                // Returns true if the caller is the master process,
-                // else false.
-                bool isMaster(void);
+                // For a given workunit, just process a single channel
+                void processChannel(askap::accessors::TableDataSource& ds,
+                        const std::string& imagename, unsigned int localChannel,
+                        unsigned int globalChannel);
 
-                // Id of the master process
-                static const int itsMaster = 0;
+                // Setup the image specified in itsParset and add it to the Params instance.
+                void setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel);
 
                 // Parameter set
                 LOFAR::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::MPIBasicComms& itsComms;
+                askap::cp::IBasicComms& itsComms;
 
-                // Model
-                askap::scimath::Params::ShPtr itsModel;
+                // Pointer to the gridder
+                askap::synthesis::IVisGridder::ShPtr itsGridder_p;
 
                 // No support for assignment
-                ContinuumImager& operator=(const ContinuumImager& rhs);
+                SpectralLineWorker& operator=(const SpectralLineWorker& rhs);
 
                 // No support for copy constructor
-                ContinuumImager(const ContinuumImager& src);
+                SpectralLineWorker(const SpectralLineWorker& src);
+
+                // ID of the master process
+                static const int itsMaster = 0;
         };
 
     };

@@ -59,11 +59,11 @@
 
 
 // Local includes
-#include "distributedimager/common/IBasicComms.h"
-#include "distributedimager/common/SolverCore.h"
+#include "distributedimager/IBasicComms.h"
+#include "distributedimager/SolverCore.h"
+#include "distributedimager/Tracing.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
-#include "distributedimager/common/Tracing.h"
 
 using namespace askap::cp;
 using namespace askap;

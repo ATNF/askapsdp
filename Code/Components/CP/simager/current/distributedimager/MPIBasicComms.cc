@@ -50,7 +50,7 @@
 
 // Local package includes
 #include "messages/IMessage.h"
-#include "distributedimager/common/Tracing.h"
+#include "distributedimager/Tracing.h"
 
 using namespace askap::cp;
 

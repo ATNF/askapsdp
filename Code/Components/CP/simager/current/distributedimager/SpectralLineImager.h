@@ -24,14 +24,14 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SPECTRALLINEIMAGER_H
-#define ASKAP_CP_SPECTRALLINEIMAGER_H
+#ifndef ASKAP_CP_SIMAGER_SPECTRALLINEIMAGER_H
+#define ASKAP_CP_SIMAGER_SPECTRALLINEIMAGER_H
 
 // ASKAPsoft includes
 #include <Common/ParameterSet.h>
 
 // Local package includes
-#include "distributedimager/common/MPIBasicComms.h"
+#include "distributedimager/MPIBasicComms.h"
 
 namespace askap {
     namespace cp {
