@@ -69,7 +69,7 @@ namespace utility
          std::sort(indices.begin(),indices.end(),indexedCompare<size_t>(values.begin()));
          const size_t expectations[nElements] = {2, 4, 0, 1, 3};
          for (size_t i=0; i<nElements; ++i) {
-              CPPUNIT_ASSERT(expectations[i] == indices[i]);
+              CPPUNIT_ASSERT_EQUAL(expectations[i], indices[i]);
          }
      }
      
@@ -86,7 +86,7 @@ namespace utility
                    indexedCompare<size_t>(values.begin(),std::greater<double>()));
          const size_t expectations[nElements] = {3, 1, 0, 4, 2};
          for (size_t i=0; i<nElements; ++i) {
-              CPPUNIT_ASSERT(expectations[i] == indices[i]);
+              CPPUNIT_ASSERT_EQUAL(expectations[i], indices[i]);
          }
      }
      
@@ -135,11 +135,12 @@ namespace utility
               indices[i]=i;
               values[i]=Vals[i];
          }  
-         std::sort(indices.begin(),indices.end(),
+         std::stable_sort(indices.begin(),indices.end(),
                   indexedCompare<size_t>(values.begin(),std::greater<double>()));
-         // order of equal indices may be arbitrary (even depending on the 
-         // compiler as the algorithm of sort was changed at some stage)
-         CPPUNIT_ASSERT(indices[1] == 0); // second largest is only one
+         // Values at index 0 and 1 are equal, so the below two assertions
+         // depend on a stable sort.
+         CPPUNIT_ASSERT_EQUAL(0ul, indices[0]);
+         CPPUNIT_ASSERT_EQUAL(90ul, indices[1]);
          
          for (size_t i=1;i<nEl;++i) {
               CPPUNIT_ASSERT(values[indices[i]] <= values[indices[i-1]]);
