@@ -1,4 +1,10 @@
 #!/bin/bash -l
+#
+# Repository URL
+# https://svn.atnf.csiro.au/askapsoft/Src/releases/TOS-0.20
+#
+# Slaves - Node/Label - aksc01, aktos01, mtos1, mtos2, ptbdr1
+#
 
 # Bootstrap
 unset ASKAP_ROOT
