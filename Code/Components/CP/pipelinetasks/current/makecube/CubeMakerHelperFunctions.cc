@@ -35,6 +35,7 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <limits>
 
 // ASKAPsoft includes
 #include <askap/AskapError.h>
@@ -147,7 +148,11 @@ casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
     casa::SpectralCoordinate freq(c1.spectralCoordinate(whichSpectral));
     freq.setReferencePixel(casa::Vector<double>(1, 0.0));
     freq.setReferenceValue(casa::Vector<double>(1, getChanFreq(c1)));
-    freq.setIncrement(casa::Vector<double>(1, getFreqIncrement(c1, c2)));
+    const double freqdelt = getFreqIncrement(c1, c2);
+    if (freqdelt < std::numeric_limits<double>::epsilon()) {
+        ASKAPLOG_ERROR_STR(logger, "Frequency increment is zero - Spectral coordinate will be invalid");
+    }
+    freq.setIncrement(casa::Vector<double>(1, freqdelt));
 
     // Build the coordinate system
     casa::CoordinateSystem csys;
