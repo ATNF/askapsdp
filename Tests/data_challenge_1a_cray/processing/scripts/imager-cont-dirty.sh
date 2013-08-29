@@ -8,7 +8,7 @@ cat > cimager-cont-dirty.qsub << EOF
 ##PBS -W group_list=${QUEUEGROUP}
 #PBS -l mppwidth=${CONT_DIRTY_MPPWIDTH}
 #PBS -l mppnppn=${CONT_DIRTY_MPPNPPN}
-#PBS -l walltime=04:00:00
+#PBS -l walltime=02:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-dirty
 #PBS -m a

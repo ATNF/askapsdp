@@ -43,12 +43,12 @@ INPUT_SKYMODEL_TXT=../input/skymodel-duchamp.txt
 # Dryrun (true or false)
 # If this is set true, the jobs will not be enqueued, only configuration
 # files, etc. will be created.
-DRYRUN=true
+DRYRUN=false
 
 # Do calibration (true or false)
 # If true, calibration parameters will be determined and applied
 # during imaging
-DO_CALIBRATION=false
+DO_CALIBRATION=true
 
 # Do Continuum Imaging - Dirty (true or false)
 DO_CONTINUUM_DIRTY=true
@@ -99,7 +99,7 @@ if [ $BETA_MODE == "small" ]; then
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     #CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_CLEAN_MPPWIDTH=305
+    CONT_CLEAN_MPPWIDTH=913
     CONT_CLEAN_MPPNPPN=16
     CONT_CLEAN_FREQ=1.270e9
 
@@ -160,7 +160,7 @@ elif [ ${BETA_MODE} == "full" ]; then
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     #CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_CLEAN_MPPWIDTH=305
+    CONT_CLEAN_MPPWIDTH=913
     CONT_CLEAN_MPPNPPN=16
     CONT_CLEAN_FREQ=1.270e9
 

@@ -7,8 +7,7 @@ CALOUTPUT=calparameters.tab
 
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
-#PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=${GAINS_CAL_SELECT}
+##PBS -W group_list=${QUEUEGROUP}
 #PBS -l mppwidth=${GAINS_CAL_MPPWIDTH}
 #PBS -l mppnppn=${GAINS_CAL_MPPNPPN}
 #PBS -l walltime=06:00:00
@@ -58,7 +57,7 @@ Ccalibrator.ncycles                              = 5
 Ccalibrator.interval                             = 1800
 EOF_INNER
 
-aprun -n${GAINS_CAL_MPPWIDTH} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
+aprun -n ${GAINS_CAL_MPPWIDTH} -N ${GAINS_CAL_MPPNPPN} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
 EOF
 
 if [ ! -e ${CALOUTPUT} ]; then
