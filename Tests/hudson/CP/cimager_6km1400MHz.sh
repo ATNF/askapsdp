@@ -20,10 +20,6 @@ fi
 #
 # Phase 2
 #
-# Nice the processes running on the head node, since we don't really
-# want then to interfere with jobs running if possible
-NICE="nice -n 10"
-
 #
 # Setup environment
 #
@@ -53,15 +49,21 @@ fi
 # Obtain the test package
 mkdir $WORKSPACE/cimager
 $NICE cp /exported2/hudson-test-packages/6km1400Mhz/6km1400Mhz.qsub $WORKSPACE/cimager
+if [ $? -ne 0 ]; then
+   echo "copy of 6km1400Mhz.qsub to $WORKSPACE/cimager directory failed."
+   exit 1
+fi
 $NICE cp -r /exported2/hudson-test-packages/6km1400Mhz/definitions $WORKSPACE/cimager
+if [ $? -ne 0 ]; then
+   echo "copy of definitions to $WORKSPACE/cimager directory failed."
+   exit 1
+fi
+
 
 #
 # Phase 4
 #
 module load openmpi
-
-cd $WORKSPACE/trunk
-source initaskap.sh
 
 # Run the job
 cd $WORKSPACE/cimager
