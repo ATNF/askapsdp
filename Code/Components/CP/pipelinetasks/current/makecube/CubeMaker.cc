@@ -84,7 +84,7 @@ CubeMaker::~CubeMaker()
 /// in the output cube. Calls getReferenceData().
 void CubeMaker::initialise()
 {
-    itsInputNames = expandPattern(itsInputNamePattern);
+    itsInputNames = CubeMakerHelperFunctions::expandPattern(itsInputNamePattern);
 
     if (itsInputNames.size() < 2) ASKAPTHROW(AskapError, "Insufficient input files");
 
@@ -134,8 +134,8 @@ void CubeMaker::getReferenceData()
 /// using the reference shape and the number of channels in the input file list.
 void CubeMaker::createCube()
 {
-    casa::CoordinateSystem newCsys = makeCoordinates(itsRefCoordinates,
-                                     itsSecondCoordinates, itsRefShape);
+    casa::CoordinateSystem newCsys = CubeMakerHelperFunctions::makeCoordinates(
+            itsRefCoordinates, itsSecondCoordinates, itsRefShape);
 
     if (itsRestFrequency > 0.) setRestFreq(newCsys);
 
@@ -157,7 +157,7 @@ void CubeMaker::createCube()
 void CubeMaker::setRestFreq(casa::CoordinateSystem& csys)
 {
 
-    assertValidCoordinates(csys);
+    CubeMakerHelperFunctions::assertValidCoordinates(csys);
     const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
     casa::SpectralCoordinate speccoord = csys.spectralCoordinate(whichSpectral);
 
@@ -223,7 +223,8 @@ bool CubeMaker::writeSlice(size_t i)
         }
 
         // Ensure coordinate system is the same
-        if (!compatibleCoordinates(img.coordinates(), itsRefCoordinates)) {
+        if (!CubeMakerHelperFunctions::compatibleCoordinates(img.coordinates(),
+                    itsRefCoordinates)) {
             ASKAPLOG_ERROR_STR(logger,
                                "Error: Input images must all have compatible coordinate systems");
             return false;

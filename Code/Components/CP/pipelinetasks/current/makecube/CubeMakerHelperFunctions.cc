@@ -52,7 +52,7 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-std::vector<std::string> expandPattern(const std::string& pattern)
+std::vector<std::string> CubeMakerHelperFunctions::expandPattern(const std::string& pattern)
 {
     // Find the prefix (i.e. "image.i.") in the above example
     const size_t openBracketPos = pattern.find_first_of("[");
@@ -91,7 +91,8 @@ std::vector<std::string> expandPattern(const std::string& pattern)
     return filenames;
 }
 
-bool compatibleCoordinates(const casa::CoordinateSystem& c1,
+bool CubeMakerHelperFunctions::compatibleCoordinates(
+                           const casa::CoordinateSystem& c1,
                            const casa::CoordinateSystem& c2)
 {
     return ((c1.nCoordinates() == c2.nCoordinates())
@@ -103,7 +104,7 @@ bool compatibleCoordinates(const casa::CoordinateSystem& c1,
             && c1.findCoordinate(casa::Coordinate::DIRECTION) == c2.findCoordinate(casa::Coordinate::DIRECTION));
 }
 
-void assertValidCoordinates(const casa::CoordinateSystem& csys)
+void CubeMakerHelperFunctions::assertValidCoordinates(const casa::CoordinateSystem& csys)
 {
     const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
     ASKAPCHECK(whichSpectral > -1,
@@ -115,7 +116,7 @@ void assertValidCoordinates(const casa::CoordinateSystem& csys)
                << axesSpectral);
 }
 
-double getChanFreq(const casa::CoordinateSystem& csys)
+double CubeMakerHelperFunctions::getChanFreq(const casa::CoordinateSystem& csys)
 {
     assertValidCoordinates(csys);
     const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
@@ -127,13 +128,15 @@ double getChanFreq(const casa::CoordinateSystem& csys)
     return chanFreq;
 }
 
-double getFreqIncrement(const casa::CoordinateSystem& c1,
+double CubeMakerHelperFunctions::getFreqIncrement(
+                        const casa::CoordinateSystem& c1,
                         const casa::CoordinateSystem& c2)
 {
     return getChanFreq(c2) - getChanFreq(c1);
 }
 
-casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
+casa::CoordinateSystem CubeMakerHelperFunctions::makeCoordinates(
+                                       const casa::CoordinateSystem& c1,
                                        const casa::CoordinateSystem& c2,
                                        const casa::IPosition& refShape)
 {
