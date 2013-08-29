@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Phase 1
+#
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
 nice /usr/bin/python2.6 bootstrap.py
@@ -51,8 +54,6 @@ scons test
 #
 # Run the synthregression test
 #
-cd $WORKSPACE/trunk
-source initaskap.sh
 cd $WORKSPACE/trunk/Code/Components/Synthesis/testdata/current/simulation/synthregression
 python synthregression.py
 ERROR=$?
@@ -70,9 +71,6 @@ fi
 
 # Output file, so we can search for errors/exceptions, etc..
 OUTPUT_FILE=$WORKSPACE/stdtest.out
-
-cd $WORKSPACE/trunk
-source initaskap.sh
 
 # Setting TESTDIR must happen after the initaskap.sh
 TESTDIR=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
