@@ -69,6 +69,13 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 |minVoxels              |int           |minPix + minChannels |Minimum number of voxels allowed in a detection. Will be *at least* minPix + minChannels|
 |                       |              |+ 1                  |+ 1, but can be higher.                                                                 |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
+|maxPix                 |int           |-1                   |Maximum number of pixels allowed in a detection. No check is made if value is negative. |
++-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
+|maxChannels            |int           |-1                   |Maximum number of channels allowed in a detection . No check is made if value is        |
+|                       |              |                     |negative.                                                                               |
++-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
+|maxVoxels              |int           |-1                   |Maximum number of voxels allowed in a detection. No check is made if value is negative. |
++-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagAdjacent           |bool          |true                 |When merging sources, whether sources need to be adjacent to be merged                  |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |threshSpatial          |float         |3.                   |When flagAdjacent=false, this is the spatial threshold (in pixels) within which objects |
@@ -94,12 +101,9 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 |statsec                |string        |*full image*         |A subsection string indicating the pixel region to be used to calculate statistics      |
 |                       |              |                     |(mean, rms,...)                                                                         |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|flagMW                 |bool          |false                |Whether to ignore a range of channels that might be affected by say the Milky Way       |
-|                       |              |                     |(eg. in HIPASS cubes)                                                                   |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|minMW                  |int           |75                   |The minimum channel number to be ignored                                                |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|maxMW                  |int           |112                  |The maximum channel number to be ignored                                                |
+|flaggedChannels        |string        |*no default*         |A comma-separated list of channels and channel ranges (for instance, 1,2,5-9,13) that   |
+|                       |              |                     |should be ignored for the purposes of detecting objects. Replaces the old (for Duchamp  |
+|                       |              |                     |versions <1.5) flagMW/minMW/maxMW parameters.                                           |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |beamArea               |float         |10.                  |The area of the beam in *pixels*. This parameter is only used when the image does not   |
 |                       |              |                     |provide beam information. When this is used, a circular beam is assumed.                |

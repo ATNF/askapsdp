@@ -42,6 +42,10 @@ The following table lists Duchamp input parameters that will not work in Selavy 
 +--------------------------+--------------------------------------------------------------+
 |flagBaseline              |Baseline-subtraction not impelemented                         |
 +--------------------------+--------------------------------------------------------------+
+|baselineType              |Baseline-subtraction not impelemented                         |
++--------------------------+--------------------------------------------------------------+
+|baselineBoxWidth          |Baseline-subtraction not impelemented                         |
++--------------------------+--------------------------------------------------------------+
 |flagOutputBaseline        |Baseline-subtraction not impelemented                         |
 +--------------------------+--------------------------------------------------------------+
 |fileOutputBaseline        |Baseline-subtraction not impelemented                         |

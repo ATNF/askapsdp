@@ -50,22 +50,31 @@ Smoothing
 
 Alternatively, the array can be smoothed by a filter of a single scale. This can be done either in the spatial domain or the spectral domain. If spatial, a two-dimensional Gaussian kernel is used. If spectral, a hanning-style filter of a defined width is used. Smoothing can provide catalogues with very good completeness, depending on the appropriateness of the filter.
 
-+------------------------+------------+------------+--------------------------------------------------------------+
-|*Parameter*             |*Type*      |*Default*   |*Explanation*                                                 |
-+========================+============+============+==============================================================+
-|flagSmooth              |bool        |false       |Whether to use the wavelet reconstruction                     |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|smoothType              |string      |spectral    |The smoothing method used: either "spectral" or "spatial"     |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|hanningWidth            |int         |5           |The width of the Hanning spectral smoothing kernel            |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|kernMaj                 |float       |3           |The FWHM of the major axis of the 2D Gaussian smoothing       |
-|                        |            |            |kernel, in pixels.                                            |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|kernMin                 |float       |3           |The FWHM of the minor axis of the Gaussian kernel, in pixels  |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|kernPA                  |float       |0           |The position angle, in degrees, of the Gaussian kernel        |
-+------------------------+------------+------------+--------------------------------------------------------------+
++------------------------+------------+------------+-------------------------------------------------------------------+
+|*Parameter*             |*Type*      |*Default*   |*Explanation*                                                      |
++========================+============+============+===================================================================+
+|flagSmooth              |bool        |false       |Whether to use the wavelet reconstruction                          |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|smoothType              |string      |spectral    |The smoothing method used: either "spectral" or "spatial"          |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|hanningWidth            |int         |5           |The width of the Hanning spectral smoothing kernel                 |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|kernMaj                 |float       |3           |The FWHM of the major axis of the 2D Gaussian smoothing kernel, in |
+|                        |            |            |pixels.                                                            |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|kernMin                 |float       |3           |The FWHM of the minor axis of the Gaussian kernel, in pixels       |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|kernPA                  |float       |0           |The position angle, in degrees, of the Gaussian kernel             |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|smoothEdgeMethod        |string      |equal       |The method for dealing with the pixels on the edge of the image    |
+|                        |            |            |when doing the spatial smoothing. Can be one of: equal (all pixels |
+|                        |            |            |treated the same), truncated (pixels near edge blanked out) or     |
+|                        |            |            |scale (pixels near edge scaled by the relative amount of the       |
+|                        |            |            |smoothing kernel used).                                            |
++------------------------+------------+------------+-------------------------------------------------------------------+
+|spatialSmoothCutoff     |float       |1.e-10      |The value of the Gaussian kernel defining the width of the 2D      |
+|                        |            |            |kernel array. Relative to the peak of 1.                           |
++------------------------+------------+------------+-------------------------------------------------------------------+
 
 
 
