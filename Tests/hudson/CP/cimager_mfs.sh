@@ -15,11 +15,6 @@ fi
 #
 # Phase 2
 #
-# Nice the processes running on the head node, since we don't really
-# want then to interfere with jobs running if possible
-NICE="nice -n 10"
-
-#
 # Setup environment
 #
 cd $WORKSPACE/trunk
@@ -39,13 +34,6 @@ fi
 #
 # Phase 3
 #
-
-# Nice the processes running on the head node, since we don't really
-# want then to interfere with jobs running if possible
-NICE="nice -n 10"
-
-cd $WORKSPACE/trunk
-source initaskap.sh
 
 # Obtain the test package
 cd $WORKSPACE
