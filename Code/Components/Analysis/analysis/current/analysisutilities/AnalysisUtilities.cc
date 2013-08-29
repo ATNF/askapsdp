@@ -183,7 +183,6 @@ namespace askap {
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
 	    par.setSubsection(parset.getString("subsection", ""));
 	    if(!par.getFlagSubsection()) par.setSubsection("");
-	    // par.setFlaggedChannels(parset.getString("flaggedChannels",""));
 	    checkUnusedParameter(parset,"flagReconExists");
 	    checkUnusedParameter(parset,"reconFile");
 	    checkUnusedParameter(parset,"flagSmoothExists");
@@ -244,11 +243,13 @@ namespace askap {
 	    //
 
 	    checkUnusedParameter(parset,"flagTrim");// Not clear if this is necessary for our case.
-	    par.setFlagMW(parset.getBool("flagMW",par.getFlagMW()));
-	    par.setMinMW(parset.getInt16("minMW",par.getMinMW()));
-	    par.setMaxMW(parset.getInt16("maxMW",par.getMaxMW()));
+	    par.setFlaggedChannelList(parset.getString("flaggedChannels",""));
+// 	    par.setFlagMW(parset.getBool("flagMW",par.getFlagMW()));
+// 	    par.setMinMW(parset.getInt16("minMW",par.getMinMW()));
+// 	    par.setMaxMW(parset.getInt16("maxMW",par.getMaxMW()));
 	    checkUnusedParameter(parset,"flagBaseline");// Need additional infrastructure to pass baseline values to Master.
-
+	    checkUnusedParameter(parset,"baselineType");
+	    checkUnusedParameter(parset,"baselineBoxWidth");
 	    //
 
             par.setFlagStatSec(parset.getBool("flagStatSec", par.getFlagStatSec()));
@@ -296,6 +297,8 @@ namespace askap {
             par.setKernMaj(parset.getFloat("kernMaj", par.getKernMaj()));
             par.setKernMin(parset.getFloat("kernMin", par.getKernMin()));
             par.setKernPA(parset.getFloat("kernPA", par.getKernPA()));
+	    par.setSmoothEdgeMethod(parset.getString("smoothEdgeMethod", par.getSmoothEdgeMethod()));
+	    par.setSpatialSmoothCutoff(parset.getFloat("spatialSmoothCutoff", par.getSpatialSmoothCutoff()));
 
 	    checkUnusedParameter(parset,"flagFDR");// ? How to deal with distributed case?
 	    checkUnusedParameter(parset,"alphaFDR");//  ?
@@ -307,6 +310,9 @@ namespace askap {
             par.setMinPix(parset.getInt16("minPix", par.getMinPix()));
             par.setMinChannels(parset.getInt16("minChannels", par.getMinChannels()));
 	    par.setMinVoxels(parset.getInt16("minVoxels", par.getMinVoxels()));
+            par.setMaxPix(parset.getInt16("maxPix", par.getMaxPix()));
+            par.setMaxChannels(parset.getInt16("maxChannels", par.getMaxChannels()));
+	    par.setMaxVoxels(parset.getInt16("maxVoxels", par.getMaxVoxels()));
 	    par.setFlagRejectBeforeMerge(parset.getBool("flagRejectBeforeMerge",par.getFlagRejectBeforeMerge()));
 	    par.setFlagTwoStageMerging(parset.getBool("flagTwoStageMerging",par.getFlagTwoStageMerging()));
 

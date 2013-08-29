@@ -695,10 +695,11 @@ namespace askap {
 		  double pix[3],wld[3];
 		  for(size_t o=0;o<this->itsCube.getNumObj();o++){
 		    Detection *det=this->itsCube.pObject(o);
-		    ASKAPLOG_DEBUG_STR(logger, "Object #"<<o<<", at (RA,DEC)=("<<wld[0]<<","<<wld[1]
-				       <<") and spectral range from "<<this->itsCube.header().velToSpec(det->getV50Min())
-				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()+det->getW50()); 
+		    ASKAPLOG_DEBUG_STR(logger, "Object #"<<o<<", at (RA,DEC)=("<<wld[0]<<","<<wld[1]
+				       <<") and velocity=" << det->getVel() << ". W50 = " << det->getW50()
+				       << " so the spectral range is from "<<this->itsCube.header().velToSpec(det->getV50Min())
+				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
 		    this->itsCube.header().wcsToPix(wld,pix);
 		    int zmax=std::min(int(this->itsCube.getDimZ()-1),int(pix[2]));
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()-det->getW50()); 

@@ -44,11 +44,6 @@ namespace askap {
 
   namespace analysis {
 
-    // from http://stackoverflow.com/questions/6823278/c-extend-an-enum-definition
-    // -- want to add a new member to ENUM - should update the Duchamp
-    // code, but till then...
-    static const duchamp::STATE NEW = static_cast<duchamp::STATE>(duchamp::MW+1);
-
     class OptimisedGrower : public duchamp::ObjectGrower
     {
     public:
