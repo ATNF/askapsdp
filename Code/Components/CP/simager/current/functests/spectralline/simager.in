@@ -1,6 +1,6 @@
 Simager.dataset                                = [10uJy_stdtest_0.ms, 10uJy_stdtest_1.ms]
 #
-Simager.Images.name                            = image.i.10uJy_spectralline
+Simager.Images.name                            = image.i.cube.spectral
 Simager.Images.shape                           = [2048,2048]
 Simager.Images.frequency                       = [1.420e9,1.420e9]
 Simager.Images.cellsize                        = [6.0arcsec, 6.0arcsec]

@@ -37,6 +37,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <Common/ParameterSet.h>
+#include <fitting/Params.h>
 #include <dataaccess/IConstDataSource.h>
 #include <dataaccess/TableConstDataSource.h>
 #include <dataaccess/IConstDataIterator.h>
@@ -44,6 +45,7 @@
 #include <dataaccess/IDataSelector.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
+#include <casa/Quanta.h>
 
 // Local includes
 #include "distributedimager/IBasicComms.h"
@@ -74,6 +76,17 @@ void SpectralLineMaster::run(void)
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
 
+    // Get info from each measurement set so we know how many channels, what channels, etc.
+    const vector<MSInfo> infovec = getMSInfo(ms);
+    ASKAPCHECK(!infovec.empty(), "MeasurementSet info is empty");
+    const casa::uInt nChan = getNumChannels(infovec);
+
+    // Create an image cube builder
+    itsImageCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec)));
+    itsPSFCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "psf"));
+    itsResidualCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "residual"));
+    itsWeightsCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "weights"));
+
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
 
@@ -85,7 +98,7 @@ void SpectralLineMaster::run(void)
 
     // Iterate over all measurement sets
     for (unsigned int n = 0; n < ms.size(); ++n) {
-        const unsigned int msChannels = getNumChannels(ms[n]);
+        const unsigned int msChannels = infovec[n].nChan;
         ASKAPLOG_DEBUG_STR(logger, "Creating work orders for measurement set "
                 << ms[n] << " with " << msChannels << " channels");
 
@@ -98,6 +111,7 @@ void SpectralLineMaster::run(void)
             SpectralLineWorkRequest wrequest;
             itsComms.receiveMessageAnySrc(wrequest, id);
             if (wrequest.get_params().get() != 0) {
+                handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
                 --outstanding;
             }
 
@@ -123,6 +137,7 @@ void SpectralLineMaster::run(void)
         SpectralLineWorkRequest wrequest;
         itsComms.receiveMessageAnySrc(wrequest, id);
         if (wrequest.get_params().get() != 0) {
+            handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
             --outstanding;
         }
     }
@@ -136,6 +151,8 @@ void SpectralLineMaster::run(void)
         wu.set_payloadType(SpectralLineWorkUnit::DONE);
         itsComms.sendMessage(wu, id);
     }
+
+    itsImageCube.reset();
 }
 
 // Utility function to get dataset names from parset.
@@ -166,10 +183,50 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
     return ms;
 }
 
+void SpectralLineMaster::handleImageParams(askap::scimath::Params::ShPtr params, unsigned int chan)
+{
+    const vector<string> images = params->names();
+    for (size_t i = 0; i < images.size(); ++i) {
+        ASKAPLOG_DEBUG_STR(logger, "Got image: " << images[i]);
+    }
+
+    // Write image
+    {
+        const casa::Array<double> imagePixels(params->value("image.slice"));
+        casa::Array<float> floatImagePixels(imagePixels.shape());
+        casa::convertArray<float, double>(floatImagePixels, imagePixels);
+        itsImageCube->writeSlice(floatImagePixels, chan);
+    }
+
+    // Write PSF
+    {
+        const casa::Array<double> imagePixels(params->value("psf.slice"));
+        casa::Array<float> floatImagePixels(imagePixels.shape());
+        casa::convertArray<float, double>(floatImagePixels, imagePixels);
+        itsPSFCube->writeSlice(floatImagePixels, chan);
+    }
+
+    // Write residual
+    {
+        const casa::Array<double> imagePixels(params->value("residual.slice"));
+        casa::Array<float> floatImagePixels(imagePixels.shape());
+        casa::convertArray<float, double>(floatImagePixels, imagePixels);
+        itsResidualCube->writeSlice(floatImagePixels, chan);
+    }
+
+    // Write weights
+    {
+        const casa::Array<double> imagePixels(params->value("weights.slice"));
+        casa::Array<float> floatImagePixels(imagePixels.shape());
+        casa::convertArray<float, double>(floatImagePixels, imagePixels);
+        itsWeightsCube->writeSlice(floatImagePixels, chan);
+    }
+}
+
 // NOTE: This function makes the assumption that each iteration will have
 // the same number of channels. This may not be true, but reading through the
 // entire dataset to validate this assumption is going to be too slow.
-int SpectralLineMaster::getNumChannels(const std::string& ms)
+SpectralLineMaster::MSInfo SpectralLineMaster::getMSInfo(const std::string& ms)
 {
     askap::accessors::TableConstDataSource ds(ms);
 
@@ -179,5 +236,45 @@ int SpectralLineMaster::getNumChannels(const std::string& ms)
     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 
     const askap::accessors::IConstDataSharedIter it = ds.createConstIterator(sel,conv);
-    return it->nChannel();
+
+    MSInfo info;
+    info.nChan = it->nChannel();
+    info.freqs.resize(info.nChan);
+    for (size_t i = 0; i < info.nChan; ++i) {
+        info.freqs[i] = casa::Quantity(it->frequency()(i), "Hz");
+    }
+
+    return info;
+}
+
+std::vector<SpectralLineMaster::MSInfo> SpectralLineMaster::getMSInfo(const std::vector<std::string>& ms)
+{
+    vector<MSInfo> info(ms.size());
+    for (size_t i = 0; i < ms.size(); ++i) {
+        info[i] = getMSInfo(ms[i]);
+    }
+    return info;
+}
+
+casa::uInt SpectralLineMaster::getNumChannels(const std::vector<MSInfo>& info)
+{
+    int nchan = 0;
+    for (size_t i = 0; i < info.size(); ++i) {
+        nchan += info[i].nChan;
+    }
+    return nchan;
+}
+
+casa::Quantity SpectralLineMaster::getFirstFreq(const std::vector<MSInfo>& info)
+{
+    ASKAPCHECK(!info[0].freqs.empty(), "First MS contains zero channels");
+    return info[0].freqs[0];
+}
+
+casa::Quantity SpectralLineMaster::getFreqInc(const std::vector<MSInfo>& info)
+{
+    const Quantity firstfreq = info.front().freqs.front();
+    const Quantity lastfreq = info.back().freqs.back();
+    const casa::uInt nChan = getNumChannels(info);
+    return(lastfreq - firstfreq) / nChan;
 }

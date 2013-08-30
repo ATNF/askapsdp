@@ -277,7 +277,7 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params)
         const LOFAR::ParameterSet parset = itsParset.makeSubset("Images.");
 
         const int nfacets = parset.getInt32("nfacets", 1);
-        const string name = parset.getString("name");
+        const string name("image.slice");
         const vector<string> direction = parset.getStringVector("direction");
         const vector<string> cellsize = parset.getStringVector("cellsize");
         const vector<int> shape = parset.getInt32Vector("shape");

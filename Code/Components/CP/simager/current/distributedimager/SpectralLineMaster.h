@@ -32,10 +32,13 @@
 #include <vector>
 
 // ASKAPsoft includes
+#include <boost/scoped_ptr.hpp>
 #include <Common/ParameterSet.h>
+#include <fitting/Params.h>
 
 // Local includes
 #include "distributedimager/IBasicComms.h"
+#include "distributedimager/CubeBuilder.h"
 
 namespace askap {
     namespace cp {
@@ -51,6 +54,12 @@ namespace askap {
 
 
             private:
+
+                struct MSInfo
+                {
+                    casa::uInt nChan;
+                    std::vector<casa::Quantity> freqs;
+                };
 
                 /// @brief Utility function to get dataset names from parset.
                 ///     
@@ -72,13 +81,28 @@ namespace askap {
                 /// @return a vector containing in each element one dataset.
                 std::vector<std::string> getDatasets(const LOFAR::ParameterSet& itsParset);
 
-                int getNumChannels(const std::string& ms);
+                void handleImageParams(askap::scimath::Params::ShPtr params, unsigned int chan);
+
+                static MSInfo getMSInfo(const std::string& ms);
+
+                static std::vector<MSInfo> getMSInfo(const std::vector<std::string>& ms);
+
+                static casa::uInt getNumChannels(const std::vector<MSInfo>& info);
+
+                static casa::Quantity getFirstFreq(const std::vector<MSInfo>& info);
+
+                static casa::Quantity getFreqInc(const std::vector<MSInfo>& info);
 
                 /// Parameter set
                 LOFAR::ParameterSet& itsParset;
 
                 /// Communications class
                 askap::cp::IBasicComms& itsComms;
+
+                boost::scoped_ptr<CubeBuilder> itsImageCube;
+                boost::scoped_ptr<CubeBuilder> itsPSFCube;
+                boost::scoped_ptr<CubeBuilder> itsResidualCube;
+                boost::scoped_ptr<CubeBuilder> itsWeightsCube;
 
                 // No support for assignment
                 SpectralLineMaster& operator=(const SpectralLineMaster& rhs);
