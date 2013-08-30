@@ -14,7 +14,18 @@ This set of parameters allows, for each detected source, the extraction of spect
 
 *Note*: At this point the pixel coordinates are used to get the location in the spectral cube, so the detection image and the spectral cube should have the same WCS. This will be updated as needed in future releases.
 
-The initial use case follows the specification provided by POSSUM. The user provides a spectral cube, a list of polarisations to be extracted, and a box width. The spectrum is summed in each channel within this box, centred on the peak (or centroid or average) position of the detected object. This spectrum can optionally be scaled by the response of the beam over the same box, such that the resulting spectrum gives the flux of a point source at that location. The beam used defaults to the beam from the image header, although a 'beam log' (produced by the `makecube`_ utility) can be provided so that each channel is scaled by the appropriate restoring beam. At present, the decision to scale by the beam is made at the parset input stage, but future versions of the algorithm could make this a dynamic choice based on the source in question.
+The initial use case follows the specification provided by POSSUM. The user provides a spectral cube, a list of polarisations to be extracted, and a box width. The spectrum is summed in each channel within this box, centred on the peak (or centroid or average) position of the detected object. This spectrum can optionally be scaled by the response of the beam over the same box, such that the resulting spectrum gives the flux of a point source at that location. The beam used defaults to the beam from the image header, although a 'beam log' (produced by the `makecube`_ utility) can be provided so that each channel is scaled by the appropriate restoring beam. The beam log should have columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]. Here is an example of the start of a beam log:
+
+::
+
+  #Channel Image_name BMAJ[arcsec] BMIN[arcsec] BPA[deg]
+  0 image.i.cube.clean_ch0.restored 65.7623 36.4139 -54.7139
+  1 image.i.cube.clean_ch1.restored 65.7981 36.4222 -54.7605
+  2 image.i.cube.clean_ch2.restored 65.8365 36.4324 -54.7985
+  3 image.i.cube.clean_ch3.restored 65.8733 36.4413 -54.845
+  4 image.i.cube.clean_ch4.restored 65.9082 36.4512 -54.8919
+
+At present, the decision to scale by the beam is made at the parset input stage, but future versions of the algorithm could make this a dynamic choice based on the source in question.
 
 The user can select which polarisations / Stokes parameters should be included in the output spectra. There are three options here for the case of multiple polarisations, with **polarisation="IQUV"**
 
