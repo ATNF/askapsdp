@@ -60,7 +60,7 @@ namespace synthesis {
   void VisGridderFactory::registerGridder (const std::string& name,
                                            VisGridderFactory::GridderCreator* creatorFunc)
   {
-    ASKAPLOG_INFO_STR(logger, "     - Adding "<<name<<" gridder to the registry");
+    ASKAPLOG_DEBUG_STR(logger, "     - Adding "<<name<<" gridder to the registry");
     theirRegistry[name] = creatorFunc;
   }
 
@@ -104,7 +104,7 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
     if (theirRegistry.size() == 0) {
         // this is the first call of the method, we need to fill the registry with
         // all pre-defined gridders
-        ASKAPLOG_INFO_STR(logger, "Filling the gridder registry with pre-defined gridders");
+        ASKAPLOG_DEBUG_STR(logger, "Filling the gridder registry with pre-defined gridders");
         addPreDefinedGridder<WProjectVisGridder>();
         addPreDefinedGridder<WStackVisGridder>();
         addPreDefinedGridder<AProjectWStackVisGridder>();
