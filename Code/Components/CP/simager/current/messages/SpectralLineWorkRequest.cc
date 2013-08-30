@@ -33,11 +33,13 @@
 #include <casa/Arrays/Array.h>
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
+#include <fitting/Params.h>
 
 // Using
 using namespace askap::cp;
 
 SpectralLineWorkRequest::SpectralLineWorkRequest()
+    : itsGlobalChannel(0)
 {
 }
 
@@ -51,12 +53,53 @@ IMessage::MessageType SpectralLineWorkRequest::getMessageType(void) const
 }
 
 /////////////////////////////////////////////////////////////////////
+// Setters
+/////////////////////////////////////////////////////////////////////
+void SpectralLineWorkRequest::set_globalChannel(unsigned int chan)
+{
+    itsGlobalChannel = chan;
+}
+
+void SpectralLineWorkRequest::set_params(askap::scimath::Params::ShPtr params)
+{
+    itsParams = params;
+}
+
+/////////////////////////////////////////////////////////////////////
+// Getters
+/////////////////////////////////////////////////////////////////////
+unsigned int SpectralLineWorkRequest::get_globalChannel(void) const
+{
+    return itsGlobalChannel;
+}
+
+askap::scimath::Params::ShPtr SpectralLineWorkRequest::get_params(void)
+{
+    return itsParams;
+}
+
+/////////////////////////////////////////////////////////////////////
 // Serializers
 /////////////////////////////////////////////////////////////////////
 void SpectralLineWorkRequest::writeToBlob(LOFAR::BlobOStream& os) const
 {
+    os << itsGlobalChannel;
+    const bool hasParams = itsParams.get() == 0 ? false : true;
+    os << hasParams;
+    if (hasParams) {
+        os << *itsParams;
+    }
 }
 
 void SpectralLineWorkRequest::readFromBlob(LOFAR::BlobIStream& is)
 {
+    is >> itsGlobalChannel;
+    bool hasParams;
+    is >> hasParams;
+    if (hasParams) {
+        itsParams.reset(new askap::scimath::Params());
+        is >> *itsParams;
+    } else {
+        itsParams.reset();
+    }
 }

@@ -31,6 +31,7 @@
 #include <messages/IMessage.h>
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
+#include <fitting/Params.h>
 
 namespace askap {
     namespace cp {
@@ -53,6 +54,14 @@ namespace askap {
                 /// to an int which can be used to tag messags (eg. MPI tags).
                 virtual MessageType getMessageType(void) const;
 
+                // Setters
+                void set_globalChannel(unsigned int chan);
+                void set_params(askap::scimath::Params::ShPtr params);
+
+                // Getters
+                unsigned int get_globalChannel(void) const;
+                askap::scimath::Params::ShPtr get_params(void);
+
                 // Serializer functions
 
                 /// @brief write the object to a blob stream
@@ -63,6 +72,10 @@ namespace askap {
                 /// @param[in] is the input stream
                 virtual void readFromBlob(LOFAR::BlobIStream& is);
 
+            private:
+
+                unsigned int itsGlobalChannel;
+                askap::scimath::Params::ShPtr itsParams;
         };
 
     };

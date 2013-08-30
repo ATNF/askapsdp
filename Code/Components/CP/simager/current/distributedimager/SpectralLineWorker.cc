@@ -65,6 +65,7 @@
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
 
+using namespace std;
 using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
@@ -87,10 +88,11 @@ SpectralLineWorker::~SpectralLineWorker()
 
 void SpectralLineWorker::run(void)
 {
+    // Send the initial request for work
+    SpectralLineWorkRequest wrequest;
+    itsComms.sendMessage(wrequest, itsMaster);
+
     while(1) {
-        // Send a request for work
-        SpectralLineWorkRequest wrequest;
-        itsComms.sendMessage(wrequest, itsMaster);
 
         // Get a workunit
         SpectralLineWorkUnit wu;
@@ -102,18 +104,25 @@ void SpectralLineWorker::run(void)
             break;
         }
 
-        const std::string ms = wu.get_dataset();
+        const string ms = wu.get_dataset();
         ASKAPLOG_DEBUG_STR(logger, "Received Work Unit for dataset " << ms 
                 << ", local channel " << wu.get_localChannel()
                 << ", global channel " << wu.get_globalChannel());
-        processWorkUnit(wu);
+        const askap::scimath::Params::ShPtr params = processWorkUnit(wu);
+
+        // Send the params to the master, which also implicitly requests
+        // more work 
+        wrequest.set_globalChannel(wu.get_globalChannel());
+        wrequest.set_params(params);
+        itsComms.sendMessage(wrequest, itsMaster);
+        wrequest.set_params(askap::scimath::Params::ShPtr()); // Free memory
     }
 }
 
-void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
+askap::scimath::Params::ShPtr SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
 {
-    const std::string colName = itsParset.getString("datacolumn", "DATA");
-    const std::string ms = wu.get_dataset();
+    const string colName = itsParset.getString("datacolumn", "DATA");
+    const string ms = wu.get_dataset();
 
     const int uvwMachineCacheSize = itsParset.getInt32("nUVWMachines",1);
     ASKAPCHECK(uvwMachineCacheSize > 0 , "Cache size is supposed to be a positive number, you have " << uvwMachineCacheSize);
@@ -137,7 +146,7 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     if (!itsParset.isDefined("Images.name")) {
         ASKAPTHROW(std::runtime_error, "Image name is not defined in parameter set");
     }
-    const std::string imagename = itsParset.getString("Images.name");
+    const string imagename = itsParset.getString("Images.name");
     if (imagename.at(0) == '[') {
         ASKAPTHROW(std::runtime_error, "Image name specified as a vector.");
     }
@@ -146,14 +155,14 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     const unsigned int globalChannel = wu.get_globalChannel();
     ASKAPCHECK(localChannel < it->nChannel(), "Invalid local channel number");
     ASKAPCHECK(localChannel <= globalChannel, "Local channel > global channel");
-    processChannel(ds, imagename, localChannel, globalChannel);
+    return processChannel(ds, imagename, localChannel, globalChannel);
 }
 
-void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
+askap::scimath::Params::ShPtr SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
         const std::string& imagename, unsigned int localChannel, unsigned int globalChannel)
 {
     askap::scimath::Params::ShPtr model_p(new Params());
-    setupImage(model_p, globalChannel);
+    setupImage(model_p);
 
     casa::Timer timer;
 
@@ -244,7 +253,9 @@ void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
             }
 
             if (writeAtMajorCycle) {
-                solverCore.writeModel(std::string(".majorcycle.")+utility::toString(cycle+1));
+                stringstream ss;
+                ss << ".ch." << globalChannel << ".majorcycle." << cycle+1;
+                solverCore.writeModel(ss.str());
             }
 
         }
@@ -257,38 +268,33 @@ void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
         solverCore.addNE(ne_p);
     } // end cycling block
 
-    // Write image
-    solverCore.writeModel("");
-
-    //equation_p.reset();
-    //ne_p.reset();
-    model_p.reset();
+    return model_p;
 }
 
-void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel)
+void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params)
 {
     try {
         const LOFAR::ParameterSet parset = itsParset.makeSubset("Images.");
 
         const int nfacets = parset.getInt32("nfacets", 1);
-        const std::string nameParam = parset.getString("name");
-        const std::vector<std::string> direction = parset.getStringVector("direction");
-        const std::vector<std::string> cellsize = parset.getStringVector("cellsize");
-        const std::vector<int> shape = parset.getInt32Vector("shape");
-        const std::vector<double> freq = parset.getDoubleVector("frequency");
+        const string name = parset.getString("name");
+        const vector<string> direction = parset.getStringVector("direction");
+        const vector<string> cellsize = parset.getStringVector("cellsize");
+        const vector<int> shape = parset.getInt32Vector("shape");
+        const vector<double> freq = parset.getDoubleVector("frequency");
         const int nchan = 1;
 
         if (!parset.isDefined("polarisation")) {
             ASKAPLOG_INFO_STR(logger, "Polarisation frame is not defined, "
                    << "only stokes I will be generated");
         }
-        const std::vector<std::string> stokesVec = parset.getStringVector("polarisation",
-                std::vector<std::string>(1,"I"));
+        const vector<string> stokesVec = parset.getStringVector("polarisation",
+                vector<string>(1,"I"));
 
         // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
         // to allow some flexibility we have to concatenate all elements first and then 
         // allow the parser from PolConverter to take care of extracting the products.                                            
-        std::string stokesStr;
+        string stokesStr;
         for (size_t i=0; i<stokesVec.size(); ++i) {
             stokesStr += stokesVec[i];
         }
@@ -305,23 +311,16 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
         ASKAPCHECK(shape.size() >= 2, "Image is supposed to be at least two dimensional. "<<
                 "check shape parameter, you gave " << shape);
 
-        // Add suffix to the image name to indicate channel number
-        std::stringstream name;
-        name << nameParam << "_ch" << actualChannel;
-
         if (nfacets == 1) {
-            ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< name.str() );
-            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, ewProj,
+            SynthesisParamsHelper::add(*params, name, direction, cellsize, shape, ewProj,
                                        freq[0], freq[1], nchan, stokes);
         } else {
             // this is a multi-facet case
-            ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
-                    " new empty facets for image "<< name.str() );
             const int facetstep = parset.getInt32("facetstep",casa::min(shape[0], shape[1]));
             ASKAPCHECK(facetstep > 0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
             ASKAPLOG_INFO_STR(logger, "Facet centers will be "<< facetstep <<
                     " pixels apart, each facet size will be "<< shape[0] << " x " << shape[1]);
-            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, ewProj, 
+            SynthesisParamsHelper::add(*params, name, direction, cellsize, shape, ewProj, 
                                        freq[0], freq[1], nchan, stokes, nfacets, facetstep);
         }
 

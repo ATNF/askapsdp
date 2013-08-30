@@ -31,6 +31,7 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
@@ -49,6 +50,7 @@
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
 
+using namespace std;
 using namespace askap::cp;
 using namespace askap;
 
@@ -67,7 +69,7 @@ SpectralLineMaster::~SpectralLineMaster()
 void SpectralLineMaster::run(void)
 {
     // Read from the configruation the list of datasets to process
-    const std::vector<std::string> ms = getDatasets(itsParset);
+    const vector<string> ms = getDatasets(itsParset);
     if (ms.size() == 0) {
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
@@ -75,8 +77,13 @@ void SpectralLineMaster::run(void)
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
 
+    unsigned int globalChannel = 0;
+
+    // Tracks all outstanding workunits, that is, those that have not
+    // been completed
+    unsigned int outstanding = 0;
+
     // Iterate over all measurement sets
-    unsigned int globalChannel = 1;
     for (unsigned int n = 0; n < ms.size(); ++n) {
         const unsigned int msChannels = getNumChannels(ms[n]);
         ASKAPLOG_DEBUG_STR(logger, "Creating work orders for measurement set "
@@ -90,6 +97,9 @@ void SpectralLineMaster::run(void)
             // Wait for a worker to request some work
             SpectralLineWorkRequest wrequest;
             itsComms.receiveMessageAnySrc(wrequest, id);
+            if (wrequest.get_params().get() != 0) {
+                --outstanding;
+            }
 
             // Send the workunit to the worker
             ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
@@ -101,20 +111,32 @@ void SpectralLineMaster::run(void)
             wu.set_globalChannel(globalChannel);
             wu.set_localChannel(localChan);
             itsComms.sendMessage(wu, id);
+            outstanding++;
 
             globalChannel++;
         }
     }
 
+    // Wait for all outstanding workunits to complete
+    while (outstanding > 0) {
+        int id;
+        SpectralLineWorkRequest wrequest;
+        itsComms.receiveMessageAnySrc(wrequest, id);
+        if (wrequest.get_params().get() != 0) {
+            --outstanding;
+        }
+    }
+
     // Send each worker a response to indicate there are
-    // no more work units
+    // no more work units. This is done separate to the above loop
+    // since we need to make sure even workers that never received
+    // a workunit are send the "DONE" message.
     for (int id = 1; id < itsComms.getNumNodes(); ++id) {
         SpectralLineWorkUnit wu;
         wu.set_payloadType(SpectralLineWorkUnit::DONE);
         itsComms.sendMessage(wu, id);
     }
 }
-
 
 // Utility function to get dataset names from parset.
 std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterSet& parset)
@@ -124,17 +146,17 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
     }
 
     // First look for "dataset" and if that does not exist try "dataset0"
-    std::vector<std::string> ms;
+    vector<string> ms;
     if (parset.isDefined("dataset")) {
         ms = itsParset.getStringVector("dataset");
     } else {
-        std::string key = "dataset0";   // First key to look for
+        string key = "dataset0";   // First key to look for
         long idx = 0;
         while (parset.isDefined(key)) {
-            const std::string value = parset.getString(key);
+            const string value = parset.getString(key);
             ms.push_back(value);
 
-            std::ostringstream ss;
+            ostringstream ss;
             ss << "dataset" << idx+1;
             key = ss.str();
             ++idx;
