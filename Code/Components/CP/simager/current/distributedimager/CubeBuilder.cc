@@ -67,19 +67,21 @@ CubeBuilder::CubeBuilder(const LOFAR::ParameterSet& parset, const casa::uInt nch
         filename.replace(f, orig.length(), name);
     }
 
+    // Get the image shape
     const vector<casa::uInt> imageShapeVector = parset.getUintVector("Images.shape");
-
     const casa::uInt nx = imageShapeVector[0];
-
     const casa::uInt ny = imageShapeVector[1];
-
     const casa::uInt npol = 1;
-
     const casa::IPosition cubeShape(4, nx, ny, npol, nchan);
+
+    // Use a tile shape appropriate for plane-by-plane access
+    casa::IPosition tileShape(cubeShape.nelements(), 1);
+    tileShape(0) = 256;
+    tileShape(1) = 256;
 
     const casa::CoordinateSystem csys = createCoordinateSystem(parset, nx, ny, f0, inc);
 
-    itsCube.reset(new casa::PagedImage<float>(casa::TiledShape(cubeShape), csys, filename));
+    itsCube.reset(new casa::PagedImage<float>(casa::TiledShape(cubeShape, tileShape), csys, filename));
 }
 
 CubeBuilder::~CubeBuilder()
