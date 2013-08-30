@@ -116,6 +116,14 @@ CUBE_FILE=`grep -i "Selavy.extractNoiseSpectra.spectralCube" ${JOB_FILE} | grep 
 if [ "${CUBE_FILE}" != "" ]; then
     echo "Selavy.extractNoiseSpectra.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
 fi
+CUBE_FILE=`grep -i "Selavy.extractMomentMap.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
+if [ "${CUBE_FILE}" != "" ]; then
+    echo "Selavy.extractMomentMap.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
+fi
+CUBE_FILE=`grep -i "Selavy.extractCubelet.spectralCube" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
+if [ "${CUBE_FILE}" != "" ]; then
+    echo "Selavy.extractCubelet.spectralCube = ${IMAGE_DIR}/${CUBE_FILE}" >> ${PARSET}
+fi
 
 SPECTRALTERMS=`grep -i "Selavy.spectralTermImages" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//g'`
 if [ ${SPECTRALTERMS} != "" ]; then
