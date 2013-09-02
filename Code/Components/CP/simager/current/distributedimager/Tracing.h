@@ -58,7 +58,7 @@ class Tracing {
             Broadcast = 602,
             CalcNE = 603,
             SolveNE = 604,
-            WriteModel = 605
+            WriteImage = 605
         };
 
         // Call this to indicate state entry

@@ -77,15 +77,17 @@ void SpectralLineMaster::run(void)
     }
 
     // Get info from each measurement set so we know how many channels, what channels, etc.
-    const vector<MSInfo> infovec = getMSInfo(ms);
-    ASKAPCHECK(!infovec.empty(), "MeasurementSet info is empty");
-    const casa::uInt nChan = getNumChannels(infovec);
+    isMSGroupInfo = MSGroupInfo(ms);
+    const casa::uInt nChan = isMSGroupInfo.getTotalNumChannels();
+    ASKAPCHECK(nChan > 0, "# of channels is zero");
+    const casa::Quantity f0 = isMSGroupInfo.getFirstFreq();
+    const casa::Quantity freqinc = isMSGroupInfo.getFreqInc();
 
     // Create an image cube builder
-    itsImageCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec)));
-    itsPSFCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "psf"));
-    itsResidualCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "residual"));
-    itsWeightsCube.reset(new CubeBuilder(itsParset, nChan, getFirstFreq(infovec), getFreqInc(infovec), "weights"));
+    itsImageCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc));
+    itsPSFCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "psf"));
+    itsResidualCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "residual"));
+    itsWeightsCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "weights"));
 
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
@@ -98,7 +100,7 @@ void SpectralLineMaster::run(void)
 
     // Iterate over all measurement sets
     for (unsigned int n = 0; n < ms.size(); ++n) {
-        const unsigned int msChannels = infovec[n].nChan;
+        const unsigned int msChannels = isMSGroupInfo.getNumChannels(n);
         ASKAPLOG_DEBUG_STR(logger, "Creating work orders for measurement set "
                 << ms[n] << " with " << msChannels << " channels");
 
@@ -221,60 +223,4 @@ void SpectralLineMaster::handleImageParams(askap::scimath::Params::ShPtr params,
         casa::convertArray<float, double>(floatImagePixels, imagePixels);
         itsWeightsCube->writeSlice(floatImagePixels, chan);
     }
-}
-
-// NOTE: This function makes the assumption that each iteration will have
-// the same number of channels. This may not be true, but reading through the
-// entire dataset to validate this assumption is going to be too slow.
-SpectralLineMaster::MSInfo SpectralLineMaster::getMSInfo(const std::string& ms)
-{
-    askap::accessors::TableConstDataSource ds(ms);
-
-    askap::accessors::IDataSelectorPtr sel = ds.createSelector();
-    askap::accessors::IDataConverterPtr conv = ds.createConverter();
-    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
-    conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
-
-    const askap::accessors::IConstDataSharedIter it = ds.createConstIterator(sel,conv);
-
-    MSInfo info;
-    info.nChan = it->nChannel();
-    info.freqs.resize(info.nChan);
-    for (size_t i = 0; i < info.nChan; ++i) {
-        info.freqs[i] = casa::Quantity(it->frequency()(i), "Hz");
-    }
-
-    return info;
-}
-
-std::vector<SpectralLineMaster::MSInfo> SpectralLineMaster::getMSInfo(const std::vector<std::string>& ms)
-{
-    vector<MSInfo> info(ms.size());
-    for (size_t i = 0; i < ms.size(); ++i) {
-        info[i] = getMSInfo(ms[i]);
-    }
-    return info;
-}
-
-casa::uInt SpectralLineMaster::getNumChannels(const std::vector<MSInfo>& info)
-{
-    int nchan = 0;
-    for (size_t i = 0; i < info.size(); ++i) {
-        nchan += info[i].nChan;
-    }
-    return nchan;
-}
-
-casa::Quantity SpectralLineMaster::getFirstFreq(const std::vector<MSInfo>& info)
-{
-    ASKAPCHECK(!info[0].freqs.empty(), "First MS contains zero channels");
-    return info[0].freqs[0];
-}
-
-casa::Quantity SpectralLineMaster::getFreqInc(const std::vector<MSInfo>& info)
-{
-    const Quantity firstfreq = info.front().freqs.front();
-    const Quantity lastfreq = info.back().freqs.back();
-    const casa::uInt nChan = getNumChannels(info);
-    return(lastfreq - firstfreq) / nChan;
 }

@@ -168,7 +168,7 @@ void SolverCore::writeModel(const std::string &postfix)
     ASKAPCHECK(itsModel, "itsModel is not correctly initialized");
     ASKAPCHECK(itsSolver, "itsSolver is not correctly initialized");
 
-    Tracing::entry(Tracing::WriteModel);
+    Tracing::entry(Tracing::WriteImage);
 
     SynthesisParamsHelper::setUpImageHandler(itsParset);
 
@@ -214,6 +214,6 @@ void SolverCore::writeModel(const std::string &postfix)
         }
     }
 
-    Tracing::exit(Tracing::WriteModel);
+    Tracing::exit(Tracing::WriteImage);
 }
 

@@ -39,6 +39,7 @@
 // Local includes
 #include "distributedimager/IBasicComms.h"
 #include "distributedimager/CubeBuilder.h"
+#include "distributedimager/MSGroupInfo.h"
 
 namespace askap {
     namespace cp {
@@ -83,21 +84,13 @@ namespace askap {
 
                 void handleImageParams(askap::scimath::Params::ShPtr params, unsigned int chan);
 
-                static MSInfo getMSInfo(const std::string& ms);
-
-                static std::vector<MSInfo> getMSInfo(const std::vector<std::string>& ms);
-
-                static casa::uInt getNumChannels(const std::vector<MSInfo>& info);
-
-                static casa::Quantity getFirstFreq(const std::vector<MSInfo>& info);
-
-                static casa::Quantity getFreqInc(const std::vector<MSInfo>& info);
-
                 /// Parameter set
                 LOFAR::ParameterSet& itsParset;
 
                 /// Communications class
                 askap::cp::IBasicComms& itsComms;
+
+                MSGroupInfo isMSGroupInfo;
 
                 boost::scoped_ptr<CubeBuilder> itsImageCube;
                 boost::scoped_ptr<CubeBuilder> itsPSFCube;

@@ -59,7 +59,7 @@ void Tracing::init()
         createState(Broadcast, "Broadcast", "green");
         createState(CalcNE, "CalcNE", "yellow");
         createState(SolveNE, "SolveNE", "magenta");
-        createState(WriteModel, "WriteModel", "white");
+        createState(WriteImage, "WriteImage", "white");
     }
 }
 

@@ -21,20 +21,16 @@ echo Done
 
 echo -n Extracting measurement set...
 tar zxf ../10uJy_stdtest.ms.tgz
-mv -f 10uJy_stdtest.ms 10uJy_stdtest_0.ms
-tar zxf ../10uJy_stdtest.ms.tgz
-mv -f 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
-mpirun -np 7 ../../apps/simager.sh -c simager.in | tee $OUTPUT
+mpirun -np 3 ../../apps/simager.sh -c simager.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1
 fi
 
 echo -n Removing measurement set...
-rm -rf 10uJy_stdtest_0.ms
-rm -rf 10uJy_stdtest_1.ms
+rm -rf 10uJy_stdtest.ms
 echo Done
 
 # Check for instances of "Askap error"

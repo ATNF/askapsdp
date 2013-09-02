@@ -1,4 +1,4 @@
-Simager.dataset                                = [10uJy_stdtest_0.ms, 10uJy_stdtest_1.ms]
+Simager.dataset                                = 10uJy_stdtest.ms
 #
 Simager.Images.name                            = image.i.cube.spectral
 Simager.Images.shape                           = [2048,2048]
