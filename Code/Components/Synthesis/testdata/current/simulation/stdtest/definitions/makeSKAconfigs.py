@@ -13,8 +13,8 @@ from antennas import *
 # The following are the reference points for the meerkat array, and hence the rest of SKA1-mid
 meerkatRefLong =  21.44389 
 meerkatRefLat  = -30.71317
-meerkatRefEasting = 539319.968
-meerkatRefNorthing = 6601192.052
+meerkatRefEasting = 542502.836
+meerkatRefNorthing = 6602101.300
 meerkatRefZone = 34
 
 askapRefZone = 50
