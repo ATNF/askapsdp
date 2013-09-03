@@ -92,6 +92,10 @@ void SpectralLineMaster::run(void)
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
 
+    // Global channel is the channel offset across all measurement sets
+    // For example, the first MS has 16 channels, then the global channel
+    // number for the first (local) channel in the second MS is 16 (zero
+    // based indexing).
     unsigned int globalChannel = 0;
 
     // Tracks all outstanding workunits, that is, those that have not
@@ -127,9 +131,9 @@ void SpectralLineMaster::run(void)
             wu.set_globalChannel(globalChannel);
             wu.set_localChannel(localChan);
             itsComms.sendMessage(wu, id);
-            outstanding++;
+            ++outstanding;
 
-            globalChannel++;
+            ++globalChannel;
         }
     }
 
@@ -187,10 +191,11 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
 
 void SpectralLineMaster::handleImageParams(askap::scimath::Params::ShPtr params, unsigned int chan)
 {
-    const vector<string> images = params->names();
-    for (size_t i = 0; i < images.size(); ++i) {
-        ASKAPLOG_DEBUG_STR(logger, "Got image: " << images[i]);
-    }
+    // Pre-conditions
+    ASKAPCHECK(params->has("image.slice"), "Params are missing image parameter");
+    ASKAPCHECK(params->has("psf.slice"), "Params are missing psf parameter");
+    ASKAPCHECK(params->has("residual.slice"), "Params are missing residual parameter");
+    ASKAPCHECK(params->has("weights.slice"), "Params are missing weights parameter");
 
     // Write image
     {

@@ -97,16 +97,16 @@ MSGroupInfo::MSGroupInfo(const std::vector<std::string>& ms)
             "Only one channel, need at least two to calculate frequency increment");
 
     // Calcuate first freq and freq increment
-    itsFirstFreq = freqinfo.front();
-    const Quantity lastfreq = freqinfo.back();
-    itsFreqInc = (lastfreq - itsFirstFreq) / (itsTotalNumChannels - 1);
+    itsFirstFreq = freqinfo[0];
+    const Quantity secondfreq = freqinfo[1];
+    itsFreqInc = secondfreq - itsFirstFreq;
 
     // Ensure the frequency increment is valid for all frequencies
     Quantity fi = itsFirstFreq;
     for (size_t i = 0; i < freqinfo.size(); ++i) {
         const double expected = fi.getValue(frequnit);
         const double actual = freqinfo[i].getValue(frequnit);
-        const double tolerance = numeric_limits<float>::epsilon();
+        const double tolerance = 1e-5; // i.e. a fraction of a Hz
         if (abs(expected - actual) > tolerance) {
             ASKAPTHROW(AskapError, "Non-constant frequency increment is not supported");
         }

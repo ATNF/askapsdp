@@ -81,6 +81,9 @@ CubeBuilder::CubeBuilder(const LOFAR::ParameterSet& parset, const casa::uInt nch
 
     const casa::CoordinateSystem csys = createCoordinateSystem(parset, nx, ny, f0, inc);
 
+    ASKAPLOG_DEBUG_STR(logger, "Creating Cube " << filename << " with shape [xsize:"
+            << nx << " ysize:" << ny << " npol:" << npol << " nchan:" << nchan << "], f0: "
+            << f0.getValue("MHz") << " Mhz, finc: " << inc.getValue("Hz") << " Hz");
     itsCube.reset(new casa::PagedImage<float>(casa::TiledShape(cubeShape, tileShape), csys, filename));
 }
 
