@@ -58,7 +58,6 @@ Application::Application() : itsOptionsDesc("Program Options")
     ("help,h", "produce help message")
     ("config,c", po::value<string>(), "configuration parameter set file")
     ("log-config,l", po::value<string>(), "logger configuration file")
-    ("inputs", po::value<string>(), "(deprecated) synonym for 'config'. Can also be used with a single hyphen")
     ;
 }
 
@@ -132,14 +131,7 @@ void Application::addParameter(const std::string& keyLong,
 
 void Application::processCmdLineArgs(int argc, char *argv[])
 {
-    //po::store(po::parse_command_line(argc, argv, itsOptionsDesc), itsVarMap);
-
-    // The below allows a single hyphen to be used for the long names. This is
-    // to support the historical use of "-inputs"
-    po::store(po::command_line_parser(argc, argv).options(itsOptionsDesc).
-            style(po::command_line_style::default_style
-                | po::command_line_style::allow_long_disguise).run(), itsVarMap);
-
+    po::store(po::parse_command_line(argc, argv, itsOptionsDesc), itsVarMap);
     po::notify(itsVarMap);
 
     if (parameterExists("help")) {
@@ -185,10 +177,6 @@ void Application::initConfig()
 {
     if (parameterExists("config")) {
         LOFAR::ParameterSet parset(parameter("config"),
-                LOFAR::StringUtil::Compare::NOCASE);
-        itsParset = parset;
-    } else if (parameterExists("inputs")) {
-        LOFAR::ParameterSet parset(parameter("inputs"),
                 LOFAR::StringUtil::Compare::NOCASE);
         itsParset = parset;
     } else {
