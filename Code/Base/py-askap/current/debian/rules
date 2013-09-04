@@ -32,8 +32,7 @@ override_dh_install:
 
 override_dh_installdeb:
 	@if [ ! -d debian/postinst ];then \
-	   if [ -d install/lib/python2.6 ];then \
-	      cp debian/postinst.python debian/postinst; \
+	   if [ -d install/lib/python2.6 -o -d install/lib/python2.7 ];then \
 	      sed -i -e '1s&^#\!.*/bin/python&#\!/usr/bin/env python&' \
 		debian/askap-py-askap-base/askap/default/bin/* 2>/dev/null || true; \
 	   fi \
