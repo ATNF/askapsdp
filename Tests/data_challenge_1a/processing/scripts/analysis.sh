@@ -118,13 +118,16 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$plotEval -c \$parset > \$pelog
+evalparset=eval-parset-${PBS_JOBID}.in
+grep "Eval" $parset > $evalparset
+
+mpirun -np 1 \$plotEval -c \$evalparset > \$pelog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$fluxEval -c \$parset > \$felog
+mpirun -np 1 \$fluxEval -c \$evalparset > \$felog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
