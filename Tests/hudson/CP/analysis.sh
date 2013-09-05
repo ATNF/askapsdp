@@ -57,7 +57,7 @@ echo Completed Unit Tests
 #
 # Run a simple duchamp test
 #
-TESTPACKAGE=/DATA/DELPHINUS_2/hum092/hudson-test-packages/analysis-test.tgz
+TESTPACKAGE=/DATA/DELPHINUS_1/whi550/Jenkins_Test_Packages/analysis-test.tgz
 if [  ! -f $TESTPACKAGE ]; then
     echo "Test package $TESTPACKAGE not found"
     exit 1
