@@ -29,6 +29,7 @@
 
 // Test includes
 #include <ComponentEquationTest.h>
+#include <Calibrator1934Test.h>
 #include <VectorOperationsTest.h>
 #include <ImageDFTEquationTest.h>
 #include <ImageFFTEquationTest.h>
@@ -46,9 +47,9 @@ int main( int argc, char **argv)
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     
-    
     runner.addTest(askap::synthesis::VectorOperationsTest::suite());
     runner.addTest(askap::synthesis::ComponentEquationTest::suite()); 
+    runner.addTest(askap::synthesis::Calibrator1934Test::suite()); 
     runner.addTest(askap::synthesis::CalibrationMETest::suite()); 
     //runner.addTest(askap::synthesis::ImageDFTEquationTest::suite());
     runner.addTest(askap::synthesis::ImageFFTEquationTest::suite());
@@ -60,7 +61,7 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::PreAvgCalBufferTest::suite()); 
     runner.addTest(askap::synthesis::RestoringBeamHelperTest::suite());
     runner.addTest(askap::synthesis::VisMetaDataStatsTest::suite());
-
+    
     const bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

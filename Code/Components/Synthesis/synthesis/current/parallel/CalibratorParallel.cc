@@ -130,7 +130,7 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = parset.getString("refgain","");
       
-      // setup solution source (or sink to be exact, because we're writing the soltion here)
+      // setup solution source (or sink to be exact, because we're writing the solution here)
       itsSolutionSource = CalibAccessFactory::rwCalSolutionSource(parset);
       ASKAPASSERT(itsSolutionSource);
   }
@@ -159,7 +159,7 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
       itsModel->reset();
 
       // initial assumption of the parameters
-      const casa::uInt nAnt = parset.getInt32("nAnt",36); // 28  
+      const casa::uInt nAnt = parset.getInt32("nAnt",36);  
       const casa::uInt nBeam = parset.getInt32("nBeam",1); 
       if (itsSolveGains) {
           ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");

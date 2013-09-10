@@ -41,6 +41,7 @@
 
 #include <measurementequation/UnpolarizedPointSource.h>
 #include <measurementequation/UnpolarizedGaussianSource.h>
+#include <measurementequation/Calibrator1934.h>
 #include <measurementequation/VectorOperations.h>
 
 
@@ -89,14 +90,15 @@ askap::scimath::Params ComponentEquation::defaultParameters()
 }
 
 /// @brief fill the cache of the components
-/// @details This method convertes the parameters into a vector of 
+/// @details This method converts the parameters into a vector of 
 /// components. It is called on the first access to itsComponents
 void ComponentEquation::fillComponentCache(
             std::vector<IParameterizedComponentPtr> &in) const
 { 
-  std::vector<std::string> completions(parameters().completions("flux.i"));
-  in.resize(completions.size());
-  if(!completions.size()) {
+  const std::vector<std::string> completions(parameters().completions("flux.i"));
+  const std::vector<std::string> calCompletions(parameters().completions("calibrator."));
+  in.resize(completions.size() + calCompletions.size());
+  if (!in.size()) {
      return;
   }
   
@@ -111,7 +113,6 @@ void ComponentEquation::fillComponentCache(
   for (std::vector<std::string>::const_iterator it=completions.begin();
         it!=completions.end();++it,++compIt)  {
           const std::string &cur = *it;
-          
           const double ra=parameters().scalarValue("direction.ra"+cur);
           const double dec=parameters().scalarValue("direction.dec"+cur);
           const double fluxi=parameters().scalarValue("flux.i"+cur);
@@ -130,8 +131,14 @@ void ComponentEquation::fillComponentCache(
              // this is a point source
              compIt->reset(new UnpolarizedPointSource(cur,fluxi,ra,dec));
           }
-        }
+  }
   
+  // loop over pre-defined calibrators
+  for (std::vector<std::string>::const_iterator it=calCompletions.begin();
+        it!=calCompletions.end();++it,++compIt)  {
+        ASKAPCHECK(*it == "1934-638", "Only 1934-638 is currently supported, you requested "<<*it);
+        compIt->reset(new Calibrator1934());
+  }
 }   
 
 /// @brief a helper method to populate a visibility cube

@@ -933,7 +933,7 @@ namespace askap
     bool SynthesisParamsHelper::hasComponent(const askap::scimath::Params::ShPtr &params)
     {
        ASKAPDEBUGASSERT(params);
-       return params->completions("flux.i").size()!=0;
+       return (params->completions("flux.i").size()!=0) || (params->completions("calibrator.").size()!=0);
     }
     
     /// @brief check whether parameter list defines at least one image
@@ -1343,6 +1343,17 @@ namespace askap
            const std::string &srcName, const std::string &baseKey)
     {
        ASKAPDEBUGASSERT(params);
+       // check the special case of predefined calibrators
+       const std::string calParamName = baseKey + srcName + ".calibrator";
+       if (parset.isDefined(calParamName)) {
+           params->add("calibrator."+parset.getString(calParamName));
+           ASKAPCHECK(params->completions("calibrator.").size() == 1, 
+              "It is not intended to have two pre-defined calibrators in the same model simultaneously. params: "<<*params);
+           return; // no need to load individual parameters as they're not used in this case
+       }
+       
+       // load explicitly specified component
+       
        // first, create a list of parameters describing the component
        // if the value of the map is true, the parameter is mandatory
        // (in the future we may have a more flexible code here filling this map)
@@ -1365,7 +1376,7 @@ namespace askap
                 if (ci->second) {
                     ASKAPTHROW(AskapError, "Parameter "<<parName<<
                            " is required to define the source "<<srcName<<
-                           ", baseKey="<<baseKey);
+                           ", baseKey="<<baseKey<<" or "<<baseKey + srcName +".calibrator parameter should be present");
                 }
             }
        }

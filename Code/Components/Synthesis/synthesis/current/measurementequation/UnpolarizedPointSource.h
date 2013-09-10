@@ -46,7 +46,7 @@ namespace synthesis {
 /// @brief A component representing an unpolarized point source with flat spectrum
 /// @details
 ///     This is an implementation of IComponent for the point source model.
-///     The point source is assumed unpolarized with a flat spectrum
+///     The point source is assumed to be unpolarized with a flat spectrum
 ///     (i.e. spectral index 0).
 /// @ingroup measurementequation  
 struct UnpolarizedPointSource : public UnpolarizedComponent<3> {
