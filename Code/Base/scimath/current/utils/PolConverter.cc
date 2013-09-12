@@ -408,5 +408,40 @@ std::vector<std::string> PolConverter::toString(const casa::Vector<casa::Stokes:
   return res;
 }
 
+/// @brief helper method to get the elements of transform matrix in the sparse form
+/// @details For calibration code when the model is setup with the descrete components there
+/// is potentially a heavy calculation for each polarisation product. Therefore, we want to be
+/// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected row
+/// of the transform matrix.
+/// @param[in] pol polarisation type (should be part of the input frame)
+/// @return map with the polarisation product as the key and the complex coefficient as the value
+std::map<casa::Stokes::StokesTypes, casa::Complex> PolConverter::getSparseTransform(const casa::Stokes::StokesTypes pol) const
+{
+  std::map<casa::Stokes::StokesTypes, casa::Complex> result;
+  casa::uInt product = 0;
+  for (; product < itsPolFrameOut.nelements(); ++product) {
+       if (itsPolFrameOut[product] == pol) {
+           break;
+       }
+  }
+  ASKAPCHECK(product != itsPolFrameOut.nelements(), "Requested polarisation product "<<casa::Stokes::name(pol)<<
+       " is not found in the output frame the converter is set up with");
+  if (itsVoid) {
+      result[pol] = casa::Complex(1.,0.);
+  } else { 
+      ASKAPDEBUGASSERT(product < itsTransform.nrow());
+      ASKAPDEBUGASSERT(itsPolFrameIn.nelements() <= itsTransform.ncolumn());
+      for (casa::uInt index = 0; index < itsPolFrameIn.nelements(); ++index) {
+           const casa::Complex val = itsTransform(product,index);
+           if (abs(val) > 1e-5) {
+               result[itsPolFrameIn[index]] = val;
+           }
+      }
+  }
+       
+  ASKAPCHECK(result.size(), "A non-zero output is expected from getSparseTransform, but all selected matrix elements seem to be zeros");
+  return result;
+}
+
 
 

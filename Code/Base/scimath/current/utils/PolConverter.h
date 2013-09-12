@@ -35,6 +35,8 @@
 // std includes
 #include <string>
 #include <vector>
+#include <map>
+
 
 // casa includes
 #include <casa/Arrays/Vector.h>
@@ -150,6 +152,14 @@ struct PolConverter {
   /// @return number of polarisation planes in the output visibility vector
   inline casa::uInt nOutputDim() const { return itsPolFrameOut.nelements();}
   
+  /// @brief polarisation frame assumed for input (stokes enums)
+  /// @return vector with stokes enums for the input frame (nInputDim elements)
+  inline const casa::Vector<casa::Stokes::StokesTypes>& inputPolFrame() const {return itsPolFrameIn;}                     
+  
+  /// @brief target polarisation frame (stokes enums)
+  /// @return vector with stokes enums for the output frame (nOutputDim elements)
+  inline const casa::Vector<casa::Stokes::StokesTypes>& outputPolFrame() const {return itsPolFrameOut;}
+    
   /// @brief test if frame matches a given stokes enum
   /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
   /// @param[in] stokes a single stokes enum defining the frame (should be the first in the set)
@@ -184,6 +194,19 @@ struct PolConverter {
   /// @return true, if it is a normal cross-correlation or I,Q,U or V.
   static bool isValid(casa::Stokes::StokesTypes pol);
   
+  /// @brief obtain the transform matrix
+  /// @return const reference to the transform matrix
+  inline const casa::Matrix<casa::Complex>& getTransform() const { return itsTransform;}
+  
+  /// @brief helper method to get the elements of transform matrix in the sparse form
+  /// @details For calibration code when the model is setup with the descrete components there
+  /// is potentially a heavy calculation for each polarisation product. Therefore, we want to be
+  /// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected row
+  /// of the transform matrix.
+  /// @param[in] pol polarisation type (should be part of the input frame)
+  /// @return map with the polarisation product as the key and the complex coefficient as the value
+  std::map<casa::Stokes::StokesTypes, casa::Complex> getSparseTransform(const casa::Stokes::StokesTypes pol) const;
+  
 protected:
   /// @brief build transformation matrix
   /// @details This is the core of the algorithm, this method builds the transformation matrix
@@ -198,7 +221,7 @@ protected:
   /// @param[in] pa1 parallactic angle on the first antenna
   /// @param[in] pa2 parallactic angle on the second antenna
   void fillPARotationMatrix(double pa1, double pa2);
-  
+    
 private:
   /// @brief no operation flag
   /// @details True if itsPolFrameOut == itsPolFrameIn or if class has been 

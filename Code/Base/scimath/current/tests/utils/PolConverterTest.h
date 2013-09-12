@@ -51,6 +51,7 @@ class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(stringConversionTest);
   CPPUNIT_TEST(linear2stokesTest);
   CPPUNIT_TEST(circular2stokesTest);
+  CPPUNIT_TEST(sparseTransformTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void dimensionTest() {
@@ -338,6 +339,36 @@ public:
      CPPUNIT_ASSERT(frameStr[1] == "I");
      CPPUNIT_ASSERT(frameStr[2] == "Q");
      CPPUNIT_ASSERT(frameStr[3] == "RR");     
+  }
+  
+  void sparseTransformTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(4);
+     in[0] = casa::Stokes::XX;
+     in[1] = casa::Stokes::XY;
+     in[2] = casa::Stokes::YX;
+     in[3] = casa::Stokes::YY;
+     casa::Vector<casa::Stokes::StokesTypes> out(4);
+     out[0] = casa::Stokes::I;
+     out[1] = casa::Stokes::Q;
+     out[2] = casa::Stokes::U;
+     out[3] = casa::Stokes::V;
+     
+     PolConverter pc(in,out);
+     CPPUNIT_ASSERT(pc.nInputDim() == 4);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 4);
+     CPPUNIT_ASSERT(pc.equal(in, pc.inputPolFrame()));
+     CPPUNIT_ASSERT(pc.equal(out, pc.outputPolFrame()));          
+ 
+     std::map<casa::Stokes::StokesTypes, casa::Complex> tfm = pc.getSparseTransform(casa::Stokes::I);
+     CPPUNIT_ASSERT_EQUAL(size_t(2), tfm.size());
+     CPPUNIT_ASSERT(tfm.find(casa::Stokes::XX) != tfm.end());
+     CPPUNIT_ASSERT(tfm.find(casa::Stokes::YY) != tfm.end());
+     CPPUNIT_ASSERT(tfm.find(casa::Stokes::XY) == tfm.end());
+     CPPUNIT_ASSERT(tfm.find(casa::Stokes::YX) == tfm.end());
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(tfm[casa::Stokes::XX]),1e-5);
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(tfm[casa::Stokes::YY]),1e-5);
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,imag(tfm[casa::Stokes::XX]),1e-5);
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,imag(tfm[casa::Stokes::YY]),1e-5);     
   }
   
 };
