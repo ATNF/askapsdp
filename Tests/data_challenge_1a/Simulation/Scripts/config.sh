@@ -30,7 +30,7 @@ sourcelist=master_possum_catalogue_trim10x10deg.dat
 databaseCR=POSSUM
 #databaseCR=POSSUMHI
 
-doSmallBETA=false
+doSmallBETA=true
 
 #freqChanZeroMHz=1421
 freqChanZeroMHz=1050
@@ -44,7 +44,12 @@ else
     nfeeds=36
 fi
 
-msbase=DCvis
+useGaussianComponents=true
+if [ $useGaussianComponents == "true" ]; then
+    msbase=DCvis
+else
+    msbase=DCvis_discs
+fi
 
 ##############################
 # MODEL CREATION

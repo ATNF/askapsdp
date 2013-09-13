@@ -104,6 +104,7 @@ createFITS.writeByNode      = ${writeByNode}
 createFITS.sourcelist       = ${catdir}/${sourcelist}
 createFITS.database         = ${databaseCR}
 createFITS.sourcelisttype   = ${listtypeCR}
+createFITS.useGaussians     = ${useGaussianComponents}
 createFITS.verboseSources   = false
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel
