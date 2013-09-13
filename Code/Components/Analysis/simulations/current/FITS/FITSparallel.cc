@@ -149,11 +149,16 @@ namespace askap {
 	  {
 	    std::stringstream newname;
 	    size_t pos = name.rfind(".fits");
+	    std::stringstream locationString;
+	    locationString << "_";
+	    for (uint i = 0; i < this->itsSubsection.getStartList().size(); i++) locationString << "_"<<this->itsSubsection.getStart(i);
+	    locationString << "__";
+
 	    if (pos == std::string::npos) { // imageName doesn't have a .fits extension
-	      newname << name << "_w" << this->itsComms.rank();
+		newname << name << "_w" << this->itsComms.rank()<<locationString.str();
 	    }
 	    else{
-	      newname << name.substr(0,pos) << "_w" << this->itsComms.rank() << ".fits";
+		newname << name.substr(0,pos) << "_w" << this->itsComms.rank() << locationString.str() << ".fits";
 	    }
 	    return newname.str();
 	  }
