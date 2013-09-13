@@ -118,7 +118,7 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-evalparset=eval-parset-${PBS_JOBID}.in
+evalparset=eval-parset-\${PBS_JOBID}.in
 grep "Eval" $parset > $evalparset
 
 mpirun -np 1 \$plotEval -c \$evalparset > \$pelog
