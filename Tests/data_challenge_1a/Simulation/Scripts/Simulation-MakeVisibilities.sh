@@ -67,8 +67,55 @@ askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation
 
 IND=${INDEX}
 
+mkdir -p ${parsetdirVis}/\${dir}
+mkdir -p ${logdirVis}/\${dir}
+
 ms=${msChunk}_\${IND}.ms
 skymodel=${slicebase}\${IND}
+modelInChunks=${writeByNode}
+if [ \$modelInChunks == "true" ]; then
+# Model was created with writeByNode=true, so we need to do the
+# extraction of the appropriate channel from each chunk and paste
+# together
+
+    pyscript=${parsetdirVis}/\${dir}/modelExtract_chan\${IND}.py
+    cat > \$pyscript <<EOF_INNER
+import fnmatch
+import numpy as np
+goodfiles=[]
+for file in os.listdir('${chunkdir}'):
+    if fnmatch.fnmatch(file,'*_w*__'):
+        goodfiles.append(file)
+goodfiles.sort()
+
+ia.open(goodfiles[0])
+crec=ia.coordsys().torecord()
+ia.close()
+ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
+ia.close()
+
+for file in goodfile:
+    offset=np.array(file.split('__')[1].split('_'),dtype=int)
+    ia.open(file)
+    shape=ia.shape()
+    blc=np.zeros(len(shape),dtype=int).tolist()
+    trc=(np.array(shape,dtype=int)-1).tolist()
+    blc[3]=\${IND}
+    trc[3]=\${IND}
+    print blc,trc
+    chunk=ia.getchunk(blc=blc,trc=trc)
+    ia.close()
+    ia.open('\${skymodel}')
+    ia.putchunk(pixels=chunk,blc=offset.tolist())
+    ia.close()
+
+EOF_INNER
+
+    pylog=${logdirVis}/\${dir}/modelExtract_chan\${IND}.log
+    casapy --nologger --log2term -c \${pyscript} > \$pylog
+
+fi
+
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
@@ -79,8 +126,6 @@ if [ \${VarNoise} == true ]; then
 fi
 
 dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
-mkdir -p ${parsetdirVis}/\${dir}
-mkdir -p ${logdirVis}/\${dir}
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
 

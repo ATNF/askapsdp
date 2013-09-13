@@ -56,6 +56,7 @@ doSliceCR=true
 logdirCR=${crdir}/Logs
 parsetdirCR=${crdir}/Parsets
 imagedir=${crdir}/Images
+chunkdir=${imagedir}/Chunks
 slicedir=${imagedir}/Slices
 
 if [ $databaseCR == "POSSUM" ]; then
@@ -125,10 +126,17 @@ else
     nsubyCR=8
 fi
 workersPerNodeCR=1
+writeByNode=true
+if [ $writeByNode == "true" ]; then
+    doSliceCR=false
+fi
 
 createTT_CR=true
 
 modelimage=${imagedir}/${baseimage}
+if [ $writeByNode == "true" ]; then
+    modelimage=${chunkdir}/${baseimage}
+fi
 slicebase=${slicedir}/${baseimage}_chunk
 
 
