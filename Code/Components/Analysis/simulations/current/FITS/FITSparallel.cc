@@ -39,7 +39,6 @@
 #include <analysisparallel/SubimageDef.h>
 
 #include <Common/LofarTypedefs.h>
-using namespace LOFAR::TYPES;
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
