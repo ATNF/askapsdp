@@ -111,7 +111,7 @@ class AntennaList:
 </Point>
 </Placemark>"""%(antnum,lon*Rad2Deg,lat*Rad2Deg)
 
-            print """</Document>
+        print """</Document>
 </kml>
 """
                 
