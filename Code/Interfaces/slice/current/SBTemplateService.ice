@@ -101,7 +101,8 @@ module schedblock
          **/
         long create(string name,
                     askap::interfaces::ParameterMap template,
-                    string obsproc, SBTemplateStatus status)
+                    string obsproc, SBTemplateStatus status,
+		    string description)
             throws VersionException, ParameterException;
 
         /**
@@ -128,6 +129,28 @@ module schedblock
          **/
         SBTemplateStatus getStatus(string name)
             throws NoSuchSBTemplateException;
+
+
+        /**
+         * Modify the description of the specified SBTemplate.
+         *
+         * @param name the name of the template to access
+         * @param text the new description
+         *
+         **/
+        void setDescription(string name, string text)
+            throws NoSuchSBTemplateException;
+
+        /**
+         * Get the description of the specified SBTemplate.
+         *
+         * @param name the name of the template to access
+         * @return the description text
+         *
+         **/
+        string getDescription(string name)
+            throws NoSuchSBTemplateException;
+
 
         /**
          * Update the SBTemplate's template and procedure. It is required to
