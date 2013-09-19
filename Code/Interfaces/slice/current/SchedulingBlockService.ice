@@ -58,9 +58,10 @@ module schedblock
         SCHEDULED,
         EXECUTING,
         POSTPROCESSING,
-        PENDINGTRANSFER,
+        PENDINGARCHIVE,
         COMPLETED,
-        ERRORED
+        ERRORED,
+	RETIRED
     };
 
     /**
