@@ -146,7 +146,7 @@ namespace askap {
         {
             this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
 	    this->itsWeighter = new Weighter(this->itsComms,LOFAR::ParameterSet());
-	    this->itsVarThresher = new VariableThresholder(LOFAR::ParameterSet());
+	    this->itsVarThresher = new VariableThresholder(this->itsComms,LOFAR::ParameterSet());
         }
 
         //**************************************************************//
@@ -187,7 +187,7 @@ namespace askap {
 	    }
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
-	    this->itsVarThresher = new VariableThresholder(this->itsParset.makeSubset("VariableThreshold."));
+	    this->itsVarThresher = new VariableThresholder(this->itsComms,this->itsParset.makeSubset("VariableThreshold."));
 	    this->itsVarThresher->setFilenames(this->itsComms);
 
 	    this->itsFlagOptimiseMask = this->itsParset.getBool("optimiseMask",false);

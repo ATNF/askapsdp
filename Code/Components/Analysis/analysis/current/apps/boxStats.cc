@@ -82,7 +82,7 @@ class BoxstatsApp : public askap::Application
 		parl.setFlagVariableThreshold(true);
 		parl.readData();
 
-		VariableThresholder varThresh(subset);
+		VariableThresholder varThresh(comms,subset);
 		if(comms.isParallel()) varThresh.setFilenames(comms);
 		varThresh.initialise(parl.cube());
 		varThresh.calculate();

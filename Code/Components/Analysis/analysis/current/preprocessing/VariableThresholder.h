@@ -34,6 +34,7 @@
 #include <string>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/aipstype.h>
 
@@ -62,7 +63,7 @@ namespace askap {
 	{
 	public:
 	    VariableThresholder(){};
-	    VariableThresholder(const LOFAR::ParameterSet &parset);
+	    VariableThresholder(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet &parset);
 	    VariableThresholder(const VariableThresholder& other);
 	    VariableThresholder& operator= (const VariableThresholder& other);
 	    virtual ~VariableThresholder(){};
@@ -75,10 +76,13 @@ namespace askap {
 	    int boxSize(){return itsBoxSize;};
 
 	protected:
-	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::IPosition &loc, bool doCreate);
+	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc, bool doCreate);
+	    void writeData(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc);
 	    void defineChunk(casa::Array<casa::Float> &chunk, size_t ctr);
 	    void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
-	    void doBoxSum(casa::Array<casa::Float> &input, casa::IPosition &box, casa::IPosition &loc, bool doCreate);
+
+	    /// @brief The MPI communication information
+	    askap::askapparallel::AskapParallel *itsComms;
 
 	    /// @brief The defining parset
 	    LOFAR::ParameterSet itsParset;
@@ -102,9 +106,11 @@ namespace askap {
 	    std::string itsAverageImageName;
 	    /// Name of box sum image to be written
 	    std::string itsBoxSumImageName;
+	    /// Do we need to write any images?
+	    bool doWriteImages;
 
 	    duchamp::Cube *itsCube;
-
+	    casa::Slicer itsSlicer;
 	    casa::IPosition itsInputShape;
 	    casa::CoordinateSystem itsInputCoordSys;
 
