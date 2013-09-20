@@ -39,7 +39,7 @@ namespace askap {
 	    /// output image name is not provided, it will not be
 	    /// written.
 
-	    this->itsBoxSize = parset.getInt16("boxWidth",50);
+	    this->itsBoxSize = parset.getInt16("boxSize",50);
 	    this->itsSNRimageName = parset.getString("SNRimageName", "");
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
 	    this->itsNoiseImageName = parset.getString("NoiseImageName","");
