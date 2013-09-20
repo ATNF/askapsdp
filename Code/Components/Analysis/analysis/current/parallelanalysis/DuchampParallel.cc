@@ -635,12 +635,16 @@ namespace askap {
             /// and all WCS parameters are calculated.
             ///
             /// This is only done on the workers, although if we use
-            /// the weight search the master needs to do the
-            /// initialisation of itsWeighter.
+            /// the weight or variable-threshold search the master
+            /// needs to do the initialisation of itsWeighter/itsVarThresher
 	  if(itsComms.isParallel() && itsComms.isMaster()){
-	    if(this->itsFlagWeightImage){
-	      this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
-	    }
+	      if (this->itsFlagVariableThreshold) {
+			this->itsVarThresher->initialise(this->itsCube);
+			this->itsVarThresher->calculate();
+	      }
+	      if(this->itsFlagWeightImage){
+		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
+	      }
 	  }	      
             if (itsComms.isWorker()) {
                 // remove mininum size criteria, so we don't miss anything on the borders.
