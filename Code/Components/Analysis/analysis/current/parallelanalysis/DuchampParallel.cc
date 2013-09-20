@@ -188,7 +188,7 @@ namespace askap {
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
 	    this->itsVarThresher = new VariableThresholder(this->itsComms,this->itsParset.makeSubset("VariableThreshold."));
-	    this->itsVarThresher->setFilenames(this->itsComms);
+	    // this->itsVarThresher->setFilenames(this->itsComms);
 
 	    this->itsFlagOptimiseMask = this->itsParset.getBool("optimiseMask",false);
 
