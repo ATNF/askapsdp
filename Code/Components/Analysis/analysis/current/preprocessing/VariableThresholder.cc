@@ -136,9 +136,13 @@ namespace askap {
 	    this->itsInputCoordSys = sub->coordinates();
 	    this->itsInputShape = sub->shape();
 
+	    ASKAPLOG_DEBUG_STR(logger ,"About to get the section for rank " << this->itsComms->rank());
 	    duchamp::Section sec = this->itsSubimageDef.section(this->itsComms->rank()-1);
+	    ASKAPLOG_DEBUG_STR(logger, "It is " << sec.getSection());
 	    sec.parse(this->itsInputShape.asStdVector());
+	    ASKAPLOG_DEBUG_STR(logger, "About to get the section for the master ");
 	    duchamp::Section secMaster = this->itsSubimageDef.section(-1);
+	    ASKAPLOG_DEBUG_STR(logger, "It is  " << secMaster.getSection());
 	    secMaster.parse(this->itsInputShape.asStdVector());
 	    this->itsLocation = casa::IPosition(sec.getStartList()) - casa::IPosition(secMaster.getStartList());
 	    ASKAPLOG_DEBUG_STR(logger, "Reference location for rank " << this->itsComms->rank() << " is " << this->itsLocation << " since local subsection = " << sec.getSection() << " and input shape = " << this->itsInputShape);
