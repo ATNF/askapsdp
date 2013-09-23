@@ -43,9 +43,10 @@ namespace askap {
 	    return *this;
 	}
 
-	ImageWriter::ImageWriter(duchamp::Cube *cube)
+	ImageWriter::ImageWriter(duchamp::Cube *cube, std::string imageName)
 	{
 	    this->copyMetadata(cube);
+	    this->itsImageName = imageName;
 	}
 
 	void ImageWriter::copyMetadata(duchamp::Cube *cube)
@@ -86,9 +87,9 @@ namespace askap {
 	}
 
 
-	void ImageWriter::create(std::string filename)
+	void ImageWriter::create()
 	{
-	    this->itsImageName = filename;
+	  //	    this->itsImageName = filename;
 	    if(this->itsImageName != ""){
 		ASKAPLOG_DEBUG_STR(logger, "Creating image named " << this->itsImageName << " with shape " << this->itsShape << " and tileshape " << this->itsTileshape);
 		casa::PagedImage<float> img(casa::TiledShape(this->itsShape,this->itsTileshape), this->itsCoordSys, this->itsImageName);
@@ -98,7 +99,7 @@ namespace askap {
 	}
 
 
-	void ImageWriter::write(float *data, casa::IPosition &shape)
+	void ImageWriter::write(float *data, const casa::IPosition &shape)
 	{
 	    ASKAPASSERT(shape.size() == this->itsShape.size());
 	    casa::Array<Float> arr(shape,data,casa::SHARE);
@@ -106,7 +107,7 @@ namespace askap {
 	    this->write(arr,location);
 	}
 
-	void ImageWriter::write(float *data, casa::IPosition &shape, casa::IPosition &loc)
+	void ImageWriter::write(float *data, const casa::IPosition &shape, const casa::IPosition &loc)
 	{
 	    ASKAPASSERT(shape.size() == this->itsShape.size());
 	    ASKAPASSERT(loc.size() == this->itsShape.size());
@@ -114,14 +115,14 @@ namespace askap {
 	    this->write(arr,loc);
 	}
 
-	void ImageWriter::write(casa::Array<Float> &data)
+	void ImageWriter::write(const casa::Array<Float> &data)
 	{
 	    ASKAPASSERT(data.ndim() == this->itsShape.size());
 	    casa::IPosition location(this->itsShape.size(),0);
 	    this->write(data,location);
 	}
 
-	void ImageWriter::write(casa::Array<Float> &data, casa::IPosition &loc)
+	void ImageWriter::write(const casa::Array<Float> &data, const casa::IPosition &loc)
 	{
 	    ASKAPASSERT(data.ndim() == this->itsShape.size());
 	    ASKAPASSERT(loc.size() == this->itsShape.size());
@@ -131,6 +132,15 @@ namespace askap {
 	    img.putSlice(data, loc);
 
 	}
+
+	casa::Array<casa::Float> ImageWriter::read(const casa::IPosition& loc, const casa::IPosition &shape)
+	{
+	    ASKAPASSERT(loc.size() == shape.size());
+	    casa::PagedImage<float> img(this->itsImageName);
+	    return img.getSlice(loc,shape);
+	}
+
+
 
     }
 

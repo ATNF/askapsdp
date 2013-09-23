@@ -112,7 +112,7 @@ namespace askap {
 	    bool doWriteImages;
 	    
 	    /// @brief The subimage definition
-	    analysisutilities::SubimageDef itsSubimageDef;
+	    analysisutilities::SubimageDef *itsSubimageDef;
 	    duchamp::Cube *itsCube;
 	    casa::Slicer itsSlicer;
 	    casa::IPosition itsInputShape;

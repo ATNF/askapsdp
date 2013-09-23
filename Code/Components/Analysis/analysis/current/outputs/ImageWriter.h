@@ -46,7 +46,7 @@ namespace askap {
 	{
 	public:
 	    ImageWriter(){};
-	    ImageWriter(duchamp::Cube *cube);
+	    ImageWriter(duchamp::Cube *cube, std::string imageName);
 	    ImageWriter(const ImageWriter& other);
 	    ImageWriter& operator= (const ImageWriter& other);
 	    virtual ~ImageWriter(){};
@@ -62,12 +62,14 @@ namespace askap {
 	    
 	    void setTileshapeFromShape(casa::IPosition &shape);
 
-	    void create(std::string filename);
+	    void create();
 	    
-	    void write(float *data, casa::IPosition &shape);
-	    void write(float *data, casa::IPosition &shape, casa::IPosition &loc);
-	    void write(casa::Array<casa::Float> &data);
-	    void write(casa::Array<casa::Float> &data, casa::IPosition &loc);
+	    void write(float *data, const casa::IPosition &shape);
+	    void write(float *data, const casa::IPosition &shape, const casa::IPosition &loc);
+	    void write(const casa::Array<casa::Float> &data);
+	    void write(const casa::Array<casa::Float> &data, const casa::IPosition &loc);
+
+	    casa::Array<casa::Float> read(const casa::IPosition& loc, const casa::IPosition &shape);
 
 	protected:
 	    std::string itsImageName;

@@ -98,6 +98,7 @@ namespace askap {
 	    this->itsNoiseImageName = other.itsNoiseImageName;
 	    this->itsAverageImageName = other.itsAverageImageName;
 	    this->itsBoxSumImageName = other.itsAverageImageName;
+	    this->itsSubimageDef = other.itsSubimageDef;
 	    this->itsCube = other.itsCube;
 	    this->itsInputShape = other.itsInputShape;
 	    this->itsInputCoordSys = other.itsInputCoordSys;
@@ -115,7 +116,7 @@ namespace askap {
 	    /// not been defined via the parset).
 
 	    this->itsCube = &cube;
-	    this->itsSubimageDef = subdef;
+	    this->itsSubimageDef = &subdef;
 	    this->itsInputImage = cube.pars().getImageFile();
 	    this->itsFlagRobustStats = cube.pars().getFlagRobustStats();
 	    this->itsSNRthreshold = cube.pars().getCut();
@@ -137,11 +138,11 @@ namespace askap {
 	    this->itsInputShape = sub->shape();
 
 	    ASKAPLOG_DEBUG_STR(logger ,"About to get the section for rank " << this->itsComms->rank());
-	    duchamp::Section sec = this->itsSubimageDef.section(this->itsComms->rank()-1);
+	    duchamp::Section sec = this->itsSubimageDef->section(this->itsComms->rank()-1);
 	    ASKAPLOG_DEBUG_STR(logger, "It is " << sec.getSection());
 	    sec.parse(this->itsInputShape.asStdVector());
 	    ASKAPLOG_DEBUG_STR(logger, "About to get the section for the master ");
-	    duchamp::Section secMaster = this->itsSubimageDef.section(-1);
+	    duchamp::Section secMaster = this->itsSubimageDef->section(-1);
 	    ASKAPLOG_DEBUG_STR(logger, "It is  " << secMaster.getSection());
 	    secMaster.parse(this->itsInputShape.asStdVector());
 	    this->itsLocation = casa::IPosition(sec.getStartList()) - casa::IPosition(secMaster.getStartList());
@@ -204,7 +205,7 @@ namespace askap {
 		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
-		defineChunk(inputChunk,ctr);
+		if(this->itsComms->isWorker()) defineChunk(inputChunk,ctr);
 		casa::Array<Float> middle(chunkshape,0.);
 		casa::Array<Float> spread(chunkshape,0.);
 		casa::Array<Float> snr(chunkshape,0.);
@@ -231,8 +232,10 @@ namespace askap {
 
 		if(this->doWriteImages) this->writeImages(middle,spread,snr,boxsum,loc,isStart);
 
-		ASKAPLOG_DEBUG_STR(logger, "About to store the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
-		this->saveSNRtoCube(snr,ctr);
+		if(this->itsComms->isWorker()){
+		  ASKAPLOG_DEBUG_STR(logger, "About to store the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
+		  this->saveSNRtoCube(snr,ctr);
+		}
 	    }
 
 	    this->itsCube->setReconFlag(true);
@@ -276,17 +279,21 @@ namespace askap {
 	{
 	    /// @details Write all 
 
-	    ImageWriter noiseWriter(this->itsCube),averageWriter(this->itsCube),threshWriter(this->itsCube),snrWriter(this->itsCube),boxWriter(this->itsCube);
+	    ImageWriter noiseWriter(this->itsCube, this->itsNoiseImageName);
+	    ImageWriter averageWriter(this->itsCube, this->itsAverageImageName);
+	    ImageWriter threshWriter(this->itsCube, this->itsThresholdImageName);
+	    ImageWriter snrWriter(this->itsCube, this->itsSNRimageName);
+	    ImageWriter boxWriter(this->itsCube, this->itsBoxSumImageName);
 
 
 	    if(!this->itsComms->isParallel() || this->itsComms->isMaster()){
 		// If serial mode, or we're on the master node, create the images as needed, but only when requested via doCreate.
 		if(doCreate){
-		    noiseWriter.create(this->itsNoiseImageName);
-		    averageWriter.create(this->itsAverageImageName);
-		    threshWriter.create(this->itsThresholdImageName);
-		    snrWriter.create(this->itsSNRimageName);
-		    boxWriter.create(this->itsBoxSumImageName);
+		    noiseWriter.create();
+		    averageWriter.create();
+		    threshWriter.create();
+		    snrWriter.create();
+		    boxWriter.create();
 		}
 	    }
 
@@ -385,7 +392,9 @@ namespace askap {
 	{
 	    if(writer.imagename()!=""){
 		ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << array.shape() << " to " << writer.imagename() << " at location " << loc);
-		writer.write(array,loc);
+		casa::Array<casa::Float> sumarray = writer.read(loc,array.shape()) + array;
+		
+		writer.write(sumarray,loc);
 	    }
 	}
 
