@@ -89,10 +89,12 @@ namespace askap {
 	void ImageWriter::create(std::string filename)
 	{
 	    this->itsImageName = filename;
-	    casa::PagedImage<float> img(casa::TiledShape(this->itsShape,this->itsTileshape), this->itsCoordSys, this->itsImageName);
-	    img.setUnits(this->itsBunit);
-	    img.setImageInfo(this->itsImageInfo);
-	    
+	    if(this->itsImageName != ""){
+		ASKAPLOG_DEBUG_STR(logger, "Creating image named " << this->itsImageName << " with shape " << this->itsShape << " and tileshape " << this->itsTileshape);
+		casa::PagedImage<float> img(casa::TiledShape(this->itsShape,this->itsTileshape), this->itsCoordSys, this->itsImageName);
+		img.setUnits(this->itsBunit);
+		img.setImageInfo(this->itsImageInfo);
+	    }
 	}
 
 
@@ -123,7 +125,9 @@ namespace askap {
 	{
 	    ASKAPASSERT(data.ndim() == this->itsShape.size());
 	    ASKAPASSERT(loc.size() == this->itsShape.size());
+	    ASKAPLOG_DEBUG_STR(logger, "Opening image " << this->itsImageName << " for writing");
 	    casa::PagedImage<float> img(this->itsImageName);
+	    ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << data.shape() << " to image " << this->itsImageName << " at location " << loc);
 	    img.putSlice(data, loc);
 
 	}

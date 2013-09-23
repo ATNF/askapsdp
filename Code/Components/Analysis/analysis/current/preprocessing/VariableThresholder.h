@@ -29,6 +29,8 @@
 #ifndef ASKAP_ANALYSIS_VAR_THRESH_H_
 #define ASKAP_ANALYSIS_VAR_THRESH_H_
 #include <askapparallel/AskapParallel.h>
+#include <analysisparallel/SubimageDef.h>
+#include <outputs/ImageWriter.h>
 #include <Common/ParameterSet.h>
 #include <duchamp/Cubes/cubes.hh>
 #include <string>
@@ -68,7 +70,7 @@ namespace askap {
 	    VariableThresholder& operator= (const VariableThresholder& other);
 	    virtual ~VariableThresholder(){};
 
-	    void initialise(duchamp::Cube &cube);
+	    void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
 	    void setFilenames(askap::askapparallel::AskapParallel& comms);
 	    void calculate();
 	    void search();
@@ -77,7 +79,7 @@ namespace askap {
 
 	protected:
 	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc, bool doCreate);
-	    void writeData(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc);
+	    void writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc);
 	    void defineChunk(casa::Array<casa::Float> &chunk, size_t ctr);
 	    void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
 
@@ -108,10 +110,13 @@ namespace askap {
 	    std::string itsBoxSumImageName;
 	    /// Do we need to write any images?
 	    bool doWriteImages;
-
+	    
+	    /// @brief The subimage definition
+	    analysisutilities::SubimageDef itsSubimageDef;
 	    duchamp::Cube *itsCube;
 	    casa::Slicer itsSlicer;
 	    casa::IPosition itsInputShape;
+	    casa::IPosition itsLocation;
 	    casa::CoordinateSystem itsInputCoordSys;
 
 	};

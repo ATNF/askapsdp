@@ -103,6 +103,8 @@ namespace askap {
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 		duchamp::Cube *pCube(){return &itsCube;};
 		
+		analysisutilities::SubimageDef &subimageDef(){analysisutilities::SubimageDef &rsubdef = itsSubimageDef; return rsubdef;};
+
 		void setBaseSubsection(std::string sec){itsBaseSubsection = sec;};
 		std::string baseSubsection(){return itsBaseSubsection;};
 		void setBaseStatSubsection(std::string sec){itsBaseStatSubsection = sec;};

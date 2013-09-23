@@ -2,6 +2,7 @@
 #include <preprocessing/VariableThresholder.h>
 #include <preprocessing/VariableThresholdingHelpers.h>
 #include <outputs/ImageWriter.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -104,7 +105,7 @@ namespace askap {
 	}
 
 	
-	void VariableThresholder::initialise(duchamp::Cube &cube)
+	void VariableThresholder::initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef)
 	{
 	    /// @details Initialise the class with information from
 	    /// the duchamp::Cube. This is done to avoid replicating
@@ -114,6 +115,7 @@ namespace askap {
 	    /// not been defined via the parset).
 
 	    this->itsCube = &cube;
+	    this->itsSubimageDef = subdef;
 	    this->itsInputImage = cube.pars().getImageFile();
 	    this->itsFlagRobustStats = cube.pars().getFlagRobustStats();
 	    this->itsSNRthreshold = cube.pars().getCut();
@@ -133,6 +135,15 @@ namespace askap {
 	    const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, this->itsSlicer);
 	    this->itsInputCoordSys = sub->coordinates();
 	    this->itsInputShape = sub->shape();
+
+	    duchamp::Section sec = this->itsSubimageDef.section(this->itsComms->rank()-1);
+	    sec.parse(this->itsInputShape.asStdVector());
+	    duchamp::Section secMaster = this->itsSubimageDef.section(-1);
+	    secMaster.parse(this->itsInputShape.asStdVector());
+	    this->itsLocation = casa::IPosition(sec.getStartList()) - casa::IPosition(secMaster.getStartList());
+	    ASKAPLOG_DEBUG_STR(logger, "Reference location for rank " << this->itsComms->rank() << " is " << this->itsLocation << " since local subsection = " << sec.getSection() << " and input shape = " << this->itsInputShape);
+	    ASKAPLOG_DEBUG_STR(logger, "Rank " << this->itsComms->rank() << " has loc " << casa::IPosition(sec.getStartList()) << " while the master has loc " << casa::IPosition(secMaster.getStartList()));
+	    
 
 	}
 
@@ -195,7 +206,7 @@ namespace askap {
 		casa::Array<Float> snr(chunkshape,0.);
 		casa::Array<Float> boxsum(chunkshape,0.);
 
-		casa::IPosition loc(this->itsInputShape.size(),0);
+		casa::IPosition loc(this->itsLocation.size(),0);
 		if(this->itsSearchType == "spatial"){
 		    if(specAxis>=0) loc(specAxis) = ctr;
 		}
@@ -203,7 +214,8 @@ namespace askap {
 		    if(lngAxis>=0) loc(lngAxis) = ctr%this->itsCube->getDimX();
 		    if(latAxis>=0) loc(latAxis) = ctr/this->itsCube->getDimX();
 		}
-		loc = loc + this->itsSlicer.start();
+		// loc = loc + this->itsSlicer.start();
+		loc = loc + this->itsLocation;
 		
 		if(this->itsComms->isWorker()){
 		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
@@ -266,11 +278,11 @@ namespace askap {
 	    if(!this->itsComms->isParallel() || this->itsComms->isMaster()){
 		// If serial mode, or we're on the master node, create the images as needed, but only when requested via doCreate.
 		if(doCreate){
-		    if(this->itsNoiseImageName!="")     noiseWriter.create(this->itsNoiseImageName);
-		    if(this->itsAverageImageName!="")   averageWriter.create(this->itsAverageImageName);
-		    if(this->itsThresholdImageName!="") threshWriter.create(this->itsThresholdImageName);
-		    if(this->itsSNRimageName!="")       snrWriter.create(this->itsSNRimageName);
-		    if(this->itsBoxSumImageName!="")    boxWriter.create(this->itsBoxSumImageName);
+		    noiseWriter.create(this->itsNoiseImageName);
+		    averageWriter.create(this->itsAverageImageName);
+		    threshWriter.create(this->itsThresholdImageName);
+		    snrWriter.create(this->itsSNRimageName);
+		    boxWriter.create(this->itsBoxSumImageName);
 		}
 	    }
 
@@ -307,68 +319,71 @@ namespace askap {
 
 		} else if (this->itsComms->isWorker()) {
 		    
-                        OK = true;
-                        int rank;
-			int version;
+		    OK = true;
+		    int rank;
+		    int version;
 
-                        if (this->itsComms->isParallel()) {
-                            do {
-                                bs.resize(0);
-                                this->itsComms->receiveBlob(bs, 0);
-                                LOFAR::BlobIBufString bib(bs);
-                                LOFAR::BlobIStream in(bib);
-                                version = in.getStart("goWrite");
-                                ASKAPASSERT(version == 1);
-                                in >> rank;
-                                in.getEnd();
-                                OK = (rank == this->itsComms->rank());
-                            } while (!OK);
-                        }
+		    if (this->itsComms->isParallel()) {
+			do {
+			    bs.resize(0);
+			    this->itsComms->receiveBlob(bs, 0);
+			    LOFAR::BlobIBufString bib(bs);
+			    LOFAR::BlobIStream in(bib);
+			    version = in.getStart("goWrite");
+			    ASKAPASSERT(version == 1);
+			    in >> rank;
+			    in.getEnd();
+			    OK = (rank == this->itsComms->rank());
+			} while (!OK);
+		    }
 
-                        if (OK) {
-                            ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms->rank() << ": About to write data to image ");
+		    if (OK) {
+			ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms->rank() << ": About to write data to image ");
 
-			    this->writeData(middle,spread,snr,boxsum,loc);
+			this->writeArray(noiseWriter,spread,loc);
+			this->writeArray(averageWriter,middle,loc);
+			this->writeArray(snrWriter,snr,loc);
+			this->writeArray(boxWriter,boxsum,loc);
+			casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
+			this->writeArray(threshWriter,spread,loc);
 
-                            // Return the OK to the master to say that we've written to the image
-                            if (this->itsComms->isParallel()) {
-                                bs.resize(0);
-                                LOFAR::BlobOBufString bob(bs);
-                                LOFAR::BlobOStream out(bob);
-				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": Sending done message to Master.");
-                                out.putStart("writeDone", 1);
-                                out << OK;
-                                out.putEnd();
-                                this->itsComms->sendBlob(bs, 0);
-				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": All done.");
+			// Return the OK to the master to say that we've written to the image
+			if (this->itsComms->isParallel()) {
+			    bs.resize(0);
+			    LOFAR::BlobOBufString bob(bs);
+			    LOFAR::BlobOStream out(bob);
+			    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": Sending done message to Master.");
+			    out.putStart("writeDone", 1);
+			    out << OK;
+			    out.putEnd();
+			    this->itsComms->sendBlob(bs, 0);
+			    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": All done.");
 
-                            }
-                        }
-
+			}
+		    }
 
 		}
 
 	    }
 	    else {
-		this->writeData(middle,spread,snr,boxsum,loc);
+		this->writeArray(noiseWriter,spread,loc);
+		this->writeArray(averageWriter,middle,loc);
+		this->writeArray(snrWriter,snr,loc);
+		this->writeArray(boxWriter,boxsum,loc);
+		casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
+		this->writeArray(threshWriter,spread,loc);
 		
 	    }
 
 	}
 
-	void VariableThresholder::writeData(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc)
+	void VariableThresholder::writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc)
 	{
-	    ImageWriter noiseWriter(this->itsCube),averageWriter(this->itsCube),threshWriter(this->itsCube),snrWriter(this->itsCube),boxWriter(this->itsCube);
-	    if(this->itsNoiseImageName!="")   noiseWriter.write(spread,loc);
-	    if(this->itsAverageImageName!="") averageWriter.write(middle,loc);
-	    if(this->itsThresholdImageName!=""){
-		casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
-		threshWriter.write(thresh,loc);
+	    if(writer.imagename()!=""){
+		ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << array.shape() << " to " << writer.imagename() << " at location " << loc);
+		writer.write(array,loc);
 	    }
-	    if(this->itsSNRimageName!="")    snrWriter.write(snr,loc);
-	    if(this->itsBoxSumImageName!="") boxWriter.write(boxsum,loc);
 	}
-
 
 	void VariableThresholder::search()
 	{

@@ -84,7 +84,7 @@ class BoxstatsApp : public askap::Application
 
 		VariableThresholder varThresh(comms,subset);
 		if(comms.isParallel()) varThresh.setFilenames(comms);
-		varThresh.initialise(parl.cube());
+		varThresh.initialise(parl.cube(),parl.subimageDef());
 		varThresh.calculate();
 
             } catch (const askap::AskapError& x) {

@@ -639,8 +639,8 @@ namespace askap {
             /// needs to do the initialisation of itsWeighter/itsVarThresher
 	  if(itsComms.isParallel() && itsComms.isMaster()){
 	      if (this->itsFlagVariableThreshold) {
-			this->itsVarThresher->initialise(this->itsCube);
-			this->itsVarThresher->calculate();
+		  this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
+		  this->itsVarThresher->calculate();
 	      }
 	      if(this->itsFlagWeightImage){
 		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
@@ -662,7 +662,7 @@ namespace askap {
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagVariableThreshold) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching with a variable threshold");
-			this->itsVarThresher->initialise(this->itsCube);
+			this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
 			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
 		    } else if (this->itsFlagWeightImage){
