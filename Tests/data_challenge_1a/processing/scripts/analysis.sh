@@ -35,8 +35,10 @@ cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/cimstat.sh
 crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/crossmatch.sh
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
 fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/fluxEval.py
+imageEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/imageEval.py
 
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
+. ${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a/init_package_env.sh
 
 parset=analysis-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
@@ -48,6 +50,10 @@ Selavy.flagGrowth = true
 Selavy.growthCut = 4
 Selavy.VariableThreshold = true
 Selavy.VariableThreshold.boxSize = 50
+Selavy.VariableThreshold.ThresholdImageName=${THRESHIMAGE}
+Selavy.VariableThreshold.NoiseImageName=${NOISEIMAGE}
+Selavy.VariableThreshold.AverageImageName=${AVERAGEIMAGE}
+Selavy.VariableThreshold.SNRimageName=${SNRIMAGE}
 Selavy.Fitter.doFit = true
 Selavy.Fitter.fitTypes = [full]
 Selavy.Fitter.fitJustDetection = true
@@ -73,6 +79,9 @@ Crossmatch.missfile = misses.txt
 #
 Eval.refCatalogue = ${skymodel}
 Eval.sourceCatalogue = selavy-fitResults.txt
+Eval.thresholdImage = ${THRESHIMAGE}.fits
+Eval.noiseImage = ${NOISEIMAGE}.fits
+Eval.snrImage = ${SNRIMAGE}.fits
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
@@ -98,6 +107,7 @@ sflog=log/selavy-\${PBS_JOBID}.log
 cmlog=log/crossmatch-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
+ielog=log/imageval-\${PBS_JOBID}.log
 
 #mpirun -np 1 \$cimstat -c \$parset > \$statlog
 casapy --nologger --log2term -c \$pystat > \$statlog
@@ -118,6 +128,11 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
+# Convert threshold/noise/snr maps to FITS
+mpirun -np 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
+mpirun -np 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
+mpirun -np 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
+
 evalparset=eval-parset-\${PBS_JOBID}.in
 grep "Eval" $parset > $evalparset
 
@@ -128,6 +143,12 @@ if [ \$err -ne 0 ]; then
 fi
 
 mpirun -np 1 \$fluxEval -c \$evalparset > \$felog
+err=$?
+if [ \$err -ne 0 ]; then
+    exit $?
+fi
+
+mpirun -np 1 \$imageEval -c \$evalparset > \$ielog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?

@@ -128,6 +128,10 @@ if [ $BETA_MODE == "small" ]; then
 
 # subsection of image used for analysis
     ANALYSIS_SUBSECTION="[301:1800,301:1800,*,*]"
+    THRESHIMAGE=detectionThreshold.i.clean
+    NOISEIMAGE=noiseMap.i.clean
+    SNRIMAGE=snr.i.clean
+    AVERAGEIMAGE=meanMap.i.clean
 
 elif [ ${BETA_MODE} == "full" ]; then
 
@@ -183,6 +187,10 @@ elif [ ${BETA_MODE} == "full" ]; then
 
 # subsection of image used for analysis
     ANALYSIS_SUBSECTION="[601:2700,601:2700,*,*]"
+    THRESHIMAGE=detectionThreshold.i.clean
+    NOISEIMAGE=noiseMap.i.clean
+    SNRIMAGE=snr.i.clean
+    AVERAGEIMAGE=meanMap.i.clean
 
 else
 
