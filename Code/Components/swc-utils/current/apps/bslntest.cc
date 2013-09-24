@@ -39,14 +39,17 @@ ASKAP_LOGGER(logger, "");
 #include <measures/Measures/MFrequency.h>
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/MCEpoch.h>
+#include <measures/Measures/MCDirection.h>
 #include <measures/Measures/MeasConvert.h>
+#include <measures/Measures/MeasFrame.h>
 #include <tables/Tables/Table.h>
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/ArrayMath.h>
 
 #include <utils/DelayEstimator.h>
-//#include <fitting/GenericNormalEquations.h>
-//#include <fitting/LinearSolver.h>
+#include <fitting/GenericNormalEquations.h>
+#include <fitting/LinearSolver.h>
+#include <fitting/DesignMatrix.h>
 
 // std
 #include <stdexcept>
@@ -61,17 +64,18 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
-void processDelays(const accessors::IConstDataAccessor &acc)
+void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConstDataAccessor &acc)
 {
    ASKAPDEBUGASSERT(acc.nRow()>0);
    ASKAPDEBUGASSERT(acc.nChannel()>1);
    ASKAPDEBUGASSERT(acc.nPol()>0);
-   casa::MVDirection dir = acc.pointingDir1()[0];
    scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
    casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(0);
   
-   const double avgTime = 0.;
-   const casa::MEpoch epoch(casa::Quantity(56100.0+avgTime/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
+   const casa::MEpoch epoch(casa::Quantity(56100.0+acc.time()/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
+   casa::MeasFrame frame(epoch);
+   const casa::MVDirection dir = casa::MDirection::Convert(casa::MDirection(acc.pointingDir1()[0]), 
+                                 casa::MDirection::Ref(casa::MDirection::JTRUE, frame))().getAngle();
    const double ra = dir.getValue()(0);
    const double dec = dir.getValue()(1);
    const double gmstInDays = casa::MEpoch::Convert(epoch,casa::MEpoch::Ref(casa::MEpoch::GMST1))().get("d").getValue("d");
@@ -81,7 +85,20 @@ void processDelays(const accessors::IConstDataAccessor &acc)
   
    for (casa::uInt baseline = 0; baseline < vis.nrow(); ++baseline) {
         const double delay = de.getDelay(vis.row(baseline));
-        std::cout<<baseline<<" "<<acc.antenna1()[baseline]<<" "<<acc.antenna2()[baseline]<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<" "<<delay*casa::C::c<<std::endl;
+        //std::cout<<baseline<<" "<<acc.antenna1()[baseline]<<" "<<acc.antenna2()[baseline]<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<" "<<delay*casa::C::c<<std::endl;
+
+        const std::string ant1str = utility::toString(acc.antenna1()[baseline]);
+        const std::string ant2str = utility::toString(acc.antenna2()[baseline]);
+
+        scimath::DesignMatrix dm;
+        dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,-cH0*cd));
+        dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,cH0*cd));
+        dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,sH0*cd));
+        dm.addDerivative("y"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd));
+        dm.addDerivative("z"+ant1str, casa::Vector<casa::Double>(1,-sd));
+        dm.addDerivative("z"+ant2str, casa::Vector<casa::Double>(1,sd));
+        dm.addResidual(casa::Vector<casa::Double>(1,delay*casa::C::c), casa::Vector<double>(1, 1.));
+        gne.add(dm);
    }
 }
 
@@ -104,7 +121,7 @@ void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double st
    os<<" "<<std::fixed<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<std::endl;
 }
 
-void process(const IConstDataSource &ds, size_t nAvg) {
+void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
   sel->chooseFeed(0);
@@ -124,7 +141,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
 
   casa::Vector<casa::uInt> ant1IDs;
   casa::Vector<casa::uInt> ant2IDs;
-    
+
   std::ofstream os("result.dat");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (nChan == 0) {
@@ -167,7 +184,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
             ASKAPCHECK(dir.separation(it->pointingDir1()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
             ASKAPCHECK(dir.separation(it->pointingDir2()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
        }
-       processDelays(*it);
+       processDelays(gne,*it);
 
        avgTime += it->time();
        
@@ -204,7 +221,44 @@ int main(int argc, char **argv) {
      timer.mark();
      // number of cycles to average
      const size_t nAvg = 1;
-     process(ds, nAvg);
+     scimath::GenericNormalEquations gne;
+     process(gne, ds, nAvg);
+    
+     // now solve
+     scimath::LinearSolver solver;
+     solver.setAlgorithm("SVD");
+     solver.addNormalEquations(gne);
+     scimath::Quality q;
+     std::vector<std::string> unknowns = gne.unknowns();
+     scimath::Params params;
+     for (std::vector<std::string>::const_iterator ci = unknowns.begin(); ci!=unknowns.end(); ++ci) {
+          params.add(*ci, 0.);
+          
+          // fix the vertical component (no appropriate data taken yet)
+          if (ci->find("z") == 0) {
+              params.fix(*ci);
+          }
+          
+     }
+     // antenna 8 is the reference for now
+     params.fix("x1");
+     params.fix("y1");
+     params.fix("z1");
+     solver.addNormalEquations(gne);
+     solver.solveNormalEquations(params,q);
+     std::cout<<q<<std::endl;
+     if (unknowns.size() % 3 == 0) {
+        for (size_t ant=0; ant < unknowns.size() / 3; ++ant) {
+             const std::string antStr = utility::toString(ant);
+             std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
+                        params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
+        }
+     } else {
+       std::cout<<params<<std::endl;
+     }
+     
+     //
+
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
