@@ -356,7 +356,7 @@ namespace askap {
 			this->writeArray(snrWriter,snr,loc);
 			this->writeArray(boxWriter,boxsum,loc);
 			casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
-			this->writeArray(threshWriter,spread,loc);
+			this->writeArray(threshWriter,thresh,loc);
 
 			// Return the OK to the master to say that we've written to the image
 			if (this->itsComms->isParallel()) {
@@ -382,7 +382,7 @@ namespace askap {
 		this->writeArray(snrWriter,snr,loc);
 		this->writeArray(boxWriter,boxsum,loc);
 		casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
-		this->writeArray(threshWriter,spread,loc);
+		this->writeArray(threshWriter,thresh,loc);
 		
 	    }
 
