@@ -20,11 +20,26 @@ def labelPlot(xlab, ylab, title,textsize):
 
 if __name__ == '__main__':
 
-    # @todo Replace this with a parset interface
-    threshImageName='detectionThreshold.i.clean.fits'
-    noiseImageName='noiseMap.i.clean.fits'
-    snrImageName='snr.i.clean.fits'
+    parser = OptionParser()
+    parser.add_option("-c","--config", dest="inputfile", default="", help="Input parameter file [default: %default]")
 
+    (options, args) = parser.parse_args()
+
+    if(options.inputfile==''):
+        inputPars = parset.ParameterSet()        
+    elif(not os.path.exists(options.inputfile)):
+        logging.warning("Config file %s does not exist!  Using default parameter values."%options.inputfile)
+        inputPars = parset.ParameterSet()
+    else:
+        inputPars = parset.ParameterSet(options.inputfile).Eval
+
+    threshImageName=inputPars.get_value('thresholdImage','detectionThreshold.i.clean.fits')
+    noiseImageName=inputPars.get_value('noiseImage','noiseMap.i.clean.fits')
+    snrImageName=inputPars.get_value('snrImage','snr.i.clean.fits')
+    skymodelCatalogue=inputPars.get_value('refCatalogue','skyModel-catalogue.txt')
+    sourceCatalogue=inputPars.get_value('sourceCatalogue','selavy-fitResults.txt')
+
+    
     if not os.path.exists(threshImageName):
         print "Threshold image %s does not exist. Exiting."%threshImageName
         exit(0)
@@ -122,7 +137,7 @@ if __name__ == '__main__':
 #####################################
 #  source counts
 
-    fin=open('selavy-fitResults.txt')
+    fin=open(sourceCatalogue)
     sourcelist=[]
     for line in fin:
         if line[0]!='#':
@@ -149,7 +164,7 @@ if __name__ == '__main__':
 
 ##########
 # Sky model comparison
-    fin=open('skyModel-catalogue.txt')
+    fin=open(skymodelCatalogue)
     skymodellist=[]
     for line in fin:
         if line[0]!='#':
