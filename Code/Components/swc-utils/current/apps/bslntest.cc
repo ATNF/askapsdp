@@ -44,7 +44,9 @@ ASKAP_LOGGER(logger, "");
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/ArrayMath.h>
 
-
+#include <utils/DelayEstimator.h>
+//#include <fitting/GenericNormalEquations.h>
+//#include <fitting/LinearSolver.h>
 
 // std
 #include <stdexcept>
@@ -58,6 +60,30 @@ using std::endl;
 
 using namespace askap;
 using namespace askap::accessors;
+
+void processDelays(const accessors::IConstDataAccessor &acc)
+{
+   ASKAPDEBUGASSERT(acc.nRow()>0);
+   ASKAPDEBUGASSERT(acc.nChannel()>1);
+   ASKAPDEBUGASSERT(acc.nPol()>0);
+   casa::MVDirection dir = acc.pointingDir1()[0];
+   scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
+   casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(0);
+  
+   const double avgTime = 0.;
+   const casa::MEpoch epoch(casa::Quantity(56100.0+avgTime/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
+   const double ra = dir.getValue()(0);
+   const double dec = dir.getValue()(1);
+   const double gmstInDays = casa::MEpoch::Convert(epoch,casa::MEpoch::Ref(casa::MEpoch::GMST1))().get("d").getValue("d");
+   const double gmst = (gmstInDays - casa::Int(gmstInDays)) * casa::C::_2pi; // in radians
+  
+   const double H0 = gmst - ra, sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
+  
+   for (casa::uInt baseline = 0; baseline < vis.nrow(); ++baseline) {
+        const double delay = de.getDelay(vis.row(baseline));
+        std::cout<<baseline<<" "<<acc.antenna1()[baseline]<<" "<<acc.antenna2()[baseline]<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<" "<<delay*casa::C::c<<std::endl;
+   }
+}
 
 void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double startTime, double avgTime, const casa::MVDirection &dir, const casa::Vector<double> &wBuf)
 {
@@ -82,6 +108,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
   sel->chooseFeed(0);
+  sel->chooseCrossCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(56100.0,"d"),
@@ -94,26 +121,36 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   double avgTime = 0;
   casa::Vector<double> wBuf(3,0.);
   casa::MVDirection dir;
+
+  casa::Vector<casa::uInt> ant1IDs;
+  casa::Vector<casa::uInt> ant2IDs;
     
   std::ofstream os("result.dat");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (nChan == 0) {
            nChan = it->nChannel();
            startTime = it->time();
+           ant1IDs = it->antenna1().copy();
+           ant2IDs = it->antenna2().copy();
+           for (casa::uInt row = 0; row<it->nRow();++row) {
+                std::cout<<"plane "<<row<<" corresponds to "<<ant1IDs[row]<<" - "<<ant2IDs[row]<<" baseline"<<std::endl;
+           }
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
+           ASKAPDEBUGASSERT(ant1IDs.nelements() == it->nRow());
+           ASKAPDEBUGASSERT(ant2IDs.nelements() == it->nRow());
+           for (casa::uInt row = 0; row<it->nRow(); ++row) {
+                ASKAPCHECK(ant1IDs[row] == it->antenna1()[row], "Mismatch of antenna 1 index for row "<<row<<
+                           " - got "<<it->antenna1()[row]<<" expected "<<ant1IDs[row]);
+                ASKAPCHECK(ant2IDs[row] == it->antenna2()[row], "Mismatch of antenna 2 index for row "<<row<<
+                           " - got "<<it->antenna2()[row]<<" expected "<<ant2IDs[row]);
+           }
        }
        ASKAPCHECK(it->nRow() == 3, "Expect 3 baselines, the accessor has "<<it->nRow()<<" rows");
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() >= 1);
-       // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
-       // of the closure phase
-       ASKAPCHECK(it->antenna2()[0] == it->antenna1()[1], "Expect baselines in the order 1-2,2-3 and 1-3");
-       ASKAPCHECK(it->antenna1()[0] == it->antenna1()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
-       ASKAPCHECK(it->antenna2()[1] == it->antenna2()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
-       //
-       casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
+       casa::Vector<casa::Complex> freqAvBuf(it->nRow(), casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
             freqAvBuf += it->visibility().xyPlane(0).column(ch);
        }
@@ -130,6 +167,8 @@ void process(const IConstDataSource &ds, size_t nAvg) {
             ASKAPCHECK(dir.separation(it->pointingDir1()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
             ASKAPCHECK(dir.separation(it->pointingDir2()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
        }
+       processDelays(*it);
+
        avgTime += it->time();
        
        if (++counter == nAvg) {
