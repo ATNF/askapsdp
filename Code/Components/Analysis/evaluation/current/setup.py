@@ -27,7 +27,7 @@ They then produce nifty plots that enable the user to quickly identify problems.
       zip_safe = 1,
       dependency = dep,
 # Uncomment if using scripts (applications which go in bin) 
-      scripts = ["scripts/fluxEval.py","scripts/plotEval.py","scripts/plotEvalOld.py","scripts/fluxEvalOld.py"],
+      scripts = ["scripts/fluxEval.py","scripts/plotEval.py","scripts/imageEval.py","scripts/plotEvalOld.py","scripts/fluxEvalOld.py"],
 # Uncomment if using unit tests
 #      test_suite = "nose.collector",
 )
