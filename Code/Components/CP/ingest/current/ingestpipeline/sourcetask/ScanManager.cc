@@ -61,6 +61,7 @@ void ScanManager::update(const casa::Int scanId)
 
     // 2: Handle the case where the first usable metadata of the observation is received.
     if (itsScanIndex == -1 && scanId >= 0) {
+        ASKAPLOG_DEBUG_STR(logger, "First scan has begun - Scan Id: " << scanId);
         itsScanIndex = scanId;
         return;
     }
@@ -68,12 +69,13 @@ void ScanManager::update(const casa::Int scanId)
     // 3: Handle the case where the observation is in progress and the scan id changes
     if (itsScanIndex >= 0 && itsScanIndex != scanId) {
         if (scanId >= 0) {
-            // First handle the case where we have obviously transitioned
+            // Handle the case where we have obviously transitioned
             // to the next scan
+            ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << scanId);
             itsScanIndex = scanId;
             return;
         } else {
-            // Next handle the case where the last scan has completed
+            // Alternativly handle the case where the last scan has completed
             const size_t nScans = itsConfig.observation().scans().size();
             if ((itsScanIndex + 1) == static_cast<casa::Long>(nScans)) {
                 itsObsComplete = true;

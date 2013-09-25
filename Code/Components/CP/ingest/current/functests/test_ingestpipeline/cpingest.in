@@ -214,13 +214,22 @@ baselinemap.77                     = [5, 5, YY]
 #  Observation specific
 #
 observation.sbid                    = 0
-observation.scan0.field_name        = test-field
+
+observation.scan0.field_name        = test-field1
 observation.scan0.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
 observation.scan0.start_freq        = 1.420GHz
 observation.scan0.n_chan            = 8208
 observation.scan0.chan_width        = 18.518518kHz
 observation.scan0.stokes            = [XX, XY, YX, YY]
 observation.scan0.interval          = 10000000
+
+observation.scan1.field_name        = test-field2
+observation.scan1.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
+observation.scan1.start_freq        = 1.420GHz
+observation.scan1.n_chan            = 8208
+observation.scan1.chan_width        = 18.518518kHz
+observation.scan1.stokes            = [XX, XY, YX, YY]
+observation.scan1.interval          = 10000000
 
 #
 # Metadata topic config

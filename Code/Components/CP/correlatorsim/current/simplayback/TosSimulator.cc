@@ -161,16 +161,17 @@ bool TosSimulator::sendNext(void)
         const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
         const casa::MDirection direction = dirVec(0);
 
-        // <antenna name>.target_radec
+        // <antenna name>.actual_radec
         antMetadata.actualRaDec(direction);
 
-        // <antenna name>.target_azel
-        antMetadata.actualAzEl(casa::MDirection(
-                    casa::Quantity(0.0, "rad"),
-                    casa::Quantity(0.0, "rad"),
-                    casa::MDirection::AZEL));
+        // <antenna name>.actual_azel
+        MDirection::Ref targetFrame = MDirection::Ref(MDirection::AZEL);
+        targetFrame.set(MeasFrame(antc.positionMeas()(i), epoch));
+        const MDirection azel = MDirection::Convert(direction.getRef(),
+                targetFrame)(direction);
+        antMetadata.actualAzEl(azel);
 
-        // <antenna name>.target_pol
+        // <antenna name>.actual_pol
         antMetadata.actualPolAngle(0.0);
 
         // <antenna name>.frequency
@@ -180,26 +181,10 @@ bool TosSimulator::sendNext(void)
         //casa::Vector<casa::Double> chanFreq = spwc.chanFreq()(descSpwId);
         //antMetadata.frequency(chanFreq(0));
 
-        // <antenna name>.client_id
-        //antMetadata.clientId("N/A");
-
-        // <antenna name.scan_active
-        //antMetadata.scanActive(true);
-
-        // <antenna name>.scan_id
-        //std::ostringstream ss;
-        //ss << msc.scanNumber()(itsCurrentRow);
-        //antMetadata.scanId(ss.str());
-
         // <antenna name>.phase_tracking_centre
         //for (casa::uInt beam = 0; beam < nBeam; ++beam) {
         //    antMetadata.phaseTrackingCentre(direction, beam);
         //}
-
-        // <antenna name>.polarisation_offset 
-        // TODO: Zero is ok for data coming from the csimulator when an
-        // equatorial mount is simulated.
-        //antMetadata.polarisationOffset(0.0);
 
         // <antenna name>.flag.on_source
         // TODO: Current no flagging, but it would be good to read this from the

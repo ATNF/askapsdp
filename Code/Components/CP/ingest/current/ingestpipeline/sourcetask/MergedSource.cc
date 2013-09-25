@@ -93,8 +93,6 @@ VisChunk::ShPtr MergedSource::next(void)
         do {
             itsMetadata = itsMetadataSrc->next();
         } while (itsMetadata->scanId() < 0);
-        ASKAPLOG_DEBUG_STR(logger, "First scan has begin. Scan Id: "
-                << itsMetadata->scanId());
     } else {
         itsMetadata = itsMetadataSrc->next();
     }
@@ -381,7 +379,8 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
     // Flag the sample if one of the antenna was not on source or had a
     // hardware error
     if ((!mdAnt1.onSource()) || (!mdAnt2.onSource()) ||
-            mdAnt1.hwError() || mdAnt2.hwError()) {
+            mdAnt1.hwError() || mdAnt2.hwError() ||
+            metadata.flagged()) {
         chunk->flag()(row, chan, pol) = true;
         return;
     }
