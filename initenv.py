@@ -76,9 +76,6 @@ export PYLINTRC
 ANT_HOME="${ASKAP_ROOT}/share/ant"
 export ANT_HOME
 
-EPICS_CA_ADDR_LIST=localhost
-EPICS_CA_AUTO_ADDR_LIST=NO
-export EPICS_CA_ADDR_LIST EPICS_CA_AUTO_ADDR_LIST
 test -f /etc/askap/site/epicsenv.sh && . /etc/askap/site/epicsenv.sh || true
 """ % os.getcwd()
 
@@ -116,8 +113,6 @@ setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
 setenv PYLINTRC "${ASKAP_ROOT}/pylintrc"
 setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
-setenv EPICS_CA_ADDR_LIST=localhost
-setenv EPICS_CA_AUTO_ADDR_LIST=NO
 test -f /etc/askap/site/epicsenv.sh && echo 'Warning: Ignoring system /etc/askap/site/epicsenv.sh as it is bash environment.' || true
 
 """  % os.getcwd()
