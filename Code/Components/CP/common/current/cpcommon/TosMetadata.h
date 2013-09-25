@@ -49,12 +49,7 @@ class TosMetadata {
         /// This object is constructed with three dimensions. These are
         /// used to size the internal arrays, matrices and cubes.
         ///
-        /// @param[in] nCoarseChannels  number of coarse channels.
-        /// @param[in] nBeams   number of beams.
-        /// @param[in] nPol     number of polarisations.
-        TosMetadata(const casa::uInt& nCoarseChannels,
-                    const casa::uInt& nBeams,
-                    const casa::uInt& nPol);
+        TosMetadata();
 
         /////////////////////
         // Getters
@@ -64,36 +59,18 @@ class TosMetadata {
         /// @return the number of antennas.
         casa::uInt nAntenna(void) const;
 
-        /// @brief Return the number of coarse channels.
-        /// @return the number of coarse channels.
-        casa::uInt nCoarseChannels(void) const;
-
-        /// @brief Return the number of beams.
-        ///
-        /// @note The number of beams applies to all antennas and to
-        /// all coarse channels. The implication is sub-arraying is not
-        /// really possible and a different number of beams per coarse
-        /// channel is also not possible. This is a limitation which
-        /// may need to be changed.
-        ///
-        /// @return the number of beams.
-        casa::uInt nBeams(void) const;
-
-        /// @brief Return the number of polarisations.
-        /// @return the number of polarisations.
-        casa::uInt nPol(void) const;
-
         /// @brief Return the integration cycle start time.
         ///
         /// @return the integration cycle start time. This is an
         ///     absolute time expressed as microseconds since MJD=0.
         casa::uLong time(void) const;
 
-        /// @brief Return the integration cycle duration.
-        ///
-        /// @return the integration cycle duration. This is a
-        ///     relative time expressed as microseconds.
-        casa::uLong period(void) const;
+        /// @brief Get the Scan ID. Valid values are:
+        casa::Int scanId(void) const;
+
+        /// @brief Get the FLAG which indicates the entire integration should
+        /// be flagged.
+        casa::Bool flagged(void) const;
 
         /////////////////////
         // Setters
@@ -102,13 +79,16 @@ class TosMetadata {
         /// @brief Set the integration cycle start time.
         /// @param[in] time the integration cycle start time. This is
         ///     an absolute time expressed as microseconds since MJD=0.
-        void time(const casa::uLong& time);
+        void time(const casa::uLong time);
 
-        /// @brief Set the integration cycle duration.
-        /// @param[in] period the integration cycle duration. This is a
-        ///     relative time expressed as microseconds.
-        void period(const casa::uLong& period);
+        /// @brief Set the Scan ID. Valid values are:
+        /// * -1 - Which indicates no observation is executing
+        /// * > 0 - The scan ID.
+        void scanId(const casa::Int id);
 
+        /// @brief Set the FLAG which indicates the entire integration should
+        /// be flagged.
+        void flagged(const casa::Bool flag);
 
         /////////////////////////
         // Antenna access methods
@@ -126,6 +106,9 @@ class TosMetadata {
         ///     implementation will guarantee the first id is zero
         ///     and additional id's will be incremented by one.
         casa::uInt addAntenna(const casa::String& name);
+
+        /// Returns the numbers of antennas
+        size_t nAntennas() const;
 
         /// @brief Return a const reference to the specified antenna.
         ///
@@ -154,20 +137,15 @@ class TosMetadata {
         /// @throw AskapError if the antenna ID is not valid.
         void checkAntennaId(const casa::uInt& id) const;
 
-        // Number of coarse channels
-        casa::uInt itsNumCoarseChannels;
-
-        // Number of beams
-        casa::uInt itsNumBeams;
-
-        // Number of polarisations
-        casa::uInt itsNumPol;
-
         // Integration cycle start time.
         casa::uLong itsTime;
 
-        // Integration cycle duration.
-        casa::uLong itsPeriod;
+        // Scan ID
+        casa::Int itsScanId;
+
+        // Indicates this integration (as indicated by the timestamp) should be flagged
+        // in its entirety
+        casa::Bool itsFlagged;
 
         // Vector an TosMetadataAntenna objects
         std::vector<TosMetadataAntenna> itsAntenna;

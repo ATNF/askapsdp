@@ -66,7 +66,7 @@ class TestMetaDataSourceApp : public askap::Application
             unsigned long time = 1234;
             const int count = 10;
             for (int i = 0; i < count; ++i) {
-                TosMetadata metadata(304, 32, 4);
+                TosMetadata metadata;
                 metadata.time(time);
                 std::cout << "Publishing a metadata message...";
                 out.send(metadata);
@@ -84,7 +84,7 @@ class TestMetaDataSourceApp : public askap::Application
             // Test the buffering abilities of MetadataSource
             time = 9876;
             for (int i = 0; i < bufSize; ++i) {
-                TosMetadata metadata(304, 32, 4);
+                TosMetadata metadata;
                 metadata.time(time);
                 std::cout << "Publishing a metadata message...";
                 out.send(metadata);

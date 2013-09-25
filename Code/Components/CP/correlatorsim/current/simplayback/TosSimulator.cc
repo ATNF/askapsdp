@@ -87,23 +87,23 @@ bool TosSimulator::sendNext(void)
 
     // Get a reference to the columns of interest
     const casa::ROMSAntennaColumns& antc = msc.antenna();
-    const casa::ROMSFeedColumns& feedc = msc.feed();
+    //const casa::ROMSFeedColumns& feedc = msc.feed();
     const casa::ROMSFieldColumns& fieldc = msc.field();
-    const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
-    const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
-    const casa::ROMSPolarizationColumns& polc = msc.polarization();
+    //const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
+    //const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
+    //const casa::ROMSPolarizationColumns& polc = msc.polarization();
     //const casa::ROMSPointingColumns& pointingc = msc.pointing();
 
     // Define some useful variables
-    const casa::Int dataDescId = msc.dataDescId()(itsCurrentRow);
-    const casa::uInt descPolId = ddc.polarizationId()(dataDescId);
-    const casa::uInt descSpwId = ddc.spectralWindowId()(dataDescId);
+    //const casa::Int dataDescId = msc.dataDescId()(itsCurrentRow);
+    //const casa::uInt descPolId = ddc.polarizationId()(dataDescId);
+    //const casa::uInt descSpwId = ddc.spectralWindowId()(dataDescId);
     const casa::uInt nRow = msc.nrow(); // In the whole table, not just for this integration
-    const casa::uInt nCorr = polc.numCorr()(descPolId);
+    //const casa::uInt nCorr = polc.numCorr()(descPolId);
     //const casa::uInt nChan = spwc.numChan()(descSpwId);
     const casa::uInt nAntenna = antc.nrow();
-    const casa::uInt nBeam = feedc.nrow() / nAntenna;
-    const casa::uInt nCoarseChan = 304;
+    //const casa::uInt nBeam = feedc.nrow() / nAntenna;
+    //const casa::uInt nCoarseChan = 304;
 
     // Record the timestamp for the current integration that is
     // being processed
@@ -120,7 +120,7 @@ bool TosSimulator::sendNext(void)
     ASKAPCHECK(fieldc.nrow() == 1, "Currently only support a single field");
 
     // Initialize the metadata message
-    askap::cp::TosMetadata metadata(nCoarseChan, nBeam, nCorr);
+    askap::cp::TosMetadata metadata;
 
     // time and period
 
@@ -144,7 +144,8 @@ bool TosSimulator::sendNext(void)
 
     // ideally we want to carry BAT explicitly as 64-bit unsigned integer, leave it as it is for now
     metadata.time(static_cast<long>(startBAT));
-    metadata.period(Tint);
+    metadata.scanId(msc.scanNumber()(itsCurrentRow));
+    metadata.flagged(false);
 
 
     ////////////////////////////////////////
@@ -161,35 +162,44 @@ bool TosSimulator::sendNext(void)
         const casa::MDirection direction = dirVec(0);
 
         // <antenna name>.target_radec
-        antMetadata.targetRaDec(direction);
+        antMetadata.actualRaDec(direction);
+
+        // <antenna name>.target_azel
+        antMetadata.actualAzEl(casa::MDirection(
+                    casa::Quantity(0.0, "rad"),
+                    casa::Quantity(0.0, "rad"),
+                    casa::MDirection::AZEL));
+
+        // <antenna name>.target_pol
+        antMetadata.actualPolAngle(0.0);
 
         // <antenna name>.frequency
         // TODO: This is actually just the start frequency, not the centre
         // frequency so it breaks the interface contract. Anyway, it is ignored
         // by the central processor.
-        casa::Vector<casa::Double> chanFreq = spwc.chanFreq()(descSpwId);
-        antMetadata.frequency(chanFreq(0));
+        //casa::Vector<casa::Double> chanFreq = spwc.chanFreq()(descSpwId);
+        //antMetadata.frequency(chanFreq(0));
 
         // <antenna name>.client_id
-        antMetadata.clientId("N/A");
+        //antMetadata.clientId("N/A");
 
         // <antenna name.scan_active
-        antMetadata.scanActive(true);
+        //antMetadata.scanActive(true);
 
         // <antenna name>.scan_id
-        std::ostringstream ss;
-        ss << msc.scanNumber()(itsCurrentRow);
-        antMetadata.scanId(ss.str());
+        //std::ostringstream ss;
+        //ss << msc.scanNumber()(itsCurrentRow);
+        //antMetadata.scanId(ss.str());
 
         // <antenna name>.phase_tracking_centre
-        for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-            antMetadata.phaseTrackingCentre(direction, beam);
-        }
+        //for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+        //    antMetadata.phaseTrackingCentre(direction, beam);
+        //}
 
         // <antenna name>.polarisation_offset 
         // TODO: Zero is ok for data coming from the csimulator when an
         // equatorial mount is simulated.
-        antMetadata.polarisationOffset(0.0);
+        //antMetadata.polarisationOffset(0.0);
 
         // <antenna name>.flag.on_source
         // TODO: Current no flagging, but it would be good to read this from the
@@ -204,25 +214,25 @@ bool TosSimulator::sendNext(void)
         // <antenna name>.flag.detailed
         // TODO: Current no flagging, but it would be good to read this from the
         // actual measurement set
-        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-                for (casa::uInt pol = 0; pol < nCorr; ++pol) {
-                    antMetadata.flagDetailed(false, beam, coarseChan, pol);
-                }
-            }
-        }
+        //for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+        //    for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+        //        for (casa::uInt pol = 0; pol < nCorr; ++pol) {
+        //            antMetadata.flagDetailed(false, beam, coarseChan, pol);
+        //        }
+        //    }
+        //}
 
         // <antenna name>.system_temp
         // TODO: The csimulator does not write a SYSCAL table henece no system
         // temperature is available. It would be nice to perhaps read this
         // table if it does exist.
-        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-                for (casa::uInt pol = 0; pol < nCorr; ++pol) {
-                    antMetadata.systemTemp(0.0, beam, coarseChan, pol);
-                }
-            }
-        }
+        //for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+        //    for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+        //        for (casa::uInt pol = 0; pol < nCorr; ++pol) {
+        //            antMetadata.systemTemp(0.0, beam, coarseChan, pol);
+        //        }
+        //    }
+        //}
     }
 
     // Find the end of the current integration (i.e. find the next timestamp)
@@ -234,21 +244,11 @@ bool TosSimulator::sendNext(void)
     // Send the payload
     itsPort->send(metadata);
 
+    // If this is the final payload send another with scan == -1, indicating the observation has ended
     if (itsCurrentRow == nRow) {
-        // The TOM has no way of indicating end of scan, but it does set the
-        // scan_active field to false when the observation is complete and
-        // guarantees at least one metadata payload will be sent with 
-        // scan_active == false. So here an additional metadata message is sent
-        // indicating this idle state.
-        for (casa::uInt i = 0; i < nAntenna; ++i) {
-            TosMetadataAntenna& antMetadata = metadata.antenna(i);
-            metadata.time(metadata.time() + metadata.period());
-            antMetadata.scanActive(false);
-            antMetadata.scanId("");
-            antMetadata.clientId("");
-        }
         ASKAPLOG_INFO_STR(logger,
                 "Sending additional metadata message indicating end-of-observation");
+        metadata.scanId(-1);
         itsPort->send(metadata);
 
         return false; // Indicate there is no more data after this payload

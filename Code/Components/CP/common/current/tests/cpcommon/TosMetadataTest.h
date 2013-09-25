@@ -45,17 +45,15 @@ class TosMetadataTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testConstructor);
         CPPUNIT_TEST(testAddAntenna);
         CPPUNIT_TEST(testTime);
-        CPPUNIT_TEST(testPeriod);
+        CPPUNIT_TEST(testScanId);
+        CPPUNIT_TEST(testFlagged);
         CPPUNIT_TEST(testAntennaAccess);
         CPPUNIT_TEST(testAntennaInvalid);
         CPPUNIT_TEST_SUITE_END();
 
     public:
         void setUp() {
-            const casa::uInt nCoarseChannels = 304;
-            const casa::uInt nBeams = 36;
-            const casa::uInt nPol = 4;
-            instance.reset(new TosMetadata(nCoarseChannels, nBeams, nPol));
+            instance.reset(new TosMetadata());
         }
 
         void tearDown() {
@@ -65,7 +63,6 @@ class TosMetadataTest : public CppUnit::TestFixture {
         void testConstructor() {
             CPPUNIT_ASSERT_EQUAL(0u, instance->nAntenna());
             CPPUNIT_ASSERT_EQUAL(0ul, instance->time());
-            CPPUNIT_ASSERT_EQUAL(0ul, instance->period());
         }
 
         void testAddAntenna() {
@@ -87,17 +84,28 @@ class TosMetadataTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(testVal, instance->time());
         }
 
-        void testPeriod() {
-            const uLong testVal = 5678;
-            instance->period(testVal);
-            CPPUNIT_ASSERT_EQUAL(testVal, instance->period());
+        void testScanId() {
+            for (casa::Int i = -1; i < 10; ++i) {
+                instance->scanId(i);
+                CPPUNIT_ASSERT_EQUAL(i, instance->scanId());
+            }
+        }
+
+        void testFlagged() {
+            instance->flagged(true);
+            CPPUNIT_ASSERT_EQUAL(true, instance->flagged());
+            instance->flagged(false);
+            CPPUNIT_ASSERT_EQUAL(false, instance->flagged());
         }
 
         void testAntennaAccess() {
             const casa::String ant1Name = "ASKAP01";
             const casa::String ant2Name = "ASKAP02";
+            CPPUNIT_ASSERT_EQUAL(0ul, instance->nAntennas());
             uInt id1 = instance->addAntenna(ant1Name);
+            CPPUNIT_ASSERT_EQUAL(1ul, instance->nAntennas());
             uInt id2 = instance->addAntenna(ant2Name);
+            CPPUNIT_ASSERT_EQUAL(2ul, instance->nAntennas());
 
             TosMetadataAntenna& ant1 = instance->antenna(id1);
             CPPUNIT_ASSERT_EQUAL(ant1Name, ant1.name());

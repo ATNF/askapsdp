@@ -59,7 +59,8 @@ class ScanManagerTest : public CppUnit::TestFixture {
         };
 
         void testUpdateInsertInactiveMetadata() {
-            testDriver(true);
+            // Not currently supporting "-1" scanid between scans
+            //testDriver(true);
         };
 
     private:
@@ -69,33 +70,33 @@ class ScanManagerTest : public CppUnit::TestFixture {
         void testDriver(bool insertInactiveMetadata) {
             ScanManager sm(ConfigurationHelper::createDummyConfig());
             CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(-1L, sm.scanIndex());
+            CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
 
             if (insertInactiveMetadata) {
-                sm.update(false, "");
+                sm.update(-1);
             }
 
-            sm.update(true, "0");
+            sm.update(0);
             CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(0L, sm.scanIndex());
+            CPPUNIT_ASSERT_EQUAL(0, sm.scanIndex());
 
             if (insertInactiveMetadata) {
-                sm.update(false, "");
+                sm.update(-1);
             }
 
-            sm.update(true, "1");
+            sm.update(1);
             CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(1L, sm.scanIndex());
+            CPPUNIT_ASSERT_EQUAL(1, sm.scanIndex());
 
             if (insertInactiveMetadata) {
-                sm.update(false, "");
+                sm.update(-1);
             }
 
-            sm.update(true, "2");
+            sm.update(2);
             CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(2L, sm.scanIndex());
+            CPPUNIT_ASSERT_EQUAL(2, sm.scanIndex());
 
-            sm.update(false, "");
+            sm.update(-1);
             CPPUNIT_ASSERT(sm.observationComplete());
         }
 

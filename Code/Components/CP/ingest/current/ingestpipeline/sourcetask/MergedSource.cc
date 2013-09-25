@@ -86,24 +86,27 @@ MergedSource::~MergedSource()
 
 VisChunk::ShPtr MergedSource::next(void)
 {
-    // Get the next TosMetadata
-    do {
+    if (itsScanManager.scanIndex() < 0) {
+        // If the TOS hasn't started the observation yet (i.e. scan id hasn't
+        // changed from -1), just eat metadata payloads until scan_id >= 0
+        ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
+        do {
+            itsMetadata = itsMetadataSrc->next();
+        } while (itsMetadata->scanId() < 0);
+        ASKAPLOG_DEBUG_STR(logger, "First scan has begin. Scan Id: "
+                << itsMetadata->scanId());
+    } else {
         itsMetadata = itsMetadataSrc->next();
+    }
 
-        if (!itsMetadata->antenna(0).scanActive()) {
-            ASKAPLOG_DEBUG_STR(logger, "Received telescope metadata with scan_active false");
-        }
+    // Update the Scan Manager
+    itsScanManager.update(itsMetadata->scanId());
 
-        // Update the Scan Manager
-        itsScanManager.update(itsMetadata->antenna(0).scanActive(),
-                itsMetadata->antenna(0).scanId());
-
-        // Check if the TOS/TOM has indicated the observation is complete
-        if (itsScanManager.observationComplete()) {
-            ASKAPLOG_INFO_STR(logger, "End-of-observation condition met");
-            return VisChunk::ShPtr();
-        }
-    } while (!itsMetadata->antenna(0).scanActive());
+    // Check if the TOS/TOM has indicated the observation is complete
+    if (itsScanManager.observationComplete()) {
+        ASKAPLOG_INFO_STR(logger, "End-of-observation condition met");
+        return VisChunk::ShPtr();
+    }
 
     // Get the next VisDatagram if there isn't already one in the buffer
     if (!itsVis) {
@@ -133,9 +136,9 @@ VisChunk::ShPtr MergedSource::next(void)
 
     // Determine how many VisDatagrams are expected for a single integration
     const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
-    const casa::uInt nAntenna = itsMetadata->nAntenna();
+    const casa::uInt nAntenna = itsConfig.antennas().size();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nBeams = itsMetadata->nBeams();
+    const casa::uInt nBeams = itsConfig.antennas().front().feeds().nFeeds();
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
     const casa::uInt datagramsExpected = itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
@@ -180,10 +183,10 @@ VisChunk::ShPtr MergedSource::next(void)
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
     const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
-    const casa::uInt nAntenna = metadata.nAntenna();
+    const casa::uInt nAntenna = itsConfig.antennas().size();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nBeams = metadata.nBeams();
-    const casa::uInt nPol = metadata.nPol();
+    const casa::uInt nBeams = itsConfig.antennas().front().feeds().nFeeds();
+    const casa::uInt nPol = scanInfo.stokes().size();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt nRow = nBaselines * nBeams;
     const casa::uInt period = scanInfo.interval(); // in microseconds
@@ -229,36 +232,23 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     casa::uInt row = 0;
     for (casa::uInt beam = 0; beam < nBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
-            const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
+            //const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
                 ASKAPCHECK(row <= nRow, "Row index (" << row <<
                         ") should not exceed nRow (" << nRow <<")");
-                const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
+                //const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
 
-                // Set thedirection reference if it is not already set, otherwise
-                // check to ensure all MDirection instances have the same reference
-                // frame.
-                if (chunk->directionFrame().getType() == casa::MDirection::DEFAULT) {
-                    chunk->directionFrame() = mdAnt1.phaseTrackingCentre(beam).getRef();
-                } else {
-                    const casa::uInt type = chunk->directionFrame().getType();
-                    const std::string errMsg = "Direction reference inconsistant";
-                    ASKAPCHECK(type == mdAnt1.phaseTrackingCentre(beam).getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt2.phaseTrackingCentre(beam).getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt1.targetRaDec().getRef().getType(), errMsg);
-                    ASKAPCHECK(type == mdAnt2.targetRaDec().getRef().getType(), errMsg);
-                }
-                
+                chunk->directionFrame() = scanInfo.fieldDirection().getRef(); 
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;
                 chunk->beam2()(row) = beam;
-                chunk->beam1PA()(row) = mdAnt1.polarisationOffset();
-                chunk->beam2PA()(row) = mdAnt2.polarisationOffset();
-                chunk->pointingDir1()(row) = mdAnt1.phaseTrackingCentre(beam).getAngle();
-                chunk->pointingDir2()(row) = mdAnt2.phaseTrackingCentre(beam).getAngle();
-                chunk->dishPointing1()(row) = mdAnt1.targetRaDec().getAngle();
-                chunk->dishPointing2()(row) = mdAnt2.targetRaDec().getAngle();
+                chunk->beam1PA()(row) = 0;
+                chunk->beam2PA()(row) = 0;
+                chunk->pointingDir1()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->pointingDir2()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->dishPointing1()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->dishPointing2()(row) = scanInfo.fieldDirection().getAngle();
                 chunk->uvw()(row) = 0.0;
                 
                 // Frequency vector is not of length nRows, but instead nChannels

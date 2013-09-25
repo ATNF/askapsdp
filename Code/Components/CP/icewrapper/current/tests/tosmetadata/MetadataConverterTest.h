@@ -31,6 +31,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <limits>
 
 // Support classes
 #include "askap/AskapError.h"
@@ -63,36 +64,28 @@ class MetadataConverterTest : public CppUnit::TestFixture {
     public:
         void setUp() {
             // Test values (TosMetadata)
-            const casa::uInt nCoarseChan = 304;
-            const casa::uInt nBeam = 36;
-            const casa::uInt nPol = 4;
             const casa::uInt nAntenna = 6;
             const casa::uLong timestamp = 1234567890;
-            const casa::uLong period = 5 * 1000 * 1000;
 
             // Test values (TosMetadataAntenna)
-            const casa::Double frequency = 1.4 * 1000000;
             const MDirection testDir(Quantity(20, "deg"),
                                      Quantity(-10, "deg"),
                                      MDirection::Ref(MDirection::J2000));
-            const std::string clientId = "testClient";
-            const std::string scanId = "testScan";
-            const casa::Double polarisationOffset = 1.234567;
-            const casa::Bool flag = false;
+            const casa::Int scanId = 0;
+            const casa::Quantity polAngle(1.234567, "rad");
             const casa::Bool onSource = true;
             const casa::Bool hwError = false;
-            const casa::Float systemTemp = 50.0;
 
             //////////////////////////////////////
             // Setup the source TosMetadata object
             //////////////////////////////////////
-            itsSource.reset(new TosMetadata(nCoarseChan, nBeam, nPol));
+            itsSource.reset(new TosMetadata());
 
             // Time
             itsSource->time(timestamp);
 
-            // Period
-            itsSource->period(period);
+            // ScanId
+            itsSource->scanId(scanId);
 
             // Antennas
             std::vector<std::string> antennaNames;
@@ -104,25 +97,11 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 antennaNames.push_back(ss.str());
                 TosMetadataAntenna& ant = itsSource->antenna(id);
 
-                ant.targetRaDec(testDir);
-                ant.frequency(frequency);
-                ant.clientId(clientId);
-                ant.scanActive(true);
-                ant.scanId(scanId);
-                ant.polarisationOffset(polarisationOffset);
+                ant.actualRaDec(testDir);
+                ant.actualAzEl(testDir);
+                ant.actualPolAngle(polAngle);
                 ant.onSource(onSource);
                 ant.hwError(hwError);
-
-                for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-                    ant.phaseTrackingCentre(testDir, beam);
-                    for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-                        for (casa::uInt pol = 0; pol < nPol; ++pol) {
-                            ant.flagDetailed(flag, beam, coarseChan, pol);
-                            ant.systemTemp(systemTemp, beam, coarseChan, pol);
-                        }
-                    }
-                }
-
             }
 
 #ifndef __LP64__
@@ -160,11 +139,9 @@ class MetadataConverterTest : public CppUnit::TestFixture {
 
         void testConverter() {
             CPPUNIT_ASSERT_EQUAL(itsSource->nAntenna(), itsResult->nAntenna());
-            CPPUNIT_ASSERT_EQUAL(itsSource->nCoarseChannels(), itsResult->nCoarseChannels());
-            CPPUNIT_ASSERT_EQUAL(itsSource->nBeams(), itsResult->nBeams());
-            CPPUNIT_ASSERT_EQUAL(itsSource->nPol(), itsResult->nPol());
             CPPUNIT_ASSERT_EQUAL(itsSource->time(), itsResult->time());
-            CPPUNIT_ASSERT_EQUAL(itsSource->period(), itsResult->period());
+            CPPUNIT_ASSERT_EQUAL(itsSource->scanId(), itsResult->scanId());
+            CPPUNIT_ASSERT_EQUAL(itsSource->flagged(), itsResult->flagged());
         }
 
         void testConverterAntenna() {
@@ -183,46 +160,15 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             TosMetadataAntenna& srcAnt = itsSource->antenna(id);
             TosMetadataAntenna& resultAnt = itsResult->antenna(id);
 
-            const casa::uInt nCoarseChan = srcAnt.nCoarseChannels();
-            const casa::uInt nBeam = srcAnt.nBeams();
-            const casa::uInt nPol = srcAnt.nPol();
-
             CPPUNIT_ASSERT_EQUAL(srcAnt.name(), resultAnt.name());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.nCoarseChannels(),
-                                 resultAnt.nCoarseChannels());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.nBeams(), resultAnt.nBeams());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.nPol(), resultAnt.nPol());
 
-            verifyDir(srcAnt.targetRaDec(), resultAnt.targetRaDec());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.frequency(), resultAnt.frequency());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.clientId(), resultAnt.clientId());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.scanActive(), resultAnt.scanActive());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.scanId(), resultAnt.scanId());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.polarisationOffset(),
-                                 resultAnt.polarisationOffset());
+            verifyDir(srcAnt.actualRaDec(), resultAnt.actualRaDec());
+            verifyDir(srcAnt.actualAzEl(), resultAnt.actualAzEl());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(srcAnt.actualPolAngle().getValue("rad"),
+                resultAnt.actualPolAngle().getValue("rad"),
+                std::numeric_limits<float>::epsilon());
             CPPUNIT_ASSERT_EQUAL(srcAnt.onSource(), resultAnt.onSource());
             CPPUNIT_ASSERT_EQUAL(srcAnt.hwError(), resultAnt.hwError());
-
-            // Check the per beam, per coarse channel and per polarisations
-            // data
-            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-                for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-
-                    // phaseTrackingCentre
-                    verifyDir(srcAnt.phaseTrackingCentre(beam),
-                              resultAnt.phaseTrackingCentre(beam));
-
-                    for (casa::uInt pol = 0; pol < nPol; ++pol) {
-                        // flagDetailed
-                        CPPUNIT_ASSERT_EQUAL(srcAnt.flagDetailed(beam, coarseChan, pol),
-                                             resultAnt.flagDetailed(beam, coarseChan, pol));
-
-                        // systemTemp
-                        CPPUNIT_ASSERT_EQUAL(srcAnt.systemTemp(beam, coarseChan, pol),
-                                             resultAnt.systemTemp(beam, coarseChan, pol));
-                    }
-                }
-            }
         }
 
         void verifyDir(const casa::MDirection& d1, const casa::MDirection& d2) {
@@ -234,8 +180,6 @@ class MetadataConverterTest : public CppUnit::TestFixture {
         // Support classes
         boost::scoped_ptr<TosMetadata> itsSource;
         boost::scoped_ptr<TosMetadata> itsResult;
-
-        // Some constants
 };
 
 }   // End namespace icewrapper

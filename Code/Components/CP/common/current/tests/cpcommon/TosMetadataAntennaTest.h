@@ -32,6 +32,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "measures/Measures/MDirection.h"
 #include "askap/AskapError.h"
+#include "casa/Quanta/Quantum.h"
 
 // Classes to test
 #include "cpcommon/TosMetadataAntenna.h"
@@ -45,25 +46,16 @@ namespace cp {
 class TosMetadataAntennaTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(TosMetadataAntennaTest);
         CPPUNIT_TEST(testConstructor);
-        CPPUNIT_TEST(testTargetRaDec);
-        CPPUNIT_TEST(testFrequency);
-        CPPUNIT_TEST(testClientId);
-        CPPUNIT_TEST(testScanId);
-        CPPUNIT_TEST(testPhaseTrackingCentre);
-        CPPUNIT_TEST(testPolarisationOffset);
+        CPPUNIT_TEST(testActualRaDec);
+        CPPUNIT_TEST(testActualAzEl);
+        CPPUNIT_TEST(testPolAngle);
         CPPUNIT_TEST(testOnSource);
         CPPUNIT_TEST(testHwError);
-        CPPUNIT_TEST(testFlagDetailed);
-        CPPUNIT_TEST(testSystemTemp);
         CPPUNIT_TEST_SUITE_END();
 
     public:
         void setUp() {
-            const casa::String antennaName("ASKAP01");
-            const casa::uInt nCoarseChannels = 304;
-            const casa::uInt nBeams = 36;
-            const casa::uInt nPol = 4;
-            instance.reset(new TosMetadataAntenna(antennaName, nCoarseChannels, nBeams, nPol));
+            instance.reset(new TosMetadataAntenna("AK01"));
         }
 
         void tearDown() {
@@ -71,71 +63,35 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
         }
 
         void testConstructor() {
-            const casa::String antennaName("ASKAP01");
-            const casa::uInt nCoarseChannels = 304;
-            const casa::uInt nBeams = 36;
-            const casa::uInt nPol = 4;
+            const casa::String antennaName("AK01");
             // Check the parameters have been passed through
             CPPUNIT_ASSERT_EQUAL(antennaName, instance->name());
-            CPPUNIT_ASSERT_EQUAL(nCoarseChannels, instance->nCoarseChannels());
-            CPPUNIT_ASSERT_EQUAL(nBeams, instance->nBeams());
-            CPPUNIT_ASSERT_EQUAL(nPol, instance->nPol());
         };
 
-        void testTargetRaDec() {
+        void testActualRaDec() {
             MDirection testDir(Quantity(20, "deg"),
                                Quantity(-10, "deg"),
                                MDirection::Ref(MDirection::J2000));
 
-            instance->targetRaDec(testDir); // Set
+            instance->actualRaDec(testDir); // Set
             CPPUNIT_ASSERT(directionsEqual(testDir,
-                                           instance->targetRaDec()));
+                                           instance->actualRaDec()));
         }
 
-        void testFrequency() {
-            const Double testVal = 1.0;
-            instance->frequency(testVal);
-            CPPUNIT_ASSERT(testVal == instance->frequency());
+        void testActualAzEl() {
+            MDirection testDir(Quantity(90, "deg"),
+                               Quantity(45, "deg"),
+                               MDirection::Ref(MDirection::AZEL));
+
+            instance->actualAzEl(testDir); // Set
+            CPPUNIT_ASSERT(directionsEqual(testDir,
+                                           instance->actualAzEl()));
         }
 
-        void testClientId() {
-            const String testVal = "test";
-            instance->clientId(testVal);
-            CPPUNIT_ASSERT_EQUAL(testVal, instance->clientId());
-        }
-
-        void testScanId() {
-            const String testVal = "test";
-            instance->scanId(testVal);
-            CPPUNIT_ASSERT_EQUAL(testVal, instance->scanId());
-        }
-
-        void testPhaseTrackingCentre() {
-            MDirection testDir(Quantity(20, "deg"),
-                               Quantity(-10, "deg"),
-                               MDirection::Ref(MDirection::J2000));
-
-            for (uInt beam = 0; beam < instance->nBeams(); ++beam) {
-                for (uInt chan = 0; chan < instance->nCoarseChannels(); ++chan) {
-                    instance->phaseTrackingCentre(testDir, beam); // Set
-
-                    // Check
-                    CPPUNIT_ASSERT(directionsEqual(testDir,
-                                instance->phaseTrackingCentre(beam)));
-                }
-            }
-
-            // Request an invalid beam (index out of bounds)
-            // Ask for beam 36 where range is 0..35
-            CPPUNIT_ASSERT_THROW(
-                    instance->phaseTrackingCentre(instance->nBeams() + 1),
-                    askap::AskapError);
-        };
-
-        void testPolarisationOffset() {
-            const Double testVal = 1.123456;
-            instance->polarisationOffset(testVal);
-            CPPUNIT_ASSERT(testVal == instance->polarisationOffset());
+        void testPolAngle() {
+            const Quantity testVal = Quantity(1.123456, "rad");
+            instance->actualPolAngle(testVal);
+            CPPUNIT_ASSERT(testVal.getValue("rad") == instance->actualPolAngle().getValue("rad"));
         }
 
         void testOnSource() {
@@ -150,37 +106,6 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(true, instance->onSource());
             instance->onSource(false);
             CPPUNIT_ASSERT_EQUAL(false, instance->onSource());
-        }
-
-        void testFlagDetailed() {
-            for (uInt beam = 0; beam < instance->nBeams(); ++beam) {
-                for (uInt chan = 0; chan < instance->nCoarseChannels(); ++chan) {
-                    for (uInt pol = 0; pol < instance->nPol(); ++pol) {
-                        // Should be initialised to false
-                        CPPUNIT_ASSERT_EQUAL(false, instance->flagDetailed(beam, chan, pol));
-
-                        // Set to true then check
-                        instance->flagDetailed(true, beam, chan, pol);
-                        CPPUNIT_ASSERT_EQUAL(true, instance->flagDetailed(beam, chan, pol));
-                    }
-                }
-            }
-        }
-
-        void testSystemTemp() {
-            Float testVal = 12.0;
-
-            for (uInt beam = 0; beam < instance->nBeams(); ++beam) {
-                for (uInt chan = 0; chan < instance->nCoarseChannels(); ++chan) {
-                    for (uInt pol = 0; pol < instance->nPol(); ++pol) {
-                        // Should be initialised to -1.0
-                        CPPUNIT_ASSERT(-1.0 == instance->systemTemp(beam, chan, pol));
-
-                        instance->systemTemp(testVal, beam, chan, pol);
-                        CPPUNIT_ASSERT(testVal == instance->systemTemp(beam, chan, pol));
-                    }
-                }
-            }
         }
 
     private:

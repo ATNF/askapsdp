@@ -37,14 +37,7 @@
 // Using
 using namespace askap::cp;
 
-TosMetadata::TosMetadata(const casa::uInt& nCoarseChannels,
-        const casa::uInt& nBeams,
-        const casa::uInt& nPol) :
-    itsNumCoarseChannels(nCoarseChannels),
-    itsNumBeams(nBeams),
-    itsNumPol(nPol),
-    itsTime(0),
-    itsPeriod(0)
+TosMetadata::TosMetadata() : itsTime(0), itsScanId(-1), itsFlagged(false)
 {
 }
 
@@ -53,39 +46,34 @@ casa::uInt TosMetadata::nAntenna(void) const
     return itsAntenna.size();
 }
 
-casa::uInt TosMetadata::nCoarseChannels(void) const
-{
-    return itsNumCoarseChannels;
-}
-
-casa::uInt TosMetadata::nBeams(void) const
-{
-    return itsNumBeams;
-}
-
-casa::uInt TosMetadata::nPol(void) const
-{
-    return itsNumPol;
-}
-
 casa::uLong TosMetadata::time(void) const
 {
     return itsTime;
 }
 
-casa::uLong TosMetadata::period(void) const
-{
-    return itsPeriod;
-}
-
-void TosMetadata::time(const casa::uLong& time)
+void TosMetadata::time(const casa::uLong time)
 {
     itsTime = time;
 }
 
-void TosMetadata::period(const casa::uLong& period)
+casa::Int TosMetadata::scanId(void) const
 {
-    itsPeriod = period;
+    return itsScanId;
+}
+
+void TosMetadata::scanId(const casa::Int id)
+{
+    itsScanId = id;
+}
+
+casa::Bool TosMetadata::flagged(void) const
+{
+    return itsFlagged;
+}
+
+void TosMetadata::flagged(const casa::Bool flag)
+{
+    itsFlagged = flag;
 }
 
 casa::uInt TosMetadata::addAntenna(const casa::String& name)
@@ -98,11 +86,15 @@ casa::uInt TosMetadata::addAntenna(const casa::String& name)
         }
     }
 
-    TosMetadataAntenna antenna(name, itsNumCoarseChannels,
-            itsNumBeams, itsNumPol);
+    TosMetadataAntenna antenna(name);
 
     itsAntenna.push_back(antenna);
     return (itsAntenna.size() - 1);
+}
+
+size_t TosMetadata::nAntennas() const
+{
+    return itsAntenna.size();
 }
 
 const TosMetadataAntenna& TosMetadata::antenna(const casa::uInt id) const

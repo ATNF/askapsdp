@@ -51,35 +51,26 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     // to native (or casa) types
     TypedValueMapConstMapper srcMapper(source.data);
 
-    // First need to determine the number of beams, coarse channels and
-    // polarisations before the askap::cp::TosMetadata object can be
-    // instantiated
-    const casa::Int nCoarseChan = srcMapper.getInt("n_coarse_chan");
-    const casa::Int nBeam = srcMapper.getInt("n_beams");
-    const casa::Int nPol = srcMapper.getInt("n_pol");
-    const casa::Int nAntenna = srcMapper.getInt("n_antennas");
-
     // A copy of this object will be returned from this method
-    TosMetadata dest(nCoarseChan, nBeam, nPol);
+    TosMetadata dest;
 
     // time
-    dest.time(srcMapper.getLong("time"));
+    //dest.time(srcMapper.getLong("timestamp"));
+    dest.time(source.timestamp);
 
     // period
-    dest.period(srcMapper.getLong("period"));
+    dest.scanId(srcMapper.getInt("scan_id"));
+
+    // user_flag
+    dest.flagged(srcMapper.getBool("user_flag"));
 
     // antenna_names
-    std::vector<casa::String> antennaNames = srcMapper.getStringSeq("antenna_names");
-
-    if (antennaNames.size() != static_cast<casa::uInt>(nAntenna)) {
-        ASKAPTHROW(AskapError,
-                "Error: Value of n_antennas and number of antenna_names does not match");
-    }
+    const std::vector<casa::String> antennaNames = srcMapper.getStringSeq("antennas");
 
     /////////////////////////
     // Metadata per antenna
     /////////////////////////
-    for (int i = 0; i < nAntenna; ++i) {
+    for (size_t i = 0; i < antennaNames.size(); ++i) {
         convertAntenna(antennaNames[i], source, dest);
     }
 
@@ -94,41 +85,23 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
     // Use a mapper to easily convert native (or casa types) to TypedValues
     TypedValueMapMapper destMapper(dest.data);
 
-    // For indexing into array, matrices and cubes
-    const casa::uInt nCoarseChan = source.nCoarseChannels();
-    const casa::uInt nBeam = source.nBeams();
-    const casa::uInt nPol = source.nPol();
-    const casa::uInt nAntenna = source.nAntenna();
+    // scan_id
+    destMapper.setInt("scan_id", source.scanId());
 
-    // time
-    destMapper.setLong("time", source.time());
-
-    // period
-    destMapper.setLong("period", source.period());
-
-    // n_coarse_chan
-    destMapper.setInt("n_coarse_chan", nCoarseChan);
-
-    // n_antennas
-    destMapper.setInt("n_antennas", nAntenna);
-
-    // n_beams
-    destMapper.setInt("n_beams", nBeam);
-
-    // n_pol
-    destMapper.setInt("n_pol", nPol);
+    // user_flag
+    destMapper.setBool("user_flag", source.flagged());
 
     // antenna_names
     std::vector<casa::String> antennaNames;
-    for (unsigned int i = 0; i < nAntenna; ++i) {
+    for (size_t i = 0; i < source.nAntennas(); ++i) {
         antennaNames.push_back(source.antenna(i).name());
     }
-    destMapper.setStringSeq("antenna_names", antennaNames);
+    destMapper.setStringSeq("antennas", antennaNames);
 
     /////////////////////////
     // Metadata per antenna
     /////////////////////////
-    for (unsigned int i = 0; i < nAntenna; ++i) {
+    for (unsigned int i = 0; i < source.nAntennas(); ++i) {
         convertAntenna(i, source, dest);
     }
 
@@ -147,70 +120,25 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     const TosMetadataAntenna& antenna = source.antenna(antId);
     const std::string antennaName = antenna.name();
 
-    // For indexing into array, matrices and cubes
-    const casa::uInt nCoarseChan = source.nCoarseChannels();
-    const casa::uInt nBeam = source.nBeams();
-    const casa::uInt nPol = source.nPol();
+    // <antenna name>.actual_radec
+    destMapper.setDirection(makeMapKey(antennaName, "actual_radec"),
+            antenna.actualRaDec());
 
-    // <antenna name>.target_radec
-    destMapper.setDirection(makeMapKey(antennaName, "target_radec"),
-            antenna.targetRaDec());
+    // <antenna name>.actual_azel
+    destMapper.setDirection(makeMapKey(antennaName, "actual_azel"),
+            antenna.actualAzEl());
 
-    // <antenna name>.frequency
-    destMapper.setDouble(makeMapKey(antennaName, "frequency"),
-            antenna.frequency());
+    // <antenna name>.actual_pol
+    destMapper.setFloat(makeMapKey(antennaName, "actual_pol"),
+            antenna.actualPolAngle().getValue("rad"));
 
-    // <antenna name>.client_id
-    destMapper.setString(makeMapKey(antennaName, "client_id"),
-            antenna.clientId());
-
-    // <antenna name>.scan_active
-    destMapper.setBool(makeMapKey(antennaName, "scan_active"),
-            antenna.scanActive());
-
-    // <antenna name>.scan_id
-    destMapper.setString(makeMapKey(antennaName, "scan_id"),
-            antenna.scanId());
-
-    // <antenna name>.polarisation_offset
-    destMapper.setDouble(makeMapKey(antennaName, "polarisation_offset"),
-            antenna.polarisationOffset());
-
-    // <antenna name>.flag.on_source
-    destMapper.setBool(makeMapKey(antennaName, "flag.on_source"),
+    // <antenna name>.on_source
+    destMapper.setBool(makeMapKey(antennaName, "on_source"),
             antenna.onSource());
 
-    // <antenna name>.flag.hw_error
-    destMapper.setBool(makeMapKey(antennaName, "flag.hw_error"),
+    // <antenna name>.flagged
+    destMapper.setBool(makeMapKey(antennaName, "flagged"),
             antenna.hwError());
-
-    // Need to convert these cubes and matrices to a 1D array with
-    // appropriate indexing
- 
-    // <antenna name>.phase_tracking_centre
-    std::vector<casa::MDirection> ptcVector(nBeam);
-    // <antenna name>.flag.detailed
-    std::vector<casa::Bool> flagVector(nBeam * nCoarseChan * nPol);
-    // <antenna name>.system_temp
-    std::vector<casa::Float> systemTempVec(nBeam * nCoarseChan * nPol);
-
-    for (unsigned int beam = 0; beam < nBeam; ++beam) {
-        ptcVector[beam] = antenna.phaseTrackingCentre(beam);
-        for (unsigned int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (unsigned int pol = 0; pol < nPol; ++pol) {
-                const unsigned int idxCube = beam + ((nBeam) * coarseChan) +
-                                            ((nBeam * nCoarseChan) * pol);
-                flagVector[idxCube] = antenna.flagDetailed(beam, coarseChan, pol);
-                systemTempVec[idxCube] = antenna.systemTemp(beam, coarseChan, pol);
-            }
-        }
-    }
-    destMapper.setDirectionSeq(makeMapKey(antennaName, "phase_tracking_centre"),
-            ptcVector);
-    destMapper.setBoolSeq(makeMapKey(antennaName, "flag.detailed"),
-            flagVector);
-    destMapper.setFloatSeq(makeMapKey(antennaName, "system_temp"),
-            systemTempVec);
 }
 
 // Convert antenna portion of the Tos Metadata from
@@ -223,67 +151,28 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     // to native (or casa) types
     TypedValueMapConstMapper srcMapper(source.data);
 
-    // First need to determine the number of beams, coarse channels and
-    // polarisations before the askap::cp::TosMetadata object can be
-    // instantiated
-    const casa::Int nCoarseChan = srcMapper.getInt("n_coarse_chan");
-    const casa::Int nBeam = srcMapper.getInt("n_beams");
-    const casa::Int nPol = srcMapper.getInt("n_pol");
-
     const unsigned int id = dest.addAntenna(antennaName);
     TosMetadataAntenna& ant = dest.antenna(id);
 
-    // target_radec
-    ant.targetRaDec(srcMapper.getDirection(makeMapKey(antennaName,
-                    "target_radec")));
-    // frequency
-    ant.frequency(srcMapper.getDouble(makeMapKey(antennaName,
-                    "frequency")));
-    // client_id
-    ant.clientId(srcMapper.getString(makeMapKey(antennaName,
-                    "client_id")));
-    // scan_active
-    ant.scanActive(srcMapper.getBool(makeMapKey(antennaName,
-                    "scan_active")));
-    // scan_id
-    ant.scanId(srcMapper.getString(makeMapKey(antennaName,
-                    "scan_id")));
-    // polarisation_offset
-    ant.polarisationOffset(srcMapper.getDouble(makeMapKey(antennaName,
-                    "polarisation_offset")));
-    // flag.on_source
-    ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
-                    "flag.on_source")));
-    // flag.hw_error
+    // hw_error
     ant.hwError(srcMapper.getBool(makeMapKey(antennaName,
-                    "flag.hw_error")));
+                    "flagged")));
 
-    // Need to convert these cubes and matrices from a 1D array with
-    // appropriate indexing
- 
-    std::vector<casa::MDirection> ptcVector =
-        srcMapper.getDirectionSeq(makeMapKey(antennaName, "phase_tracking_centre"));
-
-    std::vector<casa::Bool> flagVector =
-        srcMapper.getBoolSeq(makeMapKey(antennaName, "flag.detailed"));
-
-    std::vector<casa::Float> systemTempVector = 
-        srcMapper.getFloatSeq(makeMapKey(antennaName, "system_temp"));
-
-    for (casa::Int beam = 0; beam < nBeam; ++beam) {
-        // phase_tracking_centre
-        ant.phaseTrackingCentre(ptcVector[beam], beam);
-        for (casa::Int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (casa::Int pol = 0; pol < nPol; ++pol) {
-                // flag.detailed
-                const unsigned int idxCube = beam + ((nBeam) * coarseChan) +
-                                            ((nBeam * nCoarseChan) * pol);
-                ant.flagDetailed(flagVector[idxCube], beam, coarseChan, pol);
-
-                // system_temp
-                ant.systemTemp(systemTempVector[idxCube], beam, coarseChan, pol);
-            }
-        }
+    // If the antenna is flagged (other than for being !on_source then the other
+    // metadata may not be present
+    if (!ant.hwError()) {
+        // actual_radec
+        ant.actualRaDec(srcMapper.getDirection(makeMapKey(antennaName,
+                        "actual_radec")));
+        // actual_azel
+        ant.actualAzEl(srcMapper.getDirection(makeMapKey(antennaName,
+                        "actual_azel")));
+        // actual_pol
+        ant.actualPolAngle(Quantity(srcMapper.getFloat(makeMapKey(antennaName,
+                        "actual_pol")), "rad"));
+        // on_source
+        ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
+                        "on_source")));
     }
 }
 

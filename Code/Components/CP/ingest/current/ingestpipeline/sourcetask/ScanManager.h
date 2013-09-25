@@ -50,9 +50,8 @@ class ScanManager {
         /// telescope operating system. The scan_active and scan_id fields from
         /// the metadata payload are passed in as parameters.
         ///
-        /// @param[in] scanActive   the scan_active field from the TOS metadata.
         /// @param[in] scanId       the scan_id field from the TOS metadata.
-        void update(const casa::Bool scanActive, const casa::String& scanId);
+        void update(const casa::Int scanId);
 
         /// @return true if the observation is complete, otherwise false. The
         ///         observation is deemed to be complete if the last scan has
@@ -61,7 +60,7 @@ class ScanManager {
 
         /// @return the (zero based) scan index. If the first scan has not yet
         ///         started this will return -1.
-        casa::Long scanIndex(void) const;
+        casa::Int scanIndex(void) const;
 
     private:
 
@@ -70,12 +69,7 @@ class ScanManager {
 
         // Current (zero based) scan index, if the first scan has not yet
         // started this will be set to -1.
-        casa::Long itsScanIndex;
-
-        // The string (from the TOS metadata scan_id field) indicating which
-        // scan is in progress. This is used to identify when a new scan has
-        // been started, because a new scan_id will be present in the metadata.
-        casa::String itsScanIdString;
+        casa::Int itsScanIndex;
 
         // Flag used to indicate the observation is complete, that is the
         // last scan has concluded.

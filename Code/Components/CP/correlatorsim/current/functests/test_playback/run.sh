@@ -18,7 +18,7 @@ fi
 sleep 1
 
 # Start the metadata subscriber (don't use the script so this script can kill it)
-../../apps/msnoop -c msnoop.in > msnoop.log 2>&1 &
+../../apps/msnoop -c msnoop.in -v > msnoop.log 2>&1 &
 MDPID=$!
 
 # Start the visibilities receiver (don't use the script so this script can kill it)

@@ -51,7 +51,7 @@ ScanManager::ScanManager(const Configuration& config)
     }
 }
 
-void ScanManager::update(const casa::Bool scanActive, const casa::String& scanId)
+void ScanManager::update(const casa::Int scanId)
 {
     // 1: If the observation is complete then the scan state should no longer
     // be updated.
@@ -60,19 +60,17 @@ void ScanManager::update(const casa::Bool scanActive, const casa::String& scanId
     }
 
     // 2: Handle the case where the first usable metadata of the observation is received.
-    if (itsScanIndex == -1 && scanActive) {
-        itsScanIndex = 0;
-        itsScanIdString = scanId;
+    if (itsScanIndex == -1 && scanId >= 0) {
+        itsScanIndex = scanId;
         return;
     }
 
     // 3: Handle the case where the observation is in progress and the scan id changes
-    if (itsScanIndex > -1 && itsScanIdString.compare(scanId) != 0) {
-        if (scanActive) {
+    if (itsScanIndex >= 0 && itsScanIndex != scanId) {
+        if (scanId >= 0) {
             // First handle the case where we have obviously transitioned
             // to the next scan
-            itsScanIndex++;
-            itsScanIdString = scanId;
+            itsScanIndex = scanId;
             return;
         } else {
             // Next handle the case where the last scan has completed
@@ -89,7 +87,7 @@ casa::Bool ScanManager::observationComplete(void) const
     return itsObsComplete;
 }
 
-casa::Long ScanManager::scanIndex(void) const
+casa::Int ScanManager::scanIndex(void) const
 {
     return itsScanIndex;
 }

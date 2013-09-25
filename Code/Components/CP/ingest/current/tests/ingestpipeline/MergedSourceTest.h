@@ -79,7 +79,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
         // Test the MockMetadataSource before using it
         void testMockMetadataSource() {
             const long time = 1234;
-            boost::shared_ptr<TosMetadata> md(new TosMetadata(1, 1, 1));
+            boost::shared_ptr<TosMetadata> md(new TosMetadata());
             md->time(time);
             itsMetadataSrc->add(md);
             CPPUNIT_ASSERT(itsMetadataSrc->next() == md);
