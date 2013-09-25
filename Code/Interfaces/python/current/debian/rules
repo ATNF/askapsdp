@@ -5,7 +5,7 @@
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
-export DH_ALWAYS_EXCLUDE=.svn:include:docs:configure:build-1:build:example:html:documentation:depend:man:easy-install.pth:site-packages/site.py*
+export DH_ALWAYS_EXCLUDE=.svn:/include/:/configure/:build-1:/build/:/example/:/html/:/documentation/:/man/:easy-install.pth:site-packages/site.py*
 
 PKGNAME := askap-interfaces-python
 
