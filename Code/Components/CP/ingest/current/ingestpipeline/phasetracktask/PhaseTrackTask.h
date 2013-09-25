@@ -84,6 +84,9 @@ private:
    /// This is intended to take the saw-tooth out, but may not be adequate for some positions in the sky
    bool itsTrackDelay;
 
+   /// @brief if true, delays are assumed to be compensated via DRX for the South Pole, local zenith otherwise
+   bool itsTrackedSouthPole;
+
    /// @brief fixed delay component in ns
    /// @details This attribute constrols whether fixed delays are added. The values (one delay per antenna) are simply added
    /// to the geometric delay if tracked or applied as they are. If antenna ID exceeds the size of the vector, the delay is assumed to be zero.

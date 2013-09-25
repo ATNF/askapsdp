@@ -59,6 +59,7 @@ using namespace askap::cp::ingest;
 PhaseTrackTask::PhaseTrackTask(const LOFAR::ParameterSet& parset,
                 const Configuration& config) : CalcUVWTask(parset, config), itsConfig(config), 
                 itsTrackDelay(parset.getBool("trackdelay", false)),
+                itsTrackedSouthPole(parset.getBool("trackedsouthpole",true)),
                 itsFixedDelays(parset.getDoubleVector("fixeddelays",std::vector<double>()))
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
@@ -68,6 +69,11 @@ PhaseTrackTask::PhaseTrackTask(const LOFAR::ParameterSet& parset,
         ASKAPLOG_INFO_STR(logger, "The phase tracking task will apply fixed delays in addition to phase rotation");
     }
     if (itsTrackDelay || (itsFixedDelays.size() !=0)) {
+        if (itsTrackedSouthPole) {
+            ASKAPLOG_INFO_STR(logger, "It is assumed that delays are corrected for the South Pole");
+        } else {
+            ASKAPLOG_INFO_STR(logger, "It is assumed that delays are corrected for the logal zenith");
+        }
         if (itsFixedDelays.size()) {
             ASKAPLOG_INFO_STR(logger, "Fixed delays specified for "<<itsFixedDelays.size()<<" antennas:");
             for (size_t id = 0; id < itsFixedDelays.size(); ++id) {
@@ -129,6 +135,7 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
   casa::Vector<double> baseline = antXYZ(ant2) - antXYZ(ant1);
   ASKAPDEBUGASSERT(baseline.nelements() == 3);
   const double delayInMetres = -cd * cH0 * baseline(0) + cd * sH0 * baseline(1) - sin(dec) * baseline(2);
+  const double polDelayInMetres = baseline(2);
   
   // slice to get this row of data
   casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
@@ -158,14 +165,20 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
   if (itsTrackDelay || (ant1<itsFixedDelays.size()) || (ant2<itsFixedDelays.size())) {
       // fixed component of the delay in seconds
       const double fixedDelay = 1e-9 * ((ant2 < itsFixedDelays.size()) ? itsFixedDelays[ant2] : 0. - (ant1 < itsFixedDelays.size()) ? itsFixedDelays[ant1] : 0.);
-      const double delayBy2pi = -2. * casa::C::pi * (fixedDelay + (itsTrackDelay ? delayInMetres : 0.) / casa::C::c);
+      const double delayBy2pi = -2. * casa::C::pi * (fixedDelay + (itsTrackDelay ? delayInMetres - (itsTrackedSouthPole? polDelayInMetres : 0.) : 0.) / casa::C::c);
       const casa::Vector<double>& freqs = chunk->frequency();
       ASKAPDEBUGASSERT(thisRow.nrow() == freqs.nelements());
       for (casa::uInt ch = 0; ch < thisRow.nrow(); ++ch) {
-           const float phase = static_cast<float>(delayBy2pi * freqs[ch]);
+           const float phase = static_cast<float>(delayBy2pi * (freqs[ch]));
            const casa::Complex phasor(cos(phase), sin(phase));
            casa::Vector<casa::Complex> allPols = thisRow.row(ch);
            allPols *= phasor;
+           /*
+           // for debugging
+           if ((ant1!=ant2) && (ch == 4000)) {
+               std::cout<<ch<<" "<<delayInMetres<<" "<<delayBy2pi<<" "<<freqs[ch]-freqs[0]<<std::endl;
+           }
+           */
       }
   }
 }
