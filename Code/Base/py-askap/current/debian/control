@@ -8,5 +8,5 @@ Homepage: https://pm.atnf.csiro.au/askap
 
 Package: askap-py-askap-base
 Architecture: any
-Depends: askap-common, ${AskapDependencies}
+Depends: askap-python, ${AskapDependencies}
 Description: Debian binary package wrapper for askap-py-askap-base
