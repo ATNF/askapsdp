@@ -29,6 +29,7 @@
 
 // Support classes
 #include <cmath>
+#include <stdint.h>
 #include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "ingestpipeline/sourcetask/test/MockMetadataSource.h"
@@ -51,9 +52,9 @@ namespace ingest {
 
 class MergedSourceTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(MergedSourceTest);
-        //CPPUNIT_TEST(testMockMetadataSource);
-        //CPPUNIT_TEST(testMockVisSource);
-        //CPPUNIT_TEST(testSingle);
+        CPPUNIT_TEST(testMockMetadataSource);
+        CPPUNIT_TEST(testMockVisSource);
+        CPPUNIT_TEST(testSingle);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -66,7 +67,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
             std::ostringstream ss;
             ss << N_CHANNELS_PER_SLICE;
             params.add("n_channels.0", ss.str());
-            Configuration config = ConfigurationHelper::createDummyConfig();
+            const Configuration config = ConfigurationHelper::createDummyConfig();
             itsInstance.reset(new MergedSource(params, config, itsMetadataSrc, itsVisSrc, 1, 0));
         }
 
@@ -78,7 +79,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
 
         // Test the MockMetadataSource before using it
         void testMockMetadataSource() {
-            const long time = 1234;
+            const int64_t time = 1234;
             boost::shared_ptr<TosMetadata> md(new TosMetadata());
             md->time(time);
             itsMetadataSrc->add(md);
@@ -87,7 +88,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
 
         // Test the MockVisSource before using it
         void testMockVisSource() {
-            const long time = 1234;
+            const int64_t time = 1234;
             boost::shared_ptr<VisDatagram> vis(new VisDatagram);
             vis->timestamp = time;
             itsVisSrc->add(vis);
@@ -95,30 +96,27 @@ class MergedSourceTest : public CppUnit::TestFixture {
         };
 
         void testSingle() {
-            /*
-            const unsigned long starttime = 1000000; // One second after epoch
-            const unsigned long period = 5 * 1000 * 1000;
-            const unsigned int nAntenna = 2;
-            const unsigned  int nCoarseChan = 304;
-            const unsigned int nBeam = 1;
-            const unsigned int nCorr = N_POL;
+            const Configuration config = ConfigurationHelper::createDummyConfig();
+            const uint64_t starttime = 1000000; // One second after epoch
+            const uint64_t period = 5 * 1000 * 1000;
+            const uint32_t nAntenna = 2;
+            const uint32_t nCorr = 4;
 
             // Create a mock metadata object and program it, then
             // add to the MockMetadataSource
-            TosMetadata metadata(nCoarseChan, nBeam, nCorr);
+            TosMetadata metadata;
             metadata.time(starttime);
-            metadata.period(period);
+            metadata.scanId(0);
+            metadata.flagged(false);
 
             // antenna_names
-            for (unsigned int i = 0; i < nAntenna; ++i) {
+            for (uint32_t i = 0; i < nAntenna; ++i) {
                 std::stringstream ss;
                 ss << "ASKAP" << i;
-                unsigned int id = metadata.addAntenna(ss.str());
+                int32_t id = metadata.addAntenna(ss.str());
                 TosMetadataAntenna& ant = metadata.antenna(id);
                 ant.onSource(true);
                 ant.hwError(false);
-                ant.scanActive(true);
-                ant.scanId("scan0");
             }
 
             // Make a copy of the metadata and add it to the mock
@@ -130,8 +128,8 @@ class MergedSourceTest : public CppUnit::TestFixture {
             askap::cp::VisDatagram vis;
             vis.version = VISPAYLOAD_VERSION;
             vis.slice = 0;
-            vis.baselineid = 0;
-            vis.beamid = 0;
+            vis.baselineid = 1;
+            vis.beamid = 1;
             vis.timestamp = starttime;
 
             boost::shared_ptr<VisDatagram> copy1(new VisDatagram(vis));
@@ -151,32 +149,38 @@ class MergedSourceTest : public CppUnit::TestFixture {
             // midpoint (in seconds). The later is that way because the
             // measurement set specification used integration midpoint in
             // seconds.
-            const double midpoint = 3.5;
-            casa::Quantity chunkMidpoint = chunk->time().getTime();
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(midpoint, chunkMidpoint.getValue("s"), 1.0E-10);
+            //const double midpoint = 3.5;
+            //casa::Quantity chunkMidpoint = chunk->time().getTime();
+            //CPPUNIT_ASSERT_DOUBLES_EQUAL(midpoint, chunkMidpoint.getValue("s"), 1.0E-10);
 
             // Ensure other metadata is as expected
             CPPUNIT_ASSERT_EQUAL(1 * N_CHANNELS_PER_SLICE, chunk->nChannel());
             CPPUNIT_ASSERT_EQUAL(nCorr, chunk->nPol());
-            const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
+            const uint32_t nBaselines = config.bmap().size();
+            const uint32_t nBeam = config.antennas().front().feeds().nFeeds();
             CPPUNIT_ASSERT_EQUAL(nBaselines * nBeam, chunk->nRow());
 
             // Ensure the visibilities that were supplied (most were not)
             // are not flagged, and that the rest are flagged
 
-            // First calculate the channel range that was set
-            const unsigned int startChan = vis.slice * N_CHANNELS_PER_SLICE; //inclusive
-            const unsigned int endChan = (vis.slice + 1) * N_CHANNELS_PER_SLICE; //exclusive
+            // First calculate the channel range that was set and the antenna pair
+            const uint32_t startChan = vis.slice * N_CHANNELS_PER_SLICE; //inclusive
+            const uint32_t endChan = (vis.slice + 1) * N_CHANNELS_PER_SLICE; //exclusive
+            const int32_t ant1 = config.bmap().idToAntenna1(vis.baselineid);
+            CPPUNIT_ASSERT(ant1 != -1); // -1 represents an invalid mapping
+            const int32_t ant2 = config.bmap().idToAntenna2(vis.baselineid);
+            CPPUNIT_ASSERT(ant2 != -1);
 
-            for (unsigned int row = 0; row < chunk->nRow(); ++row) {
-                for (unsigned int chan = 0; chan < chunk->nChannel(); ++chan) {
-                    for (unsigned int pol = 0; pol < chunk->nPol(); ++pol) {
+            for (uint32_t row = 0; row < chunk->nRow(); ++row) {
+                for (uint32_t chan = 0; chan < chunk->nChannel(); ++chan) {
+                    for (uint32_t pol = 0; pol < chunk->nPol(); ++pol) {
                         if (chan >= startChan &&
                                 chan < endChan &&
-                                chunk->antenna1()(row) == vis.antenna1 &&
-                                chunk->antenna2()(row) == vis.antenna2 &&
-                                chunk->beam1()(row) == vis.beamid &&
-                                chunk->beam2()(row) == vis.beamid) {
+                                chunk->antenna1()(row) == static_cast<uint32_t>(ant1) &&
+                                chunk->antenna2()(row) == static_cast<uint32_t>(ant2) &&
+                                chunk->beam1()(row) == vis.beamid - 1 &&
+                                chunk->beam2()(row) == vis.beamid - 1 &&
+                                pol == 0) {
                             // If this is one of the visibilities that were added above
                             CPPUNIT_ASSERT_EQUAL(false, chunk->flag()(row, chan, pol));
                         } else {
@@ -198,7 +202,6 @@ class MergedSourceTest : public CppUnit::TestFixture {
             // Check frequency vector
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(N_CHANNELS_PER_SLICE),
                     chunk->frequency().size());
-            */
         }
 
     private:
