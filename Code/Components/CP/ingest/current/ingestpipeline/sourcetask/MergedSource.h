@@ -28,6 +28,7 @@
 #define ASKAP_CP_INGEST_MERGEDSOURCE_H
 
 // ASKAPsoft includes
+#include "askap/IndexConverter.h"
 #include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
@@ -79,8 +80,8 @@ class MergedSource : public ISource {
 
         askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
 
-        void addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
-                const casa::uInt nAntenna, const casa::uInt nBeams);
+        bool addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
+                const casa::uInt nAntenna);
 
         void doFlagging(askap::cp::common::VisChunk::ShPtr chunk, const TosMetadata& metadata);
 
@@ -89,6 +90,8 @@ class MergedSource : public ISource {
                               const unsigned int row,
                               const unsigned int chan,
                               const unsigned int pol);
+
+        void parseBeamMap(const LOFAR::ParameterSet& params);
 
         // Configuration
         const Configuration itsConfig;
@@ -118,6 +121,28 @@ class MergedSource : public ISource {
 
         // Baseline Map
         const BaselineMap itsBaselineMap;
+
+        /// @brief beam id map
+        /// @details It is possible to filter the beams received by this source and map the
+        /// indices. This map provides translation (by default, any index is passed as is)
+        utility::IndexConverter itsBeamIDMap;
+
+        /// @brief largest supported number of beams
+        /// @details The space is reserved for the given number of beams (set via the parset).
+        /// This value is always less than or equal to the number of beams specified via the
+        /// configuration (the latter is the default). The visibility cube is resized to match
+        /// this parameter (allowing to drop unnecessary beams if used together with itsBeamIDMap)
+        /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
+        /// (i.e. to write everything)
+        casa::uInt itsMaxNBeams;
+
+        /// @brief number of beams to expect in the data stream
+        /// @details A larger number of beams can be received from the datastream than stored into MS.
+        /// To avoid unnecessary bloat of the MS size, only itsMaxNBeams beams are stored. This field
+        /// controls the data stream unpacking.
+        /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
+        /// (i.e. to write everything)
+        casa::uInt itsBeamsToReceive;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);

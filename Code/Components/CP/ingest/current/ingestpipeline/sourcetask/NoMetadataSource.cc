@@ -75,7 +75,7 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsInterrupted(false),
         itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
         itsMaxNBeams(params.getUint32("maxbeams",0)),
-        itsBeams2Receive(params.getUint32("beams2receive",0))
+        itsBeamsToReceive(params.getUint32("beams2receive",0))
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
     const casa::MVEpoch dummyEpoch(56000.);
@@ -85,29 +85,7 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
     ASKAPCHECK(itsConfig.observation().scans().size() == 1,
                "NoMetadataSource supports only a single scan");
 
-    const std::string beamidmap = params.getString("beammap","");
-    if (beamidmap != "") {
-        ASKAPLOG_INFO_STR(logger, "Beam indices will be mapped according to <"<<beamidmap<<">");
-        itsBeamIDMap.add(beamidmap);
-    }
-    const casa::uInt nBeamsInConfig = itsConfig.antennas().at(0).feeds().nFeeds();
-    if (itsMaxNBeams == 0) {
-        for (int beam = 0; beam < static_cast<int>(nBeamsInConfig) + 1; ++beam) {
-             const int processedBeamIndex = itsBeamIDMap(beam);
-             if (processedBeamIndex > static_cast<int>(itsMaxNBeams)) {
-                 // negative values are automatically excluded by this condition
-                 itsMaxNBeams = static_cast<casa::uInt>(processedBeamIndex);
-             }
-        }
-        ++itsMaxNBeams;
-    }
-    if (itsBeams2Receive == 0) {
-        itsBeams2Receive = nBeamsInConfig;
-    }
-    ASKAPLOG_INFO_STR(logger, "Number of beams: "<<nBeamsInConfig<<" (defined in configuration), "<<itsBeams2Receive<<" (to be received), "<<
-                      itsMaxNBeams<<" (to be written into MS)");
-    ASKAPDEBUGASSERT(itsMaxNBeams > 0);
-    ASKAPDEBUGASSERT(itsBeams2Receive > 0);
+    parseBeamMap(params);
 
     // Setup a signal handler to catch SIGINT and SIGTERM
     itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
@@ -142,7 +120,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
                "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected = itsBaselineMap.size() * itsBeams2Receive * (nChannels / N_CHANNELS_PER_SLICE);
+    const casa::uInt datagramsExpected = itsBaselineMap.size() * itsBeamsToReceive * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -150,9 +128,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // In this case assume no more VisDatagrams for this integration will
     // be recieved and move on
     casa::uInt datagramCount = 0;
-
     casa::uInt datagramsIgnored = 0;
-
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
         itsIOService.poll();
 
@@ -172,7 +148,6 @@ VisChunk::ShPtr NoMetadataSource::next(void)
             ++datagramsIgnored;
         }
         itsVis = itsVisSrc->next(timeout);
-
         if (datagramCount == datagramsExpected) {
             // This integration is finished
             break;
@@ -181,7 +156,8 @@ VisChunk::ShPtr NoMetadataSource::next(void)
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
                        " of expected " << datagramsExpected << " visibility datagrams");
-    ASKAPLOG_DEBUG_STR(logger, "     - ignored "<<datagramsIgnored<<" successfully received datagrams");
+    ASKAPLOG_DEBUG_STR(logger, "     - ignored " << datagramsIgnored
+            << " successfully received datagrams");
 
     // Submit monitoring data
     MonitorPoint<int32_t> packetsLost("PacketsLost");
@@ -241,7 +217,6 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;
-
     for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
@@ -305,16 +280,13 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
     const casa::Stokes::StokesTypes stokestype = itsBaselineMap.idToStokes(vis.baselineid);
-
     // We could use scimath::PolConverter::getIndex here, but the following code allows more checks
     int polidx = -1;
-
     for (size_t i = 0; i < chunk->stokes().size(); ++i) {
         if (chunk->stokes()(i) == stokestype) {
             polidx = i;
         }
     }
-
     if (polidx < 0) {
         ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
                               << " is not configured for storage");
@@ -332,7 +304,6 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     casa::uInt idx = 0;
-
     for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
@@ -357,10 +328,10 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 4) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
-
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
         casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
+
         chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
         // Unflag the sample
@@ -386,4 +357,31 @@ void NoMetadataSource::signalHandler(const boost::system::error_code& error,
     if (signalNumber == SIGTERM || signalNumber == SIGINT || signalNumber == SIGUSR1) {
         itsInterrupted = true;
     }
+}
+
+void NoMetadataSource::parseBeamMap(const LOFAR::ParameterSet& params)
+{                             
+    const std::string beamidmap = params.getString("beammap","");
+    if (beamidmap != "") {    
+        ASKAPLOG_INFO_STR(logger, "Beam indices will be mapped according to <"<<beamidmap<<">");
+        itsBeamIDMap.add(beamidmap);
+    }   
+    const casa::uInt nBeamsInConfig = itsConfig.antennas().at(0).feeds().nFeeds();
+    if (itsMaxNBeams == 0) {
+        for (int beam = 0; beam < static_cast<int>(nBeamsInConfig) + 1; ++beam) {
+             const int processedBeamIndex = itsBeamIDMap(beam);
+             if (processedBeamIndex > static_cast<int>(itsMaxNBeams)) {
+                 // negative values are automatically excluded by this condition
+                 itsMaxNBeams = static_cast<casa::uInt>(processedBeamIndex);
+             }
+        }
+        ++itsMaxNBeams;
+    }   
+    if (itsBeamsToReceive == 0) {
+        itsBeamsToReceive = nBeamsInConfig;
+    }        
+    ASKAPLOG_INFO_STR(logger, "Number of beams: " << nBeamsInConfig << " (defined in configuration), "
+            << itsBeamsToReceive << " (to be received), " << itsMaxNBeams << " (to be written into MS)");
+    ASKAPDEBUGASSERT(itsMaxNBeams > 0);
+    ASKAPDEBUGASSERT(itsBeamsToReceive > 0);
 }

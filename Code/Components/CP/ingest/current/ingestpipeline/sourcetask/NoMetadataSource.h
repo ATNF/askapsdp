@@ -88,6 +88,8 @@ class NoMetadataSource : public ISource {
         void signalHandler(const boost::system::error_code& error,
                            int signalNumber);
 
+        void parseBeamMap(const LOFAR::ParameterSet& params);
+
         // Configuration
         const Configuration itsConfig;
 
@@ -145,7 +147,7 @@ class NoMetadataSource : public ISource {
         /// controls the data stream unpacking.
         /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
         /// (i.e. to write everything)
-        casa::uInt itsBeams2Receive;
+        casa::uInt itsBeamsToReceive;
         
 };
 

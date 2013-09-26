@@ -178,8 +178,8 @@ class MergedSourceTest : public CppUnit::TestFixture {
                                 chan < endChan &&
                                 chunk->antenna1()(row) == static_cast<uint32_t>(ant1) &&
                                 chunk->antenna2()(row) == static_cast<uint32_t>(ant2) &&
-                                chunk->beam1()(row) == vis.beamid - 1 &&
-                                chunk->beam2()(row) == vis.beamid - 1 &&
+                                chunk->beam1()(row) == vis.beamid &&
+                                chunk->beam2()(row) == vis.beamid &&
                                 pol == 0) {
                             // If this is one of the visibilities that were added above
                             CPPUNIT_ASSERT_EQUAL(false, chunk->flag()(row, chan, pol));
