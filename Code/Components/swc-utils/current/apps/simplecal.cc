@@ -97,10 +97,26 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
   // the assumed baseline order depends on this parameter
   const bool useSWCorrelator = false;
 
+  casa::uInt cPol = 3;
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
+       // for every iteration we first build an index into all unflagged rows
+       std::vector<casa::uInt> rowIndex;
+       rowIndex.reserve(it->nRow());
+       ASKAPASSERT(cPol<it->nPol());
+       for (casa::uInt row = 0; row<it->nRow(); ++row) {
+            casa::Vector<casa::Bool> flags = it->flag().xyPlane(cPol).row(row);
+      
+            bool flagged = false;
+            for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
+                 flagged |= flags[ch];
+            }
+            if (!flagged) {
+                rowIndex.push_back(row);
+            }
+       }
        if (nChan == 0) {
            nChan = it->nChannel();
-           nRow = it->nRow();
+           nRow = rowIndex.size();//it->nRow();
            buf.resize(nRow,nChan);
            buf.set(casa::Complex(0.,0.));
            freq = it->frequency();
@@ -109,10 +125,10 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
-           //ASKAPCHECK(nRow == it->nRow(), 
+           //ASKAPCHECK(nRow == rowIndex.size(), 
            //       "Number of rows seem to have been changed, previously "<<nRow<<" now "<<it->nRow());
-           if (nRow != it->nRow()) {
-               std::cerr<<"Number of rows has been changed, initially "<<nRow<<" now "<<it->nRow()<<", integration cycle = "<<counter+1<<std::endl;
+           if (nRow != rowIndex.size()) {
+               std::cerr<<"Number of unflagged rows has been changed, initially "<<nRow<<" now "<<rowIndex.size()<<", integration cycle = "<<counter+1<<std::endl;
                continue;
            }
            //
@@ -131,7 +147,8 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
        // of the closure phase.
        // the order is different for software and hardware correlator. Just hard code the differences
-       for (casa::uInt row = 0; row<nRow; row+=3) {
+       for (casa::uInt validRow = 0; validRow<nRow; validRow+=3) {
+            const casa::uInt row = rowIndex[validRow];
             if (useSWCorrelator) {
                 ASKAPCHECK(it->antenna2()[row] == it->antenna1()[row+1], "Expect baselines in the order 1-2,2-3 and 1-3");
                 ASKAPCHECK(it->antenna1()[row] == it->antenna1()[row+2], "Expect baselines in the order 1-2,2-3 and 1-3");
@@ -145,17 +162,28 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        //
        
        // add new spectrum to the buffer
-       for (casa::uInt row=0; row<nRow; ++row) {
-            casa::Vector<casa::Bool> flags = it->flag().xyPlane(0).row(row);
+       for (casa::uInt validRow=0; validRow<nRow; ++validRow) {
+            const casa::uInt row = rowIndex[validRow];
+            casa::Vector<casa::Bool> flags = it->flag().xyPlane(cPol).row(row);
+      
             bool flagged = false;
+            /*
+            // to ensure nothing is flagged
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
+                 // to ensure nothing is flagged
                  flagged |= flags[ch];
             }
+            */
             if (flagged) {
                ++nBadRows;
             } else {
-                casa::Vector<casa::Complex> thisRow = buf.row(row);
-                thisRow += it->visibility().xyPlane(0).row(row);
+                casa::Vector<casa::Complex> thisRow = buf.row(validRow);
+                //thisRow += it->visibility().xyPlane(0).row(row);
+                for (casa::uInt ch = 0; ch<thisRow.nelements(); ++ch) {
+                     if (!flags[ch]) {
+                         thisRow[ch] += it->visibility()(row,ch,0);
+                     }
+                }
                 ++nGoodRows;
             }
        }

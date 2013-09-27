@@ -38,8 +38,11 @@
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/ArrayColumn.h>
+#include <tables/Tables/ScalarColumn.h>
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Cube.h>
 #include <casa/Arrays/MatrixMath.h>
+#include <casa/Arrays/ArrayMath.h>
 
 
 
@@ -58,12 +61,56 @@ void process(const std::string &fname)
   casa::Table ms(fname, casa::Table::Update);
   
   casa::ArrayColumn<casa::Bool> flagCol(ms, "FLAG");
-  
+  casa::ScalarColumn<casa::Int> ant1(ms, "ANTENNA1");
+  casa::ScalarColumn<casa::Int> ant2(ms, "ANTENNA2");
+
+  /*
+  // to load channel list from a file
+  std::vector<int> channels;
+  {
+     std::ifstream is("flags.dat"); 
+     ASKAPCHECK(is, "Unable to open flags.dat");
+     while (is) {
+        int buf;
+        is >> buf;
+        if (is) {
+           channels.push_back(buf);
+        }
+     }
+  }
+  */
+  ASKAPLOG_INFO_STR(logger,"Total number of rows in the measurement set: "<<ms.nrow());
+
   for (casa::uInt row = 0; row<ms.nrow(); ++row) {
-       
+           
+       if ((ant1.get(row) != 0) || (ant2.get(row) != 1)) {
+           //continue;
+       }
        casa::Array<casa::Bool> buf;
        flagCol.get(row,buf);
+
+       // to unflag
        buf.set(false);
+
+       /*
+       // to flag certain rows
+       if (row > 41958) {
+           buf.set(true);
+           continue;
+       }
+       //
+       */
+       /*
+       // to flag channels based on a file
+       for (size_t i = 0; i<channels.size(); ++i) {
+            casa::Matrix<casa::Bool> thisRow(buf);
+            // order reversed w.r.t. the accessor
+            ASKAPASSERT(channels[i] < int(thisRow.ncolumn()));
+            thisRow.column(channels[i]).set(true);
+       }
+       //
+       */
+
        flagCol.put(row,buf);
   }
 }

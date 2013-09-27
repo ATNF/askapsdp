@@ -187,6 +187,21 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   }
 }
 
+// helper method to add extra offset to the list of offsets to form equilateral triangle with two specified points
+// there are two possible points (raAdd true and false)
+void add3rdOffset(std::vector<double> &xOffsets, std::vector<double> &yOffsets, size_t pt1, size_t pt2, bool raAdd)
+{
+   ASKAPDEBUGASSERT(pt1 < xOffsets.size());
+   ASKAPDEBUGASSERT(pt2 < xOffsets.size());
+   ASKAPDEBUGASSERT(xOffsets.size() == yOffsets.size());
+   const double xNew = xOffsets[pt1] + 0.5 * (xOffsets[pt2] - xOffsets[pt1]) + (raAdd ? +1. : -1.) * 
+                       (yOffsets[pt2] - yOffsets[pt1]);
+   const double yNew = yOffsets[pt1] + 0.5 * (yOffsets[pt2] - yOffsets[pt1]) + (raAdd ? -1. : +1.) * 
+                       (xOffsets[pt2] - xOffsets[pt1]);
+   xOffsets.push_back(xNew);
+   yOffsets.push_back(yNew);
+}
+
 void makeRaster() {
   // Virgo
   //casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
@@ -229,18 +244,18 @@ void doTest() {
   //const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   
   // 1610-771
-  //const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
+  const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
 
   // 1936-623
   //const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
   
   // 1547-795
-  const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
+  //const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
   
 
   //casa::MVDirection testDir = tangent;
   // Virgo
-  casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.28.01","rad"));
+  //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.28.01","rad"));
   // 1934-638
   //casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
 
@@ -261,11 +276,12 @@ void doTest() {
   casa::MVDirection testDir = casa::MDirection::Convert(casa::MDirection(casa::MDirection::SUN), casa::MDirection::Ref(casa::MDirection::J2000,frame))().getValue();
  
   // */
-  //casa::MVDirection testDir(convertQuantity("07h35m00.9","rad"),convertQuantity("21.38.32.1","rad"));
+  casa::MVDirection testDir(convertQuantity("12h07m47.0","rad"),convertQuantity("-00.50.30.0","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
   std::cout<<"test direction: "<<printDirection(testDir)<<std::endl;
+
   double offset1 = 0., offset2 = 0.;
   const double factor = -1;
 
@@ -273,21 +289,26 @@ void doTest() {
   offset2 = sin(dir.getLat()) * cos(tangent.getLat()) - cos(dir.getLat()) * sin(tangent.getLat())
                                                   * cos(dir.getLong() - tangent.getLong());
   
+  /*
   // for explicit offsets
   const double ofq = sqrt(3.)/2.;
   offset1 = ofq / 180. * casa::C::pi;
   offset2 = -0.5 / 180. * casa::C::pi;
-
+  */
+  
   std::cout<<"separation (dir vs. tangent): "<<dir.separation(tangent)*180./casa::C::pi<<" deg, offsets (deg): "
      <<offset1*180./casa::C::pi<<" "<<offset2*180./casa::C::pi<<std::endl;
   
   const casa::MVDirection backupTestDir(testDir);
 
   testDir.shift(offset1*factor,offset2*factor, casa::True);
-  std::cout<<"offset applied to test direction: "<<printDirection(testDir)<<std::endl;
+  std::cout<<"offset applied to single test direction: "<<printDirection(testDir)<<std::endl;
 
   // for multiple offsets
   std::vector<double> xOffsets, yOffsets;
+
+  /*
+   // first 9-beam config
   xOffsets.push_back(0.); yOffsets.push_back(0.);
   xOffsets.push_back(-ofq); yOffsets.push_back(-0.5);
   xOffsets.push_back(-ofq); yOffsets.push_back(0.5);
@@ -298,7 +319,21 @@ void doTest() {
   xOffsets.push_back(ofq); yOffsets.push_back(-0.5);
   //xOffsets.push_back(0.); yOffsets.push_back(-1.5);
   xOffsets.push_back(0.); yOffsets.push_back(-1.);
-  
+  */
+
+  const double offset1inDeg = offset1 / casa::C::pi * 180.;
+  const double offset2inDeg = offset2 / casa::C::pi * 180.;
+
+  xOffsets.push_back(0.); yOffsets.push_back(0.);
+  xOffsets.push_back(offset1inDeg*0.5); yOffsets.push_back(offset2inDeg*0.5);
+  xOffsets.push_back(offset1inDeg); yOffsets.push_back(offset2inDeg);
+  xOffsets.push_back(-offset1inDeg*0.5); yOffsets.push_back(-offset2inDeg*0.5);
+  add3rdOffset(xOffsets, yOffsets, 0, 1, true);
+  add3rdOffset(xOffsets, yOffsets, 1, 2, true);
+  add3rdOffset(xOffsets, yOffsets, 0, 1, false);
+  add3rdOffset(xOffsets, yOffsets, 1, 2, false);
+  add3rdOffset(xOffsets, yOffsets, 3, 0, false);
+ 
   ASKAPDEBUGASSERT(xOffsets.size() == yOffsets.size());
   for (size_t i=0; i<xOffsets.size(); ++i) {
       offset1 = xOffsets[i] / 180. * casa::C::pi;
@@ -306,6 +341,7 @@ void doTest() {
       testDir = backupTestDir;
       testDir.shift(offset1*factor,offset2*factor, casa::True);
       std::cout<<"offset ("<<xOffsets[i]<<","<<yOffsets[i]<<") applied to test direction: "<<printDirection(testDir)<<std::endl;
+      //std::cout<<360+testDir.getLong()/casa::C::pi*180.<<" "<<testDir.getLat()/casa::C::pi*180.<<std::endl;
   }
 
 }

@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(1);
+  sel->chooseFeed(0);
   sel->chooseCrossCorrelations();
   //sel->chooseAutoCorrelations();
   if (ctrl >=0 ) {
@@ -164,14 +164,21 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             }
             */
             //
-            
+
+            /*
+            // to disable flagging
+            flagged = false;
+            */
+
             if (flagged) {
                ++nBadRows;
             } else {
                 casa::Vector<casa::Complex> thisRow = buf.row(row);
-                thisRow += measuredRow;
                 for (casa::uInt ch = 0; ch<thisRow.nelements(); ++ch) {
-                     buf2(row,ch) += casa::Complex(casa::square(casa::real(measuredRow[ch])), casa::square(casa::imag(measuredRow[ch])));
+                     if (!flags[ch]) {
+                         thisRow[ch] += measuredRow[ch];
+                         buf2(row,ch) += casa::Complex(casa::square(casa::real(measuredRow[ch])), casa::square(casa::imag(measuredRow[ch])));
+                     }
                 }
                 ++nGoodRows;
                 // uncomment to store averaged time-series
