@@ -40,7 +40,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
+/// @brief This class encapsulates an antenna.
 class Antenna {
     public:
 
@@ -51,14 +51,20 @@ class Antenna {
                 const casa::Quantity& diameter,
                 const FeedConfig& feeds);
 
+        /// @brief Antenna name (e.g. "ak01")
         casa::String name(void) const;
 
+        // @brief Mount type of antenna (e.g. "EQUATORIAL", "ALT-AZ")
         casa::String mount(void) const;
 
+        /// @brief Positin of the antenna. This position is in the right-handed frame, X towards
+        /// the intersection of the equator and the Greenwich meridian, Z towards the pole.
         casa::Vector<casa::Double> position(void) const;
 
+        /// @brief Nominal diameter of the dish.
         casa::Quantity diameter(void) const;
 
+        /// @brief The feed configuration on the antenna.
         FeedConfig feeds(void) const;
 
     private:

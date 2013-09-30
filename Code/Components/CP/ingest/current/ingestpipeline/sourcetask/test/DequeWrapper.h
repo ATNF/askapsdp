@@ -39,6 +39,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Provides a simple interface to a thread-safe queue.
 template<class T>
 class DequeWrapper {
     public:

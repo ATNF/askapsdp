@@ -59,12 +59,18 @@ class Scan {
         /// @brief Returns the direction of the field being observed
         casa::MDirection fieldDirection(void) const;
 
+        /// @brief The frequency of the lowest numbered spectral channel
         casa::Quantity startFreq(void) const;
 
+        /// @brief The number of spectral channels
         casa::uInt nChan(void) const;
 
+        /// @brief The width (in Hz) of a single spectral channel.
+        /// @note This may be a negative width in the case where increasing
+        /// channel number corresponds to decreasing frequency.
         casa::Quantity chanWidth(void) const;
 
+        /// @brief The stokes types to be observed
         std::vector<casa::Stokes::StokesTypes> stokes(void) const;
 
         /// @brief Returns, in microseconds, correlator integration interval.

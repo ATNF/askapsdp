@@ -55,8 +55,9 @@ class Configuration {
 
         /// @brief Constructor
         ///
-        /// @param[in] the rank of the calling process (zero based).
-        /// @param[in] the number of tasks/processes.
+        /// @param[in] parset   the number of tasks/processes.
+        /// @param[in] rank the rank of the calling process (zero based).
+        /// @param[in] ntasks the number of tasks (processes).
         Configuration(const LOFAR::ParameterSet& parset,
                       int rank = 0, int ntasks = 1);
 
@@ -104,6 +105,7 @@ class Configuration {
         // This fnuction create a map of feed name/type to the actual feed configuration
         static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
 
+        // The input configuration parameter set that this "Configuration" encapsulates.
         const LOFAR::ParameterSet itsParset;
 
         /// The rank of this process

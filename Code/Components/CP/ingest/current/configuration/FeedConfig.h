@@ -53,12 +53,17 @@ class FeedConfig {
         FeedConfig(const casa::Matrix<casa::Quantity>& offsets,
                    const casa::Vector<casa::String>& pols);
 
+        /// @brief Number of reciever elements. This may be for example two for
+        /// a single pixel feed, or 36 for a PAF with 36 synthetic beams.
         casa::uInt nFeeds(void) const;
 
+        /// @brief The X-offset of the feed given by "i".
         casa::Quantity offsetX(casa::uInt i) const;
 
+        /// @brief The Y-offset of the feed given by "i".
         casa::Quantity offsetY(casa::uInt i) const;
 
+        /// @brief The polarisation of the feed given by "i".
         casa::String pol(casa::uInt i) const;
 
     private:

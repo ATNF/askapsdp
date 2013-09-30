@@ -45,6 +45,7 @@ namespace ingest {
 class TaskDesc {
     public:
 
+        /// @brief An enumeration of valid task types.
         enum Type {
             MergedSource,
             NoMetadataSource,
@@ -63,12 +64,18 @@ class TaskDesc {
                  const TaskDesc::Type type,
                  const LOFAR::ParameterSet& params);
 
+        /// @brief A generic name for the task. This can be anything, is just a label.
         std::string name(void) const;
 
+        /// @brief The Task type. This is the type of task that will be instantiated.
         TaskDesc::Type type(void) const;
 
+        /// @brief A parameter subset for this specific task.
         LOFAR::ParameterSet params(void) const;
 
+        /// @brief Maps string representations of the task type to one of the types
+        /// in the "Type" enumeration.
+        /// @throw AskapError   If the string could not be mapped to a known "Type".
         static TaskDesc::Type toType(const std::string& type);
 
     private:

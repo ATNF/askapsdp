@@ -30,6 +30,9 @@
 // Include package level header file
 #include "askap_cpingest.h"
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"

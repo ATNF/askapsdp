@@ -44,7 +44,7 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 
-/// @breif Constructor
+/// @brief Constructor
 /// @param[in] parset the configuration parameter set.
 /// @param[in] config configuration
 ChannelFlagTask::ChannelFlagTask(const LOFAR::ParameterSet& parset, const Configuration& config) :

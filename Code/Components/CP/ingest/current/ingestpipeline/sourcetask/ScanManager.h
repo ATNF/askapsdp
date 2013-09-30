@@ -39,11 +39,15 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
-/// Encapsulates management of scans.
-/// The ScanManager keeps track of which scan is in progress and when an
-/// observation is complete.
+/// @brief Encapsulates management of scans.
+/// @details The ScanManager keeps track of which scan is in progress and when
+/// an observation is complete.
 class ScanManager {
     public:
+
+        /// Constructor
+        /// @param[in] config   the configuration that defines the sequence
+        ///                     of scans.
         ScanManager(const Configuration& config);
 
         /// This method is called for each metadata payload received from the
@@ -64,7 +68,7 @@ class ScanManager {
 
     private:
 
-        // A copy of the system & observation configuration
+        // A copy of the system and observation configuration
         const Configuration itsConfig;
 
         // Current (zero based) scan index, if the first scan has not yet

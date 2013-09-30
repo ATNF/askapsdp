@@ -132,16 +132,16 @@ class MergedSource : public ISource {
         /// This value is always less than or equal to the number of beams specified via the
         /// configuration (the latter is the default). The visibility cube is resized to match
         /// this parameter (allowing to drop unnecessary beams if used together with itsBeamIDMap)
-        /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
-        /// (i.e. to write everything)
+        /// @note it is 0 by default, which triggers the constructor to set it equal to the
+        /// configuration (i.e. to write everything)
         casa::uInt itsMaxNBeams;
 
         /// @brief number of beams to expect in the data stream
         /// @details A larger number of beams can be received from the datastream than stored into MS.
         /// To avoid unnecessary bloat of the MS size, only itsMaxNBeams beams are stored. This field
         /// controls the data stream unpacking.
-        /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
-        /// (i.e. to write everything)
+        /// @note it is 0 by default, which triggers the constructor to set it equal to the
+        /// configuration (i.e. to write everything)
         casa::uInt itsBeamsToReceive;
 
         // No support for assignment

@@ -49,8 +49,11 @@ class Observation {
         Observation(const casa::uInt schedulingBlockID,
                     const std::vector<Scan>& scans);
 
+        /// @brief The schedule block identifier (from the Telescope Operating
+        /// System).
         casa::uInt schedulingBlockID(void) const;
 
+        /// @brief A sequence of scans to be executed in order (0..n).
         std::vector<Scan> scans(void) const;
 
     private:

@@ -1,4 +1,4 @@
-/// @file BaselineMapper.h
+/// @file BaselineMap.h
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -81,16 +81,22 @@ class BaselineMap {
         BaselineMap(const LOFAR::ParameterSet& parset);
 
         /// Given a baseline is, return antenna 1
+        ///
+        /// @param[in] id   the baseline id.
         /// @return antennaid, or -1 in the case the baseline id mapping
         ///         does not exist.
         int32_t idToAntenna1(const int32_t id) const;
 
         /// Given a baseline is, return antenna 2
+        ///
+        /// @param[in] id   the baseline id.
         /// @return antennaid, or -1 in the case the baseline id mapping
         ///         does not exist.
         int32_t idToAntenna2(const int32_t id) const;
 
         /// Given a baseline is, return the stokes type
+        ///
+        /// @param[in] id   the baseline id.
         /// @return stokes type, or Stokes::Undefined in the case the baseline
         ///         id mapping does not exist.
         casa::Stokes::StokesTypes idToStokes(const int32_t id) const;

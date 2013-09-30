@@ -27,6 +27,9 @@
 #ifndef ASKAP_CP_INGEST_METADATASOURCE_H
 #define ASKAP_CP_INGEST_METADATASOURCE_H
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "tosmetadata/MetadataReceiver.h"

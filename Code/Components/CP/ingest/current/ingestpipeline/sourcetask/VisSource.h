@@ -44,9 +44,13 @@ namespace ingest {
 
 class VisSource : public IVisSource {
     public:
+        /// Constructor
         VisSource(const unsigned int port, const unsigned int bufSize);
+        
+        /// Destructor
         ~VisSource();
 
+        /// @see IVisSource::next
         boost::shared_ptr<VisDatagram> next(const long timeout = -1);
 
     private:

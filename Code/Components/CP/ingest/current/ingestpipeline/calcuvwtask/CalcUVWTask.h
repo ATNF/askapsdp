@@ -51,6 +51,7 @@ namespace ingest {
 ///
 /// The class requires antenna locations to be passed as part of the parameter
 /// set passed to the constructor. The following is an example:
+///
 /// @verbatim
 /// uvw.antennas.location = [+117.471deg, -25.692deg, 192m, WGS84]
 /// uvw.antennas.names    = [A0, A1, A2, A3, A4, A5]
@@ -75,7 +76,7 @@ namespace ingest {
 class CalcUVWTask : public askap::cp::ingest::ITask {
     public:
 
-        /// @breif Constructor.
+        /// @brief Constructor.
         /// @param[in] parset the configuration parameter set.
         CalcUVWTask(const LOFAR::ParameterSet& parset,
                 const Configuration& config);

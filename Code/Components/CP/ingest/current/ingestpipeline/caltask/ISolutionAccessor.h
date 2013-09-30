@@ -99,7 +99,7 @@ class ISolutionAccessor {
         ///
         /// @param[in] ant  antenna id. (0-based)
         /// @param[in] beam beam id (0-based)
-        /// @param[in] channel channel number (0-based)
+        /// @param[in] chan channel number (0-based)
         /// @param[in] pol Either XX or YY
         /// @param[out] valid   used to indicate the validity of the returned data.
         ///                     Upon return the valid flag will be true if the

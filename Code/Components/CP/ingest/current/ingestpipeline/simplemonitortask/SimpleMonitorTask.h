@@ -57,7 +57,7 @@ namespace ingest {
 class SimpleMonitorTask : public askap::cp::ingest::ITask {
 public:
 
-   /// @breif Constructor
+   /// @brief Constructor
    /// @param[in] parset the configuration parameter set.
    /// @param[in] config configuration
    SimpleMonitorTask(const LOFAR::ParameterSet& parset,

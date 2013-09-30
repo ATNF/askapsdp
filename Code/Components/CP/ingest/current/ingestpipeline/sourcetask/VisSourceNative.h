@@ -43,12 +43,19 @@ namespace ingest {
 
 class VisSourceNative : public IVisSource {
     public:
+
+        /// Constructor
         VisSourceNative(const unsigned int port, const unsigned int bufSize);
+
+        /// Destructor
         ~VisSourceNative();
 
+        /// @see IVisSource::next
         boost::shared_ptr<VisDatagram> next(const long timeout = -1);
 
     private:
+
+        /// Entry point for the thread that recieves the UDP data stream
         void run(void);
 
         // Circular buffer of VisDatagram objects
