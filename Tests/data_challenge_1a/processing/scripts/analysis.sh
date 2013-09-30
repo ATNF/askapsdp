@@ -134,7 +134,7 @@ mpirun -np 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
 mpirun -np 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
 
 evalparset=eval-parset-\${PBS_JOBID}.in
-grep "Eval" $parset > $evalparset
+grep "Eval" \$parset > \$evalparset
 
 mpirun -np 1 \$plotEval -c \$evalparset > \$pelog
 err=\$?
