@@ -67,12 +67,14 @@ TosSimulator::TosSimulator(const std::string& dataset,
         const std::string& locatorHost,
         const std::string& locatorPort,
         const std::string& topicManager,                
-        const std::string& topic)
-: itsCurrentRow(0)
+        const std::string& topic,
+        const double metadataSendFail)
+    : itsMetadataSendFailChance(metadataSendFail), itsCurrentRow(0),
+        itsRandom(0.0, 1.0)
 {
     itsMS.reset(new casa::MeasurementSet(dataset, casa::Table::Old));
-    itsPort.reset(new askap::cp::icewrapper::MetadataOutputPort(locatorHost, locatorPort,
-                  topicManager, topic));
+    itsPort.reset(new askap::cp::icewrapper::MetadataOutputPort(locatorHost,
+                locatorPort, topicManager, topic));
 }
 
 TosSimulator::~TosSimulator()
@@ -226,14 +228,19 @@ bool TosSimulator::sendNext(void)
         itsCurrentRow++;
     }
 
-    // Send the payload
-    itsPort->send(metadata);
+    // Send the payload, however we use a RNG to simulate random send failure
+    if (itsRandom.gen() > itsMetadataSendFailChance) {
+        itsPort->send(metadata);
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "Simulating metadata send failure this cycle");
+    }
 
     // If this is the final payload send another with scan == -1, indicating the observation has ended
     if (itsCurrentRow == nRow) {
         ASKAPLOG_INFO_STR(logger,
                 "Sending additional metadata message indicating end-of-observation");
         metadata.scanId(-1);
+
         itsPort->send(metadata);
 
         return false; // Indicate there is no more data after this payload

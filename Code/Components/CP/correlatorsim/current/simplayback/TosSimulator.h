@@ -41,6 +41,7 @@
 
 // Local package includes
 #include "simplayback/ISimulator.h"
+#include "simplayback/RandomReal.h"
 
 namespace askap {
 namespace cp {
@@ -65,7 +66,8 @@ class TosSimulator : public ISimulator {
                      const std::string& locatorHost,
                      const std::string& locatorPort,
                      const std::string& topicManager,
-                     const std::string& topic);
+                     const std::string& topic,
+                     const double metadataSendFail = 0.0);
 
         /// Destructor
         virtual ~TosSimulator();
@@ -81,8 +83,14 @@ class TosSimulator : public ISimulator {
         // Utility function, used to build a string out of two
         std::string makeMapKey(const std::string &prefix, const std::string &suffix);
 
+        // The chance a VisChunk will not be sent
+        const double itsMetadataSendFailChance;
+
         // Cursor (index) for the main table of the measurement set
         unsigned int itsCurrentRow;
+
+        // Source of randomness (for simulating random failures)
+        RandomReal<double> itsRandom;
 
         // Measurement set
         boost::scoped_ptr<casa::MeasurementSet> itsMS;

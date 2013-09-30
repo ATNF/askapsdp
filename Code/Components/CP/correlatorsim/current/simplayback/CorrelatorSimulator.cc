@@ -70,8 +70,10 @@ CorrelatorSimulator::CorrelatorSimulator(const std::string& dataset,
         const std::string& hostname,
         const std::string& port,
         const BaselineMap& bmap,
-        const unsigned int expansionFactor)
-: itsBaselineMap(bmap), itsExpansionFactor(expansionFactor), itsCurrentRow(0)
+        const unsigned int expansionFactor,
+        const double visSendFail)
+    : itsBaselineMap(bmap), itsExpansionFactor(expansionFactor),
+        itsVisSendFailChance(visSendFail), itsCurrentRow(0), itsRandom(0.0, 1.0)
 {
     if (expansionFactor > 1) {
         ASKAPLOG_DEBUG_STR(logger, "Using expansion factor of " << expansionFactor);
@@ -110,6 +112,10 @@ bool CorrelatorSimulator::sendNext(void)
 
     // Some general constraints
     ASKAPCHECK(fieldc.nrow() == 1, "Currently only support a single field");
+
+    // Counts the number of simulated (randomised) failures to send
+    // visibilities this cycle
+    unsigned long failureCount = 0;
 
     ////////////////////////////////////////
     // Visibilities
@@ -216,7 +222,13 @@ bool CorrelatorSimulator::sendNext(void)
                 }
                 // Finished populating, send this payload but then reuse it in the
                 // next iteration of the loop for the next packet
-                itsPort->send(payload);
+
+                // Use a RNG to simulate random failure to send packets
+                if (itsRandom.gen() > itsVisSendFailChance) {
+                    itsPort->send(payload);
+                } else {
+                    ++failureCount;
+                }
 
                 // Sleep for a while to smooth the packet flow. This is an
                 // arbitary time suited to sending BETA scale datasets, and should
@@ -227,6 +239,8 @@ bool CorrelatorSimulator::sendNext(void)
 
         itsCurrentRow++;
     }
+
+    ASKAPLOG_DEBUG_STR(logger, "Randomly failed to send " << failureCount << " payloads this cycle");
 
     if (itsCurrentRow == nRow) {
         return false; // Indicate there is no more data after this payload

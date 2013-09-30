@@ -1,6 +1,6 @@
-/// @file tsimplayback.cc
+/// @file RandomReal.h
 ///
-/// @copyright (c) 2012 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,19 +24,42 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_SIMPLAYBACK_RANDOMREAL_H
+#define ASKAP_CP_SIMPLAYBACK_RANDOMREAL_H
+
+// System includes
+#include <ctime>
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "boost/random/uniform_real_distribution.hpp"
+#include "boost/random/mersenne_twister.hpp"
 
-// Test includes
-#include "BaselineMapTest.h"
-#include "RandomRealTest.h"
+namespace askap {
+namespace cp {
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::BaselineMapTest::suite());
-    runner.addTest(askap::cp::RandomRealTest::suite());
-    const bool wasSucessful = runner.run();
+/// @brief
+template <typename T>
+class RandomReal {
+    public:
 
-    return wasSucessful ? 0 : 1;
-}
+        RandomReal(const T& lower, const T& upper)
+            : itsRndSource(time(0)), itsUniformRandomDist(lower, upper)
+        {
+        }
+
+        T gen(void)
+        {
+            return itsUniformRandomDist(itsRndSource);
+        }
+
+    private:
+        // Source of randomness
+        boost::random::mt19937 itsRndSource;
+
+        // Uniform real number generator
+        boost::random::uniform_real_distribution<double> itsUniformRandomDist;
+};
+
+};
+};
+#endif

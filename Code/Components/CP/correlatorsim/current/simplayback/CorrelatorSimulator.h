@@ -39,6 +39,7 @@
 #include "simplayback/ISimulator.h"
 #include "simplayback/VisPort.h"
 #include "simplayback/BaselineMap.h"
+#include "simplayback/RandomReal.h"
 
 namespace askap {
 namespace cp {
@@ -60,11 +61,16 @@ class CorrelatorSimulator : public ISimulator {
         ///     simulating a small 304 channel (1MHz channels) dataset and using
         ///     an expansion factor of 54 to get to a 16416 (18.5KHz channels)
         ///     data stream.
+        /// @param[in] visSendFail  the chance a VisChunk will not be sent. A failure
+        ///                         is simulated by simple not attempting the send.
+        ///                         A value of of 0.0 results in no failures, while
+        ///                         1.0 results in all sends failing.
         CorrelatorSimulator(const std::string& dataset,
                             const std::string& hostname,
                             const std::string& port,
                             const BaselineMap& bmap,
-                            const unsigned int expansionFactor = 1);
+                            const unsigned int expansionFactor = 1,
+                            const double visSendFail = 0.0);
 
         /// Destructor
         virtual ~CorrelatorSimulator();
@@ -84,8 +90,14 @@ class CorrelatorSimulator : public ISimulator {
         // Channel multiplication factor
         const unsigned int itsExpansionFactor;
 
+        // The chance a VisChunk will not be sent.
+        const double itsVisSendFailChance;
+
         // Cursor (index) for the main table of the measurement set
         unsigned int itsCurrentRow;
+
+        // Source of randomness (for simulating random failures)
+        RandomReal<double> itsRandom;
 
         // Measurement set
         boost::scoped_ptr<casa::MeasurementSet> itsMS;

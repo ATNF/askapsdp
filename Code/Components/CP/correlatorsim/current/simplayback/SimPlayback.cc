@@ -121,9 +121,10 @@ boost::shared_ptr<TosSimulator> SimPlayback::makeTosSim(void)
     const std::string locatorPort = itsParset.getString("tossim.ice.locator_port");
     const std::string topicManager = itsParset.getString("tossim.icestorm.topicmanager");
     const std::string topic = itsParset.getString("tossim.icestorm.topic");
+    const double failureChance = itsParset.getDouble("tossim.random_metadata_send_fail", 0.0);
 
     return boost::shared_ptr<TosSimulator>(new TosSimulator(filename,
-                locatorHost, locatorPort, topicManager, topic));
+                locatorHost, locatorPort, topicManager, topic, failureChance));
 }
 
 boost::shared_ptr<CorrelatorSimulator> SimPlayback::makeCorrelatorSim(void)
@@ -136,8 +137,10 @@ boost::shared_ptr<CorrelatorSimulator> SimPlayback::makeCorrelatorSim(void)
     const std::string port = subset.getString("out.port");
     const unsigned int expansion = itsParset.getUint32("corrsim.expansion_factor", 1);
     const BaselineMap bmap(itsParset.makeSubset("baselinemap."));
+    const double failureChance = itsParset.getDouble("corrsim.random_vis_send_fail", 0.0);
     return boost::shared_ptr<CorrelatorSimulator>(
-            new CorrelatorSimulator(dataset, hostname, port, bmap, expansion));
+            new CorrelatorSimulator(dataset, hostname, port, bmap, expansion,
+                failureChance));
 }
 
 void SimPlayback::run(void)

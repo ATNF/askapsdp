@@ -11,6 +11,11 @@ playback.tossim.ice.locator_port            = 4061
 playback.tossim.icestorm.topicmanager       = IceStorm/TopicManager@IceStorm.TopicManager
 playback.tossim.icestorm.topic              = tosmetadata
 
+# Simulate random failures to send metadata message. A value of of 0.0
+# results in no failures, while 1.0 results in all sends failing.
+# (Default: 0.0)
+#playback.tossim.random_metadata_send_fail   = 0.2
+
 #
 # Correlator Simulator
 #
@@ -21,6 +26,11 @@ playback.corrsim.n_shelves                  = 2
 # small 304 channel (1MHz channels) dataset and using an expansion
 # factor of 54 to get to a 16416 (18.5KHz channels) data stream.
 playback.corrsim.expansion_factor           = 54
+
+# Simulate random failures to send VisChunk. A value of of 0.0 results in
+# no failures, while 1.0 results in all sends failing.
+# (Default: 0.0)
+#playback.corrsim.random_vis_send_fail       = 0.0002
 
 # Correlator Shelf 1
 playback.corrsim.shelf1.dataset             = ../../dataset/beta1.ms
