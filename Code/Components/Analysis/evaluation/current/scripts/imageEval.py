@@ -9,6 +9,8 @@ import askap.analysis.evaluation.modelcomponents as models
 import pyfits
 import pywcs
 import os
+from optparse import OptionParser
+import askap.parset as parset
 
 def labelPlot(xlab, ylab, title,textsize):
     plt.tick_params(labelsize=textsize)
