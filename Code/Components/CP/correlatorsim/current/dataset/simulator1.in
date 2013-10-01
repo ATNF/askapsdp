@@ -31,8 +31,9 @@ Csimulator.simulation.integrationtime           =       10s
 #
 # Observe source 10uJy for 12 hours with a single channel spectral window
 #
-Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [10uJy, Coarse2_0, 0h, 1h00m]
+Csimulator.observe.number                       =       2
+Csimulator.observe.scan0                        =       [10uJy, Coarse2_0, 0h, 0h02m]
+Csimulator.observe.scan1                        =       [10uJy, Coarse2_0, 0h02m, 0h04m]
 #
 # Use a gridder to apply primary beam during the W projection step.
 #
