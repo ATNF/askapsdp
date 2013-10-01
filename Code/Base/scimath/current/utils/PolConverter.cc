@@ -411,7 +411,7 @@ std::vector<std::string> PolConverter::toString(const casa::Vector<casa::Stokes:
 /// @brief helper method to get the elements of transform matrix in the sparse form
 /// @details For calibration code when the model is setup with the descrete components there
 /// is potentially a heavy calculation for each polarisation product. Therefore, we want to be
-/// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected row
+/// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected column
 /// of the transform matrix.
 /// @param[in] pol polarisation type (should be part of the input frame)
 /// @return map with the polarisation product as the key and the complex coefficient as the value
@@ -419,22 +419,22 @@ std::map<casa::Stokes::StokesTypes, casa::Complex> PolConverter::getSparseTransf
 {
   std::map<casa::Stokes::StokesTypes, casa::Complex> result;
   casa::uInt product = 0;
-  for (; product < itsPolFrameOut.nelements(); ++product) {
-       if (itsPolFrameOut[product] == pol) {
+  for (; product < itsPolFrameIn.nelements(); ++product) {
+       if (itsPolFrameIn[product] == pol) {
            break;
        }
   }
-  ASKAPCHECK(product != itsPolFrameOut.nelements(), "Requested polarisation product "<<casa::Stokes::name(pol)<<
-       " is not found in the output frame the converter is set up with");
+  ASKAPCHECK(product != itsPolFrameIn.nelements(), "Requested polarisation product "<<casa::Stokes::name(pol)<<
+       " is not found in the input frame the converter is set up with");
   if (itsVoid) {
       result[pol] = casa::Complex(1.,0.);
   } else { 
-      ASKAPDEBUGASSERT(product < itsTransform.nrow());
-      ASKAPDEBUGASSERT(itsPolFrameIn.nelements() <= itsTransform.ncolumn());
-      for (casa::uInt index = 0; index < itsPolFrameIn.nelements(); ++index) {
-           const casa::Complex val = itsTransform(product,index);
+      ASKAPDEBUGASSERT(product < itsTransform.ncolumn());
+      ASKAPDEBUGASSERT(itsPolFrameOut.nelements() <= itsTransform.nrow());
+      for (casa::uInt index = 0; index < itsPolFrameOut.nelements(); ++index) {
+           const casa::Complex val = itsTransform(index,product);
            if (abs(val) > 1e-5) {
-               result[itsPolFrameIn[index]] = val;
+               result[itsPolFrameOut[index]] = val;
            }
       }
   }
@@ -443,5 +443,51 @@ std::map<casa::Stokes::StokesTypes, casa::Complex> PolConverter::getSparseTransf
   return result;
 }
 
+/// @brief all polarisation products in the stokes frame in the canonical order
+/// @details This is a helper method to get 4-element vector filled with polarisation
+/// products in the canonical order. This particular version returns them in the Stokes frame.
+/// It can be used to setup the converter when either input or output frame (or both) are to be
+/// given explicitly
+/// @return 4-element vector with polarisation products
+casa::Vector<casa::Stokes::StokesTypes> PolConverter::canonicStokes()
+{
+  casa::Vector<casa::Stokes::StokesTypes> result(4);
+  result[0] = casa::Stokes::I;
+  result[1] = casa::Stokes::Q;
+  result[2] = casa::Stokes::U;
+  result[3] = casa::Stokes::V;
+  return result;
+}
 
+/// @brief all polarisation products in the linear frame in the canonical order
+/// @details This is a helper method to get 4-element vector filled with polarisation
+/// products in the canonical order. This particular version returns them in the linear frame.
+/// It can be used to setup the converter when either input or output frame (or both) are to be
+/// given explicitly
+/// @return 4-element vector with polarisation products
+casa::Vector<casa::Stokes::StokesTypes> PolConverter::canonicLinear()
+{
+  casa::Vector<casa::Stokes::StokesTypes> result(4);
+  result[0] = casa::Stokes::XX;
+  result[1] = casa::Stokes::XY;
+  result[2] = casa::Stokes::YX;
+  result[3] = casa::Stokes::YY;
+  return result;
+}
+
+/// @brief all polarisation products in the circular frame in the canonical order
+/// @details This is a helper method to get 4-element vector filled with polarisation
+/// products in the canonical order. This particular version returns them in the circular frame.
+/// It can be used to setup the converter when either input or output frame (or both) are to be
+/// given explicitly
+/// @return 4-element vector with polarisation products
+casa::Vector<casa::Stokes::StokesTypes> PolConverter::canonicCircular()
+{
+  casa::Vector<casa::Stokes::StokesTypes> result(4);
+  result[0] = casa::Stokes::RR;
+  result[1] = casa::Stokes::RL;
+  result[2] = casa::Stokes::LR;
+  result[3] = casa::Stokes::LL;
+  return result;
+}
 

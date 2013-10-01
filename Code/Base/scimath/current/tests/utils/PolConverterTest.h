@@ -52,6 +52,7 @@ class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(linear2stokesTest);
   CPPUNIT_TEST(circular2stokesTest);
   CPPUNIT_TEST(sparseTransformTest);
+  CPPUNIT_TEST(canonicOrderTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void dimensionTest() {
@@ -343,15 +344,15 @@ public:
   
   void sparseTransformTest() {
      casa::Vector<casa::Stokes::StokesTypes> in(4);
-     in[0] = casa::Stokes::XX;
-     in[1] = casa::Stokes::XY;
-     in[2] = casa::Stokes::YX;
-     in[3] = casa::Stokes::YY;
+     in[0] = casa::Stokes::I;
+     in[1] = casa::Stokes::Q;
+     in[2] = casa::Stokes::U;
+     in[3] = casa::Stokes::V;
      casa::Vector<casa::Stokes::StokesTypes> out(4);
-     out[0] = casa::Stokes::I;
-     out[1] = casa::Stokes::Q;
-     out[2] = casa::Stokes::U;
-     out[3] = casa::Stokes::V;
+     out[0] = casa::Stokes::XX;
+     out[1] = casa::Stokes::XY;
+     out[2] = casa::Stokes::YX;
+     out[3] = casa::Stokes::YY;
      
      PolConverter pc(in,out);
      CPPUNIT_ASSERT(pc.nInputDim() == 4);
@@ -365,11 +366,32 @@ public:
      CPPUNIT_ASSERT(tfm.find(casa::Stokes::YY) != tfm.end());
      CPPUNIT_ASSERT(tfm.find(casa::Stokes::XY) == tfm.end());
      CPPUNIT_ASSERT(tfm.find(casa::Stokes::YX) == tfm.end());
-     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(tfm[casa::Stokes::XX]),1e-5);
-     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(tfm[casa::Stokes::YY]),1e-5);
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5,real(tfm[casa::Stokes::XX]),1e-5);
+     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5,real(tfm[casa::Stokes::YY]),1e-5);
      CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,imag(tfm[casa::Stokes::XX]),1e-5);
      CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,imag(tfm[casa::Stokes::YY]),1e-5);     
   }
+  
+  void canonicOrderTest() {  
+     const casa::Vector<casa::Stokes::StokesTypes> stokes = PolConverter::canonicStokes();
+     CPPUNIT_ASSERT(PolConverter::isStokes(stokes));
+     const casa::Vector<casa::Stokes::StokesTypes> linear = PolConverter::canonicLinear();
+     CPPUNIT_ASSERT(PolConverter::isLinear(linear));
+     const casa::Vector<casa::Stokes::StokesTypes> circular = PolConverter::canonicCircular();
+     CPPUNIT_ASSERT(PolConverter::isCircular(circular));
+     CPPUNIT_ASSERT_EQUAL(size_t(4), stokes.nelements());
+     CPPUNIT_ASSERT_EQUAL(size_t(4), linear.nelements());
+     CPPUNIT_ASSERT_EQUAL(size_t(4), circular.nelements());
+     for (casa::uInt elem = 0; elem < stokes.nelements(); ++elem) {
+          CPPUNIT_ASSERT_EQUAL(elem, PolConverter::getIndex(stokes[elem]));
+          CPPUNIT_ASSERT_EQUAL(elem, PolConverter::getIndex(linear[elem]));
+          CPPUNIT_ASSERT_EQUAL(elem, PolConverter::getIndex(circular[elem]));
+     }
+  }
+  
+  
+  
+  
   
 };
 

@@ -194,6 +194,30 @@ struct PolConverter {
   /// @return true, if it is a normal cross-correlation or I,Q,U or V.
   static bool isValid(casa::Stokes::StokesTypes pol);
   
+  /// @brief all polarisation products in the stokes frame in the canonical order
+  /// @details This is a helper method to get 4-element vector filled with polarisation
+  /// products in the canonical order. This particular version returns them in the Stokes frame.
+  /// It can be used to setup the converter when either input or output frame (or both) are to be
+  /// given explicitly
+  /// @return 4-element vector with polarisation products
+  static casa::Vector<casa::Stokes::StokesTypes> canonicStokes();
+
+  /// @brief all polarisation products in the linear frame in the canonical order
+  /// @details This is a helper method to get 4-element vector filled with polarisation
+  /// products in the canonical order. This particular version returns them in the linear frame.
+  /// It can be used to setup the converter when either input or output frame (or both) are to be
+  /// given explicitly
+  /// @return 4-element vector with polarisation products
+  static casa::Vector<casa::Stokes::StokesTypes> canonicLinear();
+  
+  /// @brief all polarisation products in the circular frame in the canonical order
+  /// @details This is a helper method to get 4-element vector filled with polarisation
+  /// products in the canonical order. This particular version returns them in the circular frame.
+  /// It can be used to setup the converter when either input or output frame (or both) are to be
+  /// given explicitly
+  /// @return 4-element vector with polarisation products
+  static casa::Vector<casa::Stokes::StokesTypes> canonicCircular();
+  
   /// @brief obtain the transform matrix
   /// @return const reference to the transform matrix
   inline const casa::Matrix<casa::Complex>& getTransform() const { return itsTransform;}
@@ -201,7 +225,7 @@ struct PolConverter {
   /// @brief helper method to get the elements of transform matrix in the sparse form
   /// @details For calibration code when the model is setup with the descrete components there
   /// is potentially a heavy calculation for each polarisation product. Therefore, we want to be
-  /// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected row
+  /// able to skip it if the coefficient is zero. This method returns non-zero elements of a selected column
   /// of the transform matrix.
   /// @param[in] pol polarisation type (should be part of the input frame)
   /// @return map with the polarisation product as the key and the complex coefficient as the value
