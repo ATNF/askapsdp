@@ -156,29 +156,39 @@ void ComponentEquation::fillComponentCache(
 void ComponentEquation::addModelToCube(const IParameterizedComponent& comp,
        const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
        const casa::Vector<casa::Double>& freq,
-       casa::Cube<casa::Complex> &rwVis)
+       casa::Cube<casa::Complex> &rwVis) const
 {
   ASKAPDEBUGASSERT(rwVis.nrow() == uvw.nelements());
   ASKAPDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
-
-  // in the future we need to ensure that polarisation 
-  // products appear in this order and as Stokes parameters
-  const casa::Stokes::StokesTypes polVect[4] =
-       { casa::Stokes::I, casa::Stokes::Q, casa::Stokes::U, casa::Stokes::V };
                                 
-  ASKAPDEBUGASSERT(rwVis.nplane()<=4);
+  ASKAPDEBUGASSERT(rwVis.nplane() == itsPolConverter.outputPolFrame().nelements());
   
   // flattened buffer for visibilities 
   std::vector<double> vis(2*freq.nelements()); 
  
+  
   for (casa::uInt row=0;row<rwVis.nrow();++row) {
-       for (casa::uInt pol=0; pol<rwVis.nplane(); ++pol) {
-           comp.calculate(uvw[row],freq,polVect[pol],vis);
-                   
-           /// next command adds model visibilities to the
-           /// appropriate slice of the visibility cube. Conversions
-           /// between complex and two doubles are handled automatically
-           addVector(vis,rwVis.xyPlane(pol).row(row));
+       casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
+       for (casa::Vector<casa::Stokes::StokesTypes>::const_iterator polIt = itsPolConverter.inputPolFrame().begin();
+            polIt != itsPolConverter.inputPolFrame().end(); ++polIt) {
+            // model given input Stokes
+            comp.calculate(uvw[row],freq,*polIt,vis);
+
+            // for most typically used transforms some elements will be zeros, use sparseTransform
+            // instead of the full matrix to avoid heavy calculations in the loop
+            const std::map<casa::Stokes::StokesTypes, casa::Complex> sparseTransform = 
+                   itsPolConverter.getSparseTransform(*polIt); 
+            for (std::map<casa::Stokes::StokesTypes, casa::Complex>::const_iterator ci=sparseTransform.begin();
+                 ci!=sparseTransform.end(); ++ci) {
+                 
+                 const casa::uInt pol = polIndex(ci->first);
+                 ASKAPDEBUGASSERT(pol < thisRow.ncolumn());
+                                    
+                 /// next command adds model visibilities to the
+                 /// appropriate slice of the visibility cube. Conversions
+                 /// between complex and two doubles are handled automatically
+                 addScaledVector(vis,thisRow.column(pol),ci->second);
+            }
        }          
   }
 }               
@@ -197,33 +207,58 @@ void ComponentEquation::addModelToCube(const IParameterizedComponent& comp,
 void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
        const casa::Vector<casa::Double>& freq,
-       casa::Cube<casa::Complex> &rwVis)
+       casa::Cube<casa::Complex> &rwVis) const
 {
   ASKAPDEBUGASSERT(rwVis.nrow() == uvw.nelements());
   ASKAPDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
   ASKAPDEBUGASSERT(rwVis.nplane() >= 1);
   
-  // in the future, we have to ensure that the first polarisation product is
-  // stokes I. 
- 
   // flattened buffer for visibilities 
-  std::vector<double> vis(2*freq.nelements()); 
- 
+  std::vector<double> vis(2*freq.nelements());
+  
+  // only Stokes I is of interest for the unpolarised component, use sparse transform
+  const std::map<casa::Stokes::StokesTypes, casa::Complex> sparseTransform = 
+        itsPolConverter.getSparseTransform(casa::Stokes::I); 
+
   for (casa::uInt row=0;row<rwVis.nrow();++row) {
        comp.calculate(uvw[row],freq,vis);
+       //
+       casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
        
-       /// next command adds model visibilities to the
-       /// appropriate slice of the visibility cube. Conversions
-       /// between complex and two doubles are handled automatically
-       addVector(vis,rwVis.xyPlane(0).row(row));
-       // temporary hardcoded polarisation workaround
-       if (rwVis.nplane() == 2) {
-           addVector(vis,rwVis.xyPlane(1).row(row));
-       } else if (rwVis.nplane()>=4) {
-           addVector(vis,rwVis.xyPlane(3).row(row));
+       ASKAPDEBUGASSERT(thisRow.ncolumn() == itsPolConverter.outputPolFrame().nelements());
+       
+       for (casa::uInt pol = 0; pol < thisRow.ncolumn(); ++pol) {
+            const std::map<casa::Stokes::StokesTypes, casa::Complex>::const_iterator ci = 
+                 sparseTransform.find(itsPolConverter.outputPolFrame()[pol]);
+            if (ci != sparseTransform.end()) {
+                        
+                /// next command adds model visibilities to the
+                /// appropriate slice of the visibility cube. Conversions
+                /// between complex and two doubles are handled automatically
+                addScaledVector(vis,thisRow.column(pol), ci->second);       
+            }
        }
   }           
 }
+
+/// @brief helper method to return polarisation index in the visibility cube
+/// @details The visibility cube may have various polarisation products and
+/// ways of arranging them. This method extracts an index corresponding to the
+/// given polarisation product. An exception is thrown, if the requested
+/// product is not present.
+/// @param[in] pol polarisation product
+/// @return index (from 0 to nPol()-1)
+casa::uInt ComponentEquation::polIndex(casa::Stokes::StokesTypes pol) const
+{
+  casa::Vector<casa::Stokes::StokesTypes> visCubeFrame = itsPolConverter.outputPolFrame();
+  for (casa::uInt index = 0; index < visCubeFrame.nelements(); ++index) {
+       if (visCubeFrame[index] == pol) {
+           return index;
+       }
+  }
+  ASKAPTHROW(AskapError, "Unable to find a match for polarisation product "<<pol);
+}
+
 
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This version of the predict method works with
@@ -244,6 +279,13 @@ void ComponentEquation::predict(accessors::IDataAccessor &chunk) const
          
   // reset all visibility cube to 0
   rwVis.set(0.);
+  
+  // check whether the polarisation converter is valid
+  if (!scimath::PolConverter::equal(itsPolConverter.outputPolFrame(),chunk.stokes())) {
+      // reset pol converter because either polarisation frame has changed or 
+      // this is the first use. The converter will be used inside addModelToCube shortly      
+      itsPolConverter = scimath::PolConverter(scimath::PolConverter::canonicStokes(), chunk.stokes(), true);    
+  }
          
   // loop over components
   for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 

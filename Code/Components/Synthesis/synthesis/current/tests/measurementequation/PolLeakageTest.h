@@ -328,7 +328,7 @@ namespace askap
           for (casa::uInt row = 0; row < da.nRow(); ++row) {
                for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
                     for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 0.5 : 0., real(vis(row,chan,pol)),1e-6);
                          CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-6);                         
                     }
                }
@@ -401,7 +401,7 @@ namespace askap
           for (casa::uInt row = 0; row < da.nRow(); ++row) {
                for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
                     for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 0.5 : 0., real(vis(row,chan,pol)),1e-6);
                          CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-6);                         
                     }
                }

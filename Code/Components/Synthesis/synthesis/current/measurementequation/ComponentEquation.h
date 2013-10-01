@@ -41,7 +41,7 @@
 #include <measurementequation/IParameterizedComponent.h>
 #include <measurementequation/IUnpolarizedComponent.h>
 #include <measurementequation/GenericMultiChunkEquation.h>
-
+#include <utils/PolConverter.h>
 
 // casa includes
 #include <casa/aips.h>
@@ -122,7 +122,17 @@ namespace askap
         /// @brief fill the cache of the components
         /// @details This method convertes the parameters into a vector of 
         /// components. It is called on the first access to itsComponents
-        void fillComponentCache(std::vector<IParameterizedComponentPtr> &in) const;      
+        void fillComponentCache(std::vector<IParameterizedComponentPtr> &in) const;
+        
+        /// @brief helper method to return polarisation index in the visibility cube
+        /// @details The visibility cube may have various polarisation products and
+        /// ways of arranging them. This method extracts an index corresponding to the
+        /// given polarisation product. An exception is thrown, if the requested
+        /// product is not present.
+        /// @param[in] pol polarisation product
+        /// @return index (from 0 to nPol()-1)
+        casa::uInt polIndex(casa::Stokes::StokesTypes pol) const;
+              
         
         /// @brief a helper method to populate a visibility cube
         /// @details This is method computes visibilities for the one given
@@ -136,10 +146,10 @@ namespace askap
         /// @param[in] freq a vector of frequencies (one for each spectral
         ///            channel) 
         /// @param[in] rwVis a non-const reference to the visibility cube to alter
-        static void addModelToCube(const IParameterizedComponent& comp,
+        void addModelToCube(const IParameterizedComponent& comp,
                const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
                const casa::Vector<casa::Double>& freq,
-               casa::Cube<casa::Complex> &rwVis);
+               casa::Cube<casa::Complex> &rwVis) const;
 
         /// @brief a helper method to populate a visibility cube
         /// @details This is method computes visibilities for the one given
@@ -152,10 +162,10 @@ namespace askap
         /// @param[in] freq a vector of frequencies (one frequency for each 
         ///            spectral channel) 
         /// @param[in] rwVis a non-const reference to the visibility cube to alter
-        static void addModelToCube(const IUnpolarizedComponent& comp,
+        void addModelToCube(const IUnpolarizedComponent& comp,
                const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
                const casa::Vector<casa::Double>& freq,
-               casa::Cube<casa::Complex> &rwVis);
+               casa::Cube<casa::Complex> &rwVis) const;
         
         /// @brief a helper method to update design matrix and residuals
         /// @details This method iterates over a given number of polarisation 
@@ -196,6 +206,11 @@ namespace askap
         
         /// @brief True if all components are unpolarised
         mutable bool itsAllComponentsUnpolarised;
+        
+        /// @brief polarisation converter to be used with this component equation
+        /// @details Components are defined in the Stokes frame, this class converts them
+        /// into the measurement frame
+        mutable scimath::PolConverter itsPolConverter;
     };
 
   }

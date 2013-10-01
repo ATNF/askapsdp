@@ -27,8 +27,9 @@ def analyseResult(spr):
    disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
    if disterr > 8:
       raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
-   if abs(stats['peak']-2.)>0.1:
-      raise RuntimeError, "Peak flux in the image is notably different from 2 Jy, F=%f" % stats['peak']
+   # as polarisation conversion is now fixed in the component-based measurement equation we have exactly the same flux value as in the simulation parset
+   if abs(stats['peak']-1.)>0.1:
+      raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
 
    stats = spr.imageStats('image.field1')
    print "Statistics for modelimage: ",stats

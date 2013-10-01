@@ -80,7 +80,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          itsIter = accessors::SharedIter<accessors::DataIteratorStub>(new accessors::DataIteratorStub(1));
          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);
          ASKAPASSERT(da.itsStokes.nelements() == 1);
-         da.itsStokes[0] = casa::Stokes::XX;   
+         da.itsStokes[0] = casa::Stokes::I;   
          da.itsNoise.set(1.0);
          
          itsME.reset(new ComponentEquation(*itsParams, itsIter));               
@@ -98,7 +98,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
          CPPUNIT_ASSERT_EQUAL(1u,pacBuf.flag().ncolumn());
          CPPUNIT_ASSERT_EQUAL(1u,casa::uInt(pacBuf.stokes().nelements()));
-         CPPUNIT_ASSERT_EQUAL(casa::Stokes::XX, pacBuf.stokes()[0]);
+         CPPUNIT_ASSERT_EQUAL(casa::Stokes::I, pacBuf.stokes()[0]);
                   
          for (casa::uInt row=0; row < pacBuf.nRow(); ++row)  {
               CPPUNIT_ASSERT_EQUAL(itsIter->antenna1()[row],pacBuf.antenna1()[row]);
@@ -341,6 +341,12 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          da.itsFlag.resize(da.nRow(),da.nChannel(),da.nPol());
          da.itsFlag.set(casa::False);
 
+         CPPUNIT_ASSERT(itsParams);
+         // increase Stokes I flux, so individual polarisation products would get the same
+         // value as the Stokes I in other tests (so test methods could be reused). We need to
+         // regenerate the measurement equation here because the paramter values are copied at the construction
+         itsParams->update("flux.i.src",200.);
+         itsME.reset(new ComponentEquation(*itsParams, itsIter));
          CPPUNIT_ASSERT(itsME);
          // simulate visibilities
          itsME->predict(*itsIter);
