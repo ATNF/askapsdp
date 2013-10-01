@@ -274,7 +274,7 @@ private:
   /// exception if it is not the case. This is appropriate for gridding. A more relaxed behavior 
   /// equivalent to setting all unknown polarisation products to 0 is appropriate for degridding.
   /// This is achieved if this parameter is set to false.
-  const bool itsCheckUnspecifiedProducts;
+  bool itsCheckUnspecifiedProducts;
 };
 
 } // namespace scimath
