@@ -108,7 +108,7 @@ bool CorrelatorSimulator::sendNext(void)
     // being processed
     const casa::Double currentIntegration = msc.time()(itsCurrentRow);
     ASKAPLOG_DEBUG_STR(logger, "Processing integration with timestamp "
-            << std::setprecision (13) << currentIntegration);
+            << msc.timeMeas()(itsCurrentRow));
 
     // Some general constraints
     ASKAPCHECK(fieldc.nrow() == 1, "Currently only support a single field");
