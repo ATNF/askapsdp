@@ -75,10 +75,12 @@ void ScanManager::update(const casa::Int scanId)
             itsScanIndex = scanId;
             return;
         } else {
-            // Alternativly handle the case where the last scan has completed
+            // Alternatively handle the case where a -1 has been received,
+            // indicating end-of-observation
+            itsObsComplete = true;
             const size_t nScans = itsConfig.observation().scans().size();
-            if ((itsScanIndex + 1) == static_cast<casa::Long>(nScans)) {
-                itsObsComplete = true;
+            if (itsScanIndex < static_cast<casa::Int>(nScans) - 1) {
+                ASKAPLOG_WARN_STR(logger, "Observation ended before all specified scans were executed");
             }
         }
     }

@@ -134,7 +134,7 @@ bool IngestPipeline::ingestOne(void)
         return true;
     }
 
-    ASKAPLOG_DEBUG_STR(logger, "Received one VisChunk. Timestamp: "
+    ASKAPLOG_INFO_STR(logger, "Received one VisChunk. Timestamp: "
             << chunk->time());
 
     // For each task call process on the VisChunk

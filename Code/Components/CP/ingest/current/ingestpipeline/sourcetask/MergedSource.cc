@@ -100,21 +100,20 @@ VisChunk::ShPtr MergedSource::next(void)
     // Used for a timeout
     const long ONE_SECOND = 10000000;
 
-    do {
-        if (itsScanManager.scanIndex() < 0) {
-            // If the TOS hasn't started the observation yet (i.e. scan id hasn't
-            // changed from -1), just eat metadata payloads until scan_id >= 0
-            ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
-            do {
-                itsMetadata = itsMetadataSrc->next(ONE_SECOND);
-                checkInterruptSignal();
-            } while (!itsMetadata || itsMetadata->scanId() < 0);
-        } else {
+    if (itsScanManager.scanIndex() < 0) {
+        // If the TOS hasn't started the observation yet (i.e. scan id hasn't
+        // changed from -1), just eat metadata payloads until scan_id >= 0
+        ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
+        do {
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
-        }
-
-        checkInterruptSignal();
-    } while (!itsMetadata);
+            checkInterruptSignal();
+        } while (!itsMetadata || itsMetadata->scanId() < 0);
+    } else {
+        do {
+            itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+            checkInterruptSignal();
+        } while (!itsMetadata);
+    }
 
     // Update the Scan Manager
     itsScanManager.update(itsMetadata->scanId());
