@@ -324,51 +324,90 @@ void ComponentEquation::predict(accessors::IDataAccessor &chunk) const
 ///            spectral channel)
 /// @param[in] dm design matrix to update (to add derivatives to)
 /// @param[in] residual vector of residuals to update 
-/// @param[in] nPol a number of polarisation products to process
 void ComponentEquation::updateDesignMatrixAndResiduals(
                    const IParameterizedComponent& comp,
                    const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
                    const casa::Vector<casa::Double>& freq,
-                   scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual,
-                   casa::uInt nPol)
+                   scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual) const
 {
   const size_t nParameters = comp.nParameters();
+  // the number of polarisations in the visibility cube
+  const casa::uInt nPol = itsPolConverter.outputPolFrame().nelements();
+  ASKAPCHECK(nPol > 0, "Polarisation converter doesn't seem to be initialised");
   // number of data points  in the flattened vector
-  const casa::uInt nData=nPol*uvw.nelements()*freq.nelements()*2;
+  const casa::uInt nData = nPol*uvw.nelements()*freq.nelements()*2;
   ASKAPDEBUGASSERT(nData!=0);
-  ASKAPDEBUGASSERT(nPol<=4);
+  
+  // we only process Stokes I contribution if all components are unpolarised
+  const casa::Vector<casa::Stokes::StokesTypes> inputPolFrame = 
+             itsAllComponentsUnpolarised ? casa::Vector<casa::Stokes::StokesTypes>(1, casa::Stokes::I) :
+             itsPolConverter.inputPolFrame();
   ASKAPDEBUGASSERT(residual.nelements() == nData);
       
   // Define AutoDiffs to buffer the output of a single call to the calculate 
   // method of the component.
-  vector<casa::AutoDiff<double> > visDerivBuffer(2*freq.nelements(),
+  vector<casa::AutoDiff<double> > visDerivBufferSinglePol(2*freq.nelements(),
                           casa::AutoDiff<double>(0.,nParameters));
+                          
+  vector<vector<casa::AutoDiff<double> > > visDerivBuffer(nPol);
+                            
   casa::Array<casa::Double> derivatives(casa::IPosition(2,nData, nParameters));
            
   for (casa::uInt row=0,offset=0; row<uvw.nelements(); ++row) {
        
        const casa::RigidVector<casa::Double, 3> &thisRowUVW = uvw[row];
-       
-       // in the future we need to ensure that polarisation 
-       // products appear in this order and as Stokes parameters
-       const casa::Stokes::StokesTypes polVect[4] =
-           { casa::Stokes::I, casa::Stokes::Q, casa::Stokes::U, casa::Stokes::V };
+  
+       // initialise buffers for all polarisations
+       for (casa::uInt pol = 0; pol<nPol; ++pol) {                
+            visDerivBuffer[pol] = vector<casa::AutoDiff<double> >(2*freq.nelements()*nPol,
+                          casa::AutoDiff<double>(0.,nParameters));
+       }
+                          
+       for (casa::Vector<casa::Stokes::StokesTypes>::const_iterator polIt = inputPolFrame.begin();
+            polIt != inputPolFrame.end(); ++polIt) {
+            
+            // these are contribitions to derivatives from polarisation *polInt
+            comp.calculate(thisRowUVW,freq,*polIt,visDerivBufferSinglePol);
+
+            // for most typically used transforms some elements will be zeros, use sparseTransform
+            // instead of the full matrix to avoid heavy calculations in the loop
+            const std::map<casa::Stokes::StokesTypes, casa::Complex> sparseTransform = 
+                   itsPolConverter.getSparseTransform(*polIt);
+                    
+            for (std::map<casa::Stokes::StokesTypes, casa::Complex>::const_iterator ci=sparseTransform.begin();
+                 ci!=sparseTransform.end(); ++ci) {
+                 const casa::uInt index = polIndex(ci->first);
+                 ASKAPDEBUGASSERT(index < nPol);
+                 // the following is just a complex multiplication in the flattened form. We could probably
+                 // done it in the similar way to everything else with expansion of vector operations, but
+                 // do it explicitly for now for simplicity
+                 const double factorRe = double(real(ci->second));
+                 const double factorIm = double(imag(ci->second));
+                                  
+                 for (casa::uInt elem = 0; elem < 2*freq.nelements(); elem+=2) {
+                      visDerivBuffer[index][elem] += visDerivBufferSinglePol[elem] * factorRe -
+                            visDerivBufferSinglePol[elem+1] * factorIm; 
+                      visDerivBuffer[index][elem + 1] += visDerivBufferSinglePol[elem] * factorIm +
+                            visDerivBufferSinglePol[elem+1] * factorRe; 
+                 }
+            }            
+       }    
+       // visDerivBuffer is now filled with data for all polarisations
        
        for (casa::uInt pol=0; pol<nPol; ++pol,offset+=2*freq.nelements()) {
-            comp.calculate(thisRowUVW,freq,polVect[pol],visDerivBuffer);
-            // copy derivatives from buffer for each parameter
+            // copy derivatives from the buffer for each parameter
             for (casa::uInt par=0; par<nParameters; ++par) {
                  // copy derivatives for each channel from visDerivBuffer
                  // to the appropriate slice of the derivatives Array
                  // template takes care of the actual types
-                 copyDerivativeVector(par,visDerivBuffer,  
+                 copyDerivativeVector(par,visDerivBuffer[pol],  
                            derivatives(casa::IPosition(2,offset,par), 
                            casa::IPosition(2,offset+2*freq.nelements()-1,par)));                                 
             }
             // subtract contribution from the residuals
             // next command does: residual slice -= visDerivBuffer
             // taking care of all type conversions via templates
-            subtractVector(visDerivBuffer,
+            subtractVector(visDerivBuffer[pol],
                   residual(casa::Slice(offset,2*freq.nelements())));
        }
   }
@@ -400,11 +439,16 @@ void ComponentEquation::calcGenericEquations(const accessors::IConstDataAccessor
   const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = chunk.uvw();
   const casa::Cube<casa::Complex> &visCube = chunk.visibility();
                  
-  // maximum number of polarisations to process, can be less than
-  // the number of planes in the visibility cube, if all components are
-  // unpolarised
-  const casa::uInt nPol = itsAllComponentsUnpolarised ? 1 : chunk.nPol();
+  const casa::uInt nPol = chunk.nPol();
   ASKAPDEBUGASSERT(nPol <= chunk.visibility().nplane());
+  
+  // check whether the polarisation converter is valid
+  if (!scimath::PolConverter::equal(itsPolConverter.outputPolFrame(),chunk.stokes())) {
+      // reset pol converter because either polarisation frame has changed or 
+      // this is the first use. The converter will be used inside updateDesignMatrix shortly      
+      itsPolConverter = scimath::PolConverter(scimath::PolConverter::canonicStokes(), chunk.stokes(), true);    
+  }
+  
       
   // Set up arrays to hold the output values
   // Two values (complex) per row, channel, pol
@@ -428,7 +472,7 @@ void ComponentEquation::calcGenericEquations(const accessors::IConstDataAccessor
             compList.begin(); compIt!=compList.end();++compIt) {
        ASKAPDEBUGASSERT(*compIt); 
        updateDesignMatrixAndResiduals(*(*compIt),uvw,freq,designmatrix,
-                           residual,nPol);
+                           residual);
   }
   casa::Vector<double> weights(nData,1.);
   designmatrix.addResidual(residual, weights);

@@ -185,13 +185,11 @@ namespace askap
         ///            spectral channel)
         /// @param[in] dm design matrix to update (to add derivatives to)
         /// @param[in] residual vector of residuals to update 
-        /// @param[in] nPol a number of polarisation products to process
-        static void updateDesignMatrixAndResiduals(
+        void updateDesignMatrixAndResiduals(
                    const IParameterizedComponent& comp,
                    const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
                    const casa::Vector<casa::Double>& freq,
-                   scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual,
-                   casa::uInt nPol);
+                   scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual) const;
         
         /// @brief read-write access to parameters
         /// @details This method is overridden to invalidate component cache.
