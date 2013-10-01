@@ -240,7 +240,9 @@ bool CorrelatorSimulator::sendNext(void)
         itsCurrentRow++;
     }
 
-    ASKAPLOG_DEBUG_STR(logger, "Randomly failed to send " << failureCount << " payloads this cycle");
+    if (itsVisSendFailChance > 0.0) {
+        ASKAPLOG_DEBUG_STR(logger, "Randomly failed to send " << failureCount << " payloads this cycle");
+    }
 
     if (itsCurrentRow == nRow) {
         return false; // Indicate there is no more data after this payload

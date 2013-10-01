@@ -14,7 +14,7 @@ playback.tossim.icestorm.topic              = tosmetadata
 # Simulate random failures to send metadata message. A value of of 0.0
 # results in no failures, while 1.0 results in all sends failing.
 # (Default: 0.0)
-#playback.tossim.random_metadata_send_fail   = 0.2
+#playback.tossim.random_metadata_send_fail   = 0.1
 
 #
 # Correlator Simulator
