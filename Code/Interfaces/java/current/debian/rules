@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+export DH_ALWAYS_EXCLUDE=.svn:/include/:/configure/:build-1:/build/:/example/:/html/:/documentation/:/man/:easy-install.pth:site-packages/site.py*
+
+PKGNAME := askap-interfaces-java
+
+build:
+	@echo 'Skipping build step for ASKAP packages'
+
+%:
+	dh $@ 
+
+override_dh_shlibdeps:
+override_dh_auto_configure:
+override_dh_auto_build:
+override_dh_auto_install:
+override_dh_auto_test:
+override_dh_auto_clean:
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Tdebian/askap.dependencies
+
+override_dh_install:
+	# Create link to simplify install files
+	@mkdir -p debian/tmp/askap
+	@ln -s ${PWD}/install debian/tmp/askap/default
+	dh_install
+	@rm -rf debian/tmp
+
+override_dh_installdeb:
+	@if [ -d install/lib/python2.6 -o -d install/lib/python2.7 ];then \
+	      sed -i -e '1s&^#\!.*/bin/python&#\!/usr/bin/env python&' \
+		debian/$(PKGNAME)/askap/default/bin/* 2>/dev/null || true; \
+	fi
+	dh_installdeb
