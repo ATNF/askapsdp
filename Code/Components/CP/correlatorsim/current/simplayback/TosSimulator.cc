@@ -111,8 +111,7 @@ bool TosSimulator::sendNext(void)
     // being processed
     casa::Double currentIntegration = msc.time()(itsCurrentRow);
     ASKAPLOG_DEBUG_STR(logger, "Processing integration with timestamp "
-                           << std::setprecision(13) << currentIntegration);
-
+            << msc.timeMeas()(itsCurrentRow));
 
     //////////////////////////////////////////////////////////////
     // Metadata
