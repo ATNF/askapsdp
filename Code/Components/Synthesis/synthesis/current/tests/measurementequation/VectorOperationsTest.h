@@ -67,6 +67,7 @@ namespace askap
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testSubtract);
       CPPUNIT_TEST(testAdd);
+      CPPUNIT_TEST(testAddScaled);
       CPPUNIT_TEST(test1); // temporary
       CPPUNIT_TEST_SUITE_END();
 
@@ -145,6 +146,36 @@ namespace askap
           CPPUNIT_ASSERT(fabs(vec[0]+3.)<1e-10 && fabs(vec[1]-4.)<1e-10);
           addVector(complexVec,vec);
           CPPUNIT_ASSERT(fabs(vec[0]+4.)<1e-10 && fabs(vec[1]-2.)<1e-10);
+        }
+
+        void testAddScaled()
+        {
+          casa::Matrix<casa::Double> in(2,2,1.);
+          vector<double> vec(2,3.);
+          vec[0]=-3.;
+          addScaledVector(vec,in.row(1),0.5);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1., in(0,0), 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1., in(0,1), 1e-10);                    
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.5, in(1,0), 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.5, in(1,1), 1e-10);          
+          casa::Vector<casa::Complex> complexVec(1,casa::Complex(-1.,-2.));
+          addScaledVector(complexVec,in.row(1),0.5);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1, in(1,0), 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.5, in(1,1), 1e-10);          
+          vector<casa::AutoDiff<double> > autoDiffVec(2, 
+                                          casa::AutoDiff<double>(0.,1));
+          autoDiffVec[0]=sin(casa::AutoDiff<double>(0.,1,0));
+          autoDiffVec[1]=1.+cos(casa::AutoDiff<double>(casa::C::_2pi/4.,1,0));
+          addScaledVector(autoDiffVec,vec,0.5);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-3, vec[0], 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.5, vec[1], 1e-10);          
+          
+          addScaledVector(complexVec,vec,0.5);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-3.5, vec[0], 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.5, vec[1], 1e-10);          
+          addScaledVector(vec, complexVec, casa::Complex(-1., 2.));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-2.5, real(complexVec[0]), 1e-10);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-11.5, imag(complexVec[0]), 1e-10);
         }
          
         // temporary method for autodiff experiments

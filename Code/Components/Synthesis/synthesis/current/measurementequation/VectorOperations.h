@@ -230,6 +230,15 @@ struct OutputValueAccessor : public BasicIncrementor {
   /// @param[in,out] out another item and result for output
   inline void add(const ValueType &in, ValueType& out) const throw() 
          {out+=in;} 
+
+  /// @brief add the value with scaling
+  /// @details To do the prediction we need to perform '+=' operation.
+  /// Default action is to add the value without any type conversion
+  /// @param[in] in a value to add
+  /// @param[in,out] out another item and result for output
+  /// @param[in] factor scaling factor
+  inline void addScaled(const ValueType &in, ValueType& out, const ValueType &factor) const throw() 
+         {out += in * factor;} 
                
 };
 
@@ -290,6 +299,21 @@ struct OutputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
             out+=casa::Complex(itsRealPart,in);
         }
       }      
+
+  /// @brief add the value with scaling
+  /// @details To do the prediction we need to perform '+=' operation.
+  /// Default action is to add the value without any type conversion
+  /// @param[in] in a value to add
+  /// @param[in,out] out another item and result for output
+  /// @param[in] factor scaling factor
+  inline void addScaled(casa::Double in, casa::Complex& out, const casa::Complex& factor) const throw() 
+  {
+    if (isRealNow()) {
+        itsRealPart=in;
+    } else {
+        out += casa::Complex(itsRealPart,in) * factor;
+    }
+  }      
        
 private:
    /// a buffer for the real part of the value (write happens when
@@ -321,7 +345,7 @@ struct OutputValueAccessor<scimath::ComplexDiff>  {
 /// @param[in] inVec input vector
 /// @param[in] outVec output vector
 /// @note Input and output vectors can, in principle, be of any type which
-/// have begin() and end() method delivering itertors, which behave in the STL
+/// have begin() and end() method delivering iterators, which behave in the STL
 /// sense (only operator!=, operator++ and operator* of these iterators are used).
 /// However, ValueTypeExtractor should be specialized for this type, unless the
 /// default implementation is adequate. The default implementation of 
@@ -573,6 +597,48 @@ inline void addVector(const InType& inVec, const OutType &outVec)
   typename vector_operations::ValueTypeExtractor<OutType>::container_type 
                                                         OutVecRef(outVec);
   addVector(inVec,OutVecRef); 
+}
+
+/// @brief add one 1D-vector to another after scaling, flatten on demand
+/// @details See addVector for more information. This method scales values of the
+/// input vector before addition.
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @param[in] factor scaling factor (type of the output vector values)
+template<typename InType,typename OutType>
+inline void addScaledVector(const InType& inVec, OutType& outVec, 
+            const typename vector_operations::ValueTypeExtractor<OutType>::type &factor) 
+{
+  typename InType::const_iterator ci = inVec.begin();
+  typename OutType::iterator it = outVec.begin();
+  vector_operations::InputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<InType>::type> iva;
+  vector_operations::OutputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<OutType>::type> ova;
+  for (; ci!=inVec.end() && it != outVec.end(); 
+       iva.increment(ci),ova.increment(it)) {
+       ova.addScaled(iva(*ci), *it, factor);
+  }
+}
+
+/// @brief add one 1D-vector to another after scaling, flatten on demand
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void addScaledVector(const InType& inVec, const OutType &outVec, 
+            const typename vector_operations::ValueTypeExtractor<OutType>::type &factor)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  addScaledVector(inVec,OutVecRef,factor); 
 }
 
 

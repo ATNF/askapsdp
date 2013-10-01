@@ -122,7 +122,7 @@ void process() {
        ASKAPLOG_INFO_STR(logger,  "Beam "<<beam + 1<<" pointing centre is "<<printDirection(centres[beam]));
   }
   
-  const double cutoff = 1e-2;
+  const double cutoff = 2e-1;
   const double fwhm = 1.22*3e8/928e6/12;
   
   accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
@@ -157,6 +157,11 @@ void process() {
             curpos[1] = y;
             double resflux = pixels[0](curpos) * wt0;
             for (size_t beam=1; beam<pixels.nelements(); ++beam) {
+                 /*
+                 if (beam==0) {
+                     continue;
+                 }
+                 */
                  const double offsetThisBeam = world.separation(centres[beam]);
                  const double thisWt = exp(-offsetThisBeam*offsetThisBeam*4.*log(2.)/fwhm/fwhm);
                  sumsqwt += thisWt*thisWt; // * (beam == 3 ? 0.21 : 1.);
