@@ -72,7 +72,7 @@ void MetadataSource::receive(const TosMetadata& msg)
 }
 
 // Blocking
-boost::shared_ptr<TosMetadata> MetadataSource::next(void)
+boost::shared_ptr<TosMetadata> MetadataSource::next(const long timeout)
 {
-    return itsBuffer.next();
+    return itsBuffer.next(timeout);
 }

@@ -52,6 +52,7 @@
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
+#include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
 #include "monitoring/MonitorPoint.h"
@@ -72,6 +73,8 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsScanManager(config),
      itsChannelManager(params),
      itsBaselineMap(config.bmap()),
+     itsInterrupted(false),
+     itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
      itsMaxNBeams(params.getUint32("maxbeams", 0)),
      itsBeamsToReceive(params.getUint32("beams2receive", 0))
 {
@@ -82,24 +85,36 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
             casa::MEpoch::Ref(casa::MEpoch::UTC))();
 
     parseBeamMap(params);
+
+    // Setup a signal handler to catch SIGINT, SIGTERM and SIGUSR1
+    itsSignals.async_wait(boost::bind(&MergedSource::signalHandler, this, _1, _2));
 }
 
 MergedSource::~MergedSource()
 {
+    itsSignals.cancel();
 }
 
 VisChunk::ShPtr MergedSource::next(void)
 {
-    if (itsScanManager.scanIndex() < 0) {
-        // If the TOS hasn't started the observation yet (i.e. scan id hasn't
-        // changed from -1), just eat metadata payloads until scan_id >= 0
-        ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
-        do {
-            itsMetadata = itsMetadataSrc->next();
-        } while (itsMetadata->scanId() < 0);
-    } else {
-        itsMetadata = itsMetadataSrc->next();
-    }
+    // Used for a timeout
+    const long ONE_SECOND = 10000000;
+
+    do {
+        if (itsScanManager.scanIndex() < 0) {
+            // If the TOS hasn't started the observation yet (i.e. scan id hasn't
+            // changed from -1), just eat metadata payloads until scan_id >= 0
+            ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
+            do {
+                itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+                checkInterruptSignal();
+            } while (!itsMetadata || itsMetadata->scanId() < 0);
+        } else {
+            itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+        }
+
+        checkInterruptSignal();
+    } while (!itsMetadata);
 
     // Update the Scan Manager
     itsScanManager.update(itsMetadata->scanId());
@@ -111,8 +126,9 @@ VisChunk::ShPtr MergedSource::next(void)
     }
 
     // Get the next VisDatagram if there isn't already one in the buffer
-    if (!itsVis) {
-        itsVis = itsVisSrc->next();
+    while (!itsVis) {
+        itsVis = itsVisSrc->next(ONE_SECOND);
+        checkInterruptSignal();
     }
 
     // Find data with matching timestamps
@@ -120,16 +136,19 @@ VisChunk::ShPtr MergedSource::next(void)
 
         // If the VisDatagram timestamps are in the past (with respect to the
         // TosMetadata) then read VisDatagrams until they catch up
-        while (itsMetadata->time() > itsVis->timestamp) {
+        while (!itsVis || itsMetadata->time() > itsVis->timestamp) {
             ASKAPLOG_DEBUG_STR(logger, "Reading an extra VisDatagram to catch up");
-            itsVis = itsVisSrc->next();
+            itsVis = itsVisSrc->next(ONE_SECOND);
+
+            checkInterruptSignal();
         }
 
         // But if the timestamp in the VisDatagram is in the future (with
         // respect to the TosMetadata) then it is time to fetch new TosMetadata
-        if (itsMetadata->time() < itsVis->timestamp) {
+        if (!itsMetadata || itsMetadata->time() < itsVis->timestamp) {
             ASKAPLOG_DEBUG_STR(logger, "Reading an extra TosMetadata to catch up");
-            itsMetadata = itsMetadataSrc->next();
+            itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+            checkInterruptSignal();
         }
     }
 
@@ -152,6 +171,8 @@ VisChunk::ShPtr MergedSource::next(void)
     casa::uInt datagramCount = 0; 
     casa::uInt datagramsIgnored = 0;
     while (itsVis && itsMetadata->time() >= itsVis->timestamp) {
+        checkInterruptSignal();
+
         if (itsMetadata->time() > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
             ASKAPLOG_WARN_STR(logger, "Received VisDatagram from past integration");
@@ -402,6 +423,14 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
     }
 }
 
+void MergedSource::signalHandler(const boost::system::error_code& error,
+                                     int signalNumber)
+{
+    if (signalNumber == SIGTERM || signalNumber == SIGINT || signalNumber == SIGUSR1) {
+        itsInterrupted = true;
+    }
+}
+
 void MergedSource::parseBeamMap(const LOFAR::ParameterSet& params)
 {
     const std::string beamidmap = params.getString("beammap","");
@@ -420,4 +449,12 @@ void MergedSource::parseBeamMap(const LOFAR::ParameterSet& params)
         << " (to be received), " << itsMaxNBeams << " (to be written into MS)");
     ASKAPDEBUGASSERT(itsMaxNBeams > 0);
     ASKAPDEBUGASSERT(itsBeamsToReceive > 0);
+}
+
+void MergedSource::checkInterruptSignal()
+{
+    itsIOService.poll();
+    if (itsInterrupted) {
+        throw InterruptedException();
+    }
 }

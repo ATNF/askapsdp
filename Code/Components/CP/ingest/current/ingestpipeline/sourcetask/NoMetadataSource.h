@@ -85,6 +85,7 @@ class NoMetadataSource : public ISource {
         bool addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
                 const casa::uInt nAntenna);
 
+        /// Handled the receipt of signals to "interrupt" the process
         void signalHandler(const boost::system::error_code& error,
                            int signalNumber);
 
@@ -112,7 +113,7 @@ class NoMetadataSource : public ISource {
         // Baseline Map
         const BaselineMap itsBaselineMap;
 
-        // Interrupted by SIGTERM or SIGINT?
+        // Interrupted by SIGTERM, SIGINT or SIGUSR1?
         bool itsInterrupted;
 
         // Boost io_service

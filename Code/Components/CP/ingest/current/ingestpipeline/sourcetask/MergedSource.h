@@ -30,6 +30,8 @@
 // ASKAPsoft includes
 #include "askap/IndexConverter.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/system/error_code.hpp"
+#include "boost/asio.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
@@ -91,7 +93,15 @@ class MergedSource : public ISource {
                               const unsigned int chan,
                               const unsigned int pol);
 
+        /// Handled the receipt of signals to "interrupt" the process
+        void signalHandler(const boost::system::error_code& error,
+                           int signalNumber);
+
         void parseBeamMap(const LOFAR::ParameterSet& params);
+
+        // Checks if a signal has been received requesting an interrupt.
+        // If such a signal has been received, thorows an InterruptedException.
+        void checkInterruptSignal();
 
         // Configuration
         const Configuration itsConfig;
@@ -121,6 +131,15 @@ class MergedSource : public ISource {
 
         // Baseline Map
         const BaselineMap itsBaselineMap;
+
+        // Interrupted by SIGTERM, SIGINT or SIGUSR1?
+        bool itsInterrupted;
+
+        // Boost io_service
+        boost::asio::io_service itsIOService;
+
+        // Interrupt signals
+        boost::asio::signal_set itsSignals;
 
         /// @brief beam id map
         /// @details It is possible to filter the beams received by this source and map the

@@ -45,8 +45,14 @@ class IMetadataSource {
         /// This call is blocking, it will not return until an object is
         /// available to return.
         ///
+        /// @param[in] timeout how long to wait for data before returning
+        ///         a null pointer, in the case where the
+        ///         buffer is empty. The timeout is in microseconds,
+        ///         and anything less than zero will result in no
+        ///         timeout (i.e. blocking functionality).
+        ///
         /// @return a shared pointer to a TosMetadata object.
-        virtual boost::shared_ptr<askap::cp::TosMetadata> next(void) = 0;
+        virtual boost::shared_ptr<askap::cp::TosMetadata> next(const long timeout = -1) = 0;
 
         // Shared pointer definition
         typedef boost::shared_ptr<IMetadataSource> ShPtr;

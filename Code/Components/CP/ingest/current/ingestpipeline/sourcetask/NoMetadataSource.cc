@@ -87,7 +87,7 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
 
     parseBeamMap(params);
 
-    // Setup a signal handler to catch SIGINT and SIGTERM
+    // Setup a signal handler to catch SIGINT, SIGTERM and SIGUSR1
     itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
 }
 
@@ -101,8 +101,8 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // Get the next VisDatagram if there isn't already one in the buffer
     while (!itsVis) {
         itsVis = itsVisSrc->next(10000000); // 1 second timeout
-        itsIOService.poll();
 
+        itsIOService.poll();
         if (itsInterrupted) {
             throw InterruptedException();
         }
@@ -131,7 +131,6 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     casa::uInt datagramsIgnored = 0;
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
         itsIOService.poll();
-
         if (itsInterrupted) {
             throw InterruptedException();
         }

@@ -46,7 +46,7 @@ class MockMetadataSource : public askap::cp::ingest::IMetadataSource {
 
         void add(boost::shared_ptr<askap::cp::TosMetadata> obj);
 
-        boost::shared_ptr<askap::cp::TosMetadata> next(void);
+        boost::shared_ptr<askap::cp::TosMetadata> next(const long timeout = -1);
 
         // Shared pointer definition
         typedef boost::shared_ptr<MockMetadataSource> ShPtr;

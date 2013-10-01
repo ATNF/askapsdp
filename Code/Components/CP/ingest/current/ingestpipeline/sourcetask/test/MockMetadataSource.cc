@@ -48,7 +48,8 @@ void MockMetadataSource::add(boost::shared_ptr<TosMetadata> obj)
 }
 
 boost::shared_ptr<TosMetadata>
-MockMetadataSource::next(void)
+MockMetadataSource::next(const long timeout)
 {
+    // NOTE: Timeout is not supported in this Mock Class
     return itsBuffer.next();
 }

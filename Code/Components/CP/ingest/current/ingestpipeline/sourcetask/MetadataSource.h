@@ -82,7 +82,7 @@ class MetadataSource :
         virtual void receive(const askap::cp::TosMetadata& msg);
 
         /// @copydoc askap::cp::IMetadataSource::next()
-        boost::shared_ptr<askap::cp::TosMetadata> next(void);
+        boost::shared_ptr<askap::cp::TosMetadata> next(const long timeout = -1);
 
     private:
         // Circular buffer of metadata objects
