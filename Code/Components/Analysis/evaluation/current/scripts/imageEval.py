@@ -206,7 +206,7 @@ if __name__ == '__main__':
         countsSMorig=np.zeros(fluxpts.size)
         countsPerAreaSMorig = np.zeros(fluxpts.size)
         skycrd=np.array([threshWCS.wcs.crval])
-        for source in skymodellist:
+        for source in origskymodellist:
             skycrd[0][0]=source.ra
             skycrd[0][1]=source.dec
             if skymodelOrigCatIsPrecessed == 'true':
@@ -214,10 +214,10 @@ if __name__ == '__main__':
             else:
                 pixcrd=threshWCSunprecessed.wcs_sky2pix(skycrd,1)
             if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
-                flux=source.FintFIT
+                flux=source.flux()
                 loc=int((log10(flux)+4+0.1)*5)
                 countsSMorig[loc] = countsSM[loc]+1
-                sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+                sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
                 #sourceDetArea = fullFieldArea
                 countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
         
