@@ -51,6 +51,7 @@
 #include "distributedimager/IBasicComms.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
+#include "Tracing.h"
 
 using namespace std;
 using namespace askap::cp;
@@ -84,10 +85,12 @@ void SpectralLineMaster::run(void)
     const casa::Quantity freqinc = isMSGroupInfo.getFreqInc();
 
     // Create an image cube builder
+    Tracing::entry(Tracing::WriteImage);
     itsImageCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc));
     itsPSFCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "psf"));
     itsResidualCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "residual"));
     itsWeightsCube.reset(new CubeBuilder(itsParset, nChan, f0, freqinc, "weights"));
+    Tracing::exit(Tracing::WriteImage);
 
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
@@ -191,6 +194,8 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
 
 void SpectralLineMaster::handleImageParams(askap::scimath::Params::ShPtr params, unsigned int chan)
 {
+    Tracing::entry(Tracing::WriteImage);
+
     // Pre-conditions
     ASKAPCHECK(params->has("image.slice"), "Params are missing image parameter");
     ASKAPCHECK(params->has("psf.slice"), "Params are missing psf parameter");
@@ -228,4 +233,5 @@ void SpectralLineMaster::handleImageParams(askap::scimath::Params::ShPtr params,
         casa::convertArray<float, double>(floatImagePixels, imagePixels);
         itsWeightsCube->writeSlice(floatImagePixels, chan);
     }
+    Tracing::exit(Tracing::WriteImage);
 }

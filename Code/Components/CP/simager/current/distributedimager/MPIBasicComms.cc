@@ -259,12 +259,14 @@ void* MPIBasicComms::addOffset(const void *ptr, size_t offset)
 void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
 {
     // Encode
+    Tracing::entry(Tracing::Serializing);
     std::vector<int8_t> buf;
     LOFAR::BlobOBufVector<int8_t> bv(buf);
     LOFAR::BlobOStream out(bv);
     out.putStart("Message", 1);
     out << msg;
     out.putEnd();
+    Tracing::exit(Tracing::Serializing);
 
     int messageType = msg.getMessageType();
 
@@ -301,12 +303,14 @@ void MPIBasicComms::receiveMessage(IMessage& msg, int source)
     receive(&buf[0], size * sizeof(char), source, type, status);
 
     // Decode
+    Tracing::entry(Tracing::Deserializing);
     LOFAR::BlobIBufVector<int8_t> bv(buf);
     LOFAR::BlobIStream in(bv);
     int version = in.getStart("Message");
     ASKAPASSERT(version == 1);
     in >> msg;
     in.getEnd();
+    Tracing::exit(Tracing::Deserializing);
 }
 
 void MPIBasicComms::receiveMessageAnySrc(IMessage& msg, int& actualSource)

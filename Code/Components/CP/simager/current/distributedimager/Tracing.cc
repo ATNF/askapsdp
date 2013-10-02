@@ -36,11 +36,19 @@
 
 using namespace askap::cp;
 
+std::map< Tracing::State, std::pair<int, int> > Tracing::theirEventMap;
+
 void Tracing::createState(State s, const std::string& name, const std::string& color)
 {
-    const int entryId = static_cast<int>(s * 2) - 1;
-    const int exitId = static_cast<int>(s * 2);
-    MPE_Describe_state(entryId, exitId, name.c_str(), color.c_str());
+    const int entryId = MPE_Log_get_event_number();
+    const int exitId = MPE_Log_get_event_number();
+    theirEventMap[s] = std::make_pair(entryId, exitId);
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0) {
+        MPE_Describe_state(entryId, exitId, name.c_str(), color.c_str());
+    }
 }
 
 void Tracing::init()
@@ -50,17 +58,15 @@ void Tracing::init()
     }
 
     MPE_Init_log();
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (rank == 0) {
-        createState(Send, "Send", "red");
-        createState(Receive, "Receive", "blue");
-        createState(Broadcast, "Broadcast", "green");
-        createState(CalcNE, "CalcNE", "yellow");
-        createState(SolveNE, "SolveNE", "magenta");
-        createState(WriteImage, "WriteImage", "white");
-    }
+    createState(Send, "Send", "red");
+    createState(Receive, "Receive", "blue");
+    createState(Broadcast, "Broadcast", "green");
+    createState(Serializing, "Serializing", "orange");
+    createState(Deserializing, "Deserializing", "aquamarine");
+    createState(CalcNE, "CalcNE", "yellow");
+    createState(SolveNE, "SolveNE", "magenta");
+    createState(WriteImage, "WriteImage", "white");
 }
 
 void Tracing::finish(const std::string& logfile)
@@ -75,13 +81,13 @@ void Tracing::finish(const std::string& logfile)
 
 void Tracing::entry(State s)
 {
-    const int id = static_cast<int>(s * 2) - 1;
+    const int id = theirEventMap[s].first;
     logEvent(id);
 }
 
 void Tracing::exit(State s)
 {
-    const int id = static_cast<int>(s * 2);
+    const int id = theirEventMap[s].second;
     logEvent(id);
 }
 void Tracing::logEvent(const int id)

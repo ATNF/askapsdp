@@ -29,6 +29,8 @@
 
 // System includes
 #include <string>
+#include <map>
+#include <utility>
 
 namespace askap {
 namespace cp {
@@ -44,8 +46,6 @@ class Tracing {
         // @param logfile[in] filename/path of the log file to write out
         static void finish(const std::string& logfile);
 
-        // Enum of valid states
-        //
         // @todo This is a bit of a hack. A better solution would be
         // to dynamically manage states, using MPE_Log_get_event_number()
         // to allocate IDs. The hardcoded IDs below start at 600 simply
@@ -53,12 +53,14 @@ class Tracing {
         // start with and it ensure they are clear of any private/internal
         // IDs.
         enum State {
-            Send = 600,
-            Receive = 601,
-            Broadcast = 602,
-            CalcNE = 603,
-            SolveNE = 604,
-            WriteImage = 605
+            Send,
+            Receive,
+            Broadcast,
+            Serializing,
+            Deserializing,
+            CalcNE,
+            SolveNE,
+            WriteImage
         };
 
         // Call this to indicate state entry
@@ -75,6 +77,8 @@ class Tracing {
 
         // Utility function to log events
         static void logEvent(const int id);
+
+        static std::map< State, std::pair<int, int> > theirEventMap;
 
         // No support for assignment
         Tracing& operator=(const Tracing& rhs);
