@@ -216,10 +216,11 @@ if __name__ == '__main__':
             if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
                 flux=source.flux()
                 loc=int((log10(flux)+4+0.1)*5)
-                countsSMorig[loc] = countsSM[loc]+1
-                sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
-                #sourceDetArea = fullFieldArea
-                countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
+                if loc >= 0 and loc < countsMSorig.size :
+                    countsSMorig[loc] = countsSM[loc]+1
+                    sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
+                    #sourceDetArea = fullFieldArea
+                    countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
         
             
     plt.figure(num=4,figsize=(8.,8.),dpi=72)
