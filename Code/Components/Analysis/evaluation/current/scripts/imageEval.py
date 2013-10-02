@@ -39,6 +39,8 @@ if __name__ == '__main__':
     noiseImageName=inputPars.get_value('noiseImage','noiseMap.i.clean.fits')
     snrImageName=inputPars.get_value('snrImage','snr.i.clean.fits')
     skymodelCatalogue=inputPars.get_value('refCatalogue','skyModel-catalogue.txt')
+    skymodelOrigCat=inputPars.get_value('origCatalogue','')
+    skymodelOrigCatIsPrecessed=inputPars.get_value('origCatalogueIsPrecessed','false')
     sourceCatalogue=inputPars.get_value('sourceCatalogue','selavy-fitResults.txt')
 
     
@@ -56,7 +58,12 @@ if __name__ == '__main__':
     threshmapFull=threshim[0].data
     goodpixels=threshmapFull>0.
     threshmap = threshmapFull[goodpixels]
-    threshWCS = pywcs.WCS(threshim[0].header)
+    threshHeader = threshim[0].header
+    threshHeaderUnprecessed = threshHeader.copy()
+    threshHeaderUnprecessed.update('CRVAL1',0.0)
+    threshHeaderUnprecessed.update('CRVAL2',0.0)
+    threshWCS = pywcs.WCS(threshHeader)
+    threshWCSunprecessed = pywcs.WCS(threshHeaderUnprecessed)
     threshim.close()
     
     noiseim=pyfits.open(noiseImageName)
@@ -187,9 +194,41 @@ if __name__ == '__main__':
             #sourceDetArea = fullFieldArea
             countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
 
+#########
+# original sky model comparison, if requested
+    if not skymodelOrigCat == '':
+        fin=open(skymodelOrigCat)
+        origskymodellist=[]
+        for line in fin:
+            if not line[0] == '#':
+                origskymodellist.append(models.FullStokesS3SEXObject(line))
+        fin.close()
+        countsSMorig=np.zeros(fluxpts.size)
+        countsPerAreaSMorig = np.zeros(fluxpts.size)
+        skycrd=np.array([threshWCS.wcs.crval])
+        for source in skymodellist:
+            skycrd[0][0]=source.ra
+            skycrd[0][1]=source.dec
+            if skymodelOrigCatIsPrecessed == 'true':
+                pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
+            else:
+                pixcrd=threshWCSunprecessed.wcs_sky2pix(skycrd,1)
+            if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
+                flux=source.FintFIT
+                loc=int((log10(flux)+4+0.1)*5)
+                countsSMorig[loc] = countsSM[loc]+1
+                sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+                #sourceDetArea = fullFieldArea
+                countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
+        
+            
     plt.figure(num=4,figsize=(8.,8.),dpi=72)
     #plt.subplot(428)
     plt.loglog()
+    if not skymodelOrigCat == '':
+        n=countsPerAreaSM * fluxpts**2.5
+        plt.plot(fluxpts,n,'ro',label='Original Sky model')
+        plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
     n=countsPerAreaSM * fluxpts**2.5
     plt.plot(fluxpts,n,'ro',label='Sky model')
     plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')

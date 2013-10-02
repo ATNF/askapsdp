@@ -45,7 +45,41 @@ class SelavyObject:
     def flux(self):
         return self.FintFIT
 
-            
+class FullStokesS3SEXObject:
+    def __init__(self,line):
+        self.line = line
+        if line[0]!='#' :
+            cols=line.split()
+            self.componentNum = int(cols[0])
+            self.clusterID = int(cols[1])
+            self.galaxyNum = int(cols[2])
+            self.SFtype = int(cols[3])
+            self.AGNtype = int(cols[4])
+            self.structure = int(cols[5])
+            self.ra = float(cols[6])
+            self.dec = float(cols[7])
+            self.distance = float(cols[8])
+            self.redshift = float(cols[9])
+            self.pa = float(cols[10])
+            self.maj = float(cols[11])
+            self.min = float(cols[12])
+            self.I151 = float(cols[13])
+            self.I610 = float(cols[14])
+            self.Iref = float(cols[15])
+            self.I1400 = log10(self.Iref)
+            self.Qref = float(cols[16])
+            self.Uref = float(cols[17])
+            self.Pref = float(cols[18])
+            self.Pfrac = float(cols[19])
+            self.I4860 = float(cols[20])
+            self.I18000 = float(cols[21])
+            self.cosVA = float(cols[22])
+            self.RM = float(cols[23])
+            self.RMflag = float(cols[24])
+
+    def flux(self):
+        return self.Iref
+
 
 class ContinuumObject:
     def __init__(self,line):
