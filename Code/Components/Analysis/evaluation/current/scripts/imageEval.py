@@ -226,9 +226,9 @@ if __name__ == '__main__':
     #plt.subplot(428)
     plt.loglog()
     if not skymodelOrigCat == '':
-        n=countsPerAreaSM * fluxpts**2.5
-        plt.plot(fluxpts,n,'ro',label='Original Sky model')
-        plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
+        n=countsPerAreaSMorig * fluxpts**2.5
+        plt.plot(fluxpts,n,'go',label='Original Sky model')
+        plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSMorig)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
     n=countsPerAreaSM * fluxpts**2.5
     plt.plot(fluxpts,n,'ro',label='Sky model')
     plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
