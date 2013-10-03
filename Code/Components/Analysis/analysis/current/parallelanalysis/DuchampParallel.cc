@@ -1731,7 +1731,7 @@ namespace askap {
             /// file written to is given by the input parameter
             /// fitAnnotationFile.
 
-	    bool doBoxAnnot = this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
+	    bool doBoxAnnot = !this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
 
 	    if(this->itsSourceList.size() > 0) {
 
