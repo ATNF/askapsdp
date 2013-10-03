@@ -7,4 +7,4 @@ casacore=3rdParty/casacore/casacore-1.6.0a;casa_ms casa_images casa_components c
 accessors=Code/Base/accessors/current
 synthesis=Code/Components/Synthesis/synthesis/current
 openmpi=3rdParty/openmpi/current
-mpe2=3rdParty/mpe2/mpe2-1.3.0
+mpe2=3rdParty/mpe2/mpe2-mpich2-1.5
