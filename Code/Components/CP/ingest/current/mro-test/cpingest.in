@@ -71,45 +71,53 @@ feeds.PAF36.feed35          = [2.5,  2.5]
 #
 # Antennas
 #
-#antennas.names              = [Pad01,Pad03,Pad06,Pad08,Pad09,Pad29]
-antennas.names              = [Pad06,Pad01,Pad03]
+#antennas.names              = [AK01,AK03,AK06,AK08,AK09,AK15]
+#antennas.names              = [AK06,AK01,AK03,AK15,AK08,AK09]
+antennas.names              = [AK06,AK01,AK03]
+#antennas.names              = [AK15,AK08,AK09]
 
 # antenna positions copied from sw-correlator parset
-antennas.Pad01.location     = [-2556084.669, 5097398.337, -2848424.133]
-antennas.Pad01.diameter     = 12m
-antennas.Pad01.mount        = equatorial
-antennas.Pad01.feed_config  = PAF36
+antennas.AK01.location     = [-2556084.669, 5097398.337, -2848424.133]
+antennas.AK01.diameter     = 12m
+antennas.AK01.mount        = equatorial
+antennas.AK01.feed_config  = PAF36
 
-antennas.Pad03.location     = [-2556118.102, 5097384.726, -2848417.280]
-antennas.Pad03.diameter     = 12m
-antennas.Pad03.mount        = equatorial
-antennas.Pad03.feed_config  = PAF36
+antennas.AK03.location     = [-2556118.102, 5097384.726, -2848417.280]
+antennas.AK03.diameter     = 12m
+antennas.AK03.mount        = equatorial
+antennas.AK03.feed_config  = PAF36
 
-antennas.Pad06.location     = [-2556227.863, 5097380.399, -2848323.367]
-antennas.Pad06.diameter     = 12m
-antennas.Pad06.mount        = equatorial
-antennas.Pad06.feed_config  = PAF36
+antennas.AK06.location     = [-2556227.863, 5097380.399, -2848323.367]
+antennas.AK06.diameter     = 12m
+antennas.AK06.mount        = equatorial
+antennas.AK06.feed_config  = PAF36
 
 # # easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
 # # lat: -26.699153192237; long: 116.631037279591; el: 370.810000
-antennas.Pad08.location     = [-2556006.138107, 5097327.654894, -2848641.621908]
-antennas.Pad08.diameter     = 12m
-antennas.Pad08.mount        = equatorial
-antennas.Pad08.feed_config  = PAF36
+antennas.AK08.location     = [-2556005.813742, 5097327.008027, -2848641.257970]
+antennas.AK08.diameter     = 12m
+antennas.AK08.mount        = equatorial
+antennas.AK08.feed_config  = PAF36
 
 # # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
 # # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
-antennas.Pad09.location     = [-2555892.622948, 5097559.688165, -2848328.788867]
-antennas.Pad09.diameter     = 12m
-antennas.Pad09.mount        = equatorial
-antennas.Pad09.feed_config  = PAF36
+antennas.AK09.location     = [-2555892.578900, 5097559.600315, -2848328.739449]
+antennas.AK09.diameter     = 12m
+antennas.AK09.mount        = equatorial
+antennas.AK09.feed_config  = PAF36
+
+
+antennas.AK15.location  = [-2555394.936910,5097674.796317,-2848567.461727]
+antennas.AK15.diameter     = 12m
+antennas.AK15.mount        = equatorial
+antennas.AK15.feed_config  = PAF36
 
 # # easting: 463899.970000; northing: 7047824.220000; el: 364.280000; Zone: 50 south
 # # lat: -26.690214789597; long: 116.637134608883; el: 364.280000
-antennas.Pad29.location     = [-2556745.438405, 5097448.114406, -2847753.833282]
-antennas.Pad29.diameter     = 12m
-antennas.Pad29.mount        = equatorial
-antennas.Pad29.feed_config  = PAF36
+antennas.AK29.location     = [-2556745.438405, 5097448.114406, -2847753.833282]
+antennas.AK29.diameter     = 12m
+antennas.AK29.mount        = equatorial
+antennas.AK29.feed_config  = PAF36
 
 #
 # Baseline mapping:
@@ -148,13 +156,13 @@ baselinemap.21                     = [2, 2, YY]
 observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 # Virgo
-#observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
+observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
 # 0407-658
 #observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
 #observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790
-observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
+#observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
 
 
 
@@ -169,18 +177,25 @@ observation.scan0.interval          = 5000000
 # Task List
 #
 #tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, ChanSel, CalcUVWTask, Monitor, MSSink]
+tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,ChannelAvgTask,CalcUVWTask, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,CalcUVWTask, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanSel, CalcUVWTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, ChannelAvgTask, Monitor,MSSink]
-#tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, PhaseTrackTask,Monitor,MSSink]
-#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, PhaseTrackTask,Monitor,MSSink]
-tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, Monitor,MSSink]
-#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,CalcUVWTask,ChannelAvgTask, Monitor,MSSink]
+#tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, Monitor,MSSink]
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, PhaseTrackTask,FlagEven,ChanSel,ChannelAvgTask,Monitor,MSSink]
+
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, Monitor,MSSink]
+
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, PhaseTrackTask,ChanFlag,ChanSel, Monitor,MSSink]
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, PhaseTrackTask,ChanSel,ChannelAvgTask, Monitor,MSSink]
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,ChanSel,CalcUVWTask,ChannelAvgTask, Monitor,MSSink]
 
 #
 # PhaseTrackTask
 #
 tasks.PhaseTrackTask.type  = PhaseTrackTask
+tasks.PhaseTrackTask.params.trackdelay  = False
+tasks.PhaseTrackTask.params.trackedsouthpole = True
 
 #
 # NoMetadataSource
@@ -209,31 +224,30 @@ tasks.CalcUVWTask.type                  = CalcUVWTask
 #
 tasks.ChannelAvgTask.type               = ChannelAvgTask
 tasks.ChannelAvgTask.params.averaging   = 54
-#tasks.ChannelAvgTask.params.averaging   = 4
-#tasks.ChannelAvgTask.params.averaging   = 15
+#tasks.ChannelAvgTask.params.averaging   = 5
+#tasks.ChannelAvgTask.params.averaging   = 27
 
 # ChannelSelTask
 tasks.ChanSel.type        = ChannelSelTask
-tasks.ChanSel.params.start = 2700
-tasks.ChanSel.params.nchan = 1350
-#tasks.ChanSel.params.start = 0
+tasks.ChanSel.params.start = 4000
+tasks.ChanSel.params.nchan = 3996
+#tasks.ChanSel.params.start = 200
+#tasks.ChanSel.params.nchan = 800
 #tasks.ChanSel.params.nchan = 12474
 #tasks.ChanSel.params.start = 95
 #tasks.ChanSel.params.nchan = 5
 
-# phase tracker
-tasks.PhaseTrackTask.type               = PhaseTrackTask
 
 # SimpleMonitor
 tasks.Monitor.type  = SimpleMonitorTask
 tasks.Monitor.params.baselineids = [0,1,2]
-#tasks.Monitor.params.0 = [0,1,XX]
-#tasks.Monitor.params.1 = [1,2,XX]
-#tasks.Monitor.params.2 = [0,2,XX]
+tasks.Monitor.params.0 = [0,1,YY]
+tasks.Monitor.params.1 = [1,2,YY]
+tasks.Monitor.params.2 = [0,2,YY]
 
-tasks.Monitor.params.0 = [0,0,XX]
-tasks.Monitor.params.1 = [1,1,XX]
-tasks.Monitor.params.2 = [2,2,XX]
+#tasks.Monitor.params.0 = [0,0,XX]
+#tasks.Monitor.params.1 = [1,1,XX]
+#tasks.Monitor.params.2 = [2,2,XX]
 
 #tasks.Monitor.params.0 = [0,0,XX]
 #tasks.Monitor.params.1 = [0,0,YY]
@@ -243,14 +257,27 @@ tasks.Monitor.params.nbeam = 9
 # channel flagger
 tasks.ChanFlag.type  = ChannelFlagTask
 tasks.ChanFlag.params.baselineids = [0,1,2,3,4,5]
-tasks.ChanFlag.params.flagfiles = [flags63xx.dat,flags63xx.dat,flags61xx.dat,flags61xx.dat,flags13xx.dat,flags13xx.dat]
-#tasks.ChanFlag.params.flagfiles = [generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt] 
+#tasks.ChanFlag.params.flagfiles = [flags63xx.dat,flags63xx.dat,flags61xx.dat,flags61xx.dat,flags13xx.dat,flags13xx.dat]
+
+# generated_flags flags only dc-offset birdies
+tasks.ChanFlag.params.flagfiles = [generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt, generated_flags.txt] 
 tasks.ChanFlag.params.0 = [0,2,XX]
 tasks.ChanFlag.params.1 = [0,2,YY]
 tasks.ChanFlag.params.2 = [0,1,XX]
 tasks.ChanFlag.params.3 = [0,1,YY]
 tasks.ChanFlag.params.4 = [1,2,XX]
 tasks.ChanFlag.params.5 = [1,2,YY]
+
+
+tasks.FlagEven.type  = ChannelFlagTask
+tasks.FlagEven.params.baselineids = [0,1,2,3,4,5]
+tasks.FlagEven.params.flagfiles = [evenchannels.dat, evenchannels.dat, evenchannels.dat, evenchannels.dat, evenchannels.dat, evenchannels.dat] 
+tasks.FlagEven.params.0 = [0,2,XX]
+tasks.FlagEven.params.1 = [0,2,YY]
+tasks.FlagEven.params.2 = [0,1,XX]
+tasks.FlagEven.params.3 = [0,1,YY]
+tasks.FlagEven.params.4 = [1,2,XX]
+tasks.FlagEven.params.5 = [1,2,YY]
 
 #
 # MSSink
