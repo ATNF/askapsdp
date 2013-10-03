@@ -161,6 +161,9 @@ if __name__ == '__main__':
 
 # area of a single pixel, in deg^2
     pixelarea=abs(threshWCS.wcs.cdelt[0:2].prod())
+    pixelunit=threshWCS.wcs.cunit[0].strip()
+    if pixelunit == 'deg':
+        pixelarea = pixelarea * (pi/180.)**2
     fullFieldArea = threshmap.size * pixelarea
 
     for source in sourcelist:
@@ -186,13 +189,15 @@ if __name__ == '__main__':
         skycrd[0][0]=source.ra
         skycrd[0][1]=source.dec
         pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
-        if( (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) ):
-            flux=source.FintFIT
-            loc=int((log10(flux)+4+0.1)*5)
-            countsSM[loc] = countsSM[loc]+1
-            sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
-            #sourceDetArea = fullFieldArea
-            countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
+        if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
+            pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
+            if threshmapFull[pos] > 0. :
+                flux=source.FintFIT
+                loc=int((log10(flux)+4+0.1)*5)
+                countsSM[loc] = countsSM[loc]+1
+                sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+                #sourceDetArea = fullFieldArea
+                countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
 
 #########
 # original sky model comparison, if requested
@@ -214,32 +219,45 @@ if __name__ == '__main__':
             else:
                 pixcrd=threshWCSunprecessed.wcs_sky2pix(skycrd,1)
             if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
-                flux=source.flux()
-                loc=int((log10(flux)+4+0.1)*5)
-                if loc >= 0 and loc < countsSMorig.size :
-                    countsSMorig[loc] = countsSM[loc]+1
-                    sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
-                    #sourceDetArea = fullFieldArea
-                    countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
+                pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
+                if threshmapFull[pos] > 0. :
+                    flux=source.flux()
+                    loc=int((log10(flux)+4+0.1)*5)
+                    if loc >= 0 and loc < countsSMorig.size :
+                        countsSMorig[loc] = countsSMorig[loc]+1
+                        sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
+                        #sourceDetArea = fullFieldArea
+                        countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
         
             
     plt.figure(num=4,figsize=(8.,8.),dpi=72)
     #plt.subplot(428)
     plt.loglog()
+    shift=1.1
     if not skymodelOrigCat == '':
         n=countsPerAreaSMorig * fluxpts**2.5
-        plt.plot(fluxpts,n,'go',label='Original Sky model')
-        plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSMorig)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
+        plt.plot(fluxpts*shift,n,'g-',label='_nolegend_')
+        plt.plot(fluxpts*shift,n,'go',label='Original Sky model')
+        plt.errorbar(fluxpts*shift,n,yerr=np.sqrt(countsSMorig)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='g-',label='_nolegend_')
     n=countsPerAreaSM * fluxpts**2.5
-    plt.plot(fluxpts,n,'ro',label='Sky model')
-    plt.errorbar(fluxpts,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
+    plt.plot(fluxpts/shift,n,'r-',label='_nolegend_')
+    plt.plot(fluxpts/shift,n,'ro',label='Sky model')
+    plt.errorbar(fluxpts/shift,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='r-',label='_nolegend_')
     n=countsPerArea * fluxpts**2.5
+    plt.plot(fluxpts,n,'b-',label='_nolegend_')
     plt.plot(fluxpts,n,'bo',label='Component list')
-    plt.errorbar(fluxpts,n,yerr=np.sqrt(counts)*fluxpts**2.5/fullFieldArea,xerr=None,label='_nolegend_')
+    plt.errorbar(fluxpts,n,yerr=np.sqrt(counts)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='b-',label='_nolegend_')
+
+    plt.ylim(1.e-4,1.e4)
     labelPlot('S [Jy]', r'$S^{5/2}n(S)$ [ Jy$^{3/2}$ sr$^{-1}$ ]','Differential source counts','medium')
     plt.legend(loc='best')
     
     plt.savefig('sourceCounts.png')
 
-
+    for i in range(len(fluxpts)):
+        if not skymodelOrigCat == '':
+            print "%f: %6d %6d %6d"%(fluxpts[i],counts[i],countsSM[i],countsSMorig[i])
+        else:
+            print "%f: %6d %6d"%(fluxpts[i],counts[i],countsSM[i])
+            
     plt.close()
