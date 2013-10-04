@@ -96,7 +96,7 @@ namespace askap {
 	  this->itsFlux = this->itsTotalFlux / 1.e3;  //convert to Jy
 	  this->itsMaj = this->itsDeconvMajorAxis;
 	  this->itsMin = this->itsDeconvMinorAxis;
-	  this->itsPA = (this->itsDeconvPositionAngleString=="---") ? 0. : this->itsFittedPositionAngle;
+	  this->itsPA = (this->itsDeconvPositionAngleString=="---") ? 0. : atof(this->itsDeconvPositionAngleString.c_str());
 
 	  this->itsAlpha = 0.;
 	  this->itsBeta = 0.;

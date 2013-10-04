@@ -501,16 +501,16 @@ namespace askap {
             double zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             double length = 0.;
             double increment = 0.;
-            double x = gauss.xCenter() - zeroPointMax * sinpa;;
-            double y = gauss.yCenter() + zeroPointMax * cospa;;
+            double x = gauss.xCenter() - zeroPointMax * sinpa;
+            double y = gauss.yCenter() + zeroPointMax * cospa;
 	    if(verbose)
 		ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
-				   << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")"
+				   << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")" << ", pa="<<pa
 				   << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
             int xref = lround(x);
             int yref = lround(y);
             int spatialPixel = xref + axes[0] * yref;
-
+	    // ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel);
             size_t pix = 0;
             double pixelVal = 0.;
             bool addPixel = true;
@@ -545,8 +545,9 @@ namespace askap {
                 }
 
                 x += increment * sinpa;
-                y += sign * increment * cospa;
+                y -= sign * increment * cospa;
                 spatialPixel = xref + axes[0] * yref;
+		// ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel << ", PIXELVAL="<<pixelVal);
                 length += increment;
 
             }
