@@ -1,1 +1,2 @@
-askap/default/*
+askap/default/lib
+askap/default/config/* etc/askap/

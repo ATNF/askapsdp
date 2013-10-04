@@ -1,4 +1,4 @@
-# Copyright (c) 2009 CSIRO
+# Copyright (c) 2009-2013 CSIRO
 # Australia Telescope National Facility (ATNF)
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 # PO Box 76, Epping NSW 1710, Australia
@@ -111,13 +111,14 @@ def init_logging(args):
                 return
 
     if "ASKAP_LOGCFG" in os.environ:
-        if os.path.exists(os.environ["ASKAP_LOGCFG"]):
+        fname = os.environ.get("ASKAP_LOGCFG")
+        if os.path.exists(fname):
             config.fileConfig(fname)
             return
         
     fnames = ["askap.pylog_cfg", "askap.log_cfg",
-              "/askap/default/config/askap.pylog_cfg",
-              "/askap/default/config/askap.log_cfg"]
+              "/etc/askap/site/askap.pylog_cfg",
+              "/etc/askap/askap.pylog_cfg"]
     for fname in fnames:
         if os.path.exists(fname):
             config.fileConfig(fname)
