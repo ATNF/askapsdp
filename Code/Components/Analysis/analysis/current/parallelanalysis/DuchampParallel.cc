@@ -1674,6 +1674,15 @@ namespace askap {
 		    vowriter.openCatalogue();
 		    vowriter.writeHeader();
 		    vowriter.writeParameters();
+		    if(this->is2D()){
+			double pix[3],wld[3];
+			pix[0] = this->itsCube.getDimX()/2.;
+			pix[1] = this->itsCube.getDimY()/2.;
+			pix[2] = 0.;
+			this->itsCube.header().pixToWCS(pix,wld);
+			std::string frequnits(this->itsCube.header().WCS().cunit[this->itsCube.header().WCS().spec]);
+			vowriter.writeParameter(duchamp::VOParam("Reference frequency","","float",wld[2],0,frequnits));
+		    }
 		    vowriter.writeStats();
 		    vowriter.writeTableHeader();
 		    vowriter.writeEntries();
