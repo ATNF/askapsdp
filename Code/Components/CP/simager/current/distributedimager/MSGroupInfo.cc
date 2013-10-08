@@ -106,7 +106,7 @@ MSGroupInfo::MSGroupInfo(const std::vector<std::string>& ms)
     for (size_t i = 0; i < freqinfo.size(); ++i) {
         const double expected = fi.getValue(frequnit);
         const double actual = freqinfo[i].getValue(frequnit);
-        const double tolerance = 1e-5; // i.e. a fraction of a Hz
+        const double tolerance = 1e-2; // i.e. a fraction of a Hz
         if (abs(expected - actual) > tolerance) {
             ASKAPTHROW(AskapError, "Non-constant frequency increment is not supported");
         }
