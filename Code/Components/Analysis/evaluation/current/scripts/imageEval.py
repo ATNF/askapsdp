@@ -152,14 +152,16 @@ if __name__ == '__main__':
         if line[0]!='#':
             sourcelist.append(models.SelavyObject(line))
     fin.close()
-
-# list of log10(flux) points - the middle of the bins
-    logfluxpts=np.arange((log10(10)-log10(1.e-4))*5)/5. - 4.
+    
+    # list of log10(flux) points - the middle of the bins
+    logbinwidth=0.2
+    logfluxpts=np.arange((log10(10)-log10(1.e-4))/logbinwidth)*logbinwidth - 4.
     fluxpts=10**logfluxpts
+    fluxbinwidths=fluxpts*10**(logbinwidth/2.)-fluxpts/10**(logbinwidth/2.)
     counts=np.zeros(fluxpts.size)
     countsPerArea = np.zeros(fluxpts.size)
 
-# area of a single pixel, in deg^2
+    # area of a single pixel, in deg^2
     pixelarea=abs(threshWCS.wcs.cdelt[0:2].prod())
     pixelunit=threshWCS.wcs.cunit[0].strip()
     if pixelunit == 'deg':
@@ -233,22 +235,22 @@ if __name__ == '__main__':
     plt.figure(num=4,figsize=(8.,8.),dpi=72)
     #plt.subplot(428)
     plt.loglog()
-    shift=1.1
+    shift=1.
     if not skymodelOrigCat == '':
-        n=countsPerAreaSMorig * fluxpts**2.5
+        n=countsPerAreaSMorig * fluxpts**2.5 / fluxbinwidths
         plt.plot(fluxpts*shift,n,'g-',label='_nolegend_')
         plt.plot(fluxpts*shift,n,'go',label='Original Sky model')
         plt.errorbar(fluxpts*shift,n,yerr=np.sqrt(countsSMorig)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='g-',label='_nolegend_')
-    n=countsPerAreaSM * fluxpts**2.5
+    n=countsPerAreaSM * fluxpts**2.5 / fluxbinwidths
     plt.plot(fluxpts/shift,n,'r-',label='_nolegend_')
     plt.plot(fluxpts/shift,n,'ro',label='Sky model')
     plt.errorbar(fluxpts/shift,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='r-',label='_nolegend_')
-    n=countsPerArea * fluxpts**2.5
+    n=countsPerArea * fluxpts**2.5 / fluxbinwidths
     plt.plot(fluxpts,n,'b-',label='_nolegend_')
     plt.plot(fluxpts,n,'bo',label='Component list')
     plt.errorbar(fluxpts,n,yerr=np.sqrt(counts)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='b-',label='_nolegend_')
 
-    plt.ylim(1.e-4,1.e4)
+    plt.ylim(1.e-1,1.e4)
     labelPlot('S [Jy]', r'$S^{5/2}n(S)$ [ Jy$^{3/2}$ sr$^{-1}$ ]','Differential source counts','medium')
     plt.legend(loc='best')
     
