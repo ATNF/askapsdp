@@ -129,7 +129,9 @@ if __name__ == '__main__':
     numPixAboveSNR=np.array(numPixAboveSNR,dtype=float)
     numPixBelowNegSNR=np.array(numPixBelowNegSNR,dtype=float)
     x=np.arange(1000)*10./1000
-    y=snrmap.size*np.exp(-x*x/2.)
+    y=np.zeros(x.size)
+    for i in range(x.size):
+        y[i] = 0.5 * snrmap.size * erfc(x[i]/sqrt(2.))
 
     plt.figure(num=3,figsize=(8,8),dpi=72)
     #plt.subplot(427)
