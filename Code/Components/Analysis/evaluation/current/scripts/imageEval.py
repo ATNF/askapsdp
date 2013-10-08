@@ -154,8 +154,11 @@ if __name__ == '__main__':
     fin.close()
     
     # list of log10(flux) points - the middle of the bins
-    logbinwidth=0.2
-    logfluxpts=np.arange((log10(10)-log10(1.e-4))/logbinwidth)*logbinwidth - 4.
+    minFlux = inputPars.get_value('sourceCounts.minFlux',1.e-4)
+    maxFlux = inputPars.get_value('sourceCounts.maxFlux',10.)
+    logbinwidth=inputPars.get_value('sourceCounts.logBinWidth',0.2)
+    
+    logfluxpts=np.arange((log10(maxFlux)-log10(minFlux))/logbinwidth)*logbinwidth + log10(minFlux)
     fluxpts=10**logfluxpts
     fluxbinwidths=fluxpts*10**(logbinwidth/2.)-fluxpts/10**(logbinwidth/2.)
     counts=np.zeros(fluxpts.size)
@@ -176,8 +179,8 @@ if __name__ == '__main__':
         #sourceDetArea = fullFieldArea
         countsPerArea[loc] = countsPerArea[loc] + 1./sourceDetArea
 
-##########
-# Sky model comparison
+    ##########
+    # Sky model comparison
     fin=open(skymodelCatalogue)
     skymodellist=[]
     for line in fin:
