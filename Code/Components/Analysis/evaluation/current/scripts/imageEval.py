@@ -4,7 +4,7 @@ import askap.analysis.evaluation
 
 import numpy as np
 import pylab as plt
-from math import * 
+import math
 import askap.analysis.evaluation.modelcomponents as models
 import pyfits
 import pywcs
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     numPixAboveSNR=[]
     numPixBelowNegSNR=[]
-    logSNRlevel=np.arange(5*log10(20.)+1)/5.
+    logSNRlevel=np.arange(5*math.log10(20.)+1)/5.
     snrLevel=10**logSNRlevel
     for snr in snrLevel:
         numPixAboveSNR.append(snrmap[snrmap>snr].size)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     x=np.arange(1000)*10./1000
     y=np.zeros(x.size)
     for i in range(x.size):
-        y[i] = 0.5 * snrmap.size * erfc(x[i]/sqrt(2.))
+        y[i] = 0.5 * snrmap.size * math.erfc(x[i]/math.sqrt(2.))
 
     plt.figure(num=3,figsize=(8,8),dpi=72)
     #plt.subplot(427)
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     maxFlux = inputPars.get_value('sourceCounts.maxFlux',10.)
     logbinwidth=inputPars.get_value('sourceCounts.logBinWidth',0.2)
     
-    logfluxpts=np.arange((log10(maxFlux)-log10(minFlux))/logbinwidth)*logbinwidth + log10(minFlux)
+    logfluxpts=np.arange((math.log10(maxFlux)-math.log10(minFlux))/logbinwidth)*logbinwidth + math.log10(minFlux)
     fluxpts=10**logfluxpts
     fluxbinwidths=fluxpts*10**(logbinwidth/2.)-fluxpts/10**(logbinwidth/2.)
     counts=np.zeros(fluxpts.size)
@@ -170,12 +170,12 @@ if __name__ == '__main__':
     pixelarea=abs(threshWCS.wcs.cdelt[0:2].prod())
     pixelunit=threshWCS.wcs.cunit[0].strip()
     if pixelunit == 'deg':
-        pixelarea = pixelarea * (pi/180.)**2
+        pixelarea = pixelarea * (math.pi/180.)**2
     fullFieldArea = threshmap.size * pixelarea
 
     for source in sourcelist:
         flux=source.FintFIT
-        loc=int((log10(flux)+4+0.1)*5)
+        loc=int((math.log10(flux)+4+0.1)*5)
         counts[loc] = counts[loc]+1
         sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
         #sourceDetArea = fullFieldArea
@@ -200,7 +200,7 @@ if __name__ == '__main__':
             pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
             if threshmapFull[pos] > 0. :
                 flux=source.FintFIT
-                loc=int((log10(flux)+4+0.1)*5)
+                loc=int((math.log10(flux)+4+0.1)*5)
                 countsSM[loc] = countsSM[loc]+1
                 sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
                 #sourceDetArea = fullFieldArea
@@ -229,7 +229,7 @@ if __name__ == '__main__':
                 pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
                 if threshmapFull[pos] > 0. :
                     flux=source.flux()
-                    loc=int((log10(flux)+4+0.1)*5)
+                    loc=int((math.log10(flux)+4+0.1)*5)
                     if loc >= 0 and loc < countsSMorig.size :
                         countsSMorig[loc] = countsSMorig[loc]+1
                         sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
