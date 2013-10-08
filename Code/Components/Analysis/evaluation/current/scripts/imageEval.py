@@ -5,6 +5,7 @@ import askap.analysis.evaluation
 import numpy as np
 import pylab as plt
 import math
+import sys
 import askap.analysis.evaluation.modelcomponents as models
 import pyfits
 import pywcs
@@ -128,17 +129,22 @@ if __name__ == '__main__':
 
     numPixAboveSNR=np.array(numPixAboveSNR,dtype=float)
     numPixBelowNegSNR=np.array(numPixBelowNegSNR,dtype=float)
-    x=np.arange(1000)*10./1000
-    y=np.zeros(x.size)
-    for i in range(x.size):
-        y[i] = 0.5 * snrmap.size * math.erfc(x[i]/math.sqrt(2.))
 
     plt.figure(num=3,figsize=(8,8),dpi=72)
-    #plt.subplot(427)
     plt.loglog()
     plt.plot(snrLevel,numPixAboveSNR,'b-',lw=3,label='Positive signal')
     plt.plot(snrLevel,numPixBelowNegSNR,'r-',lw=3,label='Negative signal')
-    plt.plot(x,y,'g:',label='Gaussian noise')
+
+    # Want to plot the theoretical curve expected from Gaussian noise. 
+    # However, erfc is only in math for python 2.7 and above, so need to check version
+    canUseErfc = sys.version_info >= (2,7)
+    if canUseErfc :
+        x=np.arange(1000)*10./1000
+        y=np.zeros(x.size)
+        for i in range(x.size):
+            y[i] = 0.5 * snrmap.size * math.erfc(x[i]/math.sqrt(2.))
+        plt.plot(x,y,'g:',label='Gaussian noise')
+    
     plt.xlim(0.8,30)
     plt.ylim(1,1.e7)
     labelPlot('Signal-to-noise ratio','Number of pixels exceeding SNR','SNR pixel distribution','medium')
