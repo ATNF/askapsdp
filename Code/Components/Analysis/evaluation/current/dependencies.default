@@ -6,3 +6,4 @@ matplotlib=3rdParty/matplotlib/matplotlib-1.2.0
 pyfits=3rdParty/pyfits/pyfits-2.3.1
 pywcs=3rdParty/pywcs/pywcs-1.8.1-4.4.4
 aplpy=3rdParty/APLpy/APLpy-0.9.5
+scipy=3rdParty/scipy/scipy-0.11.0
