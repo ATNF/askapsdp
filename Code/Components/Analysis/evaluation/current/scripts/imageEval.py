@@ -258,6 +258,15 @@ if __name__ == '__main__':
     plt.plot(fluxpts,n,'bo',label='Component list')
     plt.errorbar(fluxpts,n,yerr=np.sqrt(counts)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='b-',label='_nolegend_')
 
+    # This will plot the analytic polynomial fit to the 1.4GHz source
+    # counts from Hopkins et al (2003) (AJ 125, 465)
+    showHopkinsPoly=inputPars.get_value("sourceCounts.showHopkinsPolynomial",False)
+    if showHopkinsPoly:
+        hopkinsPolyCoeffs=[-0.008,0.057,-0.121,-0.049,0.376,0.508,0.859]
+        hopkinsPoly=np.poly1d(hopkinsPolyCoeffs)
+        hopkins=10**hopkinsPoly(np.log10(fluxpts*1000.))
+        plt.plot(fluxpts,hopkins,'g:',label='Hopkins et al (2003)')
+    
     plt.ylim(1.e-1,1.e4)
     labelPlot('S [Jy]', r'$S^{5/2}n(S)$ [ Jy$^{3/2}$ sr$^{-1}$ ]','Differential source counts','medium')
     plt.legend(loc='best')
