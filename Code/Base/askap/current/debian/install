@@ -1,2 +1,4 @@
 askap/default/lib/*.so
+askap/default/config/* etc/askap/
+
 

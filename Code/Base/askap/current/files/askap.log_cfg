@@ -1,0 +1,12 @@
+# Configure the rootLogger
+log4j.rootLogger=INFO,REMOTE,LOGFILE
+
+log4j.appender.LOGFILE=org.apache.log4j.RollingFileAppender
+log4j.appender.LOGFILE.File=${LOG4CXX_FILE_NAME}
+log4j.appender.LOGFILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.LOGFILE.layout.ConversionPattern=%-5p %c [%d] - %m%n
+
+log4j.appender.REMOTE=askap.IceAppender
+log4j.appender.REMOTE.locator_host=${ICE_HOST}
+log4j.appender.REMOTE.locator_port=${ICE_PORT}
+log4j.appender.REMOTE.topic=logger
