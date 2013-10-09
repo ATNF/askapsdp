@@ -5,7 +5,7 @@ import askap.analysis.evaluation
 import numpy as np
 import pylab as plt
 import math
-import sys
+import scipy.special
 import askap.analysis.evaluation.modelcomponents as models
 import pyfits
 import pywcs
@@ -136,14 +136,11 @@ if __name__ == '__main__':
     plt.plot(snrLevel,numPixBelowNegSNR,'r-',lw=3,label='Negative signal')
 
     # Want to plot the theoretical curve expected from Gaussian noise. 
-    # However, erfc is only in math for python 2.7 and above, so need to check version
-    canUseErfc = sys.version_info >= (2,7)
-    if canUseErfc :
-        x=np.arange(1000)*10./1000
-        y=np.zeros(x.size)
-        for i in range(x.size):
-            y[i] = 0.5 * snrmap.size * math.erfc(x[i]/math.sqrt(2.))
-        plt.plot(x,y,'g:',label='Gaussian noise')
+    x=np.arange(1000)*10./1000
+    y=np.zeros(x.size)
+    for i in range(x.size):
+        y[i] = 0.5 * snrmap.size * scipy.special.erfc(x[i]/math.sqrt(2.))
+    plt.plot(x,y,'g:',label='Gaussian noise')
     
     plt.xlim(0.8,30)
     plt.ylim(1,1.e7)
