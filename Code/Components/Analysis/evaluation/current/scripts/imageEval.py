@@ -43,6 +43,7 @@ if __name__ == '__main__':
     skymodelOrigCat=inputPars.get_value('origCatalogue','')
     skymodelOrigCatIsPrecessed=inputPars.get_value('origCatalogueIsPrecessed','false')
     sourceCatalogue=inputPars.get_value('sourceCatalogue','selavy-fitResults.txt')
+    matchfile = inputPars.get_value('matchfile','matches.txt')
 
     
     if not os.path.exists(threshImageName):
@@ -168,6 +169,8 @@ if __name__ == '__main__':
     fluxbinwidths=fluxpts*10**(logbinwidth/2.)-fluxpts/10**(logbinwidth/2.)
     counts=np.zeros(fluxpts.size)
     countsPerArea = np.zeros(fluxpts.size)
+    countsMatch=np.zeros(fluxpts.size)
+    countsMatchPerArea = np.zeros(fluxpts.size)
 
     # area of a single pixel, in deg^2
     pixelarea=abs(threshWCS.wcs.cdelt[0:2].prod())
@@ -176,6 +179,13 @@ if __name__ == '__main__':
         pixelarea = pixelarea * (math.pi/180.)**2
     fullFieldArea = threshmap.size * pixelarea
 
+    # get list of matches
+    fin=open(matchfile)
+    matchedSources=[]
+    for line in fin:
+        matchedSources.append(line.split()[1])
+    matchedSources=np.array(matchedSources)
+
     for source in sourcelist:
         flux=source.FintFIT
         loc=int((math.log10(flux)+4+0.1)*5)
@@ -183,6 +193,9 @@ if __name__ == '__main__':
         sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
         #sourceDetArea = fullFieldArea
         countsPerArea[loc] = countsPerArea[loc] + 1./sourceDetArea
+        if (matchedSources==source.id).any():
+            countsMatch[loc] = countsMatch[loc] + 1
+            countsMatchPerArea[loc] = countsMatchPerArea[loc] + 1./sourceDetArea
 
     ##########
     # Sky model comparison
@@ -255,8 +268,12 @@ if __name__ == '__main__':
     plt.errorbar(fluxpts/shift,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='r-',label='_nolegend_')
     n=countsPerArea * fluxpts**2.5 / fluxbinwidths
     plt.plot(fluxpts,n,'b-',label='_nolegend_')
-    plt.plot(fluxpts,n,'bo',label='Component list')
+    plt.plot(fluxpts,n,'bo',label='Detected Components')
     plt.errorbar(fluxpts,n,yerr=np.sqrt(counts)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='b-',label='_nolegend_')
+    n=countsMatchPerArea * fluxpts**2.5 / fluxbinwidths
+    plt.plot(fluxpts,n,'g-',label='_nolegend_')
+    plt.plot(fluxpts,n,'go',label='Detected & Matched Components')
+    plt.errorbar(fluxpts,n,yerr=np.sqrt(countsMatch)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='g-',label='_nolegend_')
 
     # This will plot the analytic polynomial fit to the 1.4GHz source
     # counts from Hopkins et al (2003) (AJ 125, 465)
@@ -265,7 +282,7 @@ if __name__ == '__main__':
         hopkinsPolyCoeffs=[-0.008,0.057,-0.121,-0.049,0.376,0.508,0.859]
         hopkinsPoly=np.poly1d(hopkinsPolyCoeffs)
         hopkins=10**hopkinsPoly(np.log10(fluxpts*1000.))
-        plt.plot(fluxpts,hopkins,'g:',label='Hopkins et al (2003)')
+        plt.plot(fluxpts,hopkins,'k:',label='Hopkins et al (2003)')
     
     plt.ylim(1.e-1,1.e4)
     labelPlot('S [Jy]', r'$S^{5/2}n(S)$ [ Jy$^{3/2}$ sr$^{-1}$ ]','Differential source counts','medium')
@@ -273,10 +290,14 @@ if __name__ == '__main__':
     
     plt.savefig('sourceCounts.png')
 
+    if not skymodelOrigCat == '':
+        print "Source counts: Numbers in each bin, for Components | Matched components | Skymodel | Original sky model"
+    else:
+        print "Source counts: Numbers in each bin, for Components | Matched components | Skymodel "
     for i in range(len(fluxpts)):
         if not skymodelOrigCat == '':
-            print "%f: %6d %6d %6d"%(fluxpts[i],counts[i],countsSM[i],countsSMorig[i])
+            print "%f: %6d %6d %6d %6d"%(fluxpts[i],counts[i],countsMatch[i],countsSM[i],countsSMorig[i])
         else:
-            print "%f: %6d %6d"%(fluxpts[i],counts[i],countsSM[i])
+            print "%f: %6d %6d %6d"%(fluxpts[i],counts[i],countsMatch[i],countsSM[i])
             
     plt.close()
