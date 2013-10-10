@@ -93,14 +93,14 @@ fi
 
 if [ $doSF_SM == true ]; then
 
-    cduchampQsub=${smdir}/${WORKDIR}/cduchamp-smooth.qsub
-    cat > $cduchampQsub <<EOF
+    selavyQsub=${smdir}/${WORKDIR}/selavy-smooth.qsub
+    cat > $selavyQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
-#PBS -N cduchampTaylor
+#PBS -N selavyTaylor
 #PBS -m bea
 #PBS -j oe
 #PBS -r n
@@ -112,8 +112,8 @@ if [ $doSF_SM == true ]; then
 cd \$PBS_O_WORKDIR
 export AIPSPATH=${AIPSPATH}
 
-cduchampParset=${parsetdirSM}/cduchamp-smooth-\${PBS_JOBID}.in
-cat > \${cduchampParset} <<EOF_INNER
+selavyParset=${parsetdirSM}/selavy-smooth-\${PBS_JOBID}.in
+cat > \${selavyParset} <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
@@ -132,7 +132,7 @@ Selavy.findSpectralIndex = true
 EOF_INNER
 
 output=${logdirSM}/selavy-smooth-\${PBS_JOBID}.log
-mpirun $selavy -c \${cduchampParset} > \${output}
+mpirun $selavy -c \${selavyParset} > \${output}
 
 exit \$?
 
@@ -140,12 +140,12 @@ EOF
 
     if [ $doSubmit == true ]; then
 
-	cduchampID=`qsub ${dependSM} $cduchampQsub`
-	echo Submitting Selavy job with ID $cduchampID
+	selavyID=`qsub ${dependSM} $selavyQsub`
+	echo Submitting Selavy job with ID $selavyID
 	if [ "$dependSM" == "" ]; then
-	    dependSM="-W depend=afterok:${cduchampID}"
+	    dependSM="-W depend=afterok:${selavyID}"
 	else
-	    dependSM="${dependSM}:${cduchampID}"
+	    dependSM="${dependSM}:${selavyID}"
 	fi
 
     fi
@@ -209,7 +209,7 @@ createFITS.fitsOutput       = false
 createFITS.nsubx            = ${nsubx}
 createFITS.nsuby            = ${nsuby}
 createFITS.writeByNode      = true
-createFITS.sourcelist       = duchamp-fitResults.txt
+createFITS.sourcelist       = selavy-fitResults.txt
 createFITS.database         = Selavy
 createFITS.Selavyimage      = ${baseimage}-smooth.taylor.0
 createFITS.doContinuum      = true
