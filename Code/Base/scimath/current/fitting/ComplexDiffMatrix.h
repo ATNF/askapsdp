@@ -152,6 +152,22 @@ struct ComplexDiffMatrix {
    /// @param[in] matr another ComplexDiffMatrix
    inline void operator*=(const ComplexDiffMatrix &matr);
    
+   /// @brief matrix multiplication allowing block-matrices
+   /// @details We really work with multi-dimensional data rather than vectors.
+   /// Therefore, it is often convenient to stitch matrices together into a block
+   /// matrix to bring another dimension in (one example is frequency-dependent
+   /// Mueller matrices). Blocks are considered independent. So for a multiplication
+   /// of n x m matrix (m%n == 0) and n x p matrix (p%n == 0) each n x n block of
+   /// the first matrix is multiplied by the same or corresponding block of the second.
+   /// if the first matrix is n x n, the case reversed to normal multiplication. Otherwise,
+   /// either p == n or p == m.
+   /// @param[in] in1 first matrix
+   /// @param[in] in2 second matrix
+   /// @return product of the first and the second block-matrices
+   friend inline ComplexDiffMatrix blockMultiply(const ComplexDiffMatrix &in1,
+                const ComplexDiffMatrix &in2);
+   
+   
    /// @brief matrix multiplication
    /// @details
    /// @param[in] in1 first matrix
