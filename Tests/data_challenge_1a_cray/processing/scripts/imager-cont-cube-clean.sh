@@ -110,7 +110,7 @@ EOF_INNER
 
 log=../log/cimager-cont-cube-clean-\${PBS_JOBID}.log
 
-aprun -B \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \$parset > \$log
+aprun -B -ss \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \$parset > \$log
 EOF
 
 # Submit job

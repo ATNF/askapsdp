@@ -48,7 +48,7 @@ DRYRUN=false
 # Do calibration (true or false)
 # If true, calibration parameters will be determined and applied
 # during imaging
-DO_CALIBRATION=true
+DO_CALIBRATION=false
 
 # Do Continuum Imaging - Dirty (true or false)
 DO_CONTINUUM_DIRTY=true
@@ -66,7 +66,7 @@ DO_CONTINUUM_CUBE_DIRTY=false
 DO_CONTINUUM_CUBE_CLEAN=false
 
 # Do Spectral Line Imaging (true or false)
-DO_SPECTRAL_LINE=false
+DO_SPECTRAL_LINE=true
 
 
 #####################################
@@ -90,7 +90,7 @@ if [ $BETA_MODE == "small" ]; then
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
     #GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=2:mem=23GB:mpiprocs=2"
     GAINS_CAL_MPPWIDTH=305
-    GAINS_CAL_MPPNPPN=6
+    GAINS_CAL_MPPNPPN=4
     NUM_BEAMS_GAINSCAL=9
 
 # image size -- number of pixels and cellsize
@@ -151,7 +151,7 @@ elif [ ${BETA_MODE} == "full" ]; then
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
     #GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
     GAINS_CAL_MPPWIDTH=305
-    GAINS_CAL_MPPNPPN=6
+    GAINS_CAL_MPPNPPN=4
     NUM_BEAMS_GAINSCAL=36
 
 # image size -- number of pixels and cellsize

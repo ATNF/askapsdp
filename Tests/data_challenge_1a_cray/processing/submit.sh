@@ -118,7 +118,7 @@ if [ $DO_SPECTRAL_LINE == "true" ]; then
 . ${SCRIPTDIR}/imager-spectral-line.sh
 fi
 
-. ${SCRIPTDIR}/reporting.sh
+#. ${SCRIPTDIR}/reporting.sh
 
 # Write all the job ids to a file so a script can block until the
 # jobs have all completed if necessary

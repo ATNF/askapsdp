@@ -68,7 +68,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-aprun -n ${CONT_DIRTY_MPPWIDTH} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${parset} > \${logfile}
+aprun -n ${CONT_DIRTY_MPPWIDTH} -N ${CONT_DIRTY_MPPNPPN} -ss \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${parset} > \${logfile}
 EOF
 
 ## Submit the job
