@@ -88,7 +88,7 @@ for file in os.listdir('${chunkdir}'):
         goodfiles.append(file)
 goodfiles.sort()
 
-ia.open(goodfiles[0])
+ia.open('${chunkdir}/%s'%goodfiles[0])
 crec=ia.coordsys().torecord()
 ia.close()
 ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
