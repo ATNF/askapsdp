@@ -128,6 +128,48 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<T> &vec) :
    }
 }
 
+/// @brief matrix addition allowing block-matrices
+/// @details It is often convenient to stitch matrices together into a 
+/// block matrix (e.g. frequency-dependent Mueller matrix). However, at the
+/// same time it is desireable to mix normal matrices (i.e. frequency-independent
+/// effects) with block matrices. This method deals with addition assuming 
+/// a certain block representation (essentially a sparse diagonal matrix).
+/// @param[in] in1 first matrix
+/// @param[in] in2 second matrix
+/// @return sum of the first and the second block-matrices
+inline ComplexDiffMatrix blockAdd(const ComplexDiffMatrix &in1,
+                const ComplexDiffMatrix &in2) 
+{
+  if ((in1.nColumn() == in2.nColumn()) && (in1.nRow() == in2.nRow())) {
+      // simple case of either ordinary matrices or two matching block matrices
+      // either way it is a simple element by element addition
+      return in1 + in2;
+  }
+  // there are two options here: block + ordinary and ordinary + block
+  ASKAPDEBUGASSERT(in1.nRow() == in2.nRow());
+  // the result doesn't depend on the order, so just get the smallest number of columns and treat the corresponding
+  // matrix as the ordinary matrix
+  const ComplexDiffMatrix &ordinary = in1.nColumn()<in2.nColumn() ? in1 : in2;
+  const ComplexDiffMatrix &block = in1.nColumn()<in2.nColumn() ? in2 : in1;
+  ASKAPCHECK(block.nColumn() % ordinary.nColumn() == 0, 
+     "Block matrix is supposed to have the number of columns which is an integral multiple of number of columns for the other matrix ("<<
+     ordinary.nColumn()<<"), you have "<<block.nColumn());
+
+  ComplexDiffMatrix result(block.nRow(), block.nColumn());
+  size_t curCol = 0, curRow = 0;
+  for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
+       it != result.itsElements.end(); ++it,++curRow) {
+       *it = ComplexDiff(casa::Complex(0.,0.));
+       if (curRow >= result.nRow()) {
+           curRow = 0;
+           ++curCol;
+       }
+       ASKAPDEBUGASSERT(curCol < block.nColumn());
+       *it = block(curRow,curCol) + ordinary(curRow,curCol % ordinary.nColumn());
+  }
+  return result;      
+}
+
 /// @brief matrix multiplication allowing block-matrices
 /// @details We really work with multi-dimensional data rather than vectors.
 /// Therefore, it is often convenient to stitch matrices together into a block

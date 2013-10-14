@@ -66,6 +66,7 @@ class ComplexDiffMatrixTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testBlockMultiply);
   CPPUNIT_TEST_EXCEPTION(testBlockMultiplyFail, AskapError);
   CPPUNIT_TEST(testBlockMultiplyRectangular);
+  CPPUNIT_TEST(testBlockAdd);
   CPPUNIT_TEST(testMultiplyByScalar);
   CPPUNIT_TEST(testParameterList);
   CPPUNIT_TEST(testCreateFromVector);  
@@ -83,6 +84,7 @@ public:
   void testBlockMultiply();
   void testBlockMultiplyFail();
   void testBlockMultiplyRectangular();
+  void testBlockAdd();
   void testMultiplyByScalar();
   void testCreateFromVector();
   void testCreateFromMatrix();
@@ -139,6 +141,71 @@ void ComplexDiffMatrixTest::testAdd()
   CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g2")-casa::Complex(0.,0.))<1e-7);
   
 }
+
+void ComplexDiffMatrixTest::testBlockAdd()
+{
+  ComplexDiffMatrix cdm(2,4,f);
+  cdm(0,0)=g;
+  ComplexDiffMatrix cdm2(2,2,g);
+  cdm2(1,1)=f;
+  
+  ComplexDiffMatrix cdm3 = blockAdd(cdm,cdm2);
+  CPPUNIT_ASSERT_EQUAL(size_t(2), cdm.nRow());
+  CPPUNIT_ASSERT_EQUAL(size_t(2), cdm2.nRow());
+  CPPUNIT_ASSERT_EQUAL(size_t(2), cdm2.nColumn());
+  CPPUNIT_ASSERT_EQUAL(size_t(4), cdm.nColumn());
+  
+  
+  CPPUNIT_ASSERT(abs(cdm3(0,0).value()-casa::Complex(-70.,30.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,0).derivRe("g1")-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,0).derivIm("g1")-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,0).derivRe("g2")-casa::Complex(2.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,0).derivIm("g2")-casa::Complex(0.,2.))<1e-7);
+  
+  CPPUNIT_ASSERT(abs(cdm3(0,1).value()-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,1).derivRe("g1")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,1).derivIm("g1")-casa::Complex(0.,1.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,1).derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,1).derivIm("g2")-casa::Complex(0.,1.))<1e-7);
+  
+  CPPUNIT_ASSERT(abs(cdm3(1,0).value()-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,0).derivRe("g1")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,0).derivIm("g1")-casa::Complex(0.,1.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,0).derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,0).derivIm("g2")-casa::Complex(0.,1.))<1e-7);
+  
+  CPPUNIT_ASSERT(abs(cdm3(1,1).value()-casa::Complex(70.,-30.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,1).derivRe("g1")-casa::Complex(2.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g1")-casa::Complex(0.,2.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,1).derivRe("g2")-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g2")-casa::Complex(0.,0.))<1e-7);
+
+  CPPUNIT_ASSERT(abs(cdm3(0,2).value()-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,2).derivRe("g1")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,2).derivIm("g1")-casa::Complex(0.,1.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,2).derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,2).derivIm("g2")-casa::Complex(0.,1.))<1e-7);
+
+  CPPUNIT_ASSERT(abs(cdm3(0,3).value()-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,3).derivRe("g1")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,3).derivIm("g1")-casa::Complex(0.,1.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,3).derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(0,3).derivIm("g2")-casa::Complex(0.,1.))<1e-7);
+  
+  CPPUNIT_ASSERT(abs(cdm3(1,2).value()-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,2).derivRe("g1")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,2).derivIm("g1")-casa::Complex(0.,1.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,2).derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,2).derivIm("g2")-casa::Complex(0.,1.))<1e-7);
+  
+  CPPUNIT_ASSERT(abs(cdm3(1,3).value()-casa::Complex(70.,-30.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,3).derivRe("g1")-casa::Complex(2.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,3).derivIm("g1")-casa::Complex(0.,2.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,3).derivRe("g2")-casa::Complex(0.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(cdm3(1,3).derivIm("g2")-casa::Complex(0.,0.))<1e-7);
+  
+}
+
 
 void ComplexDiffMatrixTest::testMultiply()
 {

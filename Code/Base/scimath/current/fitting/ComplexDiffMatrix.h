@@ -151,6 +151,19 @@ struct ComplexDiffMatrix {
    /// @details 
    /// @param[in] matr another ComplexDiffMatrix
    inline void operator*=(const ComplexDiffMatrix &matr);
+
+   /// @brief matrix addition allowing block-matrices
+   /// @details It is often convenient to stitch matrices together into a 
+   /// block matrix (e.g. frequency-dependent Mueller matrix). However, at the
+   /// same time it is desireable to mix normal matrices (i.e. frequency-independent
+   /// effects) with block matrices. This method deals with addition assuming 
+   /// a certain block representation (essentially a sparse diagonal matrix).
+   /// @param[in] in1 first matrix
+   /// @param[in] in2 second matrix
+   /// @return sum of the first and the second block-matrices
+   friend inline ComplexDiffMatrix blockAdd(const ComplexDiffMatrix &in1,
+                const ComplexDiffMatrix &in2); 
+
    
    /// @brief matrix multiplication allowing block-matrices
    /// @details We really work with multi-dimensional data rather than vectors.
