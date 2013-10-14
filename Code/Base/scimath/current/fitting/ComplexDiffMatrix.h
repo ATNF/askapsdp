@@ -157,10 +157,9 @@ struct ComplexDiffMatrix {
    /// Therefore, it is often convenient to stitch matrices together into a block
    /// matrix to bring another dimension in (one example is frequency-dependent
    /// Mueller matrices). Blocks are considered independent. So for a multiplication
-   /// of n x m matrix (m%n == 0) and n x p matrix (p%n == 0) each n x n block of
+   /// of a n x m matrix and a p x q matrix (n%p == 0 and q%(n/p) == 0) each n x p block of
    /// the first matrix is multiplied by the same or corresponding block of the second.
-   /// if the first matrix is n x n, the case reversed to normal multiplication. Otherwise,
-   /// either p == n or p == m.
+   /// if the first matrix is n x n, the case reversed to normal multiplication. 
    /// @param[in] in1 first matrix
    /// @param[in] in2 second matrix
    /// @return product of the first and the second block-matrices

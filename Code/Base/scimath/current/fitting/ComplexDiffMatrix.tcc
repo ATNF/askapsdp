@@ -133,10 +133,9 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<T> &vec) :
 /// Therefore, it is often convenient to stitch matrices together into a block
 /// matrix to bring another dimension in (one example is frequency-dependent
 /// Mueller matrices). Blocks are considered independent. So for a multiplication
-/// of n x m matrix (m%n == 0) and n x p matrix (p%n == 0) each n x n block of
+/// of a n x m matrix and a p x q matrix (n%p == 0 and q%(n/p) == 0) each n x p block of
 /// the first matrix is multiplied by the same or corresponding block of the second.
-/// if the first matrix is n x n, the case reversed to normal multiplication. Otherwise,
-/// either p == n or p == m.
+/// if the first matrix is n x n, the case reversed to normal multiplication. 
 /// @param[in] in1 first matrix
 /// @param[in] in2 second matrix
 /// @return product of the first and the second block-matrices
@@ -150,12 +149,14 @@ inline ComplexDiffMatrix blockMultiply(const ComplexDiffMatrix &in1,
   // there are two options here
   // 1. block matrix x ordinary matrix
   // 2. block matrix x block matrix with matching number of blocks
+  // ordinary matrix x block matrix is taken care of by the standard case
   ASKAPDEBUGASSERT(in1.nRow() > 0);
   ASKAPDEBUGASSERT(in2.nRow() > 0);
   ASKAPDEBUGASSERT(in1.nColumn() % in2.nRow() == 0);
-  if (in2.nColumn() == in2.nRow()) {
-      // 1. block matrix x ordinary matrix
-      ComplexDiffMatrix result(in1.nRow(), in1.nColumn()); // output is a block-matrix
+  const casa::uInt nBlocks = in1.nColumn() / in2.nRow();
+  if (in2.nColumn() == in1.nRow()) {
+      // 1. block matrix x ordinary matrix -> blocks of square matrices
+      ComplexDiffMatrix result(in1.nRow(), in2.nColumn() * nBlocks); // output is a block-matrix
       size_t curCol = 0, curRow = 0;
       for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
            it != result.itsElements.end(); ++it,++curRow) {
@@ -168,15 +169,13 @@ inline ComplexDiffMatrix blockMultiply(const ComplexDiffMatrix &in1,
            for (size_t index=0; index<in2.nRow(); ++index) {
                 *it += in1(curRow, block + index)*in2(index,curCol % in2.nColumn());
            }
-       }
-       return result;      
+      }
+      return result;      
   } 
   // 2. block matrix x block matrix with matching number of blocks
-  const casa::uInt nBlocks = in1.nColumn() / in2.nRow();
-  ASKAPDEBUGASSERT(in2.nColumn() % in2.nRow() == 0);
-  ASKAPDEBUGASSERT(in2.nColumn() == in2.nRow() * nBlocks);
+  ASKAPDEBUGASSERT(in2.nColumn() % nBlocks == 0);
   
-  ComplexDiffMatrix result(in1.nRow(), in1.nColumn()); // output is a block-matrix
+  ComplexDiffMatrix result(in1.nRow(), in2.nColumn()); // output is a block-matrix
   size_t curCol = 0, curRow = 0;
   for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
        it != result.itsElements.end(); ++it,++curRow) {
@@ -191,8 +190,6 @@ inline ComplexDiffMatrix blockMultiply(const ComplexDiffMatrix &in1,
        }
   }
   return result;      
-       
-  return in1 * in2;
 }                
 
 

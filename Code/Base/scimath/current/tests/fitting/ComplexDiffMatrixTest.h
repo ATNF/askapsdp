@@ -64,6 +64,8 @@ class ComplexDiffMatrixTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testMultiply);
   CPPUNIT_TEST(testMatrixMultiply);
   CPPUNIT_TEST(testBlockMultiply);
+  CPPUNIT_TEST_EXCEPTION(testBlockMultiplyFail, AskapError);
+  CPPUNIT_TEST(testBlockMultiplyRectangular);
   CPPUNIT_TEST(testMultiplyByScalar);
   CPPUNIT_TEST(testParameterList);
   CPPUNIT_TEST(testCreateFromVector);  
@@ -79,11 +81,22 @@ public:
   void testMultiply();
   void testMatrixMultiply();
   void testBlockMultiply();
+  void testBlockMultiplyFail();
+  void testBlockMultiplyRectangular();
   void testMultiplyByScalar();
   void testCreateFromVector();
   void testCreateFromMatrix();
   void testParameterList();
   void testReuse();
+protected:
+  // helper method to generate a test 4x4 matrix, which is invertible
+  static casa::Matrix<casa::Complex> getTestMatrix();
+  // helper method to generate a reciprocal test 4x4 matrix, which is invertible
+  static casa::Matrix<casa::Complex> getReciprocalOfTestMatrix();
+  // make block matrix out of an ordinary one
+  static casa::Matrix<casa::Complex> copyBlocks(const casa::Matrix<casa::Complex> &in, const casa::uInt nBlocks);
+  // test the result matrix to be unity (optionally with multiple blocks)
+  static void testUnityBlockMatrix(const ComplexDiffMatrix &cdm, const casa::uInt nBlocks = 1); 
 };
 
 void ComplexDiffMatrixTest::setUp() 
@@ -161,11 +174,8 @@ void ComplexDiffMatrixTest::testMultiply()
   CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g2")-casa::Complex(15.,35.))<1e-7);  
 }
 
-void ComplexDiffMatrixTest::testMatrixMultiply()
-{
-  // this test is explicitly intended to test matrix multiply rather than
-  // carriage of derivatives (which is reasonably tested in ComplexDiff test)
-  
+casa::Matrix<casa::Complex> ComplexDiffMatrixTest::getTestMatrix() {
+  // this method just returns some matrix which is invertible. It is used in a couple of tests below
   casa::Matrix<casa::Complex> M(4,4);
   M(0,0) = casa::Complex(1.234,-0.01);   M(0,1) = casa::Complex(0.234,0.31);
   M(0,2) = casa::Complex(-0.74,-0.023);  M(0,3) = casa::Complex(0.0004,0.03);
@@ -175,76 +185,192 @@ void ComplexDiffMatrixTest::testMatrixMultiply()
   M(2,2) = casa::Complex(3.4,0.8); M(2,3) = casa::Complex(-0.43,0.33);
   M(3,0) = casa::Complex(-0.09,-0.038); M(3,1) = casa::Complex(-0.74,0.023);
   M(3,2) = casa::Complex(0.,0.); M(3,3) = casa::Complex(1.0,0.0);
-  // fill CDM
-  ComplexDiffMatrix cdm(M);     
+  return M;
+}
+
+casa::Matrix<casa::Complex> ComplexDiffMatrixTest::getReciprocalOfTestMatrix() {
+  // this method returns a matrix which is reciprocal to that returned by getTestMatrix. It is used in
+  // a couple of tests below
+  
+  casa::Matrix<casa::Complex> M = getTestMatrix(); 
+  
   // compute inverse
   casa::Matrix<casa::Complex> reciprocal(M.nrow(),M.ncolumn());
+  
   casa::Complex det = 0.;
   casa::invert(reciprocal,det,M);
   CPPUNIT_ASSERT(abs(det)>1e-5);
   CPPUNIT_ASSERT_EQUAL(M.nrow(),reciprocal.nrow());
   CPPUNIT_ASSERT_EQUAL(M.ncolumn(),reciprocal.ncolumn());
+  return reciprocal; 
+}
+
+void ComplexDiffMatrixTest::testMatrixMultiply()
+{
+  // this test is explicitly intended to test matrix multiply rather than
+  // carriage of derivatives (which is reasonably tested in ComplexDiff test)
+  const casa::Matrix<casa::Complex> M = getTestMatrix();   
+  // fill CDM
+  ComplexDiffMatrix cdm(M);     
+  
   CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm.nRow()));
   CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm.nColumn()));
+  
+  const casa::Matrix<casa::Complex> reciprocal = getReciprocalOfTestMatrix();
   // fill another CDM
   ComplexDiffMatrix cdm2(reciprocal);
   CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm2.nRow()));
   CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm2.nColumn()));
   // compute the product
   ComplexDiffMatrix cdm3 = cdm * cdm2;
-  CPPUNIT_ASSERT(cdm3.paramBegin() == cdm3.paramEnd());
-  for (size_t i = 0; i<cdm3.nRow(); ++i) {
-       for (size_t j = 0; j<cdm3.nColumn(); ++j) {
-            const casa::Complex val = cdm3(i,j).value();
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(i == j ? 1. : 0., real(val), 1e-6);
+  
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm3.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn(),casa::uInt(cdm3.nColumn()));
+  
+  testUnityBlockMatrix(cdm3);  
+}
+
+casa::Matrix<casa::Complex> ComplexDiffMatrixTest::copyBlocks(const casa::Matrix<casa::Complex> &in, const casa::uInt nBlocks)
+{
+  CPPUNIT_ASSERT(nBlocks > 0);
+  casa::Matrix<casa::Complex> result(in.nrow(),in.ncolumn() * nBlocks);
+  for (casa::uInt row = 0; row < result.nrow(); ++row) {
+       for (casa::uInt col = 0; col < result.ncolumn(); ++col) {
+            result(row,col) = in(row, col % in.ncolumn());
+       } 
+  } 
+  return result;
+}
+
+void ComplexDiffMatrixTest::testUnityBlockMatrix(const ComplexDiffMatrix &cdm, const casa::uInt nBlocks) 
+{
+  CPPUNIT_ASSERT(nBlocks > 0);
+  const casa::uInt columnsPerBlock = cdm.nColumn() / nBlocks;
+  CPPUNIT_ASSERT(columnsPerBlock > 0);
+  CPPUNIT_ASSERT(cdm.paramBegin() == cdm.paramEnd());
+    
+  for (size_t i = 0; i<cdm.nRow(); ++i) {
+       for (size_t j = 0; j<cdm.nColumn(); ++j) {
+            const casa::Complex val = cdm(i,j).value();
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(i == (j % columnsPerBlock) ? 1. : 0., real(val), 1e-6);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(val), 1e-6);            
        }
   } 
-  
 }
+
+void ComplexDiffMatrixTest::testBlockMultiplyFail()
+{
+  // multiplication of block matrices with different number of blocks should fail
+  const casa::Matrix<casa::Complex> M = copyBlocks(getTestMatrix(), 5);
+  // fill CDM
+  ComplexDiffMatrix cdm(M);     
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm.nColumn()));
+  const casa::Matrix<casa::Complex> reciprocal = copyBlocks(getReciprocalOfTestMatrix(),3);
+  // fill another CDM
+  ComplexDiffMatrix cdm2(reciprocal);
+  CPPUNIT_ASSERT_EQUAL(reciprocal.nrow(),casa::uInt(cdm2.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn(),casa::uInt(cdm2.nColumn()));
+  // the following should cause an exception.   
+  blockMultiply(cdm,cdm2);   
+}
+
 
 void ComplexDiffMatrixTest::testBlockMultiply()
 {
   // this test is explicitly intended to test matrix multiply rather than
   // carriage of derivatives (which is reasonably tested in ComplexDiff test)
   
-  casa::Matrix<casa::Complex> M(4,4);
-  M(0,0) = casa::Complex(1.234,-0.01);   M(0,1) = casa::Complex(0.234,0.31);
-  M(0,2) = casa::Complex(-0.74,-0.023);  M(0,3) = casa::Complex(0.0004,0.03);
-  M(1,0) = casa::Complex(-0.0154,casa::C::pi/10.); M(1,1) = casa::Complex(2.4,-1.3);
-  M(1,2) = casa::Complex(0.04,-0.0123); M(1,3) = casa::Complex(2.9e-4,0.089);
-  M(2,0) = casa::Complex(1.0,-0.42); M(2,1) = casa::Complex(-0.097,-0.067);
-  M(2,2) = casa::Complex(3.4,0.8); M(2,3) = casa::Complex(-0.43,0.33);
-  M(3,0) = casa::Complex(-0.09,-0.038); M(3,1) = casa::Complex(-0.74,0.023);
-  M(3,2) = casa::Complex(0.,0.); M(3,3) = casa::Complex(1.0,0.0);
+  const casa::Matrix<casa::Complex> M = getTestMatrix();   
   // fill CDM
   ComplexDiffMatrix cdm(M);     
-  // compute inverse
-  casa::Matrix<casa::Complex> reciprocal(M.nrow(),M.ncolumn());
-  casa::Complex det = 0.;
-  casa::invert(reciprocal,det,M);
-  CPPUNIT_ASSERT(abs(det)>1e-5);
-  CPPUNIT_ASSERT_EQUAL(M.nrow(),reciprocal.nrow());
-  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),reciprocal.ncolumn());
   CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm.nRow()));
   CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm.nColumn()));
+  const casa::Matrix<casa::Complex> reciprocal = getReciprocalOfTestMatrix();
   // fill another CDM
   ComplexDiffMatrix cdm2(reciprocal);
   CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm2.nRow()));
   CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm2.nColumn()));
-  // compute the product
-  ComplexDiffMatrix cdm3 = cdm * cdm2;
-  CPPUNIT_ASSERT(cdm3.paramBegin() == cdm3.paramEnd());
-  for (size_t i = 0; i<cdm3.nRow(); ++i) {
-       for (size_t j = 0; j<cdm3.nColumn(); ++j) {
-            const casa::Complex val = cdm3(i,j).value();
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(i == j ? 1. : 0., real(val), 1e-6);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(val), 1e-6);            
-       }
-  } 
-  
+  // compute normal matrix product
+  ComplexDiffMatrix cdm3 = blockMultiply(cdm,cdm2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm3.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm3.nColumn()));
+  testUnityBlockMatrix(cdm3);
+  // normal matrix by block matrix
+  const casa::uInt nBlocks = 5;
+  const casa::Matrix<casa::Complex> blockReciprocal = copyBlocks(reciprocal, nBlocks);
+  ComplexDiffMatrix blockCDM2(blockReciprocal);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(blockCDM2.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(blockCDM2.nColumn()));
+  ComplexDiffMatrix cdm4 = blockMultiply(cdm,blockCDM2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm4.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(cdm4.nColumn()));
+  testUnityBlockMatrix(cdm4,nBlocks);
+  // block matrix by normal matrix
+  const casa::Matrix<casa::Complex> blockM = copyBlocks(M, nBlocks);
+  ComplexDiffMatrix blockCDM(blockM);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(blockCDM.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(blockCDM.nColumn()));
+  ComplexDiffMatrix cdm5 = blockMultiply(blockCDM,cdm2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm5.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(cdm5.nColumn()));
+  testUnityBlockMatrix(cdm5,nBlocks);
+  // block matrix by block matrix
+  ComplexDiffMatrix cdm6 = blockMultiply(blockCDM,blockCDM2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm6.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(cdm6.nColumn()));
+  testUnityBlockMatrix(cdm6,nBlocks);    
 }
 
+void ComplexDiffMatrixTest::testBlockMultiplyRectangular()
+{
+  const casa::Slicer rowSlicer(casa::IPosition(2,0,0), casa::IPosition(2,2,4));
+  const casa::Slicer columnSlicer(casa::IPosition(2,0,0), casa::IPosition(2,4,2));
+  
+  const casa::Matrix<casa::Complex> M = getTestMatrix()(rowSlicer);
+  // fill CDM
+  ComplexDiffMatrix cdm(M);     
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm.nColumn()));
+  const casa::Matrix<casa::Complex> reciprocal = getReciprocalOfTestMatrix()(columnSlicer);
+  // fill another CDM
+  ComplexDiffMatrix cdm2(reciprocal);
+  CPPUNIT_ASSERT_EQUAL(reciprocal.nrow(),casa::uInt(cdm2.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn(),casa::uInt(cdm2.nColumn()));
+  // compute normal matrix product
+  ComplexDiffMatrix cdm3 = blockMultiply(cdm,cdm2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm3.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn(),casa::uInt(cdm3.nColumn()));
+  testUnityBlockMatrix(cdm3);
+
+  // normal matrix by block matrix
+  const casa::uInt nBlocks = 5;
+  const casa::Matrix<casa::Complex> blockReciprocal = copyBlocks(reciprocal, nBlocks);
+  ComplexDiffMatrix blockCDM2(blockReciprocal);
+  CPPUNIT_ASSERT_EQUAL(reciprocal.nrow(), casa::uInt(blockCDM2.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn() * nBlocks, casa::uInt(blockCDM2.nColumn()));
+  ComplexDiffMatrix cdm4 = blockMultiply(cdm,blockCDM2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm4.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn() * nBlocks, casa::uInt(cdm4.nColumn()));
+  testUnityBlockMatrix(cdm4,nBlocks);
+
+  // block matrix by normal matrix
+  const casa::Matrix<casa::Complex> blockM = copyBlocks(M, nBlocks);
+  ComplexDiffMatrix blockCDM(blockM);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(blockCDM.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(blockCDM.nColumn()));
+  ComplexDiffMatrix cdm5 = blockMultiply(blockCDM,cdm2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm5.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn() * nBlocks, casa::uInt(cdm5.nColumn()));
+  testUnityBlockMatrix(cdm5,nBlocks);
+  
+  // block matrix by block matrix
+  ComplexDiffMatrix cdm6 = blockMultiply(blockCDM,blockCDM2);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm6.nRow()));
+  CPPUNIT_ASSERT_EQUAL(reciprocal.ncolumn() * nBlocks, casa::uInt(cdm6.nColumn()));
+  testUnityBlockMatrix(cdm6,nBlocks);    
+  
+}
 
 void ComplexDiffMatrixTest::testMultiplyByScalar()
 {
