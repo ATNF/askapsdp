@@ -156,11 +156,11 @@ baselinemap.21                     = [2, 2, YY]
 observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 # Virgo
-observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
+#observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
 # 0407-658
 #observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
+observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790
 #observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
 
@@ -177,8 +177,8 @@ observation.scan0.interval          = 5000000
 # Task List
 #
 #tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, MSSink]
-tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,ChannelAvgTask,CalcUVWTask, Monitor, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,CalcUVWTask, Monitor, MSSink]
+tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,CalcUVWTask, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanFlag,CalcUVWTask, ChannelAvgTask,Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask,ChanSel, CalcUVWTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, ChannelAvgTask, Monitor,MSSink]
 #tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, Monitor,MSSink]
