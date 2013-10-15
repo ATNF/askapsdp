@@ -51,7 +51,7 @@ namespace synthesis {
 /// @details This is a simple effect which doesn't change anything
 /// after an addition to another effect. It is mainly intended for debugging. 
 /// @ingroup measurementequation
-struct ZeroComponent : public MEComponent {
+struct ZeroComponent : public MEComponent<false> {
    
    /// @brief constructor, parameters are actually ignored
    /// @param[in] par const reference to parameters

@@ -52,12 +52,12 @@ namespace synthesis {
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 /// @ingroup measurementequation
-struct NoXPolBeamIndependentGain : public ParameterizedMEComponent {
+struct NoXPolBeamIndependentGain : public ParameterizedMEComponent<false> {
    
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
    inline explicit NoXPolBeamIndependentGain(const scimath::Params::ShPtr &par) : 
-                              ParameterizedMEComponent(par) {}
+                              ParameterizedMEComponent<false>(par) {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for

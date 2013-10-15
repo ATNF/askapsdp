@@ -43,7 +43,8 @@ namespace synthesis {
 /// is not defined.
 /// @param[in] name parameter name
 /// @return value of the parameter wrapped in a complex diff object
-inline scimath::ComplexDiff ParameterizedMEComponent::getParameter(const std::string &name) const
+template<bool FDP>
+inline scimath::ComplexDiff ParameterizedMEComponent<FDP>::getParameter(const std::string &name) const
 {
    ASKAPDEBUGASSERT(parameters());
    ASKAPCHECK(parameters()->has(name), "Parameter "<<name<<" is not defined in NoXPolGain::getParameter");

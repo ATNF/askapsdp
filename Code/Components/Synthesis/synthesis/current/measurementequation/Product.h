@@ -34,18 +34,20 @@
 
 #include <measurementequation/MEComponent.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <measurementequation/BlockCDMOperations.h>
 
 namespace askap {
 
 namespace synthesis {
+
 
 /// @brief Composite calibration component  (a product of two others).
 /// @details This template acts as a composite effect with the resulting
 /// Mueller matrix equal to the matrix product of two input Mueller matrices.
 /// @note There are plans to extend the interface to several multipliers
 /// @ingroup measurementequation
-template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent>
-struct Product  : public MEComponent {
+template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent<false> >
+struct Product  : public MEComponent<Effect1::theirFDPFlag || Effect2::theirFDPFlag || Effect3::theirFDPFlag> {
 
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
@@ -62,9 +64,8 @@ struct Product  : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { using namespace scimath; return itsEffect1.get(chunk,row)*
-          itsEffect2.get(chunk,row)*itsEffect3.get(chunk,row); }
-
+   {  return BlockCDMOperations<Effect1::theirFDPFlag,Effect2::theirFDPFlag,Effect3::theirFDPFlag>::product( 
+           itsEffect1.get(chunk,row), itsEffect2.get(chunk,row), itsEffect3.get(chunk,row)); }
    
 private:
    /// @brief buffer for the first effect
@@ -75,10 +76,9 @@ private:
    Effect3 itsEffect3;
 };
 
-
 /// @brief specialization for two multipliers only
 template<typename Effect1, typename Effect2>
-struct Product<Effect1, Effect2, MEComponent> : public MEComponent {
+struct Product<Effect1, Effect2, MEComponent<false> > : public MEComponent<Effect1::theirFDPFlag || Effect2::theirFDPFlag> {
 
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
@@ -95,8 +95,8 @@ struct Product<Effect1, Effect2, MEComponent> : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { using namespace scimath; return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row); }
-
+   {  return BlockCDMOperations<Effect1::theirFDPFlag,Effect2::theirFDPFlag,false>::product( 
+           itsEffect1.get(chunk,row), itsEffect2.get(chunk,row)); }
    
 private:
    /// @buffer first effect
@@ -104,6 +104,8 @@ private:
    /// @buffer second effect
    Effect2 itsEffect2;
 };
+
+
 
 } // namespace synthesis
 

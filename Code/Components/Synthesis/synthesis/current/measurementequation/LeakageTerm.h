@@ -57,12 +57,12 @@ namespace synthesis {
 /// d21 (corresponding to Stokes::YX) correspond to d_{Ap} and d_{Aq} from
 /// Hamaker, Bregman & Sault, respectively.
 /// @ingroup measurementequation
-struct LeakageTerm : public ParameterizedMEComponent {
+struct LeakageTerm : public ParameterizedMEComponent<false> {
    
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
    inline explicit LeakageTerm(const scimath::Params::ShPtr &par) : 
-                              ParameterizedMEComponent(par) {}
+                              ParameterizedMEComponent<false>(par) {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for
@@ -74,6 +74,7 @@ struct LeakageTerm : public ParameterizedMEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const;   
+
 };
 
 } // namespace synthesis

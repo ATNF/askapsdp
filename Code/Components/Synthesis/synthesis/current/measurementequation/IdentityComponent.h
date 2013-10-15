@@ -51,7 +51,7 @@ namespace synthesis {
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 /// @ingroup measurementequation
-struct IdentityComponent : public MEComponent {
+struct IdentityComponent : public MEComponent<false> {
    
    /// @brief constructor, parameters are actually ignored
    /// @param[in] par const reference to parameters

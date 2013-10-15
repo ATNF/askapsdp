@@ -68,7 +68,7 @@ namespace synthesis {
 /// of the former GainCalibrationEquation, which will probably be completely 
 /// substituted by this template in the future. The common point between all
 /// calibration equations is that the perfect measurement equation is passed
-/// as a parmeter. It is used to populate an array of perfect visibilities
+/// as a parameter. It is used to populate an array of perfect visibilities
 /// corresponding to metadata held by the data accessor for each row.
 /// Then, the calibration effect represented by the template parameter is applied
 /// (its ComplexDiffMatrix is multiplied by the ComplexDiffMatrix initialized with

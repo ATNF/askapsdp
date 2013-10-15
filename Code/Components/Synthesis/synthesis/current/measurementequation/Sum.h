@@ -43,6 +43,7 @@
 
 #include <measurementequation/MEComponent.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <measurementequation/BlockCDMOperations.h>
 
 namespace askap {
 
@@ -62,8 +63,8 @@ namespace synthesis {
 /// The main drawback is inability to solve for parameters using just the 
 /// functionality of wrapped classes.
 /// @ingroup measurementequation
-template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent>
-struct Sum : public MEComponent {
+template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent<false> >
+struct Sum : public MEComponent<Effect1::theirFDPFlag || Effect2::theirFDPFlag || Effect3::theirFDPFlag> {
 
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
@@ -80,9 +81,8 @@ struct Sum : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { using namespace scimath; return itsEffect1.get(chunk,row)+
-          itsEffect2.get(chunk,row)+itsEffect3.get(chunk,row); }
-
+   { return BlockCDMOperations<Effect1::theirFDPFlag,Effect2::theirFDPFlag,Effect3::theirFDPFlag>::sum(
+              itsEffect1.get(chunk,row),itsEffect2.get(chunk,row),itsEffect3.get(chunk,row)); }
    
 private:
    /// @brief buffer for the first effect
@@ -96,7 +96,7 @@ private:
 
 /// @brief specialization for two items only
 template<typename Effect1, typename Effect2>
-struct Sum<Effect1, Effect2, MEComponent> : public MEComponent {
+struct Sum<Effect1, Effect2, MEComponent<false> > : public MEComponent<Effect1::theirFDPFlag || Effect2::theirFDPFlag> {
 
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
@@ -113,8 +113,8 @@ struct Sum<Effect1, Effect2, MEComponent> : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { using namespace scimath; return itsEffect1.get(chunk,row) + itsEffect2.get(chunk,row); }
-
+   { return BlockCDMOperations<Effect1::theirFDPFlag,Effect2::theirFDPFlag,false>::sum(
+              itsEffect1.get(chunk,row),itsEffect2.get(chunk,row)); }
    
 private:
    /// @buffer first effect

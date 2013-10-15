@@ -42,8 +42,19 @@ namespace synthesis {
 /// @details This class is mainly a structural unit. A derived class
 /// ParameterizedMEComponent holds a reference to parameters.
 /// @ingroup measurementequation
+template <bool FDP>
 struct MEComponent {
-   
+
+   /// @brief check whether the effect is frequency-dependent
+   /// @details For frequency-dependent effects the "get" method returns block matrix with 
+   /// one block corresponding to every channel (i.e. the size is nPol x nPol*nChannel 
+   /// instead of simply nPol x nPol). We need this flag to unroll the matrix multiplication
+   /// correctly.
+   /// @return true, if the effect is frequency-dependent
+   static inline bool isFrequencyDependent() { return FDP; }
+      
+   /// @brief frequency dependency flag
+   static const bool theirFDPFlag = FDP;   
 };
 
 } // namespace synthesis

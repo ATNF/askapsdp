@@ -52,7 +52,8 @@ namespace synthesis {
 /// unit, but it holds a reference to parameters, which are passed
 /// around to all components of the measurement equation.
 /// @ingroup measurementequation
-struct ParameterizedMEComponent : public MEComponent {
+template<bool FDP>
+struct ParameterizedMEComponent : public MEComponent<FDP> {
    
    /// @brief constructor, store reference to paramters
    /// @param[in] par shared pointer to parameters
