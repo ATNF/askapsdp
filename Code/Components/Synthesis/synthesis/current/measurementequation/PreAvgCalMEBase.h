@@ -138,6 +138,14 @@ protected:
   virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const accessors::IConstDataAccessor &acc,
                     casa::uInt row) const = 0;
   
+  /// @brief check whether the measurement equation is frequency-dependent
+  /// @details For frequency-dependent effects the buildComplexDiffMatrix method returns block matrix with 
+  /// one block corresponding to every channel (i.e. the size is nPol x nPol*nChannel 
+  /// instead of simply nPol x nPol). We need this flag to unroll the matrix multiplication
+  /// correctly.
+  /// @return true, if the effect is frequency-dependent
+  virtual bool isFrequencyDependent() const = 0;
+  
   /// @brief a helper method to manage dataset-related statistics   
   /// @details It manages statistics data fields and processes one data accessor.
   /// @param[in] acc input data accessor

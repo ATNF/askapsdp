@@ -95,17 +95,33 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
   ASKAPCHECK(itsPerfectVisME, "Perfect ME should be defined before calling CalibrationMEBase::predict");
  
   itsPerfectVisME->predict(chunk);
-  for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
-       ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row) * 
-            ComplexDiffMatrix(casa::transpose(chunk.visibility().yzPlane(row)));
+  if (isFrequencyDependent()) {
+      for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+           ComplexDiffMatrix calCDM = buildComplexDiffMatrix(chunk, row);
+           casa::Matrix<casa::Complex> thisRow = chunk.visibility().yzPlane(row);
+           ASKAPDEBUGASSERT(calCDM.nColumn() == thisRow.nrow() * thisRow.ncolumn());
+           ASKAPDEBUGASSERT(calCDM.nRow() == thisRow.ncolumn());
+           for (casa::uInt chan=0; chan < thisRow.nrow(); ++chan) {
+                ComplexDiffMatrix thisChanCDM = calCDM.extractBlock(chan * calCDM.nRow(),calCDM.nRow());
+                ComplexDiffMatrix cdm = thisChanCDM * ComplexDiffMatrix(thisRow.row(chan));
+                for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
+                     rwVis(row, chan, pol) = cdm[pol].value();
+                }
+           }
+      } 
+  } else {
+     for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+        ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row) * 
+             ComplexDiffMatrix(casa::transpose(chunk.visibility().yzPlane(row)));
        
-       for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
-            for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
-               // cdm is transposed! because we need a vector for
-               // each spectral channel for a proper matrix multiplication
-               rwVis(row, chan, pol) = cdm(pol, chan).value();
-            }
-       }
+         for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
+             for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
+                // cdm is transposed! because we need a vector for
+                // each spectral channel for a proper matrix multiplication
+                rwVis(row, chan, pol) = cdm(pol, chan).value();
+             }
+         }
+     }
   }
 }
 

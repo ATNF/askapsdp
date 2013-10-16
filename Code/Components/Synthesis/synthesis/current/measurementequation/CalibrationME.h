@@ -148,6 +148,14 @@ protected:
                     casa::uInt row) const
       {   return itsEffect.get(acc,row); }
 
+  /// @brief check whether the measurement equation is frequency-dependent
+  /// @details For frequency-dependent effects the buildComplexDiffMatrix method returns block matrix with 
+  /// one block corresponding to every channel (i.e. the size is nPol x nPol*nChannel 
+  /// instead of simply nPol x nPol). We need this flag to unroll the matrix multiplication
+  /// correctly.
+  /// @return true, if the effect is frequency-dependent
+  virtual bool isFrequencyDependent() const { return Effect::theirFDPFlag; }
+
 private:
    /// @brief effectively a measurement equation
    /// @details The measurement equation is assembled at compile time. It is
