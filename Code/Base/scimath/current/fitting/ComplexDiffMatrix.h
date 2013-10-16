@@ -179,6 +179,12 @@ struct ComplexDiffMatrix {
    friend inline ComplexDiffMatrix blockMultiply(const ComplexDiffMatrix &in1,
                 const ComplexDiffMatrix &in2);
    
+   /// @brief extract a block 
+   /// @details This method extracts a range of columns.
+   /// @param[in] startCol first column to extract
+   /// @param[in] length number of columns to extract
+   /// @return the slice matrix with the same number of rows but a subset of columns
+   inline ComplexDiffMatrix extractBlock(size_t startCol, size_t length) const;
    
    /// @brief matrix multiplication
    /// @details

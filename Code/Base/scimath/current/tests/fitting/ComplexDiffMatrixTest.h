@@ -66,6 +66,7 @@ class ComplexDiffMatrixTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testBlockMultiply);
   CPPUNIT_TEST_EXCEPTION(testBlockMultiplyFail, AskapError);
   CPPUNIT_TEST(testBlockMultiplyRectangular);
+  CPPUNIT_TEST(testBlockExtract);
   CPPUNIT_TEST(testBlockAdd);
   CPPUNIT_TEST(testMultiplyByScalar);
   CPPUNIT_TEST(testParameterList);
@@ -85,6 +86,7 @@ public:
   void testBlockMultiplyFail();
   void testBlockMultiplyRectangular();
   void testBlockAdd();
+  void testBlockExtract();
   void testMultiplyByScalar();
   void testCreateFromVector();
   void testCreateFromMatrix();
@@ -387,6 +389,25 @@ void ComplexDiffMatrixTest::testBlockMultiply()
   CPPUNIT_ASSERT_EQUAL(M.nrow(), casa::uInt(cdm6.nRow()));
   CPPUNIT_ASSERT_EQUAL(M.ncolumn() * nBlocks, casa::uInt(cdm6.nColumn()));
   testUnityBlockMatrix(cdm6,nBlocks);    
+}
+
+void ComplexDiffMatrixTest::testBlockExtract()
+{
+ const casa::uInt nBlocks = 5;
+ const casa::Matrix<casa::Complex> M = copyBlocks(getTestMatrix(), nBlocks);
+    
+ // fill full CDM
+ ComplexDiffMatrix cdm(M);     
+ const casa::Matrix<casa::Complex> reciprocal = getReciprocalOfTestMatrix();
+ // single block CDM from the reciprocal matrix
+ ComplexDiffMatrix reciprocalCDM(reciprocal);
+ for (casa::uInt block = 0; block < nBlocks; ++block) {
+      ComplexDiffMatrix blockCDM = cdm.extractBlock(block * cdm.nRow(), cdm.nRow());
+      CPPUNIT_ASSERT_EQUAL(cdm.nRow(), blockCDM.nRow());
+      CPPUNIT_ASSERT_EQUAL(cdm.nRow(), blockCDM.nColumn());
+      ComplexDiffMatrix product = blockCDM * reciprocalCDM;
+      testUnityBlockMatrix(product);
+ }
 }
 
 void ComplexDiffMatrixTest::testBlockMultiplyRectangular()
