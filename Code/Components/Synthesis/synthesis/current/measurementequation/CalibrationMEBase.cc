@@ -125,6 +125,33 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
   }
 }
 
+/// @brief form correction matrix
+/// @details This is a helper method which forms correction matrix out of
+/// ComplexDiffMatrix (to encapsulate the code used both in frequency-dependent
+/// and frequency-independent cases).
+/// @param[in] cdm a square ComplexDiffMatrix describing the effect
+/// @return correction matrix
+casa::Matrix<casa::Complex> CalibrationMEBase::getCorrectionMatrix(const scimath::ComplexDiffMatrix &cdm)
+{
+  ASKAPTRACE("CalibrationMEBase::getCorrectionMatrix");
+  ASKAPASSERT(cdm.nRow()==cdm.nColumn()); // need to do something about this sometime in the future
+  casa::Matrix<casa::Complex> effect(cdm.nRow(),cdm.nColumn());
+
+  casa::Matrix<casa::Complex> reciprocal;
+  casa::Complex det=0;
+  for (casa::uInt i = 0; i < effect.nrow(); ++i) {
+       for (casa::uInt j = 0; j < effect.ncolumn(); ++j) {
+            effect(i, j) = cdm(i, j).value();
+       }
+  }
+  invertSymPosDef(reciprocal, det, effect);
+  if (casa::abs(det)<1e-5) {
+      ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<casa::abs(det));           
+  }
+  return reciprocal;  
+}
+
+
 /// @brief correct model visibilities for one accessor (chunk).
 /// @details This method corrects the data in the given accessor
 /// (accessed via rwVisibility) for the calibration errors 
@@ -140,39 +167,42 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
   ASKAPTRACE("CalibrationMEBase::correct");
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   ASKAPDEBUGASSERT(rwVis.nelements());
-
-  for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
-       ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
+  if (isFrequencyDependent()) {
+      for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+           ComplexDiffMatrix thisRowCDM = buildComplexDiffMatrix(chunk, row);
+           casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);       
+           for (casa::uInt chan=0; chan < thisRow.nrow(); ++chan) {
+                ComplexDiffMatrix thisChanCDM = thisRowCDM.extractBlock(chan * thisRow.ncolumn(), thisRow.ncolumn());
+                casa::Vector<casa::Complex> visPolVector = thisRow.row(chan);
+                // no need to transpose here because we deal with vectors
+                casa::Matrix<casa::Complex> correctedPolVector = getCorrectionMatrix(thisRowCDM) * visPolVector;
+                visPolVector = correctedPolVector;
+           }
+      }
+  } else {
+      for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+           ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
                     
-       ASKAPASSERT(cdm.nRow()==cdm.nColumn()); // need to fix it in the future
-       
-       // cdm is transposed! because we need a vector for
-       // each spectral channel for a proper matrix multiplication
-       casa::Matrix<casa::Complex> effect(cdm.nRow(),cdm.nColumn());
-       casa::Matrix<casa::Complex> reciprocal;
-       casa::Complex det=0;
-       for (casa::uInt i = 0; i <effect.nrow(); ++i) {
-            for (casa::uInt j = 0; j < effect.ncolumn(); ++j) {
-               effect(i, j) = cdm(j, i).value();
-            }
-       }
-       invertSymPosDef(reciprocal, det, effect);
-       if (casa::abs(det)<1e-5) {
-           ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<casa::abs(det));           
-       }
-       casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
-       
-       casa::Matrix<casa::Complex> temp(thisRow.nrow(),reciprocal.ncolumn(),
+  
+           // we need to transpose the inverse matrix to be able to bulk-process all
+           // channels which are presented in a cube slice which is nchan x npol matrix 
+          casa::Matrix<casa::Complex> reciprocal = transpose(getCorrectionMatrix(cdm));
+              
+          casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);       
+          casa::Matrix<casa::Complex> temp(thisRow.nrow(),reciprocal.ncolumn(),
                                      casa::Complex(0.,0.)); // = thisRow*reciprocal;
-       for (casa::uInt i = 0; i < temp.nrow(); ++i) {
-            for (casa::uInt j = 0; j < temp.ncolumn(); ++j) {
-                 for (casa::uInt k = 0; k < thisRow.ncolumn(); ++k) {
-                      temp(i,j) += thisRow(i,k)*reciprocal(k,j);
-                 }  
-            }
-       }
+                                     
+          // the code below is just a matrix multiplication doing on-the-fly transpose
+          for (casa::uInt i = 0; i < temp.nrow(); ++i) {
+               for (casa::uInt j = 0; j < temp.ncolumn(); ++j) {
+                    for (casa::uInt k = 0; k < thisRow.ncolumn(); ++k) {
+                         temp(i,j) += thisRow(i,k)*reciprocal(k,j);
+                    }  
+               }
+          }
        
-       thisRow = temp;
+          thisRow = temp;              
+      }
   }
 }
 
@@ -196,18 +226,41 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
   itsPerfectVisME->predict(buffChunk);
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
-  for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
-       ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row) * 
-            ComplexDiffMatrix(casa::transpose(buffChunk.visibility().yzPlane(row)));
-       casa::Matrix<casa::Complex> measuredSlice = transpose(measuredVis.yzPlane(row));
-       
-       DesignMatrix designmatrix;
-       // we can probably add below actual weights taken from the data accessor
-       designmatrix.addModel(cdm, measuredSlice, 
-                 casa::Matrix<double>(measuredSlice.nrow(),
-                 measuredSlice.ncolumn(),1.));
+  if (isFrequencyDependent()) {
+      for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) {
+          ComplexDiffMatrix thisRowCDM = buildComplexDiffMatrix(buffChunk, row);
+          casa::Matrix<casa::Complex> thisRowPerfectVis = buffChunk.visibility().yzPlane(row);
+          casa::Matrix<casa::Complex> thisRowMeasuredVis = measuredVis.yzPlane(row);
+          ASKAPDEBUGASSERT(thisRowCDM.nColumn() == thisRowPerfectVis.nrow() * thisRowPerfectVis.ncolumn());
+          for (casa::uInt chan=0; chan < thisRowPerfectVis.nrow(); ++chan) {
+               ComplexDiffMatrix thisChanCDM = thisRowCDM.extractBlock(chan * thisRowPerfectVis.ncolumn(),thisRowPerfectVis.ncolumn());
+               casa::Vector<casa::Complex> perfectVisPolVector = thisRowPerfectVis.row(chan);
+               casa::Vector<casa::Complex> measuredVisPolVector = thisRowMeasuredVis.row(chan); 
+               ComplexDiffMatrix cdm = thisChanCDM * ComplexDiffMatrix(perfectVisPolVector);
+               
+               DesignMatrix designmatrix;
+               // we can probably add below actual weights taken from the data accessor
+               designmatrix.addModel(cdm, measuredVisPolVector, 
+                       casa::Vector<double>(measuredVisPolVector.nelements(),1.));
       
-       ne.add(designmatrix);
+               ne.add(designmatrix);               
+          }
+      }     
+  } else {
+     // process all frequency channels at once as the effect ComplexDiffMatrix is the same for all of them
+     for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
+          ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row) * 
+               ComplexDiffMatrix(casa::transpose(buffChunk.visibility().yzPlane(row)));
+          casa::Matrix<casa::Complex> measuredSlice = transpose(measuredVis.yzPlane(row));
+       
+          DesignMatrix designmatrix;
+          // we can probably add below actual weights taken from the data accessor
+          designmatrix.addModel(cdm, measuredSlice, 
+                    casa::Matrix<double>(measuredSlice.nrow(),
+                    measuredSlice.ncolumn(),1.));
+      
+          ne.add(designmatrix);
+     }
   }
 }                                   
 

@@ -142,6 +142,15 @@ public:
        
  
 protected:  
+
+  /// @brief form correction matrix
+  /// @details This is a helper method which forms correction matrix out of
+  /// ComplexDiffMatrix (to encapsulate the code used both in frequency-dependent
+  /// and frequency-independent cases).
+  /// @param[in] cdm a square ComplexDiffMatrix describing the effect
+  /// @return correction matrix
+  static casa::Matrix<casa::Complex> getCorrectionMatrix(const scimath::ComplexDiffMatrix &cdm);
+
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
   /// @details This is the only method which depends on the template type.
   /// Therefore in this class it is just declared pure virtual. This method
