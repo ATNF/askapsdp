@@ -174,6 +174,24 @@ namespace askap
             add(name,buf);
         }
 		
+        /// @brief add a complex vector
+        /// @details This method is a convenient way to update parameter which is a complex
+        /// vector (translated to vector of real numbers twice the size)
+        /// @param[in] name parameter name
+        /// @param[in] value a value of the paramter to be added
+        void Params::addComplexVector(const std::string &name, const casa::Vector<casa::Complex> &value)
+        {
+           casa::Array<double> buf(casa::IPosition(1,2*value.nelements()));
+           casa::IPosition index(1,0);           
+           for (casa::uInt elem = 0; elem < value.nelements(); ++elem,++index(0)) {
+                const casa::Complex val = value[elem];
+                buf(index) = real(val);
+                ++index(0);
+                buf(index) = imag(val);                
+           }
+           add(name,buf);
+        }
+                
 
 		void Params::add(const std::string& name, const double ip, const Axes& axes)
 		{
@@ -254,6 +272,23 @@ namespace askap
             update(name,buf);
         }
 		
+		/// @brief update a complex vector
+        /// @details This method is a convenient way to update parameter which is a complex
+        /// vector (translated to vector of real numbers twice the size)
+        /// @param[in] name parameter name
+        /// @param[in] value a value of the paramter to be updated
+        void Params::updateComplexVector(const std::string &name, const casa::Vector<casa::Complex> &value) 
+        {
+           casa::Array<double> buf(casa::IPosition(1,2*value.nelements()));
+           casa::IPosition index(1,0);           
+           for (casa::uInt elem = 0; elem < value.nelements(); ++elem,++index(0)) {
+                const casa::Complex val = value[elem];
+                buf(index) = real(val);
+                ++index(0);
+                buf(index) = imag(val);                
+           }
+           update(name,buf);
+        }		
 
 		void Params::update(const std::string& name, const double ip)
 		{
@@ -324,6 +359,27 @@ namespace askap
 			return casa::Complex(arrVal(casa::IPosition(1,0)), 
 			                     arrVal(casa::IPosition(1,1))); 
 		}
+		
+		/// @brief obtain parameter as a complex vector
+        /// @details Complex vectors are represented as real vectors with twice the size.
+        /// @param[in] name parameter name
+        /// @return complex vector
+        casa::Vector<casa::Complex> Params::complexVectorValue(const std::string &name) const
+        {
+		    ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
+			const casa::Array<double> &arrVal = value(name);
+			ASKAPCHECK(arrVal.nelements() % 2 == 0, "Parameter "<<name<<
+			           " has an odd number of elements, unable to convert to complex vector");
+			casa::Vector<casa::Complex> result(arrVal.nelements() / 2);
+			// just to have vector interface, casa array copy has reference semantics
+			casa::Vector<double> vecVal(arrVal);
+			for (casa::uInt elem = 0, outElem = 0; outElem < result.nelements(); ++outElem,elem+=2) {
+			     const casa::Complex val(static_cast<float>(vecVal[elem]), static_cast<float>(vecVal[elem+1]));
+			     result[outElem] = val;
+			}
+            return result;
+        } 
+		
 
 		const Axes& Params::axes(const std::string& name) const
 		{

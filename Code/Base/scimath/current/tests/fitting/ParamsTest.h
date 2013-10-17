@@ -53,6 +53,7 @@ namespace askap
       CPPUNIT_TEST(testCompletions);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testArraySlice);
+      CPPUNIT_TEST(testComplexVector);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_EXCEPTION(testDuplicate, askap::CheckError);
       CPPUNIT_TEST_EXCEPTION(testNotScalar, askap::CheckError);
@@ -151,6 +152,29 @@ namespace askap
           CPPUNIT_ASSERT(p1->value("Value1").nelements()==100);
           p1->value("Value1").set(4.0);
           CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==4.0);
+        }
+        
+        void testComplexVector()
+        {
+          casa::Vector<casa::Complex> vec(5,casa::Complex(2.,3.));
+          vec[0] = casa::Complex(0.,1.);
+          p1->addComplexVector("cvec",vec);
+          CPPUNIT_ASSERT(p1->has("cvec"));
+          CPPUNIT_ASSERT_EQUAL(size_t(10), p1->value("cvec").nelements());
+          const casa::Vector<casa::Complex> res = p1->complexVectorValue("cvec");
+          CPPUNIT_ASSERT_EQUAL(res.nelements(), vec.nelements());
+          for (size_t i = 0; i<res.nelements(); ++i) {
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(real(vec[i]),real(res[i]),1e-6); 
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(vec[i]),imag(res[i]),1e-6);
+          } 
+          vec *= 2.f;
+          p1->updateComplexVector("cvec",vec);
+          const casa::Vector<casa::Complex> res2 = p1->complexVectorValue("cvec");
+          CPPUNIT_ASSERT_EQUAL(res2.nelements(), vec.nelements());
+          for (size_t i = 0; i<res2.nelements(); ++i) {
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(real(vec[i]),real(res2[i]),1e-6); 
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(vec[i]),imag(res2[i]),1e-6);
+          }           
         }
         
         void testArraySlice()

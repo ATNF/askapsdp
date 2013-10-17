@@ -39,6 +39,7 @@
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -117,6 +118,13 @@ void add(const std::string &name, const casa::IPosition &shape, const Axes &axes
         /// @param[in] value a value of the parameter to be added
         void add(const std::string &name, const casa::Complex &value);
 
+/// @brief add a complex vector
+/// @details This method is a convenient way to update parameter which is a complex
+/// vector (translated to vector of real numbers twice the size)
+/// @param[in] name parameter name
+/// @param[in] value a value of the paramter to be added
+void addComplexVector(const std::string &name, const casa::Vector<casa::Complex> &value);
+
         /// @brief remove a parameter
         /// @details One needs to be able to remove a given parameter to avoid passing
         /// unused parameters to design matrix.
@@ -152,6 +160,12 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// @param[in] value a value of the parameter to be added
         void update(const std::string &name, const casa::Complex &value);
 
+/// @brief update a complex vector
+/// @details This method is a convenient way to update parameter which is a complex
+/// vector (translated to vector of real numbers twice the size)
+/// @param[in] name parameter name
+/// @param[in] value a value of the paramter to be updated
+void updateComplexVector(const std::string &name, const casa::Vector<casa::Complex> &value);
 
 /// Is this parameter a scalar?
 /// @param name Name of param
@@ -198,6 +212,12 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// @param[in] name Name of the parameter
         /// @return value of the parameter
         casa::Complex complexValue(const std::string &name) const;
+
+/// @brief obtain parameter as a complex vector
+/// @details Complex vectors are represented as real vectors with twice the size.
+/// @param[in] name parameter name
+/// @return complex vector
+casa::Vector<casa::Complex> complexVectorValue(const std::string &name) const; 
 
 /// Return the axes for the parameter with this name (const)
 /// @param name Name of param
