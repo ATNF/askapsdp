@@ -92,6 +92,21 @@ struct CalParamNameHelper {
   /// @param[in] name full name of the parameter
   /// @return true, if it is a bandpass parameter
   static bool bpParam(const std::string &name);
+  
+  /// @brief adds spectral channel to the name
+  /// @details It seems easier to carry bandpass parameters as vectors, but we need to extract individual
+  /// channels for normal equations. It is convenient to just modify the name by adding trailing ".chan"
+  /// @param[in] name full name of the parameter
+  /// @param[in] chan spectral channel
+  /// @return name with channel info added
+  static std::string addChannelInfo(const std::string &name, casa::uInt chan);
+  
+  /// @brief extract coded channel and parameter name
+  /// @details This is a reverse operation to codeInChannel. Note, no checks are done that the name passed
+  /// has coded channel present.
+  /// @param[in] name full name of the parameter
+  /// @return a pair with extracted channel and the base parameter name
+  static std::pair<casa::uInt, std::string> extractChannelInfo(const std::string &name);
 };
 
 } // namespace accessors

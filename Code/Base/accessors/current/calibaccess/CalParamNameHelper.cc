@@ -113,6 +113,30 @@ bool CalParamNameHelper::bpParam(const std::string &name)
   return name.find(bpPrefix()) == 0;
 }
 
+/// @brief adds spectral channel to the name
+/// @details It seems easier to carry bandpass parameters as vectors, but we need to extract individual
+/// channels for normal equations. It is convenient to just modify the name by adding trailing ".chan"
+/// @param[in] name full name of the parameter
+/// @param[in] chan spectral channel
+/// @return name with channel info added
+std::string CalParamNameHelper::addChannelInfo(const std::string &name, casa::uInt chan)
+{
+  return name + "." + utility::toString<casa::uInt>(chan);
+}
+  
+/// @brief extract coded channel and parameter name
+/// @details This is a reverse operation to codeInChannel. Note, no checks are done that the name passed
+/// has coded channel present.
+/// @param[in] name full name of the parameter
+/// @return a pair with extracted channel and the base parameter name
+std::pair<casa::uInt, std::string> CalParamNameHelper::extractChannelInfo(const std::string &name)
+{
+  size_t pos = name.rfind(".");
+  ASKAPCHECK(pos != std::string::npos, "Expect dot in the parameter name passed to extractChannelInfo, name="<<name);
+  ASKAPCHECK(pos + 1 != name.size(), "Parameter name="<<name<<" ends with a dot");
+  return std::pair<casa::uInt, std::string>(utility::fromString<casa::uInt>(name.substr(pos+1)),name.substr(0,pos));
+}
+
 } // namespace accessors
 
 } // namespace askap

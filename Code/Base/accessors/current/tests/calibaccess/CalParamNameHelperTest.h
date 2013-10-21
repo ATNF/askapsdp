@@ -51,6 +51,7 @@ class CalParamNameHelperTest : public CppUnit::TestFixture
    CPPUNIT_TEST_EXCEPTION(testFromStringException2, AskapError);
    CPPUNIT_TEST_EXCEPTION(testFromStringException3, AskapError);
    CPPUNIT_TEST_EXCEPTION(testFromStringException4, AskapError);
+   CPPUNIT_TEST(testChannelPacking);
    CPPUNIT_TEST_SUITE_END();
 public:
    void testToString() {
@@ -115,6 +116,13 @@ public:
 
    void testFromStringException4() {
         CalParamNameHelper::parseParam("gain.g11.3.xx");
+   }
+   
+   void testChannelPacking() {
+        const std::string base("bp.gain.g11.3.4");
+        CPPUNIT_ASSERT_EQUAL(base + ".15", CalParamNameHelper::addChannelInfo(base,15));
+        CPPUNIT_ASSERT_EQUAL(base, CalParamNameHelper::extractChannelInfo(base+".15").second);
+        CPPUNIT_ASSERT_EQUAL(casa::uInt(15), CalParamNameHelper::extractChannelInfo(base+".15").first);
    }
    
 }; // class CalParamNameHelperTest
