@@ -57,19 +57,37 @@ public:
       CPPUNIT_ASSERT_EQUAL(std::string("gain.g11.21.5"),CalParamNameHelper::paramName(JonesIndex(21u,5u),casa::Stokes::XX));
       CPPUNIT_ASSERT_EQUAL(std::string("gain.g22.11.11"),CalParamNameHelper::paramName(JonesIndex(11u,11u),casa::Stokes::YY));
       CPPUNIT_ASSERT_EQUAL(std::string("leakage.d12.10.1"),CalParamNameHelper::paramName(JonesIndex(10u,1u),casa::Stokes::XY));
-      CPPUNIT_ASSERT_EQUAL(std::string("leakage.d21.15.10"),CalParamNameHelper::paramName(JonesIndex(15u,10u),casa::Stokes::YX));      
+      CPPUNIT_ASSERT_EQUAL(std::string("leakage.d21.15.10"),CalParamNameHelper::paramName(JonesIndex(15u,10u),casa::Stokes::YX));
+      // bandpass parameters      
+      CPPUNIT_ASSERT_EQUAL(std::string("bp.gain.g11.21.5"),CalParamNameHelper::paramName(JonesIndex(21u,5u),casa::Stokes::XX,true));
+      CPPUNIT_ASSERT_EQUAL(std::string("bp.gain.g22.11.11"),CalParamNameHelper::paramName(JonesIndex(11u,11u),casa::Stokes::YY,true));
+      CPPUNIT_ASSERT_EQUAL(std::string("bp.leakage.d12.10.1"),CalParamNameHelper::paramName(JonesIndex(10u,1u),casa::Stokes::XY,true));
+      CPPUNIT_ASSERT_EQUAL(std::string("bp.leakage.d21.15.10"),CalParamNameHelper::paramName(JonesIndex(15u,10u),casa::Stokes::YX,true));
+      CPPUNIT_ASSERT_EQUAL(std::string("bp."), CalParamNameHelper::bpPrefix());
    }
    
    void doFromStringChecks(const casa::uInt ant, const casa::uInt beam, const casa::Stokes::StokesTypes pol) {
       const JonesIndex index(ant,beam);
       const std::string name = CalParamNameHelper::paramName(index,pol);
+      CPPUNIT_ASSERT(!CalParamNameHelper::bpParam(name));
       const std::pair<JonesIndex, casa::Stokes::StokesTypes> res = CalParamNameHelper::parseParam(name);
       CPPUNIT_ASSERT((res.first.antenna() >=0) && (res.first.antenna()<256)); 
       CPPUNIT_ASSERT((res.first.beam() >=0) && (res.first.beam()<256)); 
       CPPUNIT_ASSERT_EQUAL(ant, casa::uInt(res.first.antenna()));
       CPPUNIT_ASSERT_EQUAL(beam, casa::uInt(res.first.beam()));
       CPPUNIT_ASSERT(index == res.first);
-      CPPUNIT_ASSERT(pol == res.second);                                           
+      CPPUNIT_ASSERT(pol == res.second);
+
+      // bandpass parameter
+      const std::string bpName = CalParamNameHelper::paramName(index,pol,true);
+      CPPUNIT_ASSERT(CalParamNameHelper::bpParam(bpName));
+      const std::pair<JonesIndex, casa::Stokes::StokesTypes> bpRes = CalParamNameHelper::parseParam(bpName);
+      CPPUNIT_ASSERT((bpRes.first.antenna() >=0) && (bpRes.first.antenna()<256)); 
+      CPPUNIT_ASSERT((bpRes.first.beam() >=0) && (bpRes.first.beam()<256)); 
+      CPPUNIT_ASSERT_EQUAL(ant, casa::uInt(bpRes.first.antenna()));
+      CPPUNIT_ASSERT_EQUAL(beam, casa::uInt(bpRes.first.beam()));
+      CPPUNIT_ASSERT(index == bpRes.first);
+      CPPUNIT_ASSERT(pol == bpRes.second);                                                 
    }
    
    void testFromString() {

@@ -53,13 +53,18 @@ namespace accessors {
 /// indices back. 
 /// @ingroup calibaccess
 struct CalParamNameHelper {
+  /// @brief prefix of bandpass-related parameters
+  /// @return name prefix
+  static std::string bpPrefix() { return "bp.";}
+
   /// @brief form the name of the parameter
   /// @details This method converts index and polarisation descriptor into a string name
   /// @param[in] index antenna/beam index
   /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
   /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+  /// @param[in] isBP true if the parameter is frequency-dependent (i.e. bandpass)
   /// @return string name of the parameter
-  static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par);
+  static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par, bool isBP = false);
   
   /// @brief form the name of the parameter
   /// @details This version works with explicit antenna and beam indices
@@ -67,9 +72,10 @@ struct CalParamNameHelper {
   /// @param[in] beam beam index
   /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
   /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+  /// @param[in] isBP true if the parameter is frequency-dependent (i.e. bandpass)  
   /// @return string name of the parameter
-  inline static std::string paramName(const casa::uInt ant, const casa::uInt beam, casa::Stokes::StokesTypes par)
-      { return paramName(JonesIndex(ant,beam), par); }  
+  inline static std::string paramName(const casa::uInt ant, const casa::uInt beam, casa::Stokes::StokesTypes par, bool isBP = false)
+      { return paramName(JonesIndex(ant,beam), par, isBP); }  
 
   /// @brief parse the name of the parameter
   /// @details This method is a reverse of paramName. It receive the string with the parameter
@@ -78,8 +84,14 @@ struct CalParamNameHelper {
   /// respectively).
   /// @param[in] name full name of the parameter (e.g. gain.g11.1.3)
   /// @return a pair with antenna/beam index as the first field and polarisation descriptor as the second
-  /// @note An exception is thrown if parameter name is malformed
+  /// @note An exception is thrown if parameter name is malformed. The bandpass prefix is ignored, if present.
   static std::pair<JonesIndex, casa::Stokes::StokesTypes> parseParam(const std::string &name);  
+  
+  /// @brief check whether the parameter corresponds to bandpass
+  /// @details
+  /// @param[in] name full name of the parameter
+  /// @return true, if it is a bandpass parameter
+  static bool bpParam(const std::string &name);
 };
 
 } // namespace accessors

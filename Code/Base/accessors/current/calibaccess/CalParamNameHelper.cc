@@ -43,10 +43,11 @@ namespace accessors {
 /// @param[in] index antenna/beam index
 /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
 /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+/// @param[in] isBP true if the parameter is frequency-dependent (i.e. bandpass)
 /// @return string name of the parameter
-std::string CalParamNameHelper::paramName(const JonesIndex &index, casa::Stokes::StokesTypes par)
+std::string CalParamNameHelper::paramName(const JonesIndex &index, casa::Stokes::StokesTypes par, bool isBP)
 {
-   std::string res;
+   std::string res;   
    if ((par == casa::Stokes::XX) || (par == casa::Stokes::YY)) {
        res = "gain."; 
        res += (par == casa::Stokes::XX ? "g11." : "g22.");
@@ -58,7 +59,7 @@ std::string CalParamNameHelper::paramName(const JonesIndex &index, casa::Stokes:
            "Unsupported polarisation descriptor passed to ParsetCalSolutionAccessor::paramName, only XX,XY,YX and YY are allowed");
    }
    
-   return res + utility::toString<casa::Short>(index.antenna()) +"."+ utility::toString<casa::Short>(index.beam());
+   return (isBP ? bpPrefix() + res : res) + utility::toString<casa::Short>(index.antenna()) +"."+ utility::toString<casa::Short>(index.beam());
 }
 
 /// @brief parse the name of the parameter
@@ -68,13 +69,18 @@ std::string CalParamNameHelper::paramName(const JonesIndex &index, casa::Stokes:
 /// respectively).
 /// @param[in] name full name of the parameter (e.g. gain.g11.1.3)
 /// @return a pair with antenna/beam index as the first field and polarisation descriptor as the second
-/// @note An exception is thrown if parameter name is malformed
+/// @note An exception is thrown if parameter name is malformed. The bandpass prefix is ignored, if present.
 std::pair<JonesIndex, casa::Stokes::StokesTypes> CalParamNameHelper::parseParam(const std::string &name)
 {
-  const size_t pos = name.find(".");
+  size_t startPos = 0;
+  if (bpParam(name)) {
+      // to ignore bandpass prefix
+      startPos = bpPrefix().size();
+  }
+  const size_t pos = name.find(".",startPos);
   ASKAPCHECK((pos != std::string::npos) && (pos + 1 != name.size()), 
              "Parameter name should be in the form something.something.ant.beam; you have "<<name);
-  const std::string what = name.substr(0,pos);
+  const std::string what = name.substr(startPos,pos - startPos);
   ASKAPCHECK((what == "gain") || (what == "leakage"), "Only gain and leakage parameters are supported, you have "<<name);
   const size_t pos2 = name.find(".", pos + 1);
   ASKAPCHECK((pos2 != std::string::npos) && (pos2 + 1 != name.size()) && (pos + 1 != pos2), 
@@ -96,6 +102,15 @@ std::pair<JonesIndex, casa::Stokes::StokesTypes> CalParamNameHelper::parseParam(
   const casa::Short ant = utility::fromString<casa::Short>(name.substr(pos2 + 1, pos3 - pos2 - 1));
   const casa::Short beam = utility::fromString<casa::Short>(name.substr(pos3 + 1));
   return std::pair<JonesIndex, casa::Stokes::StokesTypes>(JonesIndex(ant,beam),polDescriptor);
+}
+
+/// @brief check whether the parameter corresponds to bandpass
+/// @details
+/// @param[in] name full name of the parameter
+/// @return true, if it is a bandpass parameter
+bool CalParamNameHelper::bpParam(const std::string &name)
+{
+  return name.find(bpPrefix()) == 0;
 }
 
 } // namespace accessors
