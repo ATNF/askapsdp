@@ -62,6 +62,31 @@ PolXProducts::PolXProducts(const casa::uInt npol, const casa::IPosition &shape, 
       itsModelMeasProducts.set(0.);
   }
 }
+
+/// @brief reference this class to another
+/// @details This method references current instance to another instance passed as a parameter
+/// ensuring reference semantics.
+/// @param[in] other object to reference
+void PolXProducts::reference(PolXProducts &other)
+{
+  itsNPol = other.itsNPol;
+  itsModelProducts.reference(other.itsModelProducts);
+  itsModelMeasProducts.reference(other.itsModelMeasProducts);
+}
+
+/// @brief asignment operator to ensure reference semantics
+/// @param[in] other object to reference from
+/// @return reference to this instance
+PolXProducts& PolXProducts::operator=(const PolXProducts &other)
+{
+  if (this != &other) {
+      itsNPol = other.itsNPol;
+      itsModelProducts.reference(other.itsModelProducts);
+      itsModelMeasProducts.reference(other.itsModelMeasProducts);
+  }
+  return *this;  
+}
+
    
 /// @brief obtain the slice at given position
 /// @details This method makes a slice of the underlying arrays along the polarisation axis 

@@ -45,6 +45,7 @@ class PolXProductsTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testConstruct);
   CPPUNIT_TEST(testConstructVector);
   CPPUNIT_TEST(testSlice);
+  CPPUNIT_TEST(testReference);
   CPPUNIT_TEST(testResize);
   CPPUNIT_TEST(testPolIndices);
   CPPUNIT_TEST(testAdd);
@@ -79,6 +80,27 @@ protected:
           }
      }     
   }
+
+  /// @brief helper method to fill buffers 
+  /// @param[in] pxp cross-products buffer to use
+  /// @param[in] nX number of pixels for the first dimension
+  /// @param[in] nY number of pixels for the second dimension
+  /// @param[in] factor additional multiplicative factor for added numbers
+  static void addToElements(PolXProducts &pxp, casa::uInt nX, casa::uInt nY, const float factor = 1.) {
+     for (casa::uInt x=0; x<nX; ++x) {
+          for (casa::uInt y=0; y<nY; ++y) {
+               for (casa::uInt p1=0; p1<pxp.nPol(); ++p1) {
+                    for (casa::uInt p2=0; p2<=p1; ++p2) {
+                         // unique value for every product
+                         const float tagValue = (10.*x+100.*y+float(p1)+0.1*p2)*factor;
+                         const casa::Complex cTag(tagValue,-tagValue);
+                         pxp.add(x,y,p1,p2,cTag,-cTag);
+                    }
+               }
+          }
+     }     
+  }
+
   
 public:
   void testConstruct() {
@@ -102,22 +124,38 @@ public:
      }
   }
   
+  void testReference() {
+     PolXProducts pxp(4,casa::IPosition(2,3,5),true);
+     CPPUNIT_ASSERT_EQUAL(4u,pxp.nPol());
+     // fill the buffers with different values
+     addToElements(pxp, 3, 5, 1.);
+     // make a reference
+     PolXProducts pxp2(4,casa::IPosition(2,3,5),true);
+     pxp2.reference(pxp);
+     addToElements(pxp2, 3, 5, -1.);
+     checkAllElementsAreZero(pxp,3,5);
+     checkAllElementsAreZero(pxp2,3,5);
+     
+     // copy constructor, should give reference semantics
+     PolXProducts pxp3(pxp);
+     addToElements(pxp, 3, 5, 1.);
+     addToElements(pxp3, 3, 5, 1.);
+     
+     // use assignment operator, should also give reference semantics 
+     PolXProducts pxp4(2,casa::IPosition(),true);
+     pxp4 = pxp2;
+     addToElements(pxp4, 3, 5, -2.);
+     checkAllElementsAreZero(pxp4,3,5);
+     checkAllElementsAreZero(pxp3,3,5);
+     checkAllElementsAreZero(pxp2,3,5);
+     checkAllElementsAreZero(pxp,3,5);
+  }
+  
   void testSlice() {
      PolXProducts pxp(4,casa::IPosition(2,3,5),true);
      CPPUNIT_ASSERT_EQUAL(4u,pxp.nPol());
      // fill the buffers with different values
-     for (casa::uInt x=0; x<3; ++x) {
-          for (casa::uInt y=0; y<5; ++y) {
-               for (casa::uInt p1=0; p1<4; ++p1) {
-                    for (casa::uInt p2=0; p2<=p1; ++p2) {
-                         // unique value for every product
-                         const float tagValue = 10.*x+100.*y+float(p1)+0.1*p2;
-                         const casa::Complex cTag(tagValue,-tagValue);
-                         pxp.add(x,y,p1,p2,cTag,-cTag);
-                    }
-               }
-          }
-     }
+     addToElements(pxp, 3, 5, 1.);
      // now check all slices
      for (casa::uInt x=0; x<3; ++x) {
           for (casa::uInt y=0; y<5; ++y) {

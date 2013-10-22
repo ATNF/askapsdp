@@ -43,6 +43,7 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
 
+
 namespace askap {
 
 namespace scimath {
@@ -73,6 +74,17 @@ public:
    /// @note This version of the constructor does initialise the arrays to the requested size and by default
    /// fills them with zeros.
    PolXProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero = true);
+   
+   /// @brief asignment operator to ensure reference semantics
+   /// @param[in] other object to reference from
+   /// @return reference to this instance
+   PolXProducts& operator=(const PolXProducts &other);
+     
+   /// @brief reference this class to another
+   /// @details This method references current instance to another instance passed as a parameter
+   /// ensuring reference semantics.
+   /// @param[in] other object to reference
+   void reference(PolXProducts &other);
    
    /// @brief obtain the slice at given position
    /// @details This method makes a slice of the underlying arrays along the polarisation axis 
