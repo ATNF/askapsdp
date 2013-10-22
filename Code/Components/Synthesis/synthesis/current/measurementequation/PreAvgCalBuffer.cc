@@ -54,13 +54,15 @@ PreAvgCalBuffer::PreAvgCalBuffer() : itsPolXProducts(0), // set nPol = 0 for now
 /// antennas and beams to initialise the buffer appropriately.
 /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
 /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
-PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam) : itsAntenna1(nBeam*nAnt*(nAnt-1)/2), 
-      itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,1,4),
+/// @param[in] nChan number of channels to buffer, 1 (default) is a special case
+/// assuming that measurement equation is frequency-independent
+PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan) : itsAntenna1(nBeam*nAnt*(nAnt-1)/2), 
+      itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,casa::Int(nChan),4),
       // npol=4
-      itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nBeam*nAnt*(nAnt-1)/2),1)),
+      itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nBeam*nAnt*(nAnt-1)/2),casa::Int(nChan))),
       itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0), itsBeamIndependent(false)
 {
-  initialise(nAnt,nBeam);
+  initialise(nAnt,nBeam,nChan);
 }  
 
 /// @brief constructor with explicit averaging parameters
@@ -75,7 +77,7 @@ PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt) : itsAntenna1(nAnt*(nAnt-1)/2)
       itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nAnt*(nAnt-1)/2),1)),
       itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0), itsBeamIndependent(true)
 {
-  initialise(nAnt, 1);
+  initialise(nAnt, 1, 1);
 }
 
 /// @brief configure beam-independent accumulation
@@ -89,18 +91,22 @@ void PreAvgCalBuffer::beamIndependent(bool flag)
 /// @details This method resets the buffers and sets the shape using the given accessor
 /// as a template.
 /// @param[in] acc template accessor
-void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
+/// @param[in] fdp frequency dependency flag, if true a separate buffer is created for every
+/// presented spectral channel. Otherwise (default), all channels contribute to the same buffer
+/// (which is appropriate for frequency-independent effects)
+void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc, const bool fdp)
 {
   // resize buffers
   const casa::uInt numberOfRows = acc.nRow();
   const casa::uInt numberOfPol = acc.nPol();
-  if (itsFlag.shape() != casa::IPosition(3,numberOfRows, 1, numberOfPol)) {
+  const casa::uInt numberOfChan = fdp ? acc.nChannel() : 1;
+  if (itsFlag.shape() != casa::IPosition(3,numberOfRows, numberOfChan, numberOfPol)) {
       // resizing buffers
       itsAntenna1.resize(numberOfRows);
       itsAntenna2.resize(numberOfRows);
       itsBeam.resize(numberOfRows);
-      itsFlag.resize(numberOfRows, 1, numberOfPol);
-      itsPolXProducts.resize(numberOfPol,casa::IPosition(2,casa::Int(numberOfRows), 1),false);
+      itsFlag.resize(numberOfRows, numberOfChan, numberOfPol);
+      itsPolXProducts.resize(numberOfPol,casa::IPosition(2,casa::Int(numberOfRows), casa::uInt(numberOfChan)),false);
       itsStokes.resize(numberOfPol);      
   }
   // initialise buffers
@@ -131,8 +137,11 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
 /// number of antennas and beams (i.e. the buffer size is nBeams*nAnt*(nAnt-1)/2)
 /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
 /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
-void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
+/// @param[in] nChan number of channels to buffer, 1 (default) is a special case
+/// assuming that measurement equation is frequency-independent
+void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan)
 {
+  ASKAPDEBUGASSERT(nChan > 0);
   const casa::uInt numberOfRows = nBeam*nAnt*(nAnt-1)/2;
   if (itsFlag.shape() != casa::IPosition(3,int(numberOfRows),1,4)) {
      // resizing buffers
@@ -140,8 +149,8 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
      itsAntenna2.resize(numberOfRows);
      itsBeam.resize(numberOfRows);
      // npol=4
-     itsFlag.resize(numberOfRows,1,4);
-     itsPolXProducts.resize(4,casa::IPosition(2,casa::Int(numberOfRows), 1),false);
+     itsFlag.resize(numberOfRows,casa::Int(nChan),4);
+     itsPolXProducts.resize(4,casa::IPosition(2,casa::Int(numberOfRows), casa::Int(nChan)),false);
      itsStokes.resize(4);
   }
   // initialising buffers
@@ -184,8 +193,7 @@ casa::uInt PreAvgCalBuffer::nRow() const throw()
 /// @return the number of spectral channels
 casa::uInt PreAvgCalBuffer::nChannel() const throw()
 {
-  // for now, only averaging into 1 spectral channel is supported
-  return 1;
+  return itsFlag.ncolumn();
 }
 
 /// The number of polarization products (equal for all rows)
@@ -273,8 +281,10 @@ int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam
 /// corresponding to measured visibilities.
 /// @param[in] acc input accessor with measured data
 /// @param[in] me shared pointer to the measurement equation
+/// @param[in] fdp frequency dependency flag (see initialise). It is used if initialisation from accessor
+/// is required. Otherwise, it is just checked for consistency (i.e. more than one channel is defined, if it is true)
 /// @note only predict method of the measurement equation is used.
-void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me)
+void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me, const bool fdp)
 {
   if (acc.nRow() == 0) {
       // nothing to process
@@ -283,7 +293,12 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
   ASKAPCHECK(me, "Uninitialised shared pointer to the measurement equation has been encountered");
   if (itsFlag.nrow() == 0) {
       // initialise using the given accessor as a template
-      initialise(acc);
+      initialise(acc,fdp);
+  } else {
+     if (fdp) {
+         ASKAPCHECK(nChannel() == acc.nChannel(), 
+             "Number of channels in the accessor passed to PreAvgCalBuffer::accumulate doesn't match the number of frequency buffers"); 
+     } 
   }
   ASKAPDEBUGASSERT(itsPolXProducts.nPol() > 0);
   accessors::MemBufferDataAccessor modelAcc(acc);
@@ -308,7 +323,8 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
   const casa::Vector<casa::uInt> &antenna1 = acc.antenna1();
   const casa::Vector<casa::uInt> &antenna2 = acc.antenna2(); 
   
-  ASKAPCHECK(nChannel() == 1, "Only single spectral channel is currently supported by the pre-averaging calibration buffer");
+  ASKAPCHECK(fdp || (nChannel() == 1), 
+     "Only single spectral channel is supported by the pre-averaging calibration buffer in the frequency-independent mode");
   for (casa::uInt row = 0; row<acc.nRow(); ++row) {
        if ((beam1[row] != beam2[row]) || (antenna1[row] == antenna2[row])) {
            // cross-beam correlations and auto-correlations are not supported
@@ -325,10 +341,15 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
        const casa::uInt bufRow = casa::uInt(matchRow);
        ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
        // making a slice referenced to the full cross-product buffer
-       // the only supported case is averaging of all frequency channels together
+       // in the frequency-independent mode do averaging of all frequency channels together
        scimath::PolXProducts pxpSlice = itsPolXProducts.slice(bufRow,0);
        // the code below works with this 1D slice
        for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
+            const casa::uInt bufChan = fdp ? chan : 0;
+            if (fdp && (chan > 0)) {
+                // update the slice to point to the correct channel of the buffer
+                pxpSlice = itsPolXProducts.slice(bufRow,chan);
+            }
             for (casa::uInt pol = 0; pol<acc.nPol(); ++pol) {
                  if ((pol < bufferNPol) && !measuredFlag(row,chan,pol)) {
                      const casa::Complex model = modelVis(row,chan,pol);
@@ -344,7 +365,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      }
                      //std::cout<<"accumulated ("<<bufRow<<","<<pol<<"): "<<model<<" "<<measuredVis(row,chan,pol)<<std::endl;
                      // unflag this row because it now has some data
-                     itsFlag(bufRow,0,pol) = false;
+                     itsFlag(bufRow,bufChan,pol) = false;
                  } else {
                      ++itsFlagIgnored;
                  }

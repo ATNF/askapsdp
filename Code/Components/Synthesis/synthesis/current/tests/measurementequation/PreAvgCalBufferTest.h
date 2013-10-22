@@ -59,6 +59,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testBeamIndependent);
   CPPUNIT_TEST(testPolIndex);
   CPPUNIT_TEST(testAccumulate);
+  CPPUNIT_TEST(testFDPAccumulate);
   CPPUNIT_TEST(testAccumulateXPol);
   CPPUNIT_TEST_SUITE_END();
       
@@ -296,6 +297,34 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
               }
          }
      }
+
+     void testFrequencyDependentResults(const PreAvgCalBuffer &pacBuf, const int run = 1) {
+         for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
+              CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              CPPUNIT_ASSERT(pacBuf.nPol() > 0);
+              
+              const scimath::PolXProducts &pxp = pacBuf.polXProducts();              
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   for (casa::uInt chan=0; chan<pacBuf.nChannel(); ++chan) {
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(double(real(pxp.getModelProduct(row,chan,pol,pol))),
+                                                     double(real(pxp.getModelMeasProduct(row,chan,pol,pol))),1e-2*run);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelMeasProduct(row,chan,pol,pol))),1e-5);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,chan,pol,pol))),1e-5);
+                        // 1 channel and 100 Jy source give sums of 10000 per accessor summed in
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(pol%3 == 0 ? 10000.*run : 0., double(real(pxp.getModelProduct(row,chan,pol,pol))),1e-2*run);
+                        CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,chan,pol));                                     
+    
+                        // checking cross-pol terms, if any
+                        for (casa::uInt pol2 = 0; pol2<pol; ++pol2) {
+                             const casa::Complex expected = ((pol == 3) && (pol2 == 0)) ? casa::Complex(10000.*run,0.) : casa::Complex(0.,0.);
+                             CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelProduct(row,chan,pol,pol2)),1e-2*run);
+                             CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelMeasProduct(row,chan,pol,pol2)),1e-2*run);
+                        }
+                        
+                   }
+              }
+         }
+     }
      
      void testAccumulate() {
          PreAvgCalBuffer pacBuf;
@@ -319,6 +348,35 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          // add up another accessor
          pacBuf.accumulate(*itsIter, itsME);         
          testResults(pacBuf,2);                  
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+     }
+
+     void testFDPAccumulate() {
+         PreAvgCalBuffer pacBuf;
+         CPPUNIT_ASSERT(itsME);
+         CPPUNIT_ASSERT(itsIter);
+         
+         // simulate visibilities
+         itsME->predict(*itsIter);
+         
+         // buffer should be initialised by the first encountered accessor,
+         // frequency-dependent flag is on. We do accummulation number of
+         // channel times to be able to reuse the same testing code
+         pacBuf.accumulate(*itsIter, itsME, true);
+
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nRow(),pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(8u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nPol(),pacBuf.nPol());
+         testFrequencyDependentResults(pacBuf,1);                  
+
+         // add up another accessor
+         pacBuf.accumulate(*itsIter, itsME, true);
+         //testFrequencyDependentResults(pacBuf,2);                  
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         

@@ -73,7 +73,9 @@ public:
    /// antennas and beams to initialise the buffer appropriately.
    /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
    /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
-   PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam);
+   /// @param[in] nChan number of channels to buffer, 1 (default) is a special case
+   /// assuming that measurement equation is frequency-independent
+   PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan = 1);
    
    /// @brief constructor with explicit averaging parameters
    /// @details This version of the constructor explicitly defines the number of 
@@ -81,6 +83,7 @@ public:
    /// explicitly given number of beams with nBeam set to 1, this constructor configures
    /// the buffer to ignore the beam index (i.e. assuming the measurement equation is beam-independent)
    /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
+   /// @note frequency-independent case is implied
    PreAvgCalBuffer(casa::uInt nAnt); 
    
    /// @brief configure beam-independent accumulation
@@ -91,14 +94,19 @@ public:
    /// @details This method resets the buffers and sets the shape using the given accessor
    /// as a template.
    /// @param[in] acc template accessor
-   void initialise(const IConstDataAccessor &acc);
+   /// @param[in] fdp frequency dependency flag, if true a separate buffer is created for every
+   /// presented spectral channel. Otherwise (default), all channels contribute to the same buffer
+   /// (which is appropriate for frequency-independent effects)
+   void initialise(const IConstDataAccessor &acc, const bool fdb = false);
    
    /// @brief initialise accumulation explicitly
    /// @details This method resets the buffers and sets the shape to accommodate the given
    /// number of antennas and beams (i.e. the buffer size is nBeams*nAnt*(nAnt-1)/2)
    /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
    /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
-   void initialise(casa::uInt nAnt, casa::uInt nBeam);
+   /// @param[in] nChan number of channels to buffer, 1 (default) is a special case
+   /// assuming that measurement equation is frequency-independent
+   void initialise(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan = 1);
    
    // implemented accessor methods
    
@@ -167,8 +175,10 @@ public:
    /// corresponding to measured visibilities.
    /// @param[in] acc input accessor with measured data
    /// @param[in] me shared pointer to the measurement equation
+   /// @param[in] fdp frequency dependency flag (see initialise). It is used if initialisation from accessor
+   /// is required. Otherwise, it is just checked for consistency (i.e. more than one channel is defined, if it is true)
    /// @note only predict method of the measurement equation is used.
-   void accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me);
+   void accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me, const bool fdp = false);
 
    // access stats
    
