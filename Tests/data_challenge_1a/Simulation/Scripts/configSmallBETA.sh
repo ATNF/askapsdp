@@ -68,6 +68,9 @@ ra=187.5
 dec=-45.0
 raCat=0.
 decCat=0.
+decSuffix=`echo $dec | awk '{printf "dec%d",-$1}'`
+baseimage="${baseimage}_${decSuffix}"
+msbase="${msbase}_${decSuffix}"
 
 nchan=8208
 rchan=0

@@ -70,6 +70,9 @@ ra=187.5
 dec=-45.0
 raCat=0.
 decCat=0.
+decSuffix=`echo $dec | awk '{printf "dec%d",-$1}'`
+baseimage="${baseimage}_${decSuffix}"
+msbase="${msbase}_${decSuffix}"
 
 baseimage="${baseimage}_${freqChanZeroMHz}"
 
@@ -113,7 +116,7 @@ fi
 if [ $doFlatSpectrum == "true" ]; then
     slicebase=${modelimage}
 else
-    slicebase=${slicedir}/${baseimage}_chunk
+    slicebase=${slicedir}/${baseimage}_slice
 fi
 
 ###########################################

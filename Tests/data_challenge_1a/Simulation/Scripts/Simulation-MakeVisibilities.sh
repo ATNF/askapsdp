@@ -84,7 +84,7 @@ import fnmatch
 import numpy as np
 goodfiles=[]
 for file in os.listdir('${chunkdir}'):
-    if fnmatch.fnmatch(file,'*_w*__'):
+    if fnmatch.fnmatch(file,'%s_w*__'%${baseimage}):
         goodfiles.append(file)
 goodfiles.sort()
 
@@ -94,7 +94,7 @@ ia.close()
 ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
 ia.close()
 
-for file in goodfile:
+for file in goodfiles:
     offset=np.array(file.split('__')[1].split('_'),dtype=int)
     ia.open(file)
     shape=ia.shape()
