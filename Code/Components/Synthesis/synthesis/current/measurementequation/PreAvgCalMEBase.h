@@ -109,7 +109,9 @@ public:
   /// antennas and beams.
   /// @param[in] nAnt number of antennas
   /// @param[in] nBeam number of beams
-  void initialise(casa::uInt nAnt, casa::uInt nBeam);
+  /// @param[in] nChan number of channels, 1 channel is a special case of
+  /// frequency-independent buffering
+  void initialise(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan = 1);
 
   /// @brief destructor 
   /// @details This method just prints statistics on the number of

@@ -143,7 +143,7 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam, casa::uInt n
 {
   ASKAPDEBUGASSERT(nChan > 0);
   const casa::uInt numberOfRows = nBeam*nAnt*(nAnt-1)/2;
-  if (itsFlag.shape() != casa::IPosition(3,int(numberOfRows),1,4)) {
+  if (itsFlag.shape() != casa::IPosition(3,int(numberOfRows),int(nChan),4)) {
      // resizing buffers
      itsAntenna1.resize(numberOfRows);
      itsAntenna2.resize(numberOfRows);

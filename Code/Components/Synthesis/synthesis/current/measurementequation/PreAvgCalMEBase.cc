@@ -91,7 +91,7 @@ void PreAvgCalMEBase::beamIndependent(const bool flag)
 void PreAvgCalMEBase::accumulate(const accessors::IConstDataAccessor &acc,  
           const boost::shared_ptr<IMeasurementEquation const> &me)
 {
-  itsBuffer.accumulate(acc,me);
+  itsBuffer.accumulate(acc,me,isFrequencyDependent());
   accumulateStats(acc);
 }
           
@@ -103,9 +103,10 @@ void PreAvgCalMEBase::accumulate(const accessors::IConstDataAccessor &acc,
 void PreAvgCalMEBase::accumulate(const accessors::IDataSharedIter& idi, 
         const boost::shared_ptr<IMeasurementEquation const> &ime)
 {
+  const bool fdp = isFrequencyDependent();
   accessors::IDataSharedIter iter(idi);
   for (; iter.hasMore(); iter.next()) {
-       itsBuffer.accumulate(*iter,ime);
+       itsBuffer.accumulate(*iter,ime,fdp);
        accumulateStats(*iter);
   }
 }        
@@ -171,6 +172,8 @@ void PreAvgCalMEBase::updateMetadata(scimath::GenericNormalEquations &ne, const 
 void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) const
 {
   const scimath::PolXProducts &polXProducts = itsBuffer.polXProducts();
+  const bool fdp = isFrequencyDependent();
+  ASKAPDEBUGASSERT(itsBuffer.nChannel()>0);
   
   for (casa::uInt row = 0; row < itsBuffer.nRow(); ++row) { 
 
@@ -179,7 +182,14 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
             
             // take a slice, this takes care of indices along the first two axes (row and channel)
             const scimath::PolXProducts pxpSlice = polXProducts.roSlice(row,chan);
-            ne.add(cdm,pxpSlice);
+            if (fdp) {
+               // cdm is a block matrix
+               const scimath::ComplexDiffMatrix thisChanCDM = cdm.extractBlock(chan * itsBuffer.nPol(),itsBuffer.nPol());
+               ne.add(thisChanCDM,pxpSlice);
+            } else {
+               // cdm is a normal matrix
+               ne.add(cdm,pxpSlice);
+            }
        }
   }
   updateMetadata(ne,"min_time",itsMinTime);
@@ -188,12 +198,13 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
   
 /// @brief initialise accumulation
 /// @details Resets the buffer and configure it to the given number of
-/// antennas and beams.
+/// antennas, beams and channels
 /// @param[in] nAnt number of antennas
 /// @param[in] nBeam number of beams
-void PreAvgCalMEBase::initialise(casa::uInt nAnt, casa::uInt nBeam)
+/// @param[in] nChan number of channels
+void PreAvgCalMEBase::initialise(casa::uInt nAnt, casa::uInt nBeam, casa::uInt nChan)
 {
-  itsBuffer.initialise(nAnt,nBeam);
+  itsBuffer.initialise(nAnt,nBeam,nChan);
   itsNoDataProcessedFlag = true;
   itsMinTime = 0.;
   itsMaxTime = 0.;

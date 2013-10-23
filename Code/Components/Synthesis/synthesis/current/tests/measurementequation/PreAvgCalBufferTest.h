@@ -60,6 +60,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testPolIndex);
   CPPUNIT_TEST(testAccumulate);
   CPPUNIT_TEST(testFDPAccumulate);
+  CPPUNIT_TEST(testFDPInitExplicit);
   CPPUNIT_TEST(testAccumulateXPol);
   CPPUNIT_TEST_SUITE_END();
       
@@ -371,15 +372,82 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());
          CPPUNIT_ASSERT_EQUAL(itsIter->nRow(),pacBuf.nRow());
          CPPUNIT_ASSERT_EQUAL(8u,pacBuf.nChannel());
-         CPPUNIT_ASSERT_EQUAL(itsIter->nPol(),pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(/*itsIter->nPol()*/1u,pacBuf.nPol());
          testFrequencyDependentResults(pacBuf,1);                  
 
          // add up another accessor
          pacBuf.accumulate(*itsIter, itsME, true);
-         //testFrequencyDependentResults(pacBuf,2);                  
+         testFrequencyDependentResults(pacBuf,2);                  
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());
+         CPPUNIT_ASSERT_EQUAL(8u,pacBuf.nChannel());                  
+     }
+     
+     void testFDPInitExplicit() {
+         // 20 antennas instead of 30 available, 2 beams instead of 1 available in the stubbed, 8 channels
+         // accessor
+         PreAvgCalBuffer pacBuf(20,2,8);
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         // 20 antennas and 2 beams give 380 rows; 4 polarisation by default
+         CPPUNIT_ASSERT_EQUAL(380u,pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(8u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nChannel(),pacBuf.flag().ncolumn());     
+         CPPUNIT_ASSERT(itsME);
+         CPPUNIT_ASSERT(itsIter);
+         
+         // simulate visibilities
+         itsME->predict(*itsIter);
+         
+         pacBuf.accumulate(*itsIter, itsME, true);
+         
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         // (435 - 190) * 8 = 1960 samples unaccounted for 
+         // (accessor has 1 polarisation)
+         CPPUNIT_ASSERT_EQUAL(1960u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         CPPUNIT_ASSERT_EQUAL(380u,pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(8u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nChannel(),pacBuf.flag().ncolumn());
+
+         //
+         const scimath::PolXProducts &pxp = pacBuf.polXProducts();                            
+         for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
+              CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              const bool dataExpected = (pacBuf.feed1()[row] == 0);
+              
+              // test pattern is different from testFrequencyDependentResults as only the first 
+              // polarisation product as the dummy accessor has data
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   for (casa::uInt chan=0; chan<pacBuf.nChannel(); ++chan) {
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(double(real(pxp.getModelProduct(row,chan,pol,pol))),
+                                                     double(real(pxp.getModelMeasProduct(row,chan,pol,pol))),1e-2);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelMeasProduct(row,chan,pol,pol))),1e-5);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,chan,pol,pol))),1e-5);
+                        // 1 channel and 100 Jy source give sums of 10000 per accessor summed in
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(dataExpected && (pol == 0) ? 10000. : 0., double(real(pxp.getModelProduct(row,chan,pol,pol))),1e-2);
+                        CPPUNIT_ASSERT_EQUAL(!dataExpected || (pol > 0), pacBuf.flag()(row,chan,pol));                                     
+    
+                        // checking cross-pol terms, if any
+                        for (casa::uInt pol2 = 0; pol2<pol; ++pol2) {
+                             //const casa::Complex expected = ((pol == 3) && (pol2 == 0)) ? casa::Complex(10000.*run,0.) : casa::Complex(0.,0.);
+                             const casa::Complex expected(0.,0.);
+                             CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelProduct(row,chan,pol,pol2)),1e-2);
+                             CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelMeasProduct(row,chan,pol,pol2)),1e-2);
+                        }
+                        
+                   }
+              }
+         }
+         
      }
      
      void testAccumulateXPol() {

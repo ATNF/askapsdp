@@ -50,6 +50,7 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::VectorOperationsTest::suite());
     runner.addTest(askap::synthesis::ComponentEquationTest::suite()); 
     runner.addTest(askap::synthesis::Calibrator1934Test::suite()); 
+    runner.addTest(askap::synthesis::PreAvgCalBufferTest::suite()); 
     runner.addTest(askap::synthesis::CalibrationMETest::suite()); 
     //runner.addTest(askap::synthesis::ImageDFTEquationTest::suite());
     runner.addTest(askap::synthesis::ImageFFTEquationTest::suite());
@@ -58,7 +59,6 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::ImageParamsHelperTest::suite());
     runner.addTest(askap::synthesis::GaussianNoiseMETest::suite());
     runner.addTest(askap::synthesis::PolLeakageTest::suite()); 
-    runner.addTest(askap::synthesis::PreAvgCalBufferTest::suite()); 
     runner.addTest(askap::synthesis::RestoringBeamHelperTest::suite());
     runner.addTest(askap::synthesis::VisMetaDataStatsTest::suite());
     
