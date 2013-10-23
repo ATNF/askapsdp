@@ -83,8 +83,9 @@ if [ \$modelInChunks == "true" ]; then
 import fnmatch
 import numpy as np
 goodfiles=[]
+baseimage=${baseimage}
 for file in os.listdir('${chunkdir}'):
-    if fnmatch.fnmatch(file,'%s_w*__'%${baseimage}):
+    if fnmatch.fnmatch(file,'%s_w*__'%baseimage):
         goodfiles.append(file)
 goodfiles.sort()
 

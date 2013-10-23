@@ -44,7 +44,8 @@ smoothScript=${scriptdirSM}/smoothModels-\${PBS_JOBID}.py
 cat > \${smoothScript} <<EOF_INNER
 #!/bin/env python
 
-from numpy import *
+import fnmatch
+import numpy as np
 import os
 
 ####################
@@ -53,10 +54,42 @@ import os
 #
 # CASA script to create a full-size continuum model by combining the 455 subcubes
 
+modelInChunks = ${writeByNode}
+baseimage = ${baseimage}
 for t in range(3):
 
     modelIm='${modelimage}.taylor.%d'%t
     smoothIm='${baseimage}-smooth.taylor.%d'%t
+
+############
+# Need to make single images for create-by-chunk base - taylor-term
+# images have been created in chunks, so need to read them and paste
+# into full taylor-term image at appropriate location.
+    if modelInChunks == "true" :
+        goodfiles=[]
+        for file in os.listdir('${chunkdir}'):
+            if fnmatch.fnmatch(file,'%s_w*__.taylor.%d'%(baseimage,t)):
+                goodfiles.append(file)
+        goodfiles.sort()
+        
+        ia.open('${chunkdir}/%s'%goodfiles[0])
+        crec=ia.coordsys().torecord()
+        ia.close()
+        ia.newimagefromshape(outfile=modelIm,shape=[${npix},${npix},1,1],csys=crec)
+        ia.close()
+        
+        for file in goodfiles:
+            offset=np.array(file.split('__')[1].split('_'),dtype=int)
+            ia.open(file)
+            shape=ia.shape()
+            blc=np.zeros(len(shape),dtype=int).tolist()
+            trc=(np.array(shape,dtype=int)-1).tolist()
+            chunk=ia.getchunk(blc=blc,trc=trc)
+            ia.close()
+            ia.open(modelIm)
+            ia.putchunk(pixels=chunk,blc=offset.tolist())
+            ia.close()
+###########
 
     ia.open(modelIm)
     ia.convolve2d(outfile=smoothIm,major='${smoothBmaj}arcsec',minor='${smoothBmin}arcsec',pa='${smoothBpa}deg')
