@@ -98,7 +98,7 @@ ia.close()
 
 for file in goodfiles:
     offset=np.array(file.split('__')[1].split('_'),dtype=int)
-    ia.open(file)
+    ia.open('${chunkdir}/%s'%file)
     shape=ia.shape()
     blc=np.zeros(len(shape),dtype=int).tolist()
     trc=(np.array(shape,dtype=int)-1).tolist()
