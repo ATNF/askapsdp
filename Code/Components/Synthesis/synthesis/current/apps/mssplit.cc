@@ -400,9 +400,16 @@ void splitMainTable(const casa::MeasurementSet& source,
 
     // Decide how many rows to process simultaneously. This needs to fit within
     // a reasonable amount of memory, because all visibilities will be read
-    // in for possible averaging. Assumes 256MB working space.
-    const uInt maxSimultaneousRows = (256 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
+    // in for possible averaging. Assumes 32MB working space.
+    const uInt maxSimultaneousRows = (32 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
         / (sizeof(casa::Complex) + sizeof(casa::Bool));
+
+    // Set a 64MB maximum cache size for the large columns
+    const casa::uInt cacheSize = 64 * 1024 * 1024;
+    sc.data().setMaximumCacheSize(cacheSize);
+    dc.data().setMaximumCacheSize(cacheSize);
+    sc.flag().setMaximumCacheSize(cacheSize);
+    dc.flag().setMaximumCacheSize(cacheSize);
 
     for (uInt row = 0; row < nRows;) {
         // Number of rows to process for this iteration of the loop; either
