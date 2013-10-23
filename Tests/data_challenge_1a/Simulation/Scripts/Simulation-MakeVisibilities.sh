@@ -67,6 +67,7 @@ askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation
 
 IND=${INDEX}
 
+dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
 
@@ -83,7 +84,7 @@ if [ \$modelInChunks == "true" ]; then
 import fnmatch
 import numpy as np
 goodfiles=[]
-baseimage=${baseimage}
+baseimage='${baseimage}'
 for file in os.listdir('${chunkdir}'):
     if fnmatch.fnmatch(file,'%s_w*__'%baseimage):
         goodfiles.append(file)
@@ -126,7 +127,6 @@ if [ \${VarNoise} == true ]; then
     Tsys=\`echo \$nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if (\$1>\$4) printf "%4.1f",(\$1 * \$2) + \$3; else printf "50.0"}'\`
 fi
 
-dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
 
