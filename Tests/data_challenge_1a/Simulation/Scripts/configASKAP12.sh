@@ -68,6 +68,7 @@ cellsize=6
 delt=`echo $cellsize | awk '{print $1/3600.}'`
 ra=187.5
 dec=-45.0
+decStringVis="-45.00.00"
 raCat=0.
 decCat=0.
 decSuffix=`echo $dec | awk '{printf "dec%02d",-$1}'`
@@ -121,6 +122,8 @@ fi
 
 ###########################################
 # Make the visibilities
+
+csimSelect="#PBS -l select=1:ncpus=1:mem=3GB:mpiprocs=1"
 
 array=ADE12.in
 feeds=ASKAP${nfeeds}feeds.in

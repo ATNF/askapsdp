@@ -65,6 +65,7 @@ cellsize=9.1234
 delt=`echo $cellsize | awk '{print $1/3600.}'`
 ra=187.5
 dec=-45.0
+decStringVis="-45.00.00"
 raCat=0.
 decCat=0.
 decSuffix=`echo $dec | awk '{printf "dec%02d",-$1}'`
@@ -98,6 +99,8 @@ slicebase=${slicedir}/${baseimage}_chunk
 
 ###########################################
 # Make the visibilities
+
+csimSelect="#PBS -l select=1:ncpus=1:mem=20GB:mpiprocs=1"
 
 array=BETAXYZ.in
 nfeeds=36

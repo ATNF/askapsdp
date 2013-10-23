@@ -52,7 +52,7 @@ if [ $doCsim == true ]; then
 #!/bin/bash -l
 #PBS -W group_list=astronomy554
 #PBS -l walltime=6:00:00
-#PBS -l select=1:ncpus=1:mem=20GB:mpiprocs=1
+${csimSelect}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N mkVis
 #PBS -m bea
@@ -136,7 +136,7 @@ Csimulator.dataset                              =       \$ms
 Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
-Csimulator.sources.DCmodel.direction            =       [12h30m00.000, -45.00.00, J2000]
+Csimulator.sources.DCmodel.direction            =       [12h30m00.000, ${decStringVis}, J2000]
 Csimulator.sources.DCmodel.model                =       \${skymodel}
 #
 # Define the antenna locations, feed locations, and spectral window definitions
@@ -167,7 +167,7 @@ Csimulator.gridder.${gridder}.oversample         =       ${os}
 Csimulator.gridder.${gridder}.diameter           =       12m
 Csimulator.gridder.${gridder}.blockage           =       2m
 Csimulator.gridder.${gridder}.maxsupport         =       ${maxsup}
-Csimulator.gridder.${gridder}.maxfeeds           =       36
+Csimulator.gridder.${gridder}.maxfeeds           =       ${nfeeds}
 Csimulator.gridder.${gridder}.frequencydependent =       false
 Csimulator.gridder.${gridder}.variablesupport    =       true 
 Csimulator.gridder.${gridder}.offsetsupport      =       true 
