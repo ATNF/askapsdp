@@ -206,6 +206,9 @@ namespace askap
       /// @brief flag swtiching the leakage calibration on
       bool itsSolveLeakage;
       
+      /// @brief flag switching the bandpass calibration on
+      bool itsSolveBandpass;
+      
       /// @brief flag to treat gains as beam-independent
       bool itsBeamIndependentGains;
       

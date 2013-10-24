@@ -72,6 +72,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/NoXPolFreqDependentGain.h>
 #include <measurementequation/NoXPolBeamIndependentGain.h>
 #include <measurementequation/LeakageTerm.h>
 #include <measurementequation/Product.h>
@@ -103,6 +104,7 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false),
+      itsSolveBandpass(false),
       itsBeamIndependentGains(false), itsSolutionInterval(-1.)
 {  
   const std::string what2solve = parset.getString("solve","gains");
@@ -118,8 +120,16 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
       ASKAPLOG_INFO_STR(logger, "Leakages will be solved for (solve='"<<what2solve<<"')");
       itsSolveLeakage = true;
   }
-  ASKAPCHECK(itsSolveGains || itsSolveLeakage, 
-      "Nothing to solve! Either gains or leakages (or both) have to be solved for, you specified solve='"<<
+  
+  if (what2solve.find("bandpass") != std::string::npos) {
+      ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for (solve='"<<what2solve<<"')");
+      itsSolveBandpass = true;
+      ASKAPCHECK(!itsSolveGains && !itsSolveLeakage, 
+         "Combination of frequency-dependent and frequency-independent effects is not supported at the moment for simplicity");      
+  }
+  
+  ASKAPCHECK(itsSolveGains || itsSolveLeakage || itsSolveBandpass, 
+      "Nothing to solve! Either gains or leakages (or both) or bandpass have to be solved for, you specified solve='"<<
       what2solve<<"'");
   
   init(parset);
@@ -169,7 +179,7 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
           for (casa::uInt ant = 0; ant<nAnt; ++ant) {
                for (casa::uInt beam = 0; beam<nBeam; ++beam) {
                     itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX), casa::Complex(1.,0.));
-                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY),casa::Complex(1.,0.));
+                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY), casa::Complex(1.,0.));
                }
           }
       }
@@ -181,6 +191,21 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
                     itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YX),casa::Complex(0.,0.));
                }
           }
+      }
+      if (itsSolveBandpass) {
+          const casa::uInt nChan = parset.getInt32("nChan",304);
+          ASKAPLOG_INFO_STR(logger, "Initialise bandpass (unknowns) for "<<nAnt<<" antennas, "<<nBeam<<" beam(s) and "<<
+                                   nChan<<" spectral channels");
+          for (casa::uInt ant = 0; ant<nAnt; ++ant) {
+               for (casa::uInt beam = 0; beam<nBeam; ++beam) {
+                    const std::string xxParName = accessors::CalParamNameHelper::bpPrefix() + accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX); 
+                    const std::string yyParName = accessors::CalParamNameHelper::bpPrefix() + accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY); 
+                    for (casa::uInt chan = 0; chan<nChan; ++chan) {
+                         itsModel->add(accessors::CalParamNameHelper::addChannelInfo(xxParName, chan), casa::Complex(1.,0.));
+                         itsModel->add(accessors::CalParamNameHelper::addChannelInfo(yyParName, chan), casa::Complex(1.,0.));
+                    }
+               }
+          }          
       }
   }
   if (itsComms.isWorker()) {
@@ -283,6 +308,7 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    
    ASKAPCHECK(itsSolutionInterval < 0, "Time-dependent solutions are supported only with pre-averaging, you have interval = "<<
               itsSolutionInterval<<" seconds");
+   ASKAPCHECK(itsSolveBandpass, "Bandpass solution is only supported for pre-averaging at the moment (for simplicity)");           
               
    // the old code without pre-averaging
    if (itsSolveGains && !itsSolveLeakage) {
@@ -323,6 +349,8 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
        } else {
           preAvgME.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm>, PreAvgCalMEBase>());       
        }
+   } else if (itsSolveBandpass) {
+       preAvgME.reset(new CalibrationME<NoXPolFreqDependentGain, PreAvgCalMEBase>()); 
    } else {
        ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
    }
@@ -418,19 +446,45 @@ void CalibratorParallel::rotatePhases()
 {
   ASKAPDEBUGASSERT(itsComms.isMaster());
   ASKAPDEBUGASSERT(itsModel);
-  ASKAPCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
-              "` is impossible because this parameter is not present in the model");
-  
-  const casa::Complex refPhaseTerm = casa::polar(1.f,
-                -arg(itsModel->complexValue(itsRefGain)));
-                       
+  // by default assume frequency-independent case
   std::vector<std::string> names(itsModel->freeNames());
+  casa::Vector<casa::Complex> refPhaseTerms;  
+  if (itsSolveBandpass) {
+      // first find the required dimensionality
+      casa::uInt maxChan = 0;
+      for (std::vector<std::string>::const_iterator it=names.begin();
+               it!=names.end();++it)  {
+           const std::string parname = *it;
+           if (parname.find(accessors::CalParamNameHelper::bpPrefix()) != std::string::npos) {
+               const casa::uInt chan = accessors::CalParamNameHelper::extractChannelInfo(parname).first;
+               if (chan > maxChan) {
+                   maxChan = chan;
+               }
+           }
+      }
+      // build a vector of reference phase terms, one per channel
+      refPhaseTerms.resize(maxChan + 1);
+      for (casa::uInt chan = 0; chan <= maxChan; ++chan) {
+           const std::string parname = accessors::CalParamNameHelper::addChannelInfo(itsRefGain, chan);
+           ASKAPCHECK(itsModel->has(parname), "phase rotation to `"<<parname<<
+              "` is impossible because this parameter is not present in the model, channel = "<<chan);
+           refPhaseTerms[chan] = casa::polar(1.f,-arg(itsModel->complexValue(parname)));
+      }                      
+  } else {   
+     ASKAPCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
+             "` is impossible because this parameter is not present in the model");
+     refPhaseTerms.resize(1);
+     refPhaseTerms[0] = casa::polar(1.f,-arg(itsModel->complexValue(itsRefGain)));
+  }
+  ASKAPDEBUGASSERT(refPhaseTerms.nelements() > 0);
+                       
   for (std::vector<std::string>::const_iterator it=names.begin();
                it!=names.end();++it)  {
        const std::string parname = *it;
-       if (parname.find("gain") != std::string::npos) {                    
+       if (parname.find("gain") != std::string::npos) {
+           const casa::uInt index = itsSolveBandpass ? accessors::CalParamNameHelper::extractChannelInfo(parname).first : 0;                               
            itsModel->update(parname,
-                 itsModel->complexValue(parname)*refPhaseTerm);                                 
+                 itsModel->complexValue(parname)*refPhaseTerms[index]);
        } 
   }             
 }
@@ -565,9 +619,20 @@ void CalibratorParallel::writeModel(const std::string &postfix)
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 
            it != parlist.end(); ++it) {
            const casa::Complex val = itsModel->complexValue(*it);
-           const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
-                 accessors::CalParamNameHelper::parseParam(*it);
-           solAcc->setJonesElement(paramType.first, paramType.second, val);
+           if (itsSolveBandpass) {
+               ASKAPCHECK(it->find(accessors::CalParamNameHelper::bpPrefix()) == 0, 
+                       "Expect parameter name starting from "<<accessors::CalParamNameHelper::bpPrefix()<<
+                       " for the bandpass calibration, you have "<<*it);
+               const std::pair<casa::uInt, std::string> parsedParam = 
+                       accessors::CalParamNameHelper::extractChannelInfo(*it);
+               const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
+                    accessors::CalParamNameHelper::parseParam(parsedParam.second);
+               solAcc->setBandpassElement(paramType.first, paramType.second, parsedParam.first, val);                 
+           } else {
+               const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
+                    accessors::CalParamNameHelper::parseParam(*it);
+               solAcc->setJonesElement(paramType.first, paramType.second, val);
+           }
       }
   }
 }
