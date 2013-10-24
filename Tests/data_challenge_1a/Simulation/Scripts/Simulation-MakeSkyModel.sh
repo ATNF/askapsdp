@@ -54,8 +54,8 @@ import os
 #
 # CASA script to create a full-size continuum model by combining the 455 subcubes
 
-modelInChunks = ${writeByNode}
-baseimage = ${baseimage}
+modelInChunks = '${writeByNode}'
+baseimage = '${baseimage}'
 for t in range(3):
 
     modelIm='${modelimage}.taylor.%d'%t
