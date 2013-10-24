@@ -92,6 +92,7 @@ goodfiles.sort()
 
 ia.open('${chunkdir}/%s'%goodfiles[0])
 crec=ia.coordsys().torecord()
+crec['direction0']=np.array([${npix}/2,${npix}/2])
 ia.close()
 ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
 ia.close()
