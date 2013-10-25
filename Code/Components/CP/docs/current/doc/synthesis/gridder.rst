@@ -256,7 +256,7 @@ always correspond to -wmax and +wmax, respectively, and the (nwplanes-1)/2 plane
 
 An example of the power-law distribution of the w-planes with exponent=0.5 is given below
 
-.. image:: figures/wpowerlaw.jpg
+.. image:: figures/wpowerlaw.png
 
 Additional parameters for gridders with non-trivial convolution functions (WProject. AWProject, AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -405,7 +405,7 @@ to define how it looks like (via illumination pattern), when it needs to be reco
 
 An example of the disk illumination for diameter 22m and blockage of 2m. For all illumination examples given below the frequency is assumed to be 1.4 GHz
 
-.. image:: figures/diskillum_p1.jpg
+.. image:: figures/diskillum_p1.png
 
 
 ATCA Illumination
@@ -482,15 +482,15 @@ illumination). ATCA illumination has the following parameters:
 
 Example of the ATCA illumination model created with default parameters (i.e. with feed legs and wedges enabled)
 
-.. image:: figures/atcaillum_p1.jpg
+.. image:: figures/atcaillum_p1.png
 
 Example of the ATCA illumination model without wedges and with default values of other parameters.
 
-.. image:: figures/atcaillum_p2.jpg
+.. image:: figures/atcaillum_p2.png
 
 Example of the ATCA illumination model without feedlegs (and wedges). All other parameters have default values. This case is essentially a disk with tapering.
 
-.. image:: figures/atcaillum_p3.jpg
+.. image:: figures/atcaillum_p3.png
 
 
 Examples
