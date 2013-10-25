@@ -128,6 +128,9 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
         }
     }
 
+    // If all visibilities are flagged, nothing to do
+    if (tmpamps.empty()) return;
+
     // Convert to a casa::Vector so we can use ArrayMath functions
     // to determine the mean and stddev
     casa::Vector<casa::Float> amps(tmpamps);
