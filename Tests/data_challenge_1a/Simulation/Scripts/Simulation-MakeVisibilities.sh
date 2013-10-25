@@ -92,10 +92,9 @@ goodfiles.sort()
 
 ia.open('${chunkdir}/%s'%goodfiles[0])
 crec=ia.coordsys().torecord()
-crec['direction0']['crpix']=np.array([${npix}/2,${npix}/2])
+crec['direction0']['crpix']=np.array([${npix}/2.,${npix}/2.])
 ia.close()
 ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
-ia.close()
 
 for file in goodfiles:
     offset=np.array(file.split('__')[1].split('_'),dtype=int)
@@ -105,7 +104,7 @@ for file in goodfiles:
     trc=(np.array(shape,dtype=int)-1).tolist()
     blc[3]=\${IND}
     trc[3]=\${IND}
-    print blc,trc
+    print file,offset,blc,trc
     chunk=ia.getchunk(blc=blc,trc=trc)
     ia.close()
     ia.open('\${skymodel}')
@@ -177,7 +176,7 @@ Csimulator.noise                                 =       ${doNoise}
 Csimulator.noise.Tsys                            =       \${Tsys}
 Csimulator.noise.efficiency                      =       0.8   
 Csimulator.noise.seed1                           =       time
-Csimulator.noise.seed2                           =       ${INDEX}
+Csimulator.noise.seed2                           =       \${IND}
 #
 Csimulator.corrupt                               =       ${doCorrupt}
 Csimulator.calibaccess                           =       parset

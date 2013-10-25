@@ -74,10 +74,9 @@ for t in range(3):
         
         ia.open('${chunkdir}/%s'%goodfiles[0])
         crec=ia.coordsys().torecord()
-        crec['direction0']['crpix']=np.array([${npix}/2,${npix}/2])
+        crec['direction0']['crpix']=np.array([${npix}/2.,${npix}/2.])
         ia.close()
         ia.newimagefromshape(outfile=modelIm,shape=[${npix},${npix},1,1],csys=crec)
-        ia.close()
         
         for file in goodfiles:
             offset=np.array(file.split('__')[1].split('_'),dtype=int)
