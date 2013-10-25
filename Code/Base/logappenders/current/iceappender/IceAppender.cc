@@ -38,6 +38,10 @@
 #include <IceUtil/IceUtil.h>
 #include <IceStorm/IceStorm.h>
 #include <log4cxx/helpers/stringhelper.h>
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
+#include <boost/circular_buffer.hpp>
 
 // Ice interfaces includes
 #include "LoggingService.h"
@@ -46,12 +50,13 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 using namespace askap;
+using namespace std;
 
 std::map<LevelPtr, askap::interfaces::logging::LogLevel> IceAppender::theirLevelMap;
 
 IMPLEMENT_LOG4CXX_OBJECT(IceAppender)
 
-IceAppender::IceAppender()
+IceAppender::IceAppender() : itsBuffer(DEFAULT_BUF_CAPACITY)
 {
     if (theirLevelMap.size() == 0) {
         theirLevelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
@@ -63,50 +68,46 @@ IceAppender::IceAppender()
     }
     itsLogHost = getHostName(true);
 
-    // Set a default TopicManager ideitity (it can optionally be passed as
+    // Set a default TopicManager identity (it can optionally be passed as
     // a parameter in the log config which will override this)
     itsTopicManager = "IceStorm/TopicManager@IceStorm.TopicManager";
 }
 
 IceAppender::~IceAppender()
 {
+    if (itsThread.get()) {
+        itsThread->interrupt();
+        itsThread->join();
+    }
+
     if (itsIceComm) {
         itsIceComm->shutdown();
         itsIceComm->waitForShutdown();
+        itsIceComm->destroy();
+        itsIceComm = 0;
     }
-    itsIceComm->destroy();
-    itsIceComm = 0;
 }
 
 void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
 {
-    if (itsIceComm && itsIceComm->isShutdown()) {
-        std::cerr << "Ice is shutdown, cannot send log message" << std::endl;
-        return;
-    }
+    askap::interfaces::logging::ILogEvent iceevent;
+    iceevent.origin = event->getLoggerName();
 
-    if (itsLogService) {
-        // Create the payload
-        askap::interfaces::logging::ILogEvent iceevent;
-        iceevent.origin = event->getLoggerName();
+    // The ASKAPsoft log archiver interface expects Unix (posix) time in
+    // seconds (the parameter is a double precision float) where log4cxx
+    // returns microseconds.
+    iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
+    iceevent.level = theirLevelMap[event->getLevel()];
+    iceevent.message = event->getMessage();
+    iceevent.hostname = itsLogHost;
 
-        // The ASKAPsoft log archiver interface expects Unix (posix) time in
-        // seconds (the parameter is a double precision float) where log4cxx
-        // returns microseconds.
-        iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
-        iceevent.level = theirLevelMap[event->getLevel()];
-        iceevent.message = event->getMessage();
-        iceevent.hostname = itsLogHost;
+    // Enqueue for asynchronous sending
+    boost::mutex::scoped_lock lock(itsMutex);
+    itsBuffer.push_back(iceevent);
 
-        // Send
-        try {
-            itsLogService->send(iceevent);
-        } catch (Ice::Exception &e) {
-            std::cerr << "Ice Error. Logging to IceStorm suspended: " << e << std::endl;
-            itsIceComm->shutdown();
-            itsIceComm = 0;
-        }
-    }
+    // Notify any waiters
+    lock.unlock();
+    itsCondVar.notify_all();
 }
 
 void IceAppender::close()
@@ -145,72 +146,21 @@ void IceAppender::setOption(const LogString& option, const LogString& value)
 
 void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
 {
-
-    // First ensure host, port and topic are set
-    if (!verifyOptions()) {
-        return;
-    }
-    // Initialize Ice
-    // Get the initialized property set.
-    Ice::PropertiesPtr props = Ice::createProperties();
-
-    // Syntax example for the Ice.Default.Locator property:
-    // "IceGrid/Locator:tcp -h localhost -p 4061"
-    std::stringstream ss;
-    ss << "IceGrid/Locator:tcp -h " << itsLocatorHost << " -p " << itsLocatorPort;
-    props->setProperty("Ice.Default.Locator", ss.str());
-
-    // Initialize a communicator with these properties.
-    Ice::InitializationData id;
-    id.properties = props;
-    itsIceComm = Ice::initialize(id);
-
-    // Obtain a proxy to the topic manager
-    IceStorm::TopicManagerPrx topicManager;
-    try {
-        Ice::ObjectPrx obj = itsIceComm->stringToProxy(itsTopicManager);
-        topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
-    } catch (Ice::Exception) {
-        std::cerr << "Could not connect to logger topic, messages will not be sent to the log server" << std::endl;
-        // Just return, treat this as non-fatal for the app, even though it
-        // is fatal for logging via Ice.
-        itsIceComm->destroy();
-        itsIceComm = 0;
-        return;
-    }
-    // Obtain the topic or create
-    IceStorm::TopicPrx topic;
-    try {
-        topic = topicManager->retrieve(itsLoggingTopic);
-    } catch (const IceStorm::NoSuchTopic&) {
-      try {
-        topic = topicManager->create(itsLoggingTopic);
-      } catch  (const IceStorm::TopicExists&) {
-	try {
-	  topic = topicManager->retrieve(itsLoggingTopic);
-	} catch  (const IceStorm::NoSuchTopic&) {
-	  std::cerr << "Topic creation/retrieval failed after two attempts"
-		    << std::endl;
-	}
-      }
-    }
-
-    Ice::ObjectPrx pub = topic->getPublisher()->ice_twoway();
-    itsLogService = askap::interfaces::logging::ILoggerPrx::uncheckedCast(pub);
+    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&IceAppender::run, this)));
 }
 
 bool IceAppender::verifyOptions() const
 {
-    const std::string error = "IceAppender: Cannot initialise - ";
+    const string error = "IceAppender: Cannot initialise - ";
 
     if (itsLocatorHost == "") {
-        std::cerr << error << "locator host not specified" << std::endl;
+        cerr << error << "locator host not specified" << endl;
         return false;
     } else if (itsLocatorPort == "") {
-        std::cerr << error << "locator port not specified" << std::endl;
+        cerr << error << "locator port not specified" << endl;
         return false;
     } else if (itsLoggingTopic == "") {
-        std::cerr << error << "logging topic not specified" << std::endl;
+        cerr << error << "logging topic not specified" << endl;
         return false;
     } else {
         return true;
@@ -224,13 +174,13 @@ std::string IceAppender::getHostName(bool full)
     hname[MAX_HOSTNAME_LEN - 1] = '\0';
 
     if (gethostname(hname, MAX_HOSTNAME_LEN - 1) != 0) {
-        return std::string("localhost");
+        return string("localhost");
     }
 
-    std::string hostname(hname);
+    string hostname(hname);
 
     if (!full) {
-        std::string::size_type dotloc = hostname.find_first_of(".");
+        string::size_type dotloc = hostname.find_first_of(".");
 
         if (dotloc != hostname.npos) {
             return hostname.substr(0, dotloc);
@@ -238,4 +188,111 @@ std::string IceAppender::getHostName(bool full)
     }
 
     return hostname;
+}
+
+void IceAppender::connect(void)
+{
+    // First ensure host, port and topic are set
+    if (!verifyOptions()) {
+        return;
+    }
+
+    // Initialize Ice
+    if (!itsIceComm) {
+        // Get the initialized property set.
+        Ice::PropertiesPtr props = Ice::createProperties();
+
+        // Syntax example for the Ice.Default.Locator property:
+        // "IceGrid/Locator:tcp -h localhost -p 4061"
+        stringstream ss;
+        ss << "IceGrid/Locator:tcp -h " << itsLocatorHost << " -p " << itsLocatorPort;
+        props->setProperty("Ice.Default.Locator", ss.str());
+
+        // Initialize a communicator with these properties.
+        Ice::InitializationData id;
+        id.properties = props;
+        itsIceComm = Ice::initialize(id);
+        if (!itsIceComm) {
+            cerr << "Could not connect init Ice Communicator. Will attempt send later" << endl;
+            // Throttle retry
+            const unsigned int sleeptime = DEFAULT_RETRY_INTERVAL;
+            boost::this_thread::sleep_for(boost::chrono::seconds(sleeptime));
+            return;
+        }
+    }
+
+    // Obtain a proxy to the topic manager
+    IceStorm::TopicManagerPrx topicManager;
+    try {
+        Ice::ObjectPrx obj = itsIceComm->stringToProxy(itsTopicManager);
+        topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
+    } catch (Ice::Exception) {
+        cerr << "Could not connect to logger topic. Will attempt send later" << endl;
+
+        // Throttle retry
+        const unsigned int sleeptime = DEFAULT_RETRY_INTERVAL;
+        boost::this_thread::sleep_for(boost::chrono::seconds(sleeptime));
+        return;
+    }
+
+    // Obtain the topic or create
+    IceStorm::TopicPrx topic;
+    try {
+        topic = topicManager->retrieve(itsLoggingTopic);
+    } catch (const IceStorm::NoSuchTopic&) {
+        try {
+            topic = topicManager->create(itsLoggingTopic);
+        } catch  (const IceStorm::TopicExists&) {
+            try {
+                topic = topicManager->retrieve(itsLoggingTopic);
+            } catch  (const IceStorm::NoSuchTopic&) {
+                cerr << "Topic creation/retrieval failed after two attempts" << endl;
+                return;
+            }
+        }
+    }
+
+    Ice::ObjectPrx pub = topic->getPublisher()->ice_twoway();
+    itsLogService = askap::interfaces::logging::ILoggerPrx::uncheckedCast(pub);
+}
+
+void IceAppender::run(void)
+{
+    while (!(boost::this_thread::interruption_requested())) {
+        boost::mutex::scoped_lock lock(itsMutex);
+
+        // Wait if buffer is empty
+        while (itsBuffer.empty()) {
+            itsCondVar.wait(lock);
+            if (boost::this_thread::interruption_requested()) return;
+        }
+
+        // If not connected to IceStorm topic, connect
+        if (!itsLogService) {
+            lock.unlock();
+            connect();
+            lock.lock();
+        }
+
+        // Send
+        if (itsLogService) {
+            try {
+                // Pop an event
+                const askap::interfaces::logging::ILogEvent event = itsBuffer.front();
+                itsBuffer.pop_front();
+                lock.unlock();
+
+                // Send
+                itsLogService->send(event);
+            } catch (Ice::Exception &e) {
+                // This event is lost if the send fails. Could put it back
+                // on the buffer, but would need to be careful to put it back
+                // in the right position. It would be easy to think we can hold
+                // the lock for th duration of the "send" so the buffer is not
+                // modified (and we could just push_front), but holding the lock
+                // during "send" would unnecessarily block the append() call,
+                // don't do that!!
+            }
+        }
+    }
 }

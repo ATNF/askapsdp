@@ -35,6 +35,11 @@
 #include <log4cxx/appenderskeleton.h>
 #include <log4cxx/spi/loggingevent.h>
 #include <Ice/Ice.h>
+#include <boost/scoped_ptr.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
+#include <boost/circular_buffer.hpp>
 
 // Ice interfaces includes
 #include "LoggingService.h"
@@ -96,7 +101,7 @@ namespace askap {
             /// @detail This is the callback method which will be called when log
             /// events are to be handled by this appender.
             virtual void append(const log4cxx::spi::LoggingEventPtr& event,
-				log4cxx::helpers::Pool& p);
+				                log4cxx::helpers::Pool& p);
 
             /// @brief This is a callback method called when the appender is closed.
             /// @detail This method is responsible for cleaning up any allocated
@@ -123,7 +128,7 @@ namespace askap {
             /// @param[in]  option  the key (or option).
             /// @param[in]  value the value.
             virtual void setOption(const log4cxx::LogString& option,
-				   const log4cxx::LogString& value);
+				                   const log4cxx::LogString& value);
 
             /// @brief A callback method which is called by the log4cxx framework
             /// when all options have been passed to this class.
@@ -149,22 +154,36 @@ namespace askap {
             /// @return a string representing the hostname
             static std::string getHostName(bool full = false);
 
+            /// Number of log events that can be queued for sending
+            /// in the circular buffer
+            static const size_t DEFAULT_BUF_CAPACITY = 65536;
+
+            /// Time to wait before trying to reconnect to the IceStorm instance
+            /// after a failed connection attempt. Units: seconds
+            static const unsigned int DEFAULT_RETRY_INTERVAL = 30;
+
+            /// Connect to the IceStorm topic
+            void connect(void);
+
+            /// Entry point for the async log event sender thread
+            void run(void);
+
             // The ICE communicator
             Ice::CommunicatorPtr itsIceComm;
 
             // Proxy to the log service
             ::askap::interfaces::logging::ILoggerPrx itsLogService;
 
-            // Paramater - The hostname of the locator service
+            // Parameter - The hostname of the locator service
             std::string itsLocatorHost;
 
-            // Paramater - The port number of the locator service
+            // Parameter - The port number of the locator service
             std::string itsLocatorPort;
 
-            // Paramater - The topic to which log messages will be sent
+            // Parameter - The topic to which log messages will be sent
             std::string itsLoggingTopic;
 
-            // Optional Paramater - The topic to which log messages will be sent
+            // Optional Parameter - The topic to which log messages will be sent
             std::string itsTopicManager;
 
             static std::map<log4cxx::LevelPtr,
@@ -172,6 +191,18 @@ namespace askap {
 
             // the name of the host where this logger instance lives
             std::string itsLogHost;
+
+            // Thread for sending log events asynchronously
+            boost::shared_ptr<boost::thread> itsThread;
+
+            /// A circular buffer for log events
+            boost::circular_buffer<askap::interfaces::logging::ILogEvent> itsBuffer;
+
+            // Mutex used for synchronising access to itsBuffer
+            boost::mutex itsMutex;
+
+            // Condition variable user for itsBuffer producers and consumers
+            boost::condition itsCondVar;
     };
 
     // Typedef pointer to this class
