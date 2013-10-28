@@ -348,7 +348,7 @@ void TableConstDataIterator::makeUniformDataDescID()
       
       // determine the shape of the visibility cube
       ROArrayColumn<Complex> visCol(itsCurrentIteration,getDataColumnName());
-      const casa::IPosition &shape=visCol.shape(itsCurrentTopRow);
+      const casa::IPosition shape=visCol.shape(itsCurrentTopRow);
       ASKAPASSERT(shape.size() && (shape.size()<3));
       itsNumberOfPols=shape[0];
       itsNumberOfChannels=shape.size()>1?shape[1]:1;

@@ -294,7 +294,7 @@ void TableDataIterator::writeOriginalVis() const
                     nRow());
   casa::uInt tableRow = getCurrentTopRow();
   for (casa::uInt row=0;row<originalVis.nrow();++row,++tableRow) {
-       const casa::IPosition &shape = visCol.shape(row);
+       const casa::IPosition shape = visCol.shape(row);
        ASKAPDEBUGASSERT(shape.size() && (shape.size()<3));
        const casa::uInt thisRowNumberOfPols = shape[0];
        const casa::uInt thisRowNumberOfChannels = shape.size()>1 ? shape[1] : 1;
