@@ -31,23 +31,25 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-/// casa includes
+#include <askap_accessors.h>
+
+/// ASKAPsoft includes
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 #include <tables/Tables/ArrayColumn.h>
 #include <tables/Tables/ScalarColumn.h>
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <scimath/Mathematics/SquareMatrix.h>
 #include <measures/Measures/MeasFrame.h>
+#include <casa/Arrays/Slicer.h>
+#include <casa/Arrays/IPosition.h>
 
-
-/// own includes
+/// Local package
 #include <dataaccess/TableConstDataIterator.h>
-#include <askap_accessors.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, "");
-
-#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/DirectionConverter.h>
+
+ASKAP_LOGGER(logger, "");
 
 using namespace casa;
 using namespace askap;
@@ -416,7 +418,12 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
 {
   const casa::uInt nChan = nChannel();
   const casa::uInt startChan = startChannel();
-                           
+
+  // Setup a slicer to extract the specified channel range only
+  const Slicer chanSlicer(IPosition(2, 0, startChan),
+                          IPosition(2, itsNumberOfPols, nChan),
+                          Slicer::endIsLength);
+
   cube.resize(itsNumberOfRows, nChan, itsNumberOfPols);
   ROArrayColumn<T> tableCol(itsCurrentIteration,columnName);
   
@@ -425,13 +432,13 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
   WholeRowFlagger<T> wrFlagger(itsCurrentIteration);
   
   // temporary buffer and position in this buffer, declared outside the loop
-  IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
+  IPosition curPos(2, itsNumberOfPols, nChan);
   Array<T> buf(curPos);
   for (uInt row=0;row<itsNumberOfRows;++row) {
-       const casa::IPosition &shape=tableCol.shape(row);
+       const casa::IPosition shape = tableCol.shape(row);
        ASKAPASSERT(shape.size() && (shape.size()<3));
        const casa::uInt thisRowNumberOfPols=shape[0];
-       const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
+       const casa::uInt thisRowNumberOfChannels = shape.size() > 1 ? shape[1] : 1;
        if (thisRowNumberOfPols!=itsNumberOfPols) {
            ASKAPTHROW(DataAccessError,"Number of polarizations is not "
 	               "conformant for row "<<row<<" of the "<<columnName<<
@@ -446,16 +453,17 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
        // the transformation which will do averaging, selection,
        // polarization conversion
 
-       if (wrFlagger.copyRequired(row+itsCurrentTopRow,cube)) {
-           // extract data record for this row, no resizing
-           tableCol.get(row+itsCurrentTopRow,buf,False); 
-       
-           for (uInt chan=0; chan<nChan; ++chan) {
-                curPos[1] = chan + startChan;
-                for (uInt pol=0;pol<itsNumberOfPols;++pol) {
-	                 curPos[0]=pol;
-	                 cube(row,chan,pol)=buf(curPos);
-	            }
+       if (wrFlagger.copyRequired(row + itsCurrentTopRow, cube)) {
+           // Extract slice for this row
+           tableCol.getSlice(row + itsCurrentTopRow, chanSlicer, buf, False);
+
+           // Copy the slice into the cube 
+           for (uInt chan = 0; chan < nChan; ++chan) {
+               curPos[1] = chan;
+               for (uInt pol = 0; pol < itsNumberOfPols; ++pol) {
+                   curPos[0] = pol;
+                   cube(row,chan,pol) = buf(curPos);
+               }
            }
        }
   }
