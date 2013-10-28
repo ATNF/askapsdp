@@ -186,6 +186,9 @@ namespace askap {
             // Optional Parameter - The topic to which log messages will be sent
             std::string itsTopicManager;
 
+            // Optional Parameter - A tag to be sent with each log message
+            std::string itsTag;
+
             static std::map<log4cxx::LevelPtr,
 	            askap::interfaces::logging::LogLevel> theirLevelMap;
 

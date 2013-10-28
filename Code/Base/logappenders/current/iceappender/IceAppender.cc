@@ -100,6 +100,7 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
     iceevent.level = theirLevelMap[event->getLevel()];
     iceevent.message = event->getMessage();
     iceevent.hostname = itsLogHost;
+    iceevent.tag = itsTag;
 
     // Enqueue for asynchronous sending
     boost::mutex::scoped_lock lock(itsMutex);
@@ -139,6 +140,8 @@ void IceAppender::setOption(const LogString& option, const LogString& value)
         itsLoggingTopic = value;
     } else if (StringHelper::equalsIgnoreCase(option, LOG4CXX_STR("TOPIC_MANAGER"), LOG4CXX_STR("topic_manager"))) {
         itsTopicManager = value;
+    } else if (StringHelper::equalsIgnoreCase(option, LOG4CXX_STR("TAG"), LOG4CXX_STR("tag"))) {
+        itsTag = value;
     } else {
         AppenderSkeleton::setOption(option, value);
     }
@@ -226,8 +229,10 @@ void IceAppender::connect(void)
     try {
         Ice::ObjectPrx obj = itsIceComm->stringToProxy(itsTopicManager);
         topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
-    } catch (Ice::Exception) {
-        cerr << "Could not connect to logger topic. Will attempt send later" << endl;
+    } catch (Ice::Exception &e) {
+        cerr << "Could not connect to logger topic. Will attempt send later. Error was:" << endl;
+        cerr << "Exception: " << e.what() << endl;
+        cerr << "Topic Manager Identity: " << itsTopicManager << endl;
 
         // Throttle retry
         const unsigned int sleeptime = DEFAULT_RETRY_INTERVAL;
