@@ -98,7 +98,7 @@ if [ `uname` == "Darwin" ]; then
     PYTHON=${MACOSX_PYTHON}
 else
     PYTHON=${LINUX_PYTHON}
-    grep /etc/debian_version >/dev/null 2>&1
+    grep '7.' /etc/debian_version >/dev/null 2>&1
     if [ $? -eq 0 ]; then
 	PYTHON=${WHEEZY_PYTHON}
     fi
