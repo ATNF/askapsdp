@@ -176,9 +176,9 @@ namespace askap
         gsl_vector * work = gsl_vector_alloc (nParameters);
         ASKAPDEBUGASSERT(work!=NULL);
         
-        //gsl_linalg_SV_decomp (A, V, S, work);
+        gsl_linalg_SV_decomp (A, V, S, work);
         
-        SVDecomp (A, V, S);
+        //SVDecomp (A, V, S);
         
         // code to put a limit on the condition number of the system
         const double singularValueLimit = nParameters>1 ? 
