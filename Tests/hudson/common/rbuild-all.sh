@@ -9,6 +9,7 @@ PROCESSES='j=2'
 LINUX_PYTHON='/usr/bin/python2.6'
 #MACOSX_PYTHON='/opt/local/bin/python2.6'
 MACOSX_PYTHON='/usr/bin/python2.6'
+WHEEZY_PYTHON='/usr/bin/python2.7'
 
 PNAME=`basename $0`
 SDATE=`date`
@@ -97,6 +98,10 @@ if [ `uname` == "Darwin" ]; then
     PYTHON=${MACOSX_PYTHON}
 else
     PYTHON=${LINUX_PYTHON}
+    grep /etc/debian_version >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	PYTHON=${WHEEZY_PYTHON}
+    fi
 fi
 
 bootstrap
