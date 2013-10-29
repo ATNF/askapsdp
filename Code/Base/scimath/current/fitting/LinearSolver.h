@@ -35,6 +35,8 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
+#include <utility>
+
 namespace askap
 {
   namespace scimath
@@ -74,7 +76,19 @@ namespace askap
         
         /// @brief Clone this object
         virtual Solver::ShPtr clone() const;
-
+       
+       protected:
+       
+        /// @brief solve for a subset of parameters
+        /// @details This method is used in solveNormalEquations
+        /// @param[in] params parameters to be updated           
+        /// @param[in] quality Quality of the solution
+        /// @param[in] indices and dimensionality of paramters to solve for
+        /// @return pair of minimum and maximum eigenvalues
+        std::pair<double,double>  solveSubsetOfNormalEquations(Params &params, Quality& quality, 
+                   const std::map<std::string, int> &indices) const;
+           
+         
        private:
          /// @brief maximum condition number allowed
          /// @details Effectively, this is a threshold for singular values 
