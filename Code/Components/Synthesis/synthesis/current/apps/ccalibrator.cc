@@ -56,8 +56,13 @@ class CcalibratorApp : public askap::Application
 
             try {
                 StatReporter stats;
-
                 LOFAR::ParameterSet subset(config().makeSubset("Ccalibrator."));
+
+                // Perform %w substitutions for all keys
+                for (LOFAR::ParameterSet::iterator it = subset.begin();
+                        it != subset.end(); ++it) {
+                    it->second = LOFAR::ParameterValue(comms.substitute(it->second));
+                }
 
                 CalibratorParallel calib(comms, subset);
                 ASKAPLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);

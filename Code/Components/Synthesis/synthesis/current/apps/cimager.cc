@@ -68,12 +68,19 @@ class CimagerApp : public askap::Application
     public:
         virtual int run(int argc, char* argv[])
         {
-            StatReporter stats;
-
             // This class must have scope outside the main try/catch block
             askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
             try {
+                StatReporter stats;
+                LOFAR::ParameterSet subset(config().makeSubset("Cimager."));
+
+                // Perform %w substitutions for all keys
+                for (LOFAR::ParameterSet::iterator it = subset.begin();
+                        it != subset.end(); ++it) {
+                    it->second = LOFAR::ParameterValue(comms.substitute(it->second));
+                }
+
                 boost::scoped_ptr<askap::ProfileSingleton::Initialiser> profiler;
                 if (parameterExists("profile")) {
                     std::string profileFileName("profile.cimager");
@@ -86,7 +93,6 @@ class CimagerApp : public askap::Application
                 // Put everything in scope to ensure that all destructors are called
                 // before the final message
                 {
-                    LOFAR::ParameterSet subset(config().makeSubset("Cimager."));
                     const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
                             subset.getString("threshold.majorcycle", "-1Jy"), "Jy");
                     const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle", false);
