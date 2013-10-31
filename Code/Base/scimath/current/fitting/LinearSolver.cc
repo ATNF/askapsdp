@@ -80,40 +80,93 @@ namespace askap
       resetNormalEquations();
     }
     
+/// @brief test that all matrix elements are below tolerance by absolute value
+/// @details This is a helper method to test all matrix elements
+/// @param[in] matr matrix to test
+/// @param[in] tolerance tolerance on the element absolute values
+/// @return true if all elements are zero within the tolerance
+bool LinearSolver::allMatrixElementsAreZeros(const casa::Matrix<double> &matr, const double tolerance)
+{
+  for (casa::uInt row = 0; row < matr.nrow(); ++row) {
+       for (casa::uInt col = 0; col < matr.ncolumn(); ++col) {
+            if (abs(matr(row,col)) > tolerance) {
+                return false;
+            }
+       }
+  }
+  return true;
+} 
+    
+    
+/// @brief extract an independent subset of parameters
+/// @details This method analyses the normal equations and forms a subset of 
+/// parameters which can be solved for independently. Although the SVD is more than
+/// capable of dealing with degeneracies, it is often too slow if the number of parameters is large.
+/// This method essentially gives the solver a hint based on the structure of the equations
+/// @param[in] names names for parameters to choose from
+/// @param[in] tolerance tolerance on the matrix elements to decide whether they can be considered independent
+/// @return names of parameters in this subset
+std::vector<std::string> LinearSolver::getIndependentSubset(std::vector<std::string> &names, const double tolerance) const
+{
+   ASKAPTRACE("LinearSolver::getIndependentSubset");
+   ASKAPDEBUGASSERT(names.size() > 0);
+   std::vector<std::string> resultNames;
+   resultNames.reserve(names.size());
+   resultNames.push_back(names[0]);
+   for (std::vector<std::string>::const_iterator ci = ++names.begin(); ci != names.end(); ++ci) {
+        for (std::vector<std::string>::const_iterator ciRes = resultNames.begin(); ciRes != resultNames.end(); ++ciRes) {
+             const casa::Matrix<double>& nm1 = normalEquations().normalMatrix(*ci, *ciRes);
+             const casa::Matrix<double>& nm2 = normalEquations().normalMatrix(*ciRes, *ci);
+             if (!allMatrixElementsAreZeros(nm1,tolerance) || !allMatrixElementsAreZeros(nm2,tolerance)) {
+                 // this parameter (iterated in the outer loop) belongs to the same subset
+                 resultNames.push_back(*ci);
+                 break;
+             } 
+        }
+   } 
+   return resultNames;
+}
+    
+    
 /// @brief solve for a subset of parameters
 /// @details This method is used in solveNormalEquations
 /// @param[in] params parameters to be updated           
 /// @param[in] quality Quality of the solution
-/// @param[in] indices and dimensionality of paramters to solve for
-/// @return pair of minimum and maximum eigenvalues
+/// @param[in] names names of the parameters to solve for 
 std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &params, Quality& quality, 
-                   const std::map<std::string, int> &indices) const
+                   const std::vector<std::string> &names) const
 {
     ASKAPTRACE("LinearSolver::solveSubsetOfNormalEquations");
     std::pair<double,double> result(0.,0.);
     
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
 
-    ASKAPDEBUGASSERT(indices.size() > 0);
-    
-    map<string, int>::const_iterator peak = indices.begin();    
-    for (map<string, int>::const_iterator indit=indices.begin();indit != indices.end();++indit) {
-         if (indit->second > peak->second) {
-             peak = indit;
-         }
-    }
-    // number of parameters in this subset
-    const int nParameters = peak->second + normalEquations().dataVector(peak->first).nelements();
-    
-    ASKAPCHECK(nParameters>0, "No free parameters in a subset of normal equations");
+    int nParameters = 0;
 
+    std::vector<std::pair<string, int> > indices(names.size());
+    {
+      std::vector<std::pair<string, int> >::iterator it = indices.begin();
+      for (vector<string>::const_iterator cit=names.begin(); cit!=names.end(); ++cit,++it)
+      {
+        ASKAPDEBUGASSERT(it != indices.end());
+        it->second = nParameters;
+        it->first = *cit;
+        const casa::uInt newParameters = normalEquations().dataVector(*cit).nelements();
+        nParameters += newParameters;
+        ASKAPDEBUGASSERT((params.isFree(*cit) ? params.value(*cit).nelements() : newParameters) == newParameters);        
+      }
+    }
+    ASKAPCHECK(nParameters>0, "No free parameters in a subset of normal equations");
+    
+    ASKAPDEBUGASSERT(indices.size() > 0);
+        
     // Convert the normal equations to gsl format
     gsl_matrix * A = gsl_matrix_alloc (nParameters, nParameters);
     gsl_vector * B = gsl_vector_alloc (nParameters);
     gsl_vector * X = gsl_vector_alloc (nParameters);
 
-    for (map<string, int>::const_iterator indit2=indices.begin();indit2!=indices.end(); ++indit2)  {
-        for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end(); ++indit1)  {
+    for (std::vector<std::pair<string, int> >::const_iterator indit2=indices.begin();indit2!=indices.end(); ++indit2)  {
+        for (std::vector<std::pair<string, int> >::const_iterator indit1=indices.begin();indit1!=indices.end(); ++indit1)  {
              // Axes are dof, dof for each parameter
              // Take a deep breath for const-safe indexing into the double layered map
              const casa::Matrix<double>& nm = normalEquations().normalMatrix(indit1->first, indit2->first);
@@ -127,7 +180,7 @@ std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &par
          }
     }
     
-    for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end(); ++indit1) {
+    for (std::vector<std::pair<string, int> >::const_iterator indit1=indices.begin();indit1!=indices.end(); ++indit1) {
         const casa::Vector<double> &dv = normalEquations().dataVector(indit1->first);
         for (size_t row=0; row<dv.nelements(); ++row) {
              gsl_vector_set(B, row+(indit1->second), dv(row));
@@ -226,7 +279,7 @@ std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &par
       
 // Update the parameters for the calculated changes. Exploit reference
 // semantics of casa::Array.
-         map<string, int>::const_iterator indit;
+         std::vector<std::pair<string, int> >::const_iterator indit;
          for (indit=indices.begin();indit!=indices.end();++indit) {
               casa::IPosition vecShape(1, params.value(indit->first).nelements());
               casa::Vector<double> value(params.value(indit->first).reform(vecShape));
@@ -243,7 +296,7 @@ std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &par
         gsl_linalg_cholesky_decomp(A);
         gsl_linalg_cholesky_solve(A, B, X);
 // Update the parameters for the calculated changes
-        map<string, int>::const_iterator indit;
+        std::vector<std::pair<string, int> >::const_iterator indit;
         for (indit=indices.begin();indit!=indices.end();++indit)
         {
           casa::IPosition vecShape(1, params.value(indit->first).nelements());
@@ -275,8 +328,7 @@ std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &par
       ASKAPTRACE("LinearSolver::solveNormalEquations");
       
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
-      int nParameters=0;
-
+     
 // Find all the free parameters
       vector<string> names(params.freeNames());
       if (names.size() == 0) {
@@ -286,17 +338,34 @@ std::pair<double,double>  LinearSolver::solveSubsetOfNormalEquations(Params &par
       }
       ASKAPCHECK(names.size()>0, "No free parameters in Linear Solver");
 
-      map<string, int> indices;
-      for (vector<string>::const_iterator it=names.begin();it!=names.end();it++)
-      {
-        indices[*it] = nParameters;
-        const casa::uInt newParameters = normalEquations().dataVector(*it).nelements();
-        nParameters += newParameters;
-        ASKAPDEBUGASSERT((params.isFree(*it) ? params.value(*it).nelements() : newParameters) == newParameters);        
+      if (names.size() < 100) {
+          // no need to extract independent blocks if number of unknowns is small
+          solveSubsetOfNormalEquations(params,quality,names);
+      } else {
+          while (names.size() > 0) {
+              const std::vector<std::string> subsetNames = getIndependentSubset(names,1e-6);
+              if (subsetNames.size() == names.size()) {
+                  names.resize(0);
+              } else {
+                  // remove the elements corresponding to the current subset from the list of names prepared for the
+                  // following integration
+                  std::vector<size_t> indicesToRemove(subsetNames.size(),subsetNames.size());                                   
+                  for (size_t index = 0,indexToRemove = 0; index < names.size(); ++index) {
+                       if (find(subsetNames.begin(),subsetNames.end(),names[index]) != subsetNames.end()) {
+                           ASKAPDEBUGASSERT(indexToRemove < indicesToRemove.size());
+                           indicesToRemove[indexToRemove++] = index;
+                       }
+                  }
+                  
+                  // the following could be done more elegantly/faster, but leave the optimisation to later time                  
+                  for (std::vector<size_t>::const_reverse_iterator ci = indicesToRemove.rbegin(); ci!=indicesToRemove.rend(); ++ci) {
+                       ASKAPDEBUGASSERT(*ci < names.size());
+                       names.erase(names.begin() + *ci);
+                  }
+              }
+              solveSubsetOfNormalEquations(params,quality, subsetNames);
+          } 
       }
-      ASKAPCHECK(nParameters>0, "No free parameters in Linear Solver");
-
-      solveSubsetOfNormalEquations(params,quality,indices);
         
       return true;
     };
