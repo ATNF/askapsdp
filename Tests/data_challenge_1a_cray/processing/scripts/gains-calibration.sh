@@ -20,11 +20,14 @@ cat > ccalibrator.qsub << EOF
 cd \${PBS_O_WORKDIR}
 
 cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
-Ccalibrator.dataset                              = MS/coarse_chan_%w.ms
+Ccalibrator.dataset                              = MS/coarse_chan.ms
 Ccalibrator.refgain                              = gain.g11.0.0
 Ccalibrator.nAnt                                 = 6
 Ccalibrator.nBeam                                = ${NUM_BEAMS_GAINSCAL}
 Ccalibrator.solve                                = gains
+
+# Each worker will read a single channel selection
+Ccalibrator.Channels                             = [1, %w]
 
 # Output type/filename
 Ccalibrator.calibaccess                          = table

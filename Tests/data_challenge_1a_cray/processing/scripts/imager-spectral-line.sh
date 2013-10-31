@@ -8,7 +8,7 @@
 #
 cat > cimager-spectral-line.qsub << EOF
 #!/bin/bash
-#PBS -l walltime=12:00:00
+#PBS -l walltime=24:00:00
 #PBS -l mppwidth=5504
 #PBS -l mppnppn=16
 #PBS -N sl-img
@@ -28,16 +28,15 @@ Simager.Images.cellsize                        = [${IMAGING_CELLSIZE}, ${IMAGING
 Simager.Images.direction                       = [12h30m00.00, -45.00.00.00, J2000]
 #
 Simager.gridder.snapshotimaging                 = true
-Simager.gridder.snapshotimaging.wtolerance      = 2000
+Simager.gridder.snapshotimaging.wtolerance      = 1500
 Simager.gridder                                 = AWProject
-Simager.gridder.AWProject.wmax                  = 2000
-#Simager.gridder.AWProject.nwplanes              = 129
-Simager.gridder.AWProject.nwplanes              = 33
+Simager.gridder.AWProject.wmax                  = 1500
+Simager.gridder.AWProject.nwplanes              = 11
 Simager.gridder.AWProject.oversample            = 4
 Simager.gridder.AWProject.diameter              = 12m
 Simager.gridder.AWProject.blockage              = 2m
 Simager.gridder.AWProject.maxfeeds              = 36
-Simager.gridder.AWProject.maxsupport            = 1024
+Simager.gridder.AWProject.maxsupport            = 512
 Simager.gridder.AWProject.variablesupport       = true
 Simager.gridder.AWProject.offsetsupport         = true
 Simager.gridder.AWProject.frequencydependent    = true
@@ -60,7 +59,7 @@ Simager.preconditioner.Wiener.taper             = 64
 #Simager.calibrate.allowflag                     = true
 EOF_INNER
 
-LOGFILE=${LOGDIR}/cimager_spectral_\${PBS_JOBID}.log
+LOGFILE=${LOGDIR}/simager-spectral-\${PBS_JOBID}.log
 
 # Now run the simager
 aprun -B \${ASKAP_ROOT}/Code/Components/CP/simager/current/apps/simager.sh -c config/simager.in >> \${LOGFILE}

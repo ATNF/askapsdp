@@ -21,8 +21,11 @@ parset=${CONFIGDIR}/cimager-cont-clean-\${PBS_JOBID}.in
 logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
 
 cat > \$parset << EOF_INNER
-Cimager.dataset                                 = MS/coarse_chan_%w.ms
+Cimager.dataset                                 = MS/coarse_chan.ms
 Cimager.nworkergroups                           = 3
+
+# Each worker will read a single channel selection
+Cimager.Channels                                = [1, %w]
 
 Cimager.Images.Names                            = [image.i.clean]
 Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]

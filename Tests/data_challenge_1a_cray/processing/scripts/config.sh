@@ -66,7 +66,7 @@ DO_CONTINUUM_CUBE_DIRTY=false
 DO_CONTINUUM_CUBE_CLEAN=false
 
 # Do Spectral Line Imaging (true or false)
-DO_SPECTRAL_LINE=true
+DO_SPECTRAL_LINE=false
 
 
 #####################################
@@ -87,8 +87,7 @@ if [ $BETA_MODE == "small" ]; then
     NUM_WORKERS_CREATECOARSE=152
     QSUB_RANGE_CREATECOARSE="0-151"
     
-# number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
-    #GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=2:mem=23GB:mpiprocs=2"
+# number of worker nodes needed for gains-calibration.sh
     GAINS_CAL_MPPWIDTH=305
     GAINS_CAL_MPPNPPN=4
     NUM_BEAMS_GAINSCAL=9
@@ -97,14 +96,12 @@ if [ $BETA_MODE == "small" ]; then
     IMAGING_NUM_PIXELS=2048
     IMAGING_CELLSIZE=10arcsec
 
-# number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
-    #CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=6:mem=23GB:mpiprocs=6"
+# number of worker nodes needed for imager-cont-clean.sh
     CONT_CLEAN_MPPWIDTH=913
     CONT_CLEAN_MPPNPPN=16
     CONT_CLEAN_FREQ=1.270e9
 
-# number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
-    #CONT_DIRTY_SELECT="1:ncpus=3:mem=23GB:mpiprocs=3+25:ncpus=6:mem=23GB:mpiprocs=6"
+# number of worker nodes needed for imager-cont-dirty.sh
     CONT_DIRTY_MPPWIDTH=305
     CONT_DIRTY_MPPNPPN=16
     CONT_DIRTY_FREQ=1.270e9
@@ -148,8 +145,7 @@ elif [ ${BETA_MODE} == "full" ]; then
     NUM_WORKERS_CREATECOARSE=304
     QSUB_RANGE_CREATECOARSE="0-303"
 
-# number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
-    #GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
+# number of worker nodes needed for gains-calibration.sh
     GAINS_CAL_MPPWIDTH=305
     GAINS_CAL_MPPNPPN=4
     NUM_BEAMS_GAINSCAL=36
@@ -158,14 +154,12 @@ elif [ ${BETA_MODE} == "full" ]; then
     IMAGING_NUM_PIXELS=3328
     IMAGING_CELLSIZE=10arcsec
 
-# number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
-    #CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
+# number of worker nodes needed for imager-cont-clean.sh
     CONT_CLEAN_MPPWIDTH=913
     CONT_CLEAN_MPPNPPN=16
     CONT_CLEAN_FREQ=1.270e9
 
-# number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
-    #CONT_DIRTY_SELECT="1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6"
+# number of worker nodes needed for imager-cont-dirty.sh
     CONT_DIRTY_MPPWIDTH=305
     CONT_DIRTY_MPPNPPN=16
     CONT_DIRTY_FREQ=1.270e9

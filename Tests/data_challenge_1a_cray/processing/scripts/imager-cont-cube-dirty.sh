@@ -42,7 +42,6 @@ cat > cimager-cont-cube-dirty.qsub << EOF
 cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
 
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
-ms=../MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
 basefreq=${CONT_CUBE_FREQ_ZERO_CHAN}
 dfreq=1.e6
@@ -50,7 +49,10 @@ freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1-\$
 
 parset=../config/cimager-cont-cube-dirty-\${PBS_JOBID}.in
 cat > \$parset << EOF_INNER
-Cimager.dataset                                 = \$ms
+Cimager.dataset                                 = ../MS/coarse_chan.ms
+
+# Each process reads a single channel selection
+Cimager.Channels                                = [1, \${PBS_ARRAY_INDEX}]
 
 Cimager.Images.Names                            = [\${imageName}]
 Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
