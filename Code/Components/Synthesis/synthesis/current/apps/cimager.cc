@@ -75,12 +75,6 @@ class CimagerApp : public askap::Application
                 StatReporter stats;
                 LOFAR::ParameterSet subset(config().makeSubset("Cimager."));
 
-                // Perform %w substitutions for all keys
-                for (LOFAR::ParameterSet::iterator it = subset.begin();
-                        it != subset.end(); ++it) {
-                    it->second = LOFAR::ParameterValue(comms.substitute(it->second));
-                }
-
                 boost::scoped_ptr<askap::ProfileSingleton::Initialiser> profiler;
                 if (parameterExists("profile")) {
                     std::string profileFileName("profile.cimager");
@@ -93,10 +87,6 @@ class CimagerApp : public askap::Application
                 // Put everything in scope to ensure that all destructors are called
                 // before the final message
                 {
-                    const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
-                            subset.getString("threshold.majorcycle", "-1Jy"), "Jy");
-                    const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle", false);
-
                     // imager-specific configuration of the master/worker to allow groups of workers
                     const int nWorkerGroups = subset.getInt32("nworkergroups", 1);
                     ASKAPCHECK(nWorkerGroups > 0, "nworkergroups is supposed to be greater than 0");
@@ -109,16 +99,26 @@ class CimagerApp : public askap::Application
                         ASKAPLOG_INFO_STR(logger, "All workers are treated as identical");
                     }   
 
-                    ImagerParallel imager(comms, subset);
+                    // Perform %w substitutions for all keys.
+                    // NOTE: This MUST happen after AskapParallel::defineGroups() is called
+                    for (LOFAR::ParameterSet::iterator it = subset.begin();
+                            it != subset.end(); ++it) {
+                        it->second = LOFAR::ParameterValue(comms.substitute(it->second));
+                    }
 
+                    ImagerParallel imager(comms, subset);
                     ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
 
                     if (comms.isMaster()) {
                         ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
                     }
 
-                    const int nCycles = subset.getInt32("ncycles", 0);
+                    const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
+                            subset.getString("threshold.majorcycle", "-1Jy"), "Jy");
+                    const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle", false);
 
+
+                    const int nCycles = subset.getInt32("ncycles", 0);
                     if (nCycles == 0) {
                         /// No cycling - just make a dirty image
                         imager.broadcastModel();
