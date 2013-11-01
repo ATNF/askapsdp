@@ -52,11 +52,11 @@ Simager.preconditioner.Wiener.robustness        = 0.0
 Simager.preconditioner.Wiener.taper             = 64
 
 # Apply calibration (untested so disabled)
-#Simager.calibrate                               = ${DO_CALIBRATION}
-#Simager.calibaccess                             = table
-#Simager.calibaccess.table                       = ${CALOUTPUT}
-#Simager.calibrate.scalenoise                    = true
-#Simager.calibrate.allowflag                     = true
+Simager.calibrate                               = ${DO_CALIBRATION}
+Simager.calibaccess                             = table
+Simager.calibaccess.table                       = ${CALOUTPUT}
+Simager.calibrate.scalenoise                    = true
+Simager.calibrate.allowflag                     = true
 EOF_INNER
 
 LOGFILE=${LOGDIR}/simager-spectral-\${PBS_JOBID}.log

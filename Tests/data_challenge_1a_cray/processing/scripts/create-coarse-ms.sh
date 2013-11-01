@@ -14,20 +14,20 @@ if [ ! -d ${AVGMSDIR} ]; then
 fi
 
 # Create the qsub file
-cat > split_coarse.qsub << EOF
+cat > split-coarse.qsub << EOF
 #!/bin/bash
 ##PBS -W group_list=${QUEUEGROUP}
 #PBS -l mppwidth=1
 #PBS -l walltime=02:00:00
 ##PBS -M first.last@csiro.au
-#PBS -N avg1mhz
+#PBS -N split-coarse
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/mssplit_coarse.in << EOF_INNER
+cat > ${CONFIGDIR}/mssplit-coarse.in << EOF_INNER
 # Input measurement set
 # Default: <no default>
 vis         = ${INPUT_MS}
@@ -47,12 +47,12 @@ channel     = 1-16416
 width       = 54
 EOF_INNER
 
-aprun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit_coarse.in > ${LOGDIR}/mssplit_coarse.log
+aprun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit-coarse.in > ${LOGDIR}/mssplit-coarse.log
 EOF
 
 if [ ! -e MS/coarse_chan.ms ]; then
     echo "MS Averaging: Submitting"
-    QSUB_MSSPLIT=`qsubmit split_coarse.qsub`
+    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
     GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
 else
