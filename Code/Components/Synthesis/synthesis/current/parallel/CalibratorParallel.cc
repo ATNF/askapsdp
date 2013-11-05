@@ -639,7 +639,7 @@ void CalibratorParallel::writeModel(const std::string &postfix)
       ASKAPASSERT(solAcc);
       
       ASKAPDEBUGASSERT(itsModel);
-      std::vector<std::string> parlist = itsModel->names();
+      std::vector<std::string> parlist = itsModel->freeNames();
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 
            it != parlist.end(); ++it) {
            const casa::Complex val = itsModel->complexValue(*it);
