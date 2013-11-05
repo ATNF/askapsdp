@@ -237,7 +237,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     # Remove any src values of zero -- these have probably not been fitted and should be ignored
     if(removeZeros):
-        ind = source != 0 
+        ind = (source != 0) * (reference != 0)
         src = source[ind]
         ref = reference[ind]
         xS  = xloc[ind]
