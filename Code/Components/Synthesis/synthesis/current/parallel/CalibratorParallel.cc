@@ -104,7 +104,7 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false),
-      itsSolveBandpass(false),
+      itsSolveBandpass(false), itsChannelsPerWorker(0), itsStartChan(0),
       itsBeamIndependentGains(false), itsSolutionInterval(-1.)
 {  
   const std::string what2solve = parset.getString("solve","gains");
@@ -125,7 +125,7 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
       ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for (solve='"<<what2solve<<"')");
       itsSolveBandpass = true;
       ASKAPCHECK(!itsSolveGains && !itsSolveLeakage, 
-         "Combination of frequency-dependent and frequency-independent effects is not supported at the moment for simplicity");      
+         "Combination of frequency-dependent and frequency-independent effects is not supported at the moment for simplicity");               
   }
   
   ASKAPCHECK(itsSolveGains || itsSolveLeakage || itsSolveBandpass, 
@@ -145,6 +145,17 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
       ASKAPASSERT(itsSolutionSource);
   }
   if (itsComms.isWorker()) {
+  
+      const int chunkSize = parset.getInt32("chanperworker",0);
+      ASKAPCHECK(chunkSize >= 0, "Number of channels per worker cannot be negative, you have "<<chunkSize);
+      itsChannelsPerWorker = static_cast<casa::uInt>(chunkSize);
+      if (itsChannelsPerWorker > 0) {
+          const int chunk = parset.getInt32("chunk");
+          ASKAPCHECK(chunk >= 0, "Chunk number is supposed to be non-negative, you have "<<chunk);
+          itsStartChan = itsChannelsPerWorker * chunk;
+          ASKAPLOG_INFO_STR(logger, "This worker at rank = "<<itsComms.rank()<<" will process "<<itsChannelsPerWorker<<
+                                    " spectral channels starting from "<<itsStartChan<<" (chunk="<<chunk<<")");                                    
+      }
       // load sky model, populate itsPerfectModel
       readModels();
       itsSolutionInterval = SynthesisParamsHelper::convertQuantity(parset.getString("interval","-1s"), "s");
@@ -229,6 +240,10 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
           TableDataSource ds(ms, TableDataSource::DEFAULT, dataColumn());
           ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
           IDataSelectorPtr sel=ds.createSelector();
+          if (itsChannelsPerWorker > 0) {
+              ASKAPLOG_INFO_STR(logger, "Setting up selector for "<<itsChannelsPerWorker<<" channels starting from "<<itsStartChan);
+              sel->chooseChannels(itsStartChan,itsChannelsPerWorker);
+          }
           sel << parset();
           IDataConverterPtr conv=ds.createConverter();
           conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
@@ -359,6 +374,15 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    preAvgME->beamIndependent(itsBeamIndependentGains);
    preAvgME->accumulate(dsi,perfectME);
    itsEquation = preAvgME;
+ 
+   // set helper parameter controlling which part of bandpass is solved for (ignored in all other cases)
+   if (itsModel->has("chan_offset")) {
+       itsModel->update("chan_offset",double(itsStartChan));
+   } else {
+       itsModel->add("chan_offset",double(itsStartChan));
+   } 
+   itsModel->fix("chan_offset");
+          
    // this is just because we bypass setting the model for the first major cycle
    // in the case without pre-averaging
    itsEquation->setParameters(*itsModel);

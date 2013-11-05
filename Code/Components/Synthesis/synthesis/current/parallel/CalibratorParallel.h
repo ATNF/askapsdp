@@ -209,6 +209,15 @@ namespace askap
       /// @brief flag switching the bandpass calibration on
       bool itsSolveBandpass;
       
+      /// @brief chunk size per worker (used in parallel case)
+      /// @details zero means that the whole dataset is used
+      casa::uInt itsChannelsPerWorker;
+      
+      /// @brief start channel per worker (used in parallel case)
+      /// @details This data field is only used if itsChannelPerWorker
+      /// is positive. It is expected to be used with substitution
+      casa::uInt itsStartChan;
+      
       /// @brief flag to treat gains as beam-independent
       bool itsBeamIndependentGains;
       

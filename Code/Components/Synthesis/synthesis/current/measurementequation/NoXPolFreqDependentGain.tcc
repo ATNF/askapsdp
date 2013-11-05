@@ -59,6 +59,7 @@ namespace synthesis {
 inline scimath::ComplexDiffMatrix NoXPolFreqDependentGain::get(const accessors::IConstDataAccessor &chunk, 
                                       casa::uInt row) const
 {
+   const casa::uInt chanOffset = static_cast<casa::uInt>(parameters()->has("chan_offset") ? parameters()->scalarValue("chan_offset") : 0);
    const casa::uInt nPol = chunk.nPol();
    ASKAPDEBUGASSERT(nPol != 0);   
    const casa::uInt nChan = chunk.nChannel();
@@ -93,8 +94,8 @@ inline scimath::ComplexDiffMatrix NoXPolFreqDependentGain::get(const accessors::
         for (casa::uInt chan = 0; chan < nChan; ++chan) {
              // we need to think of how to deal with distributed problem on the cluster (i.e. adding
              // some base to the channel number and propagating it through the framework)    
-             calFactor(pol, pol + chan * nPol) = getParameter(accessors::CalParamNameHelper::addChannelInfo(g1name,chan)) *
-                        conj(getParameter(accessors::CalParamNameHelper::addChannelInfo(g2name,chan)));
+             calFactor(pol, pol + chan * nPol) = getParameter(accessors::CalParamNameHelper::addChannelInfo(g1name,chan+chanOffset)) *
+                        conj(getParameter(accessors::CalParamNameHelper::addChannelInfo(g2name,chan+chanOffset)));
         }            
    }
    return calFactor;
