@@ -97,7 +97,7 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
   // the assumed baseline order depends on this parameter
   const bool useSWCorrelator = false;
 
-  casa::uInt cPol = 3;
+  casa::uInt cPol = 0;
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        // for every iteration we first build an index into all unflagged rows
        std::vector<casa::uInt> rowIndex;
