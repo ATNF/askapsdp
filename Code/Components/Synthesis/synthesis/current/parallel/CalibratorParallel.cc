@@ -242,7 +242,7 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
           IDataSelectorPtr sel=ds.createSelector();
           if (itsChannelsPerWorker > 0) {
               ASKAPLOG_INFO_STR(logger, "Setting up selector for "<<itsChannelsPerWorker<<" channels starting from "<<itsStartChan);
-              sel->chooseChannels(itsStartChan,itsChannelsPerWorker);
+              sel->chooseChannels(itsChannelsPerWorker,itsStartChan);
           }
           sel << parset();
           IDataConverterPtr conv=ds.createConverter();
