@@ -37,6 +37,8 @@ ASKAP_LOGGER(logger, "");
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ParsetInterface.h>
 #include <fft/FFTWrapper.h>
+#include <images/Images/ImageFITSConverter.h>
+#include <images/Images/PagedImage.h>
 
 // casa
 #include <measures/Measures/MFrequency.h>
@@ -219,14 +221,25 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   }
   std::cout<<imgBuf.shape()<<" "<<currentStep<<std::endl;
   const std::string what2export = parset.getString("datatype","amplitude"); 
+  const std::string casaImg = "result.img";
   if (what2export == "amplitude") {
-      scimath::saveAsCasaImage("result.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
+      scimath::saveAsCasaImage(casaImg, casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   } else if (what2export == "phase") {
-      scimath::saveAsCasaImage("fringe.img", casa::phase(imgBuf(casa::IPosition(3,0,0,0),
+      scimath::saveAsCasaImage(casaImg, casa::phase(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   } else {
       ASKAPTHROW(AskapError,"Unknown datatype requested: "<<what2export<<", only amplitude and phase are supported");
+  }
+  {
+    std::cerr<<"Written CASA image: "<<casaImg<<std::endl;
+    casa::PagedImage<casa::Float> img(casaImg);
+    casa::String error;
+    if (!casa::ImageFITSConverter::ImageToFITS(error, img, casa::String("result.fits"),64u,casa::False, casa::False, -32,1.0,-1.0,casa::True,casa::False,"extractdata.cc")) {
+        std::cerr<<"Error converting CASA image into FITS: "<<error<<std::endl;
+    } else {
+        std::cerr<<"Successfully written FITS image: result.fits"<<std::endl;
+    }
   }
   
   /*
