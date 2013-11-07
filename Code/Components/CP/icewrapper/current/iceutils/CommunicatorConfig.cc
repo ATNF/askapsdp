@@ -65,6 +65,10 @@ CommunicatorConfig::CommunicatorConfig(const std::string& locatorHost,
 
     // Disable IPv6. As of Ice 3.5 it is enabled by default
     setProperty("Ice.IPv6", "0");
+
+    // TODO: Remove this after Ice 3.5 is rolled out to the MRO
+    // See Redmine ticket #5714
+    setProperty("Ice.Default.EncodingVersion", "1.0");
 }
 
 void CommunicatorConfig::setProperty(const std::string& key, const std::string& value)
