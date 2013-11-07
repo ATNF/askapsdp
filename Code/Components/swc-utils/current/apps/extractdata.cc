@@ -31,6 +31,7 @@ ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
 #include <dataaccess/SharedIter.h>
+#include <utils/PolConverter.h>
 
 #include <dataaccess/TableManager.h>
 #include <dataaccess/IDataConverterImpl.h>
@@ -120,9 +121,18 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   size_t counter = 0;
   casa::Cube<casa::Complex> imgBuf;
   const casa::uInt maxSteps = parset.getUint32("maxcycles",2000u);
+  const std::string stokesStr = parset.getString("stokes", "XX"); 
+  const casa::Vector<casa::Stokes::StokesTypes> stokesVector = scimath::PolConverter::fromString(stokesStr);
+  if (stokesVector.nelements() != 1) {
+      ASKAPTHROW(AskapError, "Exactly one stokes parameter should be defined, you have "<<stokesStr);
+  }
+  
   casa::uInt currentStep = 0;
   casa::Vector<casa::uInt> ant1IDs;
   casa::Vector<casa::uInt> ant2IDs;
+  casa::Vector<casa::uInt> beam1IDs;
+  casa::Vector<casa::Stokes::StokesTypes> stokes;
+  casa::uInt polIndex = 0;
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (buf.nelements() == 0) {
@@ -130,8 +140,18 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
            buf.set(casa::Complex(0.,0.));
            ant1IDs = it->antenna1().copy();
            ant2IDs = it->antenna2().copy();
+           beam1IDs = it->feed1().copy();
+           stokes = it->stokes();
+           polIndex = stokes.nelements();
+           for (casa::uInt pol = 0; pol<stokes.nelements();++pol) {
+                if (stokes[pol] == stokesVector[0]) {
+                    polIndex = pol;
+                    break;
+                }
+           }
+           ASKAPCHECK(polIndex < stokes.nelements(), "Requested stokes "<<stokesStr<<" is not found in the dataset");
            for (casa::uInt row = 0; row<it->nRow();++row) {
-                std::cout<<"plane "<<row<<" corresponds to "<<ant1IDs[row]<<" - "<<ant2IDs[row]<<" baseline"<<std::endl;
+                std::cout<<"plane "<<row<<" corresponds to "<<ant1IDs[row]<<" - "<<ant2IDs[row]<<" baseline, beam="<<beam1IDs[row]<<std::endl;
            }
            imgBuf.resize(buf.ncolumn(),maxSteps,it->nRow());
            imgBuf.set(casa::Complex(0.,0.));
@@ -151,12 +171,20 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
                            " - got "<<it->antenna1()[row]<<" expected "<<ant1IDs[row]);
                 ASKAPCHECK(ant2IDs[row] == it->antenna2()[row], "Mismatch of antenna 2 index for row "<<row<<
                            " - got "<<it->antenna2()[row]<<" expected "<<ant2IDs[row]);
+                ASKAPCHECK(beam1IDs[row] == it->feed1()[row], "Mismatch of beam 1 index for row "<<row<<
+                           " - got "<<it->feed1()[row]<<" expected "<<beam1IDs[row]);
+           }
+           ASKAPCHECK(it->stokes().nelements() == stokes.nelements(), "Polarisation properties change between different chunks of data, this is not supported");
+           for (casa::uInt pol = 0; pol < stokes.nelements(); ++pol) {
+                ASKAPCHECK(it->stokes()[pol] == stokes[pol], "Available polarisation products appear to have been changed, expected "<<scimath::PolConverter::toString(stokes)<<
+                           " got "<<scimath::PolConverter::toString(it->stokes()))
            }
        }
        ASKAPASSERT(it->nRow() == buf.nrow());
        ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
-       buf += flagOutliers(padSecond(it->visibility().xyPlane(0),padding));
+       ASKAPDEBUGASSERT(polIndex < it->nPol());
+       buf += flagOutliers(padSecond(it->visibility().xyPlane(polIndex),padding));
        avgTime += it->time();
        if (++counter == nAvg) {
            buf /= float(nAvg);
@@ -197,6 +225,8 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   } else if (what2export == "phase") {
       scimath::saveAsCasaImage("fringe.img", casa::phase(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
+  } else {
+      ASKAPTHROW(AskapError,"Unknown datatype requested: "<<what2export<<", only amplitude and phase are supported");
   }
   
   /*

@@ -234,10 +234,12 @@ int main(int argc, char **argv) {
      for (std::vector<std::string>::const_iterator ci = unknowns.begin(); ci!=unknowns.end(); ++ci) {
           params.add(*ci, 0.);
           
+          /*
           // fix the vertical component (no appropriate data taken yet)
           if (ci->find("z") == 0) {
               params.fix(*ci);
           }
+          */
           
      }
      // antenna 8 is the reference for now

@@ -72,7 +72,7 @@ void analyseDelay(const casa::Matrix<casa::Complex> &fringes, const casa::uInt p
 }
 
 casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) {
-  //return in;
+  return in;
   casa::Matrix<casa::Complex> result(in);
   for (casa::uInt row=0;row<result.nrow(); ++row) {
        for (casa::uInt col=0; col<result.ncolumn(); ++col) {
@@ -101,7 +101,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
   sel->chooseCrossCorrelations();
-  sel->chooseFeed(1);
+  sel->chooseFeed(0);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(56150.0,"d"),
@@ -148,14 +148,16 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
        ASKAPASSERT(it->nRow() == buf.nrow());
        ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
-       buf += flagOutliers(padSecond(it->visibility().xyPlane(0),padding));
+       const casa::uInt pol = 3;
+       ASKAPASSERT(pol < it->nPol());
+       buf += flagOutliers(padSecond(it->visibility().xyPlane(pol),padding));
        avgTime += it->time();
        if (++counter == nAvg) {
            buf /= float(nAvg);
            avgTime /= float(nAvg);
            for (casa::uInt row = 0; row<buf.nrow(); ++row) {
                 casa::Vector<casa::Complex> curRow = buf.row(row);
-                scimath::fft(curRow, true);
+                //scimath::fft(curRow, true);
            }
            ASKAPCHECK(currentStep < imgBuf.ncolumn(), "Image buffer is too small (in time axis)");
            imgBuf.xzPlane(currentStep++) = casa::transpose(buf);
@@ -170,7 +172,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
       avgTime /= double(counter);
       for (casa::uInt row = 0; row<buf.nrow(); ++row) {
            casa::Vector<casa::Complex> curRow = buf.row(row);
-           scimath::fft(curRow, true);
+           //scimath::fft(curRow, true);
       }
       ASKAPCHECK(currentStep < imgBuf.ncolumn(), "Image buffer is too small (in time axis)");
       imgBuf.xzPlane(currentStep) = casa::transpose(buf);
@@ -210,7 +212,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 100;
+     const size_t nAvg = 1;
      // padding factor
      const size_t padding = 1;
      process(ds, nAvg, padding);
