@@ -696,19 +696,17 @@ namespace askap {
 		  ASKAPLOG_DEBUG_STR(logger, "Defining the optimised grower");
 		  grower.define(&this->itsCube);
 		  ASKAPLOG_DEBUG_STR(logger, "Optimising the mask for all " << this->itsCube.getNumObj()<<" objects");
-		  double pix[3],wld[3];
+		  double x,y,z;
 		  for(size_t o=0;o<this->itsCube.getNumObj();o++){
 		    Detection *det=this->itsCube.pObject(o);
-		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()+det->getW50()); 
-		    ASKAPLOG_DEBUG_STR(logger, "Object #"<<o<<", at (RA,DEC)=("<<wld[0]<<","<<wld[1]
+		    ASKAPLOG_DEBUG_STR(logger, "Object #"<<o<<", at (RA,DEC)=("<<det->getRA()<<","<<det->getDec()
 				       <<") and velocity=" << det->getVel() << ". W50 = " << det->getW50()
 				       << " so the spectral range is from "<<this->itsCube.header().velToSpec(det->getV50Min())
 				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
-		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmax=std::min(int(this->itsCube.getDimZ()-1),int(pix[2]));
-		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getVel()-det->getW50()); 
-		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmin=std::max(0,int(pix[2]));
+		    this->itsCube.header().wcsToPix(det->getRA(),det->getDec(),this->itsCube.header().velToSpec(det->getVel()+det->getW50()),x,y,z);
+		    int zmax=std::min(int(this->itsCube.getDimZ()-1),int(z));
+		    this->itsCube.header().wcsToPix(det->getRA(),det->getDec(),this->itsCube.header().velToSpec(det->getVel()-det->getW50()),x,y,z);
+		    int zmin=std::max(0,int(z));
 		    grower.setMaxMinZ(zmax,zmin);
 		    ASKAPLOG_DEBUG_STR(logger, "Central pixel ("<<det->getXcentre() <<","<<det->getYcentre()<<","<<det->getZcentre()
 				       <<") with " << det->getSize() <<" pixels, filling z range " << zmin << " to " << zmax);
@@ -1675,13 +1673,10 @@ namespace askap {
 		    vowriter.writeHeader();
 		    vowriter.writeParameters();
 		    if(this->is2D()){
-			double pix[3],wld[3];
-			pix[0] = this->itsCube.getDimX()/2.;
-			pix[1] = this->itsCube.getDimY()/2.;
-			pix[2] = 0.;
-			this->itsCube.header().pixToWCS(pix,wld);
+			double ra,dec,freq;
+			this->itsCube.header().pixToWCS(this->itsCube.getDimX()/2.,this->itsCube.getDimY()/2.,0.,ra,dec,freq);
 			std::string frequnits(this->itsCube.header().WCS().cunit[this->itsCube.header().WCS().spec]);
-			vowriter.writeParameter(duchamp::VOParam("Reference frequency","em.freq;meta.main","float",wld[2],0,frequnits));
+			vowriter.writeParameter(duchamp::VOParam("Reference frequency","em.freq;meta.main","float",freq,0,frequnits));
 		    }
 		    vowriter.writeStats();
 		    vowriter.writeTableHeader();
