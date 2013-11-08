@@ -76,6 +76,7 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/AnalysisUtilities.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
+#include <sourcefitting/CurvatureMapCreator.h>
 #include <parametrisation/OptimisedGrower.h>
 #include <preprocessing/Wavelet2D1D.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
@@ -639,6 +640,15 @@ namespace askap {
 	      this->itsCube.SmoothCube();
 	    }
 	    
+	    // If we are doing fitting, and want to use the curvature map, need to define/calculate this here.
+	    if (this->itsFitParams.doFit() && this->itsFitParams.useCurvature()){
+		
+		CurvatureMapCreator curv(this->itsComms,this->itsParset.makeSubset("Fitter."));
+		curv.calculate(this->itsCube);
+		this->itsFitParams.setSigmaCurv(curv.sigmaCurv());
+		ASKAPLOG_DEBUG_STR(logger, "Fitting parameters now think sigma_curv is " << this->itsFitParams.sigmaCurv());
+		curv.write();
+	    }
 
 	  }
 

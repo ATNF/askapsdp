@@ -154,6 +154,9 @@ namespace askap {
                     void setDetectThresh(float f) {itsDetectThresh = f;};
                     void setNumSubThresholds(int i) {itsNumSubThresholds = i;};
 		    void setFlagLogarithmicIncrements(bool b){itsFlagLogarithmicIncrements = b;};
+		    void setFlagUseCurvature(bool b){itsFlagUseCurvature = b;};
+		    void setSigmaCurv(float f){itsSigmaCurv = f;};
+		    void setCurvatureImage(std::string s){itsCurvatureImage = s;};
                     void setMinFitSize(unsigned int i) {itsMinFitSize = i;};
                     void setBeamSize(float f) {itsBeamSize = f;};
                     void setMaxRetries(int i) {itsMaxRetries = i;};
@@ -164,6 +167,7 @@ namespace askap {
                     void setFlagFitThisParam(std::string type);
 		    void setStopAfterFirstGoodFit(bool b){itsStopAfterFirstGoodFit = b;};
 		    void setUseGuessIfBad(bool b){itsUseGuessIfBad = b;};
+		    void setFlagOnlyUseGuess(bool b){itsFlagOnlyUseGuess=b;};
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
@@ -180,6 +184,9 @@ namespace askap {
                     unsigned int   minFitSize() {return itsMinFitSize;};
                     int    numSubThresholds() {return itsNumSubThresholds;};
 		    bool   flagLogarithmicIncrements(){return itsFlagLogarithmicIncrements;}
+		    bool   useCurvature(){return itsFlagUseCurvature;}
+		    float  sigmaCurv(){return itsSigmaCurv;};
+		    std::string curvatureImage(){return itsCurvatureImage;};
                     float  beamSize() {return itsBeamSize;};
                     int    maxRetries() {return itsMaxRetries;};
                     Double criterium() {return itsCriterium;};
@@ -188,6 +195,7 @@ namespace askap {
 		    float  noiseLevel() {return itsNoiseLevel;};
 		    bool   stopAfterFirstGoodFit(){return itsStopAfterFirstGoodFit;};
 		    bool   useGuessIfBad(){return itsUseGuessIfBad;};
+		    bool   useOnlyGuess(){return itsFlagOnlyUseGuess;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
                     bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
@@ -257,6 +265,15 @@ namespace askap {
                     int itsNumSubThresholds;
 		    /// @brief Whether the subtresholds should be a constant separation in log space
 		    bool itsFlagLogarithmicIncrements;
+		    /// @brief Whether to use a curvature map to estimate initial guesses
+		    bool itsFlagUseCurvature;
+		    /// @brief The measured noise from the curvature map
+		    float itsSigmaCurv;
+		    /// @brief The file to which the curvature map is written
+		    std::string itsCurvatureImage;
+
+		    /// @brief Once the initial estimate of components is determined, only use that number of Gaussians.
+		    bool itsFlagOnlyUseGuess;
 
                     /// @brief The beam size in the image, using BMIN
                     float itsBeamSize;

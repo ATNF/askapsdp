@@ -52,6 +52,7 @@
 #include <duchamp/Outputs/KarmaAnnotationWriter.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/Utils/utils.hh>
+#include <duchamp/Detection/finders.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -464,11 +465,69 @@ namespace askap {
 
             std::vector<SubComponent> RadioSource::getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f)
             {
+		std::vector<SubComponent> cmpntlist;
+		if(this->itsFitParams.useCurvature()){
 
-		SubThresholder subThresh;
-		subThresh.define(this, pos,f);
-		std::vector<SubComponent> cmpntlist = subThresh.find();
- 
+		    // 1. get array of curvature from curvature map
+		    // 2. define bool array of correct size
+		    // 3. value of this is = (isInObject) && (curvature < -sigmaCurv)
+		    // 4. run lutz_detect to get list of objects
+		    // 5. for each object, define a subcomponent of zero size with correct peak & position
+
+		    casa::Array<float> curvArray = analysisutilities::getPixelsInBox(this->itsFitParams.curvatureImage(),this->itsBox,false);
+
+		    PixelInfo::Object2D spatMap = this->getSpatialMap();
+		    size_t *dim = new size_t[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
+		    float *fluxArray = new float[this->boxSize()];
+		    for (size_t i = 0; i < this->boxSize(); i++) fluxArray[i] = 0.;
+		    std::vector<bool> summitMap(this->boxXsize()*this->boxYsize(),false);
+
+		    // ASKAPLOG_DEBUG_STR(logger, "xmin="<< this->boxXmin() << " xsize=" << this->boxXsize() << " ymin=" << this->boxYmin() << " ysize=" << this->boxYsize() << " f.size="<<f.size());
+		    for (size_t i = 0; i < f.size(); i++) {
+			int x = int(pos(i, 0));
+			int y = int(pos(i, 1));
+			if (spatMap.isInObject(x, y)) {
+			    int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
+			    fluxArray[loc] = float(f(i));
+			    summitMap[loc] = (curvArray.data()[loc] < -1.*this->itsFitParams.sigmaCurv());
+			    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << loc << " " << fluxArray[loc] << " " 
+			    // 		       << curvArray.data()[loc]<< " " << " " << this->itsFitParams.sigmaCurv()<< " " << summitMap[loc]);
+			}
+		    }
+
+		    std::vector<Object2D> summitList = duchamp::lutz_detect(summitMap, this->boxXsize(), this->boxYsize(), 1);
+		    ASKAPLOG_DEBUG_STR(logger, "Found " << summitList.size() << " summits");
+
+		    duchamp::Param par;
+		    par.setXOffset(this->boxXmin());
+		    par.setYOffset(this->boxYmin());
+		    for(std::vector<Object2D>::iterator obj=summitList.begin();obj<summitList.end();obj++){
+			duchamp::Detection det;
+			det.addChannel(0,*obj);
+			det.calcFluxes(fluxArray,dim);
+			det.setOffsets(par);
+			det.addOffsets();
+			SubComponent cmpnt;
+			cmpnt.setPeak(det.getPeakFlux());
+			cmpnt.setX(det.getXPeak());
+			cmpnt.setY(det.getYPeak());
+			cmpnt.setPA(0.);
+			cmpnt.setMajor(0.);
+			cmpnt.setMinor(0.);
+			cmpntlist.push_back(cmpnt);
+			ASKAPLOG_DEBUG_STR(logger, "Found subcomponent " << cmpnt);
+		    }
+		    
+		    delete dim;
+		    delete fluxArray;
+
+		}
+		else{
+		    SubThresholder subThresh;
+		    subThresh.define(this, pos,f);
+		    cmpntlist = subThresh.find();
+		}
+
 //		// get distance between average centre and peak location
 //		float dx = this->getXaverage() - this->getXPeak();
 //                float dy = this->getYaverage() - this->getYPeak();
@@ -948,11 +1007,12 @@ namespace askap {
                         int bestFit = 0;
                         float bestRChisq = 9999.;
 
-                        int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
+			int minGauss = this->itsFitParams.useOnlyGuess() ? cmpntListCopy.size() : 1;
+                        int maxGauss = this->itsFitParams.useOnlyGuess() ? cmpntListCopy.size() : std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
 			bool fitPossible=true;
 			bool stopNow=false;
-                        for (int g = 1; g <= maxGauss && fitPossible && !stopNow; g++) {
+                        for (int g = minGauss; g <= maxGauss && fitPossible && !stopNow; g++) {
 			    ASKAPLOG_DEBUG_STR(logger, "Number of Gaussian components = " << g);
 
                             fit[ctr].setParams(this->itsFitParams);
@@ -1215,16 +1275,8 @@ namespace askap {
 	    void getResultsParams(casa::Gaussian2D<Double> &gauss, duchamp::FitsHeader *head, float zval, std::vector<Double> &deconvShape, double &ra, double &dec, double &intFluxFit)
 	    {
 		deconvShape = deconvolveGaussian(gauss,head->getBeam());
-		double *pix = new double[3];
-		pix[0] = gauss.xCenter();
-		pix[1] = gauss.yCenter();
-		pix[2] = zval;
-		double *wld = new double[3];
-		head->pixToWCS(pix, wld);
-		ra = wld[0];
-		dec = wld[1];
-		delete [] pix;
-		delete [] wld;
+		double zworld;
+		head->pixToWCS(gauss.xCenter(),gauss.yCenter(),zval,ra,dec,zworld);
 		intFluxFit = gauss.flux();
 		if (head->needBeamSize())
 		    intFluxFit /= head->beam().area(); // Convert from Jy/beam to Jy
@@ -1311,16 +1363,8 @@ namespace askap {
 	    std::stringstream id;
 	    id << this->getID() << char(firstSuffix + fitNum);
 	    std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHeader->getBeam());
-	    double *pix = new double[3];
-	    pix[0] = gauss.xCenter();
-	    pix[1] = gauss.yCenter();
-	    pix[2] = this->getZcentre();
-	    double *wld = new double[3];
-	    this->itsHeader->pixToWCS(pix, wld);
-	    double thisRA = wld[0];
-	    double thisDec = wld[1];
-	    delete [] pix;
-	    delete [] wld;
+	    double thisRA,thisDec,zworld;
+	    this->itsHeader->pixToWCS(gauss.xCenter(),gauss.yCenter(),this->getZcentre(),thisRA,thisDec,zworld);
 	    float intfluxfit = gauss.flux();
 	    if (this->itsHeader->needBeamSize())
 	      intfluxfit /= this->itsHeader->beam().area(); // Convert from Jy/beam to Jy

@@ -89,15 +89,20 @@ namespace askap {
                 this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
                 this->itsNumSubThresholds = parset.getInt32("numSubThresholds", defaultNumSubThresholds);
 		this->itsFlagLogarithmicIncrements = parset.getBool("logarithmicThresholds",true);
+		this->itsFlagUseCurvature = parset.getBool("useCurvature",false);
+		this->itsCurvatureImage = parset.getString("curvatureImage", "");
                 this->itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
                 this->itsCriterium = parset.getDouble("criterium", 0.0001);
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
 		this->itsNoiseLevel = parset.getFloat("noiseLevel",1.);
 		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", true);
+		this->itsFlagOnlyUseGuess = parset.getBool("onlyUseGuess",true);
 		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", true);
+
+		if(this->itsFlagUseCurvature) this->itsFlagOnlyUseGuess = true;
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
@@ -152,6 +157,10 @@ namespace askap {
                 this->itsDetectThresh = f.itsDetectThresh;
                 this->itsNumSubThresholds = f.itsNumSubThresholds;
 		this->itsFlagLogarithmicIncrements = f.itsFlagLogarithmicIncrements;
+		this->itsFlagUseCurvature = f.itsFlagUseCurvature;
+		this->itsSigmaCurv = f.itsSigmaCurv;
+		this->itsCurvatureImage = f.itsCurvatureImage;
+		this->itsFlagOnlyUseGuess = f.itsFlagOnlyUseGuess;
                 this->itsBeamSize = f.itsBeamSize;
                 this->itsMaxRetries = f.itsMaxRetries;
                 this->itsCriterium = f.itsCriterium;
