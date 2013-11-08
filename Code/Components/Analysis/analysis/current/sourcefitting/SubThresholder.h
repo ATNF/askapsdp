@@ -42,44 +42,43 @@
 
 namespace askap {
 	
-	namespace analysis {
+    namespace analysis {
 		
-		namespace sourcefitting {
+	namespace sourcefitting {
 		
-			class SubThresholder {
-			public:
-			  SubThresholder(){};
-				virtual ~SubThresholder();
-				SubThresholder(const SubThresholder &s);
-				SubThresholder& operator=(const SubThresholder &s);
+	    class SubThresholder {
+	    public:
+		SubThresholder(){};
+		virtual ~SubThresholder();
+		SubThresholder(const SubThresholder &s);
+		SubThresholder& operator=(const SubThresholder &s);
 				
-				void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
-				void define(RadioSource *r);
-				void setFirstGuess(RadioSource *src);
-				std::vector<SubComponent> find();
-				void incrementThreshold();
+		void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
+		void define(RadioSource *r);
+		void setFirstGuess(RadioSource *src);
+		std::vector<SubComponent> find();
+		void incrementThreshold();
 
-				void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
-				void keepObject(PixelInfo::Object2D &obj);
+		void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
+		void keepObject(PixelInfo::Object2D &obj);
 
 				
-			protected:
-				SubComponent itsFirstGuess;
-				std::vector<float> itsFluxArray;
-/*D1.1.13 			std::vector<long> itsDim; */
-				std::vector<size_t> itsDim;
-				casa::Slicer itsSourceBox;
-				float itsBaseThreshold;
-				float itsThreshIncrement;
-				float itsPeakFlux;
-				float itsCurrentThreshold;
-				int itsSourceSize;
-				FittingParameters itsFitParams;
-			};
-		
-		}
+	    protected:
+		SubComponent itsFirstGuess;
+		std::vector<float> itsFluxArray;
+		std::vector<size_t> itsDim;
+		casa::Slicer itsSourceBox;
+		float itsBaseThreshold;
+		float itsThreshIncrement;
+		float itsPeakFlux;
+		float itsCurrentThreshold;
+		int itsSourceSize;
+		FittingParameters itsFitParams;
+	    };
 		
 	}
+		
+    }
 	
 }
 

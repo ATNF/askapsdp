@@ -205,7 +205,7 @@ namespace askap {
 		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
-		if(this->itsComms->isWorker()) defineChunk(inputChunk,ctr);
+		if(this->itsComms->isWorker()) this->defineChunk(inputChunk,ctr);
 		casa::Array<Float> middle(chunkshape,0.);
 		casa::Array<Float> spread(chunkshape,0.);
 		casa::Array<Float> snr(chunkshape,0.);

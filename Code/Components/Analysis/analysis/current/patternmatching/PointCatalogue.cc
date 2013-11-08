@@ -123,10 +123,12 @@ namespace askap {
 		  double radius=analysisutilities::angularSeparation(this->itsRAref,this->itsDECref,spec->raD(),spec->decD());
 		  if(this->itsRadius < 0. || radius<this->itsRadius){
 		      this->itsFullPointList.push_back(spec);
-		      this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0.5*(this->itsDECref+spec->decD()),spec->raD(),0.5*(this->itsDECref+spec->decD())));
+		      this->itsFullPointList.back().setX( analysisutilities::angularSeparation(this->itsRAref,0.5*(this->itsDECref+spec->decD()),
+											       spec->raD(), 0.5*(this->itsDECref+spec->decD())));
 		      this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
 		      ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
-					 <<"), and storing point with (x,y)=("<<itsFullPointList.back().x()<<","<<itsFullPointList.back().y()<<")");
+					 <<"), and storing point with (x,y)=(" 
+					 << itsFullPointList.back().x() << "," <<itsFullPointList.back().y() << ")");
 		  }
 	      }
 	      else this->itsFullPointList.push_back(spec);

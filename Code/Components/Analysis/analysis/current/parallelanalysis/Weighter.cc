@@ -171,7 +171,8 @@ namespace askap {
 	    this->itsCube->setReconFlag(true);
 		
 	    ASKAPLOG_DEBUG_STR(logger, "Searching weighted image to threshold " << this->itsCube->stats().getThreshold());
-	    this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
+	    this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),
+							   this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
 	    this->itsCube->updateDetectMap();
 	    if(this->itsCube->pars().getFlagLog())
 		this->itsCube->logDetectionList();
