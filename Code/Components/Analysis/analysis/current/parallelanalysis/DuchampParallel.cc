@@ -600,6 +600,16 @@ namespace askap {
 	  /// multi-resolution wavelet reconstruction.
 	  /// This is only done on the worker nodes.
 
+	  if(itsComms.isParallel() && itsComms.isMaster()){
+	      if (this->itsFlagVariableThreshold) {
+		  this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
+		  this->itsVarThresher->calculate();
+	      }
+	      if(this->itsFlagWeightImage){
+		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
+	      }
+	  }	      
+
 	  if(itsComms.isWorker()){
 
 	    if(this->itsCube.pars().getFlagNegative()){
@@ -607,7 +617,15 @@ namespace askap {
 	      this->itsCube.invert();
 	    }
 	    
-	    if( this->itsFlagWavelet2D1D ){
+	    if (this->itsFlagVariableThreshold) {
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Defining the variable threshold maps");
+		this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
+		this->itsVarThresher->calculate();
+	    } else if (this->itsFlagWeightImage){
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Initialising the weight scaling");
+		this->itsWeighter->initialise(this->itsCube);
+	    }
+	    else if( this->itsFlagWavelet2D1D ){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reconstructing with the 2D1D wavelet algorithm");
 	      Recon2D1D recon2d1d(this->itsParset.makeSubset("recon2D1D."));
 	      recon2d1d.setCube(&this->itsCube);
@@ -621,6 +639,7 @@ namespace askap {
 	      this->itsCube.SmoothCube();
 	    }
 	    
+
 	  }
 
 	}
@@ -637,15 +656,7 @@ namespace askap {
             /// This is only done on the workers, although if we use
             /// the weight or variable-threshold search the master
             /// needs to do the initialisation of itsWeighter/itsVarThresher
-	  if(itsComms.isParallel() && itsComms.isMaster()){
-	      if (this->itsFlagVariableThreshold) {
-		  this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
-		  this->itsVarThresher->calculate();
-	      }
-	      if(this->itsFlagWeightImage){
-		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
-	      }
-	  }	      
+
             if (itsComms.isWorker()) {
                 // remove mininum size criteria, so we don't miss anything on the borders.
                 int minpix = this->itsCube.pars().getMinPix();
@@ -662,12 +673,9 @@ namespace askap {
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagVariableThreshold) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching with a variable threshold");
-			this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
-			this->itsVarThresher->calculate();
 			this->itsVarThresher->search();
 		    } else if (this->itsFlagWeightImage){
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weight scaling");
-		      this->itsWeighter->initialise(this->itsCube);
 		      this->itsWeighter->search();
 		      delete this->itsWeighter;
                     } else if (this->itsCube.pars().getFlagATrous()) {
