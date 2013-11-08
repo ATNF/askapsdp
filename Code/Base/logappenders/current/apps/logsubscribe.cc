@@ -48,6 +48,7 @@
 // Using
 using namespace std;
 using namespace Ice;
+using namespace askap::interfaces::logging;
 namespace po = boost::program_options;
 
 class EventHandler : public askap::interfaces::logging::ILogger
@@ -57,13 +58,15 @@ class EventHandler : public askap::interfaces::logging::ILogger
                           const Ice::Current&)
         {
             cout << convertTime(event.created) << " (" << event.hostname << ", "
-                << event.origin << ") - " << event.message << endl;
+                << event.origin << ") " << levelToString(event.level) << " - "
+                << event.message << endl;
         }
 
     private:
         // Converts time in seconds to an ASCII representation
         // eg: "Fri Nov  8 17:48:20 2013"
-        static std::string convertTime(const double time) {
+        static std::string convertTime(const double time)
+        {
             time_t tt = static_cast<time_t>(time);
             const char* ascii = asctime(localtime(&tt));
             if (ascii) {
@@ -72,6 +75,32 @@ class EventHandler : public askap::interfaces::logging::ILogger
                 return s.substr(0, s.length() - 1);
             } else {
                 return string("<Invalid time>");
+            }
+        }
+
+        static std::string levelToString(LogLevel level)
+        {
+            switch (level) {
+                case TRACE:
+                    return "TRACE";
+                    break;
+                case DEBUG:
+                    return "DEBUG";
+                    break;
+                case INFO:
+                    return "INFO";
+                    break;
+                case WARN:
+                    return "WARN";
+                    break;
+                case ERROR:
+                    return "ERROR";
+                    break;
+                case FATAL:
+                    return "FATAL";
+                    break;
+                default:
+                    return "UNKNOWN";
             }
         }
 };
