@@ -58,6 +58,7 @@
 /// data are used not thereafter.
 /// @name
 /// @{
+template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace = False);
 template<class T> inline T madfm(const Array<T> &a)
 {
     return madfm(a, False, (a.nelements() <= 100), False);
@@ -74,7 +75,6 @@ template<class T> T madfm(const Array<T> &a, Bool sorted, Bool takeEvenMean, Boo
 {
     Block<T> tmp; return madfm(a, tmp, sorted, takeEvenMean, inPlace);
 }
-template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace = False);
 /// @}
 
 /// @brief Functions to return the semi-interhexile range for an array
@@ -93,6 +93,7 @@ template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool ta
 /// data are used not thereafter.
 /// @name
 /// @{
+template<class T> T sihr(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool inPlace = False);
 template<class T> inline T sihr(const Array<T> &a)
 {
     return sihr(a, False, False);
@@ -105,7 +106,6 @@ template<class T> T sihr(const Array<T> &a, Bool sorted, Bool inPlace = False)
 {
     Block<T> tmp; return sihr(a, tmp, sorted, inPlace);
 }
-template<class T> T sihr(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool inPlace = False);
 /// @}
 
 #include <mathsutils/NewArrayMath.tcc>
