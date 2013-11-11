@@ -115,6 +115,17 @@ VisChunk::ShPtr MergedSource::next(void)
         } while (!itsMetadata);
     }
 
+    // Exit gracefully if this scan id is not defined in the parset
+    const size_t nScans = itsConfig.observation().scans().size();
+    if (itsMetadata->scanId() >= static_cast<casa::Int>(nScans)) {
+        ASKAPLOG_WARN_STR(logger, "Scan ID " << itsMetadata->scanId()
+                << " is not defined in the parset, stopping ingest");
+        return VisChunk::ShPtr();
+    }
+
+    // Update the Scan Manager
+    itsScanManager.update(itsMetadata->scanId());
+
     // Check if the TOS/TOM has indicated the observation is complete
     if (itsScanManager.observationComplete()) {
         ASKAPLOG_INFO_STR(logger, "End-of-observation condition met");
@@ -147,17 +158,6 @@ VisChunk::ShPtr MergedSource::next(void)
             checkInterruptSignal();
         }
     }
-
-    // Exit gracefully if this scan id is not defined in the parset
-    const size_t nScans = itsConfig.observation().scans().size();
-    if (itsMetadata->scanId() >= static_cast<casa::Int>(nScans)) {
-        ASKAPLOG_WARN_STR(logger, "Scan ID " << itsMetadata->scanId()
-                << " is not defined in the parset, stopping ingest");
-        return VisChunk::ShPtr();
-    }
-
-    // Update the Scan Manager
-    itsScanManager.update(itsMetadata->scanId());
 
     // Now the streams are synced, start building a VisChunk
     VisChunk::ShPtr chunk = createVisChunk(*itsMetadata);
