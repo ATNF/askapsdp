@@ -258,15 +258,15 @@ class MSnoopApp : public askap::Application
     public:
         virtual int run(int argc, char* argv[])
         {
+            const std::string ADAPTER_NAME = "MetadataSnoopAdapter";
             verbose = parameterExists("verbose");
             const std::string locatorHost = config().getString("ice.locator_host");
             const std::string locatorPort = config().getString("ice.locator_port");
             const std::string topicManager = config().getString("icestorm.topicmanager");
             const std::string topic = config().getString("icestorm.topic");
-            const std::string adapterName = config().getString("ice.adapter_name");
 
             MetadataSubscriber subscriber(locatorHost, locatorPort , topicManager,
-                    topic, adapterName);
+                    topic, ADAPTER_NAME);
 
             std::cout << "Waiting for messages (press CTRL-C to exit)..." << std::endl;
             while (true) {
