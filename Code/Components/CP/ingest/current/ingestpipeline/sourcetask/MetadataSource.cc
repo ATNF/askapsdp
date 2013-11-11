@@ -62,6 +62,9 @@ MetadataSource::~MetadataSource()
 
 void MetadataSource::receive(const TosMetadata& msg)
 {
+    ASKAPLOG_DEBUG_STR(logger, "Received TOS metadata with timestamp " << msg.time()
+            << " and scanid " << msg.scanId());
+
     // Make a copy of the message on the heap
     boost::shared_ptr<TosMetadata>
         metadata(new TosMetadata(msg));

@@ -61,6 +61,11 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     // period
     dest.scanId(srcMapper.getInt("scan_id"));
 
+    if (dest.scanId() < 0) {
+        // Additional metadata is not guaranteed to be present when scanid < 0
+        return dest;
+    }
+
     // user_flag
     dest.flagged(srcMapper.getBool("user_flag"));
 
