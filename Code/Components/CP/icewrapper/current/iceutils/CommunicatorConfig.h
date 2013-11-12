@@ -85,6 +85,9 @@ class CommunicatorConfig {
         Ice::PropertiesPtr convertToIceProperties(void) const;
 
     private:
+        // Returns the fully-qualified hostname/nodename
+        static std::string nodeName(void);
+
         /// Map of properties
         std::map<std::string, std::string> itsProperties;
 };

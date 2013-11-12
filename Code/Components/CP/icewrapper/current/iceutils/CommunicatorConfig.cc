@@ -30,8 +30,10 @@
 // System includes
 #include <string>
 #include <map>
+#include <unistd.h>
 
 // ASKAPsoft includes
+#include "askap/AskapError.h"
 #include "Ice/Ice.h"
 
 // Using
@@ -69,6 +71,13 @@ CommunicatorConfig::CommunicatorConfig(const std::string& locatorHost,
     // TODO: Remove this after Ice 3.5 is rolled out to the MRO
     // See Redmine ticket #5714
     setProperty("Ice.Default.EncodingVersion", "1.0");
+
+    // Set the hostname for which clients will initiate a connection
+    // to in order to send messages. By default the Ice server will publish
+    // all ip addresses and clients will round-robin between them for
+    // the puroses of load-balancing. This forces it to only publish
+    // a single ip address.
+    setProperty("Ice.Default.Host", nodeName());
 }
 
 void CommunicatorConfig::setProperty(const std::string& key, const std::string& value)
@@ -119,4 +128,16 @@ Ice::PropertiesPtr CommunicatorConfig::convertToIceProperties(void) const
     }
 
     return props;
+}
+
+std::string CommunicatorConfig::nodeName(void)
+{
+    const int MAX_HOSTNAME_LEN = 1024;
+    char name[MAX_HOSTNAME_LEN];
+    name[MAX_HOSTNAME_LEN - 1] = '\0';
+    const int error = gethostname(name, MAX_HOSTNAME_LEN - 1);
+    if (error) {
+        ASKAPTHROW(AskapError, "gethostname() returned error: " << error);
+    }
+    return name;
 }
