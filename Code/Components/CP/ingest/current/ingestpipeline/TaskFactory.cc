@@ -53,6 +53,7 @@
 #include "ingestpipeline/sourcetask/ISource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/sourcetask/NoMetadataSource.h"
+#include "ingestpipeline/derippletask/DerippleTask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".TaskFactory");
@@ -97,6 +98,9 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::ChannelFlagTask :
             task.reset(new ChannelFlagTask(params, itsConfig));
+            break;
+        case TaskDesc::DerippleTask:
+            task.reset(new DerippleTask(params, itsConfig));
             break;
         default:
             ASKAPTHROW(AskapError, "Unknown task type specified");

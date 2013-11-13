@@ -95,6 +95,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "ChannelFlagTask") {
         return TaskDesc::ChannelFlagTask;
     }
+    if (type == "DerippleTask") {
+        return TaskDesc::DerippleTask;
+    }
 
     ASKAPTHROW(AskapError, "Unknown task type");
 }
