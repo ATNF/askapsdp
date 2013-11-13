@@ -78,7 +78,8 @@ void analyseDelay(const casa::Matrix<casa::Complex> &fringes, const casa::uInt p
 }
 
 casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) {
-  //return in;
+  return in;
+  /*
   casa::Matrix<casa::Complex> result(in);
   for (casa::uInt row=0;row<result.nrow(); ++row) {
        for (casa::uInt col=0; col<result.ncolumn(); ++col) {
@@ -88,6 +89,7 @@ casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) 
        }
   }
   return result;
+  */
 }
 
 casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, const casa::uInt factor) {
