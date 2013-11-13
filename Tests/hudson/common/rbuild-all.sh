@@ -5,6 +5,7 @@ PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 ECH0='' # Can be overidden by -n option.
 ARGS=''
 PROCESSES='j=2'
+SRCDIR='trunk'
 
 LINUX_PYTHON='/usr/bin/python2.6'
 #MACOSX_PYTHON='/opt/local/bin/python2.6'
@@ -18,6 +19,7 @@ FDATE=`date +"%y%m%d"`
 function HelpMessage
 {
     printf "\n${PNAME} [-hnq] [-j6] [<targets>]\n"
+    printf "\t-d <srcdir>\te.g. -d releases/TOS-0.21 (default='trunk') \n"
     printf "\t-h\thelp\n"
     printf "\t-n\tno execute (debugging)\n"
     printf "\t-q\tbuild Code quietly\n"
@@ -30,7 +32,7 @@ function HelpMessage
 function bootstrap
 {
     ${ECHO} unset ASKAP_ROOT
-    ${ECHO} cd $WORKSPACE/trunk
+    ${ECHO} cd ${WORKSPACE}/${SRCDIR}
     ${ECHO} ${PYTHON} bootstrap.py
     if [ $? -ne 0 ]; then
         exit 1
@@ -64,9 +66,11 @@ function builddev
 #
 
 
-while getopts hj:nq OPT
+while getopts d:hj:nq OPT
 do
     case $OPT in
+        d)  SRCDIR="$OPTARG"
+            ;;
         h)  HelpMessage
             ;;
         j)  PROCESSES="j=$OPTARG"
