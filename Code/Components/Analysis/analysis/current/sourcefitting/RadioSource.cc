@@ -1002,7 +1002,7 @@ namespace askap {
                         }
 
                         int ctr = 0;
-                        Fitter fit[this->itsFitParams.maxNumGauss()];
+			std::vector<Fitter> fit(this->itsFitParams.maxNumGauss());
                         bool fitIsGood = false;
                         int bestFit = 0;
                         float bestRChisq = 9999.;
@@ -1272,11 +1272,12 @@ namespace askap {
 	    return newSpec;
 	  }
 
-	    void getResultsParams(casa::Gaussian2D<Double> &gauss, duchamp::FitsHeader *head, float zval, std::vector<Double> &deconvShape, double &ra, double &dec, double &intFluxFit)
+	    void getResultsParams(casa::Gaussian2D<Double> &gauss, duchamp::FitsHeader *head, double zval, std::vector<Double> &deconvShape, double &ra, double &dec, double &intFluxFit)
 	    {
 		deconvShape = deconvolveGaussian(gauss,head->getBeam());
 		double zworld;
-		head->pixToWCS(gauss.xCenter(),gauss.yCenter(),zval,ra,dec,zworld);
+		if(head->pixToWCS(gauss.xCenter(),gauss.yCenter(),zval,ra,dec,zworld)!=0)
+		    ASKAPLOG_ERROR_STR(logger, "Error with pixToWCS conversion");
 		intFluxFit = gauss.flux();
 		if (head->needBeamSize())
 		    intFluxFit /= head->beam().area(); // Convert from Jy/beam to Jy
@@ -1301,7 +1302,7 @@ namespace askap {
 			spec.column("RAJD").check(ra);
 			spec.column("DECJD").check(dec);
 			spec.column("X").check(gauss.xCenter() + src->getXOffset());
-			spec.column("X").check(gauss.yCenter() + src->getYOffset());
+			spec.column("Y").check(gauss.yCenter() + src->getYOffset());
 			spec.column("FINT").check(src->getIntegFlux());
 			spec.column("FPEAK").check(src->getPeakFlux());
 			spec.column("FINTFIT").check(intFluxFit);
