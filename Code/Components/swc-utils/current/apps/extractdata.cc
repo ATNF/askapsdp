@@ -230,6 +230,22 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
            casa::Matrix<casa::Complex> curStepMatr = imgBuf.xzPlane(step);
            casa::Matrix<casa::Complex> prevStepMatr = imgBuf.xzPlane(step-1);
            prevStepMatr -= curStepMatr;
+           /*
+           for (casa::uInt row = 0; row<prevStepMatr.nrow(); ++row) {
+                for (casa::uInt col = 0; col<prevStepMatr.ncolumn(); ++col) {
+                     casa::Float prevPhase = arg(prevStepMatr(row,col));
+                     const casa::Float curPhase = arg(curStepMatr(row,col));
+                     prevPhase -= curPhase;
+                     if (prevPhase<-casa::C::pi) {
+                         prevPhase += casa::C::pi;
+                     }
+                     if (prevPhase>casa::C::pi) {
+                         prevPhase -= casa::C::pi;
+                     }
+                     prevStepMatr(row,col) = casa::polar(1.f,prevPhase);
+                }
+           }
+           */
       }
       --currentStep;
   }
