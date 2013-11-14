@@ -221,7 +221,19 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   } else if (currentStep > 0) {
       --currentStep;
   }
-  std::cout<<imgBuf.shape()<<" "<<currentStep<<std::endl;
+  //std::cout<<imgBuf.shape()<<" "<<currentStep<<std::endl;
+  const bool doDiff = parset.getBool("makediff", false);
+  if (doDiff) {
+      std::cerr<<"Calculating difference between the data on adjacent integration cycles"<<std::endl;
+      ASKAPCHECK(currentStep >= 2, "Need at least two integrations to compute the difference");
+      for (casa::uInt step = 1; step < currentStep; ++step) {
+           casa::Matrix<casa::Complex> curStepMatr = imgBuf.xzPlane(step);
+           casa::Matrix<casa::Complex> prevStepMatr = imgBuf.xzPlane(step-1);
+           prevStepMatr -= curStepMatr;
+      }
+      --currentStep;
+  }
+
   const std::string what2export = parset.getString("datatype","amplitude"); 
   const std::string casaImg = "result.img";
   if (what2export == "amplitude") {
