@@ -19,7 +19,7 @@ FDATE=`date +"%y%m%d"`
 function HelpMessage
 {
     printf "\n${PNAME} [-hnq] [-j6] [<targets>]\n"
-    printf "\t-d <srcdir>\te.g. -d releases/TOS-0.21 (default='trunk') \n"
+    printf "\t-d <srcdir>\te.g. -d TOS-0.21 (default='trunk') \n"
     printf "\t-h\thelp\n"
     printf "\t-n\tno execute (debugging)\n"
     printf "\t-q\tbuild Code quietly\n"
