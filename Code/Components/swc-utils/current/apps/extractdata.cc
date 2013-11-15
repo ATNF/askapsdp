@@ -237,10 +237,10 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
                      const casa::Float curPhase = arg(curStepMatr(row,col));
                      prevPhase -= curPhase;
                      if (prevPhase<-casa::C::pi) {
-                         prevPhase += casa::C::pi;
+                         prevPhase += 2.*casa::C::pi;
                      }
                      if (prevPhase>casa::C::pi) {
-                         prevPhase -= casa::C::pi;
+                         prevPhase -= 2.*casa::C::pi;
                      }
                      prevStepMatr(row,col) = casa::polar(1.f,prevPhase);
                 }
