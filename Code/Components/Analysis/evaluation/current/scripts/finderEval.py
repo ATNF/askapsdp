@@ -132,9 +132,10 @@ if __name__ == '__main__':
 	
         if doSinglePlot:
             plt.figure(num=3,figsize=(12,9),dpi=72)
-            subplots_adjust(wspace=0.3,hspace=0.3)
+            subplots_adjust(wspace=0.5,hspace=0.5)
         else:
             plt.figure(num=2,figsize=(8,8),dpi=72)
+            print "Flux ratio vs flux"
             
         if doSinglePlot:
             plt.subplot(3,4,1)
@@ -175,10 +176,11 @@ if __name__ == '__main__':
 
         # Only for individual plots
         if not doSinglePlot:
+            print "Flux diff vs flux"
             plt.cla()
             plt.semilogx()
             plt.plot(refFlux,fluxdiff,'k.')
-            plt.xlim(fluxMin,fluxMax)
+            plt.xlim(themin,themax)
             plt.xlabel('Reference flux')
             plt.ylabel('Source flux - Reference flux')
             plt.title(sourceCatFile)
@@ -190,11 +192,12 @@ if __name__ == '__main__':
             plt.subplot(3,4,2)
         else:
             plt.cla()
+            print "Major axis ratio vs flux"
 
         plt.semilogx()
         plt.plot(refFlux,majratio,'k.')
 	
-        plt.xlim(fluxMin,fluxMax)
+        plt.xlim(themin,themax)
         plt.ylim(ratioMin,ratioMax)
         if doSinglePlot:
             plt.xlabel('Flux')
@@ -212,6 +215,7 @@ if __name__ == '__main__':
             plt.subplot(3,4,3)
         else:
             plt.cla()
+            print "Major axis ratio vs major axis"
 
         plt.plot(refMaj,majratio,'k.')
 	    #    plt.xlim(fluxMin,fluxMax)
@@ -232,7 +236,8 @@ if __name__ == '__main__':
             plt.subplot(3,4,4)
         else:
             plt.cla()
-            
+            print "Flux ratio vs major axis ratio"
+
         plt.plot(fluxratio,majratio,'k.')
         plt.xlim(ratioMin,ratioMax)
         plt.ylim(ratioMin,ratioMax)
@@ -249,6 +254,7 @@ if __name__ == '__main__':
 	    ############################
 	    # Major axis vs flux diff plot        
         if not doSinglePlot:
+            print "Flux diff vs major axis"
             plt.cla()
             plt.plot(refMaj,fluxdiff,'k.')
             plt.ylabel('Source flux - Reference flux')
@@ -259,6 +265,7 @@ if __name__ == '__main__':
 	    ############################
 	    # Major axis ratio vs flux diff plot        
         if not doSinglePlot:
+            print "Major axis ratio vs flux diff"
             plt.cla()
             plt.plot(fluxdiff,majratio,'k.')
             plt.ylim(ratioMin,ratioMax)
@@ -270,6 +277,7 @@ if __name__ == '__main__':
  	    ############################
 	    # Positional Offset vs flux diff plot        
         if not doSinglePlot:
+            print "Flux diff vs positional offset"
             plt.cla()
             plt.plot(dpos,fluxdiff,'k.')
             plt.ylabel('Source flux - Reference flux')
@@ -278,15 +286,27 @@ if __name__ == '__main__':
             plt.savefig('posoffset_fluxdiff.png')
 	
 	    
+ 	    ############################
+	    # Positional Offset vs flux ratio plot        
+        if not doSinglePlot:
+            print "Flux ratio vs positional offset"
+            plt.cla()
+            plt.plot(dpos,fluxratio,'k.')
+            plt.ylabel('Source flux / Reference flux')
+            plt.xlabel('Positional offset [arcsec]')
+            plt.title(sourceCatFile)
+            plt.savefig('posoffset_fluxratio.png')
+	
+	    
 	    ############################
 	    # Axial ratio change, vs flux
 	    #  *** DO NOT INCLUDE IN THE SINGLE PLOT ***
         if not doSinglePlot:
-	        
+            print "Axial ratio change vs flux"	        
             plt.cla()
             plt.semilogx()
             plt.plot(refFlux,srcAxialRatio/refAxialRatio,'k.')	
-            plt.xlim(fluxMin,fluxMax)
+            plt.xlim(themin,themax)
             plt.ylim(ratioMin,ratioMax)
             plt.xlabel('Reference flux')
             plt.ylabel('Source Axial Ratio / Reference Axial Ratio')
@@ -300,10 +320,11 @@ if __name__ == '__main__':
             plt.subplot(3,4,6)
         else:
             plt.cla()
+            print "Position angle change vs flux"
 
         plt.semilogx()
         plt.plot(refFlux,paDiff,'k.')
-        plt.xlim(fluxMin,fluxMax)
+        plt.xlim(themin,themax)
 	    #    plt.ylim(ratioMin,ratioMax)
         if doSinglePlot:
             plt.xlabel('Reference flux')
@@ -320,6 +341,7 @@ if __name__ == '__main__':
             plt.subplot(3,4,7)
         else:
             plt.cla()
+            print "Position angle change vs major axis"
 
         plt.semilogx()
         plt.plot(refMaj,paDiff,'k.')
@@ -338,6 +360,7 @@ if __name__ == '__main__':
             plt.subplot(3,4,5)
         else:
             plt.cla()
+            print "Positional offsets"
 
         plt.plot(dra,ddec,'k.')
         plt.axis('equal')
@@ -392,15 +415,15 @@ if __name__ == '__main__':
 	
         fluxBin=10**(minFlux+arange((maxFlux-minFlux)*10)/10.)
 	    
-        compValid = numRefBinnedByFlux>0
-        completenessBinnedByFluxValid = numMatchBinnedByFlux[compValid] / numRefBinnedByFlux[compValid]
-        fluxBinComp = fluxBin[compValid]
+        completenessBinnedByFlux=np.zeros(numMatchBinnedByFlux.shape)
+        completenessBinnedByFlux[numRefBinnedByFlux>0] = numMatchBinnedByFlux[numRefBinnedByFlux>0] / numRefBinnedByFlux[numRefBinnedByFlux>0]
+        completenessBinnedByFlux[numRefBinnedByFlux==0] = -1
 	    
-        relValid = numSrcBinnedByFlux > 0
-        reliabilityBinnedByFluxValid = numMatchBinnedByFlux[relValid] / numSrcBinnedByFlux[relValid]
-        fluxBinRel = fluxBin[relValid]
-	
-        jointValid = compValid * relValid
+        reliabilityBinnedByFlux = np.zeros(numMatchBinnedByFlux.shape)
+        reliabilityBinnedByFlux[numSrcBinnedByFlux>0] = numMatchBinnedByFlux[numSrcBinnedByFlux>0] / numSrcBinnedByFlux[numSrcBinnedByFlux>0]
+        reliabilityBinnedByFlux[numSrcBinnedByFlux==0] = -1
+
+        jointValid = (numRefBinnedByFlux>0) * (numSrcBinnedByFlux>0)
         reliabilityBinnedByFluxJoint = numMatchBinnedByFlux[jointValid] / numSrcBinnedByFlux[jointValid]
         completenessBinnedByFluxJoint = numMatchBinnedByFlux[jointValid] / numRefBinnedByFlux[jointValid]
 	        
@@ -408,9 +431,11 @@ if __name__ == '__main__':
             plt.subplot(3,4,9)
         else:
             plt.cla()
+            print "Completeness"
         plt.semilogx()
-        plt.step(fluxBinComp,completenessBinnedByFluxValid)
-        plt.ylim(0,1.1)
+        plt.axis('normal')
+        plt.step(fluxBin,completenessBinnedByFlux)
+        plt.ylim(-0.05,1.05)
         plt.xlim(10**minFlux,10**maxFlux)
         plt.xlabel('Flux')
         plt.ylabel('Completeness')
@@ -422,9 +447,11 @@ if __name__ == '__main__':
             plt.subplot(3,4,10)
         else:
             plt.cla()
+            print "Reliability"
         plt.semilogx()
-        plt.step(fluxBinRel,reliabilityBinnedByFluxValid)
-        plt.ylim(0,1.1)
+        plt.step(fluxBin,reliabilityBinnedByFlux)
+        plt.plot(fluxBin,reliabilityBinnedByFlux,'o')
+        plt.ylim(-0.05,1.05)
         plt.xlim(10**minFlux,10**maxFlux)
         plt.xlabel('Flux')
         plt.ylabel('Reliability')
@@ -436,6 +463,7 @@ if __name__ == '__main__':
             plt.subplot(3,4,8)
         else:
             plt.cla()
+            print "Completeness vs Reliability"
         plt.plot(reliabilityBinnedByFluxJoint,completenessBinnedByFluxJoint,'bo')
         plt.plot(reliabilityBinnedByFluxJoint,completenessBinnedByFluxJoint,'b-')
         plt.plot(reliabilityBinnedByFluxJoint[0],completenessBinnedByFluxJoint[0],'ro')
@@ -504,25 +532,29 @@ if __name__ == '__main__':
             plt.subplot(3,4,11)
         else:
             plt.cla()
+            print "Completeness by flux and major axis"
         extent=(minFlux,maxFlux,amin,amax)
         plt.imshow(comp2d,cmap='rainbow',interpolation='nearest',origin='lower',extent=extent)
         plt.axis('normal')
         plt.ylim(amin,amax)
         plt.xlabel('log10(Flux)')
+        plt.xticks(rotation=45)
         plt.ylabel('Major axis')
-        plt.title('Completeness')
+        plt.title('Completeness',fontsize='small')
 	    
         if doSinglePlot:
             plt.subplot(3,4,12)
         else:
             plt.cla()
+            print "Reliability by flux and major axis"
         extent=(minFlux,maxFlux,amin,amax)
         plt.imshow(rel2d,cmap='rainbow',interpolation='nearest',origin='lower',extent=extent)
         plt.axis('normal')
         plt.ylim(amin,amax)
         plt.xlabel('log10(Flux)')
+        plt.xticks(rotation=45)
         plt.ylabel('Major axis')
-        plt.title('Reliability')
+        plt.title('Reliability',fontsize='small')
 	    
 	    #############################
         if doSinglePlot:
