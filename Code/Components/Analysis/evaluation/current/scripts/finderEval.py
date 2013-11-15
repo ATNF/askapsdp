@@ -127,8 +127,8 @@ if __name__ == '__main__':
             imageNoise=float(imageNoise)
         ratioMin = inputPars.get_value('ratioMin',0.)
         ratioMax = inputPars.get_value('ratioMax',2.5)
-        fluxMin = inputPars.get_value('fluxMin',0.002)
-        fluxMax = inputPars.get_value('fluxMax',1.5)
+        fluxMin = inputPars.get_value('fluxMin',-1.)
+        fluxMax = inputPars.get_value('fluxMax',-1.)
 	
         if doSinglePlot:
             plt.figure(num=3,figsize=(12,9),dpi=72)
@@ -152,8 +152,13 @@ if __name__ == '__main__':
         plt.plot(x,(x+imageNoise*3)/x,'k--')
         plt.plot(x,(x-imageNoise*3)/x,'k--')
         plt.plot(x,(imageNoise*5)/x,'k:')
-	
-        plt.xlim(fluxMin,fluxMax)
+
+        themin,themax=plt.xlim()
+        if fluxMin > 0:
+            themin = fluxMin
+        if fluxMax > 0:
+            themax = fluxMax
+        plt.xlim(themin,themax)
         plt.ylim(ratioMin,ratioMax)
 	
         if doSinglePlot:
@@ -335,6 +340,7 @@ if __name__ == '__main__':
             plt.cla()
 
         plt.plot(dra,ddec,'k.')
+        plt.axis('equal')
 	    
 	    #plot error ellipse
         angle=linspace(0,2*pi,100)
