@@ -3,6 +3,7 @@ namespace askap::cp::icewrapper {};
 
 /// @defgroup iceutils Common Ice utilities
 /// @defgroup tosmetadata Ice wrappers for access to the TOS metadata pub/sub stream
+/// @defgroup frtmetadata Ice wrappers for communication in the fringe rotation metadata pub/sub stream
 
 /// @mainpage ASKAP Central Processor - Ice Wrappers
 ///
@@ -19,5 +20,6 @@ namespace askap::cp::icewrapper {};
 ///
 /// @li @ref iceutils
 /// @li @ref tosmetadata
+/// @li @ref frtmetadata
 ///
 /// @copyright 2010 CSIRO, All Rights Reserved.

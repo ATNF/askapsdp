@@ -10,6 +10,7 @@ pkg = env.AskapPackage("icewrapper")
 
 pkg.AddSubPackage("iceutils")
 pkg.AddSubPackage("tosmetadata")
+pkg.AddSubPackage("frtmetadata")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])

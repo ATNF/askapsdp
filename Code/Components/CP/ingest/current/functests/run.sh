@@ -18,6 +18,19 @@ else
 fi
 cd $INITIALDIR
 
+
+# test_frtmetadatasource testcase
+cd test_frtmetadatasource
+./run.sh
+if [ $? -eq 0 ]; then
+    R1="test_frtmetadatasource  PASS"
+else
+    R1="test_frtmetadatasource  FAIL"
+    FAIL=1
+fi
+cd $INITIALDIR
+
+
 # test_vissource testcase
 cd test_vissource
 ./run.sh
