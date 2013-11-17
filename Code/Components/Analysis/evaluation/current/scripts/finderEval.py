@@ -74,6 +74,14 @@ if __name__ == '__main__':
     else:
         plotTypeArray = [True,False]
 
+    imageName=inputPars.get_value('image','image.i.clean.taylor.0.restored.fits')
+    if no os.access(imageName
+    image = pyfits.open(imageName)
+    imhead = image[0].header
+    bmaj = imhead.get('bmaj')*3600.
+    bmin = imhead.get('bmin')*3600.
+    bpa  = imhead.get('bpa')
+
     ############################
     #  Arrays needed for plotting
 	
@@ -218,7 +226,11 @@ if __name__ == '__main__':
             print "Major axis ratio vs major axis"
 
         plt.plot(refMaj,majratio,dot)
-	    #    plt.xlim(fluxMin,fluxMax)
+        plt.axvline(bmaj,color='r')
+        majmin,majmax=plt.xlim()
+        x=np.linspace(majmin,majmax,101)
+        plt.plot(x,bmaj/x,'r-')
+        plt.plot(refMaj,majratio,dot)
         plt.ylim(ratioMin,ratioMax)
         if doSinglePlot:
             plt.xlabel('Major axis')
@@ -257,6 +269,7 @@ if __name__ == '__main__':
             print "Flux diff vs major axis"
             plt.cla()
             plt.plot(refMaj,fluxdiff,dot)
+            plt.axvline(bmaj,color='r')
             plt.ylabel('Source flux - Reference flux')
             plt.xlabel('Reference Major Axis')
             plt.title(sourceCatFile)
