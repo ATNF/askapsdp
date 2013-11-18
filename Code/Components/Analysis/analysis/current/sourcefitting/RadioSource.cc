@@ -448,7 +448,7 @@ namespace askap {
                     tempobj.calcFluxes(fluxarray, dim); // we need to know where the peak is.
 
                     if ((tempobj.getXPeak() + this->boxXmin()) == this->getXPeak()  &&
-                            (tempobj.getYPeak() + this->boxYmin()) == this->getYPeak()) {
+			(tempobj.getYPeak() + this->boxYmin()) == this->getYPeak()) {
 		      // measure parameters only for source at peak
                         angle = o->getPositionAngle();
                         std::pair<double, double> axes = o->getPrincipalAxes();
@@ -638,9 +638,9 @@ namespace askap {
                         // now change the flux array so that we only see the current object
                         float *newfluxarray = new float[this->boxSize()];
 
-                        for (int i = 0; i < this->boxSize(); i++) {
-                            int xbox = i % this->boxXsize();
-                            int ybox = i / this->boxXsize();
+                        for (size_t i = 0; i < this->boxSize(); i++) {
+                            size_t xbox = i % this->boxXsize();
+                            size_t ybox = i / this->boxXsize();
                             PixelInfo::Object2D spatMap = newsrc.getSpatialMap();
 
                             if (spatMap.isInObject(xbox + this->boxXmin(), ybox + this->boxYmin())) newfluxarray[i] = fluxarray[i];
@@ -688,7 +688,7 @@ namespace askap {
                 duchamp::Image smlIm(dim);
                 float *fluxarray = new float[this->boxSize()];
 
-                for (int i = 0; i < this->boxSize(); i++) fluxarray[i] = f(i);
+                for (size_t i = 0; i < this->boxSize(); i++) fluxarray[i] = f(i);
 
                 smlIm.saveArray(fluxarray, this->boxSize());
                 smlIm.setMinSize(1);
@@ -769,7 +769,9 @@ namespace askap {
 	      // if need to use the surrounding noise, we have to go extract it from the image
 	      if (this->itsFitParams.useNoise() // && !cube->itsCube.pars().getFlagUserThreshold()
 		  ) {
-		float noise = findSurroundingNoise(cube.pars().getImageFile(), this->getXPeak(), this->getYPeak(), this->itsFitParams.noiseBoxSize());
+		float noise = findSurroundingNoise(cube.pars().getImageFile(), 
+						   this->xpeak+this->xSubOffset, this->ypeak+this->ySubOffset, 
+						   this->itsFitParams.noiseBoxSize());
 		this->setNoiseLevel(noise);
 	      } else this->setNoiseLevel(1);
 	    }
@@ -860,7 +862,7 @@ namespace askap {
 
                 for (long x = this->boxXmin(); x <= this->boxXmax() && !failed; x++) {
                     for (long y = this->boxYmin(); y <= this->boxYmax() && !failed; y++) {
-                        int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                        size_t i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
                         PixelInfo::Voxel tempvox(x, y, z, 0.);
                         std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
 
@@ -915,9 +917,9 @@ namespace askap {
                 casa::Vector<casa::Double> curpos(2);
                 curpos = 0;
 
-                for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-                    for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-                        int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                for (long x = this->boxXmin(); x <= this->boxXmax(); x++) {
+                    for (long y = this->boxYmin(); y <= this->boxYmax(); y++) {
+                        size_t i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
                         size_t j = x + y * dimArray[0];
 
                         if ((j >= 0) && (j < dimArray[0]*dimArray[1])) f(i) = fluxArray[j];

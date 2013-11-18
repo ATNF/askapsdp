@@ -28,6 +28,7 @@ namespace askap {
       void setup(DuchampParallel *finder);
       void writeTableHeader();
       void writeEntries();
+      using duchamp::VOTableCatalogueWriter::writeEntry;
       void writeEntry(sourcefitting::RadioSource *source);
       
     protected:

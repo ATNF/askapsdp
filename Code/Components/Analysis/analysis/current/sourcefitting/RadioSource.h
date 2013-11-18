@@ -206,17 +206,17 @@ namespace askap {
                     // @{
 
                     /// Minimum x-value
-                    size_t boxXmin() {return itsBox.start()[0];};
+                    long boxXmin() {return itsBox.start()[0];};
                     /// Maximum x-value
-                    size_t boxXmax() {return itsBox.end()[0];};
+                    long boxXmax() {return itsBox.end()[0];};
                     /// Minimum y-value
-                    size_t boxYmin() {return itsBox.start()[1];};
+                    long boxYmin() {return itsBox.start()[1];};
                     /// Maximum y-value
-                    size_t boxYmax() {return itsBox.end()[1];};
+                    long boxYmax() {return itsBox.end()[1];};
                     /// Minimum z-value
-                    size_t boxZmin() {return itsBox.start()[2];};
+                    long boxZmin() {return itsBox.start()[2];};
                     /// Maximum z-value
-                    size_t boxZmax() {return itsBox.end()[2];};
+                    long boxZmax() {return itsBox.end()[2];};
                     /// X-width
                     size_t boxXsize() {return itsBox.length()[0];};
                     /// Y-width

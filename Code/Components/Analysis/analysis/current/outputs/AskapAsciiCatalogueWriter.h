@@ -30,6 +30,7 @@ namespace askap {
       void setup(DuchampParallel *finder);
       void writeTableHeader();
       void writeEntries();
+      using duchamp::ASCIICatalogueWriter::writeEntry;
       void writeEntry(sourcefitting::RadioSource *source);
       
     protected:
