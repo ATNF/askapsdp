@@ -1162,6 +1162,7 @@ namespace askap {
 
 			  if (this->itsFitParams.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
 			      ) {
+			      src.setOffsets(this->itsCube.pars());
 			      float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), 
 								 src.getXPeak()+src.getXOffset(), src.getYPeak()+src.getYOffset(),
 								 this->itsFitParams.noiseBoxSize());
