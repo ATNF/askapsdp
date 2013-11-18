@@ -7,6 +7,7 @@ import pylab as plt
 import math
 import scipy.special
 import askap.analysis.evaluation.modelcomponents as models
+from askap.analysis.evaluation.sourceSelection import *
 import pyfits
 import pywcs
 import os
@@ -61,12 +62,14 @@ if __name__ == '__main__':
     goodpixels=threshmapFull>0.
     threshmap = threshmapFull[goodpixels]
     threshHeader = threshim[0].header
-    threshHeaderUnprecessed = threshHeader.copy()
-    threshHeaderUnprecessed.update('CRVAL1',0.0)
-    threshHeaderUnprecessed.update('CRVAL2',0.0)
     threshWCS = pywcs.WCS(threshHeader)
-    threshWCSunprecessed = pywcs.WCS(threshHeaderUnprecessed)
     threshim.close()
+
+    # Tools used to determine whether a given missed reference source should be included
+    selector = sourceSelector(inputPars)
+    # this one is used for the original catalogue when it has not been precessed.
+    selectorUnprecessed = sourceSelector(inputPars)
+    selectorUnprecessed.setWCSreference(0.,0.)
     
     noiseim=pyfits.open(noiseImageName)
     noisemapFull=noiseim[0].data
@@ -207,20 +210,14 @@ if __name__ == '__main__':
     fin.close()
     countsSM=np.zeros(fluxpts.size)
     countsPerAreaSM = np.zeros(fluxpts.size)
-    skycrd=np.array([threshWCS.wcs.crval])
     for source in skymodellist:
-        skycrd[0][0]=source.ra
-        skycrd[0][1]=source.dec
-        pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
-        if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
-            pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
-            if threshmapFull[pos] > 0. :
-                flux=source.FintFIT
-                loc=int((math.log10(flux)+4+0.1)*5)
-                countsSM[loc] = countsSM[loc]+1
-                sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
-                #sourceDetArea = fullFieldArea
-                countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
+        if selector.isGood(source):
+            flux=source.FintFIT
+            loc=int((math.log10(flux)+4+0.1)*5)
+            countsSM[loc] = countsSM[loc]+1
+            sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+            #sourceDetArea = fullFieldArea
+            countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
 
 #########
 # original sky model comparison, if requested
@@ -233,24 +230,15 @@ if __name__ == '__main__':
         fin.close()
         countsSMorig=np.zeros(fluxpts.size)
         countsPerAreaSMorig = np.zeros(fluxpts.size)
-        skycrd=np.array([threshWCS.wcs.crval])
         for source in origskymodellist:
-            skycrd[0][0]=source.ra
-            skycrd[0][1]=source.dec
-            if skymodelOrigCatIsPrecessed == 'true':
-                pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
-            else:
-                pixcrd=threshWCSunprecessed.wcs_sky2pix(skycrd,1)
-            if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmapFull.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmapFull.shape[-2]) :
-                pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
-                if threshmapFull[pos] > 0. :
-                    flux=source.flux()
-                    loc=int((math.log10(flux)+4+0.1)*5)
-                    if loc >= 0 and loc < countsSMorig.size :
-                        countsSMorig[loc] = countsSMorig[loc]+1
-                        sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
-                        #sourceDetArea = fullFieldArea
-                        countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
+            if (skymodelOrigCatIsPrecessed and selectorUnprecessed.isgood(source)) or (not skymodelOrigCatIsPrecessed and selector.isGood(source)):
+                flux=source.flux()
+                loc=int((math.log10(flux)+4+0.1)*5)
+                if loc >= 0 and loc < countsSMorig.size :
+                    countsSMorig[loc] = countsSMorig[loc]+1
+                    sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
+                    #sourceDetArea = fullFieldArea
+                    countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
         
             
     plt.figure(num=4,figsize=(8.,8.),dpi=72)

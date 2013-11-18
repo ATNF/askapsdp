@@ -41,6 +41,22 @@ class sourceSelector:
             else:
                 print "Weights image %s not available. Switching sourceSelection to 'none'."%self.weightsImageName
                 self.method='none'
+
+    def setWCSreference(self, raRef, decRef):
+        if self.method == 'threshold':
+            threshim=pyfits.open(self.threshImageName)
+            threshHeader = threshim[0].header
+            threshHeader.update('CRVAL1',raRef)
+            threshHeader.update('CRVAL2',decRef)
+            self.threshWCS = pywcs.WCS(threshHeader)
+            threshim.close()
+        elif self.method == 'weights':
+            weightsim=pyfits.open(self.threshImageName)
+            weightsHeader = weightsim[0].header
+            weightsHeader.update('CRVAL1',raRef)
+            weightsHeader.update('CRVAL2',decRef)
+            self.threshWCS = pywcs.WCS(weightsHeader)
+            weightsim.close()
                 
             
     def isGood(self,source):
