@@ -292,6 +292,9 @@ namespace askap {
             }
 
             madfm = Statistics::madfmToSigma(madfm);
+	    ASKAPLOG_DEBUG_STR(logger, "Found noise of " << madfm << " in box size " << noiseBoxSize << " centred on " <<xpt <<","<<ypt
+			       << " in image " << filename << " using start="<<start << " and end="<<end);
+	    
             delete lattPtr;
             return madfm;
         }
