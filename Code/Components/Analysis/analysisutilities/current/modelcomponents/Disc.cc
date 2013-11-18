@@ -75,7 +75,7 @@ namespace askap {
 	void Disc::setup(double x0, double y0, double maj, double min, double pa)
 	{
 	    this->itsEllipse = DiscEllipse(x0,y0,maj,min,pa);
-	    this->itsPixelSet = this->itsEllipse.boundingSet(2.*M_PI/this->itsTresolution);
+	    this->itsPixelSet = this->itsEllipse.boundingSet(this->itsTresolution);
 	    for(size_t i=0; i<this->itsPixelSet.size(); i++){
 		this->itsPixelSet[i].setResolutionLimit(this->itsResolutionLimit);
 		this->itsPixelSet[i].setDecimationFactor(this->itsDecimationFactor);

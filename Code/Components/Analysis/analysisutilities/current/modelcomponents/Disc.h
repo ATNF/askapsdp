@@ -66,7 +66,7 @@ namespace askap {
 	    std::vector<DiscPixel> itsPixelSet;
 
 	    double itsResolutionLimit;
-	    double itsTresolution;
+	    double itsTresolution;   // number of points to divide the t-range by
 	    unsigned int itsDecimationFactor;
 
 	};
