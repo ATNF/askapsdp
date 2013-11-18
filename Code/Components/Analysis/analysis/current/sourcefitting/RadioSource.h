@@ -208,23 +208,23 @@ namespace askap {
                     // @{
 
                     /// Minimum x-value
-                    long boxXmin() {return itsBox.start()[0];};
+                    size_t boxXmin() {return itsBox.start()[0];};
                     /// Maximum x-value
-                    long boxXmax() {return itsBox.end()[0];};
+                    size_t boxXmax() {return itsBox.end()[0];};
                     /// Minimum y-value
-                    long boxYmin() {return itsBox.start()[1];};
+                    size_t boxYmin() {return itsBox.start()[1];};
                     /// Maximum y-value
-                    long boxYmax() {return itsBox.end()[1];};
+                    size_t boxYmax() {return itsBox.end()[1];};
                     /// Minimum z-value
-                    long boxZmin() {return itsBox.start()[2];};
+                    size_t boxZmin() {return itsBox.start()[2];};
                     /// Maximum z-value
-                    long boxZmax() {return itsBox.end()[2];};
+                    size_t boxZmax() {return itsBox.end()[2];};
                     /// X-width
-                    long boxXsize() {return itsBox.length()[0];};
+                    size_t boxXsize() {return itsBox.length()[0];};
                     /// Y-width
-                    long boxYsize() {return itsBox.length()[1];};
+                    size_t boxYsize() {return itsBox.length()[1];};
                     /// Number of pixels in box
-                    long boxSize() {return boxXsize()*boxYsize();};
+                    size_t boxSize() {return boxXsize()*boxYsize();};
 
                     /// Return the full box description
                     casa::Slicer box() {return itsBox;};
