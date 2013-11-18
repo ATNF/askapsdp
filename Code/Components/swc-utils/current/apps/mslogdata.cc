@@ -165,6 +165,7 @@ void DataLogger::publish() {
 void DataLogger::process(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
+  sel->chooseCrossCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(0.,"d"),

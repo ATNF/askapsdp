@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(2);
+  sel->chooseFeed(0);
   sel->chooseCrossCorrelations();
   //sel->chooseAutoCorrelations();
   if (ctrl >=0 ) {
@@ -131,14 +131,16 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        */
        
        // add new spectrum to the buffer
+       const casa::uInt pol2use = 3;
+       ASKAPDEBUGASSERT(pol2use < it->nPol());
        for (casa::uInt row=0; row<nRow; ++row) {
-            casa::Vector<casa::Bool> flags = it->flag().xyPlane(0).row(row);
+            casa::Vector<casa::Bool> flags = it->flag().xyPlane(pol2use).row(row);
             bool flagged = false;
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
                  flagged |= flags[ch];
             }
             
-            casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
+            casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(pol2use).row(row);
             
             
             // flagging based on the amplitude (to remove extreme outliers)
@@ -165,10 +167,10 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             */
             //
 
-            /*
+            
             // to disable flagging
             flagged = false;
-            */
+            
 
             if (flagged) {
                ++nBadRows;
