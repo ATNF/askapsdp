@@ -10,6 +10,7 @@ import pywcs
 from askap.analysis.evaluation.readData import *
 from askap.analysis.evaluation.distributionPlotsNew import *
 from askap.analysis.evaluation.distributionPlots import *
+from askap.analysis.evaluation.sourceSelection import *
 from optparse import OptionParser
 import askap.parset as parset
 
@@ -75,12 +76,18 @@ if __name__ == '__main__':
         plotTypeArray = [True,False]
 
     imageName=inputPars.get_value('image','image.i.clean.taylor.0.restored.fits')
-    if no os.access(imageName
-    image = pyfits.open(imageName)
-    imhead = image[0].header
-    bmaj = imhead.get('bmaj')*3600.
-    bmin = imhead.get('bmin')*3600.
-    bpa  = imhead.get('bpa')
+    haveBeam = os.path.exists(imageName)
+    if haveBeam:
+        image = pyfits.open(imageName)
+        imhead = image[0].header
+        bmaj = imhead.get('bmaj')*3600.
+        bmin = imhead.get('bmin')*3600.
+        bpa  = imhead.get('bpa')
+    else:
+        print "Image file %s does not exist. Not showing beam size."%imageName
+
+    # Tool used to determine whether a given missed reference source should be included
+    selector = sourceSelector(inputPars)
 
     ############################
     #  Arrays needed for plotting
@@ -226,10 +233,11 @@ if __name__ == '__main__':
             print "Major axis ratio vs major axis"
 
         plt.plot(refMaj,majratio,dot)
-        plt.axvline(bmaj,color='r')
         majmin,majmax=plt.xlim()
-        x=np.linspace(majmin,majmax,101)
-        plt.plot(x,bmaj/x,'r-')
+        if haveBeam:
+            plt.axvline(bmaj,color='r')
+            x=np.linspace(majmin,majmax,101)
+            plt.plot(x,bmaj/x,'r-')
         plt.plot(refMaj,majratio,dot)
         plt.ylim(ratioMin,ratioMax)
         if doSinglePlot:
@@ -269,7 +277,8 @@ if __name__ == '__main__':
             print "Flux diff vs major axis"
             plt.cla()
             plt.plot(refMaj,fluxdiff,dot)
-            plt.axvline(bmaj,color='r')
+            if haveBeam:
+                plt.axvline(bmaj,color='r')
             plt.ylabel('Source flux - Reference flux')
             plt.xlabel('Reference Major Axis')
             plt.title(sourceCatFile)
@@ -395,18 +404,6 @@ if __name__ == '__main__':
         ##################################
 	    # Completeness & Reliability plots
 
-        threshImageName=inputPars.get_value('thresholdImage','detectionThreshold.i.clean.fits')
-        if not os.path.exists(threshImageName):
-            print "Threshold image %s does not exist. Exiting."%threshImageName
-            exit(0)
-
-        threshim=pyfits.open(threshImageName)
-        threshmap=threshim[0].data
-        threshHeader = threshim[0].header
-        threshWCS = pywcs.WCS(threshHeader)
-        threshim.close()
-        
-        skycrd=np.array([threshWCS.wcs.crval])
         f=[]
         for m in matchlist:
             f.append(m.ref.flux())
@@ -414,13 +411,9 @@ if __name__ == '__main__':
         for s in srcmisslist:
             f.append(s.flux())
         for r in refmisslist:
-            skycrd[0][0]=r.ra
-            skycrd[0][1]=r.dec
-            pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
-            if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmap.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmap.shape[-2]) :
-                pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
-                if threshmap[pos] > 0. :
-                    f.append(r.flux())
+            if selector.isGood(r):
+                f.append(r.flux())
+                
         f=np.array(f,dtype=float)
         minFlux=floor(log10(f.min())*2.)/2.
         maxFlux=ceil(log10(f.max())*2.)/2.
@@ -438,14 +431,9 @@ if __name__ == '__main__':
             numMissSrcBinnedByFlux[binNumber] += 1
 	
         for r in refmisslist:
-            skycrd[0][0]=r.ra
-            skycrd[0][1]=r.dec
-            pixcrd=threshWCS.wcs_sky2pix(skycrd,1)
-            if (pixcrd[0][0]>0 and pixcrd[0][0]<threshmap.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<threshmap.shape[-2]) :
-                pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
-                if threshmap[pos] > 0. :
-                    binNumber = int((log10(r.flux())-minFlux)*10)
-                    numMissRefBinnedByFlux[binNumber] += 1
+            if selector.isGood(r):
+                binNumber = int((log10(r.flux())-minFlux)*10)
+                numMissRefBinnedByFlux[binNumber] += 1
 	
         numSrcBinnedByFlux = numMatchBinnedByFlux + numMissSrcBinnedByFlux
         numRefBinnedByFlux = numMatchBinnedByFlux + numMissRefBinnedByFlux
@@ -539,12 +527,14 @@ if __name__ == '__main__':
             f.append(m.src.flux())
             a.append(m.src.maj)
             a.append(m.ref.maj)
-        for r in refmisslist:
-            f.append(r.flux())
-            a.append(r.maj)
         for s in srcmisslist:
             f.append(s.flux())
             a.append(s.maj)
+        for r in refmisslist:
+            if selector.isGood(r):
+                f.append(r.flux())
+                a.append(r.maj)
+
         f=np.array(f,dtype=float)
         minFlux=floor(log10(f.min())*2.)/2.
         maxFlux=ceil(log10(f.max())*2.)/2.
@@ -565,9 +555,10 @@ if __name__ == '__main__':
             fbin=int((log10(s.flux())-minFlux)*10)
             nmissSrc2d[abin][fbin] += 1
         for r in refmisslist:
-            abin=int((r.maj-amin)/5.)
-            fbin=int((log10(r.flux())-minFlux)*10)
-            nmissRef2d[abin][fbin] += 1
+            if selector.isGood(r):
+                abin=int((r.maj-amin)/5.)
+                fbin=int((log10(r.flux())-minFlux)*10)
+                nmissRef2d[abin][fbin] += 1
 	    
         nSrc2d = nmatch2d + nmissSrc2d
         nRef2d = nmatch2d + nmissRef2d
