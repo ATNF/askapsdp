@@ -1163,6 +1163,9 @@ namespace askap {
 			  if (this->itsFitParams.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
 			      ) {
 			      src.setOffsets(this->itsCube.pars());
+			      ASKAPLOG_DEBUG_STR(logger, "About to find noise in object " << src.getName()<<": source offsets = ("<<src.getXOffset()<<","<<src.getYOffset()<<"), "
+						 << " param offsets = (" << this->itsCube.pars().getXOffset() << "," << this->itsCube.pars().getYOffset()<<"), "
+						 << " source peak location = ("<<src.getXPeak() << ","<<src.getYPeak()<<")");
 			      float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), 
 								 src.getXPeak()+src.getXOffset(), src.getYPeak()+src.getYOffset(),
 								 this->itsFitParams.noiseBoxSize());
