@@ -30,7 +30,7 @@
 #define ASKAP_ANALYSISUTILS_MODELFACTORY_H_
 
 #include <modelcomponents/Spectrum.h>
-#include <modelcomponents/SelavyImage.h>
+#include <modelcomponents/BeamCorrector.h>
 #include <Common/ParameterSet.h>
 #include <string>
 
@@ -52,9 +52,9 @@ namespace askap {
       std::string itsSourceListType;
       float itsBaseFreq;
       float itsRestFreq;
-      SelavyImage itsSelavyImage;
+      BeamCorrector itsBeamCorrector;
       bool itsFlagUseDeconvolvedSizes;
-
+      bool itsFlagCorrectForBeam;
     };
 
   }

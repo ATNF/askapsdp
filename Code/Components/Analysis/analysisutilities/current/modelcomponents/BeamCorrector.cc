@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Simple class to manage metadata from image that generated a Selavy catalogue
+/// Simple class to manage beam metadata from image that generated a catalogue
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,12 +28,12 @@
 ///
 #include <askap_analysisutilities.h>
 
-#include <modelcomponents/SelavyImage.h>
+#include <modelcomponents/BeamCorrector.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <modelcomponents/ContinuumSelavy.h>
+#include <modelcomponents/Spectrum.h>
 
 #include <duchamp/FitsIO/Beam.hh>
 #include <Common/ParameterSet.h>
@@ -51,24 +51,24 @@
 #include <string>
 #include <vector>
 
-ASKAP_LOGGER(logger, ".selavyimage");
+ASKAP_LOGGER(logger, ".beamcorrector");
 
 namespace askap {
 
     namespace analysisutilities {
 
-      SelavyImage::SelavyImage()
+      BeamCorrector::BeamCorrector()
       {
 	this->itsBeam = duchamp::Beam(1.,1.,0.);
 	this->itsFilename = "";
       }
 
-      SelavyImage::SelavyImage(const SelavyImage& other)
+      BeamCorrector::BeamCorrector(const BeamCorrector& other)
       {
 	this->operator=(other);
       }
 
-      SelavyImage& SelavyImage::operator= (const SelavyImage& other)
+      BeamCorrector& BeamCorrector::operator= (const BeamCorrector& other)
       {
 	if(this==&other) return *this;
 	this->itsFilename = other.itsFilename;
@@ -78,30 +78,29 @@ namespace askap {
 	return *this;
       }
 
-      SelavyImage::SelavyImage(const LOFAR::ParameterSet& parset)
+      BeamCorrector::BeamCorrector(const LOFAR::ParameterSet& parset)
       {
 	/// @details Read the image filename from the parset. Also
 	/// calls findBeam().
 	this->itsFilename="";
-	if(parset.isDefined("Selavyimage")){
-	  this->itsFilename = parset.getString("Selavyimage");
+	if(parset.isDefined("image")){
+	  this->itsFilename = parset.getString("image");
 	  if(this->itsFilename != "") this->findBeam();
 	}
 	else{
-	  // Do not have SelavyImage defined, so read beam and pixel info separately
-	  LOFAR::ParameterSet subset(parset.makeSubset("Selavyimage."));
+	  // Do not have BeamCorrector defined, so read beam and pixel info separately
 	  // ASKAPLOG_DEBUG_STR(logger, "Input parset = \n" << parset <<" and Selavyimage subset = \n" << subset);
 	  std::vector<float> beam;
-	  if(subset.isDefined("beam")) beam=subset.getFloatVector("beam");
-	  else ASKAPLOG_ERROR_STR(logger, "You have not defined Selavyimage or Selavyimage.beam in the parset");
+	  if(parset.isDefined("beam")) beam=parset.getFloatVector("beam");
+	  else ASKAPLOG_ERROR_STR(logger, "You have not defined 'image' or 'beam' in the beam correction parset:\n"<<parset);
 	  ASKAPASSERT(beam.size()==3);
-	  this->itsPixelScale=subset.getFloat("pixscale");
-	  this->itsDirUnits=subset.getString("dirunits");
+	  this->itsPixelScale=parset.getFloat("pixscale");
+	  this->itsDirUnits=parset.getString("dirunits");
 	  this->itsBeam.define(beam[0],beam[1],beam[2]);
 	}
       }
 
-      void SelavyImage::findBeam()
+      void BeamCorrector::findBeam()
       {
 	/// @details Find the beam information from the image
 	/// provided. Extracts the beam information from the
@@ -119,10 +118,10 @@ namespace askap {
 	const casa::LatticeBase* lattPtr = casa::ImageOpener::openImage(this->itsFilename);
 	
 	if (lattPtr == 0){
-	  ASKAPTHROW(AskapError, "Requested Selavy image \"" << this->itsFilename << "\" does not exist or could not be opened.");
+	    ASKAPTHROW(AskapError, "Requested image \"" << this->itsFilename << "\" does not exist or could not be opened.");
 	}
 	else {
-	  ASKAPLOG_DEBUG_STR(logger, "Opened Selavy image " << this->itsFilename);
+	    ASKAPLOG_DEBUG_STR(logger, "Opened image " << this->itsFilename << " for beam correction of components.");
 	}
 	
 	const casa::ImageInterface<casa::Float>* imagePtr = dynamic_cast<const casa::ImageInterface<casa::Float>*>(lattPtr);
@@ -146,14 +145,14 @@ namespace askap {
 	  double bmin = beam[1].getValue(this->itsDirUnits)/this->itsPixelScale;
 	  double bpa = beam[2].getValue("deg");
 	  this->itsBeam.define(bmaj,bmin,bpa);
-	  ASKAPLOG_DEBUG_STR(logger, "Defined Selavy Image beam with maj="<<this->itsBeam.maj()<<", min="<<this->itsBeam.min() << ", pa="<<this->itsBeam.pa() << " and area="<<this->itsBeam.area());
+	  ASKAPLOG_DEBUG_STR(logger, "Defined BeamCorrector beam with maj="<<this->itsBeam.maj()<<", min="<<this->itsBeam.min() << ", pa="<<this->itsBeam.pa() << " and area="<<this->itsBeam.area());
 	}
 
 	delete lattPtr;
 
       }
 
-      void SelavyImage::convertSource(ContinuumSelavy &src)
+      void BeamCorrector::convertSource(Spectrum *src)
       {
 	/// @details This function scales the flux of the source
 	/// provided by src by the area of the beam. This should do
@@ -163,12 +162,12 @@ namespace askap {
 	/// consideration. Provided as a reference so we can change
 	/// its flux.
 
-	ASKAPLOG_DEBUG_STR(logger, "Converting selavy source with flux " << src.fluxZero() << " using beam area " << this->itsBeam.area());
-	src.setFluxZero( src.fluxZero() * this->itsBeam.area() );
-	ASKAPLOG_DEBUG_STR(logger, "Source's flux now " << src.fluxZero());
+	ASKAPLOG_DEBUG_STR(logger, "Converting source with flux " << src->fluxZero() << " using beam area " << this->itsBeam.area());
+	src->setFluxZero( src->fluxZero() * this->itsBeam.area() );
+	ASKAPLOG_DEBUG_STR(logger, "Source's flux now " << src->fluxZero());
       }
 
-      std::vector<float> SelavyImage::beam()
+      std::vector<float> BeamCorrector::beam()
       {
 	/// @details Writes out the beam information in a format that
 	/// can be used by the rest of the FITSfile functions

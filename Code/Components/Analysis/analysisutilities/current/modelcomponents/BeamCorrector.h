@@ -46,35 +46,36 @@ namespace askap {
 
     namespace analysisutilities {
 
-      /// @brief A class to manage access to an image used to create a
-      /// Selavy catalogue.
+      /// @brief A class to manage access to the beam information of
+      /// an image when dealing with a catalogue made from fits to that
+      /// image.
 
       /// @details This class allows one to straightforwardly access
-      /// the beam information from an image that was used to create a Selavy
-      /// catalogue. The simplest interface to creating a SelavyImage object is
-      /// to use the parset, where it looks for the Selavyimage parameter, being
+      /// the beam information from an image that was used to create a 
+      /// catalogue. The simplest interface to creating a BeamCorrector object is
+      /// to use the parset, where it looks for the BeamCorrector.Image parameter, being
       /// the name of the file in question. It will then read the beam and
       /// spatial pixel scale from that image. It can then be used to correct
       /// the flux of sources created from the catalogue, converting their flux
       /// from Jy to Jy/beam so that they can be placed onto an image.
 
-      class SelavyImage {
+      class BeamCorrector {
       public:
 	/// @brief Default constructor
-	SelavyImage();
+	BeamCorrector();
 	/// @brief Parset-based constructor
-	SelavyImage(const LOFAR::ParameterSet& parset);
+	BeamCorrector(const LOFAR::ParameterSet& parset);
 	/// @brief Copy constructor
-	SelavyImage(const SelavyImage& other);
+	BeamCorrector(const BeamCorrector& other);
 	/// @brief Assignment constructor
-	SelavyImage& operator= (const SelavyImage& other);
+	BeamCorrector& operator= (const BeamCorrector& other);
 	/// @brief Default destructor
-	virtual ~SelavyImage(){};
+	virtual ~BeamCorrector(){};
 
 	/// @brief Read the beam & pixel scale from the image
 	void findBeam();
 	/// @brief Convert the flux of a source
-	void convertSource(ContinuumSelavy &src);
+	void convertSource(Spectrum *src);
 	/// @brief Return the beam information
 	std::vector<float> beam();
 

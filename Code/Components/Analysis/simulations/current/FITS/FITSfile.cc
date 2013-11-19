@@ -46,6 +46,7 @@
 #include <modelcomponents/GaussianProfile.h>
 #include <modelcomponents/FLASHProfile.h>
 #include <modelcomponents/ModelFactory.h>
+#include <modelcomponents/BeamCorrector.h>
 #include <coordutils/PositionUtilities.h>
 #include <coordutils/SpectralUtilities.h>
 #include <casainterface/CasaInterface.h>
@@ -174,7 +175,7 @@ namespace askap {
 	this->itsSourceSection = f.itsSourceSection;
 	this->itsHaveBeam = f.itsHaveBeam;
 	this->itsBeamInfo = f.itsBeamInfo;
-	this->itsSelavyImage = f.itsSelavyImage;
+	this->itsBeamCorrector = f.itsBeamCorrector;
 	this->itsBaseFreq = f.itsBaseFreq;
 	this->itsRestFreq = f.itsRestFreq;
 	this->itsAddSources = f.itsAddSources;
@@ -360,14 +361,10 @@ namespace askap {
 	this->itsHaveBeam = parset.isDefined("beam");
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
-	bool useDeconvolvedSizes = parset.getBool("useDeconvolvedSizes",false);
-	if(this->itsDatabaseOrigin == "Selavy" && !useDeconvolvedSizes){
-	  ASKAPLOG_INFO_STR(logger, "Opening SelavyImage, since databaseorigin="<<this->itsDatabaseOrigin
-			    << " and useDeconvolvedSizes="<<useDeconvolvedSizes);
-	  // Only need this if we are using the convolved sizes, as we need to correct for the beam
-	  this->itsSelavyImage = SelavyImage(parset);
+	if(parset.getBool("correctForBeam",false) && !parset.getBool("useDeconvolvedSizes",false)){
+	  this->itsBeamCorrector = BeamCorrector(parset.makeSubset("correctForBeam."));
 	  if (!this->itsHaveBeam) {
-	    this->itsBeamInfo = this->itsSelavyImage.beam();
+	    this->itsBeamInfo = this->itsBeamCorrector.beam();
 	    this->itsHaveBeam=true;
 	  }
 	}

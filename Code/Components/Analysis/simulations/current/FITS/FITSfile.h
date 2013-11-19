@@ -47,7 +47,7 @@
 #include <duchamp/Utils/Section.hh>
 
 #include <modelcomponents/Spectrum.h>
-#include <modelcomponents/SelavyImage.h>
+#include <modelcomponents/BeamCorrector.h>
 #include <modelcomponents/ModelFactory.h>
 
 #include <vector>
@@ -220,8 +220,8 @@ namespace askap {
                     bool itsHaveBeam;
                     /// @brief The beam specifications: major axis, minor axis, position angle
                     std::vector<float> itsBeamInfo;
-		    /// @brief Specification of the Selavy image - only used for Selavy databases
-		    SelavyImage itsSelavyImage;
+		    /// @brief How we correct source fluxes for the beam
+		    BeamCorrector itsBeamCorrector;
 
                     /// @brief The base frequency (used only for Continuum sources)
                     float itsBaseFreq;

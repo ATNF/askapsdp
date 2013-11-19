@@ -43,7 +43,7 @@
 #include <modelcomponents/HIprofileS3SAX.h>
 #include <modelcomponents/FullStokesContinuum.h>
 #include <modelcomponents/FullStokesContinuumHI.h>
-#include <modelcomponents/SelavyImage.h>
+#include <modelcomponents/BeamCorrector.h>
 #include <coordutils/SpectralUtilities.h>
 
 #include <askap/AskapLogging.h>
@@ -80,8 +80,10 @@ namespace askap {
 	this->itsBaseFreq = parset.getFloat("baseFreq",1400.);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
 	this->itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes",false);
-	if(this->itsDatabaseOrigin == "Selavy" && !this->itsFlagUseDeconvolvedSizes){
-	  this->itsSelavyImage=SelavyImage(parset);
+	this->itsFlagCorrectForBeam = parset.getBool("correctForBeam",false) && !this->itsFlagUseDeconvolvedSizes;
+	if(this->itsFlagCorrectForBeam){
+	    LOFAR::ParameterSet subset = parset.makeSubset("correctForBeam.");
+	    this->itsBeamCorrector = BeamCorrector(subset);
 	}
       }
 
@@ -106,7 +108,8 @@ namespace askap {
 
 	  if(!this->checkType()){
 	    ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
-		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'ContinuumID', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+		       << this->itsDatabaseOrigin 
+		       << "' - needs to be one of: 'Continuum', 'ContinuumID', 'Selavy', 'POSSUM', 'POSSUMHI', 'NVSS', 'SUMSS', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	  }
 	  else if(this->itsDatabaseOrigin == "Continuum") {
 	    Continuum *cont = new Continuum;
@@ -124,7 +127,6 @@ namespace askap {
 	    ContinuumSelavy *sel = new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes);
 	    sel->setNuZero(this->itsBaseFreq);
 	    sel->define(line);
-	    if(!this->itsFlagUseDeconvolvedSizes) this->itsSelavyImage.convertSource(*sel);
 	    src = &(*sel);
 	  }
 	  else if(this->itsDatabaseOrigin == "POSSUM"){
@@ -176,6 +178,9 @@ namespace askap {
 	    src = &(*profFLASH);
 	  }
 	}
+
+	if (this->itsFlagCorrectForBeam)
+	    this->itsBeamCorrector.convertSource(src);
 	
 	return src;
 
