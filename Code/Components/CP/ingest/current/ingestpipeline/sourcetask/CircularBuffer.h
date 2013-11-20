@@ -79,12 +79,13 @@ class CircularBuffer {
         ///         a null pointer, in the case where the
         ///         buffer is empty. The timeout is in microseconds,
         ///         and anything less than zero will result in no
-        ///         timeout (i.e. blocking functionality).
+        ///         timeout (i.e. blocking functionality). A timeout of zero
+        ///         will result in a non-blocking call.
         boost::shared_ptr<T> next(const long timeout = -1) {
             boost::mutex::scoped_lock lock(itsMutex);
             while (itsBuffer.empty()) {
                 // While this call sleeps/blocks the mutex is released
-                if (timeout > 0) {
+                if (timeout >= 0) {
                     itsCondVar.timed_wait(lock, boost::posix_time::microseconds(timeout));
 
                     if (itsBuffer.empty()) {
