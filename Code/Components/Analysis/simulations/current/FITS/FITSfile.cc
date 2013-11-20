@@ -1265,8 +1265,10 @@ namespace askap {
 	  cov = gsl_matrix_alloc(degree,degree);
 
       	  for(size_t i=0;i<ndata;i++){
+	      // Set the frequency values, normalised by the reference frequency nuZero.
+	      // Note that the fitting is done in log-space (and **NOT** log10-space!!)
 	    double freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
-	    float logfreq = log10(freq/this->itsBaseFreq);
+	    float logfreq = log(freq/this->itsBaseFreq);
 	    float xval=1.;
 	    for(size_t d=0;d<degree;d++){
 	      gsl_matrix_set(xdat,i,d,xval);
@@ -1291,13 +1293,13 @@ namespace askap {
 
 	      if(this->itsArray[pos]>1.e-20){
 		for (size_t i=0;i<ndata;i++){
-		  gsl_vector_set(ydat,i,log10(this->itsArray[pos+i*xlen*ylen]));
+		  gsl_vector_set(ydat,i,log(this->itsArray[pos+i*xlen*ylen]));
 		}
 		gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
 		gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
 		gsl_multifit_linear_free (work);
 	      
-		float Izero = pow(10.,gsl_vector_get(c,0));
+		float Izero = exp(gsl_vector_get(c,0));
 		float alpha = gsl_vector_get(c,1);
 		float beta = gsl_vector_get(c,2);
 		// if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
