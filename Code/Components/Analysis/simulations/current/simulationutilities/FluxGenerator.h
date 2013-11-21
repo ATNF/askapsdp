@@ -51,7 +51,7 @@ namespace askap {
                 /// @brief Default constructor
                 FluxGenerator();
                 /// @brief Constructor based on a certain number of channels & Stokes parameters
-                FluxGenerator(int numChan, int numStokes=1);
+                FluxGenerator(size_t numChan, size_t numStokes=1);
                 /// @brief Destructor
                 virtual ~FluxGenerator() {};
                 /// @brief Copy constructor for FluxGenerator.
@@ -61,13 +61,13 @@ namespace askap {
                 FluxGenerator& operator= (const FluxGenerator& f);
 
                 /// @brief Set the number of channels
-                void setNumChan(int num);
+                void setNumChan(size_t num);
                 /// @brief Set the number of Stokes parameters
-                void setNumStokes(int num);
+                void setNumStokes(size_t num);
                 /// @brief Return the number of channels
-                int  nChan() {return itsNChan;};
+                size_t  nChan() {return itsNChan;};
                 /// @brief Return the number of Stokes parameters
-                int  nStokes() {return itsNStokes;};
+                size_t  nStokes() {return itsNStokes;};
 		/// @brief Set the flux values to zero
 		void zero();
 
@@ -77,12 +77,12 @@ namespace askap {
                 void addSpectrumInt(Spectrum *spec, double &x, double &y, struct wcsprm *wcs);
 
                 /// @brief Return the flux in channel i and Stokes plane s
-                float getFlux(int i, int s=0) {return itsFluxValues.at(s).at(i);};
+                float getFlux(size_t i, size_t s=0) {return itsFluxValues.at(s).at(i);};
 
             protected:
                 /// @brief Number of channels
-                int   itsNChan;
-		int   itsNStokes;
+                size_t itsNChan;
+		size_t itsNStokes;
                 /// @brief The set of flux values for each channel & Stokes parameter
 		std::vector< std::vector<float> > itsFluxValues;
 

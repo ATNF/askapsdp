@@ -51,14 +51,14 @@ namespace askap {
             this->itsNStokes = 1;
         }
 
-      FluxGenerator::FluxGenerator(int numChan, int numStokes)
+      FluxGenerator::FluxGenerator(size_t numChan, size_t numStokes)
         {
             ASKAPASSERT(numChan >= 0);
             ASKAPASSERT(numStokes >= 1);
             this->itsNChan = numChan;
             this->itsNStokes = numStokes;
             this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
-	    for(int s=0;s<numStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
+	    for(size_t s=0;s<numStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
         }
 
         FluxGenerator::FluxGenerator(const FluxGenerator& f)
@@ -76,28 +76,28 @@ namespace askap {
             return *this;
         }
 
-        void FluxGenerator::setNumChan(int numChan)
+        void FluxGenerator::setNumChan(size_t numChan)
         {
             ASKAPASSERT(numChan >= 0);
             this->itsNChan = numChan;
             this->itsFluxValues = std::vector< std::vector<float> >(itsNStokes);
-	    for(int s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
+	    for(size_t s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
         }
 
-        void FluxGenerator::setNumStokes(int numStokes)
+        void FluxGenerator::setNumStokes(size_t numStokes)
         {
             ASKAPASSERT(numStokes >= 1);
             this->itsNStokes = numStokes;
             this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
 	    if(this->itsNChan>0){
-	      for(int s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(this->itsNChan, 0.);
+	      for(size_t s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(this->itsNChan, 0.);
 	    }
 	}
 
         void FluxGenerator::zero()
 	{
-	  for(int s=0;s<this->itsNStokes;s++) 
-	    for(int c=0;c<this->itsNChan;c++)
+	  for(size_t s=0;s<this->itsNStokes;s++) 
+	    for(size_t c=0;c<this->itsNChan;c++)
 	      this->itsFluxValues[s][c]=0.;
 	}
 
@@ -120,7 +120,7 @@ namespace askap {
 
             double *pix = new double[3*this->itsNChan];
             double *wld = new double[3*this->itsNChan];
-            for (int z = 0; z < this->itsNChan; z++) {
+            for (size_t z = 0; z < this->itsNChan; z++) {
                 pix[3*z+0] = x;
                 pix[3*z+1] = y;
                 pix[3*z+2] = double(z);
@@ -128,8 +128,8 @@ namespace askap {
 
             pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
-	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
-	      for (int z = 0; z < this->itsNChan; z++) {
+	    for(size_t istokes=0; istokes < this->itsNStokes; istokes++){
+	      for (size_t z = 0; z < this->itsNChan; z++) {
                 this->itsFluxValues[istokes][z] += spec->flux(wld[3*z+2],istokes);
 	      }
 	    }
@@ -157,7 +157,7 @@ namespace askap {
             double *pix = new double[3*this->itsNChan];
             double *wld = new double[3*this->itsNChan];
 
-            for (int i = 0; i < this->itsNChan; i++) {
+            for (size_t i = 0; i < this->itsNChan; i++) {
                 pix[3*i+0] = x;
                 pix[3*i+1] = y;
                 pix[3*i+2] = double(i);
@@ -165,18 +165,18 @@ namespace askap {
 
             pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
-	    int i;
+	    size_t i;
 	    double df;
 
-	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
+	    for(size_t istokes=0; istokes < this->itsNStokes; istokes++){
 	      i=2;
-	      for (int z = 0; z < this->itsNChan; z++) {
+	      for (size_t z = 0; z < this->itsNChan; z++) {
 		
                 if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
                 else df = fabs(wld[i] - wld[i-3]);
 
 //     ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-                this->itsFluxValues[istokes][z] += spec->flux(wld[i] - df / 2., wld[i] + df / 2., istokes);
+                this->itsFluxValues[istokes][z] += spec->fluxInt(wld[i] - df / 2., wld[i] + df / 2., istokes);
 
 		i += 3;
 	      }
