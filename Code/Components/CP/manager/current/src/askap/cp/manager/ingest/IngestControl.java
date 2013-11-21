@@ -152,22 +152,6 @@ public class IngestControl {
 	}
 
 	/**
-	 * Blocks until the observation in progress is completed. Specifically,
-	 * until the ingest pipeline finishes, either successfully or with error.
-	 * When this method returns, the central processor is ready to start a new
-	 * observation.
-	 */
-	public void waitIngest() {
-		while (itsJob != null && itsJob.status() != JobStatus.COMPLETED) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-		}
-		itsJob = null;
-	}
-
-	/**
 	 * Calling this method instructs the central processor to abort the current
 	 * observation. This stops the data acquisition process.
 	 * 

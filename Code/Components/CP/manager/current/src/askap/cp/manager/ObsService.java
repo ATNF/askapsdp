@@ -115,12 +115,6 @@ public class ObsService extends _ICPObsServiceDisp {
 	}
 	
 	@Override
-	public void waitObs(Current curr) {
-		// Blocking (until exited)
-		itsIngestControl.waitIngest();
-	}
-	
-	@Override
 	public void abortObs(Current curr) {
 		// Blocking (until aborted)
 		itsIngestControl.abortIngest();
