@@ -50,6 +50,34 @@ using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
+/// @brief helper method to obtain effective LO frequency
+/// @details The effective LO frequency is deduced from the sky frequency as
+/// ASKAP has a simple conversion chain (the effective LO and the sky frequency of
+/// the first channel always have a fixed offset which is hard coded). 
+/// It is handy to encapsulate the formula in one method as it is used by more
+/// than one class.
+/// @param[in] config configuration object
+/// @param[in] scan scan number
+/// @return Effective LO frequency in Hz
+double askap::cp::ingest::getEffectiveLOFreq(const Configuration &config, const casa::uInt scan)
+{
+   // here we need the effective LO frequency, we can deduce it from the start frequency of the very first
+   // channel (global, not local for this rank)
+   // Below we hardcoded the formula derived from the BETA simple conversion chain (note, it may change
+   // for ADE - need to check)
+   //
+   // BETA has 3 frequency conversions with effective LO being TunableLO - 4432 MHz - 768 MHz
+   // (the last one is because digitisation acts like another LO). As a result, the spectrum is always inverted.
+   // The start frequency corresponds to the top of the band and is a fixed offset from TunableLO which we need
+   // to calculate the effective LO frequency. Assuming that the software correlator got the bottom of the band,
+   // i.e. the last 16 of 304 channels, the effective LO is expected to be 40 MHz below the bottom of the band or
+   // 344 MHz below the top of the band. This number needs to be checked when we get the actual system observing
+   // an astronomical source.
+   const Scan scanInfo = config.observation().scans().at(scan);
+   return scanInfo.startFreq().getValue("Hz") - 344e6;
+}
+
+
 /// @brief Constructor.
 /// @param[in] parset the configuration parameter set.
 PhaseTrackTask::PhaseTrackTask(const LOFAR::ParameterSet& parset,
@@ -142,20 +170,7 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
     casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
 
     if (!itsTrackDelay) {
-        // here we need the effective LO frequency, we can deduce it from the start frequency of the very first
-        // channel (global, not local for this rank)
-        // Below we hardcoded the formula derived from the BETA simple conversion chain (note, it may change
-        // for ADE - need to check)
-        //
-        // BETA has 3 frequency conversions with effective LO being TunableLO - 4432 MHz - 768 MHz
-        // (the last one is because digitisation acts like another LO). As a result, the spectrum is always inverted.
-        // The start frequency corresponds to the top of the band and is a fixed offset from TunableLO which we need
-        // to calculate the effective LO frequency. Assuming that the software correlator got the bottom of the band,
-        // i.e. the last 16 of 304 channels, the effective LO is expected to be 40 MHz below the bottom of the band or
-        // 344 MHz below the top of the band. This number needs to be checked when we get the actual system observing
-        // an astronomical source.
-        const Scan scanInfo = itsConfig.observation().scans().at(chunk->scan());
-        const double effLOFreq = scanInfo.startFreq().getValue("Hz") - 344e6;
+        const double effLOFreq = getEffectiveLOFreq(itsConfig, chunk->scan());
 
         const float phase = -2. * static_cast<float>(casa::C::pi * effLOFreq * delayInMetres / casa::C::c);
         const casa::Complex phasor(cos(phase), sin(phase));

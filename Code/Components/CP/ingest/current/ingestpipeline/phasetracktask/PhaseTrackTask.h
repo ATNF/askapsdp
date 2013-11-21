@@ -43,15 +43,25 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+
+/// @brief helper method to obtain effective LO frequency
+/// @details The effective LO frequency is deduced from the sky frequency as
+/// ASKAP has a simple conversion chain (the effective LO and the sky frequency of
+/// the first channel always have a fixed offset which is hard coded). 
+/// It is handy to encapsulate the formula in one method as it is used by more
+/// than one class.
+/// @param[in] config configuration object
+/// @param[in] scan scan number
+/// @return Effective LO frequency in Hz
+double getEffectiveLOFreq(const Configuration &config, const casa::uInt scan);
+
+
 /// @brief task to apply phase tracking
 ///
 /// @details In the early version the hardware correlator may not do phase and delay tracking.
 /// The delay tracking is done via DRx by offseting memory read out. The corresponding phase
 /// tracking term is applied by this class. The effective LO frequency is not available as
-/// part of metadata, but we can deduce it from the sky frequency as ASKAP has a simple
-/// conversion chain (the effective LO and the sky frequency of the first channel always have
-/// a fixed offset which is hard coded inside this task at the moment - could be made a parameter,
-/// if needs to be).
+/// part of metadata, but we can deduce it from the sky frequency (see getEffectiveLOFreq)
 ///
 /// There are many common steps between this task and CalcUVWTask, but it seems better
 /// not to merge phase tracking with the UVW calculator because we wouldn't need it in the long term.
