@@ -445,8 +445,8 @@ namespace askap {
 // 			    ASKAPLOG_DEBUG_STR(logger, separation << " " << mindu << " " << mindv << " " << nstep << " " << delta << " " << delta*delta/9. << " " << pixelVal);
 
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
-			    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
-			      for (int z = 0; z < fluxGen.nChan(); z++) {
+			    for(size_t istokes=0; istokes<fluxGen.nStokes();istokes++){
+			      for (size_t z = 0; z < fluxGen.nChan(); z++) {
                                 pix = x + y * axes[0] + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
 // 				ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << pixelVal*fluxGen.getFlux(z,istokes) << " (from pixelval="<<pixelVal<<" and fluxGen(z)="<<fluxGen.getFlux(z,istokes)<<") to (x,y,z)=("<<x<<","<<y<<","<<z<<")");
                                 array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
@@ -536,8 +536,8 @@ namespace askap {
                 if (addPixel) { // only add points if we're in the array boundaries
                     pixelVal = 0.5 * (erf((length + increment - zeroPointMax) / (M_SQRT2 * majorSigma)) - erf((length - zeroPointMax) / (M_SQRT2 * majorSigma)));
 
-		    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
-		      for (int z = 0; z < fluxGen.nChan(); z++) {
+		    for(size_t istokes=0; istokes<fluxGen.nStokes();istokes++){
+		      for (size_t z = 0; z < fluxGen.nChan(); z++) {
                         pix = spatialPixel + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
                         array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
 		      }
@@ -576,8 +576,8 @@ namespace askap {
 				       << " and flux0=" << fluxGen.getFlux(0) << " to  axes = [" << axes[0] << "," << axes[1] << "]");
 
 		size_t loc = 0;
-		for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
-		  for (int z = 0 ; z < fluxGen.nChan(); z++) {
+		for(size_t istokes=0; istokes<fluxGen.nStokes();istokes++){
+		  for (size_t z = 0 ; z < fluxGen.nChan(); z++) {
 
                     loc = xpix + axes[0] * ypix + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
 
@@ -614,8 +614,8 @@ namespace askap {
 
 			double discFlux = disc.flux(x,y);
 
-			for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
-			    for (int z = 0 ; z < fluxGen.nChan(); z++) {
+			for(size_t istokes=0; istokes<fluxGen.nStokes();istokes++){
+			    for (size_t z = 0 ; z < fluxGen.nChan(); z++) {
 				size_t loc=x + axes[0] * y + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
 				array[loc] += discFlux * fluxGen.getFlux(z,istokes);
 			    }
