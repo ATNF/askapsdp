@@ -42,9 +42,17 @@ module cp
     };
 
     /**
-     * Used to indicate the ingest pipeline is already running.
+     * Used to indicate the pipeline(s) is/are already running.
      */
     exception AlreadyRunningException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
+     * Used to indicate the a pipeline failed to start due to some
+     * problem other than the above.
+     */
+    exception PipelineStartException extends askap::interfaces::AskapIceException
     {
     };
 
@@ -67,22 +75,16 @@ module cp
          * telescope operating system. The central processor takes some time to
          * prepare for an observation (on the order of a few seconds), hence the
          * need to indicate when it is ready by blocking.
+         *
          * @throws NoSuchSchedulingBlockException   if the schheduling block id
          *              is not valid (i.e. not known to the data service)
          * @throws AlreadyRunningException  if an observation is already in
          *              in progress. This observation must either be aborted or
          *              left to conclude normally.
+         * @throws PipelineStartException one or more pipelines failed to start.
          */
         void startObs(long sbid) throws NoSuchSchedulingBlockException,
-            AlreadyRunningException;
-
-        /**
-         * Blocks until the observation in progress is completed. Specifically,
-         * until the ingest pipeline finishes, either successfully or with
-         * error. When this method returns, the central processor is ready to
-         * start a new observation.
-         */
-        void waitObs();
+            AlreadyRunningException, PipelineStartException;
 
         /**
          * Calling this method instructs the central processor to abort the
@@ -92,8 +94,7 @@ module cp
          * scheduling block indicate if data processing should be attempted
          * for an aborted observation.
          *
-         * This method will block until the observation has been aborted and
-         * the central processor is ready to start a new observation.
+         * This method is non-blocking.
          */
         void abortObs();
     };
