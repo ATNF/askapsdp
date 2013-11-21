@@ -8,9 +8,7 @@ Running the program
 -------------------
 
 It can be run with the following command, where "config.in" is a file containing
-the configuration parameters described in the next section.
-
-::
+the configuration parameters described in the next section. ::
 
    $ ccalapply -c config.in
 

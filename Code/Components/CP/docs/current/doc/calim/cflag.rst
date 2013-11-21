@@ -21,16 +21,12 @@ parameters.
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system:
-
-::
+The code should be compiled with the ASKAPsoft build system::
 
    $ cd $ASKAP_ROOT
    $ rbuild Code/Components/CP/pipelinetasks/current
 
-It can then be run with the following command, e.g.
-
-::
+It can then be run with the following command, e.g::
 
    $ ${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cflag.sh -c config.in
 

@@ -20,17 +20,13 @@ Important notes:
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system:
-
-::
+The code should be compiled with the ASKAPsoft build system::
 
    $ cd $ASKAP_ROOT
    $ rbuild Code/Components/CP/pipelinetasks/current
 
 It can then be run in the usual fashion by providing a Parameter Set
-as input
-
-::
+as input::
 
    $ $ASKAP_ROOT/Code/Components/CP/pipelinetasks/current/install/bin/makecube.sh -c parset.in
 
@@ -40,9 +36,7 @@ The key parameters to be provided are the output cube name, and the pattern desc
 It is possible to specify a rest frequency to be applied to the output cube (since *cimager* will not provide this). A common value for this, that of the fine-structure line of neutral hydrogen (HI), or 1420405751.786 Hz, can be requested by setting the rest frequency to "HI" in the parameter set. If no rest frequency is provided, or a negative value is given, no rest frequency will be written to the cube.
 
 The image info (which essentially means the beam information) for the output cube is copied from a designated input image. This is, by default, the middle image of the range (specifically, (number of images) / 2, with integer division), but this can be changed by setting *beamReference* to 'first', 'last', or a number in the range. The individual beam sizes for each of the input images (assuming they are defined) can be written to an ascii text file for future reference. The file has columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]
-Here is an example of the start of a beam log:
-
-::
+Here is an example of the start of a beam log::
 
   #Channel Image_name BMAJ[arcsec] BMIN[arcsec] BPA[deg]
   0 image.i.cube.clean_ch0.restored 65.7623 36.4139 -54.7139
@@ -73,9 +67,7 @@ The following table describes the possible parameters.
 |                          |             |            |every input file is written.                                    |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
 
-The following demonstrates a parset for a continuum cube (no rest frequency):
-
-::
+The following demonstrates a parset for a continuum cube (no rest frequency)::
 
   Makecube.inputNamePattern = image.i.cube.clean_ch[0..151].restored
   Makecube.outputCube = image.i.cube.clean.restored
@@ -83,9 +75,7 @@ The following demonstrates a parset for a continuum cube (no rest frequency):
   Makecube.beamReference = mid
   Makecube.beamLog = beamFile.image.i.cube.clean.restored.dat
 
-and the following demonstrates a parset for a small spectral-line cube focussed on HI emisison:
-
-::
+and the following demonstrates a parset for a small spectral-line cube focussed on HI emisison::
 
  Makecube.inputNamePattern = image.i.SLtute.cube_ch[0..31].restored
  Makecube.outputCube = image.i.SLtute.cube.restored

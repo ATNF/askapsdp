@@ -18,16 +18,12 @@ written to disk.
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system:
-
-::
+The code should be compiled with the ASKAPsoft build system::
 
    $ cd $ASKAP_ROOT
    $ rbuild Code/Components/CP/pipelinetasks/current
 
-It can then be run with the mpirun command, e.g.
-
-::
+It can then be run with the mpirun command, e.g::
 
    $ mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c config.in
 

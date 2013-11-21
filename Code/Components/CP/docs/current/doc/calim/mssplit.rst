@@ -23,16 +23,12 @@ The intended use-cases of this tool are:
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system:
-
-::
+The code should be compiled with the ASKAPsoft build system::
 
    $ cd $ASKAP_ROOT
    $ rbuild Code/Components/Synthesis/synthesis/current
 
-It can then be run with the following command, e.g.
-
-::
+It can then be run with the following command, e.g::
 
    $ $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c config.in
 
