@@ -166,7 +166,7 @@ namespace askap {
 	  }
 	}
 
-        double GaussianProfile::flux(double nu1, double nu2, int istokes)
+        double GaussianProfile::fluxInt(double nu1, double nu2, int istokes)
 	{
 	  if(istokes>0) return 0.;
 	  else {

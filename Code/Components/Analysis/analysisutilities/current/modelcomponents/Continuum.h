@@ -85,7 +85,7 @@ namespace askap {
                 /// @brief Return the flux at a given frequency
                 double flux(double freq, int istokes=0);
                 /// @brief Return the flux integrated between two frequencies
-                double flux(double freq1, double freq2, int istokes=0);
+                double fluxInt(double freq1, double freq2, int istokes=0);
 
                 /// @brief Output the parameters for the source
 		void print(std::ostream& theStream);

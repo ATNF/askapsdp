@@ -81,7 +81,7 @@ namespace askap {
       bool freqRangeOK(double freq1, double freq2){return itsHIprofile.freqRangeOK(freq1,freq2);}
       
       double flux(double freq, int istokes){return itsHIprofile.flux(freq,istokes);};
-      double flux(double freq1, double freq2, int istokes){return itsHIprofile.flux(freq1,freq2,istokes);};
+      double fluxInt(double freq1, double freq2, int istokes){return itsHIprofile.fluxInt(freq1,freq2,istokes);};
 
       void print(std::ostream& theStream);
       friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuumHI &stokes);

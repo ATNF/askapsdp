@@ -81,7 +81,7 @@ namespace askap {
                 /// @brief Return the flux at a given frequency
                 double flux(double nu, int istokes=0);
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
-                double flux(double nu1, double nu2, int istokes=0);
+                double fluxInt(double nu1, double nu2, int istokes=0);
 
 		/// @brief Return the minimum & maximum frequencies affected by this source
 		std::pair<double,double> freqLimits();

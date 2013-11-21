@@ -296,7 +296,7 @@ namespace askap {
         }
 
 
-        double HIprofileS3SEX::flux(double nu1, double nu2, int istokes)
+        double HIprofileS3SEX::fluxInt(double nu1, double nu2, int istokes)
         {
             /// @details This function returns the flux integrated between
             /// two frequencies. This can be used to calculate the flux in

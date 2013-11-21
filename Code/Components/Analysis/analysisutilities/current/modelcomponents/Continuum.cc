@@ -150,7 +150,7 @@ namespace askap {
 	  }
 	}
 
-      double Continuum::flux(double freq1, double freq2, int istokes)
+      double Continuum::fluxInt(double freq1, double freq2, int istokes)
       {
 	if(istokes>0) return 0.;
 	else{
