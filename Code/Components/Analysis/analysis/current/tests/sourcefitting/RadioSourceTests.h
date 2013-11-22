@@ -216,7 +216,7 @@ namespace askap {
 	  itsGaussSource.defineBox(itsSection,itsFitparams,2); 
 	  float *fluxarray = new float[itsGaussSource.boxSize()];
 	  PixelInfo::Object2D spatMap = itsGaussSource.getSpatialMap();
-	  for (int i = 0; i < itsGaussSource.boxSize(); i++) fluxarray[i] = 0.;
+	  for (size_t i = 0; i < itsGaussSource.boxSize(); i++) fluxarray[i] = 0.;
 	  for(size_t x=0;x<arrayDim;x++) {
 	    for(size_t y=0;y<arrayDim;y++){ 
 	      if (spatMap.isInObject(x, y)) {
