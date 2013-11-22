@@ -459,8 +459,8 @@ void AWProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAcc
 
     if (nDone == itsMaxFeeds*itsMaxFields*nWPlanes()) {
         if (isSupportPlaneDependent()) {
-            ASKAPLOG_INFO_STR(logger, "Convolution function cache has " << itsConvFunc.size() << " planes");
-            ASKAPLOG_INFO_STR(logger, "Variable support size is used:");
+            ASKAPLOG_DEBUG_STR(logger, "Convolution function cache has " << itsConvFunc.size() << " planes");
+            ASKAPLOG_DEBUG_STR(logger, "Variable support size is used:");
             const size_t step = casa::max(itsConvFunc.size() / itsOverSample / itsOverSample / 10, 1);
 
             for (size_t plane = 0; plane < itsConvFunc.size(); plane += step * itsOverSample * itsOverSample) {
