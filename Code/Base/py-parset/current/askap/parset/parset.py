@@ -20,6 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
+__all__ = ["ParameterSet", "dict_to_parset", "parset_to_dict", "slice_parset"]
+
 import os
 import re
 import warnings
@@ -33,6 +35,28 @@ def to_dict(parmap):
         return parmap.to_flat_dict()
     else:
         raise TypeError("argument not a ParamterSet (or dict)")
+
+def slice_parset(d, key):
+    """Return a subset of the `dict` d  return matching key prefix only"""
+    return dict((k, v) for k,v in d.items() if k.startswith(key))
+
+
+def parset_to_dict(st):
+    """Turn a parameterset string into a python `dict`"""
+    d = {}
+    for line in st.splitlines():
+        pval, comm = extract(line)
+        if pval:
+            d[pval[0]] = decode(pval[1])
+    return d
+
+def dict_to_parset(d):
+    """Turn a python `dict` into a parameterset string"""
+    out = ""
+    for k, v  in d.items():        
+        line = " = ".join((k, encode(v)))
+        out = "\n".join((out, line))
+    return out
 
 class ParameterSet(object):
     """
@@ -505,7 +529,7 @@ def decode(value):
 def extract(line, comment=""):
     """
     Return a key/value pair from a string. This will most likely be a line in a
-    ParameterSet file. It also returns (optinally) a documentation string from
+    ParameterSet file. It also returns (optionally) a documentation string from
     lines beginning with '##'.
     """
     line = line.lstrip()
