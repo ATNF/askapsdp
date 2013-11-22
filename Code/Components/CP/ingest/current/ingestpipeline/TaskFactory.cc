@@ -54,6 +54,7 @@
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/sourcetask/NoMetadataSource.h"
 #include "ingestpipeline/derippletask/DerippleTask.h"
+#include "ingestpipeline/phasetracktask/FringeRotationTask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".TaskFactory");
@@ -92,6 +93,9 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::PhaseTrackTask :
             task.reset(new PhaseTrackTask(params, itsConfig));
+            break;
+        case TaskDesc::FringeRotationTask :
+            task.reset(new FringeRotationTask(params, itsConfig));
             break;
         case TaskDesc::SimpleMonitorTask :
             task.reset(new SimpleMonitorTask(params, itsConfig));

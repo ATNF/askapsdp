@@ -89,6 +89,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "PhaseTrackTask") {
         return TaskDesc::PhaseTrackTask;
     }
+    if (type == "FringeRotationTask") {
+        return TaskDesc::FringeRotationTask;
+    }
     if (type == "SimpleMonitorTask") {
         return TaskDesc::SimpleMonitorTask;
     }

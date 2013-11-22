@@ -1,4 +1,4 @@
-/// @file IFrtApproach.h
+/// @file FrtDrxDelays.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,28 +24,42 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_IFRTAPPROACH_H
-#define ASKAP_CP_INGEST_IFRTAPPROACH_H
+#ifndef ASKAP_CP_INGEST_FRTDRXDELAYS_H
+#define ASKAP_CP_INGEST_FRTDRXDELAYS_H
 
 // ASKAPsoft includes
 #include "cpcommon/VisChunk.h"
+#include "frtmetadata/FrtMetadataOutputPort.h"
+#include "Common/ParameterSet.h"
+
+// Local package includes
+#include "ingestpipeline/phasetracktask/IFrtApproach.h"
+#include "ingestpipeline/phasetracktask/FrtMetadataSource.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 // casa includes
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Vector.h>
+
+// boost
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief interface for an fringe rotation method
+/// @brief simplest fringe rotation method, essentially just a proof of concept
 /// @details A number of different approaches to fringe rotation are possible (i.e. with/without DRx, with/without hw-rotator
 /// with more or with less correction in the software. It seems convenient to represent all different approaches by a hierarchy of
 /// classes and get the task itself responsible for just delay and rate calculation (as accurate as possible, approximations and caching 
 /// are done in implementations of this interface)
-class IFrtApproach {
+class FrtDrxDelays : virtual public IFrtApproach {
     public:
-        /// @brief destructor to keep the compiler happy, nothing is done
-        virtual ~IFrtApproach();
+
+        /// @brief Constructor.
+        /// @param[in] parset the configuration parameter set.
+        /// @param[in] config configuration
+        FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuration& config);
 
         /// Process a VisChunk.
         ///
@@ -61,15 +75,16 @@ class IFrtApproach {
         ///                  beams (columns) in radians per second
         /// @param[in] effLO effective LO frequency in Hz
         virtual void process(const askap::cp::common::VisChunk::ShPtr& chunk, 
-                     const casa::Matrix<double> &delays, const casa::Matrix<double> &rates, const double effLO) = 0;
-
-        /// Shared pointer definition
-        typedef boost::shared_ptr<IFrtApproach> ShPtr;
+                     const casa::Matrix<double> &delays, const casa::Matrix<double> &rates, const double effLO);
+    
+    private:
+        boost::shared_ptr<icewrapper::FrtMetadataOutputPort> itsOutPort;
+        boost::shared_ptr<FrtMetadataSource> itsInPort;
+        casa::Vector<casa::uInt> itsDRxDelays;
 };
 
 } // namespace ingest 
 } // namespace cp 
 } // namespace askap 
 
-#endif // #ifndef ASKAP_CP_INGEST_IFRTAPPROACH_H
-
+#endif // #ifndef ASKAP_CP_INGEST_FRTDRXDELAYS_H
