@@ -67,6 +67,7 @@ Add the following to your ~/.bashrc
     module swap PrgEnv-cray PrgEnv-gnu
 
     # Load additional modules
+    module load askapsoft
     module load java
     export JAVA_HOME=${JAVA_PATH}
 
