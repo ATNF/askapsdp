@@ -58,6 +58,13 @@ ${csimSelect}
 #PBS -m bea
 #PBS -j oe
 
+#####
+# AUTOMATICALLY CREATED!
+#
+# Run with:
+# ${qsubCmd} ${depend} ${qsubfile}
+#####
+
 cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
@@ -79,6 +86,7 @@ if [ \$modelInChunks == "true" ]; then
 # extraction of the appropriate channel from each chunk and paste
 # together
 
+    rm -rf \${skymodel}
     pyscript=${parsetdirVis}/\${dir}/modelExtract_chan\${IND}.py
     cat > \$pyscript <<EOF_INNER
 import fnmatch
@@ -93,8 +101,12 @@ goodfiles.sort()
 ia.open('${chunkdir}/%s'%goodfiles[0])
 crec=ia.coordsys().torecord()
 crec['direction0']['crpix']=np.array([${npix}/2.,${npix}/2.])
+bunit=ia.brightnessunit()
 ia.close()
-ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,1],csys=crec)
+ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,${chanPerMSchunk}],csys=crec)
+ia.open('\${skymodel}')
+ia.setbrightnessunit(bunit)
+ia.close()
 
 for file in goodfiles:
     offset=np.array(file.split('__')[1].split('_'),dtype=int)
@@ -102,8 +114,8 @@ for file in goodfiles:
     shape=ia.shape()
     blc=np.zeros(len(shape),dtype=int).tolist()
     trc=(np.array(shape,dtype=int)-1).tolist()
-    blc[3]=\${IND}
-    trc[3]=\${IND}
+    blc[3]=\${IND} * ${chanPerMSchunk}
+    trc[3]=(\${IND}+1) * ${chanPerMSchunk} - 1
     print file,offset,blc,trc
     chunk=ia.getchunk(blc=blc,trc=trc)
     ia.close()
