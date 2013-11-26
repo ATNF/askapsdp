@@ -237,8 +237,13 @@ namespace askap {
 
       }
 
+	casa::IPosition SubimageDef::blc(int workerNum)
+	{
+	    duchamp::Section subsection = this->section(workerNum);
+	    casa::IPosition blc(subsection.getStartList());
+	    return blc;
+	}
 
-      //      duchamp::Section SubimageDef::section(int workerNum, std::string inputSubsection)
       duchamp::Section SubimageDef::section(int workerNum)
         {
             /// @details Return the subsection object for the given worker
@@ -253,22 +258,16 @@ namespace askap {
             }
 
             if (workerNum < 0) {
-//                 ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
-//                return inputSubsection;
 	      return this->itsInputSection;
 	      
             } else {
-	      //                 ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
 	      if (this->itsInputSection == "") 
 		{
 		  ASKAPLOG_WARN_STR(logger, "SubimageDef::section : input subsection not defined! Setting to null subsection");
 		  this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
 		}
-	      //	      ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection);
-//                duchamp::Section inputSec(inputSubsection);
                 duchamp::Section inputSec(this->itsInputSection);
                 inputSec.parse(this->itsFullImageDim);
-//                 ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
                 long *sub = new long[this->itsNAxis];
 
                 for (int i = 0; i < this->itsNAxis; i++) sub[i] = 0;
@@ -293,7 +292,6 @@ namespace askap {
                 }
 
                 std::string secstring = "[" + section.str() + "]";
-		//                ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
                 duchamp::Section sec(secstring);
                 sec.parse(this->itsFullImageDim);
                 return sec;

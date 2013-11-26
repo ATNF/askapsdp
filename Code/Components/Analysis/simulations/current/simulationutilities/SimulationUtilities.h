@@ -60,6 +60,9 @@ namespace askap {
         /* /// @brief Return a normal random variable */
         /* float normalRandomVariable(float mean, float rms); */
 
+	/// @brief The string indicating the location of the subimage, used for model chunks
+	const std::string locationString(duchamp::Section &subsection);
+
 	/// @brief Create a wcsprm struct from a parset
 	struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection);
 

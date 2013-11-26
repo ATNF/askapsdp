@@ -95,6 +95,9 @@ namespace askap {
 		/// @brief Define the subsection specification for *every* worker
 		void defineAllSections();
 
+		/// @brief Return the bottom-left-corner of a worker's subsection
+		casa::IPosition blc(int workerNum);
+
                 /// @brief Return the number of subimages.
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
                 /// @brief The number of axes

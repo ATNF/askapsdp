@@ -47,6 +47,8 @@
 
 #include <Common/ParameterSet.h>
 
+#include <duchamp/Utils/Section.hh>
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -85,6 +87,27 @@ namespace askap {
         //     float z = sqrt(-2.*log(s) / s) * v1;
         //     return z*sigma + mean;
         // }
+
+	const std::string locationString(duchamp::Section &subsection)
+	{
+	    /// @details Provides a string starting & finishing with
+	    /// '__' and having the starting coordinate of each axis
+	    /// of the given subsection listed and separated by a
+	    /// '_'. So, for example, the subsection
+	    /// [101:200,11:250,1:1,2001:3000] will result in the
+	    /// string '__100_10_0_2000__' (note the difference
+	    /// between the 1-based subsection and the 0-based
+	    /// coordinates).
+	    /// @param A Duchamp subsection object, that has been
+	    /// parsed correctly
+
+	    std::stringstream locationString;
+	    locationString << "_";
+	    for (uint i = 0; i < subsection.getStartList().size(); i++) locationString << "_" << subsection.getStart(i);
+	    locationString << "__";
+	    
+	    return locationString.str();
+	}
 
       struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection)
       {

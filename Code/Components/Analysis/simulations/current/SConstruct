@@ -13,6 +13,7 @@ env.Append(CCFLAGS=['-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
 pkg = env.AskapPackage("simulations")
 # add sub packages 
 pkg.AddSubPackage("FITS")
+pkg.AddSubPackage("makeModelSlice")
 pkg.AddSubPackage("simulationutilities")
 
 # run the build process
