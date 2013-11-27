@@ -117,7 +117,7 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-imnoise=`grep MADFMas \$statlog | awk '{print \$3}'`
+imnoise=\`grep MADFMas \$statlog | awk '{print \$3}'\`
 cat >> \$parset <<EOF_INNER
 Eval.imageNoise = \${imnoise}
 EOF_INNER
