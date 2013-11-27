@@ -87,46 +87,25 @@ if [ \$modelInChunks == "true" ]; then
 # together
 
     rm -rf \${skymodel}
-    pyscript=${parsetdirVis}/\${dir}/modelExtract_chan\${IND}.py
-    cat > \$pyscript <<EOF_INNER
-import fnmatch
-import numpy as np
-goodfiles=[]
-baseimage='${baseimage}'
-for file in os.listdir('${chunkdir}'):
-    if fnmatch.fnmatch(file,'%s_w*__'%baseimage):
-        goodfiles.append(file)
-goodfiles.sort()
 
-ia.open('${chunkdir}/%s'%goodfiles[0])
-crec=ia.coordsys().torecord()
-crec['direction0']['crpix']=np.array([${npix}/2.,${npix}/2.])
-bunit=ia.brightnessunit()
-ia.close()
-ia.newimagefromshape(outfile='\${skymodel}',shape=[${npix},${npix},1,${chanPerMSchunk}],csys=crec)
-ia.open('\${skymodel}')
-ia.setbrightnessunit(bunit)
-ia.close()
+    chanRange=\`echo \${IND} ${chanPerMSchunk} | awk '{printf "[%d,%d]",\$1*\$2,(\$1+1)*\$2-1}'\`
 
-for file in goodfiles:
-    offset=np.array(file.split('__')[1].split('_'),dtype=int)
-    ia.open('${chunkdir}/%s'%file)
-    shape=ia.shape()
-    blc=np.zeros(len(shape),dtype=int).tolist()
-    trc=(np.array(shape,dtype=int)-1).tolist()
-    blc[3]=\${IND} * ${chanPerMSchunk}
-    trc[3]=(\${IND}+1) * ${chanPerMSchunk} - 1
-    print file,offset,blc,trc
-    chunk=ia.getchunk(blc=blc,trc=trc)
-    ia.close()
-    ia.open('\${skymodel}')
-    ia.putchunk(pixels=chunk,blc=offset.tolist())
-    ia.close()
-
+    mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_${IND}.in
+    cat >> $mkSliceParset <<EOF_INNER
+makeModelSlice.modelname = ${chunkdir}/${baseimage}
+makeModelSlice.slicename = \${skymodel}
+makeModelSlice.nsubx = ${nsubxCR}
+makeModelSlice.nsuby = ${nsubyCR}
+makeModelSlice.sliceshape = [${npix},${npix},${nstokes},${chanPerMSchunk}]
+makeModelSlice.chanRange = \$chanRange
 EOF_INNER
 
-    pylog=${logdirVis}/\${dir}/modelExtract_chan\${IND}.log
-    casapy --nologger --log2term -c \${pyscript} > \$pylog
+    mkSliceLog=${logdirVis}/\${dir}/makeModelSlice_${IND}.log
+    \$makeModelSlice -c \$mkSliceParset > \$mkSliceLog
+    err=\$?
+    if [ \$err -ne 0 ]; then
+        exit \$err
+    fi
 
 fi
 
