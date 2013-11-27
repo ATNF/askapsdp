@@ -78,12 +78,12 @@ Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGI
 Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [\${freq}, \${freq}]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.nchan      = 1
-Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.direction  = [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.direction  = ${IMAGING_DIRECTION}
 #
 Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 800
+Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 800
+Cimager.gridder.AWProject.wmax                  = ${IMAGING_WMAX}
 Cimager.gridder.AWProject.nwplanes              = 129
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
@@ -103,7 +103,7 @@ Cimager.preconditioner.Names                    = None
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
-#Cimager.restore.equalise                        = True
+#Cimager.restore.equalise                        = ${IMAGING_EQUALISE}
 #
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}

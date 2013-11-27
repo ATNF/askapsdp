@@ -76,5 +76,7 @@ DO_SPECTRAL_LINE=false
 
 ## ASKAP-12 early science simulation
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12.sh
+#. ${SCRIPTDIR}/config_earlyScience_ASKAP12_dec30.sh
+#. ${SCRIPTDIR}/config_earlyScience_ASKAP12_dec04.sh
 
 

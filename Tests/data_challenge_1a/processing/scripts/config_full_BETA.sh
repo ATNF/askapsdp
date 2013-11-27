@@ -31,6 +31,11 @@
 # image size -- number of pixels and cellsize
     IMAGING_NUM_PIXELS=3328
     IMAGING_CELLSIZE=10arcsec
+    IMAGING_DIRECTION="[12h30m00.00, -45.00.00.00, J2000]"
+    IMAGING_WTOL=800
+    IMAGING_WMAX=800
+    IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
+    IMAGING_EQUALISE=True
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
