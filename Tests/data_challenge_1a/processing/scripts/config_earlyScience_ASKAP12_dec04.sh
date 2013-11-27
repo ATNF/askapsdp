@@ -26,7 +26,7 @@
 
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
     GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
-    NUM_BEAMS_GAINSCAL=36
+    NUM_BEAMS_GAINSCAL=4
 
 # image size -- number of pixels and cellsize
     IMAGING_NUM_PIXELS=4096
