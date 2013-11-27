@@ -504,9 +504,19 @@ namespace askap
 
 		std::ostream& operator<<(std::ostream& os, const Params& params)
 		{
-
+		    // for very long lists of parameters it is inconvenient to show all
+		    // elements. The following two parameters control how many parameters
+		    // are shown. If the total number of parameters is less than lengthLimit,
+		    // all parameters are shown. Otherwise, only first lengthLimit-showAtEnd and the
+		    // last showAtEnd are shown
+            const size_t lengthLimit = 20;
+            const size_t showAtEnd = 5;
+            ASKAPDEBUGASSERT(lengthLimit > showAtEnd);
+            
 			vector<string> names(params.names());
-			for(vector<string>::const_iterator it = names.begin(); it != names.end(); it++)
+			
+			size_t counter = 1;			
+			for(vector<string>::const_iterator it = names.begin(); it != names.end(); ++it,++counter)
 			{
 				os << *it << " : ";
 				if(params.isScalar(*it))
@@ -530,6 +540,14 @@ namespace askap
 				else
 				{
 					os << " (fixed)" << std::endl;
+				}
+				if ((counter == lengthLimit) && (counter + showAtEnd < names.size())) {
+				    // need to advance iterator to skip some elements
+				    const size_t elementsToSkip = names.size() - lengthLimit - showAtEnd;
+				    ASKAPDEBUGASSERT(elementsToSkip > 0);
+				    os<<" .... skipped "<<elementsToSkip<<" parameter"<<(elementsToSkip > 1 ? "s" : "")<<" ....."<<std::endl;
+				    // another increment happens in the for statement, so advance the iterator by one less step
+				    it += elementsToSkip - 1; 
 				}
 			}
 			return os;
