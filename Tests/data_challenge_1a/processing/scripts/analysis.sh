@@ -82,6 +82,7 @@ Eval.sourceCatalogue = selavy-fitResults.txt
 Eval.thresholdImage = ${THRESHIMAGE}.fits
 Eval.noiseImage = ${NOISEIMAGE}.fits
 Eval.snrImage = ${SNRIMAGE}.fits
+Eval.image = ${CONTINUUMIMAGE}.fits
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
@@ -116,6 +117,11 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
+imnoise=`grep MADFMas \$statlog | awk '{print \$3}'`
+cat >> \$parset <<EOF
+Eval.imageNoise = \${imnoise}
+EOF_INNER
+
 mpirun \$selavy -c \$parset > \$sflog
 err=\$?
 if [ \$err -ne 0 ]; then
@@ -129,6 +135,8 @@ if [ \$err -ne 0 ]; then
 fi
 
 # Convert threshold/noise/snr maps to FITS
+rm -f ${CONTINUUMIMAGE}.fits ${THRESHIMAGE}.fits ${NOISEIMAGE}.fits ${SNRIMAGE}.fits
+mpirun -np 1 image2fits in=${CONTINUUMIMAGE} out=${CONTINUUMIMAGE}.fits
 mpirun -np 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
 mpirun -np 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
 mpirun -np 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
@@ -149,6 +157,12 @@ if [ \$err -ne 0 ]; then
 fi
 
 mpirun -np 1 \$imageEval -c \$evalparset > \$ielog
+err=$?
+if [ \$err -ne 0 ]; then
+    exit $?
+fi
+
+mpirun -np 1 \$finderEval -c \$evalparset > \$filog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
