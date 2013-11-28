@@ -250,13 +250,13 @@ namespace std {
 template<typename T>
 inline ostream& operator<<(ostream& os, const vector<T>& c)
 {
-    askap::printContainer(os, c, ",", "[", "]");
+    askap::printContainer(os, c, ",", "[", "]", size_t(20));
     return os;
 }
 template<typename T>
 inline ostream& operator<<(ostream& os, const list<T>& c)
 {
-    askap::printContainer(os, c, ",", "[", "]");
+    askap::printContainer(os, c, ",", "[", "]", size_t(20));
     return os;
 }
 //@}
