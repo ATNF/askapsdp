@@ -1,0 +1,9 @@
+#########################
+# ASKAP Central Processor
+#########################
+
+# Ingest Pipeline
+!define INGESTRANKS = {rank0}
+
+cp.ingest.PacketsLost      "VisDatagrams expected but not received by Ingest Pipeline"  "" ""    INGESTRANKS T - - - - Change- - -
+cp.ingest.VisFlagCount     "Visibilities Flagged (at egress)"                           "" ""    INGESTRANKS T - - - - Change- - -
