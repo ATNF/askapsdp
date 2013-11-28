@@ -62,7 +62,7 @@ MonitoringSingleton::MonitoringSingleton(const Configuration& config)
         : itsConfig(config)
 {
     // Create the prefix for all point names
-    itsPrefix = "cp.ingest" + utility::toString(config.rank()) + ".";
+    itsPrefix = "ingest" + utility::toString(config.rank()) + ".cp.ingest.";
 
     // Setup Ice and try to connect to the MoniCA service
     tryConnect();

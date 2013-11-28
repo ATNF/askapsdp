@@ -59,7 +59,7 @@
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
-
+#include "monitoring/MonitorPoint.h"
 
 // name substitution should get the same name for all ranks, we need MPI for that
 // it would be nicer to get all MPI-related stuff to a single (top-level?) file eventually
@@ -97,6 +97,9 @@ MSSink::~MSSink()
 void MSSink::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
+
+    // Calculate monitoring points and submit them
+    submitMonitoringPoints(chunk);
 
     // Handle the details for when a new scan starts
     if (itsPreviousScanIndex != static_cast<casa::Int>(chunk->scan())) {
@@ -780,6 +783,21 @@ bool MSSink::isPolarisationRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
     }
 
     return true;
+}
+
+void MSSink::submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk)
+{
+    int32_t flagCount = 0;
+
+    const casa::Cube<casa::Bool>& flags = chunk->flag();
+    for (typename Array<casa::Bool>::const_contiter it = flags.cbegin();
+            it != flags.cend(); ++it) {
+        if (*it) ++flagCount;
+    }
+
+    // Submit monitoring data
+    MonitorPoint<int32_t> flagCountPoint("VisFlagCount");
+    flagCountPoint.update(flagCount);
 }
 
 bool MSSink::equal(const casa::MDirection &dir1, const casa::MDirection &dir2)

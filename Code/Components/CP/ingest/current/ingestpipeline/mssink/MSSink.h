@@ -161,6 +161,10 @@ class MSSink : public askap::cp::ingest::ITask {
         bool isPolarisationRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
                 const casa::uInt row) const;
 
+        // Generate any monitoring data from the "chunk" and submit to the
+        // MonitoringSingleton
+        void submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk);
+
         // Helper function to compare MDirections
         static bool equal(const casa::MDirection &dir1, const casa::MDirection &dir2);
 
