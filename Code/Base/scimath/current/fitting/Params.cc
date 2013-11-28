@@ -541,7 +541,7 @@ namespace askap
 				{
 					os << " (fixed)" << std::endl;
 				}
-				if ((counter == lengthLimit) && (counter + showAtEnd < names.size())) {
+				if ((counter == lengthLimit) && (counter + showAtEnd  + 1 < names.size())) {
 				    // need to advance iterator to skip some elements
 				    const size_t elementsToSkip = names.size() - lengthLimit - showAtEnd;
 				    ASKAPDEBUGASSERT(elementsToSkip > 0);

@@ -69,23 +69,47 @@ int nint(float x);
 
 /// Write a vector to an ostream with a given separator, prefix and postfix.
 /// \note operator<<() must be defined for the container elements.
+/// @param[in] os output stream
+/// @param[in] ctr container to work with (type is the template parameter)
+/// @param[in] separator separator between elements
+/// @param[in] prefix string printed before the elements
+/// @param[in] postfix string printed after all elements
+/// @param[in] lengthLimit maximum number of elements to print, if exceeded only elements at the
+///            start and at the end are shown. It shouldn't be less than showAtEnd defined in the code. Zero is the special value
+///            meaning to show all elements
 template<typename Container>
 void printContainer(std::ostream& os, const Container& ctr,
                     const char* separator = ",",
-                    const char* prefix = "[", const char* postfix = "]")
+                    const char* prefix = "[", const char* postfix = "]", const size_t lengthLimit = 0)
 {
     os << prefix;
-
+    
+    const size_t showAtEnd = 5;
+    if (lengthLimit > 0) {
+        ASKAPDEBUGASSERT(lengthLimit > showAtEnd);
+    } 
+    
+    size_t counter = 1;			       
     for (typename Container::const_iterator it = ctr.begin();
-            it != ctr.end();
-            ++it) {
-        if (it != ctr.begin()) {
+            it != ctr.end(); ++it, ++counter) {
+         if (it != ctr.begin()) {
             os << separator;
-        }
+         }
 
-        os << *it;
+         os << *it;
+    
+         if ((counter == lengthLimit) && (counter + showAtEnd  + 1 < ctr.size())) {
+             // need to advance iterator to skip some elements
+             const size_t elementsToSkip = ctr.size() - lengthLimit - showAtEnd;
+             ASKAPDEBUGASSERT(elementsToSkip > 0);
+             os << separator << "....";
+             // another increment happens in the for statement, so advance the iterator by one less step
+             // do increments in a generic way as some containers do not support random access
+             for (size_t el = 1; el < elementsToSkip; ++el, ++it) {
+                  ASKAPDEBUGASSERT(it != ctr.end());
+             } 
+	     }
     }
-
     os << postfix;
 }
 
