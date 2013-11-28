@@ -790,7 +790,7 @@ void MSSink::submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk)
     int32_t flagCount = 0;
 
     const casa::Cube<casa::Bool>& flags = chunk->flag();
-    for (typename Array<casa::Bool>::const_contiter it = flags.cbegin();
+    for (Array<casa::Bool>::const_contiter it = flags.cbegin();
             it != flags.cend(); ++it) {
         if (*it) ++flagCount;
     }
