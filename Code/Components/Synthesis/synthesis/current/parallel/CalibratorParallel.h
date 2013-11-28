@@ -181,7 +181,14 @@ namespace askap
       /// @note if no start/stop time metadata are present in the normal equations
       /// this method returns 0.
       double solutionTime() const;
-      
+   
+      /// @brief helper method to update channel offset
+      /// @details To be able to process a subset of channels we specify the offset
+      /// in the model. However, this offset needs to be reset per worker in the 
+      /// parallel case for the correct operation. This method encapsulates the required
+      /// code of setting the channel offset to the value of itsStartChan
+      void setChannelOffsetInModel() const; 
+         
   private:
       /// @brief read the model from parset file and populate itsPerfectModel
       /// @details This method is common between several classes and probably

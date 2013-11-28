@@ -287,7 +287,7 @@ namespace askap
         in.getEnd();
     }
     
-    /// @brief helper method to indentify model parameters to broadcast
+    /// @brief helper method to identify model parameters to broadcast
     /// @details We use itsModel to buffer some derived images like psf, weights, etc
     /// which are not required for prediffers. It just wastes memory and CPU time if
     /// we broadcast them. At the same time, some auxilliary parameters like peak

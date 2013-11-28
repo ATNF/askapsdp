@@ -294,6 +294,8 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       // because it has been cloned at construction
       ASKAPCHECK(itsEquation, "Equation is not defined");
       ASKAPCHECK(itsModel, "Model is not defined");
+      // set helper parameter controlling which part of bandpass is solved for (ignored in all other cases)
+      setChannelOffsetInModel();
       itsEquation->setParameters(*itsModel);
   }
   ASKAPCHECK(itsNe, "NormalEquations are not defined");
@@ -376,12 +378,7 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    itsEquation = preAvgME;
  
    // set helper parameter controlling which part of bandpass is solved for (ignored in all other cases)
-   if (itsModel->has("chan_offset")) {
-       itsModel->update("chan_offset",double(itsStartChan));
-   } else {
-       itsModel->add("chan_offset",double(itsStartChan));
-   } 
-   itsModel->fix("chan_offset");
+   setChannelOffsetInModel();
           
    // this is just because we bypass setting the model for the first major cycle
    // in the case without pre-averaging
@@ -390,6 +387,21 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    setNextChunkFlag(nextChunk());
   }
 }
+
+/// @brief helper method to update channel offset
+/// @details To be able to process a subset of channels we specify the offset
+/// in the model. However, this offset needs to be reset per worker in the 
+/// parallel case for the correct operation. This method encapsulates the required
+/// code of setting the channel offset to the value of itsStartChan
+void CalibratorParallel::setChannelOffsetInModel() const {
+   if (itsModel->has("chan_offset")) {
+       itsModel->update("chan_offset",double(itsStartChan));
+   } else {
+       itsModel->add("chan_offset",double(itsStartChan));
+   } 
+   itsModel->fix("chan_offset");
+}
+
 
 /// Calculate the normal equations for a given measurement set
 void CalibratorParallel::calcNE()
