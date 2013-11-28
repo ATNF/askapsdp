@@ -606,7 +606,10 @@ namespace askap {
 		wld[1] = atof(src->dec().c_str());
 	      } else ASKAPLOG_ERROR_STR(logger, "Incorrect position type: " << this->itsPosType);
 
-	      wld[2] = this->itsBaseFreq;
+	      if(this->itsDim > 2)
+		  wld[2] = this->itsBaseFreq;
+	      else 
+		  wld[2] = 0.;
 
 //  	      ASKAPLOG_DEBUG_STR(logger, "Source positions (with posType="<<this->itsPosType
 //  				 <<"): RA="<<src->ra()<<"->"<<wld[0]<<", DEC="<<src->dec()<<"->"<<wld[1]
