@@ -39,10 +39,14 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/shared_ptr.hpp"
 #include "Ice/Ice.h"
 #include "iceutils/CommunicatorConfig.h"
 #include "iceutils/CommunicatorFactory.h"
+#include "measures/Measures/MEpoch.h"
+#include "casa/OS/Time.h"
+#include "casa/Quanta/MVEpoch.h"
 #include "MoniCA.h" // ICE generated interface
 
 // Local package includes
@@ -160,7 +164,10 @@ void MonitoringSingleton::enqueue(const std::string& name,
 
 long MonitoringSingleton::getTime(void) const
 {
-    return time(0);
+    casa::Time date;
+    casa::MEpoch now(casa::MVEpoch(date.modifiedJulianDay()),
+            casa::MEpoch::Ref(casa::MEpoch::UTC));
+    return static_cast<long>(askap::epoch2bat(now));
 }
 
 void MonitoringSingleton::senderrun(void)
@@ -198,7 +205,7 @@ void MonitoringSingleton::senderrun(void)
 
             // Send the batch
             try {
-                itsMonicaProxy->setData(names, values, "notused", "notused");
+                itsMonicaProxy->setData(names, values, "0000", "0000");
             } catch (Ice::Exception& e) {
                 ASKAPLOG_DEBUG_STR(logger, "Ice::Exception: " << e);
             } catch (std::exception& e) {

@@ -249,10 +249,10 @@ cal_data_service.servicename            = CalibrationDataService
 #
 # Monitoring Data Publisher Configuration
 #
-monitoring.enabled                      = false
+monitoring.enabled                      = true
 monitoring.ice.locator_host             = localhost
 monitoring.ice.locator_port             = 4061
-monitoring.servicename                  = MoniCAService
+monitoring.servicename                  = MoniCAService@MoniCAAdminAdapter
 
 #
 # Task List
