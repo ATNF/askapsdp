@@ -29,8 +29,8 @@ sourcelist=master_possum_catalogue_trim10x10deg.dat
 
 doSmallBETA=true
 
-#freqChanZeroMHz=1421
-freqChanZeroMHz=1050
+freqChanZeroMHz=1421
+#freqChanZeroMHz=1050
 
 baseimage="DCmodel"
 databaseCR=POSSUM
@@ -52,7 +52,9 @@ msbase=DCvis
 
 #. ${scriptdir}/configSmallBETA.sh
 #. ${scriptdir}/configFullBETA.sh
-. ${scriptdir}/configASKAP12.sh
+#. ${scriptdir}/configASKAP12.sh
+#. ${scriptdir}/configASKAP12_dec30.sh
+. ${scriptdir}/configASKAP12_dec04.sh
 
 
 ##############################
