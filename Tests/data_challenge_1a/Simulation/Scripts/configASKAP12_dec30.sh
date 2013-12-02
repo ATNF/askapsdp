@@ -178,6 +178,7 @@ fi
 nw=129
 os=4
 pad=1.
+doFreqDep=true
 
 if [ $useGaussianComponents != "true" ]; then
     msbase="${msbase}_discs"

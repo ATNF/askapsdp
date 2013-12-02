@@ -159,7 +159,7 @@ Csimulator.gridder.${gridder}.diameter           =       12m
 Csimulator.gridder.${gridder}.blockage           =       2m
 Csimulator.gridder.${gridder}.maxsupport         =       ${maxsup}
 Csimulator.gridder.${gridder}.maxfeeds           =       ${nfeeds}
-Csimulator.gridder.${gridder}.frequencydependent =       false
+Csimulator.gridder.${gridder}.frequencydependent =       ${doFreqDep}
 Csimulator.gridder.${gridder}.variablesupport    =       true 
 Csimulator.gridder.${gridder}.offsetsupport      =       true 
 #
