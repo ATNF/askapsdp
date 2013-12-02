@@ -68,6 +68,7 @@ ${csimSelect}
 cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
+makeModelSlice=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeModelSlice.sh
 csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.sh
 rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
