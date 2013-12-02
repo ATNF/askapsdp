@@ -14,18 +14,22 @@ from askap.slice import LoggingService
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
 from askap.interfaces.logging import ILogger
+import threading
 
 last_event = []
 log_msg = "Testing the IceAppender"
 log_origin = "MyLogger"
 
+LOGEVENT = threading.Event()
+
 # pylint: disable-msg=W0232
 class LoggerImpl(ILogger):
     # pylint: disable-msg=W0613,W0603,R0201
     def send(self, event, current=None):
-        global last_event
+        global last_event, LOGEVENT
         last_event = [event.origin, event.level, event.created,
                       event.message, event.tag, event.hostname]
+        LOGEVENT.set()
 
 class LogSubscriber(object):
     def __init__(self, comm):
@@ -80,7 +84,10 @@ class TestIceLogger(object):
     def test_info(self):
         # this sends a log message over icestorm to the logger topic
         subprocess.call(['./tIceAppender'], shell=True)
-        time.sleep(1)
+        received = LOGEVENT.wait(5)
+        if received is None:
+            received = LOGEVENT.is_set()
+        assert(received)
         assert_equals(last_event[0], log_origin)
         assert_equals(last_event[-3], log_msg)
         assert_equals(last_event[-1], socket.gethostname())
