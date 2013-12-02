@@ -91,7 +91,7 @@ if [ \$modelInChunks == "true" ]; then
 
     chanRange=\`echo \${IND} ${chanPerMSchunk} | awk '{printf "[%d,%d]",\$1*\$2,(\$1+1)*\$2-1}'\`
 
-    mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_${IND}.in
+    mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_\${IND}.in
     cat >> \${mkSliceParset} <<EOF_INNER
 makeModelSlice.modelname = ${chunkdir}/${baseimage}
 makeModelSlice.slicename = \${skymodel}
@@ -101,7 +101,7 @@ makeModelSlice.sliceshape = [${npix},${npix},${nstokes},${chanPerMSchunk}]
 makeModelSlice.chanRange = \$chanRange
 EOF_INNER
 
-    mkSliceLog=${logdirVis}/\${dir}/makeModelSlice_${IND}.log
+    mkSliceLog=${logdirVis}/\${dir}/makeModelSlice_\${IND}.log
     \$makeModelSlice -c \$mkSliceParset > \$mkSliceLog
     err=\$?
     if [ \$err -ne 0 ]; then
