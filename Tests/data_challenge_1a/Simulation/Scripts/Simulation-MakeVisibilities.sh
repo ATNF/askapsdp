@@ -91,7 +91,7 @@ if [ \$modelInChunks == "true" ]; then
     chanRange=\`echo \${IND} ${chanPerMSchunk} | awk '{printf "[%d,%d]",\$1*\$2,(\$1+1)*\$2-1}'\`
 
     mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_${IND}.in
-    cat >> $mkSliceParset <<EOF_INNER
+    cat >> \${mkSliceParset} <<EOF_INNER
 makeModelSlice.modelname = ${chunkdir}/${baseimage}
 makeModelSlice.slicename = \${skymodel}
 makeModelSlice.nsubx = ${nsubxCR}
