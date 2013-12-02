@@ -101,9 +101,11 @@ namespace askap {
 	    casa::CoordinateSystem newCoords = this->itsRefCoordinates;
 	    int lngAxis=newCoords.directionAxesNumbers()[0];
 	    int latAxis=newCoords.directionAxesNumbers()[1];
+	    int spcAxis=newCoords.spectralAxisNumber();
 	    casa::Vector<double> refPix = newCoords.referencePixel();
 	    refPix[lngAxis] = this->itsSliceShape[lngAxis]/2.;
 	    refPix[latAxis] = this->itsSliceShape[latAxis]/2.;
+	    refPix[spcAxis] -= this->itsChanRange[0];
 	    ASKAPASSERT(newCoords.setReferencePixel(refPix));
     
 	    const double size = static_cast<double>(this->itsSliceShape.product()) * sizeof(float);
