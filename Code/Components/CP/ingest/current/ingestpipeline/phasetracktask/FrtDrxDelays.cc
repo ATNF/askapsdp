@@ -101,7 +101,7 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (exceeds 4095)");
            drxDelay = 4095;
        }
-       if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) < itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
+       if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) > itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
            ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay);
            itsFrtComm.setDRxDelay(ant, drxDelay);
        }
