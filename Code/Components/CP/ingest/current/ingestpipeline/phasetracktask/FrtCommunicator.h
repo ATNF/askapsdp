@@ -66,9 +66,26 @@ public:
     
     /// @brief request DRx delay
     /// @param[in] ant antenna index
-    /// @param[in] int delay setting (in the units required by hardware)
-    void requestDRxDelay(const casa::uInt ant, const int delay);
+    /// @param[in] delay delay setting (in the units required by hardware)
+    void setDRxDelay(const casa::uInt ant, const int delay);
+    
+    /// @brief request FR setting
+    /// @details upload hardware fringe rotator parameters
+    /// @param[in] ant antenna index
+    /// @param[in] phaseRate phase rate to set (in the units required by hardware)
+    /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+    /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+    void setFRParameters(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset);    
       
+    /// @brief simultaneously request both DRx and FR setting
+    /// @details upload hardware fringe rotator parameters and DRx delays in a single call 
+    /// @param[in] ant antenna index
+    /// @param[in] delay delay setting (in the units required by hardware)
+    /// @param[in] phaseRate phase rate to set (in the units required by hardware)
+    /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+    /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+    void setDRxAndFRParameters(const casa::uInt ant, const int delay, const int phaseRate, const int phaseSlope, const int phaseOffset);    
+            
     /// @brief get requested DRx delay
     /// @param[in] ant antenna index 
     /// @return DRx delay setting
@@ -94,12 +111,32 @@ public:
     /// @return true, if the given antenna produces valid data
     bool isValid(const casa::uInt ant) const;
     
+    /// @brief test if antenna is uninitialised
+    /// @param[in] ant antenna index
+    /// @return true, if the given antenna is uninitialised
+    bool isUninitialised(const casa::uInt ant) const;
+        
     /// @brief signal of the new time stamp
     /// @details Without asynchronous thread, the current implementation relies on this method
     /// being called every cycle. It manages time outs and flags/unflags antennas as necessary.
     void newTimeStamp(const casa::MVEpoch &epoch); 
         
 protected:
+
+    /// @brief helper method to form a message to set fringe rotation parameters
+    /// @param[in] ant antenna index
+    /// @param[in] phaseRate phase rate to set (in the units required by hardware)
+    /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+    /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+    /// @return map with the message
+    std::map<std::string, int> getFRParametersMsg(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset);    
+
+    /// @brief helper method to form a message to set DRx delay
+    /// @param[in] ant antenna index
+    /// @param[in] delay delay setting (in the units required by hardware)
+    /// @return map with the message
+    std::map<std::string, int> getDRxDelayMsg(const casa::uInt ant, const int delay);
+
 
     /// @brief helper method to tag a message with time-based ID
     /// @details We need to be able to track which requests are completed and when. It is done

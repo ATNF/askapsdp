@@ -59,11 +59,11 @@ FrtCommunicator::FrtCommunicator(const LOFAR::ParameterSet& parset, const Config
    itsAntennaStatuses = std::vector<AntennaFlagStatus>(nAnt, ANT_UNINITIALISED);
    itsAntennaRequestIDs.resize(nAnt);
    itsRequestCompletedTimes.resize(nAnt);
+   itsRequestedDRxDelays.resize(nAnt, -1);
+   itsRequestedFRPhaseRates.resize(nAnt, -1);
+   itsRequestedFRPhaseSlopes.resize(nAnt, -1);
+   itsRequestedFRPhaseOffsets.resize(nAnt, -1);
    itsAntennaNames.resize(nAnt);
-   itsRequestedDRxDelays.resize(nAnt);
-   itsRequestedFRPhaseRates.resize(nAnt);
-   itsRequestedFRPhaseSlopes.resize(nAnt);
-   itsRequestedFRPhaseOffsets.resize(nAnt);
    for (size_t i = 0; i < nAnt; ++i) {
         itsAntennaNames[i] = casa::downcase(antennas.at(i).name());
    }
@@ -132,6 +132,15 @@ bool FrtCommunicator::isValid(const casa::uInt ant) const
   return itsAntennaStatuses[ant] == ANT_VALID;
 }
 
+/// @brief test if antenna is uninitialised
+/// @param[in] ant antenna index
+/// @return true, if the given antenna is uninitialised
+bool FrtCommunicator::isUninitialised(const casa::uInt ant) const
+{
+  ASKAPASSERT(ant < itsAntennaStatuses.size());
+  return itsAntennaStatuses[ant] == ANT_UNINITIALISED;
+}
+
 /// @brief signal of the new time stamp
 /// @details Without asynchronous thread, the current implementation relies on this method
 /// being called every cycle. It manages time outs and flags/unflags antennas as necessary.
@@ -146,7 +155,7 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
            if (timeSince.getTime("s").getValue() >= timeOut) {
                ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "<<itsAntennaNames[ant]<<
                                  ", unflagging the antenna");
-               itsAntennaStatuses[ant] == ANT_VALID;
+               itsAntennaStatuses[ant] = ANT_VALID;
            }
        }
   } 
@@ -183,18 +192,99 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
 /// @brief request DRx delay
 /// @param[in] ant antenna index
 /// @param[in] int delay setting (in the units required by hardware)
-void FrtCommunicator::requestDRxDelay(const casa::uInt ant, const int delay)
+void FrtCommunicator::setDRxDelay(const casa::uInt ant, const int delay)
 {
-   ASKAPASSERT(ant < itsAntennaNames.size());
-   std::map<std::string, int> msg;
-   msg[itsAntennaNames[ant]+".drx_delay"] = delay;
+   ASKAPDEBUGASSERT(ant < itsAntennaRequestIDs.size());
+   ASKAPDEBUGASSERT(ant < itsAntennaStatuses.size());
+   
+   std::map<std::string, int> msg = getDRxDelayMsg(ant, delay);
+   
    const int id = tagMessage(msg);
-   itsRequestedDRxDelays[ant] = delay;
    itsAntennaRequestIDs[ant] = id;
    itsAntennaStatuses[ant] = ANT_DRX_REQUESTED;
    // send the message
    itsOutPort->send(msg);
 }
+
+/// @brief helper method to form a message to set DRx delay
+/// @param[in] ant antenna index
+/// @param[in] delay delay setting (in the units required by hardware)
+/// @return map with the message
+std::map<std::string, int> FrtCommunicator::getDRxDelayMsg(const casa::uInt ant, const int delay)
+{
+   ASKAPASSERT(ant < itsAntennaNames.size());
+   std::map<std::string, int> msg;
+   msg[itsAntennaNames[ant]+".drx_delay"] = delay;
+   itsRequestedDRxDelays[ant] = delay;
+   return msg;
+}
+
+
+/// @brief request FR setting
+/// @details upload hardware fringe rotator parameters
+/// @param[in] ant antenna index
+/// @param[in] phaseRate phase rate to set (in the units required by hardware)
+/// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+/// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+void FrtCommunicator::setFRParameters(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset)
+{
+   ASKAPDEBUGASSERT(ant < itsAntennaRequestIDs.size());
+   ASKAPDEBUGASSERT(ant < itsAntennaStatuses.size());
+   std::map<std::string, int> msg = getFRParametersMsg(ant, phaseRate, phaseSlope, phaseOffset);
+   
+   const int id = tagMessage(msg);
+   itsAntennaRequestIDs[ant] = id;
+   itsAntennaStatuses[ant] = ANT_FR_REQUESTED;
+   // send the message
+   itsOutPort->send(msg);   
+}
+
+/// @brief helper method to form a message to set fringe rotation parameters
+/// @param[in] ant antenna index
+/// @param[in] phaseRate phase rate to set (in the units required by hardware)
+/// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+/// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+/// @return map with the message
+std::map<std::string, int> FrtCommunicator::getFRParametersMsg(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset)
+{
+   ASKAPASSERT(ant < itsAntennaNames.size());
+   const std::string antName = itsAntennaNames[ant];
+   
+   std::map<std::string, int> msg;
+   msg[antName+".phase_rate"] = phaseRate;
+   msg[antName+".phase_slope"] = phaseSlope;
+   msg[antName+".phase_offset"] = phaseOffset;   
+   
+   itsRequestedFRPhaseRates[ant] = phaseRate;
+   itsRequestedFRPhaseSlopes[ant] = phaseSlope;
+   itsRequestedFRPhaseOffsets[ant] = phaseOffset;
+   
+   return msg;  
+}    
+    
+
+/// @brief simultaneously request both DRx and FR setting
+/// @details upload hardware fringe rotator parameters and DRx delays in a single call 
+/// @param[in] ant antenna index
+/// @param[in] delay delay setting (in the units required by hardware)
+/// @param[in] phaseRate phase rate to set (in the units required by hardware)
+/// @param[in] phaseSlope phase slope to set (in the units required by hardware)
+/// @param[in] phaseOffset phase offset to set (in the units required by hardware)
+void FrtCommunicator::setDRxAndFRParameters(const casa::uInt ant, const int delay, const int phaseRate, const int phaseSlope, const int phaseOffset)
+{
+   ASKAPDEBUGASSERT(ant < itsAntennaRequestIDs.size());
+   ASKAPDEBUGASSERT(ant < itsAntennaStatuses.size());
+   std::map<std::string, int> msg = getFRParametersMsg(ant, phaseRate, phaseSlope, phaseOffset);
+   const std::map<std::string, int> msgDRx = getDRxDelayMsg(ant, delay);
+   msg.insert(msgDRx.begin(), msgDRx.end());
+   
+   const int id = tagMessage(msg);
+   itsAntennaRequestIDs[ant] = id;
+   itsAntennaStatuses[ant] = ANT_DRX_AND_FR_REQUESTED;
+   // send the message
+   itsOutPort->send(msg);   
+}    
+
 
 /// @brief helper method to tag a message with time-based ID
 /// @details We need to be able to track which requests are completed and when. It is done

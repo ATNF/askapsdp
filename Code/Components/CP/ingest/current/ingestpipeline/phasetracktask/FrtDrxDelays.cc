@@ -39,7 +39,7 @@
 #include <string>
 #include <map>
 
-ASKAP_LOGGER(logger, ".PhaseTrackTask");
+ASKAP_LOGGER(logger, ".FrtDrxDelay");
 
 namespace askap {
 namespace cp {
@@ -50,21 +50,22 @@ namespace ingest {
 /// @brief Constructor.
 /// @param[in] parset the configuration parameter set.
 // @param[in] config configuration
-FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuration& /*config*/)
+FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuration& config) : 
+       itsFrtComm(parset, config), 
+       itsDRxDelayTolerance(static_cast<int>(parset.getUint32("drxdelaystep",0u))),
+       itsTrackResidualDelay(parset.getBool("trackresidual",true))
 {
-   const std::string locatorHost = parset.getString("ice.locator_host");
-   const std::string locatorPort = parset.getString("ice.locator_port");
-   const std::string topicManager = parset.getString("icestorm.topicmanager");
-   const std::string outtopic = parset.getString("icestorm.outtopic");
-   const std::string intopic = parset.getString("icestorm.intopic");
-   const std::string adapterName = "FrtDrxDelays";
-   const int bufSize = 24;
-   ASKAPLOG_INFO_STR(logger, "Creating simple delay/phase tracker working via DRx, ice topics: "<<outtopic<<" and "<<intopic);
-
-   itsOutPort.reset(new icewrapper::FrtMetadataOutputPort(locatorHost, locatorPort, topicManager, outtopic));
-   itsInPort.reset(new FrtMetadataSource(locatorHost, locatorPort, topicManager, intopic, adapterName, bufSize));
-   ASKAPDEBUGASSERT(itsOutPort);
-   ASKAPDEBUGASSERT(itsInPort);
+   if (itsDRxDelayTolerance == 0) {
+       ASKAPLOG_INFO_STR(logger, "DRx delays will be updated every time the delay changes by 1.3 ns");
+   } else {
+       ASKAPLOG_INFO_STR(logger, "DRx delays will be updated when the required delay diverges more than "<<itsDRxDelayTolerance<<
+                         " 1.3ns steps");
+   } 
+   if (itsTrackResidualDelay) {
+       ASKAPLOG_INFO_STR(logger, "Residual delays and phases will be tracked in software");       
+   } else {
+       ASKAPLOG_INFO_STR(logger, "No attempt to track the residual delays and phases in software will be made");       
+   }
 }
 
 /// Process a VisChunk.
@@ -84,15 +85,13 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
               const casa::Matrix<double> &delays, const casa::Matrix<double> &/*rates*/, const double effLO)
 {
   ASKAPDEBUGASSERT(delays.ncolumn() > 0);
+  // signal about new timestamp (there is no much point to mess around with threads as actions are tide down to correlator cycles
+  itsFrtComm.newTimeStamp(chunk->time());
 
-  if (itsDRxDelays.nelements() < delays.nrow()) {
-      itsDRxDelays.resize(delays.nrow());
-      itsDRxDelays.set(4097); // outside the range and it wouldn't match
-  }
-  std::map<std::string, int> msg;
   const double samplePeriod = 1./768e6; // sample rate is 768 MHz
   for (casa::uInt ant = 0; ant < delays.nrow(); ++ant) {
        const double diffDelay = (delays(ant,0) - delays(0,0))/samplePeriod;
+       // ideal delay
        casa::Int drxDelay = static_cast<casa::Int>(2048. + diffDelay);
        if (drxDelay < 0) {
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (below 0)");
@@ -102,38 +101,59 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (exceeds 4095)");
            drxDelay = 4095;
        }
-       const casa::uInt uDRxDelay = static_cast<casa::uInt>(drxDelay);
-       if (uDRxDelay != itsDRxDelays[ant]) { 
-           // add delay request to the message (need to sort out key names and antenna naming later)
-           msg["ant"+utility::toString(ant)] = uDRxDelay;
-           itsDRxDelays[ant] = uDRxDelay;
+       if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) < itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
            ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay);
+           itsFrtComm.setDRxDelay(ant, drxDelay);
        }
-  }
-  if (msg.size()) {
-      // send the message
-      itsOutPort->send(msg);
-  }
-  // we don't really need the reply at this stage, just pop it out of the queue for a test
-  boost::shared_ptr<std::map<std::string,int> > reply = itsInPort->next(0);
-  if (reply) {
-      ASKAPLOG_INFO_STR(logger, "Received a frt reply message");
   }
   //
   for (casa::uInt row = 0; row < chunk->nRow(); ++row) {
        // slice to get this row of data
-       casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
        const casa::uInt ant1 = chunk->antenna1()[row];
        const casa::uInt ant2 = chunk->antenna2()[row];
        ASKAPDEBUGASSERT(ant1 < delays.nrow());
        ASKAPDEBUGASSERT(ant2 < delays.nrow());
-       const double thisRowDelay = delays(ant2,0) - delays(ant1,0);
+       if (itsFrtComm.isValid(ant1) && itsFrtComm.isValid(ant2)) {
+           // desired delays are set and applied, do phase rotation
+           casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
+           const double appliedDelay = samplePeriod * (itsFrtComm.requestedDRxDelay(ant2)-itsFrtComm.requestedDRxDelay(ant1));
 
-       const float phase = -2. * static_cast<float>(casa::C::pi * effLO * thisRowDelay);
-       const casa::Complex phasor(cos(phase), sin(phase));
+           if (itsTrackResidualDelay) {
+               // attempt to correct for residual delays in software
+               const casa::uInt beam1 = chunk->beam1()[row];
+               const casa::uInt beam2 = chunk->beam2()[row];
+               ASKAPDEBUGASSERT(beam1 < delays.ncolumn());
+               ASKAPDEBUGASSERT(beam2 < delays.ncolumn());
+               // actual delay
+               const double thisRowDelay = delays(ant2,beam2) - delays(ant1,beam1);
+               const double residualDelay = thisRowDelay - appliedDelay;
+               
+               const double phaseDueToAppliedDelay = -2. * casa::C::pi * effLO * appliedDelay;
+               const casa::Vector<casa::Double>& freq = chunk->frequency();
+               ASKAPDEBUGASSERT(freq.nelements() == thisRow.nrow());
+               for (casa::uInt chan = 0; chan < thisRow.nrow(); ++chan) {
+                    casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
+                    const float phase = static_cast<float>(phaseDueToAppliedDelay - 
+                                 2. * casa::C::pi * freq[chan] * residualDelay);
+                    const casa::Complex phasor(cos(phase), sin(phase));
 
-       // actual rotation
-       thisRow *= phasor;
+                    // actual rotation (same for all polarisations)
+                    thisChan *= phasor;
+               }
+               
+           } else {
+              // just correct phases corresponding to the applied delay in IF (simple phase tracking) 
+              const float phase = -2. * static_cast<float>(casa::C::pi * effLO * appliedDelay);
+              const casa::Complex phasor(cos(phase), sin(phase));
+
+              // actual rotation
+              thisRow *= phasor;
+           }
+       } else {
+         // the parameters for these antennas are being changed, flag the data
+         casa::Matrix<casa::Bool> thisFlagRow = chunk->flag().yzPlane(row);
+         thisFlagRow.set(casa::True); 
+       }
   }
 }
 

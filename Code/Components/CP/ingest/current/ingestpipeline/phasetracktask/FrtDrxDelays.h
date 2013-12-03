@@ -29,7 +29,7 @@
 
 // ASKAPsoft includes
 #include "cpcommon/VisChunk.h"
-#include "frtmetadata/FrtMetadataOutputPort.h"
+#include "ingestpipeline/phasetracktask/FrtCommunicator.h"
 #include "Common/ParameterSet.h"
 
 // Local package includes
@@ -78,9 +78,15 @@ class FrtDrxDelays : virtual public IFrtApproach {
                      const casa::Matrix<double> &delays, const casa::Matrix<double> &rates, const double effLO);
     
     private:
-        boost::shared_ptr<icewrapper::FrtMetadataOutputPort> itsOutPort;
-        boost::shared_ptr<FrtMetadataSource> itsInPort;
-        casa::Vector<casa::uInt> itsDRxDelays;
+        /// @brief communicator with the python part executing OSL scripts
+        FrtCommunicator itsFrtComm;
+        
+        /// @brief tolerance on the DRx setting
+        /// @details The DRx delay is updated when the required value goes outside the tolerance.
+        int itsDRxDelayTolerance;
+        
+        /// @brief if true, attempt to track residual delays in software
+        bool itsTrackResidualDelay;
 };
 
 } // namespace ingest 
