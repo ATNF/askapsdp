@@ -52,7 +52,7 @@ namespace ingest {
 /// @param[in] parset the configuration parameter set.
 /// @param[in] config configuration
 FrtCommunicator::FrtCommunicator(const LOFAR::ParameterSet& parset, const Configuration& config) :
-       itsCyclesToWait(parset.getUint32("cycles2skip",5u))
+       itsCyclesToWait(parset.getUint32("cycles2skip",5u)), itsMsgCounter(1)
 {
    const std::vector<Antenna> antennas = config.antennas();
    const size_t nAnt = antennas.size();
@@ -146,7 +146,6 @@ bool FrtCommunicator::isUninitialised(const casa::uInt ant) const
 /// being called every cycle. It manages time outs and flags/unflags antennas as necessary.
 void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
 {
-  itsCurrentEpoch = epoch;
   // first check any requests waiting for completion
   const double timeOut = 5.* itsCyclesToWait;
   for (size_t ant = 0; ant < itsAntennaStatuses.size(); ++ant) {
@@ -171,7 +170,7 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
                    itsAntennaRequestIDs[ant] = -1;          
                    if (itsCyclesToWait > 0) {
                        ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters have been applied for "<<itsAntennaNames[ant]<<
-                                     " waiting "<<itsCyclesToWait<<" cycles before unflagging it");
+                                     ", waiting "<<itsCyclesToWait<<" cycles before unflagging it");
                        itsAntennaStatuses[ant] = ANT_BEING_UPDATED;
                        itsRequestCompletedTimes[ant] = epoch;
                    } else {
@@ -179,8 +178,7 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
                        ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "<<itsAntennaNames[ant]<<
                                  ", unflagging the antenna");
                        itsAntennaStatuses[ant] = ANT_VALID;
-                   }
-                   break;
+                   }                   
                }
           }          
       } else {      
@@ -295,10 +293,8 @@ void FrtCommunicator::setDRxAndFRParameters(const casa::uInt ant, const int dela
 /// @return assigned ID (same as msg["id"])
 int FrtCommunicator::tagMessage(std::map<std::string, int> &msg) const
 {
-  const long timeInSeconds = static_cast<long>(itsCurrentEpoch.getTime("s").getValue());
-  const int tag = static_cast<int>(timeInSeconds & 0xffffffff);
-  msg["id"] = tag;
-  return tag;
+  msg["id"] = itsMsgCounter;
+  return itsMsgCounter++;
 }
 
 

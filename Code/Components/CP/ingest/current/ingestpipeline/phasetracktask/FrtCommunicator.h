@@ -46,6 +46,10 @@
 #include <string>
 #include <map>
 
+// boost includes
+#include <boost/utility.hpp>
+
+
 namespace askap {
 namespace cp {
 namespace ingest {
@@ -57,7 +61,7 @@ namespace ingest {
 /// in a single class. The initial plan was to do this anynchronously in a parallel thread.
 /// However, given that some implementation details are closely connected to the correlator cycle
 /// time (and expected to have the same latency), initially a synchronous approach has been adopted
-class FrtCommunicator {
+class FrtCommunicator : public boost::noncopyable {
 public:
     /// @brief Constructor.
     /// @param[in] parset the configuration parameter set.
@@ -194,10 +198,9 @@ private:
     /// through the system. This class implements a delay before unflagging
     /// a particular antenna. This field determines how log to wait (in 5 sec cycles)
     casa::uInt itsCyclesToWait;
-    
-    /// @brief current time stamp (used to time tag the messages)
-    casa::MVEpoch itsCurrentEpoch;
         
+    /// @brief message counter
+    mutable int itsMsgCounter;        
 }; // class FrtCommunicator
 
 
