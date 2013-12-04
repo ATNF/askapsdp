@@ -36,6 +36,7 @@ crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/crossmat
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
 fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/fluxEval.py
 imageEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/imageEval.py
+finderEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/finderEval.py
 
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
 . ${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a/init_package_env.sh
