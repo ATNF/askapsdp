@@ -170,7 +170,7 @@ if __name__ == '__main__':
         plt.xlim(themin,themax)
         plt.ylim(ratioMin,ratioMax)
 
-        x=np.linspace(themin,themax,1000)
+        x=10**np.linspace(log10(themin),log10(themax),1000)
         plt.plot(x,(x+imageNoise)/x,'k-')
         plt.plot(x,(x-imageNoise)/x,'k-')
         plt.plot(x,np.ones(x.size),'k-')
