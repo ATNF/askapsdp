@@ -335,6 +335,21 @@ if __name__ == '__main__':
             plt.title(sourceCatFile)
             plt.savefig('axialRatioChange_flux.png')
 	
+	    ############################
+	    # Axial ratio change, vs major axis
+	    #  *** DO NOT INCLUDE IN THE SINGLE PLOT ***
+        if not doSinglePlot:
+            print "Axial ratio change vs major axis"	        
+            plt.cla()
+            #plt.semilogx()
+            plt.plot(refMaj,srcAxialRatio/refAxialRatio,dot)	
+            #plt.xlim(themin,themax)
+            plt.ylim(ratioMin,ratioMax)
+            plt.xlabel('Reference major axis')
+            plt.ylabel('Source Axial Ratio / Reference Axial Ratio')
+            plt.title(sourceCatFile)
+            plt.savefig('axialRatioChange_majoraxis.png')
+	
 	    
 	    ############################
 	    # Position angle change, vs flux
@@ -580,10 +595,15 @@ if __name__ == '__main__':
         plt.axis('normal')
         plt.ylim(amin,amax)
         plt.xlabel('log10(Flux)')
-        plt.xticks(rotation=45)
+        if doSinglePlot:
+            plt.xticks(rotation=45)
         plt.ylabel('Major axis')
-        plt.title('Completeness',fontsize='small')
-	    
+        if doSinglePlot:
+            plt.title('Completeness',fontsize='small')
+        else:
+            plt.title(sourceCatFile)
+            plt.savefig('completeness_by_flux_majoraxis.png')
+            
         if doSinglePlot:
             plt.subplot(3,4,12)
         else:
@@ -594,9 +614,14 @@ if __name__ == '__main__':
         plt.axis('normal')
         plt.ylim(amin,amax)
         plt.xlabel('log10(Flux)')
-        plt.xticks(rotation=45)
+        if doSinglePlot:
+            plt.xticks(rotation=45)
         plt.ylabel('Major axis')
-        plt.title('Reliability',fontsize='small')
+        if doSinglePlot:
+            plt.title('Reliability',fontsize='small')
+        else:
+            plt.title(sourceCatFile)
+            plt.savefig('reliability_by_flux_majoraxis.png')
 	    
 	    #############################
         if doSinglePlot:
