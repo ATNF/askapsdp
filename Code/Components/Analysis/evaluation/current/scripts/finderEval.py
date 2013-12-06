@@ -162,14 +162,6 @@ if __name__ == '__main__':
         plt.semilogx()
         plt.plot(refFlux,fluxratio,dot)
 
-        x=1.e-3*10**(arange(101)*3./100.)
-        plt.plot(x,(x+imageNoise)/x,'k-')
-        plt.plot(x,(x-imageNoise)/x,'k-')
-        plt.plot(x,np.ones(x.size),'k-')
-        plt.plot(x,(x+imageNoise*3)/x,'k--')
-        plt.plot(x,(x-imageNoise*3)/x,'k--')
-        plt.plot(x,(imageNoise*5)/x,'k:')
-
         themin,themax=plt.xlim()
         if fluxMin > 0:
             themin = fluxMin
@@ -177,6 +169,14 @@ if __name__ == '__main__':
             themax = fluxMax
         plt.xlim(themin,themax)
         plt.ylim(ratioMin,ratioMax)
+
+        x=np.linspace(themin,themax,1000)
+        plt.plot(x,(x+imageNoise)/x,'k-')
+        plt.plot(x,(x-imageNoise)/x,'k-')
+        plt.plot(x,np.ones(x.size),'k-')
+        plt.plot(x,(x+imageNoise*3)/x,'k--')
+        plt.plot(x,(x-imageNoise*3)/x,'k--')
+        plt.plot(x,(imageNoise*5)/x,'k:')
 	
         if doSinglePlot:
             plt.xlabel('Flux')
