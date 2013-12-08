@@ -238,7 +238,7 @@ int main(int argc, const char **argv)
 	  double freq;
 	  if(!csys.spectralCoordinate(specCoord).toWorld(freq,double(i)))
 	    ASKAPLOG_ERROR_STR(logger, "Error converting spectral coordinate at channel " << i);
-	  float logfreq = log10(freq/reffreq);
+	  float logfreq = log(freq/reffreq);
 	  gsl_matrix_set(xdat,i,0,1.);
 	  gsl_matrix_set(xdat,i,1,logfreq);
 	  gsl_matrix_set(xdat,i,2,logfreq*logfreq);
@@ -284,15 +284,18 @@ int main(int argc, const char **argv)
 
 	    if(subcube[pos]>1.e-20){
 	      for (int i=0;i<ndata;i++){
-		gsl_vector_set(ydat,i,log10(subcube[pos+i*xlen*ylen]));
+		gsl_vector_set(ydat,i,log(subcube[pos+i*xlen*ylen]));
 	      }
 	      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
 	      gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
 	      gsl_multifit_linear_free (work);
 	      
-	      outputs[0](outpos) = pow(10.,gsl_vector_get(c,0));
-	      outputs[1](outpos) = gsl_vector_get(c,1);
-	      outputs[2](outpos) = gsl_vector_get(c,2);
+	      double I0=exp(gsl_vector_get(c,0));
+	      double alpha = gsl_vector_get(c,1);
+	      double beta = gsl_vector_get(c,2);
+	      outputs[0](outpos) = I0;
+	      outputs[1](outpos) = I0 * alpha;
+	      outputs[2](outpos) = I0 * (beta + 0.5 * alpha * (alpha-1));
 	    }
 	  }
 	}
