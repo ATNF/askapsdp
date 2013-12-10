@@ -68,8 +68,13 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
         ASKAPLOG_INFO_STR(logger, "The phase tracking task will apply fixed delays in addition to phase rotation");
         ASKAPLOG_INFO_STR(logger, "Fixed delays specified for " << itsFixedDelays.size() << " antennas:");
 
-        for (size_t id = 0; id < itsFixedDelays.size(); ++id) {
-             ASKAPLOG_INFO_STR(logger, "    antenna: " << id << " delay: " << itsFixedDelays[id] << " ns");
+        const std::vector<Antenna> antennas = config.antennas();
+        const size_t nAnt = antennas.size();
+        for (size_t id = 0; id < casa::min(casa::uInt(nAnt),casa::uInt(itsFixedDelays.size())); ++id) {
+             ASKAPLOG_INFO_STR(logger, "    antenna: " << antennas.at(id).name()<<" (id="<<id << ") delay: " << itsFixedDelays[id] << " ns");
+        }
+        if (nAnt < itsFixedDelays.size()) {
+            ASKAPLOG_INFO_STR(logger,  "    other fixed delays are ignored");
         }
     } else {
             ASKAPLOG_INFO_STR(logger, "No fixed delay specified");
@@ -126,7 +131,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
               const double ra = fpc.getAngle().getValue()(0);
               const double dec = fpc.getAngle().getValue()(1);
 
-              // Transformation from antenna position difference (ant2-ant1) to uvw
+              // Transformation from antenna position to the geocentric delay
               const double H0 = gmst - ra;
               const double sH0 = sin(H0);
               const double cH0 = cos(H0);

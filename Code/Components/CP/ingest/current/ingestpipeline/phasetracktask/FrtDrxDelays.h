@@ -87,6 +87,9 @@ class FrtDrxDelays : virtual public IFrtApproach {
         
         /// @brief if true, attempt to track residual delays in software
         bool itsTrackResidualDelay;
+
+        /// @brief index of an antenna used as a reference
+        casa::uInt itsRefAntIndex;
 };
 
 } // namespace ingest 

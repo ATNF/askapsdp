@@ -66,6 +66,18 @@ FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuratio
    } else {
        ASKAPLOG_INFO_STR(logger, "No attempt to track the residual delays and phases in software will be made");       
    }
+   const std::vector<Antenna> antennas = config.antennas();
+   const size_t nAnt = antennas.size();
+   const casa::String refName = casa::downcase(parset.getString("refant"));
+   itsRefAntIndex = nAnt;
+   for (casa::uInt ant=0; ant<nAnt; ++ant) {
+        if (casa::downcase(antennas.at(ant).name()) == refName) {
+            itsRefAntIndex = ant;
+            break;
+        }
+   }  
+   ASKAPCHECK(itsRefAntIndex < nAnt, "Reference antenna "<<refName<<" is not found in the configuration");
+   ASKAPLOG_INFO_STR(logger, "Will use "<<refName<<" (antenna index "<<itsRefAntIndex<<") as a reference antenna");
 }
 
 /// Process a VisChunk.
@@ -78,20 +90,23 @@ FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuratio
 ///             is expected to correct visibilities in this VisChunk 
 ///             as required (some methods may not need to do any correction at all)
 /// @param[in] delays matrix with delays for all antennas (rows) and beams (columns) in seconds
-// @param[in] rates matrix with phase rates for all antennas (rows) and 
-//                  beams (columns) in radians per second
+/// @param[in] rates matrix with phase rates for all antennas (rows) and 
+///                  beams (columns) in radians per second
 /// @param[in] effLO effective LO frequency in Hz
 void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk, 
               const casa::Matrix<double> &delays, const casa::Matrix<double> &/*rates*/, const double effLO)
 {
   ASKAPDEBUGASSERT(delays.ncolumn() > 0);
+  ASKAPDEBUGASSERT(itsRefAntIndex < delays.nrow());
   // signal about new timestamp (there is no much point to mess around with threads as actions are tide down to correlator cycles
   itsFrtComm.newTimeStamp(chunk->time());
 
   const double samplePeriod = 1./768e6; // sample rate is 768 MHz
   for (casa::uInt ant = 0; ant < delays.nrow(); ++ant) {
-       const double diffDelay = (delays(ant,0) - delays(0,0))/samplePeriod;
+       // negate the sign here because we want to compensate the delay
+       const double diffDelay = (delays(itsRefAntIndex,0) - delays(ant,0))/samplePeriod;
        // ideal delay
+       ASKAPLOG_INFO_STR(logger, "delays between "<<ant<<" and ref="<<itsRefAntIndex<<" are "<<diffDelay*samplePeriod*1e9<<" ns");
        casa::Int drxDelay = static_cast<casa::Int>(2048. + diffDelay);
        if (drxDelay < 0) {
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (below 0)");
@@ -124,16 +139,16 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
                const casa::uInt beam2 = chunk->beam2()[row];
                ASKAPDEBUGASSERT(beam1 < delays.ncolumn());
                ASKAPDEBUGASSERT(beam2 < delays.ncolumn());
-               // actual delay
-               const double thisRowDelay = delays(ant2,beam2) - delays(ant1,beam1);
+               // actual delay, note the sign is flipped because we're correcting the delay here
+               const double thisRowDelay = delays(ant1,beam1) - delays(ant2,beam2);
                const double residualDelay = thisRowDelay - appliedDelay;
                
-               const double phaseDueToAppliedDelay = -2. * casa::C::pi * effLO * appliedDelay;
+               const double phaseDueToAppliedDelay = 2. * casa::C::pi * effLO * appliedDelay;
                const casa::Vector<casa::Double>& freq = chunk->frequency();
                ASKAPDEBUGASSERT(freq.nelements() == thisRow.nrow());
                for (casa::uInt chan = 0; chan < thisRow.nrow(); ++chan) {
                     casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
-                    const float phase = static_cast<float>(phaseDueToAppliedDelay - 
+                    const float phase = static_cast<float>(phaseDueToAppliedDelay + 
                                  2. * casa::C::pi * freq[chan] * residualDelay);
                     const casa::Complex phasor(cos(phase), sin(phase));
 
@@ -143,7 +158,7 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
                
            } else {
               // just correct phases corresponding to the applied delay in IF (simple phase tracking) 
-              const float phase = -2. * static_cast<float>(casa::C::pi * effLO * appliedDelay);
+              const float phase = 2. * static_cast<float>(casa::C::pi * effLO * appliedDelay);
               const casa::Complex phasor(cos(phase), sin(phase));
 
               // actual rotation
