@@ -210,17 +210,19 @@ if __name__ == '__main__':
     fin.close()
     countsSM=np.zeros(fluxpts.size)
     countsPerAreaSM = np.zeros(fluxpts.size)
+    selector.setFluxType("peak")
     for source in skymodellist:
         if selector.isGood(source):
             flux=source.FintFIT
             loc=int((math.log10(flux)+4+0.1)*5)
-            countsSM[loc] = countsSM[loc]+1
             sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
             #sourceDetArea = fullFieldArea
-            countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
+            if loc >= 0 and loc < countsSM.size and sourceDetArea > 0.:
+                countsSM[loc] = countsSM[loc]+1
+                countsPerAreaSM[loc] = countsPerAreaSM[loc] + 1./sourceDetArea
 
-#########
-# original sky model comparison, if requested
+    #########
+    # original sky model comparison, if requested
     if not skymodelOrigCat == '':
         fin=open(skymodelOrigCat)
         origskymodellist=[]
@@ -230,14 +232,15 @@ if __name__ == '__main__':
         fin.close()
         countsSMorig=np.zeros(fluxpts.size)
         countsPerAreaSMorig = np.zeros(fluxpts.size)
+        selector.setFluxType("int")
         for source in origskymodellist:
             if (skymodelOrigCatIsPrecessed and selectorUnprecessed.isgood(source)) or (not skymodelOrigCatIsPrecessed and selector.isGood(source)):
                 flux=source.flux()
                 loc=int((math.log10(flux)+4+0.1)*5)
-                if loc >= 0 and loc < countsSMorig.size :
+                #sourceDetArea = fullFieldArea
+                sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
+                if loc >= 0 and loc < countsSMorig.size and sourceDetArea > 0. :
                     countsSMorig[loc] = countsSMorig[loc]+1
-                    sourceDetArea = pixelarea * threshmap[threshmap<source.flux()].size
-                    #sourceDetArea = fullFieldArea
                     countsPerAreaSMorig[loc] = countsPerAreaSMorig[loc] + 1./sourceDetArea
         
             
@@ -251,6 +254,8 @@ if __name__ == '__main__':
         plt.plot(fluxpts*shift,n,'go',label='Original Sky model')
         plt.errorbar(fluxpts*shift,n,yerr=np.sqrt(countsSMorig)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='g-',label='_nolegend_')
     n=countsPerAreaSM * fluxpts**2.5 / fluxbinwidths
+    #    for i in range(len(fluxpts)):
+    #        print "%d: %f %6d %f %f %d"%(i,fluxpts[i],countsSM[i],countsPerAreaSM[i],n[i],threshmap[threshmap<fluxpts[i]].size)
     plt.plot(fluxpts/shift,n,'r-',label='_nolegend_')
     plt.plot(fluxpts/shift,n,'ro',label='Sky model')
     plt.errorbar(fluxpts/shift,n,yerr=np.sqrt(countsSM)*fluxpts**2.5/fullFieldArea,xerr=None,fmt='r-',label='_nolegend_')

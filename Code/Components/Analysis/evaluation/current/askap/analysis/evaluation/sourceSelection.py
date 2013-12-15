@@ -16,6 +16,7 @@ class sourceSelector:
     def __init__(self, parset):
 
         self.method = parset.get_value('sourceSelection','none')
+        self.setFluxType("peak")
         if self.method == 'threshold':
             self.threshImageName = parset.get_value('thresholdImage','detectionThreshold.i.clean.fits')
             if os.path.exists(self.threshImageName):
@@ -42,6 +43,11 @@ class sourceSelector:
                 print "Weights image %s not available. Switching sourceSelection to 'none'."%self.weightsImageName
                 self.method='none'
 
+    def setFluxType(self, fluxType):
+        self.fluxType = fluxType
+        if not (self.fluxType == "peak" or self.fluxType == "int"):
+            self.fluxType = "peak"
+
     def setWCSreference(self, raRef, decRef):
         if self.method == 'threshold':
             threshim=pyfits.open(self.threshImageName)
@@ -67,11 +73,15 @@ class sourceSelector:
             skycrd=np.array([self.threshWCS.wcs.crval])
             skycrd[0][0]=source.ra
             skycrd[0][1]=source.dec
+            if self.fluxType == "peak":
+                flux = source.Fpeak
+            else:
+                flux = source.flux()
             useRef=False
             pixcrd=self.threshWCS.wcs_sky2pix(skycrd,1)
             if (pixcrd[0][0]>0 and pixcrd[0][0]<self.threshmap.shape[-1]) and (pixcrd[0][1]>0 and pixcrd[0][1]<self.threshmap.shape[-2]) :
                 pos=tuple(np.array(pixcrd[0][::-1],dtype=int)-1)
-                if self.threshmap[pos] > 0. :
+                if self.threshmap[pos] > 0 and self.threshmap[pos] < flux :
                     useRef=True
             return useRef
         elif self.method == 'weights':
