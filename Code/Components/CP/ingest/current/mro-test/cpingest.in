@@ -195,7 +195,7 @@ observation.scan0.interval          = 5000000
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource,  PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
-tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChanSel, Monitor, MSSink]
+tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, Monitor,MSSink]
 
 #
@@ -216,10 +216,11 @@ tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
 tasks.FringeRotationTask.params.fixeddelays = [392.941, 0, 4.885]
 #tasks.FringeRotationTask.params.fixeddelays = [0, 0, 0]
 tasks.FringeRotationTask.params.refant = AK01
-tasks.FringeRotationTask.params.method = drxdelays
+#tasks.FringeRotationTask.params.method = drxdelays
+tasks.FringeRotationTask.params.method = hwanddrx
 tasks.FringeRotationTask.params.drxdelaystep = 10
-tasks.FringeRotationTask.params.trackresidual = true
-tasks.FringeRotationTask.params.cycles2skip = 6
+#tasks.FringeRotationTask.params.trackresidual = true
+tasks.FringeRotationTask.params.cycles2skip = 0
 
 
 # 
