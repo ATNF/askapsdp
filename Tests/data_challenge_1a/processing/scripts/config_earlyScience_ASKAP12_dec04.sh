@@ -39,7 +39,7 @@
     IMAGING_EQUALISE=False
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
-    CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=12:mem=23GB:mpiprocs=12"
+    CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+304:ncpus=3:mem=23GB:mpiprocs=3"
     CONT_CLEAN_FREQ=1.270e9
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
