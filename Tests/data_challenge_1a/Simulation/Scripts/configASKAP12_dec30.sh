@@ -43,7 +43,7 @@ doComparisonSM=true
 
 # Visibilities
 doCsim=true
-doVisCleanup=true
+doVisCleanup=false
 failureListVis="EmptyFile"
 #failureListVis="/scratch/astronomy554/whi550/EarlyScienceSimulations/Continuum/failure-vis-dec30-run50.txt"
 #failureListVis="/scratch/astronomy554/whi550/EarlyScienceSimulations/Continuum/failure-vis-dec30-run59.txt"
@@ -195,13 +195,13 @@ fi
 ###########################################
 # Make the sky model image
 
-smoothBmaj=24.3
-smoothBmin=20.1
-smoothBpa=87.
+smoothBmaj=20.73
+smoothBmin=17.14
+smoothBpa=87.44
 
-SFthresh=1.e-3
+SFthresh=5.e-4
 SFflagGrowth=true
-SFgrowthThresh=5.e-4
+SFgrowthThresh=2.e-4
 SFnsubx=7
 SFnsuby=5
 SFnNodes=`echo $SFnsubx $SFnsuby | awk '{print int(($1*$2-0.001)/12.)+1}'`

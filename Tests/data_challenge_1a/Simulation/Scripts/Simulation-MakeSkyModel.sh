@@ -92,10 +92,8 @@ for t in range(3):
 ###########
 
     ia.open(modelIm)
+    ia.setbrightnessunit('Jy/pixel')
     ia.convolve2d(outfile=smoothIm,major='${smoothBmaj}arcsec',minor='${smoothBmin}arcsec',pa='${smoothBpa}deg')
-    ia.close()
-    ia.open(smoothIm)
-    ia.setrestoringbeam(major='${smoothBmaj}arcsec',minor='${smoothBmin}arcsec',pa='${smoothBpa}deg')
     ia.close()
 
 EOF_INNER
