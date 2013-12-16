@@ -34,7 +34,7 @@ A single file can be staged with the command stage <filename> or a directory can
 all files recursivly staged with the command stage -r <filename>. For example, to stage
 a directory (actually the files within the directory) then copy retrieve it::
 
-    ssh cortexivec.org stage -r /pbstore/userfs/<username>/mydir
+    ssh cortexivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/userfs/<username>/mydir
     scp -r cortex.ivec.org:/pbstore/userfs/<username>/mydir
 
 To list your files on /pbstore/userfs/<username> (when logged into epic)::

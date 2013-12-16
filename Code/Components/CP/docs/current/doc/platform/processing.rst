@@ -9,8 +9,8 @@ Sonexion storage system mounted as a Lustre filesystem.
 
 * 2 x Login Nodes:
 
-  - 2 x 2.6 GHz Intel Xeon E5-2670 (Sandy Bridge) CPUs
-  - 32 GB RAM
+  - 2 x 2.4 GHz Intel Xeon E5-2665 (Sandy Bridge) CPUs
+  - 64 GB RAM
   - 4x QDR Infiniband connectivity to Lustre filesystem
 
 * 472 x Cray XC30 Compute Nodes:
