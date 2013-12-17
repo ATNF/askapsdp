@@ -78,12 +78,13 @@ Crossmatch.epsilon = 10arcsec
 Crossmatch.matchfile = matches.txt
 Crossmatch.missfile = misses.txt
 #
-Eval.refCatalogue = ${skymodel}
+Eval.refCatalogue    = ${skymodel}
 Eval.sourceCatalogue = selavy-fitResults.txt
-Eval.thresholdImage = ${THRESHIMAGE}.fits
-Eval.noiseImage = ${NOISEIMAGE}.fits
-Eval.snrImage = ${SNRIMAGE}.fits
-Eval.image = ${CONTINUUMIMAGE}.fits
+Eval.thresholdImage  = ${THRESHIMAGE}.fits
+Eval.noiseImage      = ${NOISEIMAGE}.fits
+Eval.snrImage        = ${SNRIMAGE}.fits
+Eval.image           = ${CONTINUUMIMAGE}.fits
+Eval.sourceSelection = threshold
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
@@ -92,7 +93,7 @@ cat > \${pystat} <<EOF_INNER
 ## AUTOMATICALLY GENERATED!
 # CASA script to obtain statistics for the image
 ia.open('${CONTINUUMIMAGE}')
-st=ia.statistics(region=rg.box(blc=[600,600,0,0],trc=[2699,2699,0,0]),robust=True)
+st=ia.statistics(region=rg.box(blc=${ANALYSIS_SUBSECTION_BLC},trc=${ANALYSIS_SUBSECTION_TRC}),robust=True)
 madfmAsSigma=st['medabsdevmed'][0] / 0.6744888
 print "Max = %5.3e = %3.1f sigma"%(st['max'][0],(st['max'][0]-st['median'][0])/madfmAsSigma)
 print "Min = %5.3e = %3.1f sigma"%(st['min'][0],(st['min'][0]-st['median'][0])/madfmAsSigma)
@@ -120,7 +121,7 @@ fi
 
 imnoise=\`grep MADFMas \$statlog | awk '{print \$3}'\`
 cat >> \$parset <<EOF_INNER
-Eval.imageNoise = \${imnoise}
+Eval.imageNoise      = \${imnoise}
 EOF_INNER
 
 mpirun \$selavy -c \$parset > \$sflog

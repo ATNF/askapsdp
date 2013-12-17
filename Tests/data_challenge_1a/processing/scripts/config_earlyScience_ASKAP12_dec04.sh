@@ -70,7 +70,9 @@
     SKYMODEL_ALT_FREQ="1.270e9"
 
 # subsection of image used for analysis
-    ANALYSIS_SUBSECTION="[1291:2800,1291:2800,*,*]"
+    ANALYSIS_SUBSECTION_BLC=1200
+    ANALYSIS_SUBSECTION_TRC=2899
+    ANALYSIS_SUBSECTION=`echo ${ANALYSIS_SUBSECTION_BLC} ${ANALYSIS_SUBSECTION_TRC} | awk '{printf "[%d:%d,%d:%d,*,*]",\$1+1,\$2+1,\$1+1,\$2+1}'`
     THRESHIMAGE=detectionThreshold.i.clean
     NOISEIMAGE=noiseMap.i.clean
     SNRIMAGE=snr.i.clean
