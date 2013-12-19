@@ -58,6 +58,21 @@ std::string printDirection(const casa::MVDirection &dir)
     return os.str();
 }
 
+std::string printLon(const casa::MDirection& dir)
+{
+    std::ostringstream os;
+    os << std::setprecision(8) << casa::MVAngle::Format(casa::MVAngle::TIME)
+        << casa::MVAngle(dir.getValue().getLong("deg"));
+    return os.str();
+}
+
+std::string printLat(const casa::MDirection& dir)
+{
+    std::ostringstream os;
+    os << std::setprecision(8) << casa::MVAngle::Format(casa::MVAngle::ANGLE)
+        << casa::MVAngle(dir.getValue().getLat("deg"));
+    return os.str();
+}
 
 std::string getHostName(bool full)
 {

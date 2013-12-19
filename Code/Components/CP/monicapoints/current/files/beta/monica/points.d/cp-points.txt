@@ -5,5 +5,17 @@
 # Ingest Pipeline
 !define INGESTRANKS = {ingest0}
 
-cp.ingest.PacketsLost      "VisDatagrams expected but not received by Ingest Pipeline"  "" ""    INGESTRANKS T - - - - Change- - -
-cp.ingest.VisFlagCount     "Visibilities Flagged (at egress)"                           "" ""    INGESTRANKS T - - - - Change- - -
+cp.ingest.PacketsLostCount      "Count of VisDatagrams not received by Ingest Pipeline"        "" ""    INGESTRANKS T - - - - Change- - -
+cp.ingest.PacketsLostPercent    "Percentage of VisDatagrams not received by Ingest Pipeline"   "" "%"    INGESTRANKS T - - - - Change- - -
+cp.ingest.VisFlagCount          "Count of visibilities flagged (at MSSink)"         "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.VisFlagPercent        "Percentage of visibilities flagged (at MSSink)"    "" "%"      INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.nScans            "Number of scans expected"                          "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.ScanId            "Scan ID"                                           "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.FieldName         "Name/alias of current field"                       "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.dir1              "Target Direction 1 (e.g. RA or Az)"                "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.dir2              "Target Direction 2 (e.g. Dec or El)"               "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.CoordSys          "Direction coordinate system"                       "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.Interval          "Correlator integration interval"                   "" "ms"     INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.StartFreq         "Start frequency"                                   "" "MHz"    INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.nChan             "Number fo spectral channels"                       "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.ChanWidth         "Spectral channel width"                            "" "kHz"    INGESTRANKS T - - - - Change- - -

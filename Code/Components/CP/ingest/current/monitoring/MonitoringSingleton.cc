@@ -139,6 +139,11 @@ void MonitoringSingleton::sendString(const std::string& name, const std::string&
     enqueue(name, new DataValueString(DTString, value), alarm);
 }
 
+void MonitoringSingleton::sendNull(const std::string& name, bool alarm)
+{
+    enqueue(name, new DataValue(DTNull), alarm);
+}
+
 void MonitoringSingleton::enqueue(const std::string& name,
                                   atnf::atoms::mon::comms::DataValuePtr value, bool alarm)
 {

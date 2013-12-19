@@ -124,6 +124,18 @@ void printContainer(std::ostream& os, const Container& ctr,
 /// @return a string containing a nice representation of the direction
 std::string printDirection(const casa::MVDirection &dir);
 
+/// @brief a helper function to print the latitude component of
+/// an MDirection
+/// @param[in] dir MVDirection object to print
+/// @return a string containing a nice representation of the latitude component
+std::string printLat(const casa::MDirection& dir);
+
+/// @brief a helper function to print the longitude component of
+/// an MDirection
+/// @param[in] dir MVDirection object to print
+/// @return a string containing a nice representation of the longitude component
+std::string printLon(const casa::MDirection& dir);
+
 /// @brief Interpret string as a quantity.
 /// Interpret a string such as "2.5arcsec" as a casa::Quantity
 ///

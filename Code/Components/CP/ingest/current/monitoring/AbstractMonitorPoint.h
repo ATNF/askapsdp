@@ -67,6 +67,12 @@ class AbstractMonitorPoint {
             if (itsDestination) send(itsName, value);
         }
 
+        /// Sends a monitoring point with a null type. This can be used to indicate
+        /// a monitoring point has no data
+        virtual void updateNull(void) {
+            if (itsDestination) itsDestination->sendNull(itsName, false);
+        }
+
     protected:
         /// Subclasses implement this method
         /// @param[in] name the name of the monitoring point. e.g. "cp.ingest0.PacketLoss"

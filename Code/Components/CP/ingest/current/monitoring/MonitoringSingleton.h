@@ -82,6 +82,9 @@ class MonitoringSingleton {
         // Send a monitoring point with value type "string"
         void sendString(const std::string& name, const std::string& value, bool alarm = false);
 
+        // Send a monitoring point with type null
+        void sendNull(const std::string& name, bool alarm);
+
     private:
 
         /// @brief Constructor.

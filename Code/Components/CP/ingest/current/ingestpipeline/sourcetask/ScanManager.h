@@ -31,9 +31,11 @@
 
 // ASKAPsoft includes
 #include "casa/aips.h"
+#include <string>
 
 // Local package includes
 #include "configuration/Configuration.h"
+#include "monitoring/MonitorPoint.h"
 
 namespace askap {
 namespace cp {
@@ -67,6 +69,21 @@ class ScanManager {
         casa::Int scanIndex(void) const;
 
     private:
+
+        // Submit monitoring points to monitoring system. This is to be
+        // called when a new scan is encountered
+        void submitMonitoringPoints(void) const;
+
+        // Submits a null type. This is used to invalidate the previous value
+        // in the case where the observation is complete
+        void submitPointNull(const std::string& key) const;
+
+        template <typename T>
+        void submitPoint(const std::string& key, const T& val) const
+        {
+            MonitorPoint<T> point(key);
+            point.update(val);
+        }
 
         // A copy of the system and observation configuration
         const Configuration itsConfig;

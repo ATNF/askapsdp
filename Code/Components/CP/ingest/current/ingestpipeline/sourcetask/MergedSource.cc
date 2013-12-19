@@ -204,8 +204,11 @@ VisChunk::ShPtr MergedSource::next(void)
         << " successfully received datagrams");
 
     // Submit monitoring data
-    MonitorPoint<int32_t> packetsLost("PacketsLost");
-    packetsLost.update(datagramsExpected - datagramCount);
+    MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
+    packetsLostCount.update(datagramsExpected - datagramCount);
+    MonitorPoint<float> packetsLostPercent("PacketsLostPercent");
+    packetsLostPercent.update((datagramsExpected - datagramCount)
+            / static_cast<float>(datagramsExpected));
 
     // Apply any flagging specified in the TOS metadata
     doFlagging(chunk, *itsMetadata);

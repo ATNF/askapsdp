@@ -33,9 +33,13 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "casa/aips.h"
+#include "measures/Measures/MDirection.h"
+#include "casa/Quanta/MVDirection.h"
+#include "casa/Quanta/MVAngle.h"
 #include "configuration/Configuration.h"
-
+#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".ScanManager");
 
@@ -63,6 +67,7 @@ void ScanManager::update(const casa::Int scanId)
     if (itsScanIndex == -1 && scanId >= 0) {
         ASKAPLOG_DEBUG_STR(logger, "First scan has begun - Scan Id: " << scanId);
         itsScanIndex = scanId;
+        submitMonitoringPoints();
         return;
     }
 
@@ -73,7 +78,6 @@ void ScanManager::update(const casa::Int scanId)
             // to the next scan
             ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << scanId);
             itsScanIndex = scanId;
-            return;
         } else {
             // Alternatively handle the case where a -1 has been received,
             // indicating end-of-observation
@@ -84,6 +88,7 @@ void ScanManager::update(const casa::Int scanId)
             }
         }
     }
+    submitMonitoringPoints();
 }
 
 casa::Bool ScanManager::observationComplete(void) const
@@ -94,4 +99,41 @@ casa::Bool ScanManager::observationComplete(void) const
 casa::Int ScanManager::scanIndex(void) const
 {
     return itsScanIndex;
+}
+
+void ScanManager::submitMonitoringPoints(void) const
+{
+    if (itsObsComplete) return;
+
+    const Observation obs = itsConfig.observation();
+    submitPoint<int32_t>("obs.ScanId", itsScanIndex);
+
+    if (itsScanIndex > -1) {
+        submitPoint<int32_t>("obs.nScans", obs.scans().size());
+        const Scan s = obs.scans()[itsScanIndex];
+        submitPoint<string>("obs.FieldName", s.name());
+        submitPoint<string>("obs.dir1", askap::printLat(s.fieldDirection()));
+        submitPoint<string>("obs.dir2", askap::printLon(s.fieldDirection()));
+        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(s.fieldDirection().type()));
+        submitPoint<int32_t>("obs.Interval", s.interval() / 1000);
+        submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz"));
+        submitPoint<int32_t>("obs.nChan", s.nChan());
+        submitPoint<float>("obs.ChanWidth", s.chanWidth().getValue("kHz"));
+    } else {
+        submitPointNull("obs.nScans");
+        submitPointNull("obs.FieldName");
+        submitPointNull("obs.dir1");
+        submitPointNull("obs.dir2");
+        submitPointNull("obs.CoordSys");
+        submitPointNull("obs.Interval");
+        submitPointNull("obs.StartFreq");
+        submitPointNull("obs.nChan");
+        submitPointNull("obs.ChanWidth");
+    }
+}
+
+void ScanManager::submitPointNull(const std::string& key) const
+{
+    MonitorPoint<int32_t> point(key);
+    point.updateNull();
 }

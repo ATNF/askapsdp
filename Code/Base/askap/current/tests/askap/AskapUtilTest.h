@@ -45,6 +45,8 @@ class AskapUtilTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testAsQuantity);
         CPPUNIT_TEST(testAsQuantityException);
         CPPUNIT_TEST(testBATConversions);
+        CPPUNIT_TEST(testPrintLon);
+        CPPUNIT_TEST(testPrintLat);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -167,6 +169,26 @@ class AskapUtilTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(batCompare, bat);
             casa::MVEpoch epoch2 = bat2epoch(bat).getValue();
             CPPUNIT_ASSERT_DOUBLES_EQUAL(epoch.getValue().get(), epoch2.get(), dblTolerance);
+        }
+
+        void testPrintLon() {
+            std::vector<std::string> input;
+            input.push_back("12h30m00.00");
+            input.push_back("-45.00.00.00");
+            input.push_back("J2000");
+
+            const casa::MDirection dir = asMDirection(input);
+            CPPUNIT_ASSERT_EQUAL(std::string("12:30:00.00"), askap::printLon(dir));
+        }
+
+        void testPrintLat() {
+            std::vector<std::string> input;
+            input.push_back("12h30m00.00");
+            input.push_back("-45.00.00.00");
+            input.push_back("J2000");
+
+            const casa::MDirection dir = asMDirection(input);
+            CPPUNIT_ASSERT_EQUAL(std::string("-045.00.00.00"), askap::printLat(dir));
         }
 
     private:
