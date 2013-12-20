@@ -121,12 +121,13 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
        /*
        if (ant == 1) {
            const double interval = itsTm[ant]>0 ? (chunk->time().getTime("s").getValue() - itsTm[ant]) : 0;
-           diffRate = (int(interval/60) % 2 == 0 ? +1. : -1) * static_cast<casa::Int>(casa::C::pi / 60. / phaseRateUnit);
+           diffRate = (int(interval/240) % 2 == 0 ? +1. : -1) * static_cast<casa::Int>(casa::C::pi / 600. / phaseRateUnit);
        } 
        if (itsTm[ant]<=0) {
            itsTm[ant] = chunk->time().getTime("s").getValue();
        }
        */
+       
        
            
        if (diffRate > 131071) {
@@ -137,7 +138,7 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            ASKAPLOG_WARN_STR(logger, "Phase rate for antenna "<<ant<<" is outside the range (below -131070)");
            diffRate = -131070;
        }
-       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > 1) || itsFrtComm.isUninitialised(ant)) {
+       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > 50) || itsFrtComm.isUninitialised(ant)) {
           if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) > itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
               ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay<<" and phase rate to "<<diffRate);
               itsFrtComm.setDRxAndFRParameters(ant, drxDelay, diffRate,0,0);
@@ -145,6 +146,7 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
               ASKAPLOG_INFO_STR(logger, "Set phase rate for antenna "<<ant<<" to "<<diffRate);
               itsFrtComm.setFRParameters(ant,diffRate,0,0);
           }
+          itsPhases[ant] = 0.;
        } else {
           if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) > itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
               ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay);

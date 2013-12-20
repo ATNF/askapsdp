@@ -160,11 +160,26 @@ observation.scan0.field_name        = test-field
 # 0407-658
 #observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
+observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790 (cluster field)
 #observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
 # 1742-289 (Galactic centre)
-observation.scan0.field_direction   = [17h45m40.04, -29.00.28.07, J2000]
+#observation.scan0.field_direction   = [17h45m40.04, -29.00.28.07, J2000]
+
+# some other calibrators
+# 1921-293
+#observation.scan0.field_direction   = [19h24m51.06, -29.14.30.12, J2000]
+# 2251+158
+#observation.scan0.field_direction   = [22h53m57.74, 16.08.53.56, J2000]
+# 0537-441
+#observation.scan0.field_direction   = [05h38m50.36, -44.05.08.94, J2000]
+
+
+
+# zenith at some sidereal time
+#observation.scan0.field_direction   = [22h12m00.00, -26.41.49.20, J2000]
+# south pole
+#observation.scan0.field_direction   = [22h12m00.00, -90.00.00.00, J2000]
 
 # S9
 #observation.scan0.field_direction   = [17h52m06.00, -34.25.42.01, J2000]
@@ -190,12 +205,11 @@ observation.scan0.interval          = 5000000
 #
 # Task List
 #
-#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, CalcUVWTask,  ChannelAvgTask,Monitor, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, ChanFlag, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource, DerippleTask, CalcUVWTask, ChanSel, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource,  PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
-tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, Monitor, MSSink]
+tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, Monitor,MSSink]
 
 #
@@ -213,14 +227,15 @@ tasks.FringeRotationTask.params.ice.locator_port = 4061
 tasks.FringeRotationTask.params.icestorm.topicmanager = IceStorm/TopicManager@IceStorm.TopicManager
 tasks.FringeRotationTask.params.icestorm.outtopic = ingest2frt
 tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
-tasks.FringeRotationTask.params.fixeddelays = [392.941, 0, 4.885]
+tasks.FringeRotationTask.params.fixeddelays = [394.641, 0, 320.125]
 #tasks.FringeRotationTask.params.fixeddelays = [0, 0, 0]
 tasks.FringeRotationTask.params.refant = AK01
-#tasks.FringeRotationTask.params.method = drxdelays
-tasks.FringeRotationTask.params.method = hwanddrx
-tasks.FringeRotationTask.params.drxdelaystep = 10
-#tasks.FringeRotationTask.params.trackresidual = true
-tasks.FringeRotationTask.params.cycles2skip = 0
+#tasks.FringeRotationTask.params.refant = AK08
+tasks.FringeRotationTask.params.method = drxdelays
+#tasks.FringeRotationTask.params.method = hwanddrx
+tasks.FringeRotationTask.params.drxdelaystep = 50
+tasks.FringeRotationTask.params.trackresidual = true
+tasks.FringeRotationTask.params.cycles2skip = 5
 
 
 # 
@@ -232,6 +247,9 @@ tasks.DerippleTask.type = DerippleTask
 # NoMetadataSource
 #
 tasks.NoMetadataSource.type                             = NoMetadataSource
+# for correlator shelf 2
+#tasks.NoMetadataSource.params.vis_source.port           = 16383
+# for correlator shelf 1
 tasks.NoMetadataSource.params.vis_source.port           = 16384
 tasks.NoMetadataSource.params.vis_source.buffer_size    = 24192
 
@@ -261,8 +279,8 @@ tasks.ChannelAvgTask.params.averaging   = 54
 
 # ChannelSelTask
 tasks.ChanSel.type        = ChannelSelTask
-tasks.ChanSel.params.start = 1512
-tasks.ChanSel.params.nchan = 540
+tasks.ChanSel.params.start = 0
+tasks.ChanSel.params.nchan = 14256
 
 #LO=6416MHz values for avoiding interference
 #tasks.Chansel.params.start = 9396
