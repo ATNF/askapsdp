@@ -106,13 +106,13 @@ namespace askap
       /// @brief Solve the normal equations (runs in workers)
       /// @details Parameters of the calibration problem are solved for here
       virtual void solveNE();
+      
+  protected:      
 
       /// @brief Write the results (runs in master)
       /// @details The solution (calibration parameters) is reported via solution accessor
       /// @param[in] postfix a string to be added to the file name (unused in this class)
 	  virtual void writeModel(const std::string &postfix = std::string());
-      
-  protected:      
                     
       /// @brief create measurement equation
       /// @details This method initialises itsEquation with shared pointer to a proper type.
@@ -167,7 +167,7 @@ namespace askap
       /// @param[in] ms Name of data set
       /// @param[in] chan channel to work with
       /// @param[in] beam beam to work with
-      void calcOne(const std::string& dataset, const casa::uInt chan, const casa::uInt beam);
+      void calcOne(const std::string& ms, const casa::uInt chan, const casa::uInt beam);
       
       /// uncorrupted model
       askap::scimath::Params::ShPtr itsPerfectModel;

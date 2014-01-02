@@ -1,13 +1,11 @@
-#Cimager.dataset = [/Users/vor010/ASKAP/MS/Jul2013/2013-07-13_153930.ms,/Users/vor010/ASKAP/MS/Jul2013/2013-07-14_003243.ms]
-#Cimager.dataset = [/Users/vor010/ASKAP/MS/Jul2013/chunk1.ms,/Users/vor010/ASKAP/MS/Jul2013/chunk2.ms]
-#Cimager.dataset = [/Users/vor010/ASKAP/MS/Jul2013/second_nb/chunk3.ms,/Users/vor010/ASKAP/MS/Jul2013/second_nb/chunk1.ms,/Users/vor010/ASKAP/MS/Jul2013/second_nb/chunk2.ms]
-#Cimager.dataset = [/Users/vor010/ASKAP/MS/Sep2013/2013-09-25_140536.ms]
-Cimager.dataset = [/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk0.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk1.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk2.ms]
+#Cimager.dataset = [/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk0.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk1.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk2.ms]
+Cimager.dataset = [/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_114658.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_150246.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-18_010322.ms]
+#Cimager.dataset = [/Users/vor010/ASKAP/MS/Nov2013/subset/chunk0.ms,/Users/vor010/ASKAP/MS/Nov2013/subset/chunk1.ms,/Users/vor010/ASKAP/MS/Nov2013/subset/chunk2.ms]
 
 # first multibeam
 #Cimager.dataset = [/Users/vor010/ASKAP/MS/Apr2013/2013-04-04_132422.ms]
 
-Cimager.Feed = 2
+Cimager.Feed = 0
 Cimager.CorrelationType = cross
 #Cimager.Baseline = [0,1]
 Cimager.nUVWMachines                            = 8
@@ -32,10 +30,11 @@ Cimager.Images.shape	                        = [1024,1024]
 Cimager.Images.cellsize	                        = [40arcsec, 40arcsec]
 #Cimager.Images.image.test.frequency	        = [0.940935e9,0.867935e9]
 #Cimager.Images.image.test.frequency	        = [0.942009e9,0.868009e9]
-Cimager.Images.image.test.frequency	        = [0.935009e9,0.920009e9]
+#Cimager.Images.image.test.frequency	        = [0.935009e9,0.920009e9]
+Cimager.Images.image.test.frequency	        = [1.015009e9,0.984009e9]
 Cimager.Images.image.test.nchan		= 1
 #Cimager.Images.image.test.nterms	= 2
-Cimager.Images.image.test.polarisation       = ["XX"]
+Cimager.Images.image.test.polarisation       = ["YY"]
 #Cimager.Images.image.test.polarisation       = ["I"]
 #Cimager.Images.image.test.ewprojection = true
 #Cimager.Images.image.test.direction	        = [12h30m49.43, +12.23.28.01, J2000]
@@ -141,7 +140,7 @@ Cimager.threshold.minorcycle                    = [80%]
 #Cimager.preconditioner.Names                    = [Wiener]
 #Cimager.preconditioner.Wiener.robustness        = 1
 
-Cimager.ncycles                                 = 10
+Cimager.ncycles                                 = 1
 #
 # Restore the image at the end
 #
