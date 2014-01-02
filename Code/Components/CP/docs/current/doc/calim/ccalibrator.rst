@@ -1,7 +1,20 @@
 ccalibrator Documentation
 =========================
 
-This page provides some details about the ccalibrator program. The purpose of this software is to perform calibration in a parallel/distributed environment or on a single computer system. The software leverages MPI, however can be run on a simple laptop or a large supercomputer.
+The ccalibrator program performs calibration in a parallel/distributed environment
+or on a single computer system. The software leverages MPI, however can be run on
+a simple laptop or a large supercomputer.
+
+Running the program
+-------------------
+
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
+
+   $ ccalibrator -c config.in
+
+Configuration Parameters
+------------------------
 
 Parset parameters understood by ccalibrator are given in the following table (all parameters must have **Ccalibrator** prefix, i.e. **Ccalibrator.dataset**). For a number of parameters certain keywords are substituted, i.e. **%w** is replaced by the rank and **%n** by the number of nodes in the parallel case. In the serial case, these special strings are substituted by 0 and 1, respectively. This substitution allows to reuse the same parameter file on all nodes of the cluster if the difference between jobs assigned to 
 individual nodes can be coded by using these keywords (e.g. using specially crafted file names). If a parameter supports substitution, it is clearly stated in the description. 

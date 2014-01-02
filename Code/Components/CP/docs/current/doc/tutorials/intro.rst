@@ -1,8 +1,10 @@
-Basic Tutorial
-==============
+Platform Introduction Tutorial
+==============================
 
 This tutorial demonstrates basic operation of the ASKAP Central Processor platform,
 and does so by walking you through the process of imaging a simulated BETA dataset.
+The primary goal of this tutorial is to introduce you to the platform and the
+program execution environment.
 
 The simulated measurement set has the following specifications:
 
@@ -28,8 +30,8 @@ Your working directory will not be within your home directory, instead it will r
 on the fast Lustre filesystem::
 
     cd /scratch/$USER
-    mkdir basictutorial
-    cd basictutorial
+    mkdir introtutorial
+    cd introtutorial
 
 Retrieving the tutorial dataset
 -------------------------------

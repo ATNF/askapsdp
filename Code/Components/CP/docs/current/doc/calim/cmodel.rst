@@ -1,10 +1,6 @@
 cmodel (Model Image Generator) Documentation
 ============================================
 
-This page provides some details about the "cmodel" program located in:
-
-| ``$ASKAP_ROOT/trunk/Code/Components/CP/pipelinetasks/current/apps/cmodel.cc``
-
 The cmodel pipeline task is responsible for requesting a LSM from the sky model
 service and building an image from the components and/or images resulting from
 the request. The program is distributed and used a master/worker pattern to
@@ -18,19 +14,10 @@ written to disk.
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system::
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
 
-   $ cd $ASKAP_ROOT
-   $ rbuild Code/Components/CP/pipelinetasks/current
-
-It can then be run with the mpirun command, e.g::
-
-   $ mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c config.in
-
-As described above, cmodel is a master/worker distributed program and as such requires a
-minimum of two processes (-np 2), however can leverage many thousand if there are a sufficient
-number of components to image.
-
+   $  cmodel -c config.in
 
 Configuration Parameters
 ------------------------

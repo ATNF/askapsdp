@@ -1,6 +1,19 @@
 csimulator Documentation
 ========================
 
+The csimulator program is used to generate a measurement set from a model sky.
+
+Running the program
+-------------------
+
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
+
+   $ csimulator -c config.in
+
+Configuration Parameters
+------------------------
+
 Available parameters for simulator are given in the following table (all parameters
 must have **Csimulator** prefix, i.e. **Csimulator.dataset**). For a number of parameters
 certain keywords are substituted, i.e. **%w** is replaced by the rank and **%n** by the

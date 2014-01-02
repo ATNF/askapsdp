@@ -1,7 +1,22 @@
 cimager Documentation
 =====================
 
-This page provides some details about the cimager program. The purpose of this software is to perform imaging in a parallel/distributed environment or on a single computer system. The software leverages MPI, however can be run on a simple laptop or a large supercomputer.
+This page provides some details about the cimager program. The purpose of this
+software is to perform imaging in a parallel/distributed environment or on a single
+computer system. The software leverages MPI, however can be run on a simple laptop
+or a large supercomputer.
+
+Running the program
+-------------------
+
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
+
+   $ cimager -c config.in
+
+
+Configuration Parameters
+------------------------
 
 Parset parameters understood by imager are given in the following table (all parameters must have **Cimager** prefix, i.e. **Cimager.dataset**). For a number of parameters certain keywords are substituted, i.e. **%w** is replaced by the worker number (rank-1, if there is only one pool of workers) and **%n** by the number of nodes in the parallel case. In the serial case, these special strings are substituted by 0 and 1, respectively. This substitution allows to reuse the same parameter file on all nodes of the cluster if the difference between jobs assigned to individual nodes can be coded by using these keywords (e.g. using specially
 crafted file names). Note, if there is more than 1 group of workers (e.g. parallel calculation of Taylor terms), %w index spans the workers in one group rather than the
@@ -233,7 +248,7 @@ A number of other parameters allowing to narrow down the data selection are unde
 
 
 Parameters of images
---------------------
+````````````````````
 
 This section describes parameters used to define images, i.e. what area of the sky one wants to image and how.
 All parameters given in the following table have **Cimager.Images* prefix**, e.g. Cimager.Images.reuse = false
@@ -427,8 +442,14 @@ Example
 
 .. code-block:: bash
 
+    #
+    # Input measurement set
+    #
     Cimager.dataset                                 = 10uJy_stdtest.ms
 
+    #
+    # Define the image(s) to write
+    #
     Cimager.Images.Names                            = [image.i.10uJy_clean_stdtest]
     Cimager.Images.shape                            = [2048,2048]
     Cimager.Images.cellsize                         = [6.0arcsec, 6.0arcsec]
@@ -450,12 +471,11 @@ Example
     Cimager.threshold.minorcycle                    = [0.27mJy, 10%]
     Cimager.threshold.majorcycle                    = 0.3mJy
 
-    Cimager.ncycles                                 = 10a
+    Cimager.ncycles                                 = 10
 
     #
     # Restore the image at the end
     #
-
     Cimager.restore                                 = True
     Cimager.restore.beam                            = [30arcsec, 30arcsec, 0deg]
 

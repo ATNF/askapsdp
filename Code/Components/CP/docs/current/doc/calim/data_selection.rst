@@ -61,4 +61,3 @@ are optional. If present, a corresponding data selection is done and only those 
 |                      |              |              |frequency information into account.                         |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 
-

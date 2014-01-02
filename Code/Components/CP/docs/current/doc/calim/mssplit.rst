@@ -1,10 +1,6 @@
 mssplit (Measurement Splitting/Averaging Utility) Documentation
 ===============================================================
 
-This page provides some details about the "cflag" program located in:
-
-| ``$ASKAP_ROOT/trunk/Code/Components/Synthesis/current/apps/mssplit.cc``
-
 The mssplit utility is used to split a large measurement set up based on
 channel selection. It also has the ability to average channels together
 while doing so. It can also be used simply to average channels; i.e. a
@@ -23,14 +19,10 @@ The intended use-cases of this tool are:
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system::
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
 
-   $ cd $ASKAP_ROOT
-   $ rbuild Code/Components/Synthesis/synthesis/current
-
-It can then be run with the following command, e.g::
-
-   $ $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c config.in
+   $  mssplit -c config.in
 
 
 Configuration Parameters

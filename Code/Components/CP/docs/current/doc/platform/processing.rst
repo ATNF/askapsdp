@@ -51,7 +51,6 @@ from your iVec login, and to avoid having to specify the username each time, you
 the following to your ~/.ssh/config file::
 
    Host *.ivec.org
-     ForwardX11 yes
      User abc123
 
 Setting up your account
@@ -60,16 +59,11 @@ Add the following to your ~/.bashrc
 
 .. code-block:: bash
 
-    # The default umask is 0022, should be 0027
-    umask 0027
-
-    # Use GNU Compilers rather than Cray Compilers
-    module swap PrgEnv-cray PrgEnv-gnu
-
-    # Load additional modules
+    # Load the ASKAPsoft module
     module load askapsoft
-    module load java
-    export JAVA_HOME=${JAVA_PATH}
+
+    # Load the measures data
+    module load askapdata
 
     # Allow MPICH to fallback to 4k pages if large pages cannot be allocated
     export MPICH_GNI_MALLOC_FALLBACK=enabled

@@ -9,4 +9,5 @@ Processor platform and the calibration, imaging, and source finding software.
 .. toctree::
    :maxdepth: 1
 
-   basic.rst
+   intro.rst
+   basiccontinuum.rst

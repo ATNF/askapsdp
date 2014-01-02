@@ -1,15 +1,13 @@
-Makecube Documentation
+makecube Documentation
 ======================
 
 Introduction
 ------------
 
-This page provides some details about the "makecube" program located in:
+This page provides some details about the "makecube" program. The makecube program
+merges multiple images into a cube. This is intended to take individual image planes
+output from the spectral line imaging pipeline and merge them into a cube.
 
-| ``$ASKAP_ROOT/Code/Components/CP/pipelinetasks/current/apps/makecube.cc``
-
-The makecube program merges multiple images into a cube. This is intended to take individual
-image planes output from the spectral line imaging pipeline and merge them into a cube.
 Important notes:
 
 - All source images must have the same dimensions and coordinate systems.
@@ -20,22 +18,20 @@ Important notes:
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system::
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
 
-   $ cd $ASKAP_ROOT
-   $ rbuild Code/Components/CP/pipelinetasks/current
+   $ makecube -c config.in
 
-It can then be run in the usual fashion by providing a Parameter Set
-as input::
-
-   $ $ASKAP_ROOT/Code/Components/CP/pipelinetasks/current/install/bin/makecube.sh -c parset.in
-
+Configuration Parameters
+------------------------
 
 The key parameters to be provided are the output cube name, and the pattern describing the input files. Since makecube could potentially be processing thousands of input files, the input can be described using a pattern like "residual.i.[0..15].restored". This would result in images *residual.i.0.restored* to *residual.i.15.restored* (inclusive) being used to form the cube.
 
 It is possible to specify a rest frequency to be applied to the output cube (since *cimager* will not provide this). A common value for this, that of the fine-structure line of neutral hydrogen (HI), or 1420405751.786 Hz, can be requested by setting the rest frequency to "HI" in the parameter set. If no rest frequency is provided, or a negative value is given, no rest frequency will be written to the cube.
 
 The image info (which essentially means the beam information) for the output cube is copied from a designated input image. This is, by default, the middle image of the range (specifically, (number of images) / 2, with integer division), but this can be changed by setting *beamReference* to 'first', 'last', or a number in the range. The individual beam sizes for each of the input images (assuming they are defined) can be written to an ascii text file for future reference. The file has columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]
+
 Here is an example of the start of a beam log::
 
   #Channel Image_name BMAJ[arcsec] BMIN[arcsec] BPA[deg]
@@ -54,12 +50,12 @@ The following table describes the possible parameters.
 +--------------------------+-------------+------------+----------------------------------------------------------------+
 |Makecube.inputNamePattern |string       |""          |The pattern describing the input names. See text for details.   |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.restFrequency    |string/float |-1.         |The rest frequency to be written to the cube's coordinate       |
-|                          |             |            |system. Negative values mean nothing is written. Provide either |
+|Makecube.restFrequency    |string or    |-1.0        |The rest frequency to be written to the cube's coordinate       |
+|                          |float        |            |system. Negative values mean nothing is written. Provide either |
 |                          |             |            |a numerical value or the string "HI" (which is equivalent to    |
 |                          |             |            |1420405751.786).                                                |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.beamReference    |string/int   |mid         |Which of the input images to get the beam information           |
+|Makecube.beamReference    |string or int|mid         |Which of the input images to get the beam information           |
 |                          |             |            |from. Options include: 'mid' (middle image of list), 'first',   |
 |                          |             |            |'last', or a number indicating the image (list is zero-based).  |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
@@ -67,18 +63,18 @@ The following table describes the possible parameters.
 |                          |             |            |every input file is written.                                    |
 +--------------------------+-------------+------------+----------------------------------------------------------------+
 
-The following demonstrates a parset for a continuum cube (no rest frequency)::
+The following demonstrates a parameter set for a continuum cube (no rest frequency)::
 
-  Makecube.inputNamePattern = image.i.cube.clean_ch[0..151].restored
-  Makecube.outputCube = image.i.cube.clean.restored
-  Makecube.restFrequency = -1.
-  Makecube.beamReference = mid
-  Makecube.beamLog = beamFile.image.i.cube.clean.restored.dat
+  Makecube.inputNamePattern     = image.i.cube.clean_ch[0..151].restored
+  Makecube.outputCube           = image.i.cube.clean.restored
+  Makecube.restFrequency        = -1.0
+  Makecube.beamReference        = mid
+  Makecube.beamLog              = beamFile.image.i.cube.clean.restored.dat
 
-and the following demonstrates a parset for a small spectral-line cube focussed on HI emisison::
+and the following demonstrates a parameter set for a small spectral-line cube focussed on HI emisison::
 
- Makecube.inputNamePattern = image.i.SLtute.cube_ch[0..31].restored
- Makecube.outputCube = image.i.SLtute.cube.restored
- Makecube.restFrequency = HI
- Makecube.beamReference = mid
- Makecube.beamFile = beamFile.image.i.SLtute.cube.restored.dat
+ Makecube.inputNamePattern      = image.i.SLtute.cube_ch[0..31].restored
+ Makecube.outputCube            = image.i.SLtute.cube.restored
+ Makecube.restFrequency         = HI
+ Makecube.beamReference         = mid
+ Makecube.beamFile              = beamFile.image.i.SLtute.cube.restored.dat
