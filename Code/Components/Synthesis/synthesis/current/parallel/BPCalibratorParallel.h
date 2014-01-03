@@ -50,13 +50,12 @@
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
 #include <dataaccess/SharedIter.h>
-//#include <fitting/Solver.h>
 #include <calibaccess/ICalSolutionSource.h>
+#include <utils/MultiDimPosIter.h>
 
 
 // std includes
-#include <string>
-#include <vector>
+#include <utility>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -96,7 +95,16 @@ namespace askap
       BPCalibratorParallel(askap::askapparallel::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);
 
-      // virtual methods of the abstract base
+      /// @brief method which does the main job
+      /// @details it iterates over all channels/beams and writes the result.
+      /// In the parallel mode each worker iterates over their own portion of work and
+      /// then sends the result to master for writing.
+      void run(); 
+
+      protected:      
+
+      // virtual methods of the abstract base, define them as protected because they
+      // are no longer supposed to be called directly from the application level
     
       /// @brief Calculate the normal equations (runs in workers)
       /// @details Model, either image-based or component-based, is used in conjunction with 
@@ -107,8 +115,6 @@ namespace askap
       /// @details Parameters of the calibration problem are solved for here
       virtual void solveNE();
       
-  protected:      
-
       /// @brief Write the results (runs in master)
       /// @details The solution (calibration parameters) is reported via solution accessor
       /// @param[in] postfix a string to be added to the file name (unused in this class)
@@ -162,6 +168,11 @@ namespace askap
       /// @brief number of channels to solve for
       /// @return number of channels to solve for
       inline casa::uInt nChan() const { return parset().getInt32("nChan", 304); }
+      
+      /// @brief extract current beam/channel pair from the iterator
+      /// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor()
+      /// @return pair of beam (first) and channel (second) indices
+      std::pair<casa::uInt, casa::uInt> currentBeamAndChannel() const; 
  
       /// Calculate normal equations for one data set, channel and beam
       /// @param[in] ms Name of data set
@@ -185,6 +196,17 @@ namespace askap
       /// @details It is handy to store the perfect measurement equation, so it is not
       /// recreated every time for each solution interval. 
       boost::shared_ptr<IMeasurementEquation const> itsPerfectME;
+      
+      /// @brief iterator over channels and beams
+      /// @details This class allows us to split work domain between a number of workers (=iteration chunks)
+      scimath::MultiDimPosIter itsWorkUnitIterator;
+      
+      /// @brief solution ID to work with
+      /// @details This field should only be used if itsSolutionIDValid is true
+      long itsSolutionID;
+      
+      /// @brief solution ID validity flag
+      bool itsSolutionIDValid;
     };
 
   }

@@ -92,7 +92,7 @@ namespace synthesis {
 /// @param[in] parset ParameterSet for inputs
 BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& comms,
           const LOFAR::ParameterSet& parset) : MEParallelApp(comms,parset), 
-      itsPerfectModel(new scimath::Params())
+      itsPerfectModel(new scimath::Params()), itsSolutionID(-1), itsSolutionIDValid(false)
 {
    ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for using a specialised pipeline");
    if (itsComms.isMaster()) {                        
@@ -100,8 +100,8 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
       itsSolutionSource = accessors::CalibAccessFactory::rwCalSolutionSource(parset);
       ASKAPASSERT(itsSolutionSource);
       
-      if (comms.isParallel()) {
-          ASKAPLOG_INFO_STR(logger, "The work will be distributed between "<<comms.nProcs() - 1<<" workers");
+      if (itsComms.isParallel()) {
+          ASKAPLOG_INFO_STR(logger, "The work will be distributed between "<<itsComms.nProcs() - 1<<" workers");
       } else {
           ASKAPLOG_INFO_STR(logger, "The work will be done in the serial by the current process");
       }
@@ -119,15 +119,110 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
   
       // load sky model, populate itsPerfectModel
       readModels();
+      if (itsComms.isParallel()) {
+          // setup work units in the parallel case, make beams the first (fastest to change) parameter to achieve
+          // greater benefits if multiple measurement sets are present (more likely to be scheduled for different ranks)
+          itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()), itsComms.nProcs() - 1, itsComms.rank() - 1);
+      } 
+  } 
+  if (!itsComms.isParallel()) {
+      // setup work units in the serial case - all work to be done here
+      itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()));
   }
-    
+  ASKAPCHECK((measurementSets().size() == 1) || (measurementSets().size() == nBeam()), 
+       "Number of measurement sets given in the parset ("<<measurementSets().size()<<
+       ") should be either 1 or equal the number of beams ("<<nBeam()<<")");      
 }          
+
+/// @brief method which does the main job
+/// @details it iterates over all channels/beams and writes the result.
+/// In the parallel mode each worker iterates over their own portion of work and
+/// then sends the result to master for writing.
+void BPCalibratorParallel::run()
+{
+  if (itsComms.isWorker()) {
+      ASKAPDEBUGASSERT(itsModel);
+      ASKAPDEBUGASSERT(itsEquation);
+      const int nCycles = parset().getInt32("ncycles", 1);
+      ASKAPCHECK(nCycles >= 0, " Number of calibration iterations should be a non-negative number, you have " <<
+                       nCycles);                                             
+      for (itsWorkUnitIterator.origin(); itsWorkUnitIterator.hasMore(); itsWorkUnitIterator.next()) {
+           // this will force creation of the new measurement equation for this beam/channel pair
+           itsEquation.reset();
+            
+           const std::pair<casa::uInt, casa::uInt> indices = currentBeamAndChannel();
+           
+           ASKAPLOG_INFO_STR(logger, "Initialise bandpass (unknowns) for "<<nAnt()<<" antennas for beam="<<indices.first<<
+                             " and channel="<<indices.second);
+           itsModel->reset();                             
+           for (casa::uInt ant = 0; ant<nAnt(); ++ant) {
+                itsModel->add(accessors::CalParamNameHelper::paramName(ant, indices.first, casa::Stokes::XX), casa::Complex(1.,0.));
+                itsModel->add(accessors::CalParamNameHelper::paramName(ant, indices.first, casa::Stokes::YY), casa::Complex(1.,0.));                
+           }           
+           
+           for (int cycle = 0; cycle < nCycles; ++cycle) {
+                ASKAPLOG_INFO_STR(logger, "*** Starting calibration iteration " << cycle + 1 << " for beam="<<
+                              indices.first<<" and channel="<<indices.second<<" ***");                    
+                // iterator is used to access the current work unit inside calcNE
+                calcNE();
+                solveNE();
+           }
+           if (itsComms.isParallel()) {
+               // send to the master comes here
+           } else {
+               // serial operation, write comes here
+               writeModel();
+           }
+      }     
+  }
+  if (itsComms.isMaster() && itsComms.isParallel()) {
+      const casa::uInt numberOfWorkUnits = nBeam() * nChan();
+      for (casa::uInt chunk = 0; chunk < numberOfWorkUnits; ++chunk) {
+           // asynchronous receive from workers comes here
+           writeModel();
+      } 
+  }
+} 
+
+/// @brief extract current beam/channel pair from the iterator
+/// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor()
+/// @return pair of beam (first) and channel (second) indices
+std::pair<casa::uInt, casa::uInt> BPCalibratorParallel::currentBeamAndChannel() const
+{
+  const casa::IPosition cursor = itsWorkUnitIterator.cursor();
+  ASKAPDEBUGASSERT(cursor.nelements() == 2);
+  ASKAPDEBUGASSERT((cursor[0] >= 0) && (cursor[1] >= 0));
+  const std::pair<casa::uInt,casa::uInt> result(static_cast<casa::uInt>(cursor[0]), static_cast<casa::uInt>(cursor[1]));
+  ASKAPDEBUGASSERT(result.first < nBeam());
+  ASKAPDEBUGASSERT(result.second < nChan());
+  return result;
+}
+
 
 /// @brief Calculate the normal equations (runs in workers)
 /// @details Model, either image-based or component-based, is used in conjunction with 
 /// CalibrationME to calculate the generic normal equations. 
 void BPCalibratorParallel::calcNE()
 {
+  ASKAPDEBUGASSERT(itsComms.isWorker());
+  
+  // create a new instance of the normal equations class
+  boost::shared_ptr<scimath::GenericNormalEquations> gne(new scimath::GenericNormalEquations);
+  itsNe = gne;
+        
+  ASKAPDEBUGASSERT(itsNe);
+      
+  // obtain details on the current iteration, i.e. beam and channel
+  ASKAPDEBUGASSERT(itsWorkUnitIterator.hasMore());
+  
+  const std::pair<casa::uInt, casa::uInt> indices = currentBeamAndChannel();
+  
+  ASKAPDEBUGASSERT((measurementSets().size() == 1) || (indices.first < measurementSets().size()));
+              
+  const std::string ms = (measurementSets().size() == 1 ? measurementSets()[0] : measurementSets()[indices.first]);
+        
+  // actual computation   
+  calcOne(ms, indices.first, indices.second);  
 }
 
 /// @brief Solve the normal equations (runs in workers)
@@ -157,7 +252,35 @@ void BPCalibratorParallel::solveNE()
 /// @details The solution (calibration parameters) is reported via solution accessor
 void BPCalibratorParallel::writeModel(const std::string &)
 {
-  ASKAPTHROW(AskapError, "BPCalibratorParallel::writeModel is not supposed to be called");
+  ASKAPDEBUGASSERT(itsComms.isMaster());
+  
+  const std::pair<casa::uInt, casa::uInt> indices = currentBeamAndChannel();
+  
+  ASKAPLOG_INFO_STR(logger, "Writing results of the calibration for beam="<<indices.first<<" channel="<<indices.second);
+  
+  ASKAPCHECK(itsSolutionSource, "Solution source has to be defined by this stage");
+
+  if (!itsSolutionIDValid) {
+      // obtain solution ID only once, the results can come in random order and the
+      // accessor is responsible for aggregating all of them together. This is done based on this ID.
+      itsSolutionID = itsSolutionSource->newSolutionID(solutionTime());
+      itsSolutionIDValid = true;
+  }    
+  
+  boost::shared_ptr<accessors::ICalSolutionAccessor> solAcc = itsSolutionSource->rwSolution(itsSolutionID);
+  ASKAPASSERT(solAcc);
+        
+  ASKAPDEBUGASSERT(itsModel); 
+  std::vector<std::string> parlist = itsModel->freeNames();
+  for (std::vector<std::string>::const_iterator it = parlist.begin(); it != parlist.end(); ++it) {
+       const casa::Complex val = itsModel->complexValue(*it);           
+       const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
+             accessors::CalParamNameHelper::parseParam(*it);
+       // beam is also coded in the parameters, although we don't need it because the data are partitioned
+       // just cross-check it  
+       ASKAPDEBUGASSERT(static_cast<casa::uInt>(paramType.first.beam()) == indices.first);             
+       solAcc->setBandpassElement(paramType.first, paramType.second, indices.second, val);
+  }
 }
 
 /// @brief create measurement equation
