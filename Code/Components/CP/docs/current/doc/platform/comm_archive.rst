@@ -31,7 +31,7 @@ the files before copying. Essentially by doing this you are telling PBStore, in 
 all the files you are going to retrieve so it can fetch them in the most optimal manner.
 
 A single file can be staged with the command stage <filename> or a directory can have
-all files recursivly staged with the command stage -r <filename>. For example, to stage
+all files recursively staged with the command stage -r <filename>. For example, to stage
 a directory (actually the files within the directory) then copy retrieve it::
 
     ssh cortexivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/userfs/<username>/mydir

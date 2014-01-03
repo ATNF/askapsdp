@@ -1,10 +1,6 @@
 cflag (Flagging Utility) Documentation
 =======================================
 
-This page provides some details about the "cflag" program located in:
-
-| ``$ASKAP_ROOT/trunk/Code/Components/CP/pipelinetasks/current/apps/cflag.cc``
-
 The cflag pipeline task is responsible for both selection based and dynamic flagging
 of visibilities. It takes as input a configuration file which specifies both the
 dataset (Measurement Set) to be transformed, the flaggers to use and
@@ -21,15 +17,13 @@ parameters.
 Running the program
 -------------------
 
-The code should be compiled with the ASKAPsoft build system::
+It can be run with the following command, where "config.in" is a file containing
+the configuration parameters described in the next section. ::
 
-   $ cd $ASKAP_ROOT
-   $ rbuild Code/Components/CP/pipelinetasks/current
+   $ cflag -c config.in
 
-It can then be run with the following command, e.g::
-
-   $ ${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cflag.sh -c config.in
-
+An example configuration parameter set is provided in the `Configuration Example`_
+section.
 
 Configuration Parameters
 ------------------------
@@ -156,7 +150,7 @@ Amplitude Thresholding
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The "amplitude thresholding" flagger is a very basic flagger used to flag visibilities
-which fall outside some amplitude bounds. This was designed for ASKAP comissioning to
+which fall outside some amplitude bounds. This was designed for ASKAP commissioning to
 potentially work around some correlator problems.
 
 +----------------------------------+------------+------------+---------------------------------------------+
@@ -190,8 +184,10 @@ potentially work around some correlator problems.
 Configuration Example
 ---------------------
 
+**Example 1**
+
 This example demonstrates configuration of the Stokes-V (dynamic) flagger and the
-selection based flagger with two rules specified.
+selection based flagger with two rules specified:
 
 .. code-block:: bash
 
@@ -202,21 +198,33 @@ selection based flagger with two rules specified.
     Cflag.stokesv_flagger.enable            = true
     Cflag.stokesv_flagger.threshold         = 5.0
 
+    # Enable selection based flagging with two rules
+    Cflag.selection_flagger.rules           = [rule1, rule2]
+
+    # Selection Rule 1: Beams 0 and 1 on antenna "ak01"
+    Cflag.selection_flagger.rule1.antenna   = ak01
+    Cflag.selection_flagger.rule1.feed      = [0, 1]
+
+    # Selection Rule 2: Spectral Channels 0 to 16 (inclusive) on spectral window 0
+    Cflag.selection_flagger.rule2.spw       = 0:0~16
+
+
+**Example 2**
+
+This example demonstrates configuration of the elevation flagger and the amplitude based
+flagger with both a low and high threshold:
+
+.. code-block:: bash
+
+    # The path/filename for the measurement set
+    Cflag.dataset                           = target.ms
+
     # Elevation based flagging
     Cflag.elevation_flagger.enable          = true
     Cflag.elevation_flagger.low             = 12.0
+    Cflag.elevation_flagger.high            = 89.0
 
     # Amplitude based flagging
     Cflag.amplitude_flagger.enable          = true
     Cflag.amplitude_flagger.high            = 10.25
     Cflag.amplitude_flagger.low             = 1e-3
-
-    # Enable selection based flagging with two rules
-    Cflag.selection_flagger.rules           = [rule1, rule2]
-
-    # Selection Rule 1: Beams 0 and 1 on antenna "Pad01"
-    Cflag.selection_flagger.rule1.antenna   = Pad01
-    Cflag.selection_flagger.rule1.feed      = [0, 1]
-
-    # Selection Rule 2: Spectral Channels 0 to 16 (inclusive) on spectral window 0
-    Cflag.selection_flagger.rule2.spw       = 0:0~16

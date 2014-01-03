@@ -2,7 +2,7 @@ Introduction
 ============
 
 Welcome to the user documentation for the ASKAP Central Processor. These pages contain
-documentation for the comissioning scientists and early-science users interested in
+documentation for the commissioning scientists and early-science users interested in
 carrying out calibration, imaging, and analysis of ASKAP data products.
 
 The tools documented here are not intended to provide end-to-end data analysis capabilities,

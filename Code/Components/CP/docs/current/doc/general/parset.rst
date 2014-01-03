@@ -99,7 +99,7 @@ in square brackets. They are expanded if required.
 
         [/aa000../aa2]
 
-   gives the same result. Note that expansion if only done if the range operator is preceeded by
+   gives the same result. Note that expansion if only done if the range operator is preceded by
    a numeric value. Thus a path name like::
 
         [a/b/../c/d]
@@ -114,7 +114,7 @@ in square brackets. They are expanded if required.
 
         [ab013,ab012,ab011,ab010]
 
-3. The repeat operator ‘*’ can be used to repeat the same value n times. It must be preceeded
+3. The repeat operator ‘*’ can be used to repeat the same value n times. It must be preceded
    by an integer value to take effect. E.g::
 
         [5*0] is expanded to [0,0,0,0,0]

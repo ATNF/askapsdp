@@ -9,7 +9,7 @@ program execution environment.
 The simulated measurement set has the following specifications:
 
 * Sky model: SKADS S3SEX Simulated Sky
-* Array Configuration: BETA (Pad01,Pad03,Pad06,Pad08,Pad09,Pad15)
+* Array Configuration: BETA (ak01,ak03,ak06,ak08,ak09,ak15)
 * Observation Length: 12 hours
 * Correlator integration time: 30s
 * Number of beams: 36
@@ -50,7 +50,7 @@ Creating a dirty image
 ----------------------
 Since the measurement set has no calibration errors we can move straight to imaging. First we
 will produce a dirty image with the **cimager** program. Create the following configuration file
-for cimager, lets call it *dirty.in*::
+for cimager, lets call it **dirty.in**::
 
     Cimager.dataset                                 = coarse_chan.ms
 
@@ -100,9 +100,52 @@ the system will execute::
     #PBS -l walltime=02:00:00
     #PBS -N cimager
     #PBS -j oe
-    #PBS -v AIPSPATH
 
     cd ${PBS_O_WORKDIR}
+
+    aprun -n 305 -N 20 -ss cimager -c dirty.in > dirty_${PBS_JOBID}.log
+
+Before submitting the job for execution, lets dissect this file line by line. This line
+requests 305 MPI processes, which for the cimager results in one master process and 304
+worker processes. Each worker process will process a single spectral channel from the
+measurement set::
+
+    #PBS -l mppwidth=305
+
+Next *mppnppn=20* indicates 20 processes should be launched on each node. The nodes in
+the system each have 20 CPU cores, so this results in an optimal assignment of one process
+per core. This job will then require 16 compute nodes. ::
+
+    #PBS -l mppnppn=20
+
+The walltime limit is set to 2 hours, meaning if the job has not finished in 2 hours it
+will be killed. It is useful to set such a reasonable limit to ensure your job doesn't run
+indefinitely (which can happen in the case of a bug or misconfiguration)::
+
+    #PBS -l walltime=02:00:00
+
+The "-N" option sets the job name to *cimager*. This can be anything (there are some restrictions)
+an is used to identify your job in the list of all jobs running on the system::
+
+    #PBS -N cimager
+
+The line "-j oe" says to join stdout and stderr, resulting in one output file rather than two::
+
+    #PBS -j oe
+
+The "cd" command ensures the job executes in the same directory it was launched from::
+
+    cd ${PBS_O_WORKDIR}
+
+This final line actually executes the program. The *aprun* wrapper is used to execute all jobs
+on the Cray compute nodes. Here "-n 305" and "-N 20" repeat those numbers already described earlier.
+The "-ss" option specifies strict memory containment per NUMA node. This is just a performance
+optimisation and can be ignored for now. The *cimager* program is then executed by aprun with
+command line arguments "-c dirty.in" which specifies the configuration parameter set created above.
+Finally, the output is directed to a file named *dirty_1234.log* (where 1234 is the unique job ID).
+Without this redirection, the output will go to stdout and will only be written to disk once the
+job is complete. By redirecting the output to a file, the file can be inspected at run time to
+track progress::
 
     aprun -n 305 -N 20 -ss cimager.sh -c dirty.in > dirty_${PBS_JOBID}.log
 
@@ -123,8 +166,11 @@ then use to monitor the status of your job::
     1234.rtc        user123  workq    cimager     22811  16 320    --  02:00 R 00:01
 
 Alternatively, you can use the command *"qstat -u $USER"* to list all of your incomplete
-jobs.  You can also *tail* the file dirty_1234.log (where 1234 is your job id) to track
-its progress. When the job completes it produces the following output:
+jobs.  You can also (once the job begins running)  *tail* the file dirty_1234.log (where
+1234 is your job id) to track its progress.
+
+When the job completes it produces the following
+output files:
 
 +--------------------------+-------------------------------------+
 | **Filename**             | **Description**                     |
@@ -140,7 +186,28 @@ its progress. When the job completes it produces the following output:
 | weights.i.dirty          | Weights image                       |
 +--------------------------+-------------------------------------+
 
-View the restored image with casaviewer::
+
+Visualising the Images
+----------------------
+
+If you have `CASA`_ installed on your desktop computer you may download and visualise
+these images with *casaviewer*. First copy the file from the /scratch filesystem to your
+desktop computer::
+
+    scp -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/image.i.dirty.restored
+    scp -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/psf.i.dirty
+    scp -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/sensitivity.i.dirty
+    scp -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/weights.i.dirty
+
+The string <USERID> needs to be replaced with your iVEC userid. Also, you may wish to use
+the BBCP program for faster data transfer if you have it installed::
+
+    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/image.i.dirty.restored
+    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/psf.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/sensitivity.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/<USERID>/introtutorial/weights.i.dirty
+
+Once the files have finished downloading, view the restored image with casaviewer::
 
    casaviewer image.i.dirty.restored
 
@@ -157,3 +224,5 @@ psf.i.dirty (top right), sensitivity.i.dirty (bottom left), weights.i.dirty
 
 .. image:: figures/imaging-dirty.png
    :width: 99%
+
+.. _CASA: http://http://casa.nrao.edu/

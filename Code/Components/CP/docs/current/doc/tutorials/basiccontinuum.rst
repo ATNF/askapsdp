@@ -8,7 +8,7 @@ Prerequisites
 You should read the :doc:`../platform/processing` documentation and in particular have
 setup your environment per the section entitled "Setting up your account".
 
-You should also have read the :doc:`intro` tutorial and be comfortable with submitting jobs
+You should also have read the :doc:`intro` and be comfortable with submitting jobs
 and monitoring their status.
 
 Setting up a working directory

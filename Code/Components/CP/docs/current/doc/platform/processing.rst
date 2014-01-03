@@ -34,7 +34,7 @@ Sonexion storage system mounted as a Lustre filesystem.
   - 10 GbE connectivity to iVEC border router
   - 4x QDR Infiniband connectivity to Lustre filesystem
 
-* High-performance Storage
+* High-Performance Storage
 
   - 1.4PB Lustre Filesystem
   - Approximately 25GB/s I/O performance
@@ -42,9 +42,9 @@ Sonexion storage system mounted as a Lustre filesystem.
 
 Login
 ------
-To login to the RTC::
+To login to the ASKAP Central Processor::
 
-   ssh abc123@rtc.ivec.org
+   ssh abc123@galaxy.ivec.org
 
 Where abc123 is the login name iVec gave you. In that case that your CSIRO login differers
 from your iVec login, and to avoid having to specify the username each time, you can add

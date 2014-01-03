@@ -4,15 +4,16 @@ makecube Documentation
 Introduction
 ------------
 
-This page provides some details about the "makecube" program. The makecube program
-merges multiple images into a cube. This is intended to take individual image planes
-output from the spectral line imaging pipeline and merge them into a cube.
+The makecube program merges multiple images into a cube. This is intended
+to take individual image planes output from the spectral line imaging pipeline
+and merge them into a cube.
 
 Important notes:
 
 - All source images must have the same dimensions and coordinate systems.
 - A rest frequency can be provided.
-- Restoring beam (i.e. the image info) is copied from a single specified image. Unfortunately casa images don't appear to support a restoring beam that varies with frequency.
+- Restoring beam (i.e. the image info) is copied from a single specified image. Unfortunately
+  casa images don't appear to support a restoring beam that varies with frequency.
 - A record of the beam sizes of the input images can be created for future reference.
 
 Running the program
@@ -26,11 +27,24 @@ the configuration parameters described in the next section. ::
 Configuration Parameters
 ------------------------
 
-The key parameters to be provided are the output cube name, and the pattern describing the input files. Since makecube could potentially be processing thousands of input files, the input can be described using a pattern like "residual.i.[0..15].restored". This would result in images *residual.i.0.restored* to *residual.i.15.restored* (inclusive) being used to form the cube.
+The key parameters to be provided are the output cube name, and the pattern describing the
+input files. Since makecube could potentially be processing thousands of input files, the
+input can be described using a pattern like "residual.i.[0..15].restored". This would result
+in images *residual.i.0.restored* to *residual.i.15.restored* (inclusive) being used to form
+the cube.
 
-It is possible to specify a rest frequency to be applied to the output cube (since *cimager* will not provide this). A common value for this, that of the fine-structure line of neutral hydrogen (HI), or 1420405751.786 Hz, can be requested by setting the rest frequency to "HI" in the parameter set. If no rest frequency is provided, or a negative value is given, no rest frequency will be written to the cube.
+It is possible to specify a rest frequency to be applied to the output cube (since *cimager*
+will not provide this). A common value for this, that of the fine-structure line of neutral
+hydrogen (HI), or 1420405751.786 Hz, can be requested by setting the rest frequency to "HI"
+in the parameter set. If no rest frequency is provided, or a negative value is given, no rest
+frequency will be written to the cube.
 
-The image info (which essentially means the beam information) for the output cube is copied from a designated input image. This is, by default, the middle image of the range (specifically, (number of images) / 2, with integer division), but this can be changed by setting *beamReference* to 'first', 'last', or a number in the range. The individual beam sizes for each of the input images (assuming they are defined) can be written to an ascii text file for future reference. The file has columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]
+The image info (which essentially means the beam information) for the output cube is copied
+from a designated input image. This is, by default, the middle image of the range (specifically,
+(number of images) / 2, with integer division), but this can be changed by setting *beamReference*
+to 'first', 'last', or a number in the range. The individual beam sizes for each of the input
+images (assuming they are defined) can be written to an ascii text file for future reference.
+The file has columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]
 
 Here is an example of the start of a beam log::
 
@@ -43,25 +57,25 @@ Here is an example of the start of a beam log::
 
 The following table describes the possible parameters.
 
-+--------------------------+-------------+------------+----------------------------------------------------------------+
-|*Parameter*               |*Type*       |*Default*   |*Explanation*                                                   |
-+==========================+=============+============+================================================================+
-|Makecube.outputCube       |string       |""          |Name of the spectral cube to be created.                        |
-+--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.inputNamePattern |string       |""          |The pattern describing the input names. See text for details.   |
-+--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.restFrequency    |string or    |-1.0        |The rest frequency to be written to the cube's coordinate       |
-|                          |float        |            |system. Negative values mean nothing is written. Provide either |
-|                          |             |            |a numerical value or the string "HI" (which is equivalent to    |
-|                          |             |            |1420405751.786).                                                |
-+--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.beamReference    |string or int|mid         |Which of the input images to get the beam information           |
-|                          |             |            |from. Options include: 'mid' (middle image of list), 'first',   |
-|                          |             |            |'last', or a number indicating the image (list is zero-based).  |
-+--------------------------+-------------+------------+----------------------------------------------------------------+
-|Makecube.beamLog          |string       |""          |Name of the ascii text file to which the beam information for   |
-|                          |             |            |every input file is written.                                    |
-+--------------------------+-------------+------------+----------------------------------------------------------------+
++--------------------------+-------------+----------+----------------------------------------------------------------+
+|*Parameter*               |*Type*       |*Default* |*Explanation*                                                   |
++==========================+=============+==========+================================================================+
+|Makecube.outputCube       |string       |""        |Name of the spectral cube to be created.                        |
++--------------------------+-------------+----------+----------------------------------------------------------------+
+|Makecube.inputNamePattern |string       |""        |The pattern describing the input names. See text for details.   |
++--------------------------+-------------+----------+----------------------------------------------------------------+
+|Makecube.restFrequency    |string or    |-1.0      |The rest frequency to be written to the cube's coordinate       |
+|                          |float        |          |system. Negative values mean nothing is written. Provide either |
+|                          |             |          |a numerical value or the string "HI" (which is equivalent to    |
+|                          |             |          |1420405751.786).                                                |
++--------------------------+-------------+----------+----------------------------------------------------------------+
+|Makecube.beamReference    |string or int|mid       |Which of the input images to get the beam information           |
+|                          |             |          |from. Options include: 'mid' (middle image of list), 'first',   |
+|                          |             |          |'last', or a number indicating the image (list is zero-based).  |
++--------------------------+-------------+----------+----------------------------------------------------------------+
+|Makecube.beamLog          |string       |""        |Name of the ascii text file to which the beam information for   |
+|                          |             |          |every input file is written.                                    |
++--------------------------+-------------+----------+----------------------------------------------------------------+
 
 The following demonstrates a parameter set for a continuum cube (no rest frequency)::
 
