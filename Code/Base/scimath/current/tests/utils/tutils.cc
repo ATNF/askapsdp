@@ -35,6 +35,7 @@
 #include <EigenDecomposeTest.h>
 #include <ComplexGaussianNoiseTest.h>
 #include <DelayEstimatorTest.h>
+#include <MultiDimPosIterTest.h>
 
 int main(int argc, char *argv[])
 {
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::EigenDecomposeTest::suite());
     runner.addTest(askap::scimath::ComplexGaussianNoiseTest::suite());
     runner.addTest(askap::scimath::DelayEstimatorTest::suite());
+    runner.addTest(askap::scimath::MultiDimPosIterTest::suite());
 
     bool wasSucessful = runner.run();
 
