@@ -4,6 +4,7 @@ mkdir -p ${parsetdirCR}
 mkdir -p ${logdirCR}
 mkdir -p ${imagedir}
 mkdir -p ${slicedir}
+mkdir -p ${chunkdir}
 
 cd ${crdir}
 WORKDIR=run${RUN_NUM}
@@ -99,10 +100,11 @@ createFITS.nsubx            = ${nsubxCR}
 createFITS.nsuby            = ${nsubyCR}
 createFITS.flagWriteByChannel = true
 createFITS.createTaylorTerms = ${createTT_CR}
-createFITS.writeByNode      = false
+createFITS.writeByNode      = ${writeByNode}
 createFITS.sourcelist       = ${catdir}/${sourcelist}
 createFITS.database         = ${databaseCR}
 createFITS.sourcelisttype   = ${listtypeCR}
+createFITS.useGaussians     = ${useGaussianComponents}
 createFITS.verboseSources   = false
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel

@@ -52,23 +52,64 @@ if [ $doCsim == true ]; then
 #!/bin/bash -l
 #PBS -W group_list=astronomy554
 #PBS -l walltime=6:00:00
-#PBS -l select=1:ncpus=1:mem=20GB:mpiprocs=1
+${csimSelect}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N mkVis
 #PBS -m bea
 #PBS -j oe
 
+#####
+# AUTOMATICALLY CREATED!
+#
+# Run with:
+# ${qsubCmd} ${depend} ${qsubfile}
+#####
+
 cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
+makeModelSlice=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeModelSlice.sh
 csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.sh
 rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 IND=${INDEX}
 
+dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
+mkdir -p ${parsetdirVis}/\${dir}
+mkdir -p ${logdirVis}/\${dir}
+
 ms=${msChunk}_\${IND}.ms
 skymodel=${slicebase}\${IND}
+modelInChunks=${writeByNode}
+if [ \$modelInChunks == "true" ]; then
+# Model was created with writeByNode=true, so we need to do the
+# extraction of the appropriate channel from each chunk and paste
+# together
+
+    rm -rf \${skymodel}
+
+    chanRange=\`echo \${IND} ${chanPerMSchunk} | awk '{printf "[%d,%d]",\$1*\$2,(\$1+1)*\$2-1}'\`
+
+    mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_\${IND}.in
+    cat >> \${mkSliceParset} <<EOF_INNER
+makeModelSlice.modelname = ${chunkdir}/${baseimage}
+makeModelSlice.slicename = \${skymodel}
+makeModelSlice.nsubx = ${nsubxCR}
+makeModelSlice.nsuby = ${nsubyCR}
+makeModelSlice.sliceshape = [${npix},${npix},${nstokes},${chanPerMSchunk}]
+makeModelSlice.chanRange = \$chanRange
+EOF_INNER
+
+    mkSliceLog=${logdirVis}/\${dir}/makeModelSlice_\${IND}.log
+    \$makeModelSlice -c \$mkSliceParset > \$mkSliceLog
+    err=\$?
+    if [ \$err -ne 0 ]; then
+        exit \$err
+    fi
+
+fi
+
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
@@ -78,9 +119,6 @@ if [ \${VarNoise} == true ]; then
     Tsys=\`echo \$nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if (\$1>\$4) printf "%4.1f",(\$1 * \$2) + \$3; else printf "50.0"}'\`
 fi
 
-dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
-mkdir -p ${parsetdirVis}/\${dir}
-mkdir -p ${logdirVis}/\${dir}
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
 
@@ -90,7 +128,7 @@ Csimulator.dataset                              =       \$ms
 Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
-Csimulator.sources.DCmodel.direction            =       [12h30m00.000, -45.00.00, J2000]
+Csimulator.sources.DCmodel.direction            =       [12h30m00.000, ${decStringVis}, J2000]
 Csimulator.sources.DCmodel.model                =       \${skymodel}
 #
 # Define the antenna locations, feed locations, and spectral window definitions
@@ -121,8 +159,8 @@ Csimulator.gridder.${gridder}.oversample         =       ${os}
 Csimulator.gridder.${gridder}.diameter           =       12m
 Csimulator.gridder.${gridder}.blockage           =       2m
 Csimulator.gridder.${gridder}.maxsupport         =       ${maxsup}
-Csimulator.gridder.${gridder}.maxfeeds           =       36
-Csimulator.gridder.${gridder}.frequencydependent =       false
+Csimulator.gridder.${gridder}.maxfeeds           =       ${nfeeds}
+Csimulator.gridder.${gridder}.frequencydependent =       ${doFreqDep}
 Csimulator.gridder.${gridder}.variablesupport    =       true 
 Csimulator.gridder.${gridder}.offsetsupport      =       true 
 #
@@ -130,7 +168,7 @@ Csimulator.noise                                 =       ${doNoise}
 Csimulator.noise.Tsys                            =       \${Tsys}
 Csimulator.noise.efficiency                      =       0.8   
 Csimulator.noise.seed1                           =       time
-Csimulator.noise.seed2                           =       ${INDEX}
+Csimulator.noise.seed2                           =       \${IND}
 #
 Csimulator.corrupt                               =       ${doCorrupt}
 Csimulator.calibaccess                           =       parset
