@@ -16,6 +16,11 @@ The intended use-cases of this tool are:
 - Average a full spectral resolution measurement set down to fewer/wider
   channels for continuum imaging.
 
+Additionally, *mssplit* can filter based on the following criteria:
+
+- Scan Number
+- Beam Number
+
 Running the program
 -------------------
 
@@ -52,17 +57,17 @@ Configuration Parameters
 +----------------------+------------+-----------------------+---------------------------------------------+
 |beams                 |*None*      |[0]                    |Defines the beam numbers that will be        |
 |                      |            |or                     |exported to the output files. If this        |
-|                      |            |[0,1,2,3,4]            |parameter is not set all beams are exported. |
-|                      |            |                       |The value may be a single integer (e.g. 0 or |
-|                      |            |                       |[0]) or an array of integers such as         |
-|                      |            |                       |[0, 1, 2, 3, 4].                             |
+|                      |            |[0, 1, 2]              |parameter is not set all beams are exported. |
+|                      |            |or                     |The value may be a single integer (e.g. 0 or |
+|                      |            |[0..8]                 |[0]), an array of integers such as [0,1,2]   |
+|                      |            |                       |or a range such as [0..8].                   |
 +----------------------+------------+-----------------------+---------------------------------------------+
 |scans                 |*None*      |[0]                    |Defines the scan numbers that will be        |
 |                      |            |or                     |exported to the output files. If this        |
-|                      |            |[0,1,2,3,4]            |parameter is not set all scans are exported. |
-|                      |            |                       |The value may be a single integer (e.g. 0 or |
-|                      |            |                       |[0]) or an array of integers such as         |
-|                      |            |                       |[0, 1, 2, 3, 4].                             |
+|                      |            |[0, 1, 2]              |parameter is not set all scans are exported. |
+|                      |            |or                     |The value may be a single integer (e.g. 0 or |
+|                      |            |[0..2]                 |[0]), an array of integers such as [0,1,2]   |
+|                      |            |                       |or a range such as [0..2].                   |
 +----------------------+------------+-----------------------+---------------------------------------------+
 
 Additional advanced/optional parameters:
