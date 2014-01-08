@@ -50,6 +50,20 @@ Configuration Parameters
 |width                 |1           |54                     |Defines the number of input channels to      |
 |                      |            |                       |average together to form one output channel. |
 +----------------------+------------+-----------------------+---------------------------------------------+
+|beams                 |*None*      |[0]                    |Defines the beam numbers that will be        |
+|                      |            |or                     |exported to the output files. If this        |
+|                      |            |[0,1,2,3,4]            |parameter is not set all beams are exported. |
+|                      |            |                       |The value may be a single integer (e.g. 0 or |
+|                      |            |                       |[0]) or an array of integers such as         |
+|                      |            |                       |[0, 1, 2, 3, 4].                             |
++----------------------+------------+-----------------------+---------------------------------------------+
+|scans                 |*None*      |[0]                    |Defines the scan numbers that will be        |
+|                      |            |or                     |exported to the output files. If this        |
+|                      |            |[0,1,2,3,4]            |parameter is not set all scans are exported. |
+|                      |            |                       |The value may be a single integer (e.g. 0 or |
+|                      |            |                       |[0]) or an array of integers such as         |
+|                      |            |                       |[0, 1, 2, 3, 4].                             |
++----------------------+------------+-----------------------+---------------------------------------------+
 
 Additional advanced/optional parameters:
 ````````````````````````````````````````

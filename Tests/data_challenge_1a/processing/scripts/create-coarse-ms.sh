@@ -59,7 +59,7 @@ channel     = \${RANGE1}-\${RANGE2}
 width       = \${WIDTH}
 EOF_INNER
 
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.in > ${LOGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.log
+\${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.in > ${LOGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.log
 EOF
 
 if [ ! -e MS/coarse_chan_0.ms ]; then

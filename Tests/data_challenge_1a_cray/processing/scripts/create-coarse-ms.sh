@@ -47,7 +47,7 @@ channel     = 1-16416
 width       = 54
 EOF_INNER
 
-aprun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit-coarse.in > ${LOGDIR}/mssplit-coarse.log
+aprun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit-coarse.in > ${LOGDIR}/mssplit-coarse.log
 EOF
 
 if [ ! -e MS/coarse_chan.ms ]; then

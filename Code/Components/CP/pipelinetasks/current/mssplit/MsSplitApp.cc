@@ -1,8 +1,4 @@
-/// @file mssplit.cc
-///
-/// @brief A simple tool used to split measurement sets based on spectral
-/// channel. It can also average spectral channels at the same time, and
-/// can be used to just do averaging (i.e. one input MS and out output MS).
+/// @file MsSplitApp.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,16 +25,21 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Package level header file
-#include "askap_synthesis.h"
+#include "askap_pipelinetasks.h"
+
+// Include own header file
+#include "mssplit/MsSplitApp.h"
 
 // System includes
 #include <sstream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <set>
 #include <utility>
 #include <algorithm>
 #include <iterator>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -48,9 +49,7 @@
 #include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
 #include "boost/shared_ptr.hpp"
-#include "boost/regex.hpp"
 #include "Common/ParameterSet.h"
-#include "CommandLineParser.h"
 #include "casa/OS/File.h"
 #include "casa/aips.h"
 #include "casa/Arrays/IPosition.h"
@@ -66,28 +65,27 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 
-ASKAP_LOGGER(logger, ".mssplit");
+// Local package includes
+#include "mssplit/ParsetUtils.h"
+
+ASKAP_LOGGER(logger, ".mssplitapp");
 
 using namespace askap;
+using namespace askap::cp::pipelinetasks;
 using namespace casa;
+using namespace std;
 
-boost::shared_ptr<casa::MeasurementSet> create(
-        const std::string& filename, casa::uInt bucketSize,
-        casa::uInt tileNcorr, casa::uInt tileNchan)
+boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
+    const std::string& filename, casa::uInt bucketSize,
+    casa::uInt tileNcorr, casa::uInt tileNchan)
 {
-    if (bucketSize < 8192) {
-        bucketSize = 8192;
-    }
+    if (bucketSize < 8192) bucketSize = 8192;
 
-    if (tileNcorr < 1) {
-        tileNcorr = 1;
-    }
+    if (tileNcorr < 1) tileNcorr = 1;
 
-    if (tileNchan < 1) {
-        tileNchan = 1;
-    }
+    if (tileNchan < 1) tileNchan = 1;
 
-    ASKAPLOG_DEBUG_STR(logger, "Creating dataset " << filename);
+    ASKAPLOG_INFO_STR(logger, "Creating dataset " << filename);
 
     // Make MS with standard columns
     TableDesc msDesc(MS::requiredTableDesc());
@@ -124,20 +122,20 @@ boost::shared_ptr<casa::MeasurementSet> create(
         // Get nr of rows in a tile.
         const int nrowTile = std::max(1u, bucketSize / (8 * tileNcorr * tileNchan));
         TiledShapeStMan dataMan("TiledData",
-                IPosition(3, tileNcorr, tileNchan, nrowTile));
+                                IPosition(3, tileNcorr, tileNchan, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::DATA),
-                dataMan);
+                         dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::FLAG),
-                dataMan);
+                         dataMan);
     }
     {
         const int nrowTile = std::max(1u, bucketSize / (4 * 8));
         TiledShapeStMan dataMan("TiledWeight",
-                IPosition(2, 4, nrowTile));
+                                IPosition(2, 4, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
-                dataMan);
+                         dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
-                dataMan);
+                         dataMan);
     }
 
     // Now we can create the MeasurementSet and add the (empty) subtables
@@ -155,7 +153,7 @@ boost::shared_ptr<casa::MeasurementSet> create(
     return ms;
 }
 
-void copyAntenna(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyAntenna(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSAntennaColumns& sc = srcMsc.antenna();
@@ -175,7 +173,7 @@ void copyAntenna(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
     dc.flagRow().putColumn(sc.flagRow());
 }
 
-void copyDataDescription(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyDataDescription(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSDataDescColumns& sc = srcMsc.dataDescription();
@@ -191,7 +189,7 @@ void copyDataDescription(const casa::MeasurementSet& source, casa::MeasurementSe
     dc.polarizationId().putColumn(sc.polarizationId());
 }
 
-void copyFeed(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyFeed(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSFeedColumns& sc = srcMsc.feed();
@@ -216,7 +214,7 @@ void copyFeed(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
     dc.interval().putColumn(sc.interval());
 }
 
-void copyField(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyField(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSFieldColumns& sc = srcMsc.field();
@@ -237,7 +235,7 @@ void copyField(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
     dc.referenceDir().putColumn(sc.referenceDir());
 }
 
-void copyObservation(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyObservation(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSObservationColumns& sc = srcMsc.observation();
@@ -259,7 +257,7 @@ void copyObservation(const casa::MeasurementSet& source, casa::MeasurementSet& d
     dc.scheduleType().putColumn(sc.scheduleType());
 }
 
-void copyPointing(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyPointing(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSPointingColumns& sc = srcMsc.pointing();
@@ -284,7 +282,7 @@ void copyPointing(const casa::MeasurementSet& source, casa::MeasurementSet& dest
     dc.tracking().putColumn(sc.tracking());
 }
 
-void copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void MsSplitApp::copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
     const ROMSColumns srcMsc(source);
     const ROMSPolarizationColumns& sc = srcMsc.polarization();
@@ -301,11 +299,11 @@ void copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& 
     dc.corrProduct().putColumn(sc.corrProduct());
 }
 
-void splitSpectralWindow(const casa::MeasurementSet& source,
-        casa::MeasurementSet& dest,
-        const unsigned int startChan,
-        const unsigned int endChan,
-        const unsigned int width)
+void MsSplitApp::splitSpectralWindow(const casa::MeasurementSet& source,
+                                     casa::MeasurementSet& dest,
+                                     const uint32_t startChan,
+                                     const uint32_t endChan,
+                                     const uint32_t width)
 {
     MSColumns destCols(dest);
     const ROMSColumns srcCols(source);
@@ -332,10 +330,10 @@ void splitSpectralWindow(const casa::MeasurementSet& source,
         // 2: Now process each source measurement set, building up the arrays
         const uInt nChanIn = endChan - startChan + 1;
         const uInt nChanOut = nChanIn / width;
-        std::vector<double> chanFreq;
-        std::vector<double> chanWidth;
-        std::vector<double> effectiveBW;
-        std::vector<double> resolution;
+        vector<double> chanFreq;
+        vector<double> chanWidth;
+        vector<double> effectiveBW;
+        vector<double> resolution;
         chanFreq.resize(nChanOut);
         chanWidth.resize(nChanOut);
         effectiveBW.resize(nChanOut);
@@ -374,11 +372,32 @@ void splitSpectralWindow(const casa::MeasurementSet& source,
     } // End for rows
 }
 
-void splitMainTable(const casa::MeasurementSet& source,
-        casa::MeasurementSet& dest,
-        const unsigned int startChan,
-        const unsigned int endChan,
-        const unsigned int width)
+bool MsSplitApp::rowFiltersExist() const
+{
+    return !itsBeams.empty() || !itsScans.empty();
+}
+
+bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2) const
+{
+    // Include all rows if no filters exist
+    if (!rowFiltersExist()) return false;
+
+    if (!itsScans.empty() && itsScans.find(scanid) == itsScans.end()) return true;
+
+    if (!itsBeams.empty() &&
+            itsBeams.find(feed1) == itsBeams.end() &&
+            itsBeams.find(feed2) == itsBeams.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
+                                casa::MeasurementSet& dest,
+                                const uint32_t startChan,
+                                const uint32_t endChan,
+                                const uint32_t width)
 {
     // Pre-conditions
     ASKAPDEBUGASSERT(endChan >= startChan);
@@ -387,9 +406,9 @@ void splitMainTable(const casa::MeasurementSet& source,
     const ROMSColumns sc(source);
     MSColumns dc(dest);
 
-    // Add rows upfront
+    // Add rows upfront is no row based filters exist
     const casa::uInt nRows = sc.nrow();
-    dest.addRow(nRows);
+    if (!rowFiltersExist()) dest.addRow(nRows);
 
     // Work out how many channels are to be actual input and which output
     // and how many polarisations are involved.
@@ -401,8 +420,12 @@ void splitMainTable(const casa::MeasurementSet& source,
     // Decide how many rows to process simultaneously. This needs to fit within
     // a reasonable amount of memory, because all visibilities will be read
     // in for possible averaging. Assumes 32MB working space.
-    const uInt maxSimultaneousRows = (32 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
-        / (sizeof(casa::Complex) + sizeof(casa::Bool));
+    uInt maxSimultaneousRows = (32 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
+            / (sizeof(casa::Complex) + sizeof(casa::Bool));
+
+    // However, if there is row-based filtering only one row can be copied
+    // at a time.
+    if (rowFiltersExist()) maxSimultaneousRows = 1;
 
     // Set a 64MB maximum cache size for the large columns
     const casa::uInt cacheSize = 64 * 1024 * 1024;
@@ -411,57 +434,91 @@ void splitMainTable(const casa::MeasurementSet& source,
     sc.flag().setMaximumCacheSize(cacheSize);
     dc.flag().setMaximumCacheSize(cacheSize);
 
-    for (uInt row = 0; row < nRows;) {
+    uInt progressCounter = 0; // Used for progress reporting
+    const uInt PROGRESS_INTERVAL_IN_ROWS = nRows / 100;
+
+    // Row in destination table may differ from source table if row based
+    // filtering is used
+    uInt dstRow = 0;
+    uInt row = 0;
+    while (row < nRows) {
         // Number of rows to process for this iteration of the loop; either
         // maxSimultaneousRows or the remaining rows.
         const uInt nRowsThisIteration = min(maxSimultaneousRows, nRows - row);
-        const Slicer rowslicer(IPosition(1, row), IPosition(1, nRowsThisIteration),
+        const Slicer srcrowslicer(IPosition(1, row), IPosition(1, nRowsThisIteration),
                 Slicer::endIsLength);
+        Slicer dstrowslicer = srcrowslicer;
 
-        ASKAPLOG_INFO_STR(logger,  "Splitting and/or averaging rows " << row
-                << " to " << row + nRowsThisIteration << " of " << nRows);
+        // Report progress at intervals and on completion
+        progressCounter += nRowsThisIteration;
+        if (progressCounter >= PROGRESS_INTERVAL_IN_ROWS ||
+                (row >= nRows - 1)) {
+            ASKAPLOG_INFO_STR(logger,  "Processed row " << row + 1 << " of " << nRows);
+            progressCounter = 0;
+        }
+        
+        // Debugging for chunk copying only
+        if (nRowsThisIteration > 1) {
+            ASKAPLOG_DEBUG_STR(logger,  "Processing " << nRowsThisIteration
+                    << " rows this iteration");
+        }
+
+        // Skip this row if it is filtered out
+        if (rowIsFiltered(sc.scanNumber()(row),
+                    sc.feed1()(row),
+                    sc.feed2()(row))) {
+            row += nRowsThisIteration;
+            continue;
+        }
+
+        // Rows have been pre-added if no row based filtering is done 
+        if (rowFiltersExist()) {
+            dest.addRow();
+            dstrowslicer = Slicer(IPosition(1, dstRow), IPosition(1, nRowsThisIteration),
+                    Slicer::endIsLength);
+        }
 
         // Copy over the simple cells (i.e. those not needing averaging/merging)
-        dc.scanNumber().putColumnRange(rowslicer, sc.scanNumber().getColumnRange(rowslicer));
-        dc.fieldId().putColumnRange(rowslicer, sc.fieldId().getColumnRange(rowslicer));
-        dc.dataDescId().putColumnRange(rowslicer, sc.dataDescId().getColumnRange(rowslicer));
-        dc.time().putColumnRange(rowslicer, sc.time().getColumnRange(rowslicer));
-        dc.timeCentroid().putColumnRange(rowslicer, sc.timeCentroid().getColumnRange(rowslicer));
-        dc.arrayId().putColumnRange(rowslicer, sc.arrayId().getColumnRange(rowslicer));
-        dc.processorId().putColumnRange(rowslicer, sc.processorId().getColumnRange(rowslicer));
-        dc.exposure().putColumnRange(rowslicer, sc.exposure().getColumnRange(rowslicer));
-        dc.interval().putColumnRange(rowslicer, sc.interval().getColumnRange(rowslicer));
-        dc.observationId().putColumnRange(rowslicer, sc.observationId().getColumnRange(rowslicer));
-        dc.antenna1().putColumnRange(rowslicer, sc.antenna1().getColumnRange(rowslicer));
-        dc.antenna2().putColumnRange(rowslicer, sc.antenna2().getColumnRange(rowslicer));
-        dc.feed1().putColumnRange(rowslicer, sc.feed1().getColumnRange(rowslicer));
-        dc.feed2().putColumnRange(rowslicer, sc.feed2().getColumnRange(rowslicer));
-        dc.uvw().putColumnRange(rowslicer, sc.uvw().getColumnRange(rowslicer));
-        dc.flagRow().putColumnRange(rowslicer, sc.flagRow().getColumnRange(rowslicer));
-        dc.weight().putColumnRange(rowslicer, sc.weight().getColumnRange(rowslicer));
-        dc.sigma().putColumnRange(rowslicer, sc.sigma().getColumnRange(rowslicer));
+        dc.scanNumber().putColumnRange(dstrowslicer, sc.scanNumber().getColumnRange(srcrowslicer));
+        dc.fieldId().putColumnRange(dstrowslicer, sc.fieldId().getColumnRange(srcrowslicer));
+        dc.dataDescId().putColumnRange(dstrowslicer, sc.dataDescId().getColumnRange(srcrowslicer));
+        dc.time().putColumnRange(dstrowslicer, sc.time().getColumnRange(srcrowslicer));
+        dc.timeCentroid().putColumnRange(dstrowslicer, sc.timeCentroid().getColumnRange(srcrowslicer));
+        dc.arrayId().putColumnRange(dstrowslicer, sc.arrayId().getColumnRange(srcrowslicer));
+        dc.processorId().putColumnRange(dstrowslicer, sc.processorId().getColumnRange(srcrowslicer));
+        dc.exposure().putColumnRange(dstrowslicer, sc.exposure().getColumnRange(srcrowslicer));
+        dc.interval().putColumnRange(dstrowslicer, sc.interval().getColumnRange(srcrowslicer));
+        dc.observationId().putColumnRange(dstrowslicer, sc.observationId().getColumnRange(srcrowslicer));
+        dc.antenna1().putColumnRange(dstrowslicer, sc.antenna1().getColumnRange(srcrowslicer));
+        dc.antenna2().putColumnRange(dstrowslicer, sc.antenna2().getColumnRange(srcrowslicer));
+        dc.feed1().putColumnRange(dstrowslicer, sc.feed1().getColumnRange(srcrowslicer));
+        dc.feed2().putColumnRange(dstrowslicer, sc.feed2().getColumnRange(srcrowslicer));
+        dc.uvw().putColumnRange(dstrowslicer, sc.uvw().getColumnRange(srcrowslicer));
+        dc.flagRow().putColumnRange(dstrowslicer, sc.flagRow().getColumnRange(srcrowslicer));
+        dc.weight().putColumnRange(dstrowslicer, sc.weight().getColumnRange(srcrowslicer));
+        dc.sigma().putColumnRange(dstrowslicer, sc.sigma().getColumnRange(srcrowslicer));
 
         // Set the shape of the destination arrays
-        for (uInt i = row; i < row + nRowsThisIteration; ++i) {
+        for (uInt i = dstRow; i < dstRow + nRowsThisIteration; ++i) {
             dc.data().setShape(i, IPosition(2, nPol, nChanOut));
             dc.flag().setShape(i, IPosition(2, nPol, nChanOut));
         }
 
         //  Average (if applicable) then write data into the output MS
         const Slicer srcarrslicer(IPosition(2, 0, startChan - 1),
-                IPosition(2, nPol, nChanIn), Slicer::endIsLength);
+                                  IPosition(2, nPol, nChanIn), Slicer::endIsLength);
         const Slicer destarrslicer(IPosition(2, 0, 0),
-                IPosition(2, nPol, nChanOut), Slicer::endIsLength);
+                                   IPosition(2, nPol, nChanOut), Slicer::endIsLength);
 
         if (width == 1) {
-            dc.data().putColumnRange(rowslicer, destarrslicer,
-                    sc.data().getColumnRange(rowslicer, srcarrslicer));
-            dc.flag().putColumnRange(rowslicer, destarrslicer,
-                    sc.flag().getColumnRange(rowslicer, srcarrslicer));
+            dc.data().putColumnRange(dstrowslicer, destarrslicer,
+                                     sc.data().getColumnRange(srcrowslicer, srcarrslicer));
+            dc.flag().putColumnRange(dstrowslicer, destarrslicer,
+                                     sc.flag().getColumnRange(srcrowslicer, srcarrslicer));
         } else {
             // Get (read) the input data/flag
-            const casa::Cube<casa::Complex> indata = sc.data().getColumnRange(rowslicer, srcarrslicer);
-            const casa::Cube<casa::Bool> inflag = sc.flag().getColumnRange(rowslicer, srcarrslicer);
+            const casa::Cube<casa::Complex> indata = sc.data().getColumnRange(srcrowslicer, srcarrslicer);
+            const casa::Cube<casa::Bool> inflag = sc.flag().getColumnRange(srcrowslicer, srcarrslicer);
 
             // Create the output data/flag
             casa::Cube<casa::Complex> outdata(nPol, nChanOut, nRowsThisIteration);
@@ -488,29 +545,30 @@ void splitMainTable(const casa::MeasurementSet& source,
                         // Now the input channels have been averaged, write the data to
                         // the output cubes
                         outdata(pol, destChan, r) = casa::Complex(sum.real() / width,
-                                sum.imag() / width);
+                                                    sum.imag() / width);
                         outflag(pol, destChan, r) = outputFlag;
                     }
                 }
             }
 
             // Put (write) the output data/flag
-            dc.data().putColumnRange(rowslicer, destarrslicer, outdata);
-            dc.flag().putColumnRange(rowslicer, destarrslicer, outflag);
+            dc.data().putColumnRange(dstrowslicer, destarrslicer, outdata);
+            dc.flag().putColumnRange(dstrowslicer, destarrslicer, outflag);
         }
 
         row += nRowsThisIteration;
+        dstRow += nRowsThisIteration;
     }
 }
 
-int split(const std::string& invis, const std::string& outvis,
-        const unsigned int startChan,
-        const unsigned int endChan,
-        const unsigned int width,
-        const LOFAR::ParameterSet& parset)
+int MsSplitApp::split(const std::string& invis, const std::string& outvis,
+                      const uint32_t startChan,
+                      const uint32_t endChan,
+                      const uint32_t width,
+                      const LOFAR::ParameterSet& parset)
 {
     ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to "
-            << endChan << " (inclusive)");
+                          << endChan << " (inclusive)");
 
     if (width > 1) {
         ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form 1");
@@ -538,6 +596,7 @@ int split(const std::string& invis, const std::string& outvis,
     const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 64 * 1024);
     const casa::uInt tileNcorr = parset.getUint32("stman.tilencorr", 4);
     const casa::uInt tileNchan = parset.getUint32("stman.tilenchan", 1);
+
     boost::shared_ptr<casa::MeasurementSet> out(create(outvis, bucketSize, tileNcorr, tileNchan));
 
     // Copy ANTENNA
@@ -579,61 +638,34 @@ int split(const std::string& invis, const std::string& outvis,
     return 0;
 }
 
-std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet& parset)
+int MsSplitApp::run(int argc, char* argv[])
 {
-    std::pair<unsigned int, unsigned int> result;
-    const std::string raw = parset.getString("channel");
+    StatReporter stats;
 
-    // These are the two possible patterns, either a single integer, or an
-    // integer separated by a dash (potentially surrounded by whitespace)
-    const boost::regex e1("[\\d]+");
-    const boost::regex e2("([\\d]+)\\s*-\\s*([\\d]+)");
+    // Get the parameters to split
+    const string invis = config().getString("vis");
+    const string outvis = config().getString("outputvis");
 
-    boost::smatch what;
+    // Read channel selection parameters
+    const pair<uint32_t, uint32_t> range = ParsetUtils::parseIntRange(config(), "channel");
+    const uint32_t width = config().getUint32("width", 1);
 
-    if (regex_match(raw, what, e1)) {
-        result.first = utility::fromString<unsigned int>(raw);
-        result.second = result.first;
-    } else if (regex_match(raw, e2)) {
-        // Now extract the first and second integer
-        const boost::regex digits("[\\d]+");
-        boost::sregex_iterator it(raw.begin(), raw.end(), digits);
-        boost::sregex_iterator end;
-
-        result.first = utility::fromString<unsigned int>(it->str());
-        ++it;
-        result.second = utility::fromString<unsigned int>(it->str());
-    } else {
-        ASKAPLOG_ERROR_STR(logger, "Invalid format 'channel' parameter");
+    // Read beam selection parameters
+    if (config().isDefined("beams")) {
+        const vector<uint32_t> v = config().getUint32Vector("beams");
+        itsBeams.insert(v.begin(), v.end());
+        ASKAPLOG_INFO_STR(logger,  "Including ONLY beams: " << v);
     }
 
-    return result;
-}
+    // Read scan id selection parameters
+    if (config().isDefined("scans")) {
+        const vector<uint32_t> v = config().getUint32Vector("scans");
+        itsScans.insert(v.begin(), v.end());
+        ASKAPLOG_INFO_STR(logger,  "Including ONLY scan numbers: " << v);
+    }
 
-class MsSplitApp : public askap::Application
-{
-    public:
-        virtual int run(int argc, char* argv[])
-        {
-            StatReporter stats;
 
-            // Get the parameters to split
-            const std::string invis = config().getString("vis");
-            const std::string outvis = config().getString("outputvis");
-            const std::pair<unsigned int, unsigned int> range = parseRange(config());
-            const unsigned int width = config().getUint32("width", 1);
-
-            const int error = split(invis, outvis, range.first, range.second, width, config());
-
-            stats.logSummary();
-
-            return error;
-        }
-};
-
-// Main function
-int main(int argc, char *argv[])
-{
-    MsSplitApp app;
-    return app.main(argc, argv);
+    const int error = split(invis, outvis, range.first, range.second, width, config());
+    stats.logSummary();
+    return error;
 }
