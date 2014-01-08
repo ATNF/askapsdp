@@ -51,6 +51,7 @@ Normally the parameters are stored in a text file as key-value pairs. The rules 
 
         Key = "this is not too"     # comment 1
               "long a string"       # comment 2
+
      results in::
 
         Key = "this is not toolong a string"
