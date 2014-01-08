@@ -652,14 +652,14 @@ int MsSplitApp::run(int argc, char* argv[])
 
     // Read beam selection parameters
     if (config().isDefined("beams")) {
-        const vector<uint32_t> v = config().getUint32Vector("beams");
+        const vector<uint32_t> v = config().getUint32Vector("beams", true);
         itsBeams.insert(v.begin(), v.end());
         ASKAPLOG_INFO_STR(logger,  "Including ONLY beams: " << v);
     }
 
     // Read scan id selection parameters
     if (config().isDefined("scans")) {
-        const vector<uint32_t> v = config().getUint32Vector("scans");
+        const vector<uint32_t> v = config().getUint32Vector("scans", true);
         itsScans.insert(v.begin(), v.end());
         ASKAPLOG_INFO_STR(logger,  "Including ONLY scan numbers: " << v);
     }
