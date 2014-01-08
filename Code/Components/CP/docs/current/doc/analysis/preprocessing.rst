@@ -3,7 +3,7 @@ Preprocessing for Selavy
 
 A summary of the different types of preprocessing available to Selavy. This refers to work done on the image prior to source-finding, to enhance the detectability of objects. Some of these algorithms are from the Duchamp source-finder, and are described in the `Duchamp User's Guide`_ and `Whiting (2012), MNRAS 421, 3242`_.
 
- .. _Duchamp User's Guide: http://www.atnf.csiro.au/Matthew.Whiting/Duchamp/DuchampUserGuide.pdf
+ .. _Duchamp User's Guide: http://www.atnf.csiro.au/people/Matthew.Whiting/Duchamp/DuchampUserGuide.pdf
  .. _Whiting (2012), MNRAS 421, 3242: http://onlinelibrary.wiley.com/doi/10.1111/j.1365-2966.2012.20548.x/full
 
 À trous wavelet reconstruction
@@ -21,29 +21,34 @@ Reconstruction parameters
 
 Note that these are not in the usual hierarchical format (constrast with the 2D1D case below) -- this is because this algorithm originates with the Duchamp source finder, which has a flat parameter set input.
 
-+------------------------+------------+------------+--------------------------------------------------------------+
-|*Parameter*             |*Type*      |*Default*   |*Explanation*                                                 |
-+========================+============+============+==============================================================+
-|flagAtrous              |bool        |false       |Whether to use the wavelet reconstruction                     |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|reconDim                |int         |1           |Dimension of reconstruction - how much is reconstructed at    |
-|                        |            |            |once                                                          |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|snrRecon                |float       |4           |Signal-to-noise threshold applied to wavelet arrays           |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|scaleMin                |int         |1           |Minimum wavelet scale to include in reconstruction            |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|scaleMax                |int         |0           |Maximum wavelet scale to use in the reconstruction. If 0 or   |
-|                        |            |            |negative, then maximum scale is calculated from the size of   |
-|                        |            |            |the array.                                                    |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|filterCode              |int         |1           |Code number for the filter that defines the smoothing kernel. |
-|                        |            |            |Consult the User Guide for details.                           |
-+------------------------+------------+------------+--------------------------------------------------------------+
-|reconConvergence        |float       |0.005       |The criterion for convergence of the reconstruction - the     |
-|                        |            |            |relative changes in the standard devidation of the residuals  |
-|                        |            |            |must be less than this.                                       |
-+------------------------+------------+------------+--------------------------------------------------------------+
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|*Parameter*             |*Type*      |*Default*   |*Explanation*                                                            |
++========================+============+============+=========================================================================+
+|flagAtrous              |bool        |false       |Whether to use the wavelet reconstruction                                |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|reconDim                |int         |1           |The number of dimensions in which to perform the reconstruction. 1 means |
+|                        |            |            |reconstruct each spectrum separately, 2 means each channel map is done   |
+|                        |            |            |separately, and 3 means do the whole cube in one go.                     |
+|                        |            |            |                                                                         |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|snrRecon                |float       |4           |Signal-to-noise threshold applied to wavelet arrays -- only wavelet      |
+|                        |            |            |coefficients at least this many sigma above the mean are included in the |
+|                        |            |            |reconstruction.                                                          |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|scaleMin                |int         |1           |Minimum wavelet scale to include in reconstruction. A value of 1 means   |
+|                        |            |            |“use all scales”.                                                        |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|scaleMax                |int         |0           |Maximum wavelet scale to use in the reconstruction. If 0 or negative,    |
+|                        |            |            |then maximum scale is calculated from the size of the array.             |
+|                        |            |            |                                                                         |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|filterCode              |int         |1           |Code number for the filter that defines the smoothing kernel.  Consult   |
+|                        |            |            |the User Guide for details.                                              |
++------------------------+------------+------------+-------------------------------------------------------------------------+
+|reconConvergence        |float       |0.005       |The criterion for convergence of the reconstruction - the relative       |
+|                        |            |            |changes in the standard devidation of the residuals must be less than    |
+|                        |            |            |this.                                                                    |
++------------------------+------------+------------+-------------------------------------------------------------------------+
 
 Smoothing
 ---------
@@ -53,7 +58,7 @@ Alternatively, the array can be smoothed by a filter of a single scale. This can
 +------------------------+------------+------------+-------------------------------------------------------------------+
 |*Parameter*             |*Type*      |*Default*   |*Explanation*                                                      |
 +========================+============+============+===================================================================+
-|flagSmooth              |bool        |false       |Whether to use the wavelet reconstruction                          |
+|flagSmooth              |bool        |false       |Whether to smooth the data prior to searching.                     |
 +------------------------+------------+------------+-------------------------------------------------------------------+
 |smoothType              |string      |spectral    |The smoothing method used: either "spectral" or "spatial"          |
 +------------------------+------------+------------+-------------------------------------------------------------------+

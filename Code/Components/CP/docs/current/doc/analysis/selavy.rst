@@ -6,7 +6,7 @@ Summary
 
 Selavy is the ASKAP implementation of the source-finding algorithms of Duchamp (publicly available at the `Duchamp website`_). 
 
-Duchamp is a source-finder designed for three-dimensional datasets (such as HI spectral-line cubes), but is easily applied to two- or one-dimensional data. There is an extensive user's guide available on the Duchamp website that provides detail about the algorithms. Users are also referred to the Duchamp journal paper `Whiting (2012), MNRAS 421, 3242`_ for further details and examples. The name 'Duchamp' comes from `Marcel Duchamp`_, the artist who pioneered the art of the "readymade", or "found object". 
+Duchamp is a source-finder designed for three-dimensional datasets (such as HI spectral-line cubes), but is easily applied to two- or one-dimensional data. There is an extensive user's guide available on the Duchamp website that provides details about the algorithms. Users are also referred to the Duchamp journal paper `Whiting (2012), MNRAS 421, 3242`_ for further details and examples. The name 'Duchamp' comes from `Marcel Duchamp`_, the artist who pioneered the art of the "readymade", or "found object". 
 
 Selavy uses the core Duchamp algorithms, and adds new features as dictated by the requirements of ASKAP processing. See `Whiting & Humphreys (2012), PASA 29, 371`_
 for descriptions and some benchmarks. The new features include support for distributed processing, Gaussian fitting to two-dimensional images, variable-threshold detection, and additional pre- and post-processing algorithms specified by the Survey Science Teams. The name 'Selavy' comes from `Rrose Selavy`_, a pseudonym of Marcel Duchamp.
@@ -22,9 +22,9 @@ Basic Execution and Control Parameters
 
 This section summarises the basic execution of Selavy, with control of specific types of processing discussed in later sections. The default approach of Selavy is to follow the Duchamp method of applying a single threshold, either a flux value (specified by the user) or a signal-to-noise level, to the entire image. Pixels above this threshold are grouped together in objects - they may be required to be contiguous, or they can be separated by up to some limit. Detected objects may be "grown" to a secondary (lower) threshold, to include faint pixels without having to search to a faint level. 
 
-One of the aims of Selavy is to provide distributed processing support, and details on how this is done can be found `below`_. To get single SNR threshold in this case, the noise stats are calculated on a subimage basis and combined to find the average noise across the image. Selavy also permits variable detection thresholds to be determined in several ways - these are described on the `Thresholds`_ page.
+One of the aims of Selavy is to provide distributed processing support, and details on how this is done can be found `below`_. To get a single SNR threshold in this case, the noise stats are calculated on a subimage basis and combined to find the average noise across the image. Selavy also permits variable detection thresholds to be determined in several ways - these are described on the `Thresholds`_ page.
 
-The input image can be a FITS format image or a CASA image (as is produced by the ASKAPsoft imaging pipeline). The code to read CASA images is new: it extracts the flux, WCS and metadata information and stores them in the classes used by the Duchamp code. While the Duchamp software is able to read FITS images, this has issues with very large cubes depending on the memory of the system being used - sometimes even the getMetadata() function would break (e.g. when subsections were being requested) since the number of pixels in the subsection was more than memory could hold. For this reason, the CASA code is default, unless the **useCASAforFITS** parameter is set to false.
+The input image can be a FITS format image or a CASA image (as is produced by the ASKAPsoft imaging pipeline). The code to read CASA images is new: it extracts the flux, WCS and metadata information and stores them in the classes used by the Duchamp code. While the Duchamp software is able to read FITS images, this has issues with very large cubes depending on the memory of the system being used - sometimes even the getMetadata() function would break (e.g. when subsections were being requested) when the number of pixels in the subsection was more than memory could hold. For this reason, the CASA code is default, unless the **useCASAforFITS** parameter is set to false.
 
 .. _`below`: selavy.html#distributed-processing
 .. _`Thresholds`: thresholds.html
@@ -191,7 +191,7 @@ Distributed processing parameters
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |nsuby                  |int           |1                    |The number of subdivisions in the y-direction when making the subimages.                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|nsuby                  |int           |1                    |The number of subdivisions in the z-direction when making the subimages.                |
+|nsubz                  |int           |1                    |The number of subdivisions in the z-direction when making the subimages.                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |overlapx               |int           |0                    |The number of pixels of overlap between neighbouring subimages in the x-direction       |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
@@ -213,7 +213,7 @@ Standard Duchamp output
 
 Standard Duchamp provides for flexibility in naming the output files it generates. For the ASKAP implementation, these are kept fixed. They are summarised here, listed by the parameter name with the default value in square brackets.:
 
-* **resultsFile** [selavy-results.txt] - the list of detected sources and their parameters. Also includes (if **flagSeparateHeader=false**) a summary of the input parameters.
+* **resultsFile** [selavy-results.txt] - the list of detected sources and their parameters. Also includes (if **flagSeparateHeader=false**, the default case) a summary of the input parameters.
 * **headerFile** [selavy-results.hdr] - if **flagSeparateHeader=true**, this contains just the input parameter summary from the results file.
 * **karmaFile** [selavy-results.ann] - a Karma annotation file, showing the location of detected sources. This is produced when **flagKarma=true**, which is the default (contrary to standard Duchamp behaviour)
 * **ds9File** [selavy-results.reg] - a DS9 region file, showing the location of detected sources. This is produced when **flagDS9=true**, which is the default (contrary to standard Duchamp behaviour)
