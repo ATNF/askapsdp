@@ -4,6 +4,17 @@ import askapdev.sphinx
 askapdev.sphinx.project = u'CentralProcessorInternal'
 
 from askapdev.sphinx.conf import *
+import subprocess
 
-version = '0.1'
-release = '0.1-draft'
+def svnversion():
+    p = subprocess.Popen("svnversion", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = p.communicate()
+    return stdout
+
+# For a "release" uncomment these and set the release name
+#version = '0.1'
+#release = '0.1-draft'
+
+# For a snapshot use the svn revision instead
+version = 'r' + svnversion()
+release = version
