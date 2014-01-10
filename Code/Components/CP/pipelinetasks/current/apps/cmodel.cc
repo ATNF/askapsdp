@@ -62,6 +62,10 @@ class CmodelApp : public askap::Application
             MPIBasicComms comms(argc, argv);
 
             try {
+                if (comms.getNumNodes()) {
+                    ASKAPTHROW(AskapError, "Execution requires at least 2 MPI processes");
+                }
+
                 LOFAR::ParameterSet subset = config().makeSubset("Cmodel.");
 
                 // Instantiate and run the model creator
