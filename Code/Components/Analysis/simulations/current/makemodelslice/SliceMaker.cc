@@ -26,7 +26,7 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#include <makeModelSlice/SliceMaker.h>
+#include <makemodelslice/SliceMaker.h>
 
 #include <askap_simulations.h>
 

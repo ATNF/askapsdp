@@ -35,7 +35,7 @@
 #include <askap/AskapError.h>
 
 // Local includes
-#include <makeModelSlice/MakeAllModelSlicesApp.h>
+#include <makemodelslice/MakeAllModelSlicesApp.h>
 
 ASKAP_LOGGER(logger, "makeModelSlice.log");
 

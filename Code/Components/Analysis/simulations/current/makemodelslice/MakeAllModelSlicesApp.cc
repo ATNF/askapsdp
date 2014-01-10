@@ -23,7 +23,7 @@
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 
 // Include own header file first
-#include <makeModelSlice/MakeAllModelSlicesApp.h>
+#include <makemodelslice/MakeAllModelSlicesApp.h>
 
 // Include package level header file
 #include <askap_simulations.h>
@@ -39,7 +39,7 @@
 #include <Common/ParameterSet.h>
 
 // Local package includes
-#include <makeModelSlice/SliceMaker.h>
+#include <makemodelslice/SliceMaker.h>
 
 // Using
 using namespace std;
