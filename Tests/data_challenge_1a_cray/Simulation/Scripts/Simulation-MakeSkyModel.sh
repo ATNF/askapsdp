@@ -25,9 +25,9 @@ if [ $doSmoothSM == true ]; then
     smoothQsub=${smdir}/${WORKDIR}/smoothModels.qsub
     cat > $smoothQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
-#PBS -l select=1:ncpus=1:mem=10GB:mpiprocs=1
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N smoothTaylor
 #PBS -m bea
@@ -127,9 +127,10 @@ if [ $doSF_SM == true ]; then
     selavyQsub=${smdir}/${WORKDIR}/selavy-smooth.qsub
     cat > $selavyQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N selavyTaylor
 #PBS -m bea
@@ -163,7 +164,7 @@ Selavy.findSpectralIndex = true
 EOF_INNER
 
 output=${logdirSM}/selavy-smooth-\${PBS_JOBID}.log
-mpirun $selavy -c \${selavyParset} > \${output}
+aprun -B $selavy -c \${selavyParset} > \${output}
 
 exit \$?
 
@@ -208,9 +209,9 @@ if [ $doComparisonSM == true ]; then
     modelcompQsub=${smdir}/${WORKDIR}/modelComparison.qsub
     cat > $modelcompQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
-#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N modelComp
 #PBS -m bea
@@ -265,7 +266,7 @@ createFITS.minMinorAxis     = 0.000100
 EOF_INNER
 
 output=${logdirSM}/modelcomp-\${PBS_JOBID}.log
-mpirun \$createFITS -c \${modelcompParset} > \${output}
+aprun -B \$createFITS -c \${modelcompParset} > \${output}
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$?

@@ -56,6 +56,9 @@ varNoise=false
 doCorrupt=false
 doAntennaBased=false
 
+# Whether to do the full 16K channel range (true), or half that (false)
+doFullSpectrum=true
+
 ###########################################
 # Model creation definitions
 
@@ -73,10 +76,17 @@ decSuffix=`echo $dec | awk '{printf "dec%02d",-$1}'`
 baseimage="${baseimage}_${decSuffix}"
 msbase="${msbase}_${decSuffix}"
 
-nchan=8208
+if [ $doFullSpectrum == true ]; then
+    nchan=16416
+else
+    nchan=8208
 rchan=0
 chanw=-18.5185185e3
-rfreq=`echo ${freqChanZeroMHz} $nchan $chanw | awk '{printf "%8.6e",$1*1.e6+$2*$3/2.}'`
+if [ $doFullSpectrum == true ]; then
+    rfreq=`echo ${freqChanZeroMHz} | awk '{printf "%8.6e",$1*1.e6}'`
+else
+    rfreq=`echo ${freqChanZeroMHz} $nchan $chanw | awk '{printf "%8.6e",$1*1.e6+$2*$3/2.}'`
+fi
 
 baseimage="${baseimage}_${freqChanZeroMHz}_smallBETA"
 
@@ -85,18 +95,24 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
-nsubxCR=5
-nsubyCR=8
+CREATORWIDTH=5
+CREATORPPN=20
+CREATORAPRUN="aprun -B"
+nsubxCR=9
+nsubyCR=11
 workersPerNodeCR=1
 
 writeByNode=true
 modelimage=${imagedir}/${baseimage}
 createTT_CR=true
 if [ $writeByNode == "true" ]; then
-    doSliceCR=false
+#    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
 slicebase=${slicedir}/${baseimage}_chunk
+SLICERWIDTH=5
+SLICERNPPN=20
+SLICERAPRUN="aprun -B"
 
 ###########################################
 # Make the visibilities
@@ -130,7 +146,7 @@ else
 fi
 
 chanPerMSchunk=48
-numMSchunks=171
+numMSchunks=342
 msPerStage1job=9
 
 doSnapshot=true

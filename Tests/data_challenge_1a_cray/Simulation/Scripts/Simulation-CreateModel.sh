@@ -18,59 +18,15 @@ touch ${now}
 
 if [ $doCreateCR == true ]; then
 
-#    crParsetBase=${parsetdirCR}/createModel-${now}.in
-#    crParset=${parsetdirCR}/createModel-\${PBS_JOBID}.in
-#
-#    cat > $crParsetBase <<EOF
-#####################
-## AUTOMATICALLY GENERATED - DO NOT EDIT
-#####################
-##
-#createFITS.filename         = !${modelimage}.fits
-#createFITS.casaOutput       = true
-#createFITS.fitsOutput       = false
-#createFITS.nsubx            = ${nsubxCR}
-#createFITS.nsuby            = ${nsubyCR}
-#createFITS.flagWriteByChannel = true
-#createFITS.createTaylorTerms = ${createTT_CR}
-#createFITS.writeByNode      = false
-#createFITS.sourcelist       = ${catdir}/${sourcelist}
-#createFITS.database         = POSSUM
-#createFITS.doContinuum      = true
-#createFITS.posType          = deg
-#createFITS.bunit            = Jy/pixel
-#createFITS.dim              = 4
-#createFITS.axes             = [${npix},${npix},${nstokes},${nchan}]
-#createFITS.WCSimage.ctype   = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
-#createFITS.WCSimage.cunit   = [deg, deg, "",Hz]
-#createFITS.WCSimage.crval   = [${ra}, ${dec}, ${stokesZero}, ${rfreq}]
-#createFITS.WCSimage.crpix   = [${rpix},${rpix},${rstokes},${rchan}]
-#createFITS.WCSimage.crota   = [0., 0., 0., 0.]
-#createFITS.WCSimage.cdelt   = [-${delt},${delt}, ${dstokes}, ${chanw}]
-#createFITS.WCSsources       = true
-#createFITS.WCSsources.ctype = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
-#createFITS.WCSsources.cunit = [deg, deg, "", Hz]
-#createFITS.WCSsources.crval = [${raCat}, ${decCat}, ${stokesZero},  ${rfreq}]
-#createFITS.WCSsources.crpix = [${rpix},${rpix},${rstokes},${rchan}]
-#createFITS.WCSsources.crota = [0., 0., 0., 0.]
-#createFITS.WCSsources.cdelt = [-${delt},${delt}, ${dstokes}, ${chanw}]
-#createFITS.outputList       = false
-#createFITS.addNoise         = false
-#createFITS.doConvolution    = false
-#createFITS.baseFreq         = ${basefreq}
-#createFITS.flagSpectralInfo = false
-#createFITS.PAunits          = rad
-#createFITS.minMinorAxis     = 0.000100
-#EOF
-#
     numworkers=`echo $nsubxCR $nsubyCR | awk '{print $1*$2}'`
     numnodes=`echo $numworkers $workersPerNodeCR | awk '{print ($1+1.)*1./$2}'`
     numworkernodes=`echo $numworkers $workersPerNodeCR | awk '{print $1*1./$2}'`
     crQsub=${crdir}/${WORKDIR}/createModel.qsub
     cat > $crQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=12:00:00
+#PBS -l mppwidth=${CREATORWIDTH}
+#PBS -l mppnppn=${CREATORPPN}
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1+${numworkernodes}:ncpus=12:mem=23GB:mpiprocs=${workersPerNodeCR}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N DCmodelCF
@@ -133,7 +89,7 @@ EOF_INNER
 
 crLog=${logdirCR}/createModel-\${PBS_JOBID}.log
 
-mpirun \$createFITS -c \$parset > \$crLog
+${CREATORAPRUN} \$createFITS -c \$parset > \$crLog
 
 EOF
 
@@ -152,12 +108,63 @@ fi
 
 if [ $doSliceCR == true ]; then
 
-    slQsub=${crdir}/${WORKDIR}/cubeslice-continuum.qsub
-    cat > $slQsub <<EOF
+    slQsub=${crdir}/${WORKDIR}/makeslices.qsub
+    
+    if [ ${writeByNode} == true ]; then
+
+	# This is the new slicing job. If we're in here, the model
+	# cube exists in chunks created by the individual workers of
+	# createFITS. This job creates the individual slices by
+	# getting the appropriate slices of the chunks and stitching
+	# them together using makeAllModelSlices in Analysis.
+
+	cat > $slQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=12:00:00
-#PBS -l select=1:ncpus=1:mem=8GB:mpiprocs=1
+#PBS -l mppwidth=${SLICERWIDTH}
+#PBS -l mppnppn=${SLICERNPPN}
+#PBS -M matthew.whiting@csiro.au
+#PBS -N sliceCont
+#PBS -m bea
+#PBS -j oe
+#PBS -r n
+
+####################
+# AUTOMATICALLY GENERATED - DO NOT EDIT
+####################
+
+cd \${PBS_O_WORKDIR}
+export ASKAP_ROOT=${ASKAP_ROOT}
+export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
+slicer=\${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/makeAllModelSlices.sh
+
+slParset=${parsetdirCR}/makeslices-\${PBS_JOBID}.in
+slLog=${logdirCR}/makeslices-${PBS_JOBID}.log
+
+cat >> \${slParset} <<EOFINNER
+makeModelSlice.modelname = ${modelimage}
+makeModelSlice.slicename = ${slicebase}
+makeModelSlice.nsubx = ${nsubxCR}
+makeModelSlice.nsuby = ${nsubyCR}
+makeModelSlice.nchan = ${nchan}
+makeModelSlice.slicewidth = ${chanPerMSchunk}
+EOFINNER
+
+${SLICERAPRUN} \${slicer} -c \${slParset} > \${slLog}
+
+EOF
+
+    else
+
+	# This is the old slicing job. It assumes we have a complete
+	# monolithic cube and uses cubeslice in Synthesis to carve off
+	# slices.
+
+	cat > $slQsub <<EOF
+#!/bin/bash -l
+#PBS -l walltime=12:00:00
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N sliceCont
 #PBS -m bea
@@ -198,6 +205,8 @@ done
 exit \$err
 
 EOF
+
+    fi
 
     if [ $doSubmit == true ]; then
 
