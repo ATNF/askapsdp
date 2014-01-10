@@ -29,7 +29,7 @@ logdirVis=${visdir}/Logs
 ## Switches
 
 # Model
-doFlatSpectrum=true
+doFlatSpectrum=false
 doCreateCR=true
 doSliceCR=true
 if [ $doFlatSpectrum == "true" ]; then
@@ -80,6 +80,7 @@ if [ $doFullSpectrum == true ]; then
     nchan=16416
 else
     nchan=8208
+fi
 rchan=0
 chanw=-18.5185185e3
 if [ $doFullSpectrum == true ]; then
