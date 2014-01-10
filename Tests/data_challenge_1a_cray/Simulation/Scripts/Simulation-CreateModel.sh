@@ -39,7 +39,8 @@ if [ $doCreateCR == true ]; then
 
 cd \$PBS_O_WORKDIR
 
-module load openmpi
+export ASKAP_ROOT=${ASKAP_ROOT}
+export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 
 parset=${parsetdirCR}/createModel-\${PBS_JOBID}.in
@@ -135,12 +136,16 @@ if [ $doSliceCR == true ]; then
 cd \${PBS_O_WORKDIR}
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
-slicer=\${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/makeAllModelSlices.sh
+slicer=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeAllModelSlices.sh
 
 slParset=${parsetdirCR}/makeslices-\${PBS_JOBID}.in
-slLog=${logdirCR}/makeslices-${PBS_JOBID}.log
+slLog=${logdirCR}/makeslices-\${PBS_JOBID}.log
 
 cat >> \${slParset} <<EOFINNER
+####################
+# AUTOMATICALLY GENERATED - DO NOT EDIT
+####################
+#
 makeModelSlice.modelname = ${modelimage}
 makeModelSlice.slicename = ${slicebase}
 makeModelSlice.nsubx = ${nsubxCR}
