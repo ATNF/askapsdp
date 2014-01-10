@@ -3,7 +3,7 @@
 # If ASKAP_ROOT is not set in your environment, add the path here and uncomment
 #ASKAP_ROOT=<path to ASKAPsoft>
 
-scriptdir=${ASKAP_ROOT}/Tests/data_challenge_1a/Simulation/Scripts
+scriptdir=${ASKAP_ROOT}/Tests/data_challenge_1a_cray/Simulation/Scripts
 
 BASEDIR=`pwd`
 
