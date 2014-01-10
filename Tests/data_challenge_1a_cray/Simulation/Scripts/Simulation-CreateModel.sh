@@ -27,7 +27,6 @@ if [ $doCreateCR == true ]; then
 #PBS -l walltime=12:00:00
 #PBS -l mppwidth=${CREATORWIDTH}
 #PBS -l mppnppn=${CREATORPPN}
-#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1+${numworkernodes}:ncpus=12:mem=23GB:mpiprocs=${workersPerNodeCR}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N DCmodelCF
 #PBS -m bea
