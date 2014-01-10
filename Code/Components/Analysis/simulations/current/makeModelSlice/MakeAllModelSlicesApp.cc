@@ -70,7 +70,7 @@ int MakeAllModelSlicesApp::run(int argc, char* argv[])
 	std::string slicebase = subset.getString("slicename");
 
 
-	for (int chan=comms.rank()*sliceWidth; chan < nchan; chan += comms.nProcs()*sliceWidth) {
+	for (size_t chan=comms.rank()*sliceWidth; chan < nchan; chan += comms.nProcs()*sliceWidth) {
 
 	    std::stringstream slicename;
 	    slicename << slicebase << chan/sliceWidth;
