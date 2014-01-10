@@ -4,15 +4,37 @@ Gridder Documentation
 Overview
 --------
 
-The gridders are ASKAPsoft equivalents of Fourier Machines in casa/aips++. They are used for the following 3 operations:
+The gridders are ASKAPsoft equivalents of Fourier Machines in casa/aips++. They are used for the
+following 3 operations:
 
-* Putting visibility data onto a regular grid prior to Fourier transform to image space (called gridding or reverse operation).
-* Predicting visibility data from a regular grid following the Fourier transform from the image space (called degridding or forward operation)
-* Computing PSFs (a special mode of gridding substituting visibility data and convolution functions)
+* Putting visibility data onto a regular grid prior to Fourier transform to image space
+  (called gridding or reverse operation).
+* Predicting visibility data from a regular grid following the Fourier transform from the
+  image space (called degridding or forward operation)
+* Computing PSFs (a special mode of gridding substituting visibility data and convolution
+  functions)
 
-There is a number of gridders available in ASKAPsoft. The same code is used for the actual gridding/degridding for all gridders. The main difference between various gridders is the convolution function used and how the look up is done (i.e. which convolution function among a number of functions stored in the cache is used for a particular visibility point based on the associated metadata). The choice of convolution functions together with the solver used in minor cycle (see :doc:`solver`) largely determine the imaging algorithm. Some gridders (called stacking gridders below) maintain a stack of grids instead of a single grid. An appropriate grid is selected on the basis of associated metadata for each visibility point instead of or in addition to look up of a particular convolution function. These two different variants of gridders are used as two approaches to treat the w-term (non-coplanar baselines). In general, stacking approach is more memory hungry although can be faster than the projection approach.
+There is a number of gridders available in ASKAPsoft. The same code is used for the actual
+gridding/degridding for all gridders. The main difference between various gridders is the
+convolution function used and how the look up is done (i.e. which convolution function among a
+number of functions stored in the cache is used for a particular visibility point based on the
+associated metadata). The choice of convolution functions together with the solver used in minor
+cycle (see :doc:`solver`) largely determine the imaging algorithm.  Some gridders (called stacking
+gridders below) maintain a stack of grids instead of a single grid. An appropriate grid is selected
+on the basis of associated metadata for each visibility point instead of or in addition to look up
+of a particular convolution function. These two different variants of gridders are used as two
+approaches to treat the w-term (non-coplanar baselines). In general, stacking approach is more
+memory hungry although can be faster than the projection approach.
 
-The gridders can also be divided into two groups: mosaicing and non-mosaicing gridders. The former use convolution functions which include illumination patterns. They are, therefore, primary beam aware and can deal with the datasets containing multiple pointing centres. The output image is always corrected for the primary beam, if a mosaicing gridder is used. The weights image represents the sensitivity pattern. The non-mosaicing gridders effectively assume an infinitely wide primary beam (illumination pattern is a delta function). They will produce incorrect result if dataset contains multiple pointings (either physical pointings of the dish or multiple offset beams). The output image is not corrected for primary beam, if non-mosaicing gridder is used. The weights image is constant across the whole field of view in this case. 
+The gridders can also be divided into two groups: mosaicing and non-mosaicing gridders.  The former
+use convolution functions which include illumination patterns. They are, therefore, primary beam
+aware and can deal with the datasets containing multiple pointing centres. The output image is
+always corrected for the primary beam, if a mosaicing gridder is used. The weights image represents
+the sensitivity pattern. The non-mosaicing gridders effectively assume an infinitely wide primary
+beam (illumination pattern is a delta function). They will produce incorrect result if dataset
+contains multiple pointings (either physical pointings of the dish or multiple offset beams). The
+output image is not corrected for primary beam, if non-mosaicing gridder is used. The weights image
+is constant across the whole field of view in this case. 
 
 Available gridders
 ------------------
@@ -155,18 +177,18 @@ The following are common to all gridders:
 +-------------------------------+--------------+--------------+--------------------------------------------------+
 
  
-Note, SphFunc and Box gridders don't have any additional parameters to those listed above. Oversampling factor
-which is a configurable parameter for some other gridders is hard coded to be 128 for the SphFunc gridder and 1
-for the Box gridder.
-
+Note, SphFunc and Box gridders don't have any additional parameters to those listed above.
+Oversampling factor which is a configurable parameter for some other gridders is hard coded to be
+128 for the SphFunc gridder and 1 for the Box gridder.
 
 
 Parameters related to w-term (specific to WProject and WStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following parameters are applicable to gridders taking w-term into account. The table below is specific to
-WProject and WStack. The same two parameters understood by AProjectWStack and AWProject gridders, but defaults
-are different. Therefore, their description is repeated in the discussion of the mosaicing gridders.
+The following parameters are applicable to gridders taking w-term into account. The table below is
+specific to WProject and WStack. The same two parameters understood by AProjectWStack and AWProject
+gridders, but defaults are different. Therefore, their description is repeated in the discussion of
+the mosaicing gridders.
 
 +--------------+--------------+--------------+------------------------------------------------------+
 |*Parameter*   |*Type*        |*Default*     |*Description*                                         |
@@ -190,20 +212,21 @@ are different. Therefore, their description is repeated in the discussion of the
 +--------------+--------------+--------------+------------------------------------------------------+
 
 
-Note, no additional parameters are required for the WStack gridder because the convolution function is
-just a prolate spheroidal function with well defined support. Oversampling factor which is a configurable
-parameter for some other gridders is hard coded to be 128. The WProject gridder uses non-trivial
-convolution functions which have w-term applied and requires some additional parameters to find,
-e.g. how the support of the convolution function is searched. These parameters are given in the following
-section.
+Note, no additional parameters are required for the WStack gridder because the convolution function
+is just a prolate spheroidal function with well defined support. Oversampling factor which is a
+configurable parameter for some other gridders is hard coded to be 128. The WProject gridder uses
+non-trivial convolution functions which have w-term applied and requires some additional parameters
+to find, e.g. how the support of the convolution function is searched. These parameters are given in
+the following section.
 
 Non-linear sampling in w-space (specific to WProject,WStack, AWProject and AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These parameters apply to all gridders which take w-term into account. By default w-planes (either stacking
-grids or projection planes) are spaced linearly (or equidistantly) in w. The following parameters allow
-to enable and control non-linear sampling. Regardless of the parameters, the first and last w-planes
-always correspond to -wmax and +wmax, respectively, and the (nwplanes-1)/2 plane corresponds to w=0. 
+These parameters apply to all gridders which take w-term into account. By default w-planes (either
+stacking grids or projection planes) are spaced linearly (or equidistantly) in w. The following
+parameters allow to enable and control non-linear sampling. Regardless of the parameters, the first
+and last w-planes always correspond to -wmax and +wmax, respectively, and the (nwplanes-1)/2 plane
+corresponds to w=0. 
 
 +--------------------+--------------+--------------+-------------------------------------------------+
 |*Parameter*         |*Type*        |*Default*     |*Description*                                    |
@@ -261,10 +284,12 @@ An example of the power-law distribution of the w-planes with exponent=0.5 is gi
 Additional parameters for gridders with non-trivial convolution functions (WProject. AWProject, AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section gives parameters understood by gridders based on non-trivial (i.e. not box or prolate spheroidal) convolution functions. For
-WProject gridder this section describes all remaining parameters in addition to those given above (common for all gridders and shared with
-WStack). Mosaicing gridders have further parameters. Note, AProjectWStack does not understand cutoff, variablesupport and offsetsupport parameters as the support size is defined by antenna aperture and is not searched.
-
+This section gives parameters understood by gridders based on non-trivial (i.e. not box or prolate
+spheroidal) convolution functions. For WProject gridder this section describes all remaining
+parameters in addition to those given above (common for all gridders and shared with WStack).
+Mosaicing gridders have further parameters. Note, AProjectWStack does not understand cutoff,
+variablesupport and offsetsupport parameters as the support size is defined by antenna aperture and
+is not searched.
 
 +-------------------+--------------+--------------+--------------------------------------------------+
 |*Parameter*        |*Type*        |*Default*     |*Description*                                     |
@@ -343,15 +368,23 @@ WStack). Mosaicing gridders have further parameters. Note, AProjectWStack does n
 +-------------------+--------------+--------------+--------------------------------------------------+
 
 
-Note, that an exception is raised if the support size found during the support search (before being capped by limitsupport) exceeds (number of pixels)/(2*oversample), *Overflowing convolution function - increase maxSupport or decrease overSample*. If the cutoff is too small, one may find it impossible to increase maxsupport (and image size) due to the amount of available memory. Decreasing oversampling factor compromises the quality of imaging. Therefore, in some cases making the cutoff larger is the only option to proceed with calculations on a given machine.
+Note, that an exception is raised if the support size found during the support search
+(before being capped by limitsupport) exceeds (number of pixels)/(2*oversample),
+*Overflowing convolution function - increase maxSupport or decrease overSample*. If the
+cutoff is too small, one may find it impossible to increase maxsupport (and image size)
+due to the amount of available memory. Decreasing oversampling factor compromises the
+quality of imaging. Therefore, in some cases making the cutoff larger is the only option
+to proceed with calculations on a given machine.
 
 
 Parameters specific to mosaicing gridders (AWProject and AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mosaicing gridders (AWProject and AProjectWStack) are aware about the primary beam of the instrument and need additional parameters 
-to define how it looks like (via illumination pattern), when it needs to be recomputed (tolerances) and how big the cache should be 
-(maxfeeds and maxfields). Some parameters given in the two previous sections have different defaults and therefore are repeated here.
+Mosaicing gridders (AWProject and AProjectWStack) are aware about the primary beam of the instrument
+and need additional parameters to define how it looks like (via illumination pattern), when it needs
+to be recomputed (tolerances) and how big the cache should be (maxfeeds and maxfields). Some
+parameters given in the two previous sections have different defaults and therefore are repeated
+here.
 
 +-------------------------+--------------+--------------+--------------------------------------------------+
 |*Parameter*              |*Type*        |*Default*     |*Description*                                     |
@@ -403,7 +436,8 @@ to define how it looks like (via illumination pattern), when it needs to be reco
 +-------------------------+--------------+--------------+--------------------------------------------------+
 
 
-An example of the disk illumination for diameter 22m and blockage of 2m. For all illumination examples given below the frequency is assumed to be 1.4 GHz
+An example of the disk illumination for diameter 22m and blockage of 2m. For all illumination
+examples given below the frequency is assumed to be 1.4 GHz
 
 .. image:: figures/diskillum_p1.png
 
@@ -411,10 +445,11 @@ An example of the disk illumination for diameter 22m and blockage of 2m. For all
 ATCA Illumination
 ~~~~~~~~~~~~~~~~~
 
-This illumination pattern allows to simulate additional effects (e.g. feed leg shadows, tapering) on top of the disk illumination. With the
-tapering, feedlegs and wedges parameters set to false, this illumination pattern is equivalent to disk (blockage and diameter are given as
-parameters of the gridder, rather than as parameters of illumination pattern because they apply to both currently implemented types of 
-illumination). ATCA illumination has the following parameters:
+This illumination pattern allows to simulate additional effects (e.g. feed leg shadows, tapering) on
+top of the disk illumination. With the tapering, feedlegs and wedges parameters set to false, this
+illumination pattern is equivalent to disk (blockage and diameter are given as parameters of the
+gridder, rather than as parameters of illumination pattern because they apply to both currently
+implemented types of illumination). ATCA illumination has the following parameters:
 
 +------------------------------------------+--------------+------------+-----------------------------------------------+
 |*Parameter*                               |*Type*        |*Default*   |*Description*                                  |
@@ -480,7 +515,8 @@ illumination). ATCA illumination has the following parameters:
 +------------------------------------------+--------------+------------+-----------------------------------------------+
 
 
-Example of the ATCA illumination model created with default parameters (i.e. with feed legs and wedges enabled)
+Example of the ATCA illumination model created with default parameters (i.e. with feed legs and
+wedges enabled)
 
 .. image:: figures/atcaillum_p1.png
 
@@ -488,7 +524,8 @@ Example of the ATCA illumination model without wedges and with default values of
 
 .. image:: figures/atcaillum_p2.png
 
-Example of the ATCA illumination model without feedlegs (and wedges). All other parameters have default values. This case is essentially a disk with tapering.
+Example of the ATCA illumination model without feedlegs (and wedges). All other parameters have
+default values. This case is essentially a disk with tapering.
 
 .. image:: figures/atcaillum_p3.png
 

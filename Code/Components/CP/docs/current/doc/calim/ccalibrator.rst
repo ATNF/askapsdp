@@ -11,21 +11,42 @@ Running the program
 It can be run with the following command, where "config.in" is a file containing
 the configuration parameters described in the next section. ::
 
-   $ ccalibrator -c config.in
+   $ <MPI wrapper> ccalibrator -c config.in
+
+Parallel/Distributed Execution
+------------------------------
+The program is distributed and used a master/worker pattern to distribute and manage work.
+Please refer to the section entitled *Parallel/Distributed Execution* in the :doc:`cimager`
+as parallel execution of the *ccalibrator* is the same as the *cimager*.
 
 Configuration Parameters
 ------------------------
 
-Parset parameters understood by ccalibrator are given in the following table (all parameters must have **Ccalibrator** prefix, i.e. **Ccalibrator.dataset**). For a number of parameters certain keywords are substituted, i.e. **%w** is replaced by the rank and **%n** by the number of nodes in the parallel case. In the serial case, these special strings are substituted by 0 and 1, respectively. This substitution allows to reuse the same parameter file on all nodes of the cluster if the difference between jobs assigned to 
-individual nodes can be coded by using these keywords (e.g. using specially crafted file names). If a parameter supports substitution, it is clearly stated in the description. 
+Parset parameters understood by ccalibrator are given in the following table (all
+parameters must have **Ccalibrator** prefix, i.e. **Ccalibrator.dataset**). For a number
+of parameters certain keywords are substituted, i.e. **%w** is replaced by the rank and
+**%n** by the number of nodes in the parallel case. In the serial case, these special
+strings are substituted by 0 and 1, respectively. This substitution allows to reuse the
+same parameter file on all nodes of the cluster if the difference between jobs assigned to
+individual nodes can be coded by using these keywords (e.g. using specially crafted file
+names). If a parameter supports substitution, it is clearly stated in the description. 
 
-The **ccalibrator** is intended to process data from a sufficiently short timescale, where calibratable unknowns can be assumed to be constant
-(in the ASKAPsoft approach these corrections are applied upstream and each calibration cycle corresponds to a separate execution of the 
-calibration code. At this stage only antenna and beam dependent gain (without cross-polarisation terms) can be calibrated. Note, that the code is still experimental and has a number of parameters hard coded.
+The **ccalibrator** is intended to process data from a sufficiently short timescale, where
+calibratable unknowns can be assumed to be constant (in the ASKAPsoft approach these
+corrections are applied upstream and each calibration cycle corresponds to a separate
+execution of the calibration code. At this stage only antenna and beam dependent gain
+(without cross-polarisation terms) can be calibrated. Note, that the code is still
+experimental and has a number of parameters hard coded.
 
-The output file with the result has a parset format understood by **Cimager**. This output file is called **result.dat** and has complex-valued (stored as 2-element double vectors of real and imaginary parts) keywords named like **gain.g11.x.b** and **gain.g22.y.c**, where **x** and **y** are 0-based antenna numbers, **b** and **c** are 0-based beam numbers and **g11**, **g22** corresponds to the first and second polarisations (in the frame of the measurement). 
+The output file with the result has a parset format understood by **Cimager**. This output
+file is called **result.dat** and has complex-valued (stored as 2-element double vectors
+of real and imaginary parts) keywords named like **gain.g11.x.b** and **gain.g22.y.c**,
+where **x** and **y** are 0-based antenna numbers, **b** and **c** are 0-based beam
+numbers and **g11**, **g22** corresponds to the first and second polarisations (in the
+frame of the measurement). 
  
-A number of other parameters allowing to narrow down the data selection are understood. They are given in [:doc:`data_selection`] and should also have the **Ccalibrator** prefix.
+A number of other parameters allowing to narrow down the data selection are understood.
+They are given in [:doc:`data_selection`] and should also have the **Ccalibrator** prefix.
 
 +-----------------------+----------------+--------------+-------------------------------------------------+
 |**Parameter**          |**Type**        |**Default**   |**Description**                                  |

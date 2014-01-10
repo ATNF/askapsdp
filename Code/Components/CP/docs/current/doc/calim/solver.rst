@@ -3,16 +3,20 @@ Solver Documentation
 
 .. image:: figures/solver_diagram.png
 
-A number of solvers are available in ASKAPsoft. For imaging purposes only specialized image solvers are generally used, although generic 
-SVD-based linear solver (see the diagram above) can be used with (very small) images as well (some change to the code may be required
-as this is not a normal use case). The *solver* parset parameter defines the type of the image solver to use with the choice between
-*Dirty*, *and Clean*. The *Dirty* solver just inverts the data (takes the normal equations and simply divides the data vector by the
-diagonal of the normal matrix. This is analogous to making the dirty image or a linear mosaic of dirty images), while the Clean performs
-minor cycle cleaning. If multiple beams and/or fields are present in the dataset (and mosaicing gridders 
-(see :doc:`gridder` for details) are used), joint deconvolution is always preformed (individual deconvolution is not supported).
+A number of solvers are available in ASKAPsoft. For imaging purposes only specialized image solvers
+are generally used, although generic SVD-based linear solver (see the diagram above) can be used
+with (very small) images as well (some change to the code may be required as this is not a normal
+use case). The *solver* parset parameter defines the type of the image solver to use with the choice
+between *Dirty*, *and Clean*. The *Dirty* solver just inverts the data (takes the normal equations
+and simply divides the data vector by the diagonal of the normal matrix. This is analogous to making
+the dirty image or a linear mosaic of dirty images), while the Clean performs minor cycle cleaning.
+If multiple beams and/or fields are present in the dataset (and mosaicing gridders (see
+:doc:`gridder` for details) are used), joint deconvolution is always preformed (individual
+deconvolution is not supported).
 
-The Restore solver is somewhat special. It is executed behind the scene with very minimal setup required from the user (the same parameters
-are generally used as for the cleaning solver). Restore solver is described separately in the :doc:`cimager`.
+The Restore solver is somewhat special. It is executed behind the scene with very minimal setup
+required from the user (the same parameters are generally used as for the cleaning solver). Restore
+solver is described separately in the :doc:`cimager`.
 
 Common Parameters
 -----------------

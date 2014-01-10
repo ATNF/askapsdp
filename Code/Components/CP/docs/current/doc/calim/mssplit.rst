@@ -29,6 +29,8 @@ the configuration parameters described in the next section. ::
 
    $  mssplit -c config.in
 
+The *mssplit* program is not parallel/distributed, it runs in a single process operating
+on a single input measurement set.
 
 Configuration Parameters
 ------------------------

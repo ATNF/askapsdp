@@ -9,20 +9,68 @@ or a large supercomputer.
 Running the program
 -------------------
 
-It can be run with the following command, where "config.in" is a file containing
-the configuration parameters described in the next section. ::
+It can be run with the following command, where "config.in" is a file containing the
+configuration parameters described in the next section. ::
+ 
+   $ <MPI wrapper> cimager -c config.in
 
-   $ cimager -c config.in
+Parallel/Distributed Execution
+------------------------------
+
+The program is distributed and used a master/worker pattern to distribute and manage work.
+The program requires at least to processes to execute, and failure to either execute
+*cimager* as an MPI process or specifying only one MPI process will result in an error.
+
+On the Cray XC30 platform executing with the MPI wrapper takes the form::
+
+    $ aprun -n 305 -N 20 cimager -c config.in
+
+The *-n* and *-N* parameters to the *aprun* application launcher specify 305 MPI processes
+will be used (304 workers and one master) and each node will host 20 MPI processes. This
+job then requires 16 compute nodes.
+
+The *cimager* has no implicit parallelism, rather the configuration parameters allow the
+user to specify what subset of the total task each worker will carry out.
+
+**Example 1:**
+Suppose you have a single measurement set with 304 spectral channels, using 304 workers
+(as described above) the following configuration parameter can be used to restrict each
+worker to a single spectral channel::
+
+    Cimager.Channels    = [1, %w]
+
+Upon execution, the %w is replaced with the worker ID, a number from 0 to 303 in the case
+of 304 workers.
+
+**Example 2:**
+If rather than having a single measurement set, you had 304 measurement sets each
+containing a single spectral channel. In this case the measurement sets are named
+*coarse_chan_0.ms* through to *coarse_chan_303.ms*. The following configuration parameter
+results in each worker process processing a single measurement set::
+
+    Cimager.dataset     = coarse_chan_%w.ms
 
 
 Configuration Parameters
 ------------------------
 
-Parset parameters understood by imager are given in the following table (all parameters must have **Cimager** prefix, i.e. **Cimager.dataset**). For a number of parameters certain keywords are substituted, i.e. **%w** is replaced by the worker number (rank-1, if there is only one pool of workers) and **%n** by the number of nodes in the parallel case. In the serial case, these special strings are substituted by 0 and 1, respectively. This substitution allows to reuse the same parameter file on all nodes of the cluster if the difference between jobs assigned to individual nodes can be coded by using these keywords (e.g. using specially
-crafted file names). Note, if there is more than 1 group of workers (e.g. parallel calculation of Taylor terms), %w index spans the workers in one group rather than the
-global pool of workers. This is done to allow the same file name to be used for corresponding worker in different groups (i.e. all Taylor terms are build from the same file). If a parameter supports substitution, it is clearly stated in the description. 
+Parset parameters understood by imager are given in the following table (all parameters
+must have **Cimager** prefix, i.e. **Cimager.dataset**). For a number of parameters
+certain keywords are substituted, i.e. **%w** is replaced by the worker number (rank-1, if
+there is only one pool of workers) and **%n** by the number of nodes in the parallel case.
+In the serial case, these special strings are substituted by 0 and 1, respectively. This
+substitution allows to reuse the same parameter file on all nodes of the cluster if the
+difference between jobs assigned to individual nodes can be coded by using these keywords
+(e.g. using specially crafted file names). Note, if there is more than 1 group of workers
+(e.g. parallel calculation of Taylor terms), %w index spans the workers in one group
+rather than the global pool of workers. This is done to allow the same file name to be
+used for corresponding worker in different groups (i.e. all Taylor terms are build from
+the same file). If a parameter supports substitution, it is clearly stated in the
+description. 
 
-A number of other parameters allowing to narrow down the data selection are understood. They are given in a separate table (see :doc:`data_selection`) and should also have the **Cimager** prefix.
+A number of other parameters allowing to narrow down the data selection are understood.
+They are given in a separate table (see :doc:`data_selection`) and should also have the
+**Cimager** prefix.
  
 +--------------------------+------------------+--------------+----------------------------------------------------+
 |**Parameter**             |**Type**          |**Default**   |**Description**                                     |

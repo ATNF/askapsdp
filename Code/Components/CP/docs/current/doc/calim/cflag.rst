@@ -22,11 +22,14 @@ the configuration parameters described in the next section. ::
 
    $ cflag -c config.in
 
-An example configuration parameter set is provided in the `Configuration Example`_
-section.
+The *cflag* program is not parallel/distributed, it runs in a single process operating
+on a single input measurement set.
 
 Configuration Parameters
 ------------------------
+
+An example configuration parameter set is provided in the `Configuration Example`_
+section.
 
 +----------------------+------------+-----------------------+---------------------------------------------+
 |*Parameter*           |*Default*   |*Example*              |*Description*                                |

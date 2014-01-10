@@ -1,15 +1,12 @@
 cmodel (Model Image Generator) Documentation
 ============================================
 
-The cmodel pipeline task is responsible for requesting a LSM from the sky model
-service and building an image from the components and/or images resulting from
-the request. The program is distributed and used a master/worker pattern to
-distribute and manage work. Each worker receives a subset of the components to
-image. Components are allocated to the workers in small batches, and only when
-the worker is finished with one batch is another batch allocated to it. This
-provides a reasonable approach to load-balancing. Once all components have been
-imaged the images are reduced back to the master and a single image file is
-written to disk. 
+The *cmodel* pipeline task is responsible for extracting a local sky model (LSM)
+from the global sky model (GSM) and building an image from the components and/or
+images resulting from the request.
+
+The *cmodel* program only supports the construction of continuum images, however
+it does support taylor terms allowing the modeling of spectral index and curvature.
 
 Running the program
 -------------------
@@ -17,7 +14,31 @@ Running the program
 It can be run with the following command, where "config.in" is a file containing
 the configuration parameters described in the next section. ::
 
-   $  cmodel -c config.in
+   $ <MPI wrapper> cmodel -c config.in
+
+Parallel/Distributed Execution
+------------------------------
+
+The program is distributed and used a master/worker pattern to distribute and
+manage work. Each worker receives a subset of the components to image. Components are
+allocated to the workers in small batches, and only when the worker is finished with
+one batch is another batch allocated to it. This provides a reasonable approach to
+load-balancing. Once all components have been imaged the images are reduced back to
+the master and a single image file is written to disk.
+
+The program requires at least to processes to execute, and failure to either execute
+*cmodel* as an MPI process or specifying only one MPI process will result in the
+following error::
+
+    Execution requires at least 2 MPI processes (thrown in apps/cmodel.cc:66) 
+
+On the Cray XC30 platform executing with the MPI wrapper takes the form::
+
+    $ aprun -n 40 -N 20 cmodel -c config.in
+
+The *-n* and *-N* parameters to the *aprun* application launcher specify 40 MPI processes
+will be used (39 workers and one master) and each node will host 20 MPI processes. This
+job then requires two compute nodes.
 
 Configuration Parameters
 ------------------------

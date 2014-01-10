@@ -24,6 +24,8 @@ the configuration parameters described in the next section. ::
 
    $ makecube -c config.in
 
+The *makecube* program is not parallel/distributed, it runs in a single process. 
+
 Configuration Parameters
 ------------------------
 

@@ -12,6 +12,9 @@ the configuration parameters described in the next section. ::
 
    $ ccalapply -c config.in
 
+The *ccalapply* program is not parallel/distributed, it runs in a single process operating
+on a single input measurement set.
+
 Configuration Parameters
 ------------------------
 
@@ -29,15 +32,8 @@ are applicable. Specifically:
 +--------------------------+------------------+--------------+----------------------------------------------------+
 |**Parameter**             |**Type**          |**Default**   |**Description**                                     |
 +==========================+==================+==============+====================================================+
-|dataset                   |string or         |None          |Data set file name to produce. Usual substitution   |
-|                          |vector<string>    |              |rules apply if the parameter is a single string. If |
-|                          |                  |              |the parameter is given as a vector of strings all   |
-|                          |                  |              |measurement sets given by this vector are           |
-|                          |                  |              |effectively concatenated together on-the-fly in the |
-|                          |                  |              |serial case. In the parallel case, the size of the  |
-|                          |                  |              |vector is required to be either 1 or the number of  |
-|                          |                  |              |nodes - 1, and therefore there is one measurement   |
-|                          |                  |              |set per worker node.                                |
+|dataset                   |string            |None          |The name of the measurement set to which the        |
+|                          |                  |              |calibration parameters will be applied.             |
 +--------------------------+------------------+--------------+----------------------------------------------------+
 |calibrate.scalenoise      |bool              |false         |If true, the noise estimate will be scaled in       |
 |                          |                  |              |accordance with the applied calibrator factor to    |
