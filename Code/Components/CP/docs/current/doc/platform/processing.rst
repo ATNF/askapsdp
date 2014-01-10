@@ -74,7 +74,7 @@ Local Filesystems
 You have two filesystems available to you:
 
 * Your home directory
-* The *scratch* filesystem, where you have a directory /scratch/$USER
+* The *scratch* filesystem, where you have a directory /scratch/askap/$USER
 
 The scratch filesystem should be used for executing your processing jobs. Specifically
 bulk data (measurement sets, images, etc) to be read from the job, and all output written,
