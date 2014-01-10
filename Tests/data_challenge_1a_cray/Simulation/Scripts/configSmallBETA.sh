@@ -110,7 +110,7 @@ if [ $writeByNode == "true" ]; then
 #    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
-slicebase=${slicedir}/${baseimage}_chunk
+slicebase=${slicedir}/${baseimage}_slice
 SLICERWIDTH=5
 SLICERNPPN=20
 SLICERAPRUN="aprun -B"
