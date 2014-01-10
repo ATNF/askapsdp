@@ -18,9 +18,6 @@ touch ${now}
 
 if [ $doCreateCR == true ]; then
 
-    numworkers=`echo $nsubxCR $nsubyCR | awk '{print $1*$2}'`
-    numnodes=`echo $numworkers $workersPerNodeCR | awk '{print ($1+1.)*1./$2}'`
-    numworkernodes=`echo $numworkers $workersPerNodeCR | awk '{print $1*1./$2}'`
     crQsub=${crdir}/${WORKDIR}/createModel.qsub
     cat > $crQsub <<EOF
 #!/bin/bash -l
@@ -89,7 +86,7 @@ EOF_INNER
 
 crLog=${logdirCR}/createModel-\${PBS_JOBID}.log
 
-${CREATORAPRUN} \$createFITS -c \$parset > \$crLog
+aprun -n ${CREATORWIDTH} -N ${CREATORPPN} \$createFITS -c \$parset > \$crLog
 
 EOF
 
@@ -154,7 +151,7 @@ makeModelSlice.nchan = ${nchan}
 makeModelSlice.slicewidth = ${chanPerMSchunk}
 EOFINNER
 
-${SLICERAPRUN} \${slicer} -c \${slParset} > \${slLog}
+aprun -n ${SLICERWIDTH} -N ${SLICERNPPN} \${slicer} -c \${slParset} > \${slLog}
 
 EOF
 

@@ -96,24 +96,20 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
-CREATORWIDTH=5
-CREATORPPN=20
-CREATORAPRUN="aprun -B"
 nsubxCR=9
 nsubyCR=11
-workersPerNodeCR=1
+CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
+CREATORPPN=20
 
 writeByNode=true
 modelimage=${imagedir}/${baseimage}
 createTT_CR=true
 if [ $writeByNode == "true" ]; then
-#    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
 slicebase=${slicedir}/${baseimage}_slice
-SLICERWIDTH=5
+SLICERWIDTH=100
 SLICERNPPN=20
-SLICERAPRUN="aprun -B"
 
 ###########################################
 # Make the visibilities
@@ -147,7 +143,11 @@ else
 fi
 
 chanPerMSchunk=48
-numMSchunks=342
+if [ $doFullSpectrum == true ]; then
+    numMSchunks=342
+else
+    numMSchunks=171
+fi
 msPerStage1job=9
 
 doSnapshot=true

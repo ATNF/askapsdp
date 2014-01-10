@@ -84,18 +84,20 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
-nsubxCR=5
-nsubyCR=8
-workersPerNodeCR=1
+nsubxCR=16
+nsubyCR=16
+CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
+CREATORPPN=20
 
 writeByNode=true
 modelimage=${imagedir}/${baseimage}
 createTT_CR=true
 if [ $writeByNode == "true" ]; then
-    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
-slicebase=${slicedir}/${baseimage}_chunk
+slicebase=${slicedir}/${baseimage}_slice
+SLICERWIDTH=100
+SLICERNPPN=20
 
 ###########################################
 # Make the visibilities
