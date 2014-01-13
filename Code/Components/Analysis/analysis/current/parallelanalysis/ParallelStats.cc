@@ -189,7 +189,7 @@ namespace askap {
                 // return it to the master
                 LOFAR::BlobString bs;
                 bs.resize(0);
-                LOFAR::BlobOBufString bob(bs2);
+                LOFAR::BlobOBufString bob(bs);
                 LOFAR::BlobOStream out(bob);
                 out.putStart("stddevW2M", 1);
                 int16 rank = this->itsComms->rank();
@@ -258,7 +258,7 @@ namespace askap {
                 out << av;
                 out.putEnd();
                 for (int i = 1; i < this->itsComms->nProcs(); ++i) {
-                    this->itsComms->sendBlob(bs2, i);
+                    this->itsComms->sendBlob(bs, i);
                 }
             }
 	}
