@@ -1,23 +1,23 @@
-#!/bin/bash -l
-#PBS -l nodes=1:ppn=2
+#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mppwidth=2
 #PBS -N stdtest
-#PBS -m e
-#PBS -v ASKAP_ROOT
+#PBS -j oe
 
 cd $PBS_O_WORKDIR
 
-module load openmpi
-
 export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
-echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee stdtest.$PBS_JOBID.out
-tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out
+LOGFILE=stdtest.${PBS_JOBID}.out
+
+echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee ${LOGFILE}
+tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz  | tee -a ${LOGFILE}
 ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
         exit $ERR
 fi
 
-prun="mpirun -np 2 -x AIPSPATH time"
+prun="aprun -n 2 time"
 
 cat > stdtest.simulator.in <<EOF 
 Csimulator.dataset                              =       10uJy_stdtest.ms
@@ -66,8 +66,8 @@ Csimulator.gridder.AWProject.offsetsupport      = true
 Csimulator.gridder.AWProject.frequencydependent = false
 Csimulator.gridder.AWProject.tablename          = AWProject.tab
 EOF
-echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
+echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a ${LOGFILE}
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a ${LOGFILE}
 ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
         exit $ERR
@@ -107,8 +107,8 @@ Cimager.restore                          	= True
 Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
 
 EOF
-echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+echo "Running cimager to form Dirty image of single pointing" | tee -a ${LOGFILE}
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a ${LOGFILE}
 ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
         exit $ERR
@@ -158,9 +158,9 @@ Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.Wiener.noisepower        = 100.0
 Cimager.preconditioner.GaussianTaper            = [20arcsec, 20arcsec, 0deg]
 EOF
-echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
+echo "Running cimager to form Clean image of single pointing" | tee -a ${LOGFILE}
 
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a ${LOGFILE}
 ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
         exit $ERR
