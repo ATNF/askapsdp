@@ -230,16 +230,13 @@ namespace askap {
 	  else{
             double f[2], dv[2];
             double a = this->itsFlux0, b = this->itsFluxPeak, c = this->itsWidthPeak;
-            int loc[2];
             dv[0] = freqToHIVel(std::max(nu1, nu2)) - redshiftToVel(this->itsRedshift); // lowest relative velocty
             dv[1] = freqToHIVel(std::min(nu1, nu2)) - redshiftToVel(this->itsRedshift); // highest relative velocity
             f[0] = f[1] = 0.;
-	    //  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << dv[0] << " and " << dv[1] << "  (with peaks at +-"<<0.5*this->itsWidthPeak<<")");
 
             for (int i = 0; i < 2; i++) {
 	      if (dv[i] < -0.5*c) {
 		f[i] += (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((0. - dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
-		loc[i] = 1;
 	      } else {
 		f[i] += this->itsSideFlux;
 
@@ -247,11 +244,9 @@ namespace askap {
 		  if (fabs(a - b) / a < 1.e-8) f[i] += a * (dv[i] + 0.5 * c);
 		  else     f[i] += this->itsKpar[4] * (atan(dv[i] / sqrt(this->itsKpar[3] - dv[i] * dv[i])) + atan(c / sqrt(4.*this->itsKpar[3] - c * c)));
 
-		  loc[i] = 2;
 		} else {
 		  f[i] += this->itsMiddleFlux;
 		  f[i] += this->itsSideFlux - (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
-		  loc[i] = 3;
 		}
 	      }
 

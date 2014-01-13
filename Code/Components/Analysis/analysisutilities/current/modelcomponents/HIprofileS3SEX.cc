@@ -317,16 +317,13 @@ namespace askap {
 		  v[0] = freqToHIVel(std::max(nu1, nu2)); // lowest velocty
 		  v[1] = freqToHIVel(std::min(nu1, nu2)); // highest velocity
 		  f[0] = f[1] = 0.;
-		  int loc[2];
 
 		  double minPeak = this->itsVelZero - this->itsDeltaVel;
 		  double maxPeak = this->itsVelZero + this->itsDeltaVel;
 
-		  //  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << v[0] << " and " << v[1] << "  (with minpeak="<<minPeak<<" and maxpeak="<<maxPeak<<")");
 		  for (int i = 0; i < 2; i++) {
 		      if (v[i] < minPeak) {
 			  f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
-			  loc[i] = 1;
 		      } else {
 			  f[i] += this->itsEdgeFlux;
 
@@ -335,18 +332,14 @@ namespace askap {
 			      double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip * (erfc(-1.*this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip)) -
 												erfc((v[i] - this->itsVelZero) / (M_SQRT2 * this->itsSigmaDip)));
 			      f[i] += (norm - dip);
-			      //        ASKAPLOG_DEBUG_STR(logger, "In loc 2, norm="<<norm<<", dip="<<dip);
-			      loc[i] = 2;
 			  } else {
 			      f[i] += this->itsMiddleFlux;
 			      f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
-			      loc[i] = 3;
 			  }
 		      }
 		  }
 
 		  double flux = (f[1] - f[0]) / (v[1] - v[0]);
-		  //  ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
 		  return flux * this->itsIntFlux / this->itsProfileFlux;
 	      }
 	      else return 0.;
