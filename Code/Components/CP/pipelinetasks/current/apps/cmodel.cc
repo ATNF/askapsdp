@@ -62,7 +62,7 @@ class CmodelApp : public askap::Application
             MPIBasicComms comms(argc, argv);
 
             try {
-                if (comms.getNumNodes()) {
+                if (comms.getNumNodes() < 2) {
                     ASKAPTHROW(AskapError, "Execution requires at least 2 MPI processes");
                 }
 
