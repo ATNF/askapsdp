@@ -71,6 +71,7 @@ using namespace LOFAR::TYPES;
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <parallelanalysis/Weighter.h>
+#include <parallelanalysis/ParallelStats.h>
 #include <preprocessing/VariableThresholder.h>
 #include <extraction/ExtractionFactory.h>
 #include <analysisutilities/AnalysisUtilities.h>
@@ -1900,12 +1901,16 @@ namespace askap {
 	else if (!this->itsFlagVariableThreshold &&
 		 (!this->itsCube.pars().getFlagUserThreshold() ||
 		  (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
-	  ASKAPLOG_INFO_STR(logger, "Finding stats via distributed analysis.");
-	  findMeans();
-	  combineMeans();
-	  broadcastMean();
-	  findStddevs();
-	  combineStddevs();
+	  // ASKAPLOG_INFO_STR(logger, "Finding stats via distributed analysis.");
+	  // findMeans();
+	  // combineMeans();
+	  // broadcastMean();
+	  // findStddevs();
+	  // combineStddevs();
+
+	    ParallelStats parstats(this->itsComms, &this->itsCube);
+	    parstats.findDistributedStats();
+
 	} else{
 	  this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
 	}

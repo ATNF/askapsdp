@@ -97,7 +97,7 @@ namespace askap {
 		else if (this->itsCube->pars().getFlagSmooth()) this->itsCube->SmoothCube();
 		
 		int32 size = 0;
-		float mean = 0., stddev;
+		float mean = 0.;
 		if(!this->itsCube->pars().getFlagStatSec() || this->itsCube->pars().statsec().isValid()) {
 		    float *array=0;
 		    // make a mask in case there are blank pixels.
