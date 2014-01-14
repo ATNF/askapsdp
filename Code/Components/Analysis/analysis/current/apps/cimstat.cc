@@ -39,6 +39,9 @@
 #include <askap/AskapLogging.h>
 #include <parallelanalysis/DuchampParallel.h>
 #include <Common/ParameterSet.h>
+#include <duchamp/Cubes/cubes.hh>
+#include <duchamp/Utils/Statistics.hh>
+#include <duchamp/Utils/utils.hh>
 
 using std::cout;
 using std::endl;
@@ -58,14 +61,41 @@ class CimstatApp : public askap::Application
             askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
             try {
                 LOFAR::ParameterSet subset(config().makeSubset("Cimstat."));
-                DuchampParallel duchamp(comms, subset);
-                duchamp.readData();
-                //     duchamp.findMeans();
-                //     duchamp.combineMeans();
-                //     duchamp.broadcastMean();
-                //     duchamp.findRMSs();
-                //     duchamp.combineRMSs();
-                duchamp.gatherStats();
+		std::vector<std::string> statList = subset.getStringVector("stats");
+                DuchampParallel finder(comms, subset);
+                finder.readData();
+                finder.gatherStats();
+
+		ASKAPLOG_INFO_STR(logger,"Requested stats follow:");
+		
+		for(std::vector<std::string>::iterator stat=statList.begin();stat<statList.end();stat++){
+		    std::string st=makelower(*stat);
+		    if(st == "mean") 
+			ASKAPLOG_INFO_STR(logger, "Mean = " << finder.cube().stats().getMean());
+		    else if (st == "stddev")
+			ASKAPLOG_INFO_STR(logger, "Stddev = " << finder.cube().stats().getStddev());
+		    else if (st == "median"){
+			if (comms.isParallel())
+			    ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no median value available");
+			else
+			    ASKAPLOG_INFO_STR(logger, "Median = " << finder.cube().stats().getMedian());
+		    }
+		    else if (st == "madfm") {
+			if (comms.isParallel())
+			    ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no madfm value available");
+			else
+			    ASKAPLOG_INFO_STR(logger, "Madfm = " << finder.cube().stats().getMadfm());
+		    }
+		    else if (st == "madfmasstddev") {
+			if (comms.isParallel())
+			    ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no madfm value available");
+			else
+			    ASKAPLOG_INFO_STR(logger, "Madfm = " << Statistics::madfmToSigma<float>(finder.cube().stats().getMadfm()));
+		    }
+		    else
+			ASKAPLOG_WARN_STR(logger, "Requested statistic '"<<*stat << "' not available");
+		}
+
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
                 std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
