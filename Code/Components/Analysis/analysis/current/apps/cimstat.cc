@@ -91,7 +91,7 @@ class CimstatApp : public askap::Application
 			    if (comms.isParallel())
 				ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no madfm value available");
 			    else
-				ASKAPLOG_INFO_STR(logger, "MADFMAsStddev = " << Statistics::madfmToSigma<float>(finder.cube().stats().getMadfm()));
+				ASKAPLOG_INFO_STR(logger, "MADFMasStddev = " << Statistics::madfmToSigma<float>(finder.cube().stats().getMadfm()));
 			}
 			else
 			    ASKAPLOG_WARN_STR(logger, "Requested statistic '"<<*stat << "' not available");
