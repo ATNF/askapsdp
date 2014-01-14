@@ -143,12 +143,12 @@ cat >> \${slParset} <<EOFINNER
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 #
-makeModelSlice.modelname = ${modelimage}
-makeModelSlice.slicename = ${slicebase}
-makeModelSlice.nsubx = ${nsubxCR}
-makeModelSlice.nsuby = ${nsubyCR}
-makeModelSlice.nchan = ${nchan}
-makeModelSlice.slicewidth = ${chanPerMSchunk}
+makeAllModelSlices.modelname = ${modelimage}
+makeAllModelSlices.slicename = ${slicebase}
+makeAllModelSlices.nsubx = ${nsubxCR}
+makeAllModelSlices.nsuby = ${nsubyCR}
+makeAllModelSlices.nchan = ${nchan}
+makeAllModelSlices.slicewidth = ${chanPerMSchunk}
 EOFINNER
 
 aprun -n ${SLICERWIDTH} -N ${SLICERNPPN} \${slicer} -c \${slParset} > \${slLog}
