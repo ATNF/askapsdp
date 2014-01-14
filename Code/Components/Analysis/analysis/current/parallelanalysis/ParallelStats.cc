@@ -115,7 +115,7 @@ namespace askap {
                         else
 			    mean = findMean<float>(array, mask, this->itsCube->getSize());
 		    }
-		    ASKAPLOG_INFO_STR(logger, "Worker Mean = " << mean);
+		    ASKAPLOG_INFO_STR(logger, "Mean (Worker #" << this->itsComms->rank() << ") = " << mean);
 		}
 		else {
 		    // No good points in the stats section
@@ -183,7 +183,7 @@ namespace askap {
 		  
 		  if (this->itsCube->pars().getFlagATrous()) delete [] array;
 
-		  ASKAPLOG_INFO_STR(logger, "StdDev = " << stddev);
+		  ASKAPLOG_INFO_STR(logger, "StdDev (Worker #" << this->itsComms->rank() << ") = " << stddev);
 		}
 
                 // return it to the master
