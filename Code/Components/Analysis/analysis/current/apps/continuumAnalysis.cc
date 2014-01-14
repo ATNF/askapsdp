@@ -93,8 +93,7 @@ int main(int argc, const char** argv)
         image.setupLogfile(argc, argv);
 	image.preprocess();
         image.gatherStats();
-        image.broadcastThreshold();
-        image.receiveThreshold();
+        image.setThreshold();
         image.findSources();
         image.fitSources();
         image.sendObjects();

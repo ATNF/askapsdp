@@ -1901,12 +1901,6 @@ namespace askap {
 	else if (!this->itsFlagVariableThreshold &&
 		 (!this->itsCube.pars().getFlagUserThreshold() ||
 		  (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
-	  // ASKAPLOG_INFO_STR(logger, "Finding stats via distributed analysis.");
-	  // findMeans();
-	  // combineMeans();
-	  // broadcastMean();
-	  // findStddevs();
-	  // combineStddevs();
 
 	    ParallelStats parstats(this->itsComms, &this->itsCube);
 	    parstats.findDistributedStats();
@@ -1916,326 +1910,67 @@ namespace askap {
 	}
       }
 
-
         //**************************************************************//
 
-        void DuchampParallel::findMeans()
-        {
-            /// @details In the parallel case, this finds the mean or median
-            /// (according to the flagRobustStats parameter) of the worker's
-            /// image/cube, then sends that value to the master via LOFAR
-            /// Blobs.
-            ///
-            /// In the serial (non-parallel) case, all stats for the cube
-            /// are calculated in the standard manner via the
-            /// duchamp::Cube::setCubeStats() function.
-            if (itsComms.isWorker()) {
-                if (itsComms.isParallel()) {
-
-                    if (this->itsCube.pars().getFlagATrous()) this->itsCube.ReconCube();
-                    else if (this->itsCube.pars().getFlagSmooth()) this->itsCube.SmoothCube();
-
-                    int32 size = 0;
-                    float mean = 0., stddev;
-		    if(!this->itsCube.pars().getFlagStatSec() || this->itsCube.pars().statsec().isValid()) {
-		      float *array;
-		      // make a mask in case there are blank pixels.
-		      bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
-		      for(size_t i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
-
-		      if (size > 0) {
-                        if (this->itsCube.pars().getFlagATrous())       array = this->itsCube.getArray();
-                        else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
-                        else                                     array = this->itsCube.getArray();
-			
-                        // calculate both mean & stddev, but ignore stddev for the moment.
-                        if (this->itsCube.pars().getFlagRobustStats()) 
-			  findMedianStats(array, this->itsCube.getSize(), mask, mean, stddev);
-                        else
-			  findNormalStats(array, this->itsCube.getSize(), mask, mean, stddev);
-		      }
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
-		    }
-		    else {
-		      // No good points in the stats section
-		      mean = 0.;
-		    }
-		    double dmean = mean;
-		    LOFAR::BlobString bs;
-		    bs.resize(0);
-		    LOFAR::BlobOBufString bob(bs);
-		    LOFAR::BlobOStream out(bob);
-		    out.putStart("meanW2M", 1);
-		    int16 rank = itsComms.rank();
-		    out << rank << dmean << size;
-		    out.putEnd();
-		    itsComms.sendBlob(bs, 0);
-		      //                     ASKAPLOG_DEBUG_STR(logger, "Sent mean to the master from worker " << itsComms.rank());
-
-                } else {
-                    // serial case -- can just calculate all stats at once.
-//                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
-//                     this->itsCube.setCubeStats();
-//                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Stats are as follows:");
-//                     std::cout << this->itsCube.stats();
-                }
-            } else {
-            }
-        }
-
-        //**************************************************************//
-
-        void DuchampParallel::findStddevs()
-        {
-            /// @details In the parallel case, this finds the stddev or the
-            /// median absolute deviation from the median (MADFM) (dictated
-            /// by the flagRobustStats parameter) of the worker's
-            /// image/cube, then sends that value to the master via LOFAR
-            /// Blobs. To calculate the stddev/MADFM, the mean of the full
-            /// dataset must be read from the master (again passed via LOFAR
-            /// Blobs). The calculation uses the findSpread() function.
-            ///
-            /// In the serial case, nothing is done, as we have already
-            /// calculated the stddev in the findMeans() function.
-            if (itsComms.isWorker() && itsComms.isParallel()) {
-                // first read in the overall mean for the cube
-                double mean = 0;
-
-                if (itsComms.isParallel()) {
-                    LOFAR::BlobString bs1;
-                    itsComms.receiveBlob(bs1, 0);
-                    LOFAR::BlobIBufString bib(bs1);
-                    LOFAR::BlobIStream in(bib);
-                    int version = in.getStart("meanM2W");
-                    ASKAPASSERT(version == 1);
-                    in >> mean;
-                    in.getEnd();
-                } else {
-                    mean = this->itsCube.stats().getMiddle();
-                }
-
-                // use it to calculate the stddev for this section
-                int32 size = 0;
-                double stddev = 0.;
-		if(!this->itsCube.pars().getFlagStatSec() || this->itsCube.pars().statsec().isValid()) {
-		  float *array;
-		  
-		  if (this->itsCube.pars().getFlagATrous()) {
-		    array = new float[this->itsCube.getSize()];
-		    
-		    for (size_t i = 0; i < this->itsCube.getSize(); i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
-		  } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
-		  else array = this->itsCube.getArray();
-		  
-		  bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
-		  for(size_t i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
-
-		  if(size>0)
-		    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, this->itsCube.getSize(), array, mask);
-		  
-		  if (this->itsCube.pars().getFlagATrous()) delete [] array;
-		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
-		}
-		else {
-		  // Only way to get here is for flagStatSec=true but statsec is invalid (ie. has no pixels in this worker)
-		  stddev = 0.;
-		}
-
-                // return it to the master
-                LOFAR::BlobString bs2;
-                bs2.resize(0);
-                LOFAR::BlobOBufString bob(bs2);
-                LOFAR::BlobOStream out(bob);
-                out.putStart("stddevW2M", 1);
-                int16 rank = itsComms.rank();
-                out << rank << stddev << size;
-                out.putEnd();
-                itsComms.sendBlob(bs2, 0);
-            } else {
-            }
-        }
-
-        //**************************************************************//
-
-        void DuchampParallel::combineMeans()
-        {
-            /// @details The master reads the mean/median values from each
-            /// of the workers, and combines them to form the mean/median of
-            /// the full dataset. Note that if the median of the workers
-            /// data has been provided, the values are treated as estimates
-            /// of the mean, and are combined as if they were means (ie. the
-            /// overall value is the weighted (by size) average of the
-            /// means/medians of the individual images). The value is stored
-            /// in the StatsContainer in itsCube.
-            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
-                // get the means from the workers
-                LOFAR::BlobString bs1;
-                int64 size = 0;
-                double av = 0;
-
-                for (int i = 1; i < itsComms.nProcs(); i++) {
-                    itsComms.receiveBlob(bs1, i);
-                    LOFAR::BlobIBufString bib(bs1);
-                    LOFAR::BlobIStream in(bib);
-                    int version = in.getStart("meanW2M");
-                    ASKAPASSERT(version == 1);
-                    double newav;
-                    int32 newsize;
-                    int16 rank;
-                    in >> rank >> newav >> newsize;
-                    in.getEnd();
-                    size += newsize;
-                    av += newav * newsize;
-                }
-
-                if (size > 0) {
-                    av /= double(size);
-                }
-
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall size = " << size);
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall mean = " << av);
-                this->itsCube.stats().setMean(av);
-            } else {
-            }
-        }
-
-        //**************************************************************//
-
-        void DuchampParallel::broadcastMean()
-        {
-            /// @details The mean/median value of the full dataset is sent
-            /// via LOFAR Blobs to the workers.
-            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
-                // now send the overall mean to the workers so they can calculate the stddev
-                double av = this->itsCube.stats().getMean();
-                LOFAR::BlobString bs2;
-                bs2.resize(0);
-                LOFAR::BlobOBufString bob(bs2);
-                LOFAR::BlobOStream out(bob);
-                out.putStart("meanM2W", 1);
-                out << av;
-                out.putEnd();
-                for (int i = 1; i < itsComms.nProcs(); ++i) {
-                    itsComms.sendBlob(bs2, i);
-                }
-            } else {
-            }
-        }
-
-        //**************************************************************//
-
-        void DuchampParallel::combineStddevs()
-        {
-            /// @details The master reads the stddev/MADFM values from each of
-            /// the workers, and combines them to produce an estimate of the
-            /// stddev for the full cube. Again, if MADFM values have been
-            /// calculated on the workers, they are treated as estimates of
-            /// the stddev and are combined as if they are stddev values. The
-            /// overall value is stored in the StatsContainer in itsCube.
-            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
-                // get the means from the workers
-                LOFAR::BlobString bs;
-                int64 size = 0;
-                double stddev = 0;
-
-                for (int i = 1; i < itsComms.nProcs(); i++) {
-                    itsComms.receiveBlob(bs, i);
-                    LOFAR::BlobIBufString bib(bs);
-                    LOFAR::BlobIStream in(bib);
-                    int version = in.getStart("stddevW2M");
-                    ASKAPASSERT(version == 1);
-                    double newstddev;
-                    int32 newsize;
-                    int16 rank;
-                    in >> rank >> newstddev >> newsize;
-                    in.getEnd();
-                    size += newsize;
-		    if(newsize>0)
-		      stddev += (newstddev * newstddev * (newsize - 1));
-                }
-
-                if (size > 0) {
-                    stddev = sqrt(stddev / double(size - 1));
-                }
-
-                this->itsCube.stats().setStddev(stddev);
-                this->itsCube.stats().setRobust(false);
-		this->itsCube.stats().define(this->itsCube.stats().getMiddle(),0.F,this->itsCube.stats().getSpread(),1.F);
-
-                if (!this->itsCube.pars().getFlagUserThreshold()) {
-		  ASKAPLOG_INFO_STR(logger, "Setting threshold to be " << this->itsCube.pars().getCut() << " sigma");
-                    this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
-		    ASKAPLOG_INFO_STR(logger, "Threshold now " << this->itsCube.stats().getThreshold() << " since middle = " << this->itsCube.stats().getMiddle() << " and spread = " << this->itsCube.stats().getSpread());
-                    this->itsCube.pars().setFlagUserThreshold(true);
-                    this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
-                }
-
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall StdDev = " << stddev);
-            }
-        }
-
-        //**************************************************************//
-
-        void DuchampParallel::broadcastThreshold()
+        void DuchampParallel::setThreshold()
         {
             /// @details The detection threshold value (which has been
-            /// already calculated) is sent to the workers via LOFAR Blobs.
-            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
-                // now send the overall mean to the workers so they can calculate the stddev
-                LOFAR::BlobString bs;
-                bs.resize(0);
-                LOFAR::BlobOBufString bob(bs);
-                LOFAR::BlobOStream out(bob);
-                out.putStart("threshM2W", 1);
-                double threshold = this->itsCube.stats().getThreshold();
-                double mean = this->itsCube.stats().getMiddle();
-                double stddev = this->itsCube.stats().getSpread();
-                out << threshold << mean << stddev;
-                out.putEnd();
-                itsComms.broadcastBlob(bs, 0);
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Threshold = " << this->itsCube.stats().getThreshold());
-            } else {
-            }
-        }
+            /// already calculated) is properly set for use. In the
+            /// distributed case, this means the master sends it to
+            /// the workers via LOFAR Blobs, and the workers
+            /// individually set it.
 
+	    if(!this->itsFlagThresholdPerWorker){
+		// when doing a threshold per worker, have already set the threshold.
 
-        //**************************************************************//
-
-        void DuchampParallel::receiveThreshold()
-        {
-            /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
-            if (itsComms.isWorker() && !this->itsFlagThresholdPerWorker) {
-                double threshold, mean, stddev;
-
-                if (itsComms.isParallel()) {
-                    LOFAR::BlobString bs;
-                    itsComms.broadcastBlob(bs, 0);
-                    LOFAR::BlobIBufString bib(bs);
-                    LOFAR::BlobIStream in(bib);
-                    int version = in.getStart("threshM2W");
-                    ASKAPASSERT(version == 1);
-                    in >> threshold >> mean >> stddev;
-                    in.getEnd();
-                    this->itsCube.stats().setRobust(false);
-                    this->itsCube.stats().setMean(mean);
-                    this->itsCube.stats().setStddev(stddev);
-		    this->itsCube.stats().define(this->itsCube.stats().getMiddle(),0.F,this->itsCube.stats().getSpread(),1.F);
+		double threshold, mean, stddev;
+		if( this->itsComms.isParallel()){
+		    if(this->itsComms.isMaster()){
+			LOFAR::BlobString bs;
+			bs.resize(0);
+			LOFAR::BlobOBufString bob(bs);
+			LOFAR::BlobOStream out(bob);
+			out.putStart("threshM2W", 1);
+			threshold = this->itsCube.stats().getThreshold();
+			mean = this->itsCube.stats().getMiddle();
+			stddev = this->itsCube.stats().getSpread();
+			out << threshold << mean << stddev;
+			out.putEnd();
+			itsComms.broadcastBlob(bs, 0);
+			ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Threshold = " << this->itsCube.stats().getThreshold());
+		    } 
+		    else if(this->itsComms.isWorker()) {
+			LOFAR::BlobString bs;
+			itsComms.broadcastBlob(bs, 0);
+			LOFAR::BlobIBufString bib(bs);
+			LOFAR::BlobIStream in(bib);
+			int version = in.getStart("threshM2W");
+			ASKAPASSERT(version == 1);
+			in >> threshold >> mean >> stddev;
+			in.getEnd();
+			this->itsCube.stats().setRobust(false);
+			this->itsCube.stats().setMean(mean);
+			this->itsCube.stats().setStddev(stddev);
+			this->itsCube.stats().define(this->itsCube.stats().getMiddle(),0.F,this->itsCube.stats().getSpread(),1.F);
 		    
-		    if (!this->itsCube.pars().getFlagUserThreshold()) {
-		      this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
-		      this->itsCube.pars().setFlagUserThreshold(true);
-		      this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
+			if (!this->itsCube.pars().getFlagUserThreshold()) {
+			    this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
+			    this->itsCube.pars().setFlagUserThreshold(true);
+			    this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
+			}
 		    }
-                } else {
+		    else ASKAPTHROW(AskapError, "Neither Master nor Worker!");
+		}
+		else {
+		    // serial case
                     if (this->itsCube.pars().getFlagUserThreshold())
                         threshold = this->itsCube.pars().getThreshold();
                     else
                         threshold = this->itsCube.stats().getMiddle() + this->itsCube.stats().getSpread() * this->itsCube.pars().getCut();
-                }
-
+		}
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting threshold to be " << threshold);
                 this->itsCube.pars().setThreshold(threshold);
-            }
+	    }
         }
 
 

@@ -187,23 +187,10 @@ namespace askap {
 		void writeImage(std::string imageName, Float* data);
 		void writeImage(std::string imageName, casa::Array<Float> data);
 
-                /// @brief Find the mean (on the workers)
-                void findMeans();
-                /// @brief Find the STDDEV (on the workers)
-                void findStddevs();
-                /// @brief Combine and print the mean (on the master)
-                void combineMeans();
-                /// @brief Send the overall mean to the workers (on the master)
-                void broadcastMean();
-                /// @brief Combine and print the STDDEV (on the master)
-                void combineStddevs();
                 /// @brief Front end for the statistics functions
                 void gatherStats();
-
-                /// @brief Send the desired threshold to each of the workers (on the master)
-                void broadcastThreshold();
-                /// @brief Read the threshold to be used (on the workers)
-                void receiveThreshold();
+                /// @brief Set the desired threshold
+                void setThreshold();
 
                 /// @brief Is the dataset a 2-dimensional image?
                 bool is2D();

@@ -77,8 +77,7 @@ class DuchampApp : public askap::Application
                 duchamp.setupLogfile(argc, const_cast<const char**>(argv));
 		duchamp.preprocess();
                 duchamp.gatherStats();
-                duchamp.broadcastThreshold();
-                duchamp.receiveThreshold();
+                duchamp.setThreshold();
                 duchamp.findSources();
                 duchamp.fitSources();
                 duchamp.sendObjects();

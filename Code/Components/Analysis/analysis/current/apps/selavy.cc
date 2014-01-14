@@ -105,8 +105,7 @@ class SelavyApp : public askap::Application
                 finder.setupLogfile(argc, const_cast<const char**>(argv));
 		finder.preprocess();
                 finder.gatherStats();
-                finder.broadcastThreshold();
-                finder.receiveThreshold();
+                finder.setThreshold();
                 finder.findSources();
                 finder.fitSources();
                 finder.sendObjects();
