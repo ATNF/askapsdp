@@ -18,9 +18,9 @@ cp ${INPUT_SKYMODEL_TXT} ${skymodel}
 qsubfile=analysis.qsub
 cat > ${qsubfile} <<EOF
 #!/bin/bash -l
-#PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=01:00:00
-#PBS -l select=2:ncpus=8:mem=4GB:mpiprocs=8
+#PBS -l mppwidth=19
+#PBS -l mppnppn=19
 ##PBS -M first.last@csiro.au
 #PBS -N analysis
 ##PBS -q debugq
@@ -35,6 +35,8 @@ cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/cimstat.sh
 crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/crossmatch.sh
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
 fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/fluxEval.py
+imageEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/imageEval.py
+finderEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/finderEval.py
 
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
 
@@ -48,11 +50,15 @@ Selavy.flagGrowth = true
 Selavy.growthCut = 4
 Selavy.VariableThreshold = true
 Selavy.VariableThreshold.boxSize = 50
+Selavy.VariableThreshold.ThresholdImageName=${THRESHIMAGE}
+Selavy.VariableThreshold.NoiseImageName=${NOISEIMAGE}
+Selavy.VariableThreshold.AverageImageName=${AVERAGEIMAGE}
+Selavy.VariableThreshold.SNRimageName=${SNRIMAGE}
 Selavy.Fitter.doFit = true
 Selavy.Fitter.fitTypes = [full]
 Selavy.Fitter.fitJustDetection = true
 Selavy.Fitter.stopAfterFirstGoodFit = true
-Selavy.nsubx = 5
+Selavy.nsubx = 6
 Selavy.nsuby = 3
 Selavy.minPix = 3
 Selavy.minVoxels = 3
@@ -60,6 +66,7 @@ Selavy.minVoxels = 3
 Cimstat.image = ${CONTINUUMIMAGE}
 Cimstat.flagSubsection = true
 Cimstat.subsection = ${ANALYSIS_SUBSECTION}
+Cimstat.stats = ["Mean","Stddev","Median","MADFM","MADFMasStdDev"]
 #
 Crossmatch.source.filename     = selavy-fitResults.txt
 Crossmatch.source.database     = Selavy
@@ -71,26 +78,13 @@ Crossmatch.epsilon = 10arcsec
 Crossmatch.matchfile = matches.txt
 Crossmatch.missfile = misses.txt
 #
-Eval.refCatalogue = ${skymodel}
+Eval.refCatalogue    = ${skymodel}
 Eval.sourceCatalogue = selavy-fitResults.txt
-EOF_INNER
-
-pystat=getStats-\${PBS_JOBID}.py
-cat > \${pystat} <<EOF_INNER
-#!/bin/env python
-## AUTOMATICALLY GENERATED!
-# CASA script to obtain statistics for the image
-ia.open('${CONTINUUMIMAGE}')
-st=ia.statistics(region=rg.box(blc=[600,600,0,0],trc=[2699,2699,0,0]),robust=True)
-madfmAsSigma=st['medabsdevmed'][0] / 0.6744888
-print "Max = %5.3e = %3.1f sigma"%(st['max'][0],(st['max'][0]-st['median'][0])/madfmAsSigma)
-print "Min = %5.3e = %3.1f sigma"%(st['min'][0],(st['min'][0]-st['median'][0])/madfmAsSigma)
-print "Mean = %5.3e"%st['mean'][0]
-print "Std.Dev = %5.3e"%st['sigma'][0]
-print "Median = %5.3e"%st['median'][0]
-print "MADFM = %5.3e"%st['medabsdevmed'][0]
-print "MADFMasStdDev = %5.3e"%madfmAsSigma
-ia.close()
+Eval.thresholdImage  = ${THRESHIMAGE}.fits
+Eval.noiseImage      = ${NOISEIMAGE}.fits
+Eval.snrImage        = ${SNRIMAGE}.fits
+Eval.image           = ${CONTINUUMIMAGE}.fits
+Eval.sourceSelection = threshold
 EOF_INNER
 
 statlog=log/cimstat-\${PBS_JOBID}.log
@@ -98,33 +92,60 @@ sflog=log/selavy-\${PBS_JOBID}.log
 cmlog=log/crossmatch-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
+ielog=log/imageval-\${PBS_JOBID}.log
+filog=log/imageval-\${PBS_JOBID}.log
 
-#mpirun -np 1 \$cimstat -c \$parset > \$statlog
-casapy --nologger --log2term -c \$pystat > \$statlog
+aprun -n 1 \$cimstat -c \$parset > \$statlog
+err=\$?
+if [ \$err -ne 0 ]; then
+    exit \$err
+fi
+imnoise=\`grep MADFMas \$statlog | awk '{print \$10}'\`
+cat >> \$parset <<EOF_INNER
+Eval.imageNoise      = \${imnoise}
+EOF_INNER
+
+aprun -B \$selavy -c \$parset > \$sflog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun \$selavy -c \$parset > \$sflog
+aprun -n 1 \$crossmatch -c \$parset > \$cmlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$crossmatch -c \$parset > \$cmlog
+# Convert threshold/noise/snr maps to FITS
+rm -f ${CONTINUUMIMAGE}.fits ${THRESHIMAGE}.fits ${NOISEIMAGE}.fits ${SNRIMAGE}.fits
+aprun -n 1 image2fits in=${CONTINUUMIMAGE} out=${CONTINUUMIMAGE}.fits
+aprun -n 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
+aprun -n 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
+aprun -n 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
+
+evalparset=eval-parset-\${PBS_JOBID}.in
+grep "Eval" \$parset > \$evalparset
+
+aprun -n 1 \$plotEval -c \$evalparset > \$pelog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$plotEval -c \$parset > \$pelog
-err=\$?
+aprun -n 1 \$fluxEval -c \$evalparset > \$felog
+err=$?
 if [ \$err -ne 0 ]; then
-    exit \$err
+    exit $?
 fi
 
-mpirun -np 1 \$fluxEval -c \$parset > \$felog
+aprun -n 1 \$imageEval -c \$evalparset > \$ielog
+err=$?
+if [ \$err -ne 0 ]; then
+    exit $?
+fi
+
+aprun -n 1 \$finderEval -c \$evalparset > \$filog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
