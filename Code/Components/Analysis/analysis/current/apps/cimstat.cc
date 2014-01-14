@@ -85,13 +85,13 @@ class CimstatApp : public askap::Application
 			    if (comms.isParallel())
 				ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no madfm value available");
 			    else
-				ASKAPLOG_INFO_STR(logger, "Madfm = " << finder.cube().stats().getMadfm());
+				ASKAPLOG_INFO_STR(logger, "MADFM = " << finder.cube().stats().getMadfm());
 			}
 			else if (st == "madfmasstddev") {
 			    if (comms.isParallel())
 				ASKAPLOG_WARN_STR(logger, "Running in parallel mode, so no madfm value available");
 			    else
-				ASKAPLOG_INFO_STR(logger, "MadfmAsStddev = " << Statistics::madfmToSigma<float>(finder.cube().stats().getMadfm()));
+				ASKAPLOG_INFO_STR(logger, "MADFMAsStddev = " << Statistics::madfmToSigma<float>(finder.cube().stats().getMadfm()));
 			}
 			else
 			    ASKAPLOG_WARN_STR(logger, "Requested statistic '"<<*stat << "' not available");
