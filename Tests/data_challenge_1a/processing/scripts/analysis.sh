@@ -161,13 +161,13 @@ cat > \$summaryscript <<EOF_INNER
 
 cwd=\\\`pwd\\\`
 name=\\\`grep "Reading data" \$sflog | grep "(1, " | awk '{print \\\$12}'\\\`
-max=\\\`grep Max \$statlog | awk '{print \\\$3}'\\\`
-min=\\\`grep Min \$statlog | awk '{print \\\$3}'\\\`
-median=\\\`grep Median \$statlog | awk '{print \\\$3}'\\\`
-mean=\\\`grep Mean \$statlog | awk '{print \\\$3}'\\\`
-madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$3}'\\\`
-madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$3}'\\\`
-stddev=\\\`grep Std.Dev \$statlog | awk '{print \\\$3}'\\\`
+#max=\\\`grep Max \$statlog | awk '{print \\\$3}'\\\`
+#min=\\\`grep Min \$statlog | awk '{print \\\$3}'\\\`
+median=\\\`grep Median \$statlog | awk '{print \\\$10}'\\\`
+mean=\\\`grep Mean \$statlog | awk '{print \\\$10}'\\\`
+madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$10}'\\\`
+madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$10}'\\\`
+stddev=\\\`grep Std.Dev \$statlog | awk '{print \\\$10}'\\\`
 numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
 if [ ! -e selavy-fitResults.txt ] || [ \\\`wc -l selavy-fitResults.txt | awk '{print \\\$1}'\\\` == 4 ]; then
     numcmpnt=0
