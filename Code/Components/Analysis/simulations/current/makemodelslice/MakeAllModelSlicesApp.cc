@@ -77,7 +77,7 @@ int MakeAllModelSlicesApp::run(int argc, char* argv[])
 	    std::stringstream range;
 	    range << "[" << chan << "," << chan + sliceWidth - 1 << "]";
 
-	    subset.replace(LOFAR::KVpair("chanRange",range));
+	    subset.replace(LOFAR::KVpair("chanRange",range.str()));
 	    subset.replace(LOFAR::KVpair("slicename",slicename.str()));
 
 	    SliceMaker maker(subset);
