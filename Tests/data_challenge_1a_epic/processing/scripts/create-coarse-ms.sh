@@ -14,47 +14,59 @@ if [ ! -d ${AVGMSDIR} ]; then
 fi
 
 # Create the qsub file
-cat > split-coarse.qsub << EOF
+cat > split_coarse.qsub << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=1
-#PBS -l walltime=02:00:00
+#PBS -W group_list=${QUEUEGROUP}
+#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
+#PBS -l walltime=01:00:00
 ##PBS -M first.last@csiro.au
-#PBS -N split-coarse
+#PBS -N split
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
 
+#######
+# TO RUN (${NUM_WORKERS_CREATECOARSE} jobs):
+#  qsub -J ${QSUB_RANGE_CREATECOARSE} split_coarse.qsub
+#######
+
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/mssplit-coarse.in << EOF_INNER
+WIDTH=54
+STARTCHAN=1
+ENDCHAN=${END_CHANNEL_CREATECOARSE}
+
+RANGE1=\`expr \${PBS_ARRAY_INDEX} \* \${WIDTH} + \${STARTCHAN}\`
+RANGE2=\`expr \${RANGE1} + \${WIDTH} - 1\`
+
+cat > ${CONFIGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.in << EOF_INNER
 # Input measurement set
 # Default: <no default>
 vis         = ${INPUT_MS}
 
 # Output measurement set
 # Default: <no default>
-outputvis   = MS/coarse_chan.ms
+outputvis   = MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
 # The channel range to split out into its own measurement set
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
 # is inclusive of both the start and end, indexing is one-based. 
 # Default: <no default>
-channel     = 1-16416
+channel     = \${RANGE1}-\${RANGE2}
 
 # Defines the number of channel to average to form the one output channel
 # Default: 1
-width       = 54
+width       = \${WIDTH}
 EOF_INNER
 
-aprun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit-coarse.in > ${LOGDIR}/mssplit-coarse.log
+\${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh -c ${CONFIGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.in > ${LOGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.log
 EOF
 
-if [ ! -e MS/coarse_chan.ms ]; then
-    echo "MS Averaging: Submitting"
-    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
+if [ ! -e MS/coarse_chan_0.ms ]; then
+    echo "MS Split and Average: Submitting"
+    QSUB_MSSPLIT=`qsubmit -J ${QSUB_RANGE_CREATECOARSE} split_coarse.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
     GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
 else
-    echo "MS Averaging: Skipping - Output already exists"
+    echo "MS Split and Average: Skipping - Output already exists"
 fi

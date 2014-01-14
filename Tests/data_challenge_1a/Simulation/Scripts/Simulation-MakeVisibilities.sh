@@ -50,7 +50,6 @@ if [ $doCsim == true ]; then
 
     cat > $qsubfile <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy554
 #PBS -l walltime=6:00:00
 ${csimSelect}
 #PBS -M matthew.whiting@csiro.au
@@ -175,7 +174,7 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       ${calibparset}
 EOF_INNER
 
-mpirun \${csim} -c \${mkVisParset} > \${mkVisLog}
+aprun -B \${csim} -c \${mkVisParset} > \${mkVisLog}
 err=\$?
 exit \$err
 
@@ -209,8 +208,8 @@ if [ $doMergeVis == true ]; then
     
 	cat > $merge1qsub <<EOF
 #!/bin/bash
-#PBS -W group_list=astronomy554
-#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -l walltime=12:00:00
 #PBS -M matthew.whiting@csiro.au
 #PBS -N visMerge1
@@ -267,8 +266,8 @@ EOF
 
 	cat > $merge2qsub <<EOF
 #!/bin/bash
-#PBS -W group_list=astronomy554
-#PBS -l select=1:ncpus=1:mem=8GB:mpiprocs=1
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -l walltime=12:00:00
 #PBS -M matthew.whiting@csiro.au
 #PBS -N visMerge2

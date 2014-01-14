@@ -7,9 +7,8 @@ CALOUTPUT=calparameters.tab
 
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=${GAINS_CAL_MPPWIDTH}
-#PBS -l mppnppn=${GAINS_CAL_MPPNPPN}
+#PBS -W group_list=${QUEUEGROUP}
+#PBS -l select=${GAINS_CAL_SELECT}
 #PBS -l walltime=06:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N ccalibrator
@@ -20,14 +19,11 @@ cat > ccalibrator.qsub << EOF
 cd \${PBS_O_WORKDIR}
 
 cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
-Ccalibrator.dataset                              = MS/coarse_chan.ms
+Ccalibrator.dataset                              = MS/coarse_chan_%w.ms
 Ccalibrator.refgain                              = gain.g11.0.0
 Ccalibrator.nAnt                                 = 6
 Ccalibrator.nBeam                                = ${NUM_BEAMS_GAINSCAL}
 Ccalibrator.solve                                = gains
-
-# Each worker will read a single channel selection
-Ccalibrator.Channels                             = [1, %w]
 
 # Output type/filename
 Ccalibrator.calibaccess                          = table
@@ -60,7 +56,7 @@ Ccalibrator.ncycles                              = 5
 Ccalibrator.interval                             = 1800
 EOF_INNER
 
-aprun -n ${GAINS_CAL_MPPWIDTH} -N ${GAINS_CAL_MPPNPPN} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
+mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
 EOF
 
 if [ ! -e ${CALOUTPUT} ]; then

@@ -1,17 +1,16 @@
 Instructions for executing the data challenge 1A processing pipeline:
 
-1) Create a working directory (in /mnt/snx11038/magnusea02/$USER on magnus):
+1) Create a working directory (in /scratch/astronomy554/$USER on epic):
 $ mkdir myworkdir
 $ cd myworkdir
 
 2) Copy the data processing scripts from ASKAPsoft into your workdir:
-$ cp -r $ASKAP_ROOT/Tests/data_challenge_1a_cray/processing .
+$ cp -r $ASKAP_ROOT/Tests/data_challenge_1a/processing .
 
 3) Create a directory for the inputs (visibilities and sky model) and retrieve them from the archive:
 $ mkdir input
 $ scp -r cortex.ivec.org:/pbstore/groupfs/askap/DataChallenge/dc1a/dc1a.ms input
 $ scp -r cortex.ivec.org:/pbstore/groupfs/askap/DataChallenge/dc1a/skymodel-duchamp.txt input
-$ scp -r cortex.ivec.org:/pbstore/groupfs/askap/DataChallenge/dc1a/skymodel-duchamp.xml input
 
 4) Customise the configuration file as required:
 $ vim scripts/config.sh

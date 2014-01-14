@@ -3,136 +3,71 @@
 # Spectral Line Imaging
 ##############################################################################
 
-# Create a work dir directory and one to hold the output measurement sets
-SL_WORK_DIR=sl-work-dir
-if [ ! -d ${SL_WORK_DIR} ]; then
-    mkdir ${SL_WORK_DIR}
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory ${SL_WORK_DIR}"
-        exit 1
-    fi
-    mkdir ${SL_WORK_DIR}/MS
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory ${SL_WORK_DIR}/MS"
-        exit 1
-    fi
-fi
-
-mv askap.log_cfg ${SL_WORK_DIR}
-
 #
 # Create the qsub file to image each channel individually
 #
 cat > cimager-spectral-line.qsub << EOF
 #!/bin/bash
-#PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=6GB:mpiprocs=1
-#PBS -l walltime=04:00:00
-##PBS -M first.last@csiro.au
+#PBS -l walltime=24:00:00
+#PBS -l mppwidth=5504
+#PBS -l mppnppn=16
 #PBS -N sl-img
-#PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
 
-#######
-# TO RUN (${NUM_WORKERS_SPECTRAL_CUBE} jobs):
-#  qsub -J ${QSUB_RANGE_SPECTRAL_CUBE_FULL} cimager-spectral-line.qsub
-#######
+cd \${PBS_O_WORKDIR}
 
-cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
+cat > config/simager.in << EOF_INNER
 
-CHAN=\$((\${PBS_ARRAY_INDEX} + 1))
+Simager.dataset                                = ../input/dc1a.ms
+#
+Simager.Images.name                            = image.i.cube.spectral
+Simager.Images.shape                           = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
+Simager.Images.frequency                       = [1.270e9,1.270e9]
+Simager.Images.cellsize                        = [${IMAGING_CELLSIZE}, ${IMAGING_CELLSIZE}]
+Simager.Images.direction                       = [12h30m00.00, -45.00.00.00, J2000]
+#
+Simager.gridder.snapshotimaging                 = true
+Simager.gridder.snapshotimaging.wtolerance      = 1500
+Simager.gridder                                 = AWProject
+Simager.gridder.AWProject.wmax                  = 1500
+Simager.gridder.AWProject.nwplanes              = 11
+Simager.gridder.AWProject.oversample            = 4
+Simager.gridder.AWProject.diameter              = 12m
+Simager.gridder.AWProject.blockage              = 2m
+Simager.gridder.AWProject.maxfeeds              = 36
+Simager.gridder.AWProject.maxsupport            = 512
+Simager.gridder.AWProject.variablesupport       = true
+Simager.gridder.AWProject.offsetsupport         = true
+Simager.gridder.AWProject.frequencydependent    = true
+#
+Simager.solver                                  = Dirty
+Simager.solver.Dirty.tolerance                  = 0.1
+Simager.solver.Dirty.verbose                    = True
+Simager.ncycles                                 = 0
+#
+Simager.preconditioner.Names                    = [Wiener, GaussianTaper]
+Simager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
+Simager.preconditioner.Wiener.robustness        = 0.0
+Simager.preconditioner.Wiener.taper             = 64
 
-MSSPLITPARSET=../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in
-CIMAGERPARSET=../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in
-
-cat > \${MSSPLITPARSET} << EOF_INNER
-# Input measurement set
-# Default: <no default>
-vis         = ../${INPUT_MS}
-
-# Output measurement set
-# Default: <no default>
-outputvis   = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
-
-# The channel range to split out into its own measurement set
-# Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
-# is inclusive of both the start and end, indexing is one-based. 
-# Default: <no default>
-channel     = \${CHAN}
-
-# Defines the number of channel to average to form the one output channel
-# Default: 1
-width       = 1
+# Apply calibration (untested so disabled)
+Simager.calibrate                               = ${DO_CALIBRATION}
+Simager.calibaccess                             = table
+Simager.calibaccess.table                       = ${CALOUTPUT}
+Simager.calibrate.scalenoise                    = true
+Simager.calibrate.allowflag                     = true
 EOF_INNER
 
-basefreq=${SPECTRAL_CUBE_FREQ_ZERO_CHAN}
-dfreq=-18.5185185e3
-freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1+\$2*\$3}'\`
+LOGFILE=${LOGDIR}/simager-spectral-\${PBS_JOBID}.log
 
-cat > \${CIMAGERPARSET} << EOF_INNER
-Cimager.dataset                                 = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
-
-Cimager.Images.Names                            = [image.i.spectral.\${PBS_ARRAY_INDEX}]
-Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
-Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
-Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [\${freq}, \${freq}]
-Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.nchan      = 1
-Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.direction  = ${IMAGING_DIRECTION}
-#
-Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
-Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = ${IMAGING_WMAX}
-Cimager.gridder.AWProject.nwplanes              = 129
-Cimager.gridder.AWProject.oversample            = 4
-Cimager.gridder.AWProject.diameter              = 12m
-Cimager.gridder.AWProject.blockage              = 2m
-Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = ${IMAGING_MAXSUP}
-Cimager.gridder.AWProject.variablesupport       = true
-Cimager.gridder.AWProject.offsetsupport         = true
-Cimager.gridder.AWProject.frequencydependent    = true
-#
-Cimager.solver                                  = Dirty
-Cimager.solver.Dirty.tolerance                  = 0.1
-Cimager.solver.Dirty.verbose                    = True
-Cimager.ncycles                                 = 0
-
-Cimager.preconditioner.Names                    = None
-#
-Cimager.restore                                 = true
-Cimager.restore.beam                            = fit
-#Cimager.restore.equalise                        = ${IMAGING_EQUALISE}
-#
-# Apply calibration
-Cimager.calibrate                               = ${DO_CALIBRATION}
-Cimager.calibaccess                             = table
-Cimager.calibaccess.table                       = ${CALOUTPUT}
-Cimager.calibrate.scalenoise                    = true
-Cimager.calibrate.allowflag                     = true
-EOF_INNER
-
-LOGFILE=../${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
-
-# First split the big measurement set
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c \${MSSPLITPARSET} > \${LOGFILE}
+# Now run the simager
+aprun -B \${ASKAP_ROOT}/Code/Components/CP/simager/current/apps/simager.sh -c config/simager.in >> \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
-    echo "Error: mssplit returned error code \${ERR}"
+    echo "Error: simager returned error code \${ERR}"
     exit 1
 fi
-
-# Now run the cimager
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${CIMAGERPARSET} >> \${LOGFILE}
-ERR=\$?
-if [ \${ERR} -ne 0 ]; then
-    echo "Error: cimager returned error code \${ERR}"
-    exit 1
-fi
-
-# Finally delete the temporary split-off measurement set
-rm -rf MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 EOF
 
 # Build dependencies
@@ -143,40 +78,14 @@ fi
 
 # Submit the jobs
 echo "Spectral Line Imaging: Submitting"
-QSUB_SPECTRAL1=`qsubmit -N sl-img1 -J ${QSUB_RANGE_SPECTRAL_CUBE_1} cimager-spectral-line.qsub`
-QSUB_SPECTRAL2=`qsubmit -N sl-img2 -J ${QSUB_RANGE_SPECTRAL_CUBE_2} cimager-spectral-line.qsub`
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
 
-if [ ! "${DEPENDS}" ]; then
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
+    QSUB_SPECTRAL=`qsubmit cimager-spectral-line.qsub`
+else
+    QSUB_SPECTRAL=`qsubmit cimager-spectral-line.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL}"
 fi
 
-# This becomes a dependency for the makecube jobs
-DEPENDS="afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
-
-# Run makecube using the make-spectral-cube.qsub script
-DODELETE=true
-FIRSTCH=0
-FINALCH=${SPECTRAL_CUBE_FINALCH}
-RESTFREQ="HI"
-
-IMAGESUFFIX=".restored"
-IMAGEPREFIX="${SL_WORK_DIR}/image.i.spectral."
-OUTPUTCUBE=image.i.cube.spectral.restored
-. ${SCRIPTDIR}/make-spectral-cube.sh
-
-IMAGESUFFIX=""
-OUTPUTCUBE=image.i.cube.spectral
-. ${SCRIPTDIR}/make-spectral-cube.sh
-
-IMAGEPREFIX="${SL_WORK_DIR}/psf.i.spectral."
-OUTPUTCUBE=psf.i.cube.spectral
-. ${SCRIPTDIR}/make-spectral-cube.sh
-
-IMAGEPREFIX="${SL_WORK_DIR}/sensitivity.i.spectral."
-OUTPUTCUBE=sensitivity.i.cube.spectral
-. ${SCRIPTDIR}/make-spectral-cube.sh
-
-IMAGEPREFIX="${SL_WORK_DIR}/weights.i.spectral."
-OUTPUTCUBE=weights.i.cube.spectral
-. ${SCRIPTDIR}/make-spectral-cube.sh
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_SPECTRAL}"

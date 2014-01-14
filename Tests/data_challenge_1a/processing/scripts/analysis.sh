@@ -18,9 +18,9 @@ cp ${INPUT_SKYMODEL_TXT} ${skymodel}
 qsubfile=analysis.qsub
 cat > ${qsubfile} <<EOF
 #!/bin/bash -l
-#PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=01:00:00
-#PBS -l select=2:ncpus=8:mem=4GB:mpiprocs=8
+#PBS -l mppwidth=19
+#PBS -l mppnppn=19
 ##PBS -M first.last@csiro.au
 #PBS -N analysis
 ##PBS -q debugq
@@ -39,7 +39,6 @@ imageEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/
 finderEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/finderEval.py
 
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
-. ${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a/init_package_env.sh
 
 parset=analysis-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
@@ -59,7 +58,7 @@ Selavy.Fitter.doFit = true
 Selavy.Fitter.fitTypes = [full]
 Selavy.Fitter.fitJustDetection = true
 Selavy.Fitter.stopAfterFirstGoodFit = true
-Selavy.nsubx = 5
+Selavy.nsubx = 6
 Selavy.nsuby = 3
 Selavy.minPix = 3
 Selavy.minVoxels = 3
@@ -67,6 +66,7 @@ Selavy.minVoxels = 3
 Cimstat.image = ${CONTINUUMIMAGE}
 Cimstat.flagSubsection = true
 Cimstat.subsection = ${ANALYSIS_SUBSECTION}
+Cimstat.stats = ["Mean","Stddev","Median","MADFM","MADFMasStdDev"]
 #
 Crossmatch.source.filename     = selavy-fitResults.txt
 Crossmatch.source.database     = Selavy
@@ -87,50 +87,31 @@ Eval.image           = ${CONTINUUMIMAGE}.fits
 Eval.sourceSelection = threshold
 EOF_INNER
 
-pystat=getStats-\${PBS_JOBID}.py
-cat > \${pystat} <<EOF_INNER
-#!/bin/env python
-## AUTOMATICALLY GENERATED!
-# CASA script to obtain statistics for the image
-ia.open('${CONTINUUMIMAGE}')
-st=ia.statistics(region=rg.box(blc=${ANALYSIS_SUBSECTION_BLC},trc=${ANALYSIS_SUBSECTION_TRC}),robust=True)
-madfmAsSigma=st['medabsdevmed'][0] / 0.6744888
-print "Max = %5.3e = %3.1f sigma"%(st['max'][0],(st['max'][0]-st['median'][0])/madfmAsSigma)
-print "Min = %5.3e = %3.1f sigma"%(st['min'][0],(st['min'][0]-st['median'][0])/madfmAsSigma)
-print "Mean = %5.3e"%st['mean'][0]
-print "Std.Dev = %5.3e"%st['sigma'][0]
-print "Median = %5.3e"%st['median'][0]
-print "MADFM = %5.3e"%st['medabsdevmed'][0]
-print "MADFMasStdDev = %5.3e"%madfmAsSigma
-ia.close()
-EOF_INNER
-
 statlog=log/cimstat-\${PBS_JOBID}.log
 sflog=log/selavy-\${PBS_JOBID}.log
 cmlog=log/crossmatch-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
 ielog=log/imageval-\${PBS_JOBID}.log
+filog=log/imageval-\${PBS_JOBID}.log
 
-#mpirun -np 1 \$cimstat -c \$parset > \$statlog
-casapy --nologger --log2term -c \$pystat > \$statlog
+aprun -n 1 \$cimstat -c \$parset > \$statlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
-
-imnoise=\`grep MADFMas \$statlog | awk '{print \$3}'\`
+imnoise=\`grep MADFMas \$statlog | awk '{print \$10}'\`
 cat >> \$parset <<EOF_INNER
 Eval.imageNoise      = \${imnoise}
 EOF_INNER
 
-mpirun \$selavy -c \$parset > \$sflog
+aprun -B \$selavy -c \$parset > \$sflog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$crossmatch -c \$parset > \$cmlog
+aprun -n 1 \$crossmatch -c \$parset > \$cmlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
@@ -138,33 +119,33 @@ fi
 
 # Convert threshold/noise/snr maps to FITS
 rm -f ${CONTINUUMIMAGE}.fits ${THRESHIMAGE}.fits ${NOISEIMAGE}.fits ${SNRIMAGE}.fits
-mpirun -np 1 image2fits in=${CONTINUUMIMAGE} out=${CONTINUUMIMAGE}.fits
-mpirun -np 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
-mpirun -np 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
-mpirun -np 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
+aprun -n 1 image2fits in=${CONTINUUMIMAGE} out=${CONTINUUMIMAGE}.fits
+aprun -n 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
+aprun -n 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
+aprun -n 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
 
 evalparset=eval-parset-\${PBS_JOBID}.in
 grep "Eval" \$parset > \$evalparset
 
-mpirun -np 1 \$plotEval -c \$evalparset > \$pelog
+aprun -n 1 \$plotEval -c \$evalparset > \$pelog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$fluxEval -c \$evalparset > \$felog
+aprun -n 1 \$fluxEval -c \$evalparset > \$felog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
 fi
 
-mpirun -np 1 \$imageEval -c \$evalparset > \$ielog
+aprun -n 1 \$imageEval -c \$evalparset > \$ielog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?
 fi
 
-mpirun -np 1 \$finderEval -c \$evalparset > \$filog
+aprun -n 1 \$finderEval -c \$evalparset > \$filog
 err=$?
 if [ \$err -ne 0 ]; then
     exit $?

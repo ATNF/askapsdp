@@ -5,8 +5,9 @@
 
 cat > cimager-cont-clean.qsub << EOF
 #!/bin/bash
-#PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=${CONT_CLEAN_SELECT}
+##PBS -W group_list=${QUEUEGROUP}
+#PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
+#PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-clean
@@ -20,15 +21,18 @@ parset=${CONFIGDIR}/cimager-cont-clean-\${PBS_JOBID}.in
 logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
 
 cat > \$parset << EOF_INNER
-Cimager.dataset                                 = MS/coarse_chan_%w.ms
+Cimager.dataset                                 = MS/coarse_chan.ms
 Cimager.nworkergroups                           = 3
+
+# Each worker will read a single channel selection
+Cimager.Channels                                = [1, %w]
 
 Cimager.Images.Names                            = [image.i.clean]
 Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
 Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.clean.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.image.i.clean.nchan              = 1
-Cimager.Images.image.i.clean.direction          = ${IMAGING_DIRECTION}
+Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.clean.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
@@ -36,15 +40,15 @@ Cimager.visweights                              = MFS
 Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
 Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
+Cimager.gridder.snapshotimaging.wtolerance      = 800
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = ${IMAGING_WMAX}
+Cimager.gridder.AWProject.wmax                  = 800
 Cimager.gridder.AWProject.nwplanes              = 99
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
 Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = ${IMAGING_MAXSUP}
+Cimager.gridder.AWProject.maxsupport            = 512
 Cimager.gridder.AWProject.variablesupport       = true
 Cimager.gridder.AWProject.offsetsupport         = true
 Cimager.gridder.AWProject.frequencydependent    = true
@@ -65,13 +69,13 @@ Cimager.threshold.majorcycle                    = 1mJy
 Cimager.ncycles                                 = 5
 #
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Cimager.preconditioner.GaussianTaper            = ${IMAGING_GAUSSTAPER}
+Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
 Cimager.preconditioner.Wiener.robustness        = 0.0
 Cimager.preconditioner.Wiener.taper             = 64
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
-Cimager.restore.equalise                        = ${IMAGING_EQUALISE}
+Cimager.restore.equalise                        = True
 #
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
@@ -83,7 +87,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${parset} > \${logfile}
+aprun -n ${CONT_CLEAN_MPPWIDTH} -N ${CONT_CLEAN_MPPNPPN} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${parset} > \${logfile}
 EOF
 
 # Submit the job

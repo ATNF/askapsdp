@@ -107,19 +107,20 @@ stokesZero=0
 dstokes=0
 
 if [ $doFlatSpectrum == "true" ]; then
-    nsubxCR=9
-    nsubyCR=11
+    nsubxCR=8
+    nsubyCR=8
+    workersPerNodeCR=8
 else
-    nsubxCR=16
-    nsubyCR=21
+    nsubxCR=8
+    nsubyCR=8
+    workersPerNodeCR=1
 fi
-CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
-CREATORPPN=20
 
 writeByNode=true
 modelimage=${imagedir}/${baseimage}
 createTT_CR=true
 if [ $writeByNode == "true" ]; then
+    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
 if [ $doFlatSpectrum == "true" ]; then
@@ -127,8 +128,6 @@ if [ $doFlatSpectrum == "true" ]; then
 else
     slicebase=${slicedir}/${baseimage}_slice
 fi
-SLICERWIDTH=100
-SLICERNPPN=20
 
 ###########################################
 # Make the visibilities

@@ -7,8 +7,8 @@ SKYMODEL_OUTPUT=skymodel.image.taylor
 
 cat > cmodel.qsub << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=20
+#PBS -W group_list=${QUEUEGROUP}
+#PBS -l select=1:ncpus=12:mem=23GB:mpiprocs=12
 #PBS -l walltime=00:15:00
 ##PBS -M first.last@csiro.au
 #PBS -N cmodel
@@ -42,7 +42,7 @@ Cmodel.output             = casa
 Cmodel.filename           = ${SKYMODEL_OUTPUT}
 EOF_INNER
 
-aprun -B -ss \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
+mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
 EOF
 
 # Submit job

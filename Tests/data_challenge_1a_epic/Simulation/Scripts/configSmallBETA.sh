@@ -29,7 +29,7 @@ logdirVis=${visdir}/Logs
 ## Switches
 
 # Model
-doFlatSpectrum=false
+doFlatSpectrum=true
 doCreateCR=true
 doSliceCR=true
 if [ $doFlatSpectrum == "true" ]; then
@@ -56,9 +56,6 @@ varNoise=false
 doCorrupt=false
 doAntennaBased=false
 
-# Whether to do the full 16K channel range (true), or half that (false)
-doFullSpectrum=true
-
 ###########################################
 # Model creation definitions
 
@@ -76,18 +73,10 @@ decSuffix=`echo $dec | awk '{printf "dec%02d",-$1}'`
 baseimage="${baseimage}_${decSuffix}"
 msbase="${msbase}_${decSuffix}"
 
-if [ $doFullSpectrum == true ]; then
-    nchan=16416
-else
-    nchan=8208
-fi
+nchan=8208
 rchan=0
 chanw=-18.5185185e3
-if [ $doFullSpectrum == true ]; then
-    rfreq=`echo ${freqChanZeroMHz} | awk '{printf "%8.6e",$1*1.e6}'`
-else
-    rfreq=`echo ${freqChanZeroMHz} $nchan $chanw | awk '{printf "%8.6e",$1*1.e6+$2*$3/2.}'`
-fi
+rfreq=`echo ${freqChanZeroMHz} $nchan $chanw | awk '{printf "%8.6e",$1*1.e6+$2*$3/2.}'`
 
 baseimage="${baseimage}_${freqChanZeroMHz}_smallBETA"
 
@@ -96,20 +85,18 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
-nsubxCR=9
-nsubyCR=11
-CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
-CREATORPPN=20
+nsubxCR=5
+nsubyCR=8
+workersPerNodeCR=1
 
 writeByNode=true
 modelimage=${imagedir}/${baseimage}
 createTT_CR=true
 if [ $writeByNode == "true" ]; then
+    doSliceCR=false
     modelimage=${chunkdir}/${baseimage}
 fi
-slicebase=${slicedir}/${baseimage}_slice
-SLICERWIDTH=100
-SLICERNPPN=20
+slicebase=${slicedir}/${baseimage}_chunk
 
 ###########################################
 # Make the visibilities
@@ -143,11 +130,7 @@ else
 fi
 
 chanPerMSchunk=48
-if [ $doFullSpectrum == true ]; then
-    numMSchunks=342
-else
-    numMSchunks=171
-fi
+numMSchunks=171
 msPerStage1job=9
 
 doSnapshot=true

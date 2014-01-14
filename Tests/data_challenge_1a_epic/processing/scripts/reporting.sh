@@ -6,9 +6,9 @@
 qsubfile=reporting.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
+#PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=00:30:00
-#PBS -l mppwidth=1
+#PBS -l select=1:ncpus=1:mem=1GB:mpiprocs=8
 ##PBS -M first.last@csiro.au
 #PBS -N report
 #PBS -m a

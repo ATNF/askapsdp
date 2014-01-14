@@ -8,32 +8,15 @@ cd $WORKSPACE
 #
 # Bootstrap
 #
-cat > bootstrap.qsub << EOF
-#!/bin/bash
-#PBS -W group_list=astronomy554
-#PBS -l select=1:ncpus=12:mem=12GB:mpiprocs=1
-#PBS -l walltime=02:00:00
-#PBS -N bootstrap
-#PBS -m a
-#PBS -j oe
-#PBS -V
-
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
-python bootstrap.py
+nice python bootstrap.py
 if [ $? -ne 0 ]; then
     echo "python bootstrap.py failed"
     exit 1
 fi
 EOF
 
-echo "#### Executing Bootstrap ####"
-qsub -W block=true bootstrap.qsub
-if [ $? -ne 0 ]; then
-    echo "ERROR: bootstrap.qsub failed"
-    exit 1
-fi
-
 #
 # Setup environment
 #
@@ -41,55 +24,29 @@ cd $WORKSPACE/trunk
 source initaskap.sh
 export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
 
-#
-# Execute matplotlib build on login node
-# It depends on qt, which depends on packages
-# not installed on the compute nodes
-#
-#cd $WORKSPACE/trunk/3rdParty/matplotlib
-#nice rbuild -n -p mpi=1
-
-cd $WORKSPACE
 #
 # Build the rest of the packages needed to run the pipeline
 #
-cat > build.qsub << EOF
-#!/bin/bash
-#PBS -W group_list=astronomy554
-#PBS -l select=1:ncpus=12:mem=12GB:mpiprocs=1
-#PBS -l walltime=04:00:00
-#PBS -N build
-#PBS -m a
-#PBS -j oe
-#PBS -V
-
-#
-# Setup environment
-#
-cd $WORKSPACE/trunk
-source initaskap.sh
-export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
-
-rbuild -n -p mpi=1 Code/Components/Synthesis/synthesis/current
+nice rbuild -n -p mpi=1 Code/Components/Synthesis/synthesis/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Synthesis/synthesis/current
 failed"
     exit 1
 fi
  
-rbuild -n -p mpi=1 Code/Components/CP/pipelinetasks/current
+nice rbuild -n -p mpi=1 Code/Components/CP/pipelinetasks/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/CP/pipelinetasks/current failed"
     exit 1
 fi
 
-rbuild -n -p mpi=1 Code/Components/Analysis/analysis/current
+nice rbuild -n -p mpi=1 Code/Components/Analysis/analysis/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Analysis/analysis/current failed"
     exit 1
 fi
 
-rbuild -n -p mpi=1 Code/Components/Analysis/evaluation/current
+nice rbuild -n -p mpi=1 Code/Components/Analysis/evaluation/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Analysis/evaluation/current
 failed"
@@ -97,20 +54,12 @@ failed"
 fi
 EOF
 
-echo "#### Executing Build ####"
-qsub -W block=true build.qsub
-if [ $? -ne 0 ]; then
-    echo "ERROR: build.qsub failed"
-    exit 1
-fi
-
-
 #
 # Link to the dataset
 #
 mkdir -p $WORKSPACE/dc1a
 cd $WORKSPACE/dc1a
-ln -s /scratch/astronomy554/askapops/dc1a-input input
+ln -s /scratch/askap/askapops/dc1a-input input
 
 #
 # Copy over the test scripts
@@ -176,30 +125,11 @@ echo ${EXEC_DATE} > EXEC_DATE.txt
 #
 # Create a tarball artifact
 #
-cat > mkartifact.qsub << EOF
-#!/bin/bash
-#PBS -q copyq
-#PBS -W group_list=astronomy554
-#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
-#PBS -l walltime=24:00:00
-#PBS -N mkartifact
-#PBS -m a
-#PBS -j oe
-#PBS -V
-
+echo "####  Creating artifact tarball ####"
 cd $WORKSPACE/dc1a
 
 tar -c -v --exclude MS -f artifact.tar run_*
 if [ $? -ne 0 ]; then
-    exit 1
-fi
-EOF
-
-echo "####  Creating artifact tarball ####"
-
-qsub -W block=true mkartifact.qsub
-if [ $? -ne 0 ]; then
-    echo "ERROR: mkartifact.qsub failed"
     exit 1
 fi
 echo "#### Artifact generation complete ####"

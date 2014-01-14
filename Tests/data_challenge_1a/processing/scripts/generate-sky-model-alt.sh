@@ -8,7 +8,7 @@ SKYMODEL_OUTPUT=skymodel.image
 cat > createFITS.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=11:mem=23GB:mpiprocs=11
+#PBS -l mppwidth=11
 #PBS -l walltime=00:15:00
 ##PBS -M first.last@csiro.au
 #PBS -N cmodel
@@ -51,7 +51,7 @@ createFITS.PAunits = deg
 createFITS.minMinorAxis = 0.0001
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh -c ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in > ${LOGDIR}/createFITS-\${PBS_JOBID}.log
+aprun -n 11 \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh -c ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in > ${LOGDIR}/createFITS-\${PBS_JOBID}.log
 EOF
 
 # Submit job
