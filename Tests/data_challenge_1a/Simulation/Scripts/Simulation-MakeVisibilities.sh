@@ -192,19 +192,17 @@ $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msS
 
 EOF
 
-	if [ $doSubmit == true ]; then
-	    merge1ID=`qsub -Wdepend=afterok:${mkvisID} $merge1qsub`
-	    mergeDep="${mergeDep}:${merge1ID}"
-	fi
+	    if [ $doSubmit == true ]; then
+		merge1ID=`qsub -Wdepend=afterok:${mkvisID} $merge1qsub`
+		mergeDep="${mergeDep}:${merge1ID}"
+	    fi
 
+	fi
 
 	GRP=`expr $GRP + 1`
 	
     done
-
-
-
-
+    
 
     if [ $doMergeStage2 == true ]; then
 
