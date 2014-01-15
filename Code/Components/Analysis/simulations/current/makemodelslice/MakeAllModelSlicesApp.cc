@@ -68,14 +68,14 @@ int MakeAllModelSlicesApp::run(int argc, char* argv[])
 	ASKAPCHECK(nchan>0,"Number of channels in model needs to be provided with parameter 'nchan', which must be >0");
 	size_t sliceWidth = subset.getInt("slicewidth",1);
 	std::string slicebase = subset.getString("slicename");
-
+	size_t firstchan = subset.getInt("firstchan",0);
 
 	for (size_t chan=comms.rank()*sliceWidth; chan < nchan; chan += comms.nProcs()*sliceWidth) {
 
 	    std::stringstream slicename;
 	    slicename << slicebase << chan/sliceWidth;
 	    std::stringstream range;
-	    range << "[" << chan << "," << chan + sliceWidth - 1 << "]";
+	    range << "[" << firstchan + chan << "," << firstchan + chan + sliceWidth - 1 << "]";
 
 	    subset.replace(LOFAR::KVpair("chanRange",range.str()));
 	    subset.replace(LOFAR::KVpair("slicename",slicename.str()));
