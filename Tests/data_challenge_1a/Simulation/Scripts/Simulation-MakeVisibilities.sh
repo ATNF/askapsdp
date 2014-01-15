@@ -149,7 +149,7 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       ${calibparset}
 EOF_INNER
 
-aprun -B \${csim} -c \${mkVisParset} > \${mkVisLog}
+aprun -n ${NCPU_CSIM} -N ${NPPN_CSIM} \${csim} -c \${mkVisParset} > \${mkVisLog}
 
 
 EOF

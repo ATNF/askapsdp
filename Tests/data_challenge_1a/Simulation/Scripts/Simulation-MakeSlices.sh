@@ -6,9 +6,11 @@ mkdir -p ${slicedir}
 # Make slices
 ##############################
 
-slQsub=${visdir}/${WORKDIR}/makeslices.qsub
+if [ $doSlice == true ]; then 
 
-if [ ${writeByNode} == true ]; then
+    slQsub=${visdir}/${WORKDIR}/makeslices.qsub
+
+    if [ ${writeByNode} == true ]; then
 
 	# This is the new slicing job. If we're in here, the model
 	# cube exists in chunks created by the individual workers of
@@ -16,7 +18,7 @@ if [ ${writeByNode} == true ]; then
 	# getting the appropriate slices of the chunks and stitching
 	# them together using makeAllModelSlices in Analysis.
 
-    cat > $slQsub <<EOF
+	cat > $slQsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=12:00:00
 #PBS -l mppwidth=${SLICERWIDTH}
@@ -58,13 +60,13 @@ aprun -n ${SLICERWIDTH} -N ${SLICERNPPN} \${slicer} -c \${slParset} > \${slLog}
 
 EOF
 
-else
+    else
 
 	# This is the old slicing job. It assumes we have a complete
 	# monolithic cube and uses cubeslice in Synthesis to carve off
 	# slices.
 
-    cat > $slQsub <<EOF
+	cat > $slQsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=12:00:00
 #PBS -l mppwidth=1
@@ -110,12 +112,13 @@ exit \$err
 
 EOF
 
+    fi
+
+    if [ $doSubmit == true ]; then
+
+	export slID=`qsub ${slQsub}`
+	echo Running cubeslice job with ID $slID
+
+    fi
+
 fi
-
-if [ $doSubmit == true ]; then
-
-    export slID=`qsub ${slQsub}`
-    echo Running cubeslice job with ID $slID
-
-fi
-

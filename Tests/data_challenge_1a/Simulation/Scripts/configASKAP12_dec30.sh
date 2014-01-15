@@ -31,9 +31,9 @@ logdirVis=${visdir}/Logs
 # Model
 doFlatSpectrum=false
 doCreateCR=true
-doSliceCR=true
+doSlice=true
 if [ $doFlatSpectrum == "true" ]; then
-    doSliceCR=false
+    doSlice=false
 fi
 
 # Sky Model
