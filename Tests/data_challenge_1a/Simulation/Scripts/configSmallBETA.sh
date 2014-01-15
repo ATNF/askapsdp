@@ -96,7 +96,7 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
-nsubxCR=9
+nsubxCR=18
 nsubyCR=11
 CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
 CREATORPPN=20
