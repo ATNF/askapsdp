@@ -96,6 +96,11 @@ if [ $writeByNode == "true" ]; then
     modelimage=${chunkdir}/${baseimage}
 fi
 slicebase=${slicedir}/${baseimage}_slice
+# firstChanSlicer is initially set to 0 and nchanSlicer to nchan, but
+# these will be reset by the makeVis script
+firstChanSlicer=0
+nchanSlicer=$nchan
+
 SLICERWIDTH=100
 SLICERNPPN=20
 

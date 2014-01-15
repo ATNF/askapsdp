@@ -28,15 +28,21 @@ if [ $doCsim == true ]; then
     GRP=0
     while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 
+	echo "Running group ${GRP} of ${NGROUPS_CSIM}"
+
 	ms=${msSlice}_GRP${GRP}_%w.ms
 
 	if [ $doFlatSpectrum == true ]; then 
 	    skymodel=$slicebase
 	else
 	    slicebaseOrig=${slicebase}
-	    slicebase=`echo ${slicebase} | sed -e 's/_slice$/_GRP${GRP}_slice/g'`
-	    skymodel=${slicebase}_%w
+	    sedString="s/_slice\$/_GRP${GRP}_slice/g"
+	    slicebase=`echo ${slicebase} | sed -e $sedString`
+	    skymodel=${slicebase}%w
+	    firstChanSlicer=`echo $GRP $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2*$3}'`
+	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
 	    . ${scriptdir}/Simulation-MakeSlices.sh
+            mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
 	    slicebase=${slicebaseOrig}
 	    mergeDep="${mergeDep}:${slID}"
 	fi

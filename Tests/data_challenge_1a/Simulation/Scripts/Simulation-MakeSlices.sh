@@ -48,8 +48,10 @@ makeAllModelSlices.modelname = ${modelimage}
 makeAllModelSlices.slicename = ${slicebase}
 makeAllModelSlices.nsubx = ${nsubxCR}
 makeAllModelSlices.nsuby = ${nsubyCR}
-makeAllModelSlices.nchan = ${nchan}
+makeAllModelSlices.nchan = ${nchanSlicer}
+makeAllModelSlices.firstchan = ${firstChanSlicer}
 makeAllModelSlices.slicewidth = ${chanPerMSchunk}
+makeAllModelSlices.sliceshape = [${npix}, ${npix}, ${nstokes}, ${chanPerMSchunk}]
 EOFINNER
 
 aprun -n ${SLICERWIDTH} -N ${SLICERNPPN} \${slicer} -c \${slParset} > \${slLog}
