@@ -148,7 +148,7 @@ aprun -B \${csim} -c \${mkVisParset} > \${mkVisLog}
 
 EOF
 
-	if [ $doSubmit == true]; then
+	if [ $doSubmit == true ]; then
 	    mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
 	    mergeDep="${mergeDep}:${mkvisID}"
 	fi
