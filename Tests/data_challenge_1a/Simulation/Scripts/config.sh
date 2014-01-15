@@ -85,13 +85,13 @@ fi
 
 msbase="${msbase}_${freqChanZeroMHz}_${polName}_${nfeeds}feeds_${noiseName}_${corruptName}"
 
-msChunk=${msdir}/${msbase}_chunk
+msSlice=${msdir}/${msbase}_slice
 msStage1=${msdir}/${msbase}_stage1
 finalMS=${msdir}/${msbase}.ms
 
-numStage1jobs=`echo $numMSchunks $msPerStage1job | awk '{print int($1/$2)}'`
-if [ `echo $msPerStage1job $numStage1jobs | awk '{print $1*$2}'` != $numMSchunks ]; then
-    echo ERROR - numMSchunks = $numMSchunks and msPerStage1job = $msPerStage1job but numStage1jobs = $numStage1jobs
+checkNumChan=`echo $chanPerMSchunk $NGROUPS_CSIM $NWORKERS_CSIM | awk '{print $1*$2*$3}'`
+if [ $checkNumChan != $nchan ]; then
+    echo ERROR - nchan = $nchan,  but chanPerMSchunk = $chanPerMSchunk, NGROUPS_CSIM = ${NGROUPS_CSIM} and NWORKERS_CSIM = ${NWORKERS_CSIM} (product = ${checkNumChan})
     echo Not running script.
     doSubmit=false
 fi

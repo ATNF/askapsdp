@@ -19,49 +19,63 @@ runOK=true
 
 if [ $doCsim == true ]; then
 
-    if [ $doVisCleanup == true ]; then
-	
-	if [ -e ${failureListVis} ]; then
-	    INDEX="\`head -\${PBS_ARRAY_INDEX} ${failureListVis} | tail -1\`"
-	    qsubCmd="qsub -J 1-`wc -l ${failureListVis} | awk '{print $1}'` "
-	else
-	    echo "Visibility failure list ${failureListVis} does not exist. Not running"
-	    runOK=false
-	fi
-	
-    else
-
-	INDEX="\${PBS_ARRAY_INDEX}"
-	qsubCmd="qsub -J 0-`expr $numMSchunks - 1` "
-	
-    fi 
-
-
-##############################
-# Qsub & Parset definition
-##############################
-
-    qsubfile=${visdir}/${WORKDIR}/makeVis.qsub
-
     if [ $doCorrupt == true ]; then
 	# Create the random gains parset
 	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh ${randomgainsArgs} ${calibparset}
     fi
 
-    cat > $qsubfile <<EOF
+    mergeDep="-Wdepend=afterok"
+    GRP=0
+    while [ $GRP -lt ${NGROUPS_CSIM} ]; do
+
+	ms=${msSlice}_GRP${GRP}_%w.ms
+
+	if [ $doFlatSpectrum == true ]; then 
+	    skymodel=$slicebase
+	else
+	    slicebaseOrig=${slicebase}
+	    slicebase=`echo ${slicebase} | sed -e 's/_slice$/_GRP${GRP}_slice/g'`
+	    skymodel=${slicebase}_%w
+	    . ${scriptdir}/Simulation-MakeVisibilities.sh
+	    slicebase=${slicebaseOrig}
+	    mergeDep="${mergeDep}:${slID}"
+	fi
+
+	# Need to create an spws file for this group with the
+	# appropriate channel settings, so we can reference with %w in
+	# the parset
+	spwsInput="spws_grp${GRP}.in"
+	echo "spws.names  =  [GRP${GRP}_0" > $spwsInput
+	I=1; while [ $I -lt ${NWORKERS_CSIM} ]; do echo ", GRP${GRP}_${I}" >> $spwsInput; I=`expr $I + 1`; done
+	perl -pi -e 's/\n//g' $spwsInput
+	echo "]" >> $spwsInput
+	I=0
+	while [ $I -lt ${NWORKERS_CSIM} ]; do 
+	    nurefMHz=`echo ${rfreq} ${GRP} ${NWORKERS_CSIM} ${I} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",($1+(($2*$3+$4)*$5-$6)*$7)/1.e6}'`
+	    spw="[${chanPerMSchunk}, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
+	    echo "spws.GRP${GRP}_${I}  =  ${spw}" >> $spwsInput
+	    I=`expr $I + 1`
+	done
+
+	VarNoise=${varNoise}
+	Tsys=${tsys}
+	if [ \${VarNoise} == true ]; then
+	    Tsys=`echo $nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if ($1>$4) printf "%4.1f",($1 * $2) + $3; else printf "50.0"}'`
+	fi
+
+	qsubfile=makeVis_GRP${GRP}.qsub
+	cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=6:00:00
-${csimSelect}
+#PBS -l mppwidth=${NCPU_CSIM}
+#PBS -l mppnppn=${NPPN_CSIM}
 #PBS -M matthew.whiting@csiro.au
-#PBS -N mkVis
+#PBS -N mkVis${GRP}
 #PBS -m bea
 #PBS -j oe
 
 #####
 # AUTOMATICALLY CREATED!
-#
-# Run with:
-# ${qsubCmd} ${depend} ${qsubfile}
 #####
 
 cd \$PBS_O_WORKDIR
@@ -69,73 +83,28 @@ export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 makeModelSlice=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeModelSlice.sh
 csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.sh
-rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
-
-IND=${INDEX}
 
 dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
-
-ms=${msChunk}_\${IND}.ms
-skymodel=${slicebase}\${IND}
-modelInChunks=${writeByNode}
-if [ \$modelInChunks == "true" ]; then
-# Model was created with writeByNode=true, so we need to do the
-# extraction of the appropriate channel from each chunk and paste
-# together
-
-    rm -rf \${skymodel}
-
-    chanRange=\`echo \${IND} ${chanPerMSchunk} | awk '{printf "[%d,%d]",\$1*\$2,(\$1+1)*\$2-1}'\`
-
-    mkSliceParset=${parsetdirVis}/\${dir}/makeModelSlice_\${IND}.in
-    cat >> \${mkSliceParset} <<EOF_INNER
-makeModelSlice.modelname = ${chunkdir}/${baseimage}
-makeModelSlice.slicename = \${skymodel}
-makeModelSlice.nsubx = ${nsubxCR}
-makeModelSlice.nsuby = ${nsubyCR}
-makeModelSlice.sliceshape = [${npix},${npix},${nstokes},${chanPerMSchunk}]
-makeModelSlice.chanRange = \$chanRange
-EOF_INNER
-
-    mkSliceLog=${logdirVis}/\${dir}/makeModelSlice_\${IND}.log
-    \$makeModelSlice -c \$mkSliceParset > \$mkSliceLog
-    err=\$?
-    if [ \$err -ne 0 ]; then
-        exit \$err
-    fi
-
-fi
-
-nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
-spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
-
-VarNoise=${varNoise}
-Tsys=${tsys}
-if [ \${VarNoise} == true ]; then
-    Tsys=\`echo \$nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if (\$1>\$4) printf "%4.1f",(\$1 * \$2) + \$3; else printf "50.0"}'\`
-fi
-
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
 
 cat > \${mkVisParset} << EOF_INNER
-Csimulator.dataset                              =       \$ms
+Csimulator.dataset                              =       $ms
 #
 Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
 Csimulator.sources.DCmodel.direction            =       [12h30m00.000, ${decStringVis}, J2000]
-Csimulator.sources.DCmodel.model                =       \${skymodel}
+Csimulator.sources.DCmodel.model                =       ${skymodel}
 #
 # Define the antenna locations, feed locations, and spectral window definitions
 #
 Csimulator.antennas.definition                   =       \${askapconfig}/${array}
 Csimulator.feeds.definition                      =       \${askapconfig}/${feeds}
-Csimulator.spws.names                            =       [thisSPWS]
-Csimulator.spws.thisSPWS                         =       \${spw}
+Csimulator.spws.definition                       =       ${spwsInput}
 #						 
 Csimulator.simulation.blockage                   =       0.01
 Csimulator.simulation.elevationlimit             =       8deg
@@ -164,10 +133,10 @@ Csimulator.gridder.${gridder}.variablesupport    =       true
 Csimulator.gridder.${gridder}.offsetsupport      =       true 
 #
 Csimulator.noise                                 =       ${doNoise}
-Csimulator.noise.Tsys                            =       \${Tsys}
+Csimulator.noise.Tsys                            =       ${Tsys}
 Csimulator.noise.efficiency                      =       0.8   
 Csimulator.noise.seed1                           =       time
-Csimulator.noise.seed2                           =       \${IND}
+Csimulator.noise.seed2                           =       %w
 #
 Csimulator.corrupt                               =       ${doCorrupt}
 Csimulator.calibaccess                           =       parset
@@ -175,63 +144,42 @@ Csimulator.calibaccess.parset                    =       ${calibparset}
 EOF_INNER
 
 aprun -B \${csim} -c \${mkVisParset} > \${mkVisLog}
-err=\$?
-exit \$err
+
 
 EOF
 
-    if [ $doSubmit == true ] && [ $runOK == true ]; then
+	if [ $doSubmit == true]; then
+	    mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
+	    mergeDep="${mergeDep}:${mkvisID}"
+	fi
+
 	
-	visID=`$qsubCmd ${depend} $qsubfile`
-	dependVis="-W depend=afterok:${visID}"
-	
-    fi
+	if [ $doMergeStage1 == true ]; then
 
-fi
-
-
-##########################
-# Merging of visibilities
-
-if [ $doMergeVis == true ]; then
-
-    if [ $doClobberMergedVis == true ]; then
-
-	rm -rf ${msStage1base}_*
-	rm -rf ${finalMS}
-
-    fi
-
-    if [ $doMergeStage1 == true ]; then
-
-	merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1.qsub
-    
-	cat > $merge1qsub <<EOF
+	    merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1_GRP${GRP}.qsub
+	    
+	    cat > $merge1qsub <<EOF
 #!/bin/bash
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
 #PBS -l walltime=12:00:00
 #PBS -M matthew.whiting@csiro.au
-#PBS -N visMerge1
+#PBS -N visMerge1_${GRP}
 #PBS -m a
 #PBS -j oe
 
 #######
-# TO RUN (${numStage1jobs} jobs):
-#  qsub -J 1-${numStage1jobs} stage1.qsub
+# AUTOMATICALLY CREATED
 #######
 
 cd \$PBS_O_WORKDIR
 
-MSPERJOB=${msPerStage1job}
+MSPERJOB=${NWORKERS_CSIM}
 
-START=\`echo \${PBS_ARRAY_INDEX} \$MSPERJOB | awk '{print (\$1-1)*\$2}'\`
-END=\`expr \${START} + \${MSPERJOB}\`
-
-IDX=\$START
+IDX=0
 unset FILES
-while [ \$IDX -lt \$END ]; do
-    FILES="\$FILES ${msChunk}_\${IDX}.ms" 
+while [ \$IDX -lt \$MSPERJOB ]; do
+    FILES="\$FILES ${msSlice}_GRP${GRP}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done
 
@@ -240,30 +188,28 @@ mkdir -p ${logdirVis}/\${dir}
 logfile=${logdirVis}/\${dir}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
-$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
+$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_${GRP}.ms \$FILES >> \${logfile}
 
 EOF
 
-	if [ $doSubmit == true ] && [ $runOK == true ]; then
-	    
-	    merge1ID=`qsub ${dependVis} -J 1-${numStage1jobs} $merge1qsub`
-	    
-	    if [ "$dependVis" == "" ]; then
-		dependVis="-W depend=afterok:${merge1ID}"
-	    else
-		dependVis="${dependVis}:${merge1ID}"
-	    fi
-	    
+	if [ $doSubmit == true ]; then
+	    merge1ID=`qsub -Wdepend=afterok:${mkvisID} $merge1qsub`
+	    mergeDep="${mergeDep}:${merge1ID}"
 	fi
 
-    fi
 
-####
+	GRP=`expr $GRP + 1`
+	
+    done
+
+
+
+
 
     if [ $doMergeStage2 == true ]; then
 
 	merge2qsub=${visdir}/${WORKDIR}/mergeVisStage2.qsub
-
+	
 	cat > $merge2qsub <<EOF
 #!/bin/bash
 #PBS -l mppwidth=1
@@ -276,9 +222,9 @@ EOF
 
 cd \$PBS_O_WORKDIR
 
-IDX=1
+IDX=0
 unset FILES
-while [ \$IDX -le ${numStage1jobs} ]; do
+while [ \$IDX -le ${NGROUPS_CSIM} ]; do
     FILES="\$FILES ${msStage1}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done
@@ -288,9 +234,9 @@ echo "Processing files: \$FILES" > \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${finalMS} \$FILES >> \${logfile}
 EOF
 
-	if [ $doSubmit == true ] && [ $runOK == true ]; then
+	if [ $doSubmit == true ]; then
 
-	    merge2ID=`qsub ${dependVis} $merge2qsub`
+	    merge2ID=`qsub ${mergeDep} $merge2qsub`
 
 	fi
 

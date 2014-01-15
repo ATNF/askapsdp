@@ -130,6 +130,12 @@ else
     noiseName="noNoise"
 fi
 
+NGROUPS_CSIM=16
+NWORKERS_CSIM=171
+NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
+NPPN_CSIM=20
+chanPerMSchunk=6
+
 chanPerMSchunk=19
 numMSchunks=864
 msPerStage1job=36
