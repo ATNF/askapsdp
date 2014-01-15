@@ -44,9 +44,9 @@ if [ $doCsim == true ]; then
 	    . ${scriptdir}/Simulation-MakeSlices.sh
 	    if [ $doSlice == true ]; then 
 		mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
+		mergeDep="${mergeDep}:${slID}"
 	    fi
 	    slicebase=${slicebaseOrig}
-	    mergeDep="${mergeDep}:${slID}"
 	fi
 
 	# Need to create an spws file for this group with the
@@ -157,7 +157,11 @@ aprun -n ${NCPU_CSIM} -N ${NPPN_CSIM} \${csim} -c \${mkVisParset} > \${mkVisLog}
 EOF
 
 	if [ $doSubmit == true ]; then
-	    mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
+	    if [ $doSlice == true ]; then
+		mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
+	    else
+		mkvisID=`qsub ${qsubfile}`
+	    fi
 	    mergeDep="${mergeDep}:${mkvisID}"
 	fi
 
