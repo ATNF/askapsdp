@@ -36,7 +36,7 @@ if [ $doCsim == true ]; then
 	    slicebaseOrig=${slicebase}
 	    slicebase=`echo ${slicebase} | sed -e 's/_slice$/_GRP${GRP}_slice/g'`
 	    skymodel=${slicebase}_%w
-	    . ${scriptdir}/Simulation-MakeVisibilities.sh
+	    . ${scriptdir}/Simulation-MakeSlices.sh
 	    slicebase=${slicebaseOrig}
 	    mergeDep="${mergeDep}:${slID}"
 	fi
@@ -115,7 +115,7 @@ Csimulator.simulation.referencetime              =       [2010Jan30, UTC]
 Csimulator.simulation.integrationtime            =       ${inttime}
 #						 
 Csimulator.observe.number                        =       1
-Csimulator.observe.scan0                         =       [DCmodel, thisSPWS, -${dur}h, ${dur}h]
+Csimulator.observe.scan0                         =       [DCmodel, GRP${GRP}_%w, -${dur}h, ${dur}h]
 #
 Csimulator.gridder                               =       ${gridder}
 Csimulator.gridder.padding                       =       ${pad}
