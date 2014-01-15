@@ -10,7 +10,7 @@ cd $WORKSPACE
 #
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
-nice python bootstrap.py
+nice python bootstrap.py -n
 if [ $? -ne 0 ]; then
     echo "python bootstrap.py failed"
     exit 1

@@ -4,7 +4,7 @@
 #
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
-nice /usr/bin/python2.6 bootstrap.py
+nice /usr/bin/python2.6 bootstrap.py -n
 if [ $? - ne 0 ]; then
     echo "Error: Bootstrapping failed"
     exit 1
