@@ -42,7 +42,9 @@ if [ $doCsim == true ]; then
 	    firstChanSlicer=`echo $GRP $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2*$3}'`
 	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
 	    . ${scriptdir}/Simulation-MakeSlices.sh
-            mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
+	    if [ $doSlice == true ]; then 
+		mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
+	    fi
 	    slicebase=${slicebaseOrig}
 	    mergeDep="${mergeDep}:${slID}"
 	fi
