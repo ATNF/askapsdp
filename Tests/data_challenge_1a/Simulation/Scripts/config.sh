@@ -63,12 +63,6 @@ msbase=DCvis
 
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
-if [ `echo $chanPerMSchunk  $numMSchunks | awk '{print $1*$2}'` != $nchan ]; then
-    echo ERROR - nchan = $nchan, but chanPerMShunk = $chanPerMSchunk and numMSchunks = $numMSchunks
-    echo Not running script.
-    doSubmit=false
-fi
-
 calibparset=rndgains.in
 if [ $doCorrupt == true ]; then
     if [ $doAntennaBased == true ]; then
@@ -91,7 +85,7 @@ finalMS=${msdir}/${msbase}.ms
 
 checkNumChan=`echo $chanPerMSchunk $NGROUPS_CSIM $NWORKERS_CSIM | awk '{print $1*$2*$3}'`
 if [ $checkNumChan != $nchan ]; then
-    echo ERROR - nchan = $nchan,  but chanPerMSchunk = $chanPerMSchunk, NGROUPS_CSIM = ${NGROUPS_CSIM} and NWORKERS_CSIM = ${NWORKERS_CSIM} (product = ${checkNumChan})
+    echo "ERROR - nchan = ${nchan},  but chanPerMSchunk = ${chanPerMSchunk}, NGROUPS_CSIM = ${NGROUPS_CSIM} and NWORKERS_CSIM = ${NWORKERS_CSIM} (product = ${checkNumChan})"
     echo Not running script.
     doSubmit=false
 fi
