@@ -93,11 +93,10 @@ makeModelSlice=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/
 csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
-dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
-mkdir -p ${parsetdirVis}/\${dir}
-mkdir -p ${logdirVis}/\${dir}
-mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
-mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
+mkdir -p ${parsetdirVis}/${WORKDIR}
+mkdir -p ${logdirVis}/${WORKDIR}
+mkVisParset=${parsetdirVis}/${WORKDIR}/csim-\${PBS_JOBID}.in
+mkVisLog=${logdirVis}/${WORKDIR}/csim-\${PBS_JOBID}.log
 
 cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       $ms
@@ -198,9 +197,8 @@ while [ \$IDX -lt \$MSPERJOB ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-dir="merge1-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
-mkdir -p ${logdirVis}/\${dir}
-logfile=${logdirVis}/\${dir}/merge_s1_output_\${PBS_JOBID}.log
+mkdir -p ${logdirVis}/${WORKDIR}
+logfile=${logdirVis}/${WORKDIR}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_${GRP}.ms \$FILES >> \${logfile}
@@ -240,12 +238,12 @@ cd \$PBS_O_WORKDIR
 
 IDX=0
 unset FILES
-while [ \$IDX -le ${NGROUPS_CSIM} ]; do
+while [ \$IDX -lt ${NGROUPS_CSIM} ]; do
     FILES="\$FILES ${msStage1}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdirVis}/merge_s2_output_\${PBS_JOBID}.log
+logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${PBS_JOBID}.log
 echo "Processing files: \$FILES" > \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${finalMS} \$FILES >> \${logfile}
 EOF

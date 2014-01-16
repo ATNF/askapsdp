@@ -128,7 +128,6 @@ if [ $doSF_SM == true ]; then
     cat > $selavyQsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=1:00:00
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
 #PBS -M matthew.whiting@csiro.au
