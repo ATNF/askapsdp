@@ -184,6 +184,9 @@ EOF
 # AUTOMATICALLY CREATED
 #######
 
+ulimit -n 8192
+export APRUN_XFER_LIMITS=1
+
 cd \$PBS_O_WORKDIR
 
 MSPERJOB=${NWORKERS_CSIM}
@@ -229,6 +232,9 @@ EOF
 #PBS -N visMerge2
 #PBS -m a
 #PBS -j oe
+
+ulimit -n 8192
+export APRUN_XFER_LIMITS=1
 
 cd \$PBS_O_WORKDIR
 
