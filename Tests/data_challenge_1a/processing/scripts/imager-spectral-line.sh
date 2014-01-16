@@ -25,7 +25,7 @@ Simager.Images.name                            = image.i.cube.spectral
 Simager.Images.shape                           = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
 Simager.Images.frequency                       = [1.270e9,1.270e9]
 Simager.Images.cellsize                        = [${IMAGING_CELLSIZE}, ${IMAGING_CELLSIZE}]
-Simager.Images.direction                       = [12h30m00.00, -45.00.00.00, J2000]
+Simager.Images.direction                       = ${IMAGING_DIRECTION}
 #
 Simager.gridder.snapshotimaging                 = true
 Simager.gridder.snapshotimaging.wtolerance      = 1500
@@ -47,7 +47,7 @@ Simager.solver.Dirty.verbose                    = True
 Simager.ncycles                                 = 0
 #
 Simager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Simager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
+Simager.preconditioner.GaussianTaper            = ${IMAGING_GAUSSTAPER}
 Simager.preconditioner.Wiener.robustness        = 0.0
 Simager.preconditioner.Wiener.taper             = 64
 

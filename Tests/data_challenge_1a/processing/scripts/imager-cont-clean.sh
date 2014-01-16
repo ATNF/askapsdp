@@ -32,7 +32,7 @@ Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGI
 Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.clean.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.image.i.clean.nchan              = 1
-Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.image.i.clean.direction          = ${IMAGING_DIRECTION}
 Cimager.Images.image.i.clean.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
@@ -40,15 +40,15 @@ Cimager.visweights                              = MFS
 Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
 Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 800
+Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 800
+Cimager.gridder.AWProject.wmax                  = ${IMAGING_WMAX}
 Cimager.gridder.AWProject.nwplanes              = 99
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
 Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = 512
+Cimager.gridder.AWProject.maxsupport            = ${IMAGING_MAXSUP}
 Cimager.gridder.AWProject.variablesupport       = true
 Cimager.gridder.AWProject.offsetsupport         = true
 Cimager.gridder.AWProject.frequencydependent    = true
@@ -69,13 +69,13 @@ Cimager.threshold.majorcycle                    = 1mJy
 Cimager.ncycles                                 = 5
 #
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
+Cimager.preconditioner.GaussianTaper            = ${IMAGING_GAUSSTAPER}
 Cimager.preconditioner.Wiener.robustness        = 0.0
 Cimager.preconditioner.Wiener.taper             = 64
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
-Cimager.restore.equalise                        = True
+Cimager.restore.equalise                        = ${IMAGING_EQUALISE}
 #
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
