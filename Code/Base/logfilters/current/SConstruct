@@ -1,0 +1,25 @@
+# @file
+# SConstruct build script for this module.
+#
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("logfilters")
+
+pkg.AddSubPackage("rankfilter")
+
+# This package should be built as a shared library 
+pkg.build_shared = True 
+
+# This package should not build an archive/static library
+pkg.build_static = False
+
+# Compiler flags
+env.Append(CCFLAGS=['-Wall'])
+env.Append(CCFLAGS=['-g'])
+
+# run the build process
+pkg()
+

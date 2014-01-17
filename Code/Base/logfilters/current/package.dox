@@ -1,0 +1,7 @@
+/// The askap package namespace.
+namespace askap {};
+
+/// @mainpage ASKAP log4cxx filters
+///
+
+/// @copyright 2013 CSIRO, All Rights Reserved.
