@@ -299,77 +299,97 @@ void MsSplitApp::copyPolarization(const casa::MeasurementSet& source, casa::Meas
     dc.corrProduct().putColumn(sc.corrProduct());
 }
 
+casa::Int MsSplitApp::findSpectralWindowId(const casa::MeasurementSet& ms)
+{
+    const ROMSColumns msc(ms);
+    const casa::uInt nrows = msc.nrow();
+    ASKAPCHECK(nrows > 0, "No rows in main table");
+    const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
+
+    casa::Int r0 = -1; // Row zero SpWindow id
+
+    for (casa::uInt row = 0; row < nrows; ++row) {
+        const casa::Int dataDescId = msc.dataDescId()(row);
+        const casa::Int spwId = ddc.spectralWindowId()(dataDescId);
+
+        if (row == 0) {
+            r0 = spwId;
+        } else {
+            ASKAPCHECK(spwId == r0, "All rows must be of the same spectral window");
+        }
+    }
+
+    return r0;
+}
+
 void MsSplitApp::splitSpectralWindow(const casa::MeasurementSet& source,
-                                     casa::MeasurementSet& dest,
-                                     const uint32_t startChan,
-                                     const uint32_t endChan,
-                                     const uint32_t width)
+        casa::MeasurementSet& dest,
+        const uint32_t startChan,
+        const uint32_t endChan,
+        const uint32_t width,
+        const casa::Int spwId)
 {
     MSColumns destCols(dest);
     const ROMSColumns srcCols(source);
 
     MSSpWindowColumns& dc = destCols.spectralWindow();
     const ROMSSpWindowColumns& sc = srcCols.spectralWindow();
-    const uInt nrows = sc.nrow();
-    ASKAPCHECK(nrows == 1, "Only single spectral window is supported");
-    dest.spectralWindow().addRow(nrows);
+    const casa::Int srow = spwId;
+    const casa::Int drow = dc.nrow();
 
-    // For each row
-    for (uInt row = 0; row < nrows; ++row) {
+    dest.spectralWindow().addRow();
 
-        // 1: Copy over the simple cells (i.e. those not needing splitting/averaging)
-        dc.measFreqRef().put(row, sc.measFreqRef()(row));
-        dc.refFrequency().put(row, sc.refFrequency()(row));
-        dc.flagRow().put(row, sc.flagRow()(row));
-        dc.freqGroup().put(row, sc.freqGroup()(row));
-        dc.freqGroupName().put(row, sc.freqGroupName()(row));
-        dc.ifConvChain().put(row, sc.ifConvChain()(row));
-        dc.name().put(row, sc.name()(row));
-        dc.netSideband().put(row, sc.netSideband()(row));
+    // 1: Copy over the simple cells (i.e. those not needing splitting/averaging)
+    dc.measFreqRef().put(drow, sc.measFreqRef()(srow));
+    dc.refFrequency().put(drow, sc.refFrequency()(srow));
+    dc.flagRow().put(drow, sc.flagRow()(srow));
+    dc.freqGroup().put(drow, sc.freqGroup()(srow));
+    dc.freqGroupName().put(drow, sc.freqGroupName()(srow));
+    dc.ifConvChain().put(drow, sc.ifConvChain()(srow));
+    dc.name().put(drow, sc.name()(srow));
+    dc.netSideband().put(drow, sc.netSideband()(srow));
 
-        // 2: Now process each source measurement set, building up the arrays
-        const uInt nChanIn = endChan - startChan + 1;
-        const uInt nChanOut = nChanIn / width;
-        vector<double> chanFreq;
-        vector<double> chanWidth;
-        vector<double> effectiveBW;
-        vector<double> resolution;
-        chanFreq.resize(nChanOut);
-        chanWidth.resize(nChanOut);
-        effectiveBW.resize(nChanOut);
-        resolution.resize(nChanOut);
-        double totalBandwidth = 0.0;
+    // 2: Now process each source measurement set, building up the arrays
+    const uInt nChanIn = endChan - startChan + 1;
+    const uInt nChanOut = nChanIn / width;
+    vector<double> chanFreq;
+    vector<double> chanWidth;
+    vector<double> effectiveBW;
+    vector<double> resolution;
+    chanFreq.resize(nChanOut);
+    chanWidth.resize(nChanOut);
+    effectiveBW.resize(nChanOut);
+    resolution.resize(nChanOut);
+    double totalBandwidth = 0.0;
 
-        for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
-            chanFreq[destChan] = 0.0;
-            chanWidth[destChan] = 0.0;
-            effectiveBW[destChan] = 0.0;
-            resolution[destChan] = 0.0;
+    for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
+        chanFreq[destChan] = 0.0;
+        chanWidth[destChan] = 0.0;
+        effectiveBW[destChan] = 0.0;
+        resolution[destChan] = 0.0;
 
-            // The offset for the first input channel for this destination channel
-            const uInt chanOffset = startChan - 1 + (destChan * width);
+        // The offset for the first input channel for this destination channel
+        const uInt chanOffset = startChan - 1 + (destChan * width);
 
-            for (uInt i = chanOffset; i < chanOffset + width; ++i) {
-                chanFreq[destChan] += sc.chanFreq()(row)(casa::IPosition(1, i));
-                chanWidth[destChan] += sc.chanWidth()(row)(casa::IPosition(1, i));
-                effectiveBW[destChan] += sc.effectiveBW()(row)(casa::IPosition(1, i));
-                resolution[destChan] += sc.resolution()(row)(casa::IPosition(1, i));
-                totalBandwidth += sc.chanWidth()(row)(casa::IPosition(1, i));
-            }
-
-            // Finally average chanFreq
-            chanFreq[destChan] = chanFreq[destChan] / width;
+        for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+            chanFreq[destChan] += sc.chanFreq()(srow)(casa::IPosition(1, i));
+            chanWidth[destChan] += sc.chanWidth()(srow)(casa::IPosition(1, i));
+            effectiveBW[destChan] += sc.effectiveBW()(srow)(casa::IPosition(1, i));
+            resolution[destChan] += sc.resolution()(srow)(casa::IPosition(1, i));
+            totalBandwidth += sc.chanWidth()(srow)(casa::IPosition(1, i));
         }
 
-        // 3: Add those splitting/averaging cells
-        dc.numChan().put(row, nChanOut);
-        dc.chanFreq().put(row, casa::Vector<double>(chanFreq));
-        dc.chanWidth().put(row, casa::Vector<double>(chanWidth));
-        dc.effectiveBW().put(row, casa::Vector<double>(effectiveBW));
-        dc.resolution().put(row, casa::Vector<double>(resolution));
-        dc.totalBandwidth().put(row, totalBandwidth);
+        // Finally average chanFreq
+        chanFreq[destChan] = chanFreq[destChan] / width;
+    }
 
-    } // End for rows
+    // 3: Add those splitting/averaging cells
+    dc.numChan().put(drow, nChanOut);
+    dc.chanFreq().put(drow, casa::Vector<double>(chanFreq));
+    dc.chanWidth().put(drow, casa::Vector<double>(chanWidth));
+    dc.effectiveBW().put(drow, casa::Vector<double>(effectiveBW));
+    dc.resolution().put(drow, casa::Vector<double>(resolution));
+    dc.totalBandwidth().put(drow, totalBandwidth);
 }
 
 bool MsSplitApp::rowFiltersExist() const
@@ -627,9 +647,12 @@ int MsSplitApp::split(const std::string& invis, const std::string& outvis,
     ASKAPLOG_INFO_STR(logger,  "Copying POLARIZATION table");
     copyPolarization(in, *out);
 
+    // Get the spectral window id (must be common for all main table rows)
+    const casa::Int spwId = findSpectralWindowId(in);
+
     // Split SPECTRAL_WINDOW
     ASKAPLOG_INFO_STR(logger,  "Splitting SPECTRAL_WINDOW table");
-    splitSpectralWindow(in, *out, startChan, endChan, width);
+    splitSpectralWindow(in, *out, startChan, endChan, width, spwId);
 
     // Split main table
     ASKAPLOG_INFO_STR(logger,  "Splitting main table");

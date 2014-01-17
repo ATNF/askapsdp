@@ -74,11 +74,20 @@ class MsSplitApp : public askap::Application {
 
         static void copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& dest);
 
+        /// @throws AskapError  if all rows in the main table don't refer to the
+        ///                     same spectral window
+        /// @return the spectral window id refered to by all rows in the main table,
+        ///         or -1 if the main table how no rows;
+        static casa::Int findSpectralWindowId(const casa::MeasurementSet& ms);
+
+        /// Writes a new row to the spectral window table of the destination measurement
+        /// set which the correct information describing the output spectral window.
         static void splitSpectralWindow(const casa::MeasurementSet& source,
                                  casa::MeasurementSet& dest,
                                  const uint32_t startChan,
                                  const uint32_t endChan,
-                                 const uint32_t width);
+                                 const uint32_t width,
+                                 const casa::Int spwId);
 
         void splitMainTable(const casa::MeasurementSet& source,
                             casa::MeasurementSet& dest,
