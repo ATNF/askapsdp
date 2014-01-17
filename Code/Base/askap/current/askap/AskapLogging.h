@@ -46,6 +46,7 @@
 
 #include <log4cxx/logger.h>
 #include <log4cxx/propertyconfigurator.h>
+#include <log4cxx/xml/domconfigurator.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/mdc.h>
 
@@ -103,22 +104,24 @@ namespace askap {
       (log4cxx::Logger::getRootLogger()->getAllAppenders().size() ? true : false)
 
 /// Initialise a logger from a file. If none is specified or found, it uses the default settings
-#define ASKAPLOG_INIT(filename)                                        \
+#define ASKAPLOG_INIT(filename)                                         \
   do {                                                                  \
     if (std::string(filename).length() == 0) {                          \
       log4cxx::BasicConfigurator::configure();                          \
       break;                                                            \
     }                                                                   \
-    if (!strstr(filename, ".log_cfg")) {                                \
-      throw(askap::AskapError("Logger configuration file needs suffix .log_cfg")); \
-    } else {                                                            \
-      std::fstream logis;                                               \
-      logis.open(filename, std::ios::in);                               \
-      if (logis.is_open()) {                                            \
-        logis.close();                                                  \
+    std::fstream logis;                                                 \
+    logis.open(filename, std::ios::in);                                 \
+    if (logis.is_open()) {                                              \
+      logis.close();                                                    \
+      if (strstr(filename, ".log_cfg")) {                               \
         log4cxx::PropertyConfigurator::configure(log4cxx::File(filename)); \
-        break;                                                          \
+      } else if (strstr(filename, ".xml")) {                            \
+        log4cxx::xml::DOMConfigurator::configure(filename);             \
+      } else {                                                          \
+        throw(askap::AskapError("Logger configuration file needs suffix .log_cfg or .xml")); \
       }                                                                 \
+      break;                                                            \
     }                                                                   \
     log4cxx::BasicConfigurator::configure();                            \
   } while(0)
