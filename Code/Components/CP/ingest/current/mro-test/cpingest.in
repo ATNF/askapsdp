@@ -210,7 +210,7 @@ observation.scan0.interval          = 5000000
 #tasks.tasklist                          = [NoMetadataSource, DerippleTask, CalcUVWTask, ChanSel, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource,  PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
 tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, ChanFlag, CalcUVWTask, Monitor,MSSink]
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, Monitor,MSSink]
 
 #
 # PhaseTrackTask
@@ -227,7 +227,7 @@ tasks.FringeRotationTask.params.ice.locator_port = 4061
 tasks.FringeRotationTask.params.icestorm.topicmanager = IceStorm/TopicManager@IceStorm.TopicManager
 tasks.FringeRotationTask.params.icestorm.outtopic = ingest2frt
 tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
-tasks.FringeRotationTask.params.fixeddelays = [394.641, 0, 320.125]
+tasks.FringeRotationTask.params.fixeddelays = [394.778, 0, 131.063]
 #tasks.FringeRotationTask.params.fixeddelays = [0, 0, 0]
 tasks.FringeRotationTask.params.refant = AK01
 #tasks.FringeRotationTask.params.refant = AK08
