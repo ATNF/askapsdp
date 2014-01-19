@@ -226,27 +226,49 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   if (doDiff) {
       std::cerr<<"Calculating difference between the data on adjacent integration cycles"<<std::endl;
       ASKAPCHECK(currentStep >= 2, "Need at least two integrations to compute the difference");
+      casa::Matrix<casa::Float> wrapCompensation(imgBuf.nrow(), imgBuf.nplane(),0.);
+      const float threshold = 3. * casa::C::pi / 2;
+
+      // unwrap phase in time
       for (casa::uInt step = 1; step < currentStep; ++step) {
            casa::Matrix<casa::Complex> curStepMatr = imgBuf.xzPlane(step);
            casa::Matrix<casa::Complex> prevStepMatr = imgBuf.xzPlane(step-1);
-           prevStepMatr -= curStepMatr;
-           /*
+           
            for (casa::uInt row = 0; row<prevStepMatr.nrow(); ++row) {
                 for (casa::uInt col = 0; col<prevStepMatr.ncolumn(); ++col) {
-                     casa::Float prevPhase = arg(prevStepMatr(row,col));
+                     casa::Float prevPhase = real(prevStepMatr(row,col));
                      const casa::Float curPhase = arg(curStepMatr(row,col));
-                     prevPhase -= curPhase;
-                     if (prevPhase<-casa::C::pi) {
-                         prevPhase += 2.*casa::C::pi;
+                     const casa::Float prevOrigPhase = prevPhase - wrapCompensation(row,col);
+                     const casa::Float diff = curPhase - prevOrigPhase;
+                     if (diff >= threshold) {
+                         wrapCompensation(row,col) -= 2. * casa::C::pi;
+                     } else if (diff <= - threshold) {
+                         wrapCompensation(row,col) += 2. * casa::C::pi;
                      }
-                     if (prevPhase>casa::C::pi) {
-                         prevPhase -= 2.*casa::C::pi;
-                     }
-                     prevStepMatr(row,col) = casa::polar(1.f,prevPhase);
+                     //curStepMatr(row,col) = casa::polar(1.f,curPhase+wrapCompensation(row,col));
+                     curStepMatr(row,col) = curPhase+wrapCompensation(row,col);
                 }
            }
-           */
       }
+      
+      const float phaseRateUnit = 2. * casa::C::pi / 268435456. / 54e-6; // unit used in fringe rotator
+      const float inttime = 4.97664 * nAvg; // integration time
+      // calculate the difference
+      for (casa::uInt step = 1; step < currentStep; ++step) {
+           casa::Matrix<casa::Complex> curStepMatr = imgBuf.xzPlane(step);
+           casa::Matrix<casa::Complex> prevStepMatr = imgBuf.xzPlane(step-1);
+           for (casa::uInt row = 0; row<prevStepMatr.nrow(); ++row) {
+                for (casa::uInt col = 0; col<prevStepMatr.ncolumn(); ++col) {
+                     casa::Float prevPhase = real(prevStepMatr(row,col));
+                     const casa::Float curPhase = real(curStepMatr(row,col));
+                     prevPhase -= curPhase;
+                     //prevStepMatr(row,col) = casa::polar(1.f, prevPhase);
+                     prevStepMatr(row,col) = prevPhase / phaseRateUnit / inttime;
+                }
+           }
+      }
+      
+
       --currentStep;
   }
 
@@ -257,6 +279,9 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   } else if (what2export == "phase") {
       scimath::saveAsCasaImage(casaImg, casa::phase(imgBuf(casa::IPosition(3,0,0,0),
+                 casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
+  } else if (what2export == "real") {
+      scimath::saveAsCasaImage(casaImg, casa::real(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   } else {
       ASKAPTHROW(AskapError,"Unknown datatype requested: "<<what2export<<", only amplitude and phase are supported");
