@@ -162,20 +162,16 @@ void copyAntenna(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
     dc.flagRow().putColumn(sc.flagRow());
 }
 
-void copyDataDescription(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
+void mergeDataDescription(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
 {
-    const ROMSColumns srcMsc(source);
-    const ROMSDataDescColumns& sc = srcMsc.dataDescription();
-
     MSColumns destMsc(dest);
     MSDataDescColumns& dc = destMsc.dataDescription();
+    dest.dataDescription().addRow();
 
-    // Add new rows to the destination and copy the data
-    dest.dataDescription().addRow(sc.nrow());
 
-    dc.flagRow().putColumn(sc.flagRow());
-    dc.spectralWindowId().putColumn(sc.spectralWindowId());
-    dc.polarizationId().putColumn(sc.polarizationId());
+    dc.flagRow().put(0, false);
+    dc.spectralWindowId().put(0, 0);
+    dc.polarizationId().put(0, 0);
 }
 
 void copyFeed(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
@@ -354,7 +350,7 @@ void mergeSpectralWindow(const std::vector< boost::shared_ptr<const ROMSColumns>
     for (uInt i = 0; i < srcMscs.size(); ++i) {
         // The below function obtains the spwid refered to by all rows in the
         // main table. This throws an exception if they are not all identical.
-        const casa::Int srcSpwId = findSpectralWindowId(*srcMscs[0]);
+        const casa::Int srcSpwId = findSpectralWindowId(*srcMscs[i]);
 
         const ROMSSpWindowColumns& spwc = srcMscs[i]->spectralWindow();
         nChan += spwc.numChan()(srcSpwId);
@@ -394,7 +390,7 @@ void mergeMainTable(const std::vector< boost::shared_ptr<const ROMSColumns> >& s
         // 1: Copy over the simple cells (i.e. those not needing merging)
         dc.scanNumber().put(row, sc.scanNumber()(row));
         dc.fieldId().put(row, sc.fieldId()(row));
-        dc.dataDescId().put(row, sc.dataDescId()(row));
+        dc.dataDescId().put(row, 0);
         dc.time().put(row, sc.time()(row));
         dc.timeCentroid().put(row, sc.timeCentroid()(row));
         dc.arrayId().put(row, sc.arrayId()(row));
@@ -460,10 +456,6 @@ void merge(const std::vector<std::string>& inFiles, const std::string& outFile)
     ASKAPLOG_INFO_STR(logger,  "Copying ANTENNA table");
     copyAntenna(**(in.begin()), *out);
 
-    // Copy DATA_DESCRIPTION
-    ASKAPLOG_INFO_STR(logger,  "Copying DATA_DESCRIPTION table");
-    copyDataDescription(**(in.begin()), *out);
-
     // Copy FEED
     ASKAPLOG_INFO_STR(logger,  "Copying FEED table");
     copyFeed(**(in.begin()), *out);
@@ -483,6 +475,12 @@ void merge(const std::vector<std::string>& inFiles, const std::string& outFile)
     // Copy POLARIZATION
     ASKAPLOG_INFO_STR(logger,  "Copying POLARIZATION table");
     copyPolarization(**(in.begin()), *out);
+
+    // Merge DATA_DESCRIPTION
+    // This actually just creates a single row, for the single spectral window
+    // that will be created in mergeSpectralWindow()
+    ASKAPLOG_INFO_STR(logger,  "Merging DATA_DESCRIPTION table");
+    mergeDataDescription(**(in.begin()), *out);
 
     // Merge SPECTRAL_WINDOW
     ASKAPLOG_INFO_STR(logger,  "Merging SPECTRAL_WINDOW table");
