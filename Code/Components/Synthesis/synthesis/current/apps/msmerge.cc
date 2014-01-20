@@ -293,62 +293,93 @@ void appendToVector(const casa::Vector<double>& src, std::vector<double>& dest)
     std::copy(src.begin(), src.end(), std::back_inserter(dest));
 }
 
-void mergeSpectralWindow(const std::vector< boost::shared_ptr<const ROMSColumns> >& srcMscs,
-        MSColumns& destMsc,
-        casa::MeasurementSet& dest)
+casa::Int findSpectralWindowId(const ROMSColumns& msc)
 {
-    MSSpWindowColumns& dc = destMsc.spectralWindow();
-    const ROMSSpWindowColumns& sc = srcMscs[0]->spectralWindow();
-    dest.spectralWindow().addRow(sc.nrow());
+    const casa::uInt nrows = msc.nrow();
+    ASKAPCHECK(nrows > 0, "No rows in main table");
+    const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
 
-    // For each row
-    const uInt nrows = sc.nrow();
-    for (uInt row = 0; row < nrows; ++row) {
+    casa::Int r0 = -1; // Row zero SpWindow id
 
-        // 1: Copy over the simple cells (i.e. those not needing merging)
-        dc.measFreqRef().put(row, sc.measFreqRef()(row));
-        dc.refFrequency().put(row, sc.refFrequency()(row));
-        dc.flagRow().put(row, sc.flagRow()(row));
-        dc.freqGroup().put(row, sc.freqGroup()(row));
-        dc.freqGroupName().put(row, sc.freqGroupName()(row));
-        dc.ifConvChain().put(row, sc.ifConvChain()(row));
-        dc.name().put(row, sc.name()(row));
-        dc.netSideband().put(row, sc.netSideband()(row));
+    for (casa::uInt row = 0; row < nrows; ++row) {
+        const casa::Int dataDescId = msc.dataDescId()(row);
+        const casa::Int spwId = ddc.spectralWindowId()(dataDescId);
 
-        // 2: Now process each source measurement set, building up the arrays
-        std::vector<double> chanFreq;
-        std::vector<double> chanWidth;
-        std::vector<double> effectiveBW;
-        std::vector<double> resolution;
-        uInt nChan = 0;
-        double totalBandwidth = 0.0;
-
-        for (uInt i = 0; i < srcMscs.size(); ++i) {
-            const ROMSSpWindowColumns& spwc = srcMscs[i]->spectralWindow();
-            nChan += spwc.numChan()(row);
-            totalBandwidth += spwc.totalBandwidth()(row);
-
-            appendToVector(spwc.chanFreq()(row), chanFreq);
-            appendToVector(spwc.chanWidth()(row), chanWidth);
-            appendToVector(spwc.effectiveBW()(row), effectiveBW);
-            appendToVector(spwc.resolution()(row), resolution);
+        if (row == 0) {
+            r0 = spwId;
+        } else {
+            ASKAPCHECK(spwId == r0, "All rows must be of the same spectral window");
         }
+    }
 
-        // 3: Add those merged cells
-        dc.numChan().put(row, nChan);
-        dc.chanFreq().put(row, casa::Vector<double>(chanFreq));
-        dc.chanWidth().put(row, casa::Vector<double>(chanWidth));
-        dc.effectiveBW().put(row, casa::Vector<double>(effectiveBW));
-        dc.resolution().put(row, casa::Vector<double>(resolution));
-        dc.totalBandwidth().put(row, totalBandwidth);
+    return r0;
+}
 
-    } // End for rows
+// Creates a single spectral window in the "dest" measurement set, which
+// is the concatenation of the spectral windows used in the source measurement
+// set. Each source measurement set is read through once to determine which
+// spectral window id is used. All rows in a given source measurement set
+// must refer to the same spectral window id.
+void mergeSpectralWindow(const std::vector< boost::shared_ptr<const ROMSColumns> >& srcMscs,
+                         casa::MeasurementSet& dest)
+{
+    ASKAPCHECK(!srcMscs.empty(), "Vector of source measurement sets is empty");
+
+    MSColumns destMsc(dest);
+    MSSpWindowColumns& dc = destMsc.spectralWindow();
+    const casa::Int DEST_ROW = 0;
+
+    // 1: Create a single spectral window in the destination measurement set.
+    // Populate it with the simple cells (i.e. those not needing merging)
+    const casa::Int spwIdForFirstMs = findSpectralWindowId(*srcMscs[0]);
+    const ROMSSpWindowColumns& sc = srcMscs[0]->spectralWindow();
+    dest.spectralWindow().addRow();
+    dc.measFreqRef().put(DEST_ROW, sc.measFreqRef()(spwIdForFirstMs));
+    dc.refFrequency().put(DEST_ROW, sc.refFrequency()(spwIdForFirstMs));
+    dc.flagRow().put(DEST_ROW, false);
+    dc.freqGroup().put(DEST_ROW, sc.freqGroup()(spwIdForFirstMs));
+    dc.freqGroupName().put(DEST_ROW, sc.freqGroupName()(spwIdForFirstMs));
+    dc.ifConvChain().put(DEST_ROW, sc.ifConvChain()(spwIdForFirstMs));
+    dc.name().put(DEST_ROW, "Merged Window");
+    dc.netSideband().put(DEST_ROW, sc.netSideband()(spwIdForFirstMs));
+
+    // 2: Now process each source measurement sets, building up the arrays
+    std::vector<double> chanFreq;
+    std::vector<double> chanWidth;
+    std::vector<double> effectiveBW;
+    std::vector<double> resolution;
+    uInt nChan = 0;
+    double totalBandwidth = 0.0;
+
+    for (uInt i = 0; i < srcMscs.size(); ++i) {
+        // The below function obtains the spwid refered to by all rows in the
+        // main table. This throws an exception if they are not all identical.
+        const casa::Int srcSpwId = findSpectralWindowId(*srcMscs[0]);
+
+        const ROMSSpWindowColumns& spwc = srcMscs[i]->spectralWindow();
+        nChan += spwc.numChan()(srcSpwId);
+        totalBandwidth += spwc.totalBandwidth()(srcSpwId);
+
+        appendToVector(spwc.chanFreq()(srcSpwId), chanFreq);
+        appendToVector(spwc.chanWidth()(srcSpwId), chanWidth);
+        appendToVector(spwc.effectiveBW()(srcSpwId), effectiveBW);
+        appendToVector(spwc.resolution()(srcSpwId), resolution);
+    }
+
+    // 3: Add those merged cells
+    dc.numChan().put(DEST_ROW, nChan);
+    dc.chanFreq().put(DEST_ROW, casa::Vector<double>(chanFreq));
+    dc.chanWidth().put(DEST_ROW, casa::Vector<double>(chanWidth));
+    dc.effectiveBW().put(DEST_ROW, casa::Vector<double>(effectiveBW));
+    dc.resolution().put(DEST_ROW, casa::Vector<double>(resolution));
+    dc.totalBandwidth().put(DEST_ROW, totalBandwidth);
 }
 
 void mergeMainTable(const std::vector< boost::shared_ptr<const ROMSColumns> >& srcMscs,
-        MSColumns& dc,
-        casa::MeasurementSet& dest)
+                    casa::MeasurementSet& dest)
 {
+    MSColumns dc(dest);
+
     // Add rows upfront
     const ROMSColumns& sc = *(srcMscs[0]);
     const casa::uInt nRows = sc.nrow();
@@ -455,12 +486,11 @@ void merge(const std::vector<std::string>& inFiles, const std::string& outFile)
 
     // Merge SPECTRAL_WINDOW
     ASKAPLOG_INFO_STR(logger,  "Merging SPECTRAL_WINDOW table");
-    MSColumns destMsc(*out);
-    mergeSpectralWindow(inColumns, destMsc, *out);
+    mergeSpectralWindow(inColumns, *out);
 
     // Merge main table
     ASKAPLOG_INFO_STR(logger,  "Merging main table");
-    mergeMainTable(inColumns, destMsc, *out);
+    mergeMainTable(inColumns, *out);
 }
 
 // Main function
