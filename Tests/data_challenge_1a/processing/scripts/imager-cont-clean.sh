@@ -37,7 +37,7 @@ Cimager.Images.image.i.clean.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
 Cimager.visweights                              = MFS
-Cimager.visweights.MFS.reffreq                  = 1.270e9
+Cimager.visweights.MFS.reffreq                  = ${CONT_CLEAN_FREQ}
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}

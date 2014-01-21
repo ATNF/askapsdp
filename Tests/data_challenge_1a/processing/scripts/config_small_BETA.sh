@@ -37,9 +37,15 @@ else
 fi
 
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
-GAINS_CAL_MPPWIDTH=305
-GAINS_CAL_MPPNPPN=4
-NUM_BEAMS_GAINSCAL=9
+if [ $doFullSpectrum == true ]; then
+    GAINS_CAL_MPPWIDTH=305
+    GAINS_CAL_MPPNPPN=4
+    NUM_BEAMS_GAINSCAL=9
+else
+    GAINS_CAL_MPPWIDTH=153
+    GAINS_CAL_MPPNPPN=4
+    NUM_BEAMS_GAINSCAL=9
+fi
 
 # image size -- number of pixels and cellsize
 IMAGING_NUM_PIXELS=2048
@@ -52,9 +58,15 @@ IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
 IMAGING_EQUALISE=True
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
-CONT_CLEAN_MPPWIDTH=913
-CONT_CLEAN_MPPNPPN=16
-CONT_CLEAN_FREQ=1.270e9
+if [ $doFullSpectrum == true ]; then
+    CONT_CLEAN_MPPWIDTH=913
+    CONT_CLEAN_MPPNPPN=16
+    CONT_CLEAN_FREQ=0.9e9
+else
+    CONT_CLEAN_MPPWIDTH=457
+    CONT_CLEAN_MPPNPPN=16
+    CONT_CLEAN_FREQ=0.9e9
+fi
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
 CONT_DIRTY_MPPWIDTH=305
@@ -63,6 +75,7 @@ CONT_DIRTY_FREQ=1.270e9
 
 if [ $doFullSpectrum == true ]; then
 # base frequency for continuum cubes
+#    CONT_CUBE_FREQ_ZERO_CHAN=1.345e9
     CONT_CUBE_FREQ_ZERO_CHAN=1.345e9
 # number of workers used for continuum cubes, and qsub range
     NUM_WORKERS_CONT_CUBE=152
