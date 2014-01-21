@@ -40,7 +40,7 @@ outputvis   = MS/coarse_chan.ms
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
 # is inclusive of both the start and end, indexing is one-based. 
 # Default: <no default>
-channel     = 1-16416
+channel     = 1-${END_CHANNEL_CREATECOARSE}
 
 # Defines the number of channel to average to form the one output channel
 # Default: 1
