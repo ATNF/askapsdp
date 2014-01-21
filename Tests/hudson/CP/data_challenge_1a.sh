@@ -54,17 +54,30 @@ failed"
 fi
 EOF
 
+# The "job" actually runs out of scratch, where the build is
+# happening in the home directory
+SCRATCH=/scratch/askap/askapops/dc1a-hudson-workspace
+
 #
 # Link to the dataset
 #
-mkdir -p $WORKSPACE/dc1a
-cd $WORKSPACE/dc1a
-ln -s /scratch/askap/askapops/dc1a-input input
+cd $SCRATCH
+if [ $? -ne 0 ]; then
+    echo "ERROR: Scratch directory does not exist"
+    exit 1
+fi
+rm -rf dc1a
+mkdir -p $SCRATCH/dc1a
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to create directory in scratch"
+    exit 1
+fi
+cd $SCRATCH/dc1a
+ln -s $SCRATCH/dc1a-input input
 
 #
 # Copy over the test scripts
 #
-cd $WORKSPACE/dc1a
 cp -r ${ASKAP_ROOT}/Tests/data_challenge_1a/processing/* .
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to copy over test scripts"
@@ -85,7 +98,7 @@ fi
 #
 # Wait for completion
 #
-cd $WORKSPACE/dc1a/run_*
+cd $SCRATCH/dc1a/run_*
 if [ $? -ne 0 ]; then
     echo "ERROR: run directory not found"
     exit 1
@@ -126,7 +139,7 @@ echo ${EXEC_DATE} > EXEC_DATE.txt
 # Create a tarball artifact
 #
 echo "####  Creating artifact tarball ####"
-cd $WORKSPACE/dc1a
+cd $SCRATCH/dc1a
 
 tar -c -v --exclude MS -f artifact.tar run_*
 if [ $? -ne 0 ]; then
