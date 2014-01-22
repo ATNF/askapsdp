@@ -61,6 +61,8 @@ EOF_INNER
 
 LOGFILE=${LOGDIR}/simager-spectral-\${PBS_JOBID}.log
 
+lfs setstripe -c 4 .
+
 # Now run the simager
 aprun -B \${ASKAP_ROOT}/Code/Components/CP/simager/current/apps/simager.sh -c config/simager.in >> \${LOGFILE}
 ERR=\$?

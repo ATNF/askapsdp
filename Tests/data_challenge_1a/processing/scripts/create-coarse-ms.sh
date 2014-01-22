@@ -11,6 +11,11 @@ if [ ! -d ${AVGMSDIR} ]; then
         echo "Error: Failed to create directory ${AVGMSDIR}"
         exit 1
     fi
+
+    # Will contain a small number of large files accessed
+    # by multiple nodes, so stripe the files over a few
+    # storage servers
+    lfs setstripe -c 8 MS
 fi
 
 # Create the qsub file

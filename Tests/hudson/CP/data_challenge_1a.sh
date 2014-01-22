@@ -15,7 +15,6 @@ if [ $? -ne 0 ]; then
     echo "python bootstrap.py failed"
     exit 1
 fi
-EOF
 
 #
 # Setup environment
@@ -27,32 +26,31 @@ export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
 #
 # Build the rest of the packages needed to run the pipeline
 #
-nice rbuild -n -p mpi=1 Code/Components/Synthesis/synthesis/current
+nice rbuild -n Code/Components/Synthesis/synthesis/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Synthesis/synthesis/current
 failed"
     exit 1
 fi
  
-nice rbuild -n -p mpi=1 Code/Components/CP/pipelinetasks/current
+nice rbuild -n Code/Components/CP/pipelinetasks/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/CP/pipelinetasks/current failed"
     exit 1
 fi
 
-nice rbuild -n -p mpi=1 Code/Components/Analysis/analysis/current
+nice rbuild -n Code/Components/Analysis/analysis/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Analysis/analysis/current failed"
     exit 1
 fi
 
-nice rbuild -n -p mpi=1 Code/Components/Analysis/evaluation/current
+nice rbuild -n Code/Components/Analysis/evaluation/current
 if [ $? -ne 0 ]; then
     echo "ERROR: Build of Code/Components/Analysis/evaluation/current
 failed"
     exit 1
 fi
-EOF
 
 # The "job" actually runs out of scratch, where the build is
 # happening in the home directory

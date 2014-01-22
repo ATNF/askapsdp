@@ -68,6 +68,8 @@ EOF_INNER
 
 LOGFILE=${LOGDIR}/simager-cont-cube-clean-\${PBS_JOBID}.log
 
+lfs setstripe -c 4 .
+
 # Now run the simager
 aprun -n 305 -N 10 \${ASKAP_ROOT}/Code/Components/CP/simager/current/apps/simager.sh -c config/simager-cont-cube-clean.in > \${LOGFILE}
 ERR=\$?
