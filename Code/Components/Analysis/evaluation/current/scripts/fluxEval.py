@@ -2,7 +2,8 @@
 """
 """
 import askap.analysis.evaluation
-#from matplotlib import *
+from matplotlib import *
+matplotlib.use('Agg')
 from pylab import *
 from numpy import *
 import os

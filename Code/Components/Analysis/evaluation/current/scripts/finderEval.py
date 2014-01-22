@@ -3,6 +3,7 @@
 """
 import askap.analysis.evaluation
 from matplotlib import *
+matplotlib.use('Agg')
 from numpy import *
 import os
 import pyfits

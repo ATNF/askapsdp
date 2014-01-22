@@ -3,6 +3,7 @@
 """
 import askap.analysis.evaluation
 from matplotlib import *
+matplotlib.use('Agg')
 from numpy import *
 import os
 from askap.analysis.evaluation.readData import *

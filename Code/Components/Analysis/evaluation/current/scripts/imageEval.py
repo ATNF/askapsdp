@@ -3,6 +3,8 @@
 import askap.analysis.evaluation
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import pylab as plt
 import math
 import scipy.special
