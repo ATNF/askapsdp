@@ -39,6 +39,7 @@ imageEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/
 finderEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/finderEval.py
 
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
+. ${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a/init_package_env.sh
 
 parset=analysis-\${PBS_JOBID}.in
 cat > \$parset <<EOF_INNER
