@@ -798,8 +798,10 @@ void MSSink::submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk)
     // Submit monitoring data
     MonitorPoint<int32_t> flagCountPoint("VisFlagCount");
     flagCountPoint.update(flagCount);
-    MonitorPoint<float> flagPercentPoint("VisFlagPercent");
-    flagPercentPoint.update(flagCount / static_cast<float>(flags.size()));
+    if (flags.size()) {
+        MonitorPoint<float> flagPercentPoint("VisFlagPercent");
+        flagPercentPoint.update(flagCount / static_cast<float>(flags.size()) * 100.);
+    }
 }
 
 bool MSSink::equal(const casa::MDirection &dir1, const casa::MDirection &dir2)

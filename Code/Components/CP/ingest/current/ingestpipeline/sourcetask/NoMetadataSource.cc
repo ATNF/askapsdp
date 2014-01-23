@@ -161,9 +161,11 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // Submit monitoring data
     MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
     packetsLostCount.update(datagramsExpected - datagramCount);
-    MonitorPoint<float> packetsLostPercent("PacketsLostPercent");
-    packetsLostPercent.update((datagramsExpected - datagramCount)
-            / static_cast<float>(datagramsExpected));
+    if (datagramsExpected != 0) {
+        MonitorPoint<float> packetsLostPercent("PacketsLostPercent");
+        packetsLostPercent.update((datagramsExpected - datagramCount)
+                / static_cast<float>(datagramsExpected) * 100.);
+    }
 
     return chunk;
 }
