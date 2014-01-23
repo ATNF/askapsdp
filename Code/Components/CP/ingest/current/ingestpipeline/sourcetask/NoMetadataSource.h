@@ -42,6 +42,7 @@
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
+#include "monitoring/MonitorPoint.h"
 
 namespace askap {
 namespace cp {
@@ -90,6 +91,24 @@ class NoMetadataSource : public ISource {
                            int signalNumber);
 
         void parseBeamMap(const LOFAR::ParameterSet& params);
+
+
+        /// Sends "obs" monitor points
+        void submitObsMonitorPoints() const;
+
+        /// Send null monitor points - indicating they are no longer valid
+        void submitNullMonitorPoints() const;
+
+        // Submits a null type. This is used to invalidate the previous value
+        // in the case where the observation is complete
+        void submitPointNull(const std::string& key) const;
+
+        template <typename T>
+        void submitPoint(const std::string& key, const T& val) const
+        {
+            MonitorPoint<T> point(key);
+            point.update(val);
+        }
 
         // Configuration
         const Configuration itsConfig;

@@ -87,6 +87,9 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
 
     parseBeamMap(params);
 
+    // Send "obs" monitoring data for scan0
+    submitObsMonitorPoints();
+
     // Setup a signal handler to catch SIGINT, SIGTERM and SIGUSR1
     itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
 }
@@ -94,6 +97,9 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
 NoMetadataSource::~NoMetadataSource()
 {
     itsSignals.cancel();
+
+    // Invalidate the monitoring data points - by sending null to MoniCA
+    submitNullMonitorPoints();
 }
 
 VisChunk::ShPtr NoMetadataSource::next(void)
@@ -388,4 +394,42 @@ void NoMetadataSource::parseBeamMap(const LOFAR::ParameterSet& params)
             << itsBeamsToReceive << " (to be received), " << itsMaxNBeams << " (to be written into MS)");
     ASKAPDEBUGASSERT(itsMaxNBeams > 0);
     ASKAPDEBUGASSERT(itsBeamsToReceive > 0);
+}
+
+void NoMetadataSource::submitObsMonitorPoints() const
+{
+    submitPoint<int32_t>("obs.nScans", 1);
+    submitPoint<int32_t>("obs.ScanId", 0);
+    const Observation obs = itsConfig.observation();
+    const Scan s = obs.scans()[0];
+    submitPoint<string>("obs.FieldName", s.name());
+    submitPoint<string>("obs.dir1", askap::printLat(s.fieldDirection()));
+    submitPoint<string>("obs.dir2", askap::printLon(s.fieldDirection()));
+    submitPoint<string>("obs.CoordSys", casa::MDirection::showType(s.fieldDirection().type()));
+    submitPoint<int32_t>("obs.Interval", s.interval() / 1000);
+    submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz"));
+    submitPoint<int32_t>("obs.nChan", s.nChan());
+    submitPoint<float>("obs.ChanWidth", s.chanWidth().getValue("kHz"));
+}
+
+void NoMetadataSource::submitNullMonitorPoints() const
+{
+    submitPointNull("obs.nScans");
+    submitPointNull("obs.FieldName");
+    submitPointNull("obs.dir1");
+    submitPointNull("obs.dir2");
+    submitPointNull("obs.CoordSys");
+    submitPointNull("obs.Interval");
+    submitPointNull("obs.StartFreq");
+    submitPointNull("obs.nChan");
+    submitPointNull("obs.ChanWidth");
+
+    submitPointNull("PacketsLostCount");
+    submitPointNull("PacketsLostPercent");
+}
+
+void NoMetadataSource::submitPointNull(const std::string& key) const
+{
+    MonitorPoint<int32_t> point(key);
+    point.updateNull();
 }
