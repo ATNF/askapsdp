@@ -17,5 +17,5 @@ cp.ingest.obs.dir2              "Target Direction 2 (e.g. Dec or El)"           
 cp.ingest.obs.CoordSys          "Direction coordinate system"                       "" ""       INGESTRANKS T - - - - Change- - -
 cp.ingest.obs.Interval          "Correlator integration interval"                   "" "ms"     INGESTRANKS T - - - - Change- - -
 cp.ingest.obs.StartFreq         "Start frequency"                                   "" "MHz"    INGESTRANKS T - - - - Change- - -
-cp.ingest.obs.nChan             "Number fo spectral channels"                       "" ""       INGESTRANKS T - - - - Change- - -
+cp.ingest.obs.nChan             "Number of spectral channels"                       "" ""       INGESTRANKS T - - - - Change- - -
 cp.ingest.obs.ChanWidth         "Spectral channel width"                            "" "kHz"    INGESTRANKS T - - - - Change- - -
