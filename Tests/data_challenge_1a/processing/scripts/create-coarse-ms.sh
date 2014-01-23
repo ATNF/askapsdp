@@ -23,7 +23,7 @@ cat > split-coarse.qsub << EOF
 #!/bin/bash
 ##PBS -W group_list=${QUEUEGROUP}
 #PBS -l mppwidth=1
-#PBS -l walltime=02:00:00
+#PBS -l walltime=04:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N split-coarse
 #PBS -m a
