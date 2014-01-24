@@ -139,13 +139,9 @@ echo ${EXEC_DATE} > EXEC_DATE.txt
 echo "####  Creating artifact tarball ####"
 cd $SCRATCH/dc1a
 
-tar -c -v --exclude MS -f artifact.tar run_*
+tar -c -v --exclude MS -f $WORKSPACE/artifact.tar run_*
 if [ $? -ne 0 ]; then
     exit 1
 fi
-
-# Create a symlink in the workspace to the artifact tarball because Jenkins
-# can only retrieve artifacts from the workspace
-ln -s ${SCRATCH}/dc1a/artifact.tar $WORKSPACE/artifact.tar
 
 echo "#### Artifact generation complete ####"
