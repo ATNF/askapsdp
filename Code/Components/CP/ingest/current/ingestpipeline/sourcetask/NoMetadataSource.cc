@@ -415,6 +415,7 @@ void NoMetadataSource::submitObsMonitorPoints() const
 void NoMetadataSource::submitNullMonitorPoints() const
 {
     submitPointNull("obs.nScans");
+    submitPointNull("obs.ScanId");
     submitPointNull("obs.FieldName");
     submitPointNull("obs.dir1");
     submitPointNull("obs.dir2");
