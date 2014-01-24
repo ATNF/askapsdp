@@ -72,9 +72,20 @@ double askap::cp::ingest::getEffectiveLOFreq(const Configuration &config, const 
    // to calculate the effective LO frequency. Assuming that the software correlator got the bottom of the band,
    // i.e. the last 16 of 304 channels, the effective LO is expected to be 40 MHz below the bottom of the band or
    // 344 MHz below the top of the band. This number needs to be checked when we get the actual system observing
-   // an astronomical source.
+   // an astronomical source. 
+   //
+   // Investigations in January 2014 revealed that the effective LO is 343.5 MHz below the top of the band which
+   // is the centre of the first fine channel. The correct frequency mapping is realised if 0.5 MHz is added to
+   // the centre the top coarse channel (the tunable LO corresponds to the centre of the coarse channel in the
+   // middle of the band, we probably wrongfully assumed the adjacent channel initially therefore there is a 
+   // correction of 1 MHz one way and 0.5 MHz the other). The tunable LO of 5872 MHz corresponds to 
+   // the top fine channel frequency of 1015.5 MHz. The 343.5 MHz offset for the effective LO has been verified
+   // with the 3h track on the Galactic centre and DRx delay update tolerance of 51 steps (the phase didn't jump
+   // within the uncertainty of the measurement when DRx delay was updated). Note the accuracy of the measurement
+   // is equivalent to a few fine channels, but there doesn't seem to be any reason why such small offset might be
+   // present.
    const Scan scanInfo = config.observation().scans().at(scan);
-   return scanInfo.startFreq().getValue("Hz") - 344e6;
+   return scanInfo.startFreq().getValue("Hz") - 343.5e6;
 }
 
 
