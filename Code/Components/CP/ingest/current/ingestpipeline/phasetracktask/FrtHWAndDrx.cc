@@ -101,6 +101,8 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
   // HW phase rate units are 2^{-28} turns per FFB sample of 54 microseconds
   const double phaseRateUnit = 2. * casa::C::pi / 268435456. / 54e-6;
 
+  const double integrationTime = chunk->interval();
+  ASKAPASSERT(integrationTime > 0);
   for (casa::uInt ant = 0; ant < delays.nrow(); ++ant) {
        // negate the sign here because we want to compensate the delay
        const double diffDelay = (delays(itsRefAntIndex,0) - delays(ant,0))/samplePeriod;
@@ -154,9 +156,29 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
           }
        }
        ASKAPDEBUGASSERT(ant < itsTm.size())
+       /*
        if (itsTm[ant] > 0) {
            itsPhases[ant] += (chunk->time().getTime("s").getValue() - itsTm[ant]) * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
        }
+       */
+       // 27628 microseconds is the offset before event trigger and the application of phase rates/accumulator reset
+       const uint64_t triggerOffset = 27628;
+       const uint64_t lastFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant) + triggerOffset;
+       if (lastFRUpdateBAT > triggerOffset) {
+           const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
+           if (currentBAT > lastFRUpdateBAT) {
+               const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT;
+               const double etInCycles = double(elapsedTime) / integrationTime / 1e6;
+               
+               ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
+           
+               //const casa::MVEpoch lastFRUpdateEpoch = bat2epoch(lastFRUpdateBAT).getValue();
+               itsPhases[ant] = double(elapsedTime) * 1e-6 * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
+           } else {
+              ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
+           }
+       }
+       
        itsTm[ant] = chunk->time().getTime("s").getValue();
   }
   //

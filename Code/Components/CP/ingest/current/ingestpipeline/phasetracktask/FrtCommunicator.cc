@@ -63,6 +63,7 @@ FrtCommunicator::FrtCommunicator(const LOFAR::ParameterSet& parset, const Config
    itsRequestedFRPhaseRates.resize(nAnt, -1);
    itsRequestedFRPhaseSlopes.resize(nAnt, -1);
    itsRequestedFRPhaseOffsets.resize(nAnt, -1);
+   itsFRUpdateBATs.resize(nAnt, 0u);
    itsAntennaNames.resize(nAnt);
    for (size_t i = 0; i < nAnt; ++i) {
         itsAntennaNames[i] = casa::downcase(antennas.at(i).name());
@@ -123,6 +124,15 @@ int FrtCommunicator::requestedFRPhaseOffset(const casa::uInt ant) const
   return itsRequestedFRPhaseOffsets[ant];
 }
 
+/// @brief get the BAT of the last FR parameter update
+/// @param[in] ant antenna index
+/// @return BAT when the last update was implemented
+uint64_t FrtCommunicator::lastFRUpdateBAT(const casa::uInt ant) const
+{
+  ASKAPASSERT(ant < itsFRUpdateBATs.size());
+  return itsFRUpdateBATs[ant];
+}
+
 /// @brief test if antenna produces valid data
 /// @param[in] ant antenna index
 /// @return true, if the given antenna produces valid data
@@ -168,6 +178,21 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
           for (size_t ant = 0; ant<itsAntennaRequestIDs.size(); ++ant) {
                if (itsAntennaRequestIDs[ant] == reqID) {
                    itsAntennaRequestIDs[ant] = -1;          
+                   // update BAT of the last update of the hardware fringe rotator parameters
+                   const std::map<std::string, int>::const_iterator ciBATlow = reply->find("bat_low");
+                   const std::map<std::string, int>::const_iterator ciBAThigh = reply->find("bat_high"); 
+                   if ((ciBATlow != reply->end()) != (ciBAThigh != reply->end())) {
+                       ASKAPLOG_WARN_STR(logger, "Incomplete application BAT was found in the reply for "<<itsAntennaNames[ant]);
+                   } else {
+                       if (ciBATlow != reply->end()) {
+                           ASKAPDEBUGASSERT(ciBAThigh != reply->end());
+                           const uint64_t batLow = static_cast<uint64_t>(ciBATlow->second);
+                           const uint64_t batHigh = static_cast<uint64_t>(ciBAThigh->second) << 32;
+                           itsFRUpdateBATs[ant] = (batLow & 0xffffffff) + (batHigh & 0xffffffff00000000);
+                           ASKAPLOG_DEBUG_STR(logger, "Received update BAT of "<<itsFRUpdateBATs[ant]<<" for "<<itsAntennaNames[ant]);
+                       }
+                   }
+                   //
                    if (itsCyclesToWait > 0) {
                        ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters have been applied for "<<itsAntennaNames[ant]<<
                                      ", waiting "<<itsCyclesToWait<<" cycles before unflagging it");

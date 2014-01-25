@@ -109,6 +109,11 @@ public:
     /// @param[in] ant antenna index
     /// @return FR phase offset (in hardware units)
     int requestedFRPhaseOffset(const casa::uInt ant) const;
+
+    /// @brief get the BAT of the last FR parameter update
+    /// @param[in] ant antenna index
+    /// @return BAT when the last update was implemented
+    uint64_t lastFRUpdateBAT(const casa::uInt ant) const;
     
     /// @brief test if antenna produces valid data
     /// @param[in] ant antenna index
@@ -171,6 +176,9 @@ private:
     
     /// @brief times of the request passing through for each antenna in the "being updated" status
     casa::Vector<casa::MVEpoch> itsRequestCompletedTimes;
+
+    /// @brief BAT of the last update of the hardware fringe rotator parameters
+    std::vector<uint64_t> itsFRUpdateBATs;
     
     /// @brief antenna names as setup in the configuration
     /// @details They are used to form a string key in the form akXX.param.
