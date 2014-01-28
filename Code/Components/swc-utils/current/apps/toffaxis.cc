@@ -275,8 +275,8 @@ void doTest() {
   casa::MeasFrame frame(mroPos, when);
   casa::MVDirection testDir = casa::MDirection::Convert(casa::MDirection(casa::MDirection::SUN), casa::MDirection::Ref(casa::MDirection::J2000,frame))().getValue();
  
-  // */
-  casa::MVDirection testDir(convertQuantity("12h07m47.0","rad"),convertQuantity("-00.50.30.0","rad"));
+   */
+  casa::MVDirection testDir(convertQuantity("20h42m11.58","rad"),convertQuantity("-18.13.48.7","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
@@ -321,8 +321,22 @@ void doTest() {
   xOffsets.push_back(0.); yOffsets.push_back(-1.);
   */
 
+  /*
+  // line of beams in HA
+  // off-position as the first one
+  xOffsets.push_back(20.); yOffsets.push_back(0.);
+  const double fullOffset = 2.7;
+  for (size_t pt = 0; pt<9; ++pt) {
+       xOffsets.push_back(fullOffset / 9. * double(pt));
+       yOffsets.push_back(0.);
+  }
+  */
+
   const double offset1inDeg = offset1 / casa::C::pi * 180.;
   const double offset2inDeg = offset2 / casa::C::pi * 180.;
+
+  
+  // for our standard cluster field
 
   xOffsets.push_back(0.); yOffsets.push_back(0.);
   xOffsets.push_back(offset1inDeg*0.5); yOffsets.push_back(offset2inDeg*0.5);
@@ -333,7 +347,9 @@ void doTest() {
   add3rdOffset(xOffsets, yOffsets, 0, 1, false);
   add3rdOffset(xOffsets, yOffsets, 1, 2, false);
   add3rdOffset(xOffsets, yOffsets, 3, 0, false);
- 
+  
+   
+
   ASKAPDEBUGASSERT(xOffsets.size() == yOffsets.size());
   for (size_t i=0; i<xOffsets.size(); ++i) {
       offset1 = xOffsets[i] / 180. * casa::C::pi;

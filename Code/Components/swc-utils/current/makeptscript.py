@@ -6,6 +6,7 @@ if len(sys.argv)!=2:
 f = open(sys.argv[1])
 try:
   print "#!/bin/sh"
+  count = 0
   for line in f:
      if line.endswith("\n"):
            line = line[:-1]
@@ -22,11 +23,13 @@ try:
         if pos2 == -1:
            raise RuntimeError, "Expect dot-separated declination"
         decstr = parts[1][:pos1] + ":" + parts[1][pos1+1:pos2] + ":" + parts[1][pos2+1:]
+        count = count + 1
         print ""
-        print "echo Pointing at %s %s" % (parts[0], decstr)
+        print "echo Pointing at %s %s : beam=%i" % (parts[0], decstr, count)
         print "# %s" % line
         print "~/point.sh %s %s pa_fixed 0" % (parts[0], decstr)
-        print "sleep 60"   
+        print "sleep 100"   
+        print "date"   
 finally:
   f.close()
 

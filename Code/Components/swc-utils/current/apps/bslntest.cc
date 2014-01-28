@@ -64,13 +64,21 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
+// 15, 8, 9
+const double antITRFpos[3][3]={{-2555394.936910,5097674.796317,-2848567.461727},
+                               {-2556005.813742, 5097327.008027, -2848641.257970},
+                               {-2555892.578900, 5097559.600315, -2848328.739449}};
+
+
 void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConstDataAccessor &acc)
 {
    ASKAPDEBUGASSERT(acc.nRow()>0);
    ASKAPDEBUGASSERT(acc.nChannel()>1);
    ASKAPDEBUGASSERT(acc.nPol()>0);
+   const double effectiveLO = 1e6*(acc.frequency()[0] - 343.5);
    scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
-   casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(0);
+   casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(3);
+   casa::Matrix<casa::Bool> flags = acc.flag().xyPlane(3);
   
    const casa::MEpoch epoch(casa::Quantity(56100.0+acc.time()/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
    casa::MeasFrame frame(epoch);
@@ -84,19 +92,62 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
    const double H0 = gmst - ra, sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
   
    for (casa::uInt baseline = 0; baseline < vis.nrow(); ++baseline) {
-        const double delay = de.getDelay(vis.row(baseline));
-        //std::cout<<baseline<<" "<<acc.antenna1()[baseline]<<" "<<acc.antenna2()[baseline]<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<" "<<delay*casa::C::c<<std::endl;
+        bool flagged = false;
+        for (casa::uInt ch = 0; ch < flags.ncolumn(); ++ch) {
+             flagged |= flags(baseline,ch);
+        }
+        if (flagged) {
+            continue;
+        }
 
-        const std::string ant1str = utility::toString(acc.antenna1()[baseline]);
-        const std::string ant2str = utility::toString(acc.antenna2()[baseline]);
+        ASKAPDEBUGASSERT(vis.ncolumn()>0);
+        // direct measurement of the delay
+        //const double delay = de.getDelay(vis.row(baseline));
+
+        // phase as a proxy
+        casa::Complex avgVis = casa::sum(vis.row(baseline)) / casa::Float(vis.ncolumn());
+        const double phase = arg(avgVis);
+        const double delay = phase / 2. / casa::C::pi / effectiveLO;
+
+        const casa::uInt index1 = acc.antenna1()[baseline];
+        const casa::uInt index2 = acc.antenna2()[baseline];
+
+        const std::string ant1str = utility::toString(index1);
+        const std::string ant2str = utility::toString(index2);
+        ASKAPASSERT(index1<3);
+        ASKAPASSERT(index2<3);
 
         scimath::DesignMatrix dm;
+
+        /*
+        const double length1=sqrt(antITRFpos[index1][0]*antITRFpos[index1][0]+antITRFpos[index1][1]*antITRFpos[index1][1]+antITRFpos[index1][2]*antITRFpos[index1][2]);
+        const double length2=sqrt(antITRFpos[index2][0]*antITRFpos[index2][0]+antITRFpos[index2][1]*antITRFpos[index2][1]+antITRFpos[index2][2]*antITRFpos[index2][2]);
+
+        const double coeff1 = -cH0*cd*antITRFpos[index1][0]/length1+sH0*cd*antITRFpos[index1][1]/length1-sd*antITRFpos[index1][2]/length1;
+        dm.addDerivative("h"+ant1str, casa::Vector<casa::Double>(1,coeff1));
+        dm.addDerivative("h"+ant2str, casa::Vector<casa::Double>(1,cH0*cd*antITRFpos[index2][0]/length2-sH0*cd*antITRFpos[index2][1]/length2+sd*antITRFpos[index2][2]/length2));
+
+        if (baseline == 0)
+        std::cout<<baseline<<" "<<acc.antenna1()[baseline]<<" "<<acc.antenna2()[baseline]<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<" "<<delay*casa::C::c<<" "<<coeff1<<std::endl;
+
+        */
+        /*
+        dm.addDerivative("d"+ant1str, casa::Vector<casa::Double>(1,casa::C::c*1e-9));
+        dm.addDerivative("d"+ant2str, casa::Vector<casa::Double>(1,-casa::C::c*1e-9));
+        */
+        /*
+        dm.addDerivative("p"+ant1str, casa::Vector<casa::Double>(1,360.*effectiveLO*casa::C::c));
+        dm.addDerivative("p"+ant2str, casa::Vector<casa::Double>(1,-360.*effectiveLO*casa::C::c));
+        */
+ 
+        
         dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,-cH0*cd));
         dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,cH0*cd));
         dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,sH0*cd));
         dm.addDerivative("y"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd));
         dm.addDerivative("z"+ant1str, casa::Vector<casa::Double>(1,-sd));
         dm.addDerivative("z"+ant2str, casa::Vector<casa::Double>(1,sd));
+        
         dm.addResidual(casa::Vector<casa::Double>(1,delay*casa::C::c), casa::Vector<double>(1, 1.));
         gne.add(dm);
    }
@@ -155,8 +206,12 @@ void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, s
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
                   "Number of channels seem to have been changed, previously "<<nChan<<" now "<<it->nChannel());
-           ASKAPDEBUGASSERT(ant1IDs.nelements() == it->nRow());
-           ASKAPDEBUGASSERT(ant2IDs.nelements() == it->nRow());
+           if ((ant1IDs.nelements() != it->nRow()) || (ant2IDs.nelements() != it->nRow())) {
+               std::cout<<"Ingoring "<<it->nRow()<<" rows"<<std::endl;
+               continue;
+           } 
+           //ASKAPDEBUGASSERT(ant1IDs.nelements() == it->nRow());
+           //ASKAPDEBUGASSERT(ant2IDs.nelements() == it->nRow());
            for (casa::uInt row = 0; row<it->nRow(); ++row) {
                 ASKAPCHECK(ant1IDs[row] == it->antenna1()[row], "Mismatch of antenna 1 index for row "<<row<<
                            " - got "<<it->antenna1()[row]<<" expected "<<ant1IDs[row]);
@@ -169,7 +224,7 @@ void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, s
        ASKAPASSERT(it->nChannel() >= 1);
        casa::Vector<casa::Complex> freqAvBuf(it->nRow(), casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
-            freqAvBuf += it->visibility().xyPlane(0).column(ch);
+            freqAvBuf += it->visibility().xyPlane(3).column(ch);
        }
        freqAvBuf /= float(it->nChannel());
        buf += freqAvBuf;
@@ -208,21 +263,28 @@ void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, s
 
 int main(int argc, char **argv) {
   try {
-     if (argc!=2) {
-         cerr<<"Usage "<<argv[0]<<" measurement_set"<<endl;
+     if (argc<2) {
+         cerr<<"Usage "<<argv[0]<<" measurement_set1 [measurement_set2 ...]"<<endl;
 	 return -2;
      }
 
      casa::Timer timer;
 
      timer.mark();
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
-     std::cerr<<"Initialization: "<<timer.real()<<std::endl;
-     timer.mark();
-     // number of cycles to average
-     const size_t nAvg = 1;
+
+     std::vector<std::string> datasets(argc - 1);
+     for (int i=1; i<argc; ++i) {
+          datasets[i-1] = argv[i];
+     }
      scimath::GenericNormalEquations gne;
-     process(gne, ds, nAvg);
+
+     for (std::vector<std::string>::const_iterator ci = datasets.begin(); ci != datasets.end(); ++ci) {
+          
+          TableDataSource ds(*ci,TableDataSource::MEMORY_BUFFERS);     
+          // number of cycles to average
+          const size_t nAvg = 1;
+          process(gne, ds, nAvg);
+     }
     
      // now solve
      scimath::LinearSolver solver;
@@ -242,18 +304,32 @@ int main(int argc, char **argv) {
           */
           
      }
+     //params.fix("h1");
+     //params.fix("p1");
+     
      // antenna 8 is the reference for now
      params.fix("x1");
      params.fix("y1");
      params.fix("z1");
+
+     //params.fix("x2");
+     //params.fix("y2");
+     //params.fix("z2");
+     //params.fix("z0");
+     
+
      solver.addNormalEquations(gne);
      solver.solveNormalEquations(params,q);
      std::cout<<q<<std::endl;
+       std::cout<<params<<std::endl;
      if (unknowns.size() % 3 == 0) {
         for (size_t ant=0; ant < unknowns.size() / 3; ++ant) {
              const std::string antStr = utility::toString(ant);
+             //std::cout<<"ant: "<<ant<<" dH: "<<params.scalarValue("h"+antStr)<<" (metres) "<<std::endl;
+             
              std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
                         params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
+             
         }
      } else {
        std::cout<<params<<std::endl;

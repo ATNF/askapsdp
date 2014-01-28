@@ -97,7 +97,7 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
   // the assumed baseline order depends on this parameter
   const bool useSWCorrelator = false;
 
-  casa::uInt cPol = 0;
+  casa::uInt cPol = 3;
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        // for every iteration we first build an index into all unflagged rows
        std::vector<casa::uInt> rowIndex;
@@ -178,10 +178,10 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
                ++nBadRows;
             } else {
                 casa::Vector<casa::Complex> thisRow = buf.row(validRow);
-                //thisRow += it->visibility().xyPlane(0).row(row);
+                //thisRow += it->visibility().xyPlane(cPol).row(row);
                 for (casa::uInt ch = 0; ch<thisRow.nelements(); ++ch) {
                      if (!flags[ch]) {
-                         thisRow[ch] += it->visibility()(row,ch,0);
+                         thisRow[ch] += it->visibility()(row,ch,cPol);
                      }
                 }
                 ++nGoodRows;
