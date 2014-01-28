@@ -136,8 +136,10 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        for (casa::uInt row=0; row<nRow; ++row) {
             casa::Vector<casa::Bool> flags = it->flag().xyPlane(pol2use).row(row);
             bool flagged = false;
+            bool allFlagged = true;
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
                  flagged |= flags[ch];
+                 allFlagged &= flags[ch];
             }
             
             casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(pol2use).row(row);
@@ -169,7 +171,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
 
             
             // to disable flagging
-            flagged = false;
+            flagged = false; //allFlagged; //false;
             
 
             if (flagged) {

@@ -69,18 +69,143 @@ const double antITRFpos[3][3]={{-2555394.936910,5097674.796317,-2848567.461727},
                                {-2556005.813742, 5097327.008027, -2848641.257970},
                                {-2555892.578900, 5097559.600315, -2848328.739449}};
 
+void heightCorrected(double h, casa::uInt ant) 
+{
+   ASKAPDEBUGASSERT(ant<3);
+   const double length=sqrt(antITRFpos[ant][0]*antITRFpos[ant][0]+antITRFpos[ant][1]*antITRFpos[ant][1]+antITRFpos[ant][2]*antITRFpos[ant][2]);
+   std::cout<<"[";
+   for (size_t i=0;i<3;++i) {
+        if (i!=0) {
+            std::cout<<",";
+        }
+        std::cout<<std::setprecision(15)<<antITRFpos[ant][i]/length*h+antITRFpos[ant][i];
+   }
+   std::cout<<"]";
+}
 
-void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConstDataAccessor &acc)
+struct RateEstimator {
+   // note with 1/2pi resolution delay estimator just gives the slope coefficient
+   RateEstimator() : itsCounter(0), itsTime(0.), itsStartTime(0.), itsEndTime(0.), itsEstimator(1./2./casa::C::pi) { itsPhases.reserve(260); }
+
+   void init() { itsPhases.erase(itsPhases.begin(), itsPhases.end()); itsTime = 0.; itsStartTime = 0.; ASKAPDEBUGASSERT(itsPhases.size()==0);}
+
+   // phase in radians, time in seconds
+   void add(const double phase, const double time) { 
+        if (itsPhases.size() == 0) {
+            itsStartTime = time;
+        }
+        itsEndTime = time;
+        itsPhases.push_back(phase);
+   }
+
+   size_t size() const { return itsPhases.size();}
+
+   double getMidPoint() const {
+      const double midPoint = (itsEndTime+itsStartTime) / 2.;
+      return midPoint;
+   }
+
+   double getDuration() const {
+      return itsEndTime - itsStartTime;
+   }
+
+   bool isEmpty() const { return itsPhases.size() == 0;}
+   
+   mutable size_t itsCounter; 
+
+   /// @return time rate in rad per second
+   double getRate() const {
+      ASKAPDEBUGASSERT(itsPhases.size() > 1);
+
+      const double interval = (itsEndTime - itsStartTime) / double(itsPhases.size() - 1);
+
+      ASKAPDEBUGASSERT(interval > 0.);
+
+      // just for simplicity - reuse the existing code
+      casa::Vector<casa::Complex> buf(itsPhases.size(),0.);
+      //std::ofstream os("dbg.dat");
+      for (casa::uInt i = 0; i<buf.nelements(); ++i) {
+           buf[i] = casa::polar(1.,itsPhases[i]);
+           //os<<itsPhases[i]*180./casa::C::pi<<std::endl;
+      }
+      //std::cout<<itsEstimator.getDelay(buf) / interval<<" interval="<<interval<<std::endl;
+      //if (++itsCounter >=3) { throw 1;}
+      // use delay estimator to get us time rate because the math is the same
+      return itsEstimator.getDelay(buf) / interval;
+   }
+private:
+   std::vector<double> itsPhases;
+
+   double itsTime;
+ 
+   double itsStartTime;
+   double itsEndTime;
+
+   scimath::DelayEstimator itsEstimator;
+};
+
+void finaliseRate(RateEstimator &re, scimath::GenericNormalEquations &gne, casa::uInt index1, casa::uInt index2, double cH0, double sH0, double cd, double effLO)
+{
+   if (re.size() < 2) {
+       return;
+   }
+   //if ((index1 != 0) || (index2 != 1)) return;
+   scimath::DesignMatrix dm;
+   const std::string ant1str = utility::toString(index1);
+   const std::string ant2str = utility::toString(index2);
+   const double rate = re.getRate();
+
+   const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
+
+   
+   dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,sH0*cd*siderealRate));
+   dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd*siderealRate));
+   dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,cH0*cd*siderealRate));
+   dm.addDerivative("y"+ant2str, casa::Vector<casa::Double>(1,-cH0*cd*siderealRate));
+   
+
+   /*
+   ASKAPDEBUGASSERT(index1<3);
+   ASKAPDEBUGASSERT(index2<3);
+   const double length1=sqrt(antITRFpos[index1][0]*antITRFpos[index1][0]+antITRFpos[index1][1]*antITRFpos[index1][1]+antITRFpos[index1][2]*antITRFpos[index1][2]);
+   const double length2=sqrt(antITRFpos[index2][0]*antITRFpos[index2][0]+antITRFpos[index2][1]*antITRFpos[index2][1]+antITRFpos[index2][2]*antITRFpos[index2][2]);
+
+   const double coeffX1 = antITRFpos[index1][0]/length1;
+   const double coeffY1 = antITRFpos[index1][1]/length1;
+   const double coeffX2 = antITRFpos[index2][0]/length2;
+   const double coeffY2 = antITRFpos[index2][1]/length2;
+   dm.addDerivative("h"+ant1str, casa::Vector<casa::Double>(1,sH0*cd*siderealRate*coeffX1+cH0*cd*siderealRate*coeffY1));
+   dm.addDerivative("h"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd*siderealRate*coeffX2-cH0*cd*siderealRate*coeffY2));
+   */
+       
+   dm.addResidual(casa::Vector<casa::Double>(1,rate*casa::C::c/effLO/2./casa::C::pi), casa::Vector<double>(1, 1.));
+
+   gne.add(dm);
+   
+   
+   /*
+   if ((index1 == 0) || (index2 == 1)) 
+       //std::cout<<rate*180/casa::C::pi<<" "<<sH0*cd<<" "<<cH0*cd<<" "<<(sH0*cd*siderealRate*coeffX1+cH0*cd*siderealRate*coeffY1)*360.*effLO/casa::C::c<<std::endl;
+       std::cout<<rate*180/casa::C::pi<<" "<<sH0*cd<<" "<<cH0*cd<<std::endl;
+   */
+   re.init();
+}
+
+void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConstDataAccessor &acc, std::vector<RateEstimator> &re)
 {
    ASKAPDEBUGASSERT(acc.nRow()>0);
    ASKAPDEBUGASSERT(acc.nChannel()>1);
    ASKAPDEBUGASSERT(acc.nPol()>0);
+   ASKAPDEBUGASSERT(acc.nRow() == re.size());
    const double effectiveLO = 1e6*(acc.frequency()[0] - 343.5);
    scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
    casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(3);
    casa::Matrix<casa::Bool> flags = acc.flag().xyPlane(3);
   
-   const casa::MEpoch epoch(casa::Quantity(56100.0+acc.time()/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
+   const double accTime = re[0].getMidPoint();
+
+   //const double accTime = acc.time();
+   const casa::MEpoch epoch(casa::Quantity(56100.0+accTime/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
    casa::MeasFrame frame(epoch);
    const casa::MVDirection dir = casa::MDirection::Convert(casa::MDirection(acc.pointingDir1()[0]), 
                                  casa::MDirection::Ref(casa::MDirection::JTRUE, frame))().getAngle();
@@ -92,34 +217,46 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
    const double H0 = gmst - ra, sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
   
    for (casa::uInt baseline = 0; baseline < vis.nrow(); ++baseline) {
+        const casa::uInt index1 = acc.antenna1()[baseline];
+        const casa::uInt index2 = acc.antenna2()[baseline];
+
         bool flagged = false;
         for (casa::uInt ch = 0; ch < flags.ncolumn(); ++ch) {
              flagged |= flags(baseline,ch);
         }
         if (flagged) {
+            if (!re[baseline].isEmpty()) {
+                finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
+            }
             continue;
         }
 
         ASKAPDEBUGASSERT(vis.ncolumn()>0);
         // direct measurement of the delay
-        //const double delay = de.getDelay(vis.row(baseline));
+        const double delay = de.getDelay(vis.row(baseline));
 
+        
         // phase as a proxy
         casa::Complex avgVis = casa::sum(vis.row(baseline)) / casa::Float(vis.ncolumn());
         const double phase = arg(avgVis);
-        const double delay = phase / 2. / casa::C::pi / effectiveLO;
 
-        const casa::uInt index1 = acc.antenna1()[baseline];
-        const casa::uInt index2 = acc.antenna2()[baseline];
+        if (!re[baseline].isEmpty() && (re[baseline].getDuration() > 600.)) {
+            finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
+        }
+        re[baseline].add(phase, acc.time());
+
+        //const double delay = phase / 2. / casa::C::pi / effectiveLO;
+        
 
         const std::string ant1str = utility::toString(index1);
         const std::string ant2str = utility::toString(index2);
         ASKAPASSERT(index1<3);
         ASKAPASSERT(index2<3);
 
+        /*
+
         scimath::DesignMatrix dm;
 
-        /*
         const double length1=sqrt(antITRFpos[index1][0]*antITRFpos[index1][0]+antITRFpos[index1][1]*antITRFpos[index1][1]+antITRFpos[index1][2]*antITRFpos[index1][2]);
         const double length2=sqrt(antITRFpos[index2][0]*antITRFpos[index2][0]+antITRFpos[index2][1]*antITRFpos[index2][1]+antITRFpos[index2][2]*antITRFpos[index2][2]);
 
@@ -140,7 +277,7 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         dm.addDerivative("p"+ant2str, casa::Vector<casa::Double>(1,-360.*effectiveLO*casa::C::c));
         */
  
-        
+        /*
         dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,-cH0*cd));
         dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,cH0*cd));
         dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,sH0*cd));
@@ -150,6 +287,7 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         
         dm.addResidual(casa::Vector<casa::Double>(1,delay*casa::C::c), casa::Vector<double>(1, 1.));
         gne.add(dm);
+        */
    }
 }
 
@@ -173,6 +311,8 @@ void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double st
 }
 
 void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, size_t nAvg) {
+  std::vector<RateEstimator> re(3);
+
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
   sel->chooseFeed(0);
@@ -239,7 +379,7 @@ void process(scimath::GenericNormalEquations &gne, const IConstDataSource &ds, s
             ASKAPCHECK(dir.separation(it->pointingDir1()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
             ASKAPCHECK(dir.separation(it->pointingDir2()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
        }
-       processDelays(gne,*it);
+       processDelays(gne,*it,re);
 
        avgTime += it->time();
        
@@ -305,12 +445,14 @@ int main(int argc, char **argv) {
           
      }
      //params.fix("h1");
+     //params.fix("h2");
      //params.fix("p1");
      
      // antenna 8 is the reference for now
      params.fix("x1");
      params.fix("y1");
-     params.fix("z1");
+
+     //params.fix("z1");
 
      //params.fix("x2");
      //params.fix("y2");
@@ -322,13 +464,21 @@ int main(int argc, char **argv) {
      solver.solveNormalEquations(params,q);
      std::cout<<q<<std::endl;
        std::cout<<params<<std::endl;
-     if (unknowns.size() % 3 == 0) {
-        for (size_t ant=0; ant < unknowns.size() / 3; ++ant) {
+     const size_t parPerAnt = 2; // 3;
+     if (unknowns.size() % parPerAnt == 0) {
+        for (size_t ant=0; ant < unknowns.size() / parPerAnt; ++ant) {
              const std::string antStr = utility::toString(ant);
              //std::cout<<"ant: "<<ant<<" dH: "<<params.scalarValue("h"+antStr)<<" (metres) "<<std::endl;
+             //std::cout<<"height corrected: "; heightCorrected(params.scalarValue("h"+antStr), ant); std::cout<<std::endl;
              
              std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
-                        params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
+                        params.scalarValue("y"+antStr) <<" (metres)"<<std::endl;
+             std::cout<<"Full: ["<<std::setprecision(15)<<antITRFpos[ant][0]+params.scalarValue("x"+antStr)<<","<<
+                                   std::setprecision(15)<<antITRFpos[ant][1]+params.scalarValue("y"+antStr)<<","<<
+                                   std::setprecision(15)<<antITRFpos[ant][2]<<"]"<<std::endl;
+  
+             //std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
+             //           params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
              
         }
      } else {
@@ -336,7 +486,7 @@ int main(int argc, char **argv) {
      }
      
      //
-
+     std::cout<<"custom offset: "; heightCorrected(15., 0); std::cout<<std::endl;
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
