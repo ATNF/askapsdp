@@ -1,10 +1,10 @@
 mssplit (Measurement Splitting/Averaging Utility) Documentation
 ===============================================================
 
-The mssplit utility is used to split a large measurement set up based on
-channel selection. It also has the ability to average channels together
-while doing so. It can also be used simply to average channels; i.e. a
-single input measurement set and a single output measurement set.
+The *mssplit* utility is used to extract a subset of a measurement set. This
+subset may be a channel, beam id or scan id selection. It also has the ability
+to average channels together while doing so. It can also be used simply to
+average channels; i.e. just channel averaging, no filtering/selection.
 
 The intended use-cases of this tool are:
 

@@ -199,13 +199,13 @@ desktop computer::
     scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty
     scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty
 
-The string <USERID> needs to be replaced with your iVEC userid. Also, you may wish to use
+The string <USERID> needs to be replaced with your iVEC userid. Alternatively, you may wish to use
 the BBCP program for faster data transfer if you have it installed::
 
-    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored
-    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty
-    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty
-    bbcp -z -P 10 -s 16 -w 2M -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty
 
 Once the files have finished downloading, view the restored image with casaviewer::
 

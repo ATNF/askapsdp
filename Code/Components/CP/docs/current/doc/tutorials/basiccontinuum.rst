@@ -1,6 +1,8 @@
 Basic Continuum Imaging Tutorial
 ================================
 
+.. note:: This tutorial has not yet been written, but you probably already worked that out.
+
 This tutorial demonstrates basic continuum imaging using ASKAPsoft.
 
 Prerequisites
@@ -16,6 +18,6 @@ Setting up a working directory
 Your working directory will not be within your home directory, instead it will reside
 on the fast Lustre filesystem::
 
-    cd /scratch/$USER
+    cd /scratch/askap/$USER
     mkdir continuumtutorial
     cd continuumtutorial
