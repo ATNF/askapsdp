@@ -101,13 +101,19 @@ antennas.AK08.feed_config  = PAF36
 
 # # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
 # # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
-antennas.AK09.location     = [-2555892.578900, 5097559.600315, -2848328.739449]
+# original position
+#antennas.AK09.location     = [-2555892.578900, 5097559.600315, -2848328.739449]
+# our best so far
+antennas.AK09.location     = [-2555892.0789,5097558.900315,-2848328.449449]
 antennas.AK09.diameter     = 12m
 antennas.AK09.mount        = equatorial
 antennas.AK09.feed_config  = PAF36
 
 
-antennas.AK15.location  = [-2555394.936910,5097674.796317,-2848567.461727]
+#original position
+#antennas.AK15.location  = [-2555394.936910,5097674.796317,-2848567.461727]
+# our best so far
+antennas.AK15.location  =  [-2555392.80943903,5097670.48452923,-2848565.421727]
 antennas.AK15.diameter     = 12m
 antennas.AK15.mount        = equatorial
 antennas.AK15.feed_config  = PAF36
@@ -160,9 +166,9 @@ observation.scan0.field_name        = test-field
 # 0407-658
 #observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
+#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790 (cluster field)
-#observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
+observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
 # 1742-289 (Galactic centre)
 #observation.scan0.field_direction   = [17h45m40.04, -29.00.28.07, J2000]
 
@@ -203,8 +209,9 @@ observation.scan0.start_freq        = 1.0155GHz
 observation.scan0.n_chan            = 16416
 observation.scan0.chan_width        = -18.518518kHz
 observation.scan0.stokes            = [XX, XY, YX, YY]
-#observation.scan0.interval          = 5000000
-observation.scan0.interval          = 4976640
+observation.scan0.interval          = 5000000
+#observation.scan0.interval          = 5031936
+#observation.scan0.interval          = 4976640
 
 #
 # Task List
@@ -214,7 +221,7 @@ observation.scan0.interval          = 4976640
 #tasks.tasklist                          = [NoMetadataSource, DerippleTask, CalcUVWTask, ChanSel, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource,  PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
 tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
-#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, DerippleTask, Monitor,MSSink]
+#tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, DerippleTask, ChanFlag, Monitor,MSSink]
 
 #
 # PhaseTrackTask
@@ -231,7 +238,7 @@ tasks.FringeRotationTask.params.ice.locator_port = 4061
 tasks.FringeRotationTask.params.icestorm.topicmanager = IceStorm/TopicManager@IceStorm.TopicManager
 tasks.FringeRotationTask.params.icestorm.outtopic = ingest2frt
 tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
-tasks.FringeRotationTask.params.fixeddelays = [145.5923, 0, -52.719]
+tasks.FringeRotationTask.params.fixeddelays = [146.2323, 0, -52.299]
 #tasks.FringeRotationTask.params.fixeddelays = [394.778, 0, 131.063]
 #tasks.FringeRotationTask.params.fixeddelays = [0, 0, 0]
 tasks.FringeRotationTask.params.refant = AK01
@@ -284,8 +291,8 @@ tasks.ChannelAvgTask.params.averaging   = 54
 
 # ChannelSelTask
 tasks.ChanSel.type        = ChannelSelTask
-tasks.ChanSel.params.start = 3078
-tasks.ChanSel.params.nchan = 13338
+tasks.ChanSel.params.start = 1458
+tasks.ChanSel.params.nchan = 11826
 
 #LO=6416MHz values for avoiding interference
 #tasks.Chansel.params.start = 9396
