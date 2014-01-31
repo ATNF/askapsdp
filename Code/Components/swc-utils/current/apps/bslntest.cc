@@ -65,7 +65,7 @@ using namespace askap;
 using namespace askap::accessors;
 
 // 15, 8, 9
-const double antITRFpos[3][3]={{-2555394.936910,5097674.796317,-2848567.461727},
+const double antITRFpos[3][3]={{-2555397.93943903,5097670.48452923,-2848570.361727}, /*initial location {-2555394.936910,5097674.796317,-2848567.461727},*/
                                {-2556005.813742, 5097327.008027, -2848641.257970},
                                {-2555892.578900, 5097559.600315, -2848328.739449}};
 
@@ -149,11 +149,13 @@ void finaliseRate(RateEstimator &re, scimath::GenericNormalEquations &gne, casa:
    if (re.size() < 2) {
        return;
    }
-   //if ((index1 != 0) || (index2 != 1)) return;
+   if ((index1 != 0) || (index2 != 1)) return;
    scimath::DesignMatrix dm;
    const std::string ant1str = utility::toString(index1);
    const std::string ant2str = utility::toString(index2);
    const double rate = re.getRate();
+
+   if ((rate*180./casa::C::pi > 0.5) || (rate*180./casa::C::pi <-0.1)) { return; }
 
    const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
 
@@ -174,8 +176,8 @@ void finaliseRate(RateEstimator &re, scimath::GenericNormalEquations &gne, casa:
    const double coeffY1 = antITRFpos[index1][1]/length1;
    const double coeffX2 = antITRFpos[index2][0]/length2;
    const double coeffY2 = antITRFpos[index2][1]/length2;
-   dm.addDerivative("h"+ant1str, casa::Vector<casa::Double>(1,sH0*cd*siderealRate*coeffX1+cH0*cd*siderealRate*coeffY1));
-   dm.addDerivative("h"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd*siderealRate*coeffX2-cH0*cd*siderealRate*coeffY2));
+   dm.addDerivative("h"+ant1str, casa::Vector<casa::Double>(1,-sH0*cd*siderealRate*coeffX1-cH0*cd*siderealRate*coeffY1));
+   dm.addDerivative("h"+ant2str, casa::Vector<casa::Double>(1,sH0*cd*siderealRate*coeffX2+cH0*cd*siderealRate*coeffY2));
    */
        
    dm.addResidual(casa::Vector<casa::Double>(1,rate*casa::C::c/effLO/2./casa::C::pi), casa::Vector<double>(1, 1.));
@@ -183,11 +185,11 @@ void finaliseRate(RateEstimator &re, scimath::GenericNormalEquations &gne, casa:
    gne.add(dm);
    
    
-   /*
-   if ((index1 == 0) || (index2 == 1)) 
-       //std::cout<<rate*180/casa::C::pi<<" "<<sH0*cd<<" "<<cH0*cd<<" "<<(sH0*cd*siderealRate*coeffX1+cH0*cd*siderealRate*coeffY1)*360.*effLO/casa::C::c<<std::endl;
-       std::cout<<rate*180/casa::C::pi<<" "<<sH0*cd<<" "<<cH0*cd<<std::endl;
-   */
+   const double factor = 360.*effLO/casa::C::c*cd*siderealRate;
+   if ((index1 == 0) && (index2 == 1)) 
+       //std::cout<<rate*180/casa::C::pi<<" "<<sH0*factor<<" "<<cH0*factor<<" "<<(sH0*siderealRate*coeffX1+cH0*siderealRate*coeffY1)*360.*effLO/casa::C::c<<std::endl;
+       std::cout<<rate*180/casa::C::pi<<" "<<sH0*factor<<" "<<cH0*factor<<std::endl;
+   
    re.init();
 }
 
@@ -197,18 +199,21 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
    ASKAPDEBUGASSERT(acc.nChannel()>1);
    ASKAPDEBUGASSERT(acc.nPol()>0);
    ASKAPDEBUGASSERT(acc.nRow() == re.size());
-   const double effectiveLO = 1e6*(acc.frequency()[0] - 343.5);
+   // the following assumes averaging down to 1 MHz
+   const double effectiveLO = 1e6*(acc.frequency()[0] - 343 - 0.018518518/2.);
    scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
    casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(3);
    casa::Matrix<casa::Bool> flags = acc.flag().xyPlane(3);
   
-   const double accTime = re[0].getMidPoint();
+   //const double accTime = re[0].getMidPoint();
 
-   //const double accTime = acc.time();
+   const double accTime = acc.time();
    const casa::MEpoch epoch(casa::Quantity(56100.0+accTime/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
    casa::MeasFrame frame(epoch);
    const casa::MVDirection dir = casa::MDirection::Convert(casa::MDirection(acc.pointingDir1()[0]), 
                                  casa::MDirection::Ref(casa::MDirection::JTRUE, frame))().getAngle();
+   //std::cout<<epoch<<std::endl;
+   //std::cout<<printDirection(dir)<<std::endl;
    const double ra = dir.getValue()(0);
    const double dec = dir.getValue()(1);
    const double gmstInDays = casa::MEpoch::Convert(epoch,casa::MEpoch::Ref(casa::MEpoch::GMST1))().get("d").getValue("d");
@@ -226,7 +231,7 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         }
         if (flagged) {
             if (!re[baseline].isEmpty()) {
-                finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
+                //finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
             }
             continue;
         }
@@ -240,10 +245,10 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         casa::Complex avgVis = casa::sum(vis.row(baseline)) / casa::Float(vis.ncolumn());
         const double phase = arg(avgVis);
 
-        if (!re[baseline].isEmpty() && (re[baseline].getDuration() > 600.)) {
-            finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
+        if (!re[baseline].isEmpty() && (re[baseline].getDuration() > 300.)) {
+            //finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);
         }
-        re[baseline].add(phase, acc.time());
+        //re[baseline].add(phase, acc.time());
 
         //const double delay = phase / 2. / casa::C::pi / effectiveLO;
         
@@ -253,10 +258,10 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         ASKAPASSERT(index1<3);
         ASKAPASSERT(index2<3);
 
-        /*
+        
 
         scimath::DesignMatrix dm;
-
+/*
         const double length1=sqrt(antITRFpos[index1][0]*antITRFpos[index1][0]+antITRFpos[index1][1]*antITRFpos[index1][1]+antITRFpos[index1][2]*antITRFpos[index1][2]);
         const double length2=sqrt(antITRFpos[index2][0]*antITRFpos[index2][0]+antITRFpos[index2][1]*antITRFpos[index2][1]+antITRFpos[index2][2]*antITRFpos[index2][2]);
 
@@ -277,17 +282,17 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
         dm.addDerivative("p"+ant2str, casa::Vector<casa::Double>(1,-360.*effectiveLO*casa::C::c));
         */
  
-        /*
-        dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,-cH0*cd));
-        dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,cH0*cd));
-        dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,sH0*cd));
-        dm.addDerivative("y"+ant2str, casa::Vector<casa::Double>(1,-sH0*cd));
-        dm.addDerivative("z"+ant1str, casa::Vector<casa::Double>(1,-sd));
-        dm.addDerivative("z"+ant2str, casa::Vector<casa::Double>(1,sd));
         
-        dm.addResidual(casa::Vector<casa::Double>(1,delay*casa::C::c), casa::Vector<double>(1, 1.));
+        dm.addDerivative("x"+ant1str, casa::Vector<casa::Double>(1,cH0*cd));
+        dm.addDerivative("x"+ant2str, casa::Vector<casa::Double>(1,-cH0*cd));
+        dm.addDerivative("y"+ant1str, casa::Vector<casa::Double>(1,-sH0*cd));
+        dm.addDerivative("y"+ant2str, casa::Vector<casa::Double>(1,sH0*cd));
+        dm.addDerivative("z"+ant1str, casa::Vector<casa::Double>(1,sd));
+        dm.addDerivative("z"+ant2str, casa::Vector<casa::Double>(1,-sd));
+        
+        dm.addResidual(casa::Vector<casa::Double>(1,-delay*casa::C::c), casa::Vector<double>(1, 1.));
         gne.add(dm);
-        */
+        
    }
 }
 
@@ -452,38 +457,44 @@ int main(int argc, char **argv) {
      params.fix("x1");
      params.fix("y1");
 
-     //params.fix("z1");
+     params.fix("z1");
 
-     //params.fix("x2");
-     //params.fix("y2");
-     //params.fix("z2");
-     //params.fix("z0");
+     params.fix("x2");
+     params.fix("y2");
+     params.fix("z2");
+     //params.fix("y0");
      
 
      solver.addNormalEquations(gne);
      solver.solveNormalEquations(params,q);
      std::cout<<q<<std::endl;
        std::cout<<params<<std::endl;
-     const size_t parPerAnt = 2; // 3;
+     const size_t parPerAnt = 3; // 3;
      if (unknowns.size() % parPerAnt == 0) {
         for (size_t ant=0; ant < unknowns.size() / parPerAnt; ++ant) {
              const std::string antStr = utility::toString(ant);
              //std::cout<<"ant: "<<ant<<" dH: "<<params.scalarValue("h"+antStr)<<" (metres) "<<std::endl;
              //std::cout<<"height corrected: "; heightCorrected(params.scalarValue("h"+antStr), ant); std::cout<<std::endl;
-             
+
+             std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
+                        params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
+
+ /*            
              std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
                         params.scalarValue("y"+antStr) <<" (metres)"<<std::endl;
+ */ 
              std::cout<<"Full: ["<<std::setprecision(15)<<antITRFpos[ant][0]+params.scalarValue("x"+antStr)<<","<<
                                    std::setprecision(15)<<antITRFpos[ant][1]+params.scalarValue("y"+antStr)<<","<<
-                                   std::setprecision(15)<<antITRFpos[ant][2]<<"]"<<std::endl;
-  
-             //std::cout<<"ant: "<<ant<<" dX: "<<params.scalarValue("x"+antStr)<<" dY: "<<
-             //           params.scalarValue("y"+antStr) << " dZ: "<<params.scalarValue("z"+antStr)<<" (metres)"<<std::endl;
-             
+                                   std::setprecision(15)<<antITRFpos[ant][2]+params.scalarValue("z"+antStr)<<"]"<<std::endl;
+ 
         }
      } else {
        std::cout<<params<<std::endl;
      }
+
+             std::cout<<"Test: ["<<std::setprecision(15)<<antITRFpos[2][0]+0.5<<","<<
+                                   std::setprecision(15)<<antITRFpos[2][1]-0.7<<","<<
+                                   std::setprecision(15)<<antITRFpos[2][2]+0.<<"]"<<std::endl;
      
      //
      std::cout<<"custom offset: "; heightCorrected(15., 0); std::cout<<std::endl;

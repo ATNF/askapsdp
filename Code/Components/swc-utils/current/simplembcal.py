@@ -4,7 +4,7 @@
 
 flux = 14.5
 #basepath = "/Users/vor010/ASKAP/MS/Sep2013/subset"
-basepath = "/Users/vor010/ASKAP/MS/Nov2013/subset"
+basepath = "/Users/vor010/ASKAP/MS/Jan2014/process"
 
 import os
 
@@ -26,8 +26,8 @@ def extract(f, beam):
 with open('roughmbcalib.in','w') as f:
    for beam in range(9):
       print "Processing beam %i" % (beam,)
-      #calfile = os.path.join(basepath, "s1beam%ical.ms" % beam)
-      calfile = os.path.join(basepath, "beam%ical.ms" % beam)
+      calfile = os.path.join(basepath, "s2beam%ical.ms" % beam)
+      #calfile = os.path.join(basepath, "beam%ical.ms" % beam)
       os.system("%s %f %s" % (calutil, flux, calfile))
       f.write("# calibration file %s\n" % (calfile,))
       extract(f,beam)

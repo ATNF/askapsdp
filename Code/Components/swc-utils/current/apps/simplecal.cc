@@ -106,10 +106,20 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
        for (casa::uInt row = 0; row<it->nRow(); ++row) {
             casa::Vector<casa::Bool> flags = it->flag().xyPlane(cPol).row(row);
       
+            /*
+            // this code ensures that all channels are unflagged
             bool flagged = false;
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
                  flagged |= flags[ch];
             }
+            */
+
+            // this code ensures that at least one channel is unflagged
+            bool flagged = true;
+            for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
+                 flagged &= flags[ch];
+            }
+
             if (!flagged) {
                 rowIndex.push_back(row);
             }
@@ -128,6 +138,15 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
            //ASKAPCHECK(nRow == rowIndex.size(), 
            //       "Number of rows seem to have been changed, previously "<<nRow<<" now "<<it->nRow());
            if (nRow != rowIndex.size()) {
+               // quick and dirty hack for now as a work around for the condition where one antenna is unflagged before the others (as it normally happens
+               // now for fringe tracking under control of the ingest pipeline)
+               // --> allow to increase the amount of unflagged data, but skip rows if their number decreases
+               // currently skip one cycle when it happens, but it is not too bad as we normally have FR settling on a new rate
+               if (nRow < rowIndex.size()) {
+                   std::cerr<<"Number of unflagged rows increased, initially "<<nRow<<" now "<<rowIndex.size()<<", integration cycle = "<<counter+1<<" reset the expected number of rows"<<std::endl;
+                   nChan = 0;
+                   continue;
+               }
                std::cerr<<"Number of unflagged rows has been changed, initially "<<nRow<<" now "<<rowIndex.size()<<", integration cycle = "<<counter+1<<std::endl;
                continue;
            }

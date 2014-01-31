@@ -276,7 +276,8 @@ void doTest() {
   casa::MVDirection testDir = casa::MDirection::Convert(casa::MDirection(casa::MDirection::SUN), casa::MDirection::Ref(casa::MDirection::J2000,frame))().getValue();
  
    */
-  casa::MVDirection testDir(convertQuantity("20h42m11.58","rad"),convertQuantity("-18.13.48.7","rad"));
+  // put Sun position here for beamforming
+  casa::MVDirection testDir(convertQuantity("20h54m47.18","rad"),convertQuantity("-17.24.01.5","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
