@@ -113,4 +113,7 @@ void askap::accessors::operator<<(const boost::shared_ptr<IDataSelector> &sel,
   if (parset.isDefined("MaxUV")) {
       sel->chooseMaxUVDistance(parset.getDouble("MaxUV"));
   }
+  if (parset.isDefined("ScanNumber")) {
+      sel->chooseScanNumber(static_cast<casa::uInt>(parset.getUint32("ScanNumber")));
+  }
 }

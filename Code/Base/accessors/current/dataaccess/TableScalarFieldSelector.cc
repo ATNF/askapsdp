@@ -132,6 +132,19 @@ void TableScalarFieldSelector::chooseMaxUVDistance(casa::Double uvDist)
 }
 
 
+/// Choose a single scan number
+/// @param[in] scanNumber the scan number to choose
+void TableScalarFieldSelector::chooseScanNumber(casa::uInt scanNumber)
+{
+    if (itsTableSelector.isNull()) {
+        itsTableSelector = (table().col("SCAN_NUMBER") ==
+                static_cast<casa::Int>(scanNumber));
+    } else {
+        itsTableSelector = itsTableSelector && (table().col("SCAN_NUMBER") ==
+                static_cast<casa::Int>(scanNumber));
+    }
+}
+
 /// @brief Choose autocorrelations only
 void TableScalarFieldSelector::chooseAutoCorrelations()
 {

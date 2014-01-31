@@ -48,6 +48,10 @@ are optional. If present, a corresponding data selection is done and only those 
 |                      |              |              |**auto**, **cross** and **all**. Defining this parameter    |
 |                      |              |              |allows to select, e.g. just cross-correlations.             |
 +----------------------+--------------+--------------+------------------------------------------------------------+
+|ScanNumber            |uint32        |None          |Select a single scan number. If defined, only data          |
+|                      |              |              |corresponding to the given scan number will be read from    |
+|                      |              |              |the dataset. The value is 0-based.                          |
++----------------------+--------------+--------------+------------------------------------------------------------+
 |MinUV                 |double        |None          |Select data based on the uv-distance (in metres). Only      |
 |                      |              |              |visibility points corresponding to uv-distance greater than |
 |                      |              |              |the given value (defined in metres) are read from the       |

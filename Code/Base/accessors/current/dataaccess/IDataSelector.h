@@ -156,6 +156,10 @@ public:
 	/// @param[in] start the number of the first cycle to choose
 	/// @param[in] stop the number of the last cycle to choose
 	virtual void chooseCycles(casa::uInt start, casa::uInt stop) = 0;
+
+    /// Choose a single scan number
+    /// @param[in] scanNumber the scan number to choose
+    virtual void chooseScanNumber(casa::uInt scanNumber) = 0;
 };
 
 } // end of namespace accessors
