@@ -24,11 +24,19 @@ if [ $doCsim == true ]; then
 	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh ${randomgainsArgs} ${calibparset}
     fi
 
-    mergeDep="-Wdepend=afterok"
+#    mergeDep="-Wdepend=afterok"
+    dependStart=$depend
+    merge2dep=$depend
     GRP=0
     while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 
 	echo "Running group ${GRP} of ${NGROUPS_CSIM}"
+
+	if [ $dependStart == "" ]; then
+	    mergeDep="-Wdepend=afterok"
+	else
+	    mergeDep=$dependStart
+	fi
 
 	ms=${msSlice}_GRP${GRP}_%w.ms
 
@@ -45,6 +53,7 @@ if [ $doCsim == true ]; then
 	    if [ $doSlice == true ]; then 
 		mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
 		mergeDep="${mergeDep}:${slID}"
+		merge2dep="${merge2dep}:${slID}"
 	    fi
 	    slicebase=${slicebaseOrig}
 	fi
@@ -157,12 +166,14 @@ aprun -n ${NCPU_CSIM} -N ${NPPN_CSIM} \${csim} -c \${mkVisParset} > \${mkVisLog}
 EOF
 
 	if [ $doSubmit == true ]; then
-	    if [ $doSlice == true ]; then
-		mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
-	    else
-		mkvisID=`qsub ${qsubfile}`
-	    fi
+#	    if [ $doSlice == true ]; then
+#		mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
+#	    else
+#		mkvisID=`qsub ${qsubfile}`
+#	    fi
+	    mkvisID=`qsub ${mergeDep} ${qsubfile}`
 	    mergeDep="${mergeDep}:${mkvisID}"
+	    merge2dep="${mergeDep}:${mkvisID}"
 	fi
 
 	
@@ -207,8 +218,9 @@ $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msS
 EOF
 
 	    if [ $doSubmit == true ]; then
-		merge1ID=`qsub -Wdepend=afterok:${mkvisID} $merge1qsub`
-		mergeDep="${mergeDep}:${merge1ID}"
+		merge1ID=`qsub ${mergeDep} $merge1qsub`
+#		mergeDep="${mergeDep}:${merge1ID}"
+		merge2dep="${depend}:${merge1D}"
 	    fi
 
 	fi
@@ -251,7 +263,8 @@ EOF
 
 	if [ $doSubmit == true ]; then
 
-	    merge2ID=`qsub ${mergeDep} $merge2qsub`
+#	    merge2ID=`qsub ${mergeDep} $merge2qsub`
+	    merge2ID=`qsub ${merge2dep} $merge2qsub`
 
 	fi
 

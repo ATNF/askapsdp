@@ -116,7 +116,7 @@ EOF
 
     if [ $doSubmit == true ]; then
 
-	export slID=`qsub ${slQsub}`
+	export slID=`qsub ${depend} ${slQsub}`
 	echo Running cubeslice job with ID $slID
 
     fi
