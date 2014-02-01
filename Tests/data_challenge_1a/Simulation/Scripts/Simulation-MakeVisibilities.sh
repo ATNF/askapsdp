@@ -32,7 +32,7 @@ if [ $doCsim == true ]; then
 
 	echo "Running group ${GRP} of ${NGROUPS_CSIM}"
 
-	if [ $dependStart == "" ]; then
+	if [ "$dependStart" == "" ]; then
 	    mergeDep="-Wdepend=afterok"
 	else
 	    mergeDep=$dependStart
