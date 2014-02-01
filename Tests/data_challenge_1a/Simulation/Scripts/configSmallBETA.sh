@@ -62,8 +62,9 @@ doFullSpectrum=true
 ###########################################
 # Model creation definitions
 
-npix=2245
+npix=2304
 # 2245 pix @ 9.1234"/pix gives area covered by 2048 @ 10"/pix
+#   but can't use 2245 as it is odd. Use 2304=2048+256
 rpix=`echo $npix | awk '{print $1/2}'`
 cellsize=9.1234
 delt=`echo $cellsize | awk '{print $1/3600.}'`
