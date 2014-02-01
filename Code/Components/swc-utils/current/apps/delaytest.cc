@@ -131,7 +131,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        */
        
        // add new spectrum to the buffer
-       const casa::uInt pol2use = 3;
+       const casa::uInt pol2use = 0;
        ASKAPDEBUGASSERT(pol2use < it->nPol());
        for (casa::uInt row=0; row<nRow; ++row) {
             casa::Vector<casa::Bool> flags = it->flag().xyPlane(pol2use).row(row);
