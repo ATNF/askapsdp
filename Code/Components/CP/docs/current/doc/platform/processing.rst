@@ -59,11 +59,17 @@ Add the following to your ~/.bashrc
 
 .. code-block:: bash
 
+    # Use the ASKAP environment modules collection
+    module use /ivec/askap/modulefiles
+
     # Load the ASKAPsoft module
     module load askapsoft
 
     # Load the measures data
     module load askapdata
+
+    # Load the BBCP module for fast external data transfer
+    module load bbcp
 
     # Allow MPICH to fallback to 4k pages if large pages cannot be allocated
     export MPICH_GNI_MALLOC_FALLBACK=enabled

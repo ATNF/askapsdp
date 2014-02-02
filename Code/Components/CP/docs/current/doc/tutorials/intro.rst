@@ -125,7 +125,7 @@ indefinitely (which can happen in the case of a bug or misconfiguration)::
     #PBS -l walltime=02:00:00
 
 The "-N" option sets the job name to *cimager*. This can be anything (there are some restrictions)
-an is used to identify your job in the list of all jobs running on the system::
+and is used to identify your job in the list of all jobs running on the system::
 
     #PBS -N cimager
 

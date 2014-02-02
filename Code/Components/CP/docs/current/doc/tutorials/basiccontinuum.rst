@@ -1,5 +1,5 @@
 Basic Continuum Imaging Tutorial
-================================
+=================================
 
 .. note:: This tutorial has not yet been written, but you probably already worked that out.
 

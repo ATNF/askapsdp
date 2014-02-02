@@ -42,7 +42,7 @@ and to copy a file to the /scratch filesystem::
     bbcp -P 10 -s 16 -w 2M -r image.fits esdm017.pawsey.ivec.org:/scratch/askap/user123
 
 .. note:: The hostname necessary to use bbcp is esdm017.pawsey.ivec.org. This is one of the
-          two hosts to which the galaxydata DNS alias points to (the other is esdm0016). This
+          two hosts to which the galaxydata DNS alias points to (the other is esdm016). This
           is necessary as bbcp doesn't reliably establish connections via the galaxydata alias.
 
 The three additional options result in production of progress messages every 10 seconds,
