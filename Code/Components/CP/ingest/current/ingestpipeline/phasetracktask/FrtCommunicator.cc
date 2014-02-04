@@ -151,6 +151,14 @@ bool FrtCommunicator::isUninitialised(const casa::uInt ant) const
   return itsAntennaStatuses[ant] == ANT_UNINITIALISED;
 }
 
+/// @brief invalidate the antenna
+/// @param[in] ant antenna index
+void FrtCommunicator::invalidate(const casa::uInt ant) 
+{
+  ASKAPASSERT(ant < itsAntennaStatuses.size());
+  itsAntennaStatuses[ant] = ANT_UNINITIALISED;
+}
+
 /// @brief signal of the new time stamp
 /// @details Without asynchronous thread, the current implementation relies on this method
 /// being called every cycle. It manages time outs and flags/unflags antennas as necessary.
@@ -158,10 +166,12 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
 {
   // first check any requests waiting for completion
   const double timeOut = 5.* itsCyclesToWait;
+  const uint64_t currentBAT = epoch2bat(casa::MEpoch(epoch, casa::MEpoch::UTC));
   for (size_t ant = 0; ant < itsAntennaStatuses.size(); ++ant) {
        if (itsAntennaStatuses[ant] == ANT_BEING_UPDATED) {
            const casa::MVEpoch timeSince = epoch - itsRequestCompletedTimes[ant];
-           if (timeSince.getTime("s").getValue() >= timeOut) {
+           // look at issue #5736 for the 14.5s fudge factor
+           if ((timeSince.getTime("s").getValue() >= timeOut) && (itsFRUpdateBATs[ant] + 14500000 < currentBAT)) {
                ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "<<itsAntennaNames[ant]<<
                                  ", unflagging the antenna");
                itsAntennaStatuses[ant] = ANT_VALID;

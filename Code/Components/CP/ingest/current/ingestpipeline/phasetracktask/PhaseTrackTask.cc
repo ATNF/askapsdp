@@ -192,7 +192,7 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
 
     if (itsTrackDelay || (ant1 < itsFixedDelays.size()) || (ant2 < itsFixedDelays.size())) {
         // fixed component of the delay in seconds
-        const double fixedDelay = 1e-9 * ((ant2 < itsFixedDelays.size()) ? itsFixedDelays[ant2] : 0. - (ant1 < itsFixedDelays.size()) ? itsFixedDelays[ant1] : 0.);
+        const double fixedDelay = 1e-9 * ((ant2 < itsFixedDelays.size()) ? itsFixedDelays[ant2] : 0. - ((ant1 < itsFixedDelays.size()) ? itsFixedDelays[ant1] : 0.));
         const double delayBy2pi = -2. * casa::C::pi * (fixedDelay + (itsTrackDelay ? delayInMetres - (itsTrackedSouthPole ? polDelayInMetres : 0.) : 0.) / casa::C::c);
         const casa::Vector<double>& freqs = chunk->frequency();
         ASKAPDEBUGASSERT(thisRow.nrow() == freqs.nelements());

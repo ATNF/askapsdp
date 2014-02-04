@@ -121,16 +121,23 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
        casa::Int diffRate = static_cast<casa::Int>((rates(itsRefAntIndex,0) - rates(ant,0))/phaseRateUnit);
        
        /*
-       if (ant == 1) {
+       if (ant == 0) {
            const double interval = itsTm[ant]>0 ? (chunk->time().getTime("s").getValue() - itsTm[ant]) : 0;
-           diffRate = (int(interval/240) % 2 == 0 ? +1. : -1) * static_cast<casa::Int>(casa::C::pi / 600. / phaseRateUnit);
-       } 
+           //diffRate = (int(interval/240) % 2 == 0 ? +1. : -1) * static_cast<casa::Int>(casa::C::pi / 100. / phaseRateUnit);
+           const casa::Int rates[11] = {-10, -8, -6, -4, -2, 0, 2, 4, 6, 8,10}; 
+           const double addRate = rates[int(interval/180) % 11];
+           diffRate = addRate;
+           if (int((interval - 5.)/180) % 11 != int(interval/180) % 11) {
+               ASKAPLOG_DEBUG_STR(logger,"Invalidating ant="<<ant);
+               itsFrtComm.invalidate(ant);
+           }
+           
+           ASKAPLOG_DEBUG_STR(logger, "Interval = "<<interval<<" seconds, rate = "<<diffRate<<" for ant = "<<ant<<" addRate="<<addRate);
+       }  else { diffRate = 0.;}
        if (itsTm[ant]<=0) {
            itsTm[ant] = chunk->time().getTime("s").getValue();
        }
        */
-       
-       
            
        if (diffRate > 131071) {
            ASKAPLOG_WARN_STR(logger, "Phase rate for antenna "<<ant<<" is outside the range (exeeds 131071)");
@@ -140,7 +147,7 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            ASKAPLOG_WARN_STR(logger, "Phase rate for antenna "<<ant<<" is outside the range (below -131070)");
            diffRate = -131070;
        }
-       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > 50) || itsFrtComm.isUninitialised(ant)) {
+       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > 20) || itsFrtComm.isUninitialised(ant)) {
           if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) > itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
               ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay<<" and phase rate to "<<diffRate);
               itsFrtComm.setDRxAndFRParameters(ant, drxDelay, diffRate,0,0);
@@ -161,14 +168,16 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            itsPhases[ant] += (chunk->time().getTime("s").getValue() - itsTm[ant]) * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
        }
        */
-       // 27628 microseconds is the offset before event trigger and the application of phase rates/accumulator reset
-       const uint64_t triggerOffset = 27628;
+       // we determined this offset from the measured data (see #5736)
+       const uint64_t fudgeOffset = 14500000;
+       // 25000 microseconds is the offset before event trigger and the application of phase rates/accumulator reset (specified in the osl script)
+       const uint64_t triggerOffset = 25000 + fudgeOffset;
        const uint64_t lastFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant) + triggerOffset;
        if (lastFRUpdateBAT > triggerOffset) {
            const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
            if (currentBAT > lastFRUpdateBAT) {
-               const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT;
-               const double etInCycles = double(elapsedTime) / integrationTime / 1e6;
+               const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT; // + 1000000;
+               const double etInCycles = double(elapsedTime + fudgeOffset) / integrationTime / 1e6;
                
                ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
            
@@ -178,8 +187,6 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
               ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
            }
        }
-       
-       itsTm[ant] = chunk->time().getTime("s").getValue();
   }
   //
   for (casa::uInt row = 0; row < chunk->nRow(); ++row) {

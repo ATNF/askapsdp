@@ -124,6 +124,10 @@ public:
     /// @param[in] ant antenna index
     /// @return true, if the given antenna is uninitialised
     bool isUninitialised(const casa::uInt ant) const;
+
+    /// @brief invalidate the antenna
+    /// @param[in] ant antenna index
+    void invalidate(const casa::uInt ant);
         
     /// @brief signal of the new time stamp
     /// @details Without asynchronous thread, the current implementation relies on this method

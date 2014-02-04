@@ -37,6 +37,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
@@ -234,15 +235,8 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
-    // we have to work with 64-bit integers explicitly and ensure the required accuracy
-    // is achieved when converting to MVEpoch
     const uint64_t midpointBAT = static_cast<uint64_t>(metadata.time()) + (period / 2ull);
-    const uint64_t microsecondsPerDay = 86400000000ull;
-    const casa::MVEpoch BATEpoch(static_cast<casa::Double>(midpointBAT / microsecondsPerDay), 
-                                 static_cast<casa::Double>(midpointBAT % microsecondsPerDay) / 
-                                 static_cast<casa::Double>(microsecondsPerDay));
-    chunk->time() = casa::MEpoch::Convert(casa::MEpoch(BATEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
-                             casa::MEpoch::Ref(casa::MEpoch::UTC))().getValue();
+    chunk->time() = bat2epoch(midpointBAT).getValue();
   
     // Convert the interval from microseconds (long) to seconds (double)
     const casa::Double interval = period / 1000.0 / 1000.0;
