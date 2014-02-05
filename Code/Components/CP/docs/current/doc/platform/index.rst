@@ -11,6 +11,7 @@ iVEC in the Pawsey Centre in Perth, WA.
    :maxdepth: 1
 
    processing.rst
+   modules.rst
    externaltransfer.rst
    comm_archive.rst
    casa.rst

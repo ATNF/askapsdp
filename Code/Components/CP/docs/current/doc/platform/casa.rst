@@ -3,10 +3,11 @@ Using CASA
 
 While the ASKAP Central Processor was not specifically designed to run CASA, there are a
 number of approaches to using CASA. It can be run on the compute nodes, however there is
-no X-Windows system there, so GUI tools such as casaviewer, casabrowser, casaplotms will
+no X-Windows system there, so GUI tools such as casaviewer, casabrowser & casaplotms will
 not work. We do have a number of (temporarily) "spare" nodes which we can temporarily
-dedicate to CASA usage temporarily. However these nodes are part of the ingest pipeline
-infrastructure and will be dedicated to that purpose as more antennas come online.
+dedicate to CASA usage. These are Dell servers with 64GB RAM. However these nodes are part
+of the ingest pipeline infrastructure and will be dedicated to that purpose as more
+antennas come online.
 
 .. warning:: Neither casapy nor any of the CASA GUI tools (casaviewer, casabrowser, casaplotms)
              should be executed on the login nodes (eslogin-rt000 or eslogin-rt001). Using

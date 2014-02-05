@@ -94,7 +94,8 @@ from compute nodes.
 Submitting a job:
 -----------------
 
-Magnus uses PBSPro for Job scheduling, however the below examples use a Cray specific
+This section describes the job execution environment on the ASKAP Central Processor. The
+system uses PBSPro for Job scheduling, however the below examples use a Cray specific
 customisation to declare the resources required. An example qsub file is::
 
     #!/bin/bash -l

@@ -26,7 +26,7 @@ To transfer data from PBStore to the CP::
 
     scp cortex.ivec.org:/pbstore/userfs/<username>/<filename>
 
-*IMPORTANT:* If you are retrieving more than one file, it is much more efficient to stage
+**IMPORTANT:** If you are retrieving more than one file, it is much more efficient to stage
 the files before copying. Essentially by doing this you are telling PBStore, in advance,
 all the files you are going to retrieve so it can fetch them in the most optimal manner.
 
@@ -34,7 +34,7 @@ A single file can be staged with the command stage <filename> or a directory can
 all files recursively staged with the command stage -r <filename>. For example, to stage
 a directory (actually the files within the directory) then copy retrieve it::
 
-    ssh cortexivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/userfs/<username>/mydir
+    ssh cortex.ivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/userfs/<username>/mydir
     scp -r cortex.ivec.org:/pbstore/userfs/<username>/mydir
 
 To list your files on /pbstore/userfs/<username> (when logged into epic)::
