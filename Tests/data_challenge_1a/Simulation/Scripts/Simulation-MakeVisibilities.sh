@@ -53,7 +53,11 @@ if [ $doCsim == true ]; then
 	    if [ $doSlice == true ]; then 
 		mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
 		mergeDep="${mergeDep}:${slID}"
-		merge2dep="${merge2dep}:${slID}"
+		if [ "$merge2dep" == "" ]; then
+		    merge2dep="-Wdepend=afterok:${slID}"
+		else
+		    merge2dep="${merge2dep}:${slID}"
+		fi
 	    fi
 	    slicebase=${slicebaseOrig}
 	fi
@@ -173,7 +177,11 @@ EOF
 #	    fi
 	    mkvisID=`qsub ${mergeDep} ${qsubfile}`
 	    mergeDep="${mergeDep}:${mkvisID}"
-	    merge2dep="${mergeDep}:${mkvisID}"
+	    if [ "$merge2dep" == "" ]; then
+		merge2dep="-Wdepend=afterok:${mkvisID}"
+	    else
+		merge2dep="${mergeDep}:${mkvisID}"
+	    fi
 	fi
 
 	
@@ -219,8 +227,7 @@ EOF
 
 	    if [ $doSubmit == true ]; then
 		merge1ID=`qsub ${mergeDep} $merge1qsub`
-#		mergeDep="${mergeDep}:${merge1ID}"
-		merge2dep="${depend}:${merge1D}"
+		merge2dep="${merge2dep}:${merge1D}"
 	    fi
 
 	fi
@@ -263,7 +270,6 @@ EOF
 
 	if [ $doSubmit == true ]; then
 
-#	    merge2ID=`qsub ${mergeDep} $merge2qsub`
 	    merge2ID=`qsub ${merge2dep} $merge2qsub`
 
 	fi
