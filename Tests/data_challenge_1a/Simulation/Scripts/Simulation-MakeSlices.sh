@@ -14,11 +14,15 @@ if [ $doSlice == true ]; then
 
 	nsubxSlice=${nsubxCR}
 	nsubySlice=${nsubyCR}
+	width=${SLICERWIDTH}
+	nppn=${SLICERNPPN}
 
     else
 
 	nsubxSlice=1
 	nsubySlice=1
+	width=1
+	nppn=1
 
     fi
 
@@ -31,8 +35,8 @@ if [ $doSlice == true ]; then
     cat > $slQsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=12:00:00
-#PBS -l mppwidth=${SLICERWIDTH}
-#PBS -l mppnppn=${SLICERNPPN}
+#PBS -l mppwidth=${width}
+#PBS -l mppnppn=${nppn}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N sliceCont
 #PBS -m bea
