@@ -66,12 +66,17 @@ namespace askap {
 	    std::string itsSliceName;
 
 	    boost::scoped_ptr< casa::PagedImage<float> > itsSlice;
+	    casa::IPosition itsSliceShape;
+	    std::vector<int> itsNpix;
+	    int itsNchan;
+	    unsigned int itsLngAxis;
+	    unsigned int itsLatAxis;
+	    unsigned int itsSpcAxis;
+	    
 
 	    casa::CoordinateSystem itsRefCoordinates;
 	    casa::Unit itsRefUnits;
 	    casa::IPosition itsRefShape;
-	    casa::IPosition itsSliceShape;
-	    unsigned int itsSpcAxis;
 	    std::vector<int> itsChanRange;
 
 

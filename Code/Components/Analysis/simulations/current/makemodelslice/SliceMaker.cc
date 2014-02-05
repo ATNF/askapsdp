@@ -65,11 +65,18 @@ namespace askap {
 	    this->itsSliceName = parset.getString("slicename");
 	    this->itsSubimageDef = analysisutilities::SubimageDef(parset);
 	    this->itsNumChunks = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby() * this->itsSubimageDef.nsubz();
-	    this->itsSliceShape = casa::IPosition(parset.getIntVector("sliceshape"));
+//	    this->itsSliceShape = casa::IPosition(parset.getIntVector("sliceshape"));
+
+	    this->itsNpix = parset.getIntVector("npix");
+	    this->itsNchan = parset.getInt("nchan");
+
 	    this->itsSubimageDef.define(this->itsSliceShape.size());
 	    this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
 	    this->itsChanRange = parset.getIntVector("chanRange");
 	    ASKAPASSERT(this->itsChanRange.size() == 2);
+	    ASKAPCHECK(this->itsNchan == (abs(this->itsChanRange[1]-this->itsChanRange[0])+1),
+		       "Channel range (["<<this->itsChanRange[0]<<","<<this->itsChanRange[1]
+		       <<"]) does not match requested number of channels ("<<this->itsNchan<<")");
 	    
 	}
 
@@ -91,7 +98,15 @@ namespace askap {
 	    this->itsRefUnits = refImage.units();
 
 	    this->itsSpcAxis = this->itsRefCoordinates.spectralAxisNumber();
-	    ASKAPASSERT(this->itsSliceShape[this->itsSpcAxis] == (fabs(this->itsChanRange[1]-this->itsChanRange[0])+1));
+	    this->itsLngAxis = this->itsRefCoordinates.directionAxesNumbers()[0];
+	    this->itsLatAxis = this->itsRefCoordinates.directionAxesNumbers()[1];
+
+	    this->itsSliceShape = casa::IPosition(this->itsRefShape);
+	    this->itsSliceShape[this->itsLngAxis] = this->itsNpix[0];
+	    this->itsSliceShape[this->itsLatAxis] = this->itsNpix[1];
+	    this->itsSliceShape[this->itsSpcAxis] = this->itsNchan;
+
+//	    ASKAPASSERT(this->itsSliceShape[this->itsSpcAxis] == (fabs(this->itsChanRange[1]-this->itsChanRange[0])+1));
 
 	}
 
@@ -99,13 +114,10 @@ namespace askap {
 	{
 
 	    casa::CoordinateSystem newCoords = this->itsRefCoordinates;
-	    int lngAxis=newCoords.directionAxesNumbers()[0];
-	    int latAxis=newCoords.directionAxesNumbers()[1];
-	    int spcAxis=newCoords.spectralAxisNumber();
 	    casa::Vector<double> refPix = newCoords.referencePixel();
-	    refPix[lngAxis] = this->itsSliceShape[lngAxis]/2.;
-	    refPix[latAxis] = this->itsSliceShape[latAxis]/2.;
-	    refPix[spcAxis] -= this->itsChanRange[0];
+	    refPix[this->itsLngAxis] = this->itsSliceShape[this->itsLngAxis]/2.;
+	    refPix[this->itsLatAxis] = this->itsSliceShape[this->itsLatAxis]/2.;
+	    refPix[this->itsSpcAxis] -= this->itsChanRange[0];
 	    ASKAPASSERT(newCoords.setReferencePixel(refPix));
     
 	    const double size = static_cast<double>(this->itsSliceShape.product()) * sizeof(float);
