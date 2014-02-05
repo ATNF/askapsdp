@@ -62,8 +62,8 @@ cat >> \${slParset} <<EOFINNER
 #
 makeAllModelSlices.modelname = ${modelimage}
 makeAllModelSlices.slicename = ${slicebase}
-makeAllModelSlices.nsubx = ${nsubx}
-makeAllModelSlices.nsuby = ${nsuby}
+makeAllModelSlices.nsubx = ${nsubxSlice}
+makeAllModelSlices.nsuby = ${nsubySlice}
 makeAllModelSlices.nchanmodel = ${nchanSlicer}
 makeAllModelSlices.firstchan = ${firstChanSlicer}
 makeAllModelSlices.slicewidth = ${chanPerMSchunk}
