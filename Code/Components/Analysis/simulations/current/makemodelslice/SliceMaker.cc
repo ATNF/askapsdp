@@ -70,6 +70,15 @@ namespace askap {
 	    this->itsNpix = parset.getIntVector("npixslice");
 	    this->itsNchan = parset.getInt("nchanslice");
 
+	    this->itsSpcAxis = this->itsRefCoordinates.spectralAxisNumber();
+	    this->itsLngAxis = this->itsRefCoordinates.directionAxesNumbers()[0];
+	    this->itsLatAxis = this->itsRefCoordinates.directionAxesNumbers()[1];
+
+	    this->itsSliceShape = casa::IPosition(this->itsRefShape);
+	    this->itsSliceShape[this->itsLngAxis] = this->itsNpix[0];
+	    this->itsSliceShape[this->itsLatAxis] = this->itsNpix[1];
+	    this->itsSliceShape[this->itsSpcAxis] = this->itsNchan;
+
 	    this->itsSubimageDef.define(this->itsSliceShape.size());
 	    this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
 	    this->itsChanRange = parset.getIntVector("chanRange");
@@ -100,15 +109,6 @@ namespace askap {
 	    this->itsRefShape = refImage.shape();
 	    this->itsRefCoordinates = refImage.coordinates();
 	    this->itsRefUnits = refImage.units();
-
-	    this->itsSpcAxis = this->itsRefCoordinates.spectralAxisNumber();
-	    this->itsLngAxis = this->itsRefCoordinates.directionAxesNumbers()[0];
-	    this->itsLatAxis = this->itsRefCoordinates.directionAxesNumbers()[1];
-
-	    this->itsSliceShape = casa::IPosition(this->itsRefShape);
-	    this->itsSliceShape[this->itsLngAxis] = this->itsNpix[0];
-	    this->itsSliceShape[this->itsLatAxis] = this->itsNpix[1];
-	    this->itsSliceShape[this->itsSpcAxis] = this->itsNchan;
 
 //	    ASKAPASSERT(this->itsSliceShape[this->itsSpcAxis] == (fabs(this->itsChanRange[1]-this->itsChanRange[0])+1));
 
