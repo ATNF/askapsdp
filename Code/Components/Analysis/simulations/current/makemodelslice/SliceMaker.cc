@@ -67,8 +67,8 @@ namespace askap {
 	    this->itsNumChunks = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby() * this->itsSubimageDef.nsubz();
 //	    this->itsSliceShape = casa::IPosition(parset.getIntVector("sliceshape"));
 
-	    this->itsNpix = parset.getIntVector("npix");
-	    this->itsNchan = parset.getInt("nchan");
+	    this->itsNpix = parset.getIntVector("npixslice");
+	    this->itsNchan = parset.getInt("nchanslice");
 
 	    this->itsSubimageDef.define(this->itsSliceShape.size());
 	    this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
@@ -84,12 +84,16 @@ namespace askap {
 	void SliceMaker::initialise()
 	{
 
-	    for(unsigned int i=0; i<this->itsNumChunks; i++){
-		duchamp::Section sec=this->itsSubimageDef.section(i);
-		std::string loc = locationString(sec);
-		std::stringstream chunkname;
-		chunkname << this->itsModelName << "_w"  << i+1 << loc;
-		this->itsChunkList.push_back(chunkname.str());
+	    if(this->itsNumChunks == 1)
+		this->itsChunkList.push_back(this->itsModelName);
+	    else{
+		for(unsigned int i=0; i<this->itsNumChunks; i++){
+		    duchamp::Section sec=this->itsSubimageDef.section(i);
+		    std::string loc = locationString(sec);
+		    std::stringstream chunkname;
+		    chunkname << this->itsModelName << "_w"  << i+1 << loc;
+		    this->itsChunkList.push_back(chunkname.str());
+		}
 	    }
 
 	    const casa::PagedImage<float> refImage(this->itsChunkList[0]);

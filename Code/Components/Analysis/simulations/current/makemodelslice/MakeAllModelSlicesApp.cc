@@ -64,8 +64,8 @@ int MakeAllModelSlicesApp::run(int argc, char* argv[])
 	// ASKAPLOG_DEBUG_STR(logger, "Initial parset:\n"<<parset);
 	// ASKAPLOG_DEBUG_STR(logger, "Subset of parset:\n"<<subset);
 	
-	size_t nchan = subset.getInt("nchan",0);
-	ASKAPCHECK(nchan>0,"Number of channels in model needs to be provided with parameter 'nchan', which must be >0");
+	size_t nchan = subset.getInt("nchanmodel",0);
+	ASKAPCHECK(nchan>0,"Number of channels in model needs to be provided with parameter 'nchanmodel', which must be >0");
 	size_t sliceWidth = subset.getInt("slicewidth",1);
 	std::string slicebase = subset.getString("slicename");
 	size_t firstchan = subset.getInt("firstchan",0);
