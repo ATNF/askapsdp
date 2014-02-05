@@ -62,8 +62,8 @@ cat >> \${slParset} <<EOFINNER
 #
 makeAllModelSlices.modelname = ${modelimage}
 makeAllModelSlices.slicename = ${slicebase}
-makeAllModelSlices.nsubx = ${nsubxCR}
-makeAllModelSlices.nsuby = ${nsubyCR}
+makeAllModelSlices.nsubx = ${nsubx}
+makeAllModelSlices.nsuby = ${nsuby}
 makeAllModelSlices.nchanmodel = ${nchanSlicer}
 makeAllModelSlices.firstchan = ${firstChanSlicer}
 makeAllModelSlices.slicewidth = ${chanPerMSchunk}
@@ -71,7 +71,7 @@ makeAllModelSlices.npixslice = [${npix}, ${npix}]
 makeAllModelSlices.nchanslice = ${chanPerMSchunk}
 EOFINNER
 
-aprun -n ${SLICERWIDTH} -N ${SLICERNPPN} \${slicer} -c \${slParset} > \${slLog}
+aprun -n ${width} -N ${nppn} \${slicer} -c \${slParset} > \${slLog}
 
 EOF
 
