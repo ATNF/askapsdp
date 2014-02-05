@@ -79,8 +79,11 @@ namespace askap {
 	    this->itsSliceShape[this->itsLatAxis] = this->itsNpix[1];
 	    this->itsSliceShape[this->itsSpcAxis] = this->itsNchan;
 
-	    this->itsSubimageDef.define(this->itsSliceShape.size());
-	    this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
+	    if(this->itsNumChunks > 1){
+		this->itsSubimageDef.define(this->itsSliceShape.size());
+		this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
+	    }
+
 	    this->itsChanRange = parset.getIntVector("chanRange");
 	    ASKAPASSERT(this->itsChanRange.size() == 2);
 	    ASKAPCHECK(this->itsNchan == (abs(this->itsChanRange[1]-this->itsChanRange[0])+1),
@@ -145,7 +148,7 @@ namespace askap {
 		const casa::PagedImage<float> img(this->itsChunkList[i]);
 		ASKAPLOG_DEBUG_STR(logger, "Image has shape " << img.shape());
 
-		casa::IPosition blc(4,0);
+		casa::IPosition blc(this->itsSliceShape.size(),0);
 		casa::IPosition trc = img.shape()-1;
 		blc[this->itsSpcAxis] = std::min(this->itsChanRange[0],this->itsChanRange[1]);
 		trc[this->itsSpcAxis] = std::max(this->itsChanRange[0],this->itsChanRange[1]);
@@ -154,7 +157,9 @@ namespace askap {
 
 		casa::Array<float> arr=img.getSlice(slicer);
 	
-		casa::IPosition where = this->itsSubimageDef.blc(i);
+		casa::IPosition where(this->itsSliceShape.size(),0);
+		if (this->itsNumChunks > 1) where = this->itsSubimageDef.blc(i);
+
 		this->itsSlice->putSlice(arr,where,stride);
 
 	    }
