@@ -276,7 +276,7 @@ namespace askap {
 			
 			ia.setUnits(filename, newunits);
 
-			 this->writeBeam(filename);
+			this->writeBeam(filename);
 
 			casa::PagedImage<float> img(filename);
 			ASKAPLOG_DEBUG_STR(logger, img.shape() << " " << theMask.shape());
@@ -331,7 +331,9 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "Extracting moment-0 map");
 	    this->itsMom0map = casa::Array<Float>(this->arrayShape(),0.0);
 	    uint zeroInt=0;
-	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    casa::LogicalArray basemask(this->arrayShape(),true);
+	    if(this->itsInputCubePtr->hasPixelMask())
+		basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
 	    this->itsMom0mask = casa::LogicalArray(this->arrayShape(),false);
 
 	    casa::IPosition outloc(4,0),inloc(4,0);
@@ -407,7 +409,9 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "Extracting moment-1 map");
 	    this->itsMom1map = casa::Array<Float>(this->arrayShape(),0.0);
 	    uint zeroInt=0;
-	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    casa::LogicalArray basemask(this->arrayShape(),true);
+	    if(this->itsInputCubePtr->hasPixelMask())
+		basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
 	    this->itsMom1mask = casa::LogicalArray(this->arrayShape(),false);
 
 	    casa::IPosition start=this->itsSlicer.start();
@@ -455,7 +459,9 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "Extracting moment-2 map");
 	    this->itsMom2map = casa::Array<Float>(this->arrayShape(),0.0);
 	    uint zeroInt=0;
-	    casa::LogicalArray basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+	    casa::LogicalArray basemask(this->arrayShape(),true);
+	    if(this->itsInputCubePtr->hasPixelMask())
+		basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis)) > zeroInt).reform(this->arrayShape());
 	    this->itsMom2mask = casa::LogicalArray(this->arrayShape(),false);
 	    casa::IPosition start=this->itsSlicer.start();
 
