@@ -194,18 +194,18 @@ If you have `CASA`_ installed on your desktop computer you may download and visu
 these images with *casaviewer*. First copy the file from the /scratch filesystem to your
 desktop computer::
 
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty
+    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored .
+    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty .
+    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty .
+    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty .
 
 The string <USERID> needs to be replaced with your iVEC userid. Alternatively, you may wish to use
 the BBCP program for faster data transfer if you have it installed::
 
-    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored
-    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty
-    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty
-    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored .
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty .
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty .
+    bbcp -z -P 10 -s 16 -w 2M -r esdm017.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty .
 
 Once the files have finished downloading, view the restored image with casaviewer::
 
