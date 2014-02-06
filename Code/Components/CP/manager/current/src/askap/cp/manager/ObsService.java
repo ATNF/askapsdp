@@ -68,7 +68,7 @@ public class ObsService extends _ICPObsServiceDisp {
 	public ObsService(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating ObsService");
 		
-		// Instantiate real of mock FCM
+		// Instantiate real or mock FCM
 		boolean mockfcm = parset.getBoolean("fcm.mock", false);
 		if (mockfcm) {
 			itsFCM = new MockFCMClient(parset.subset("fcm.mock."));
