@@ -47,6 +47,7 @@
 #include "measures/Measures.h"
 #include "measures/Measures/MeasFrame.h"
 #include "measures/Measures/MCEpoch.h"
+#include "measures/Measures/Stokes.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -303,7 +304,7 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
         itsBaselineMap.idToAntenna2(vis.baselineid) == -1 ||
-        itsBaselineMap.idToStokes(vis.baselineid) == -1) {
+        itsBaselineMap.idToStokes(vis.baselineid) == casa::Stokes::Undefined) {
             ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
                     << " has no valid mapping to antenna pair and stokes");
         return true;
