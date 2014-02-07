@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
     props->setProperty("Ice.Trace.Network", "0");
     props->setProperty("Ice.Trace.Protocol", "0");
     props->setProperty("Ice.IPv6", "0");
-    props->setProperty("Ice.Default.EncodingVersion", "1.0");
     props->setProperty("LogSubscriberAdapterName.Endpoints", "tcp");
 
     // So logging is serialised through a single thread
