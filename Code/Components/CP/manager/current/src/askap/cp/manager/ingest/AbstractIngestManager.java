@@ -23,58 +23,34 @@
  */
 package askap.cp.manager.ingest;
 
-// Core Java imports
 import java.io.File;
 import java.io.IOException;
 
-// ASKAPsoft imports
 import org.apache.log4j.Logger;
 import askap.interfaces.cp.AlreadyRunningException;
 import askap.util.ParameterSet;
 
-// Local package includes
-import askap.cp.manager.rman.IJob;
-import askap.cp.manager.rman.IJob.JobStatus;
-import askap.cp.manager.rman.IResourceManager;
 
 /**
- * Encapsulates control of the central processor ingest pipeline.
+ * Encapsulates control and management of the central processor ingest pipeline.
  */
-public class IngestControl {
+public abstract class AbstractIngestManager {
 
-	/**
-	 * Logger
-	 */
-	private static Logger logger = Logger.getLogger(IngestControl.class
+	/** Logger */
+	private static Logger logger = Logger.getLogger(AbstractIngestManager.class
 			.getName());
 
 	/**
-	 * @brief The resource managaer; provides an interface to PBS, Torque, etc.
-	 */
-	private IResourceManager itsResourceManager;
-
-	/**
-	 * @brief Parameter set (i.e. configuration from file)
+	 * Parameter set (i.e. configuration from file)
 	 */
 	private ParameterSet itsParset;
 
 	/**
-	 * An identifier for the ingest pipeline job in the batch scheduler. This
-	 * will be null when no ingest pipeline is running.
-	 */
-	IJob itsJob = null;
-
-	/**
 	 * Constructor
-	 * 
-	 * @param rman  an instance of a resource manager.
 	 */
-	public IngestControl(IResourceManager rman, ParameterSet parset) {
+	public AbstractIngestManager(ParameterSet parset) {
 		// Pre-conditions
-		assert (rman != null);
-
-		logger.info("Creating IngestControl");
-		itsResourceManager = rman;
+		assert (parset != null);
 		itsParset = parset;
 	}
 
@@ -93,62 +69,36 @@ public class IngestControl {
 	 * @param obsParams
 	 * @throws askap.interfaces.cp.AlreadyRunningException
 	 */
-	public void startIngest(ParameterSet facilityConfig,
+	public synchronized void startIngest(ParameterSet facilityConfig,
 			ParameterSet obsParams, long sbid)
 			throws askap.interfaces.cp.AlreadyRunningException {
-		// Pre-conditions
-		assert (itsResourceManager != null);
 
 		logger.info("Starting Ingest Pipeline");
 
 		// 1: Check the pipeline is not already running
-		if ((itsJob != null) && (itsJob.status() != JobStatus.COMPLETED)) {
-			String msg = "Ingest Pipeline already running. JobId: "
-					+ itsJob.toString();
+		if (isRunning()) {
+			String msg = "Ingest Pipeline already running";
 			throw new AlreadyRunningException(msg);
-		} else {
-			// This means the last running ingest job is completed and hence
-			// the reference to it can be discarded
-			itsJob = null;
 		}
 
 		// 2: Build the configuration for cpingest
 		ParameterSet parset = ConfigBuilder.build(facilityConfig, obsParams);
 
 		// 3: Create the directory for the scheduling block and create
-		// the config parset and qsub file
-		File workdir = new File(itsParset.getString("ingest.workdir") + "/" + sbid);
-		File jobtemplate = new File(itsParset.getString("ingest.job_template"));
-		File qsubFile = new File(workdir, "ingest.qsub");
-		File configFile = new File(workdir, "ingest.in");
+		// the config parset file
+		File workdir = new File(parset().getString("ingest.workdir") + "/" + sbid);
+		File configFile = new File(workdir, "cpingest.in");
 
 		FSUtils.mkdir(workdir);
 		try {
-			FSUtils.copyfile(jobtemplate, qsubFile);
-		} catch (IOException e) {
-			logger.error("Could not copy job template to workdir");
-			return;
-		}
-		try {
 			FSUtils.create(configFile, parset);
 		} catch (IOException e) {
-			logger.error("Could not create parset in wordir");
+			logger.error("Could not create parset in workdir: " + e);
 			return;
 		}
 
-		// 4: Execute the job
-		itsJob = itsResourceManager.submitJob(qsubFile, workdir);
-
-		// 5: Wait until the job is running or completed
-		while (itsJob.status() == JobStatus.QUEUED) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-			}
-		}
-
-		// Post-conditions
-		assert (itsJob != null);
+		// 4: Execute the job (blocks until pipeline is running)
+		executeIngestPipeline(workdir);
 	}
 
 	/**
@@ -158,19 +108,35 @@ public class IngestControl {
 	 * This method will block until the observation has been aborted and the
 	 * central processor is ready to start a new observation.
 	 */
-	public void abortIngest() {
+	public synchronized void abortIngest() {
 		logger.info("Aborting Ingest Pipeline");
-		if (itsJob == null) {
-			return;
-		}
-		itsJob.abort();
-		while (itsJob.status() != JobStatus.COMPLETED) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-		}
-		itsJob = null;
+
+		// Blocks until the pipeline has been aborts
+		abortIngestPipeline();
+	}
+	
+	/**
+	 * Concrete classes implement this to start/execute the ingest pipeline.
+	 */
+	abstract protected void executeIngestPipeline(File workdir);
+			
+	/**
+	 * Concrete classes implement this to abort/kill the ingest pipeline.
+	 */
+	abstract protected void abortIngestPipeline();
+	
+	/**
+	 * Concrete classes implement this to indicate if the pipeline is
+	 * already running.
+	 * @return true if the pipeline is running, otherwise false.
+	 */
+	abstract protected boolean isRunning();
+	
+	/**
+	 * @return the parset passed to this class when it was constructed
+	 */
+	protected ParameterSet parset() {
+		return itsParset;
 	}
 
 }

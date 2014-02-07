@@ -38,9 +38,42 @@ import org.apache.log4j.MDC;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.DOMConfigurator;
 
+
+
+
 // Local package includes
 import askap.util.ParameterSet;
 
+/**
+ * This class encapsulates the initialisation and shutdown of an Ice
+ * Service. It provides the following functionality:
+ * <ul>
+ * <li> Standard approach to command line parameters
+ * <li> Usage/help message
+ * <li> Setup logging
+ * <li> Parsing of ParameterSet configuration file
+ * <li> Handling of exceptions so they don't propagate out of main()
+ * </ul>
+ * 
+ * Here is an example of usage:
+ * <pre>
+ * public class CpManager extends ServiceApplication {
+ *     @Override
+ *     public int run(String[] args) {
+ *         // Your code goes here
+ *         
+ *         // You can get the configuration parset like this:
+ *         ParameterSet parset = config();
+ *     }
+ *     
+ *     public static void main(String[] args) {
+ *	       CpManager svr = new CpManager(SERVICE_NAME);
+ *		   int status = svr.servicemain(args);
+ *		   System.exit(status);
+	   }
+ * }
+ * </pre>
+ */
 public abstract class ServiceApplication {
 
 	/** Logger */
@@ -104,6 +137,7 @@ public abstract class ServiceApplication {
 		} catch (Exception e) {
 			if (Logger.getRootLogger().getAllAppenders().hasMoreElements()) {
 				logger.fatal("Error: " + e.getMessage());
+				e.printStackTrace();
 			} else {
 				System.err.println("Error: " + e.getMessage());
 			}

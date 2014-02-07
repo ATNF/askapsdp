@@ -47,7 +47,7 @@ waitIceRegistry icegridadmin.cfg
 
 # Start the cpmanager
 echo "Starting the CP Manager..."
-nohup java askap/cp/manager/CpManager cpmanager.cfg > ${CPMAN_LOG} 2>&1 &
+nohup java askap/cp/manager/CpManager -c cpmanager.in -l cpmanager.log_cfg > ${CPMAN_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg CentralProcessorAdapter
 
@@ -64,5 +64,10 @@ terminate_process ${REG_PID}
 
 # Cleanup
 rm -rf ${REG_DB}
+
+# Display the CP Manager log file
+echo
+echo "The Central Processor Manager logged:"
+cat ${CPMAN_LOG}
 
 exit $STATUS

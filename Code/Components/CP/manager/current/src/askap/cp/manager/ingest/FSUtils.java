@@ -39,16 +39,20 @@ import askap.util.ParameterSet;
 public class FSUtils {
 	
 	/**
-	 * @param dir
+	 * Makes a directory. 
+	 * @param dir	the directory to create.
+	 * @return true if and only if the directory was created.
 	 */
 	public static boolean mkdir(File dir) {
 		return dir.mkdir();
 	}
 
 	/**
-	 * @param src
-	 * @param dest
-	 * @throws IOException
+	 * Copies a file from "src" to "dest".
+	 * 
+	 * @param src	source file
+	 * @param dest	destination file
+	 * @throws IOException	if the file copy fails.
 	 */
 	public static void copyfile(File src, File dest) throws IOException {
 		if (!dest.exists()) {
@@ -71,9 +75,18 @@ public class FSUtils {
 	}
 
 	/**
-	 * @param filename
-	 * @param parset
-	 * @throws IOException
+	 * Creates a file, populating it with the contents of the parameter set. The
+	 * parameter set is just a Map<String, String> and the file created will be an
+	 * ASCII file with contents like:
+	 * <pre>
+	 * key1 = value1
+	 * key2 = value2
+	 * <and so on>
+	 * </pre>
+	 * 
+	 * @param filename	filename to create
+	 * @param parset	the parameter set which will used to populate the file.
+	 * @throws IOException	if the file creating or writing to the file fails.
 	 */
 	@SuppressWarnings("rawtypes")
 	public static void create(File filename, ParameterSet parset) throws IOException {

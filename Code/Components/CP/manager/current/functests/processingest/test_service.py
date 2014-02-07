@@ -1,4 +1,5 @@
 import os
+import time
 from askapdev.rbuild.dependencies import Dependency
 
 # main()
@@ -14,21 +15,31 @@ import askap
 
 # Import interfaces
 from askap.slice import CommonTypes
-from askap.slice import IService
+from askap.slice import CP
 
 status = 0
 ic = None
 try:
     ic = Ice.initialize(sys.argv)
 
-    # Make a getServiceVersion() call on the service
+    # Execute a batch job
     base = ic.stringToProxy("CentralProcessorService@CentralProcessorAdapter")
     if not base:
         raise RuntimeError("CentralProcessorService proxy not found")
-    svc = askap.interfaces.services.IServicePrx.checkedCast(base)
+    svc = askap.interfaces.cp.ICPObsServicePrx.checkedCast(base)
     if not svc:
-        raise RuntimeError("Invalid IService proxy")
-    print "getServiceVersion() returned: " + svc.getServiceVersion()
+        raise RuntimeError("Invalid CPObsService proxy")
+
+    print "Starting observation...",
+    svc.startObs(0)
+    print "DONE"
+
+    # Sleep for a second to let the pipeline at least start
+    time.sleep(1)
+
+    print "Aborting observation...",
+    svc.abortObs()
+    print "DONE"
 
 except:
     traceback.print_exc()

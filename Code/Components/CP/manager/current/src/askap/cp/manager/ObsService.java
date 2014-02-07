@@ -25,15 +25,14 @@
  */
 package askap.cp.manager;
 
-// ASKAPsoft imports
 import org.apache.log4j.Logger;
+
 import Ice.Current;
 import askap.interfaces.cp._ICPObsServiceDisp;
 import askap.util.ParameterSet;
-
-// Local package includes
-import askap.cp.manager.ingest.IngestControl;
-import askap.cp.manager.rman.QResourceManager;
+import askap.cp.manager.ingest.AbstractIngestManager;
+import askap.cp.manager.ingest.DummyIngestManager;
+import askap.cp.manager.ingest.ProcessIngestManager;
 import askap.cp.manager.svcclients.IDataServiceClient;
 import askap.cp.manager.svcclients.IFCMClient;
 import askap.cp.manager.svcclients.IceDataServiceClient;
@@ -63,8 +62,12 @@ public class ObsService extends _ICPObsServiceDisp {
 	/**
 	 * Ingest Pipeline Controller
 	 */
-	IngestControl itsIngestControl;
+	AbstractIngestManager itsIngestManager;
     
+	/**
+	 * @param ic
+	 * @param parset
+	 */
 	public ObsService(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating ObsService");
 		
@@ -84,8 +87,15 @@ public class ObsService extends _ICPObsServiceDisp {
 			itsDataService = new IceDataServiceClient(ic);
 		}
 				
-		// Ingest Controller
-		itsIngestControl = new IngestControl(new QResourceManager(), parset);
+		// Create Ingest Manager
+		String managertype = parset.getString("ingest.managertype", "process");
+		if (managertype.equalsIgnoreCase("process")) {
+			itsIngestManager = new ProcessIngestManager(parset);
+		} else if (managertype.equalsIgnoreCase("dummy")) {
+			itsIngestManager = new DummyIngestManager(parset);
+		} else {
+			throw new RuntimeException("Unknown ingest manager type: " + managertype);
+		}
 	}
 	
 	public void finalize() {
@@ -110,14 +120,15 @@ public class ObsService extends _ICPObsServiceDisp {
 			throw new askap.interfaces.cp.NoSuchSchedulingBlockException(msg);
 		}
 		
-		// Blocking (until started)
-		itsIngestControl.startIngest(fc, obsParams, sbid);
+		// BLOCKING: Will block until the ingest pipeline starts, or
+		// an error occurs
+		itsIngestManager.startIngest(fc, obsParams, sbid);
 	}
 	
 	@Override
 	public void abortObs(Current curr) {
 		// Blocking (until aborted)
-		itsIngestControl.abortIngest();
+		itsIngestManager.abortIngest();
 	}
 
 	@Override

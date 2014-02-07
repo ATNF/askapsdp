@@ -1,0 +1,30 @@
+########################## Ice Properties ##############################
+
+# Registry location
+ice_properties.Ice.Default.Locator                  = IceGrid/Locator:tcp -h localhost -p 4061
+
+# Object adapter
+ice_properties.CentralProcessorAdapter.Endpoints    = tcp
+ice_properties.CentralProcessorAdapter.AdapterId    = CentralProcessorAdapter
+
+ice_properties.Ice.MessageSizeMax                   = 131072
+ice_properties.Ice.ThreadPool.Server.Size           = 4
+ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
+
+
+################## CP Manager Specific Properties ######################
+
+# Use a mock FCM
+fcm.mock                        = true
+fcm.mock.fcm_parameter          = 123
+
+# Use a mock data service
+dataservice.mock                = true
+dataservice.mock.ds_parameter   = 456
+
+# Ingest working directory
+ingest.workdir                  = /tmp
+
+# Ingest pipeline command and arguments
+ingest.command                  = /Users/hum092/ASKAPsoft/Code/Components/CP/ingest/current/apps/cpingest.sh
+ingest.args                     = -s -c cpingest.in -l /Users/hum092/ASKAPsoft/Code/Components/CP/manager/current/functests/processingest/cpingest.log_cfg

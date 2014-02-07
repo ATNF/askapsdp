@@ -14,7 +14,6 @@ import askap
 
 # Import interfaces
 from askap.slice import CommonTypes
-from askap.slice import Component
 from askap.slice import CP
 
 status = 0
@@ -22,20 +21,22 @@ ic = None
 try:
     ic = Ice.initialize(sys.argv)
 
-    # Execute a batch job
+    # Make a getServiceVersion() call on the service
     base = ic.stringToProxy("CentralProcessorService@CentralProcessorAdapter")
     if not base:
         raise RuntimeError("CentralProcessorService proxy not found")
     svc = askap.interfaces.cp.ICPObsServicePrx.checkedCast(base)
     if not svc:
-        raise RuntimeError("Invalid CPObsService proxy")
+        raise RuntimeError("Invalid IService proxy")
+    print "Getting service version..."
+    print "getServiceVersion() returned: " + svc.getServiceVersion()
 
     print "Starting observation...",
     svc.startObs(0)
     print "DONE"
 
-    print "Waiting for observation to complete...",
-    svc.waitObs()
+    print "Aborting observation...",
+    svc.abortObs()
     print "DONE"
 
 except:
