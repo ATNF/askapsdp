@@ -723,9 +723,10 @@ namespace askap {
 				       << " so the spectral range is from "<<this->itsCube.header().velToSpec(det->getV50Min())
 				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
 		    this->itsCube.header().wcsToPix(det->getRA(),det->getDec(),this->itsCube.header().velToSpec(det->getVel()+det->getW50()),x,y,z);
-		    int zmax=std::min(int(this->itsCube.getDimZ()-1),int(z));
+		    int zmax=std::max(0,std::min(int(this->itsCube.getDimZ()-1),int(z)));
 		    this->itsCube.header().wcsToPix(det->getRA(),det->getDec(),this->itsCube.header().velToSpec(det->getVel()-det->getW50()),x,y,z);
-		    int zmin=std::max(0,int(z));
+		    int zmin=std::min(int(this->itsCube.getDimZ()-1),std::max(0,int(z)));
+		    if(zmin>zmax) std::swap(zmin,zmax);
 		    grower.setMaxMinZ(zmax,zmin);
 		    ASKAPLOG_DEBUG_STR(logger, "Central pixel ("<<det->getXcentre() <<","<<det->getYcentre()<<","<<det->getZcentre()
 				       <<") with " << det->getSize() <<" pixels, filling z range " << zmin << " to " << zmax);
@@ -1728,6 +1729,7 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 		// make sure the boxes are defined for each of the sources prior to distribution
 		this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		this->itsSourceList[i].addOffsets();
 	    }
 
 	    ExtractionFactory extractor(this->itsComms, this->itsParset);

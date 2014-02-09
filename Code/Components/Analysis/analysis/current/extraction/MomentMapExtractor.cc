@@ -114,10 +114,14 @@ namespace askap {
 	    ((SourceDataExtractor &) *this) = other;
 	    this->itsSpatialMethod = other.itsSpatialMethod;
 	    this->itsPadSize = other.itsPadSize;
+	    this->itsFlagUseDetection = other.itsFlagUseDetection;
 	    this->itsMomentRequest = other.itsMomentRequest;
 	    this->itsMom0map = other.itsMom0map;
 	    this->itsMom1map = other.itsMom1map;
 	    this->itsMom2map = other.itsMom2map;
+	    this->itsMom0mask = other.itsMom0mask;
+	    this->itsMom1mask = other.itsMom1mask;
+	    this->itsMom2mask = other.itsMom2mask;
 	    return *this;
 	}
 	
@@ -333,7 +337,8 @@ namespace askap {
 	    uint zeroInt=0;
 	    casa::LogicalArray basemask(this->arrayShape(),true);
 	    if(this->itsInputCubePtr->hasPixelMask())
-		basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
+		basemask = (partialNTrue(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer),
+					 casa::IPosition(1,this->itsSpcAxis))>zeroInt).reform(this->arrayShape());
 	    this->itsMom0mask = casa::LogicalArray(this->arrayShape(),false);
 
 	    casa::IPosition outloc(4,0),inloc(4,0);
