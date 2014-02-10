@@ -245,8 +245,11 @@ namespace askap {
       void SourceDataExtractor::writeBeam(std::string &filename)
       {
 	  casa::Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
-	  accessors::CasaImageAccess ia;
-	  ia.setBeamInfo(filename, inputBeam[0].getValue("rad"), inputBeam[1].getValue("rad"), inputBeam[2].getValue("rad"));
+	  if(inputBeam.size()>0){
+	    accessors::CasaImageAccess ia;
+	    ia.setBeamInfo(filename, inputBeam[0].getValue("rad"), inputBeam[1].getValue("rad"), inputBeam[2].getValue("rad"));
+	  }
+	  else ASKAPLOG_WARN_STR(logger, "Input cube has no restoring beam, so cannot write to output image.");
       }
 
 
