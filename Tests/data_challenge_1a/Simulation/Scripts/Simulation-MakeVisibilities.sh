@@ -221,7 +221,7 @@ mkdir -p ${logdirVis}/${WORKDIR}
 logfile=${logdirVis}/${WORKDIR}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
-$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_${GRP}.ms \$FILES >> \${logfile}
+aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_${GRP}.ms \$FILES >> \${logfile}
 
 EOF
 
@@ -265,7 +265,7 @@ done
 
 logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${PBS_JOBID}.log
 echo "Processing files: \$FILES" > \${logfile}
-$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${finalMS} \$FILES >> \${logfile}
+aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${finalMS} \$FILES >> \${logfile}
 EOF
 
 	if [ $doSubmit == true ]; then
