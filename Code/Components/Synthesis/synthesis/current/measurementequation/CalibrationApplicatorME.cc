@@ -39,7 +39,8 @@
 #include <scimath/Mathematics/RigidVector.h>
 #include <askap/AskapError.h>
 #include <utils/PolConverter.h>
-#include <dataaccess/OnDemandNoiseAndFlagDA.h>
+#include <dataaccess/IFlagAndNoiseDataAccessor.h>
+
 
 #include <askap/AskapUtil.h>
 #include <askap_synthesis.h>
@@ -85,12 +86,12 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
        indices(pol) = scimath::PolConverter::getIndex(stokes[pol]);
   }
   
-  boost::shared_ptr<accessors::OnDemandNoiseAndFlagDA> noiseAndFlagDA;
+  boost::shared_ptr<accessors::IFlagAndNoiseDataAccessor> noiseAndFlagDA;
   // attempt to cast interface only if we need it
   if (itsScaleNoise || itsFlagAllowed) {
       boost::shared_ptr<accessors::IDataAccessor> chunkPtr(&chunk, utility::NullDeleter());
       ASKAPDEBUGASSERT(chunkPtr);
-      noiseAndFlagDA = boost::dynamic_pointer_cast<accessors::OnDemandNoiseAndFlagDA>(chunkPtr);
+      noiseAndFlagDA = boost::dynamic_pointer_cast<accessors::IFlagAndNoiseDataAccessor>(chunkPtr);
   }
   
   // full 4x4 Mueller matrix

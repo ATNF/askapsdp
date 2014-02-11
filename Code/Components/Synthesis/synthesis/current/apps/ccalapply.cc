@@ -45,6 +45,7 @@
 #include "dataaccess/ParsetInterface.h"
 #include "calibaccess/ICalSolutionConstSource.h"
 #include "calibaccess/CalibAccessFactory.h"
+#include "dataaccess/OnDemandNoiseAndFlagDA.h"
 #include "boost/shared_ptr.hpp"
 
 // Local packages includes
@@ -74,6 +75,9 @@ class CcalApplyApp : public askap::Application
 
                 // Get Measurement Set accessor
                 IDataSharedIter it = getDataIterator(subset);
+                
+                ASKAPDEBUGASSERT(it);
+                ASKAPDEBUGASSERT(calME);
 
                 // Apply calibration
                 uint64_t count = 1;
@@ -82,7 +86,17 @@ class CcalApplyApp : public askap::Application
                         ASKAPLOG_DEBUG_STR(logger, "Progress - Chunk " << count);
                     }
                     ++count;
-                    calME->correct(*it);
+                    if (itsNoiseAndFlagDANeeded) {
+                        // quick and dirty for now
+                        accessors::OnDemandNoiseAndFlagDA acc(*it);
+                        acc.rwVisibility() = it->visibility();
+
+                        calME->correct(acc);
+
+                        it->rwVisibility() = acc.rwVisibility().copy();
+                    } else {
+                        calME->correct(*it);
+                    }
                 }
 
                 stats.logSummary();
@@ -100,6 +114,13 @@ class CcalApplyApp : public askap::Application
         }
 
     private:
+        
+        /// @brief this flag indicates whether the underlying code needs to update flags or noise
+        /// @details For now - quick and dirty fix to allow MRO tests to proceed. The ASKAP model
+        /// is to apply calibration on the fly, so table accessor classes are unable to modify noise or flag
+        /// information. 
+        bool itsNoiseAndFlagDANeeded;
+    
         static casa::MFrequency::Ref getFreqRefFrame(const LOFAR::ParameterSet& parset)
         {
             const string freqFrame = parset.getString("freqframe", "topo");
@@ -117,7 +138,7 @@ class CcalApplyApp : public askap::Application
             }
         }
 
-        static boost::shared_ptr<ICalibrationApplicator> buildCalApplicator(
+        boost::shared_ptr<ICalibrationApplicator> buildCalApplicator(
                 const LOFAR::ParameterSet& parset)
         {
             // Create solution source
@@ -128,8 +149,11 @@ class CcalApplyApp : public askap::Application
             // Create applicator
             boost::shared_ptr<ICalibrationApplicator> calME(new CalibrationApplicatorME(solutionSource));
             ASKAPASSERT(calME);
-            calME->scaleNoise(parset.getBool("calibrate.scalenoise", false));
-            calME->allowFlag(parset.getBool("calibrate.allowflag", false));
+            const bool scaleNoise = parset.getBool("calibrate.scalenoise", false);
+            const bool allowFlag = parset.getBool("calibrate.allowflag", false);
+            itsNoiseAndFlagDANeeded = scaleNoise || allowFlag;  
+            calME->scaleNoise(scaleNoise);
+            calME->allowFlag(allowFlag);
             calME->beamIndependent(parset.getBool("calibrate.ignorebeam", false));
             return calME;
         }
