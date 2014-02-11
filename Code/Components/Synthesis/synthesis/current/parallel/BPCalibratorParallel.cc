@@ -92,10 +92,10 @@ namespace synthesis {
 /// @param[in] parset ParameterSet for inputs
 BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& comms,
           const LOFAR::ParameterSet& parset) : MEParallelApp(comms,parset), 
-      itsPerfectModel(new scimath::Params()), itsSolutionID(-1), itsSolutionIDValid(false)
+      itsPerfectModel(new scimath::Params()), itsRefAntenna(-1), itsSolutionID(-1), itsSolutionIDValid(false)
 {
-   ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for using a specialised pipeline");
-   if (itsComms.isMaster()) {                        
+  ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for using a specialised pipeline");
+  if (itsComms.isMaster()) {                        
       // setup solution source (or sink to be exact, because we're writing the solution here)
       itsSolutionSource = accessors::CalibAccessFactory::rwCalSolutionSource(parset);
       ASKAPASSERT(itsSolutionSource);
@@ -110,9 +110,11 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
       /// Create solver in workers  
       itsSolver.reset(new scimath::LinearSolver);
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
-      itsRefGain = parset.getString("refgain","");
-      if (itsRefGain.size() > 0) {
-          ASKAPLOG_INFO_STR(logger, "Phases will be rotated, so "<<itsRefGain<<" has zero phase for all channels and beams");
+      ASKAPCHECK(!parset.isDefined("refgain"), "usage of refgain is deprecated, define reference antenna instead");
+      itsRefAntenna = parset.getInt32("refantenna",-1);
+      if (itsRefAntenna >= 0) {
+          ASKAPLOG_INFO_STR(logger, "Phases will be rotated, so antenna "<<itsRefAntenna<<" has zero phase for all channels and beams in the first polarisation");
+          ASKAPCHECK(itsRefAntenna < static_cast<int>(nAnt()), "Requested reference antenna doesn't exist, nAnt="<<nAnt());
       } else {
           ASKAPLOG_INFO_STR(logger, "No phase rotation will be done between iterations");
       }
@@ -122,11 +124,14 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
       if (itsComms.isParallel()) {
           // setup work units in the parallel case, make beams the first (fastest to change) parameter to achieve
           // greater benefits if multiple measurement sets are present (more likely to be scheduled for different ranks)
+          ASKAPLOG_INFO_STR(logger, "Work for "<<nBeam()<<" beams and "<<nChan()<<" channels will be split between "<<
+                   (itsComms.nProcs() - 1)<<" ranks, this one handles chunk "<<(itsComms.rank() - 1));
           itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()), itsComms.nProcs() - 1, itsComms.rank() - 1);
       } 
   } 
   if (!itsComms.isParallel()) {
       // setup work units in the serial case - all work to be done here
+      ASKAPLOG_INFO_STR(logger, "All work for "<<nBeam()<<" beams and "<<nChan()<<" channels will be handled by this rank");
       itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()));
   }
   ASKAPCHECK((measurementSets().size() == 1) || (measurementSets().size() == nBeam()), 
@@ -142,7 +147,6 @@ void BPCalibratorParallel::run()
 {
   if (itsComms.isWorker()) {
       ASKAPDEBUGASSERT(itsModel);
-      ASKAPDEBUGASSERT(itsEquation);
       const int nCycles = parset().getInt32("ncycles", 1);
       ASKAPCHECK(nCycles >= 0, " Number of calibration iterations should be a non-negative number, you have " <<
                        nCycles);                                             
@@ -158,7 +162,14 @@ void BPCalibratorParallel::run()
            for (casa::uInt ant = 0; ant<nAnt(); ++ant) {
                 itsModel->add(accessors::CalParamNameHelper::paramName(ant, indices.first, casa::Stokes::XX), casa::Complex(1.,0.));
                 itsModel->add(accessors::CalParamNameHelper::paramName(ant, indices.first, casa::Stokes::YY), casa::Complex(1.,0.));                
-           }           
+           }       
+           
+           // setup reference gain, if needed
+           if (itsRefAntenna >= 0) {
+               itsRefGain = accessors::CalParamNameHelper::paramName(itsRefAntenna, indices.first, casa::Stokes::XX);
+           } else {
+               itsRefGain = "";
+           }
            
            for (int cycle = 0; cycle < nCycles; ++cycle) {
                 ASKAPLOG_INFO_STR(logger, "*** Starting calibration iteration " << cycle + 1 << " for beam="<<
@@ -215,6 +226,7 @@ void BPCalibratorParallel::calcNE()
   // obtain details on the current iteration, i.e. beam and channel
   ASKAPDEBUGASSERT(itsWorkUnitIterator.hasMore());
   
+  // first is beam, second is channel
   const std::pair<casa::uInt, casa::uInt> indices = currentBeamAndChannel();
   
   ASKAPDEBUGASSERT((measurementSets().size() == 1) || (indices.first < measurementSets().size()));
@@ -222,7 +234,7 @@ void BPCalibratorParallel::calcNE()
   const std::string ms = (measurementSets().size() == 1 ? measurementSets()[0] : measurementSets()[indices.first]);
         
   // actual computation   
-  calcOne(ms, indices.first, indices.second);  
+  calcOne(ms, indices.second, indices.first);  
 }
 
 /// @brief Solve the normal equations (runs in workers)
@@ -306,6 +318,7 @@ void BPCalibratorParallel::createCalibrationME(const accessors::IDataSharedIter 
    preAvgME.reset(new CalibrationME<NoXPolGain, PreAvgCalMEBase>());           
    ASKAPDEBUGASSERT(preAvgME);
    
+   ASKAPDEBUGASSERT(dsi.hasMore());  
    preAvgME->accumulate(dsi,perfectME);
    itsEquation = preAvgME;
            
@@ -391,6 +404,7 @@ void BPCalibratorParallel::calcOne(const std::string& ms, const casa::uInt chan,
       // ensure that time is counted in seconds since 0 MJD
       conv->setEpochFrame();
       accessors::IDataSharedIter it=ds.createIterator(sel, conv);
+      ASKAPCHECK(it.hasMore(), "No data seem to be available for channel "<<chan<<" and beam "<<beam);
       
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
       
@@ -427,7 +441,7 @@ void BPCalibratorParallel::calcOne(const std::string& ms, const casa::uInt chan,
   }
   ASKAPCHECK(itsNe, "NormalEquations are not defined");
   itsEquation->calcEquations(*itsNe);
-  ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " channel "<<chan<<" beam" <<beam<<" in "<< timer.real()
+  ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " channel "<<chan<<" beam " <<beam<<" in "<< timer.real()
                      << " seconds ");
 }
 

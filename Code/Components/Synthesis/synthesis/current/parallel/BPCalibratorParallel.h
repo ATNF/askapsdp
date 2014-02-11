@@ -183,10 +183,14 @@ namespace askap
       /// uncorrupted model
       askap::scimath::Params::ShPtr itsPerfectModel;
       
+      /// @brief reference antenna (index)
+      /// @details Negative number means no referencing required
+      int itsRefAntenna;
+      
       /// @brief name of the parameter taken as a reference
       /// @details empty string means no referencing is required
       std::string itsRefGain;
-                        
+                                   
       /// @brief solution source to store the result
       /// @details This object is initialised by the master. It stores the solution
       /// in parset file, casa table or a database.
