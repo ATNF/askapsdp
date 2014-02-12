@@ -174,7 +174,7 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
     // First look for "dataset" and if that does not exist try "dataset0"
     vector<string> ms;
     if (parset.isDefined("dataset")) {
-        ms = itsParset.getStringVector("dataset");
+        ms = itsParset.getStringVector("dataset", true);
     } else {
         string key = "dataset0";   // First key to look for
         long idx = 0;
