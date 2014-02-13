@@ -11,6 +11,7 @@ askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/
 
 now=`date +%F-%H%M`
 
+doScienceField=true
 modelImage=scienceModel
 
 npix=2048
@@ -53,3 +54,4 @@ raOff=(-1 -1 -1 0 0 0 1 1 1)
 decOff=(-1 0 1 -1 0 1 -1 0 1)
 
 feedlist=(6 7 8 3 4 5 0 1 2)
+
