@@ -69,10 +69,12 @@ cat > $qsubfile <<EOF
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N cim${POINTING}
+#PBS -N cim${POINTING}${tag}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
+
+cd \$PBS_O_WORKDIR
 
 aprun ${cim} -c ${imParset} > ${imLogfile}
 

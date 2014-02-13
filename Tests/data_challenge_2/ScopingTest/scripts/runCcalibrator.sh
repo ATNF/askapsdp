@@ -7,14 +7,14 @@ if [ $doCal == true ]; then
 
     . ${scriptdir}/getTags.sh
 
-    ccalParset=parsets/ccal-${POINTING}.in
-    ccalLog=logs/ccal-${now}-${POINTING}.log
+    ccalParset=parsets/ccal-${tag}-${POINTING}.in
+    ccalLog=logs/ccal-${tag}-${POINTING}.log
 
     newms=${msbase}_CALIBRATED_${POINTING}.ms
     oldms=${msbase}_CORRUPTED_${POINTING}.ms
     
-    mssplitParset=parsets/mssplit-${POINTING}.in
-    mssplitLog=logs/mssplit-${POINTING}.log
+    mssplitParset=parsets/mssplit-${tag}-${POINTING}.in
+    mssplitLog=logs/mssplit-${tag}-${POINTING}.log
 
     echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}"
 
@@ -85,10 +85,12 @@ EOF
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N ccal${POINTING}
+#PBS -N ccal${POINTING}${tag}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
+
+cd \$PBS_O_WORKDIR
 
 rm -rf $newms
 

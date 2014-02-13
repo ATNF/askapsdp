@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
 
-mkVisParset=parsets/csim-${POINTING}.in
-mkVisLog=logs/csim-${POINTING}.log
+mkVisParset=parsets/csim-${tag}-${POINTING}.in
+mkVisLog=logs/csim-${tag}-${POINTING}.log
 
 thisModelImage=${modelImage}.${POINTING}
 
@@ -79,10 +79,12 @@ cat > $qsubfile <<EOF
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N csim${POINTING}
+#PBS -N csim${POINTING}${tag}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
+
+cd \$PBS_O_WORKDIR
 
 rm -rf $ms
 
