@@ -8,7 +8,7 @@ thisModelImage=${modelImage}.${POINTING}
 
 direction=${dirlist[$POINTING]}
 
-. ./getTags.sh
+. ${scriptdir}/getTags.sh
 
 ms=${msbase}_${mstag}_${POINTING}.ms
 rm -rf $ms

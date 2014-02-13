@@ -2,7 +2,7 @@
 
 scriptdir=`pwd`
 
-. ./config.sh
+. ${scriptdir}/config.sh
 
 #POINTING=2
 #MAXPOINT=2
@@ -23,18 +23,18 @@ while [ $POINTING -le $MAXPOINT ]; do
     doCorrupt=false
     doCal=false
     depend=""
-    . ./runCsimulator.sh
+    . ${scriptdir}/runCsimulator.sh
     depend="-Wdepend=afterok:${latestID}"
-    . ./runImaging.sh
+    . ${scriptdir}/runImaging.sh
     doCorrupt=true
     depend=""
-    . ./runCsimulator.sh
+    . ${scriptdir}/runCsimulator.sh
     depend="-Wdepend=afterok:${latestID}"
-    . ./runImaging.sh
+    . ${scriptdir}/runImaging.sh
     doCal=true
-    . ./runCcalibrator.sh
+    . ${scriptdir}/runCcalibrator.sh
     depend="${depend}:${latestID}"
-    . ./runImaging.sh
+    . ${scriptdir}/runImaging.sh
 
     POINTING=`expr $POINTING + 1`
 

@@ -5,7 +5,7 @@ flagRunSplit=false
 
 if [ $doCal == true ]; then
 
-    . ./getTags.sh
+    . ${scriptdir}/getTags.sh
 
     ccalParset=parsets/ccal-${now}-${POINTING}.in
     ccalLog=logs/ccal-${now}-${POINTING}.log

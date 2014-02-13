@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 
-. ./getTags.sh
+. ${scriptdir}/getTags.sh
 
 imParset=parsets/cim-selection-${tag}-${now}-${POINTING}.in
 imLogfile=logs/cim-selection-${tag}-${now}-${POINTING}.log
