@@ -73,7 +73,7 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-qsubfile=csim_${POINTING}_${tags}.qsub
+qsubfile=csim_${POINTING}_${tag}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00

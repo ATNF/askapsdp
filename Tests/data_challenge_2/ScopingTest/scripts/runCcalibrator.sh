@@ -79,7 +79,7 @@ Ccalibrator.ncycles                             = $ncycCal
 
 EOF
 
-    qsubfile=ccal_${tags}.qsub
+    qsubfile=ccal_${POINTING}_${tag}.qsub
     cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00

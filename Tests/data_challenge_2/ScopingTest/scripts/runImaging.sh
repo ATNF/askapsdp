@@ -63,7 +63,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-qsubfile=cim_${tags}.qsub
+qsubfile=cim_${POINTING}_${tag}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
