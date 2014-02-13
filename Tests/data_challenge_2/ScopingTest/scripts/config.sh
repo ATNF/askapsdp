@@ -1,8 +1,5 @@
 #!/bin/bash -l 
 
-export ASKAP_ROOT=/Users/whi550/ASKAP/askapsoft-noMPI
-#export ASKAP_ROOT=/Users/whi550/ASKAP/askapsoft-test-ticket5848-r18000
-export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 slicer=${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeModelSlice.sh
 createFITS=${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 rndgains=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh

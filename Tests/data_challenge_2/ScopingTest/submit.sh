@@ -2,43 +2,60 @@
 
 scriptdir=`pwd`/scripts
 
-. ${scriptdir}/config.sh
+runIt=true
 
-#POINTING=2
-#MAXPOINT=2
-
-POINTING=0
-MAXPOINT=8
-
-workdir="run_${now}"
-mkdir -p $workdir
-cd $workdir
-
-if [ $doCorrupt == true ]; then
-    $rndgains -f 9 -a 6 -p 2 $randomgainsparset
+if [ "${ASKAP_ROOT}" == "" ]; then
+    echo "You have not set ASKAP_ROOT! Exiting."
+    runIt=false
 fi
 
-while [ $POINTING -le $MAXPOINT ]; do
+if [ "${AIPSPATH}" == "" ]; then
+    echo "You have not set AIPSPATH! Exiting."
+    runIt=false
+fi
 
-    doCorrupt=false
-    doCal=false
-    depend=""
-    . ${scriptdir}/runCsimulator.sh
-    depend="-Wdepend=afterok:${latestID}"
-    . ${scriptdir}/runImaging.sh
-    doCorrupt=true
-    depend=""
-    . ${scriptdir}/runCsimulator.sh
-    depend="-Wdepend=afterok:${latestID}"
-    . ${scriptdir}/runImaging.sh
-    doCal=true
-    . ${scriptdir}/runCcalibrator.sh
-    depend="${depend}:${latestID}"
-    . ${scriptdir}/runImaging.sh
+if [ $runIt == true ]; then    
 
-    POINTING=`expr $POINTING + 1`
+    . ${scriptdir}/config.sh
 
-done
+    #POINTING=2
+    #MAXPOINT=2
 
-cd ..
+    POINTING=0
+    MAXPOINT=8
 
+    workdir="run_${now}"
+    mkdir -p $workdir
+    cd $workdir
+    mkdir -p parsets
+    mkdir -p logs
+
+    if [ $doCorrupt == true ]; then
+	$rndgains -f 9 -a 6 -p 2 $randomgainsparset
+    fi
+
+    while [ $POINTING -le $MAXPOINT ]; do
+
+	doCorrupt=false
+	doCal=false
+	depend=""
+	. ${scriptdir}/runCsimulator.sh
+	depend="-Wdepend=afterok:${latestID}"
+	. ${scriptdir}/runImaging.sh
+	doCorrupt=true
+	depend=""
+	. ${scriptdir}/runCsimulator.sh
+	depend="-Wdepend=afterok:${latestID}"
+	. ${scriptdir}/runImaging.sh
+	doCal=true
+	. ${scriptdir}/runCcalibrator.sh
+	depend="${depend}:${latestID}"
+	. ${scriptdir}/runImaging.sh
+
+	POINTING=`expr $POINTING + 1`
+
+    done
+
+    cd ..
+
+fi
