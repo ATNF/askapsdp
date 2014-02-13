@@ -64,35 +64,36 @@ if [ $runIt == true ]; then
 
     done
 
+    if [ $doScienceField == true ]; then
+
+	depend=${allIDs}
+	. ${scriptdir}/combineCalResults.sh
+	allIDs="${allIDs}:${latestID}"
+
+	depend=""
+	. ${scriptdir}/makeScienceModel.sh
+	modelID=${latestID}
+
+	doCorrupt=false
+	doCal=false
+	depend="-Wdepend=afterok:${modelID}"
+	. ${scriptdir}/runCsimulatorScienceField.sh
+	depend="${allIDs}:${modelID}:${latestID}"
+	. ${scriptdir}/runImagingScienceField.sh
+
+	doCorrupt=true
+	depend="-Wdepend=afterok:${modelID}"
+	. ${scriptdir}/runCsimulatorScienceField.sh
+	depend="${allIDs}:${modelID}:${latestID}"
+	. ${scriptdir}/runImagingScienceField.sh
+
+	doCal=true
+	. ${scriptdir}/runImagingScienceField.sh
+
+
+    fi
+
     cd ..
 
 fi
 
-if [ $doScienceField == true ]; then
-
-    depend=${allIDs}
-    . ${scriptdir}/combineCalResults.sh
-    allIDs="${allIDs}:${latestID}"
-
-    depend=""
-    . ${scriptdir}/makeScienceModel.sh
-    modelID=${latestID}
-
-    doCorrupt=false
-    doCal=false
-    depend="-Wdepend=afterok:${modelID}"
-    . ${scriptdir}/runCsimulatorScienceField.sh
-    depend="${allIDs}:${modelID}:${latestID}"
-    . ${scriptdir}/runImagingScienceField.sh
-
-    doCorrupt=true
-    depend="-Wdepend=afterok:${modelID}"
-    . ${scriptdir}/runCsimulatorScienceField.sh
-    depend="${allIDs}:${modelID}:${latestID}"
-    . ${scriptdir}/runImagingScienceField.sh
-
-    doCal=true
-    . ${scriptdir}/runImagingScienceField.sh
-
-
-fi
