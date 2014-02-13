@@ -19,7 +19,7 @@ EOF
 rm -rf $modelImage
 
 cat >> ${crParset} <<EOF
-createFITS.filename         = !${slice}.fits
+createFITS.filename         = !${modelImage}.fits
 createFITS.casaOutput       = true
 createFITS.fitsOutput       = false
 createFITS.flagWriteByChannel = true
