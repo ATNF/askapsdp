@@ -293,6 +293,46 @@ size_t AskapParallel::nGroups() const
    return itsNGroups;
 }
 
+// this is a special tag for messages used in notifyMaster/waitForNotification communication pattern
+// can be anything, but it provides extra protection if this tag is different from the tag used for data. 
+#define ASKAPPARALLEL_NOTIFYMSG_TAG 1
+
+/// @brief notify master that the worker is ready for some operation
+/// @detais It is sometimes convenient to wait for a response from workers
+/// that they're ready for some operation, e.g. to send the data. This method
+/// along with waitForNotification allows us to implement this pattern and avoid
+/// waiting for a reply from every worker in the order of their ranks. The pattern
+/// could have been implemented as part of the general send/receive calls, but
+/// the extra overhead of the current approach doesn't seem to be critical.
+/// @param[in] msg optional message that is passed to the master (can be used as a 
+/// continuation flag or as a notification that no more messages are expected), entirely
+/// user-defined
+void AskapParallel::notifyMaster(const int msg)
+{
+  ASKAPCHECK(isWorker(), "notifyMaster is only supposed to be called from workers");
+  // note, we deliberately use 0 as communicator index, this will give MPI_WORLD
+  // we also send directly to rank 0 which is the master
+  send(&msg, sizeof(int), 0, ASKAPPARALLEL_NOTIFYMSG_TAG,0);    
+}
+        
+/// @brief wait for a notification from a worker
+/// @details This method is supposed to be used in pair with notifyMaster. It waits
+/// for a short notification message from any source and returns passed message and
+/// the rank of the worker.
+/// @return a pair of two integers, the first element is the sender's rank and the second
+/// is the optional message passed to notifyMaster
+std::pair<int,int> AskapParallel::waitForNotification()
+{
+  ASKAPCHECK(isMaster(), "waitForNotification is only supposed to be called from the master");
+
+  int msg = -1;
+  // note, we deliberately use 0 as communicator index, this will give MPI_WORLD
+  const int sender = receiveAnySrc(&msg, sizeof(int), ASKAPPARALLEL_NOTIFYMSG_TAG, 0);
+  
+  return std::pair<int,int>(sender,msg);
+}  
+
+
 void AskapParallel::receiveBlob(LOFAR::BlobString& buf, int source)
 {
     // First receive the size of the buffer so it can be resized first

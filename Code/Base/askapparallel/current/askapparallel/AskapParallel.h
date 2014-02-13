@@ -31,6 +31,7 @@
 
 // System includes
 #include <string>
+#include <utility>
 
 // AskapSoft includes
 #include "Blob/BlobString.h"
@@ -99,6 +100,26 @@ class AskapParallel : public MPIComms {
         /// @param[in,out] buf    BlobString.
         /// @param[in] root       id of the root process.
         virtual void broadcastBlob(LOFAR::BlobString& buf, int root);
+        
+        /// @brief notify master that the worker is ready for some operation
+        /// @detais It is sometimes convenient to wait for a response from workers
+        /// that they're ready for some operation, e.g. to send the data. This method
+        /// along with waitForNotification allows us to implement this pattern and avoid
+        /// waiting for a reply from every worker in the order of their ranks. The pattern
+        /// could have been implemented as part of the general send/receive calls, but
+        /// the extra overhead of the current approach doesn't seem to be critical.
+        /// @param[in] msg optional message that is passed to the master (can be used as a 
+        /// continuation flag or as a notification that no more messages are expected), entirely
+        /// user-defined
+        void notifyMaster(const int msg = 0);
+        
+        /// @brief wait for a notification from a worker
+        /// @details This method is supposed to be used in pair with notifyMaster. It waits
+        /// for a short notification message from any source and returns passed message and
+        /// the rank of the worker.
+        /// @return a pair of two integers, the first element is the sender's rank and the second
+        /// is the optional message passed to notifyMaster
+        std::pair<int,int> waitForNotification();  
 
         /// Substitute %w by the worker number, and %n by the number of workers
         /// (one less than the number of nodes). Note, if there is more than one
