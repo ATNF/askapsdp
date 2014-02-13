@@ -11,8 +11,7 @@ askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/
 
 now=`date +%F-%H%M`
 
-#modelImage=pointSourceModel
-#sourceFlux=5.
+modelImage=scienceModel
 
 npix=2048
 cellsize=10.

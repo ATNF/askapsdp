@@ -1,16 +1,13 @@
 #!/bin/bash -l
 
-
 . ${scriptdir}/getTags.sh
 
-mkVisParset=parsets/csim-${tag}-${POINTING}.in
-mkVisLog=logs/csim-${tag}-${POINTING}.log
+mkVisParset=parsets/csim-Science-${tag}.in
+mkVisLog=logs/csim-Science-${tag}.log
 
-thisModelImage=${modelImage}.${POINTING}
+direction=${dirlist[4]}
 
-direction=${dirlist[$POINTING]}
-
-ms=${msbase}_${mstag}_${POINTING}.ms
+ms=${msbase}_Science_${mstag}.ms
 
 spw="[1, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
@@ -23,10 +20,7 @@ Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
 Csimulator.sources.DCmodel.direction            =       ${direction}
-#Csimulator.sources.DCmodel.model                =       ${thisModelImage}
-#Csimulator.modelReadByMaster                    =       false
-Csimulator.sources.DCmodel.components            =       src
-Csimulator.sources.src.calibrator                =       "1934-638"
+Csimulator.sources.DCmodel.model                =       ${modelImage}
 #
 # Define the antenna locations, feed locations, and spectral window definitions
 #
@@ -73,13 +67,13 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-qsubfile=csim_${POINTING}_${tag}.qsub
+qsubfile=csim_Science_${tag}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N csim${POINTING}${tag}
+#PBS -N csimSci
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
