@@ -48,7 +48,7 @@ Ccalibrator.solve                               = $calSolve
 Ccalibrator.interval                            = $calInterval
 #
 Ccalibrator.calibaccess                         = parset
-Ccalibrator.calibaccess.parset                  = result.dat
+Ccalibrator.calibaccess.parset                  = caldata-${POINTING}.dat
 Ccalibrator.calibaccess.table                   = "caldata.tab"
 Ccalibrator.calibaccess.table.maxant            = 6
 Ccalibrator.calibaccess.table.maxbeam           = 9

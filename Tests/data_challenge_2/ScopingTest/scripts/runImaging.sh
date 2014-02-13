@@ -58,7 +58,7 @@ Cimager.restore.beam                            = fit
 # Apply calibration
 Cimager.calibrate                               = ${doCal}
 Cimager.calibaccess                             = parset
-Cimager.calibaccess.parset                      = result.dat
+Cimager.calibaccess.parset                      = caldata-${POINTING}.dat
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
