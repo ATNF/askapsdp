@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-scriptdir=`pwd`
+scriptdir=`pwd`/scripts
 
 . ${scriptdir}/config.sh
 
