@@ -51,8 +51,8 @@ qsubfile=createScienceModel.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
-#PBS -l mppwidth=19
-#PBS -l mppnppn=19
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
 #PBS -N crSci
 #PBS -m a
 #PBS -j oe
