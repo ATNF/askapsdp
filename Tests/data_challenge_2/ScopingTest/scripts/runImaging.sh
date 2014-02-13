@@ -3,8 +3,8 @@
 
 . ${scriptdir}/getTags.sh
 
-imParset=parsets/cim-selection-${tag}-${now}-${POINTING}.in
-imLogfile=logs/cim-selection-${tag}-${now}-${POINTING}.log
+imParset=parsets/cim-selection-${tag}-${POINTING}.in
+imLogfile=logs/cim-selection-${tag}-${POINTING}.log
 
 ms=${msbase}_${mstag}_${POINTING}.ms
 image=image.i.dirty.selected.${imtag}.${POINTING}
@@ -65,11 +65,11 @@ EOF_INNER
 
 qsubfile=cim_${tags}.qsub
 cat > $qsubfile <<EOF
-!/bin/bash -l
+#!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N cimDC2
+#PBS -N cim${POINTING}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH

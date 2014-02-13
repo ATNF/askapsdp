@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
 
-mkVisParset=parsets/csim-${now}-${POINTING}.in
-mkVisLog=logs/csim-${now}-${POINTING}.log
+mkVisParset=parsets/csim-${POINTING}.in
+mkVisLog=logs/csim-${POINTING}.log
 
 thisModelImage=${modelImage}.${POINTING}
 
@@ -11,7 +11,6 @@ direction=${dirlist[$POINTING]}
 . ${scriptdir}/getTags.sh
 
 ms=${msbase}_${mstag}_${POINTING}.ms
-rm -rf $ms
 
 spw="[1, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
@@ -74,16 +73,18 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-qsubfile=csim_${tags}.qsub
+qsubfile=csim_${POINTING}_${tags}.qsub
 cat > $qsubfile <<EOF
-!/bin/bash -l
+#!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N csimDC2
+#PBS -N csim${POINTING}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
+
+rm -rf $ms
 
 aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
 

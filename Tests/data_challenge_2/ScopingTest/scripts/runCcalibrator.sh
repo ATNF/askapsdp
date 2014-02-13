@@ -7,28 +7,14 @@ if [ $doCal == true ]; then
 
     . ${scriptdir}/getTags.sh
 
-    ccalParset=parsets/ccal-${now}-${POINTING}.in
+    ccalParset=parsets/ccal-${POINTING}.in
     ccalLog=logs/ccal-${now}-${POINTING}.log
 
     newms=${msbase}_CALIBRATED_${POINTING}.ms
     oldms=${msbase}_CORRUPTED_${POINTING}.ms
-
-    rm -rf $newms
-
-    if [ $flagRunSplit == true ]; then
-	echo "Running mssplit to get MS with only feed ${feedlist[$POINTING]} in it"
-	mssplitParset=parsets/mssplit-${now}-${POINTING}.in
-	mssplitLog=logs/mssplit-${now}-${POINTING}.log
-	cat > ${mssplitParset} <<EOF
-vis = ${oldms}
-outputvis = ${newms}
-beams = [${feedlist[${POINTING}]}]
-channel = 1
-EOF
-	${mssplit} -c ${mssplitParset} > ${mssplitLog}
-    else
-	cp -R $oldms $newms
-    fi
+    
+    mssplitParset=parsets/mssplit-${POINTING}.in
+    mssplitLog=logs/mssplit-${POINTING}.log
 
     echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}"
 
@@ -95,14 +81,30 @@ EOF
 
     qsubfile=ccal_${tags}.qsub
     cat > $qsubfile <<EOF
-!/bin/bash -l
+#!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=19
 #PBS -l mppnppn=19
-#PBS -N ccalDC2
+#PBS -N ccal${POINTING}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
+
+rm -rf $newms
+
+flagRunSplit=${flagRunSplit}
+if [ \$flagRunSplit == true ]; then
+    echo "Running mssplit to get MS with only feed ${feedlist[$POINTING]} in it"
+    cat > ${mssplitParset} <<EOFINNER
+vis = ${oldms}
+outputvis = ${newms}
+beams = [${feedlist[${POINTING}]}]
+channel = 1
+EOFINNER
+    aprun ${mssplit} -c ${mssplitParset} > ${mssplitLog}
+else
+    cp -R $oldms $newms
+fi
 
 aprun ${ccal} -c ${ccalParset} > ${ccalLog}
 
