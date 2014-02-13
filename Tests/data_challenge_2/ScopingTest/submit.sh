@@ -68,6 +68,12 @@ if [ $runIt == true ]; then
 
 fi
 
+rm -f caldata-combined.dat
+N=0
+while [ $N -le 9 ]; do
+    grep ".${N} = " caldata-${N}.dat >> caldata-combined.dat
+    N=`expr $N + 1`
+done
 
 if [ $doScienceField == true ]; then
 
