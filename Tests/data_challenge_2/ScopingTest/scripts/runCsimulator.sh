@@ -2,6 +2,7 @@
 
 
 . ${scriptdir}/getTags.sh
+. ${scriptdir}/makeFeedParset.sh
 
 mkVisParset=parsets/csim-${tag}-${POINTING}.in
 mkVisLog=logs/csim-${tag}-${POINTING}.log
@@ -31,7 +32,7 @@ Csimulator.sources.src.calibrator                =       "1934-638"
 # Define the antenna locations, feed locations, and spectral window definitions
 #
 Csimulator.antennas.definition                   =       ${askapconfig}/BETAXYZ.in
-Csimulator.feeds.definition                      =       ${askapconfig}/ASKAP9feeds.in
+Csimulator.feeds.definition                      =       ${feedparset}
 #Csimulator.spws.definition                       =       spws_grp0.in
 Csimulator.spws.names                            =  [thisSPWS]
 Csimulator.spws.thisSPWS                         = ${spw}

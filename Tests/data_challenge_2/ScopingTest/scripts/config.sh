@@ -36,6 +36,8 @@ basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1
 nw=129
 os=8
 
+feedparset="${askapconfig}/ASKAP9feeds.in"
+
 doCorrupt=true
 randomgainsparset=randomgains.in
 doCal=true
