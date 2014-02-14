@@ -14,9 +14,9 @@ cd \$PBS_O_WORKDIR
 
 rm -f caldata-combined.dat
 N=0
-while [ $N -le 9 ]; do
-    grep ".${N} = " caldata-${N}.dat >> caldata-combined.dat
-    N=`expr $N + 1`
+while [ \$N -le 9 ]; do
+    grep "\\.\${N} = " caldata-\${N}.dat >> caldata-combined.dat
+    N=\`expr \$N + 1\`
 done
 
 EOF

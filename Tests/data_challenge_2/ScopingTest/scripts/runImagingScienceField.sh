@@ -3,6 +3,10 @@
 
 . ${scriptdir}/getTags.sh
 
+if [ $doCal == true ]; then
+    mstag="CORRUPTED"
+fi
+
 imParset=parsets/cim-Science-${tag}.in
 imLogfile=logs/cim-Science-${tag}.log
 
@@ -11,7 +15,7 @@ image=image.i.dirty.science.${imtag}
 freq="${nurefMHz}e6"
 direction=${dirlist[4]}
 
-echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}.restored"
+echo "Running cimager for science field, imaging ${ms} to create ${image}.restored"
 
 cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${ms}
@@ -28,8 +32,8 @@ Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = 800
 Cimager.gridder                                 = AWProject
 Cimager.gridder.AWProject.wmax                  = 800
-Cimager.gridder.AWProject.nwplanes              = 129
-Cimager.gridder.AWProject.oversample            = 4
+Cimager.gridder.AWProject.nwplanes              = ${nw}
+Cimager.gridder.AWProject.oversample            = ${os}
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
 Cimager.gridder.AWProject.maxfeeds              = 36
@@ -66,7 +70,7 @@ cat > $qsubfile <<EOF
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N cim${POINTING}${tag}
+#PBS -N cimSci
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH

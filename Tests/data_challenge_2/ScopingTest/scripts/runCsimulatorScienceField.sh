@@ -11,7 +11,7 @@ ms=${msbase}_Science_${mstag}.ms
 
 spw="[1, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
-echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}"
+echo "Running csimulator for science field, producing measurement set ${ms}"
 
 cat > ${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       ${ms}
@@ -46,8 +46,8 @@ Csimulator.gridder.padding                       =       1.
 Csimulator.gridder.snapshotimaging               =       true
 Csimulator.gridder.snapshotimaging.wtolerance    =       1000
 Csimulator.gridder.AWProject.wmax               =       1000
-Csimulator.gridder.AWProject.nwplanes           =       129
-Csimulator.gridder.AWProject.oversample         =       4
+Csimulator.gridder.AWProject.nwplanes           =      ${nw}
+Csimulator.gridder.AWProject.oversample         =      ${os}
 Csimulator.gridder.AWProject.diameter           =       12m
 Csimulator.gridder.AWProject.blockage           =       2m
 Csimulator.gridder.AWProject.maxsupport         =       512

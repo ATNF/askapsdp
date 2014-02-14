@@ -32,6 +32,10 @@ pol="XX YY"
 nurefMHz=`echo ${rfreq} ${CHAN} ${rchan} ${chanw} | awk '{printf "%13.8f",($1+($2-$3)*$4)/1.e6}'`
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
+#Gridding parameters
+nw=129
+os=8
+
 doCorrupt=true
 randomgainsparset=randomgains.in
 doCal=true
