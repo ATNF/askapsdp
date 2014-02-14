@@ -313,16 +313,42 @@ void linmosAccumulator::accumulatePlane(Array<float> outPix, Array<float> outWgt
 
     // Accumulate the pixels of this slice.
     // Could restrict it (and the regrid) to a smaller region of interest.
-    for (int x=0; x<outPix.shape()[0];++x) {
-         for (int y=0; y<outPix.shape()[1];++y) {
-              curpos[0] = x;
-              curpos[1] = y;
-              planepos[0] = x;
-              planepos[1] = y;
-              //the restore seems to be unweighting the images. Need to know this...
-              outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos) * outWgtBuffer.getAt(planepos);
-              outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
-          }
+    if (weightState == CORRECTED) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                planepos[0] = x;
+                planepos[1] = y;
+                //the restore seems to be unweighting the images. Need to know this...
+                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos) * outWgtBuffer.getAt(planepos);
+                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+            }
+        }
+    } else if (weightState == INHERENT) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                planepos[0] = x;
+                planepos[1] = y;
+                //the restore seems to be unweighting the images. Need to know this...
+                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos) * sqrt(outWgtBuffer.getAt(planepos));
+                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+            }
+        }
+    } else if (weightState == WEIGHTED) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                planepos[0] = x;
+                planepos[1] = y;
+                //the restore seems to be unweighting the images. Need to know this...
+                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos);
+                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+            }
+        }
     }
 
 }
@@ -340,12 +366,32 @@ void linmosAccumulator::accumulatePlane(Array<float> outPix, Array<float> outWgt
     ASKAPASSERT(inPix.shape() == outPix.shape());
 
     // Update the accululation arrays for this plane.
-    for (int x=0; x<outPix.shape()[0];++x) {
-        for (int y=0; y<outPix.shape()[1];++y) {
-            curpos[0] = x;
-            curpos[1] = y;
-            outPix(curpos) = outPix(curpos) + inPix(curpos) * inWgtPix(curpos);
-            outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+    if (weightState == CORRECTED) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                outPix(curpos) = outPix(curpos) + inPix(curpos) * inWgtPix(curpos);
+                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+            }
+        }
+    } else if (weightState == INHERENT) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                outPix(curpos) = outPix(curpos) + inPix(curpos) * sqrt(inWgtPix(curpos));
+                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+            }
+        }
+    } else if (weightState == WEIGHTED) {
+        for (int x=0; x<outPix.shape()[0];++x) {
+            for (int y=0; y<outPix.shape()[1];++y) {
+                curpos[0] = x;
+                curpos[1] = y;
+                outPix(curpos) = outPix(curpos) + inPix(curpos);
+                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+            }
         }
     }
 
