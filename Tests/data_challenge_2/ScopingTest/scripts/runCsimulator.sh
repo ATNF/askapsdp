@@ -9,7 +9,8 @@ mkVisLog=logs/csim-${tag}-${POINTING}.log
 
 thisModelImage=${modelImage}.${POINTING}
 
-direction=${dirlist[$POINTING]}
+#direction=${dirlist[$POINTING]}
+direction=${baseDirection}
 
 ms=${msbase}_${mstag}_${POINTING}.ms
 

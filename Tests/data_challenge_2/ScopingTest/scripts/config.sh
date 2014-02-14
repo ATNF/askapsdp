@@ -43,6 +43,7 @@ randomgainsparset=randomgains.in
 doCal=true
 
 msbase=calTest
+baseDirection="[12h30m00.000, -45.00.00, J2000]"
 dirlist=(
 "[12h35m33.639, -44.00.00, J2000]" 
 "[12h35m39.411, -45.00.00, J2000]"
