@@ -3,8 +3,7 @@
 xloc=(1 1 1 2 2 2 3 3 3)
 yloc=(1 2 3 1 2 3 1 2 3)
 
-#parset=parsets/ASKAP9feeds_ref${POINTING}.in
-feedparset=ASKAP9feeds_ref${POINTING}.in
+feedparset=parsets/ASKAP9feeds_ref${POINTING}.in
 cat > $feedparset <<EOF
 feeds.spacing        =       1deg
 feeds.names          =       [feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8]
