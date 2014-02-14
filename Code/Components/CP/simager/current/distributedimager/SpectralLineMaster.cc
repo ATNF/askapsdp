@@ -125,7 +125,7 @@ void SpectralLineMaster::run(void)
             }
 
             // Send the workunit to the worker
-            ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
+            ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
                     << ", local channel " <<  localChan << ", global channel "
                     << globalChannel << " to worker " << id);
             SpectralLineWorkUnit wu;

@@ -121,8 +121,8 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     const double uvwMachineCacheTolerance = SynthesisParamsHelper::convertQuantity(
             itsParset.getString("uvwMachineDirTolerance", "1e-6rad"), "rad");
 
-    ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store " << uvwMachineCacheSize << " machines");
-    ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "
+    ASKAPLOG_DEBUG_STR(logger, "UVWMachine cache will store " << uvwMachineCacheSize << " machines");
+    ASKAPLOG_DEBUG_STR(logger, "Tolerance on the directions is "
             << uvwMachineCacheTolerance/casa::C::pi *180. * 3600. << " arcsec");
 
     TableDataSource ds(ms, TableDataSource::DEFAULT, colName);

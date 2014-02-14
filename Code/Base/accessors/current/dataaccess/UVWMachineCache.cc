@@ -71,7 +71,7 @@ UVWMachineCache::~UVWMachineCache()
                 ++cntUsed;
             }
        }
-       ASKAPLOG_INFO_STR(logger, "UVW-Machine cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
+       ASKAPLOG_DEBUG_STR(logger, "UVW-Machine cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
    }
 }
 
