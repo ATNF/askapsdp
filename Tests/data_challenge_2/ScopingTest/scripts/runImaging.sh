@@ -17,8 +17,8 @@ echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}
 cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${ms}
 #
-Cimager.Feed = ${feedlist[${POINTING}]}
-#Cimager.Feed = ${POINTING}
+#Cimager.Feed = ${feedlist[${POINTING}]}
+Cimager.Feed = ${POINTING}
 #
 Cimager.Images.Names                            = [${image}]
 Cimager.Images.shape                            = [2048,2048]
