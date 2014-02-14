@@ -981,8 +981,11 @@ namespace askap
        ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input BLC: "<<inDC.errorMessage());
        success = dc.toPixel(pix,tempDir);
        ASKAPCHECK(success, "World to pixel coordinate conversion failed for output BLC: "<<dc.errorMessage());
-       blc[0] = casa::Int(pix[0]);
-       blc[1] = casa::Int(pix[1]);
+       // converting to Int without rounding appears to be changing the image size.
+       //blc[0] = casa::Int(pix[0]);
+       //blc[1] = casa::Int(pix[1]);
+       blc[0] = casa::Int(round(pix[0]));
+       blc[1] = casa::Int(round(pix[1]));
        
        // now process TRC
        pix[0] = casa::Double(trc[0]);
@@ -991,8 +994,12 @@ namespace askap
        ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input TRC: "<<inDC.errorMessage());
        success = dc.toPixel(pix,tempDir);
        ASKAPCHECK(success, "World to pixel coordinate conversion failed for output TRC: "<<dc.errorMessage());
-       trc[0] = casa::Int(pix[0]);
-       trc[1] = casa::Int(pix[1]);
+       // converting to Int without rounding appears to be changing the image size.
+       //trc[0] = casa::Int(pix[0]);
+       //trc[1] = casa::Int(pix[1]);
+       trc[0] = casa::Int(round(pix[0]));
+       trc[1] = casa::Int(round(pix[1]));
+
        return casa::Slicer(blc,trc,casa::Slicer::endIsLast);
     }
     
@@ -1037,7 +1044,7 @@ namespace askap
        newShape(1) = tempTRC(1) - tempBLC(1) + 1;
        ASKAPDEBUGASSERT(newShape(0) > 0);
        ASKAPDEBUGASSERT(newShape(1) > 0);       
-       casa::Vector<casa::Double> refPix = templateDC.referenceValue();
+       casa::Vector<casa::Double> refPix = templateDC.referencePixel();
        refPix[0] -= casa::Double(tempBLC(0) - tempSlicer.start()(0));
        refPix[1] -= casa::Double(tempBLC(1) - tempSlicer.start()(1));
        casa::DirectionCoordinate newDC(templateDC);
@@ -1049,6 +1056,7 @@ namespace askap
        casa::Array<double> pixels(newShape);
        pixels.set(0.0);
        ip.add(mergedName, pixels, newAxes);       
+
     }
     
     /// @brief A helper method to build a list of faceted images
