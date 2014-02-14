@@ -9,7 +9,8 @@ imLogfile=logs/cim-selection-${tag}-${POINTING}.log
 ms=${msbase}_${mstag}_${POINTING}.ms
 image=image.i.dirty.selected.${imtag}.${POINTING}
 freq="${nurefMHz}e6"
-direction=${dirlist[$POINTING]}
+#direction=${dirlist[$POINTING]}
+direction=${baseDirection}
 
 echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}.restored"
 
