@@ -62,3 +62,5 @@ decOff=(-1 0 1 -1 0 1 -1 0 1)
 
 feedlist=(6 7 8 3 4 5 0 1 2)
 
+
+doTrim=true

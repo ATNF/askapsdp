@@ -67,13 +67,14 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
+pbstag="csimSci${tag}"
 qsubfile=csim_Science_${tag}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N csimSci
+#PBS -N ${pbstag}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH

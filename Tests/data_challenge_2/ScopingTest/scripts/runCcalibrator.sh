@@ -22,7 +22,8 @@ if [ $doCal == true ]; then
     calInterval=1800
     calibparset=rndgains.in
     calSolveNbeam=9
-    calFeed=${feedlist[${POINTING}]}
+#    calFeed=${feedlist[${POINTING}]}
+    calFeed=${POINTING}
     calSolve=gains
     #    calDirection=${dirlist[${POINTING}]}
     #    calDirection=${dirlist[${feedlist[${POINTING}]}]}

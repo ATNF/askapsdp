@@ -66,6 +66,8 @@ if [ $runIt == true ]; then
 
     if [ $doScienceField == true ]; then
 
+	doTrim=false
+
 	depend=${allIDs}
 	. ${scriptdir}/combineCalResults.sh
 	allIDs="${allIDs}:${latestID}"
@@ -80,15 +82,18 @@ if [ $runIt == true ]; then
 	. ${scriptdir}/runCsimulatorScienceField.sh
 	depend="${allIDs}:${modelID}:${latestID}"
 	. ${scriptdir}/runImagingScienceField.sh
+	. ${scriptdir}/runImagingScienceFieldTrimmed.sh
 
 	doCorrupt=true
 	depend="-Wdepend=afterok:${modelID}"
 	. ${scriptdir}/runCsimulatorScienceField.sh
 	depend="${allIDs}:${modelID}:${latestID}"
 	. ${scriptdir}/runImagingScienceField.sh
+	. ${scriptdir}/runImagingScienceFieldTrimmed.sh
 
 	doCal=true
 	. ${scriptdir}/runImagingScienceField.sh
+	. ${scriptdir}/runImagingScienceFieldTrimmed.sh
 
 
     fi

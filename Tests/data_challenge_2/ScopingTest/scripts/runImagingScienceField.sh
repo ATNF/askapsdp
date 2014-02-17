@@ -7,11 +7,19 @@ if [ $doCal == true ]; then
     mstag="CORRUPTED"
 fi
 
+selection="# No feed selection"
+if [ $doTrim == true ]; then
+    imtag=${imtag}.${POINTING}
+    tag=${tag}${POINTING}
+    selection="Cimager.Feed = ${POINTING}"
+fi
+
 imParset=parsets/cim-Science-${tag}.in
 imLogfile=logs/cim-Science-${tag}.log
 
 ms=${msbase}_Science_${mstag}.ms
 image=image.i.dirty.science.${imtag}
+
 freq="${nurefMHz}e6"
 direction=${dirlist[4]}
 
@@ -19,6 +27,7 @@ echo "Running cimager for science field, imaging ${ms} to create ${image}.restor
 
 cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${ms}
+${selection}
 #
 Cimager.Images.Names                            = [${image}]
 Cimager.Images.shape                            = [2048,2048]
@@ -64,13 +73,14 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
+pbstag="cimSci${tag}"
 qsubfile=cim_Science_${tag}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N cimSci
+#PBS -N ${pbstag}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
