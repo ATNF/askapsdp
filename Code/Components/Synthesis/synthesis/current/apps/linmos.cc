@@ -68,55 +68,137 @@ enum weight_states {CORRECTED=0, INHERENT, WEIGHTED};
 // INHERENT             Input images retain the natural primary-beam weighting of the visibilities
 // WEIGHTED             Input images have full primary-beam-squared weighting
 
-class linmosAccumulator {
-    // regridding objects
-    ImageRegrid<float> regridder;
-    IPosition axes;
-    Interpolate2D::Method emethod;
-    TempImage<float> inBuffer, inWgtBuffer;
-    TempImage<float> outBuffer, outWgtBuffer;
+class LinmosAccumulator {
+
   public:
-    // options
-    int weightType;
-    int weightState;
-    // 
-    IPosition inShape;
-    CoordinateSystem inCoordSys;
-    IPosition outShape;
-    CoordinateSystem outCoordSys;
-    // 
-    linmosAccumulator();
-    bool checkParset(const string, const string);
+
+    LinmosAccumulator();
+
+    /// @brief check parset parameters and set any dependent options
+    /// @param[in] const string& weightTypeName: value given for parset key 'weighttype'
+    /// @param[in] const string& weightStateName: value given for parset key 'weightstate'
+    /// @return bool true=success, false=fail
+    bool checkParset(const string& weightTypeName, const string& weightStateName);
+
+    /// @brief test whether the output buffers are empty and need initialising
+    /// @return bool
     bool outputBufferSetupRequired(void);
-    bool CoordinatesAreConsistent(const CoordinateSystem refCoordSys);
-    bool CoordinatesAreEqual(void);
-    Vector<IPosition> convertImageCornersToRef(const DirectionCoordinate);
-    void setOutputParameters(vector<string>, accessors::IImageAccess&);
+
+    /// @brief set the input coordinate system and shape
+    /// @param[in] const string& inImgName: name of the input image
+    /// @param[in] const accessors::IImageAccess& iac
+    void setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc);
+
+    /// @brief set the output coordinate system and shape, based on the overlap of input images
+    /// @details This method is based on the SynthesisParamsHelper::add and
+    ///     SynthesisParamsHelper::facetSlicer. It has been reimplemented here
+    ///     so that images can be read into memory separately.
+    /// @param[in] const vector<string>& inImgNames: names of the input images (those given for parset key 'names')
+    /// @param[in] const accessors::IImageAccess& iac
+    void setOutputParameters(const vector<string>& inImgNames, const accessors::IImageAccess& iacc);
+
+    /// @brief set up any 2D temporary output image buffers required for regridding
     void initialiseOutputBuffers(void);
+
+    /// @brief set up any 2D temporary input image buffers required for regridding
     void initialiseInputBuffers(void);
-    void initialiseRegridder(String method="linear");
-    void loadInputBuffers(scimath::MultiDimArrayPlaneIter, Array<float>, Array<float>);
-    void regrid(Int decimate=3, Bool replicate=False, Bool force=False);
-    void accumulatePlane(Array<float>, Array<float>, IPosition);
-    void accumulatePlane(Array<float>, Array<float>, Array<float>, Array<float>, IPosition);
-    void deweightPlane(Array<float>, Array<float>, IPosition, float cutoff=1e-6);
+
+    /// @brief set up regridder
+    /// @param[in] const String& method: ImageRegrid::regrid input option
+    void initialiseRegridder(const String& method="linear");
+
+    /// @brief load the temporary image buffers with the current plane of the current input image
+    /// @param[in] const scimath::MultiDimArrayPlaneIter& planeIter: current plane id
+    /// @param[in] Array<float>& inPix: image buffer
+    /// @param[in] Array<float>& inWgtPix: weight image buffer
+    void loadInputBuffers(const scimath::MultiDimArrayPlaneIter& planeIter,
+                          Array<float>& inPix, Array<float>& inWgtPix);
+
+    /// @brief call the regridder for the buffered plane
+    /// @param[in] const Int decimate: ImageRegrid::regrid input option
+    /// @param[in] const Bool replicate: ImageRegrid::regrid input option
+    /// @param[in] const Bool force: ImageRegrid::regrid input option
+    void regrid(const Int decimate=3, const Bool replicate=False, const Bool force=False);
+
+    /// @brief add the current plane to the accumulation arrays
+    /// @details This method adds from the regridded buffers
+    /// @param[out] Array<float>& outPix: accumulated weighted image pixels
+    /// @param[out] Array<float>& outWgtPix: accumulated weight pixels
+    /// @param[in] const IPosition& curpos: indices of the current plane
+    void accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix, const IPosition& curpos);
+
+    /// @brief add the current plane to the accumulation arrays
+    /// @details This method adds directly from the input arrays
+    /// @param[out] Array<float>& outPix: accumulated weighted image pixels
+    /// @param[out] Array<float>& outWgtPix: accumulated weight pixels
+    /// @param[in] const Array<float>& inPix: input image pixels
+    /// @param[in] const Array<float>& inWgtPix: input weight pixels
+    /// @param[in] const IPosition& curpos: indices of the current plane
+    void accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix,
+                         const Array<float>& inPix, const Array<float>& inWgtPix, const IPosition& curpos);
+
+    /// @brief divide the weighted pixels by the weights for the current plane
+    /// @param[in,out] Array<float>& outPix: accumulated deweighted image pixels
+    /// @param[in] const Array<float>& outWgtPix: accumulated weight pixels
+    /// @param[in] const IPosition& curpos: indices of the current plane
+    /// @param[in] const float cutoff: threshold to stop division by small numbers
+    void deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix, const IPosition& curpos,
+                       const float cutoff=1e-6);
+
+    /// @brief check to see if the input and output coordinate grids are equal
+    /// @return bool: true if they are equal
+    bool CoordinatesAreEqual(void);
+
+    // return metadata for the current input image
+    IPosition inShape(void) {return itsInShape;}
+    CoordinateSystem inCoordSys(void) {return itsInCoordSys;}
+
+    // return metadata for the output image
+    IPosition outShape(void) {return itsOutShape;}
+    CoordinateSystem outCoordSys(void) {return itsOutCoordSys;}
+
+  private:
+
+    /// @brief convert the current input shape and coordinate system to the reference (output) system
+    /// @param[in] const DirectionCoordinate& refDC: reference direction coordinate
+    /// @return IPosition vector containing BLC and TRC of the current input image, relative to another coord. system
+    Vector<IPosition> convertImageCornersToRef(const DirectionCoordinate& refDC);
+
+    /// @brief check to see if the input coordinate system is consistent enough with the reference system to merge
+    /// @param[in] const CoordinateSystem& refCoordSys: reference coordinate system
+    /// @return bool: true if they are consistent
+    bool CoordinatesAreConsistent(const CoordinateSystem& refCoordSys);
+
+    // regridding options
+    ImageRegrid<float> itsRegridder;
+    IPosition itsAxes;
+    Interpolate2D::Method itsEmethod;
+    // regridding buffers
+    TempImage<float> itsInBuffer, itsInWgtBuffer;
+    TempImage<float> itsOutBuffer, itsOutWgtBuffer;
+    // metadata objects
+    IPosition itsInShape;
+    CoordinateSystem itsInCoordSys;
+    IPosition itsOutShape;
+    CoordinateSystem itsOutCoordSys;
+    // options
+    int itsWeightType;
+    int itsWeightState;
+
 };
 
-linmosAccumulator::linmosAccumulator() {
-    weightType = -1;
-    weightState = -1;
-}
+LinmosAccumulator::LinmosAccumulator() : itsWeightType(-1), itsWeightState(-1) {}
 
-/// @brief check parset parameters and set any dependent options
-/// @param[in] const string weightTypeName: value given for parset key 'weighttype'
-/// @param[in] const string weightStateName: value given for parset key 'weightstate'
-/// @return bool true=success, false=fail
-bool linmosAccumulator::checkParset(const string weightTypeName, const string weightStateName) {
+bool LinmosAccumulator::checkParset(const string& weightTypeName, const string& weightStateName) {
+
+    // Check weighting options. One of the following must be set:
+    //  - get weights from input weight images
+    //    * the number of weight images and their shapes must match the input images
 
     if (boost::iequals(weightTypeName, "FromWeightImages")) {
-        weightType = FROM_WEIGHT_IMAGES;
+        itsWeightType = FROM_WEIGHT_IMAGES;
     } else if (boost::iequals(weightTypeName, "FromPrimaryBeamModel")) {
-        weightType = FROM_BP_MODEL;
+        itsWeightType = FROM_BP_MODEL;
         ASKAPLOG_ERROR_STR(logger, "weighttype '" << weightTypeName << "' not yet supported");
         return false;
     } else {
@@ -125,11 +207,11 @@ bool linmosAccumulator::checkParset(const string weightTypeName, const string we
     }
 
     if (boost::iequals(weightStateName, "Corrected")) {
-        weightState = CORRECTED;
+        itsWeightState = CORRECTED;
     } else if (boost::iequals(weightStateName, "Inherent")) {
-        weightState = INHERENT;
+        itsWeightState = INHERENT;
     } else if (boost::iequals(weightStateName, "Weighted")) {
-        weightState = WEIGHTED;
+        itsWeightState = WEIGHTED;
     } else {
         ASKAPLOG_ERROR_STR(logger, "Unknown weightstyle " << weightStateName);
         return false;
@@ -139,20 +221,17 @@ bool linmosAccumulator::checkParset(const string weightTypeName, const string we
 
 }
 
-/// @brief test whether the output buffers are empty and need initialising
-/// @return bool
-bool linmosAccumulator::outputBufferSetupRequired(void) {
-    if ( outBuffer.shape().nelements() == 0 ) return true;
-    return false;
+bool LinmosAccumulator::outputBufferSetupRequired(void) {
+    return ( itsOutBuffer.shape().nelements() == 0 );
 }
 
-/// @brief set the output coordinate system and shape, based on the overlap of input images
-/// @details This method is based on the SynthesisParamsHelper::add and
-///     SynthesisParamsHelper::facetSlicer. It has been reimplemented here
-///     so that images can be read into memory separately.
-/// @param[in] vector<string> inImgNames: names of the input images (those given for parset key 'names')
-/// @param[in] accessors::IImageAccess& iac
-void linmosAccumulator::setOutputParameters(vector<string> inImgNames, accessors::IImageAccess& iacc) {
+void LinmosAccumulator::setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc) {
+    // set the input coordinate system and shape
+    itsInCoordSys = iacc.coordSys(inImgName);
+    itsInShape = iacc.shape(inImgName);
+}
+
+void LinmosAccumulator::setOutputParameters(const vector<string>& inImgNames, const accessors::IImageAccess& iacc) {
 
     // test that there are some input image names ...
 
@@ -180,8 +259,8 @@ void linmosAccumulator::setOutputParameters(vector<string> inImgNames, accessors
         const string inImgName = inImgNames[img];
 
         // 
-        inShape = iacc.shape(inImgName);
-        inCoordSys = iacc.coordSys(inImgName);
+        itsInShape = iacc.shape(inImgName);
+        itsInCoordSys = iacc.coordSys(inImgName);
 
         // test to see if the loaded coordinate system is close enough to the reference system for merging
         ASKAPCHECK(CoordinatesAreConsistent(refCS), "Input images have inconsistent coordinate systems");
@@ -204,11 +283,11 @@ void linmosAccumulator::setOutputParameters(vector<string> inImgNames, accessors
  
     }
 
-    outShape = refShape;
-    outShape(0) = tempTRC(0) - tempBLC(0) + 1;
-    outShape(1) = tempTRC(1) - tempBLC(1) + 1;
-    ASKAPDEBUGASSERT(outShape(0) > 0);
-    ASKAPDEBUGASSERT(outShape(1) > 0);       
+    itsOutShape = refShape;
+    itsOutShape(0) = tempTRC(0) - tempBLC(0) + 1;
+    itsOutShape(1) = tempTRC(1) - tempBLC(1) + 1;
+    ASKAPDEBUGASSERT(itsOutShape(0) > 0);
+    ASKAPDEBUGASSERT(itsOutShape(1) > 0);       
     Vector<Double> refPix = refDC.referencePixel();
     refPix[0] -= Double(tempBLC(0) - refBLC(0));
     refPix[1] -= Double(tempBLC(1) - refBLC(1));
@@ -216,283 +295,256 @@ void linmosAccumulator::setOutputParameters(vector<string> inImgNames, accessors
     newDC.setReferencePixel(refPix);
 
     // set up a coord system for the merged images
-    outCoordSys = refCS;
-    outCoordSys.replaceCoordinate(newDC, dcPos);
+    itsOutCoordSys = refCS;
+    itsOutCoordSys.replaceCoordinate(newDC, dcPos);
 
 }
 
-/// @brief set up any 2D temporary output image buffers required for regridding
-void linmosAccumulator::initialiseOutputBuffers(void) {
+void LinmosAccumulator::initialiseOutputBuffers(void) {
     // set up temporary images needed for regridding (which is done on a plane-by-plane basis so ignore other dims)
 
 // DAM: do we need to test that the direction axes are 0 and 1 for the iterator?
 
     // set up the coord. sys.
-    int dcPos = outCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
+    int dcPos = itsOutCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
     ASKAPCHECK(dcPos>=0, "Cannot find the directionCoordinate");
-    const DirectionCoordinate dcTmp = outCoordSys.directionCoordinate(dcPos);
+    const DirectionCoordinate dcTmp = itsOutCoordSys.directionCoordinate(dcPos);
     CoordinateSystem cSysTmp;
     cSysTmp.addCoordinate(dcTmp);
 
     // set up the shape
-    Vector<Int> shapePos = outCoordSys.pixelAxes(dcPos);
+    Vector<Int> shapePos = itsOutCoordSys.pixelAxes(dcPos);
     // check that the length is equal to 2 and the both elements are >= 0
 
-    IPosition shape = IPosition(2,outShape(shapePos[0]),outShape(shapePos[1]));
+    IPosition shape = IPosition(2,itsOutShape(shapePos[0]),itsOutShape(shapePos[1]));
 
     // apparently the +100 forces it to use the memory
     double maxMemoryInMB = double(shape.product()*sizeof(float))/1024./1024.+100;
-    outBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
-    outWgtBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
+    itsOutBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
+    itsOutWgtBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
 
 }
 
-/// @brief set up any 2D temporary input image buffers required for regridding
-void linmosAccumulator::initialiseInputBuffers() {
+void LinmosAccumulator::initialiseInputBuffers() {
     // set up temporary images needed for regridding (which is done on a plane-by-plane basis so ignore other dims)
 
     // set up a coord. sys. the planes
-    int dcPos = inCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
+    int dcPos = itsInCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
     ASKAPCHECK(dcPos>=0, "Cannot find the directionCoordinate");
-    const DirectionCoordinate dc = inCoordSys.directionCoordinate(dcPos);
+    const DirectionCoordinate dc = itsInCoordSys.directionCoordinate(dcPos);
     CoordinateSystem cSys;
     cSys.addCoordinate(dc);
 
     // set up the shape
-    Vector<Int> shapePos = inCoordSys.pixelAxes(dcPos);
+    Vector<Int> shapePos = itsInCoordSys.pixelAxes(dcPos);
     // check that the length is equal to 2 and the both elements are >= 0
 
-    IPosition shape = IPosition(2,inShape(shapePos[0]),inShape(shapePos[1]));
+    IPosition shape = IPosition(2,itsInShape(shapePos[0]),itsInShape(shapePos[1]));
 
     double maxMemoryInMB = double(shape.product()*sizeof(float))/1024./1024.+100;
-    inBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);
-    inWgtBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);       
+    itsInBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);
+    itsInWgtBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);       
 
 }
 
-/// @brief set up regridder
-/// @param[in] String method: ImageRegrid::regrid input option
-void linmosAccumulator::initialiseRegridder(String method) {
+void LinmosAccumulator::initialiseRegridder(const String& method) {
 
-    // die if outBuffer isn't set
+    // die if itsOutBuffer isn't set
 
-    axes = IPosition::makeAxisPath(outBuffer.shape().nelements());
-    emethod = Interpolate2D::stringToMethod(method);
+    itsAxes = IPosition::makeAxisPath(itsOutBuffer.shape().nelements());
+    itsEmethod = Interpolate2D::stringToMethod(method);
 
 }
 
-/// @brief load the temporary image buffers with the current plane of the current input image
-/// @param[in] scimath::MultiDimArrayPlaneIter planeIter: current plane id
-/// @param[in] Array<float> inPix: image buffer
-/// @param[in] Array<float> inWgtPix: weight image buffer
-void linmosAccumulator::loadInputBuffers(scimath::MultiDimArrayPlaneIter planeIter,
-                                         Array<float> inPix, Array<float> inWgtPix) {
-    inBuffer.put(planeIter.getPlane(inPix));
-    inWgtBuffer.put(planeIter.getPlane(inWgtPix));
+void LinmosAccumulator::loadInputBuffers(const scimath::MultiDimArrayPlaneIter& planeIter,
+                                         Array<float>& inPix, Array<float>& inWgtPix) {
+    itsInBuffer.put(planeIter.getPlane(inPix));
+    itsInWgtBuffer.put(planeIter.getPlane(inWgtPix));
 }
 
-/// @brief call the regridder for the buffered plane
-/// @param[in] Int decimate: ImageRegrid::regrid input option
-/// @param[in] Bool replicate: ImageRegrid::regrid input option
-/// @param[in] Bool force: ImageRegrid::regrid input option
-void linmosAccumulator::regrid(Int decimate, Bool replicate, Bool force) {
+void LinmosAccumulator::regrid(const Int decimate, const Bool replicate, const Bool force) {
     // 
-    regridder.regrid(outBuffer, emethod, axes, inBuffer, replicate, decimate, False, force);
-    regridder.regrid(outWgtBuffer, emethod, axes, inWgtBuffer, replicate, decimate, False, force);
+    itsRegridder.regrid(itsOutBuffer, itsEmethod, itsAxes, itsInBuffer, replicate, decimate, False, force);
+    itsRegridder.regrid(itsOutWgtBuffer, itsEmethod, itsAxes, itsInWgtBuffer, replicate, decimate, False, force);
 }
 
-/// @brief add the current plane to the accumulation arrays
-/// @details This method adds from the regridded buffers
-/// @param[out] Array<float> outPix: accumulated weighted image pixels
-/// @param[out] Array<float> outWgtPix: accumulated weight pixels
-/// @param[in] IPosition curpos: indices of the current plane
-void linmosAccumulator::accumulatePlane(Array<float> outPix, Array<float> outWgtPix, IPosition curpos) {
+void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix, const IPosition& curpos) {
+
+    // copy the pixel iterator containing all dimensions
+    IPosition fullpos(curpos);
 
     // set a pixel iterator that does not have the higher dimensions
     IPosition planepos(2);
 
     // Accumulate the pixels of this slice.
     // Could restrict it (and the regrid) to a smaller region of interest.
-    if (weightState == CORRECTED) {
+    if (itsWeightState == CORRECTED) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
+                fullpos[0] = x;
+                fullpos[1] = y;
                 planepos[0] = x;
                 planepos[1] = y;
                 //the restore seems to be unweighting the images. Need to know this...
-                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos) * outWgtBuffer.getAt(planepos);
-                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+                outPix(fullpos) = outPix(fullpos) + itsOutBuffer.getAt(planepos) * itsOutWgtBuffer.getAt(planepos);
+                outWgtPix(fullpos) = outWgtPix(fullpos) + itsOutWgtBuffer.getAt(planepos);
             }
         }
-    } else if (weightState == INHERENT) {
+    } else if (itsWeightState == INHERENT) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
+                fullpos[0] = x;
+                fullpos[1] = y;
                 planepos[0] = x;
                 planepos[1] = y;
                 //the restore seems to be unweighting the images. Need to know this...
-                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos) * sqrt(outWgtBuffer.getAt(planepos));
-                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+                outPix(fullpos) = outPix(fullpos) + itsOutBuffer.getAt(planepos) * sqrt(itsOutWgtBuffer.getAt(planepos));
+                outWgtPix(fullpos) = outWgtPix(fullpos) + itsOutWgtBuffer.getAt(planepos);
             }
         }
-    } else if (weightState == WEIGHTED) {
+    } else if (itsWeightState == WEIGHTED) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
+                fullpos[0] = x;
+                fullpos[1] = y;
                 planepos[0] = x;
                 planepos[1] = y;
                 //the restore seems to be unweighting the images. Need to know this...
-                outPix(curpos) = outPix(curpos) + outBuffer.getAt(planepos);
-                outWgtPix(curpos) = outWgtPix(curpos) + outWgtBuffer.getAt(planepos);
+                outPix(fullpos) = outPix(fullpos) + itsOutBuffer.getAt(planepos);
+                outWgtPix(fullpos) = outWgtPix(fullpos) + itsOutWgtBuffer.getAt(planepos);
             }
         }
     }
 
 }
 
-/// @brief add the current plane to the accumulation arrays
-/// @details This method adds directly from the input arrays
-/// @param[out] Array<float> outPix: accumulated weighted image pixels
-/// @param[out] Array<float> outWgtPix: accumulated weight pixels
-/// @param[in] Array<float> inPix: input image pixels
-/// @param[in] Array<float> inWgtPix: input weight pixels
-/// @param[in] IPosition curpos: indices of the current plane
-void linmosAccumulator::accumulatePlane(Array<float> outPix, Array<float> outWgtPix,
-                                        Array<float> inPix, Array<float> inWgtPix, IPosition curpos) {
+void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix,
+                                        const Array<float>& inPix, const Array<float>& inWgtPix,
+                                        const IPosition& curpos) {
 
     ASKAPASSERT(inPix.shape() == outPix.shape());
 
+    // copy the pixel iterator containing all dimensions
+    IPosition fullpos(curpos);
+
     // Update the accululation arrays for this plane.
-    if (weightState == CORRECTED) {
+    if (itsWeightState == CORRECTED) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
-                outPix(curpos) = outPix(curpos) + inPix(curpos) * inWgtPix(curpos);
-                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+                fullpos[0] = x;
+                fullpos[1] = y;
+                outPix(fullpos) = outPix(fullpos) + inPix(fullpos) * inWgtPix(fullpos);
+                outWgtPix(fullpos) = outWgtPix(fullpos) + inWgtPix(fullpos);
             }
         }
-    } else if (weightState == INHERENT) {
+    } else if (itsWeightState == INHERENT) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
-                outPix(curpos) = outPix(curpos) + inPix(curpos) * sqrt(inWgtPix(curpos));
-                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+                fullpos[0] = x;
+                fullpos[1] = y;
+                outPix(fullpos) = outPix(fullpos) + inPix(fullpos) * sqrt(inWgtPix(fullpos));
+                outWgtPix(fullpos) = outWgtPix(fullpos) + inWgtPix(fullpos);
             }
         }
-    } else if (weightState == WEIGHTED) {
+    } else if (itsWeightState == WEIGHTED) {
         for (int x=0; x<outPix.shape()[0];++x) {
             for (int y=0; y<outPix.shape()[1];++y) {
-                curpos[0] = x;
-                curpos[1] = y;
-                outPix(curpos) = outPix(curpos) + inPix(curpos);
-                outWgtPix(curpos) = outWgtPix(curpos) + inWgtPix(curpos);
+                fullpos[0] = x;
+                fullpos[1] = y;
+                outPix(fullpos) = outPix(fullpos) + inPix(fullpos);
+                outWgtPix(fullpos) = outWgtPix(fullpos) + inWgtPix(fullpos);
             }
         }
     }
 
 }
 
-/// @brief divide the weighted pixels by the weights for the current plane
-/// @param[in/out] Array<float> outPix: accumulated deweighted image pixels
-/// @param[in] Array<float> outWgtPix: accumulated weight pixels
-/// @param[in] IPosition curpos: indices of the current plane
-/// @param[in] float cutoff: threshold to stop division by small numbers
-void linmosAccumulator::deweightPlane(Array<float> outPix, Array<float> outWgtPix, IPosition curpos, float cutoff) {
+void LinmosAccumulator::deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix, const IPosition& curpos,
+                                      const float cutoff) {
+
+    // copy the pixel iterator containing all dimensions
+    IPosition fullpos(curpos);
 
     for (int x=0; x<outPix.shape()[0];++x) {
         for (int y=0; y<outPix.shape()[1];++y) {
-            curpos[0] = x;
-            curpos[1] = y;
-            if (sqrt(outWgtPix(curpos))<cutoff) {
-                outPix(curpos) = 0.0;
+            fullpos[0] = x;
+            fullpos[1] = y;
+            if (sqrt(outWgtPix(fullpos))<cutoff) {
+                outPix(fullpos) = 0.0;
             } else {
-                outPix(curpos) = outPix(curpos) / outWgtPix(curpos);
+                outPix(fullpos) = outPix(fullpos) / outWgtPix(fullpos);
             }
         }
     }
 
 }
 
-/// @brief convert the current input shape and coordinate system to the reference (output) system
-/// @param[in/out] Array<float> outPix: accumulated deweighted image pixels
-/// @return IPosition vector containing BLC and TRC of the current input image, relative to another coord. system
-Vector<IPosition> linmosAccumulator::convertImageCornersToRef(const DirectionCoordinate refDC) {
-   // based on SynthesisParamsHelper::facetSlicer, but don't want to load every input image into a scimath::Param
+Vector<IPosition> LinmosAccumulator::convertImageCornersToRef(const DirectionCoordinate& refDC) {
+    // based on SynthesisParamsHelper::facetSlicer, but don't want to load every input image into a scimath::Param
 
-   ASKAPDEBUGASSERT(inShape.nelements() >= 2);
-   // add more checks
+    ASKAPDEBUGASSERT(itsInShape.nelements() >= 2);
+    // add more checks
 
-   const int coordPos = inCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
-   const DirectionCoordinate inDC = inCoordSys.directionCoordinate(coordPos);
+    const int coordPos = itsInCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
+    const DirectionCoordinate inDC = itsInCoordSys.directionCoordinate(coordPos);
 
-   IPosition blc(inShape.nelements(),0);
-   IPosition trc(inShape);
-   for (uInt dim=0; dim<inShape.nelements(); ++dim) {
-        --trc(dim); // these are added back later. Is this just to deal with degenerate axes?
-   }
-   // currently blc,trc describe the whole input image; convert coordinates
-   Vector<Double> pix(2);
-   
-   // first process BLC
-   pix[0] = Double(blc[0]);
-   pix[1] = Double(blc[1]);
-   MDirection tempDir;
-   Bool success = inDC.toWorld(tempDir, pix);
-   ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input BLC: "<<inDC.errorMessage());
-   success = refDC.toPixel(pix,tempDir);
-   ASKAPCHECK(success, "World to pixel coordinate conversion failed for output BLC: "<<refDC.errorMessage());
-   blc[0] = casa::Int(round(pix[0]));
-   blc[1] = casa::Int(round(pix[1]));
+    IPosition blc(itsInShape.nelements(),0);
+    IPosition trc(itsInShape);
+    for (uInt dim=0; dim<itsInShape.nelements(); ++dim) {
+         --trc(dim); // these are added back later. Is this just to deal with degenerate axes?
+    }
+    // currently blc,trc describe the whole input image; convert coordinates
+    Vector<Double> pix(2);
+    
+    // first process BLC
+    pix[0] = Double(blc[0]);
+    pix[1] = Double(blc[1]);
+    MDirection tempDir;
+    Bool success = inDC.toWorld(tempDir, pix);
+    ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input BLC: "<<inDC.errorMessage());
+    success = refDC.toPixel(pix,tempDir);
+    ASKAPCHECK(success, "World to pixel coordinate conversion failed for output BLC: "<<refDC.errorMessage());
+    blc[0] = casa::Int(round(pix[0]));
+    blc[1] = casa::Int(round(pix[1]));
  
-   // now process TRC
-   pix[0] = Double(trc[0]);
-   pix[1] = Double(trc[1]);
-   success = inDC.toWorld(tempDir, pix);
-   ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input TRC: "<<inDC.errorMessage());
-   success = refDC.toPixel(pix,tempDir);
-   ASKAPCHECK(success, "World to pixel coordinate conversion failed for output TRC: "<<refDC.errorMessage());
-   trc[0] = casa::Int(round(pix[0]));
-   trc[1] = casa::Int(round(pix[1]));
+    // now process TRC
+    pix[0] = Double(trc[0]);
+    pix[1] = Double(trc[1]);
+    success = inDC.toWorld(tempDir, pix);
+    ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input TRC: "<<inDC.errorMessage());
+    success = refDC.toPixel(pix,tempDir);
+    ASKAPCHECK(success, "World to pixel coordinate conversion failed for output TRC: "<<refDC.errorMessage());
+    trc[0] = casa::Int(round(pix[0]));
+    trc[1] = casa::Int(round(pix[1]));
 
-   Vector<IPosition> corners(2);
-   corners[0] = blc;
-   corners[1] = trc;
+    Vector<IPosition> corners(2);
+    corners[0] = blc;
+    corners[1] = trc;
 
-   return corners;
+    return corners;
 
 }
 
-/// @brief check to see if two coordinate grids are consistent enough to merge
-/// @param[in] first CoordinateSystem, cSys1
-/// @param[in] second CoordinateSystem, cSys2
-/// @return bool: true if they are
-bool linmosAccumulator::CoordinatesAreConsistent(const CoordinateSystem refCoordSys) {
+bool LinmosAccumulator::CoordinatesAreConsistent(const CoordinateSystem& refCoordSys) {
     // Check to see if it makes sense to combine images with these coordinate systems.
     // Could get more tricky, but right now make sure any extra dimensions, such as frequency
     // and polarisation, are equal in the two systems.
-    if ( inCoordSys.nCoordinates() != refCoordSys.nCoordinates() ) {
+    if ( itsInCoordSys.nCoordinates() != refCoordSys.nCoordinates() ) {
         //ASKAPLOG_INFO_STR(logger, "Coordinates are not consistent: shape mismatch");
         return false;
     }
-    if (!allEQ(inCoordSys.worldAxisNames(), refCoordSys.worldAxisNames())) {
+    if (!allEQ(itsInCoordSys.worldAxisNames(), refCoordSys.worldAxisNames())) {
         //ASKAPLOG_INFO_STR(logger, "Coordinates are not consistent: axis name mismatch");
         return false;
     }
-    if (!allEQ(inCoordSys.worldAxisUnits(), refCoordSys.worldAxisUnits())) {
+    if (!allEQ(itsInCoordSys.worldAxisUnits(), refCoordSys.worldAxisUnits())) {
         //ASKAPLOG_INFO_STR(logger, "Coordinates are not consistent: axis unit mismatch");
         return false;
     }
     return true;
 }
 
-/// @brief check to see if the input and output coordinate grids are equal
-/// @return bool: true if they are
-bool linmosAccumulator::CoordinatesAreEqual(void) {
+bool LinmosAccumulator::CoordinatesAreEqual(void) {
     // Check to see if regridding is required. If they are equal there is no need.
 
     // Test the these things are set up...
@@ -501,19 +553,19 @@ bool linmosAccumulator::CoordinatesAreEqual(void) {
     double thresh = 1.0e-12;
 
     // Check that the input dimensionality is the same as that of the output
-    if ( !CoordinatesAreConsistent(outCoordSys) ) return false;
+    if ( !CoordinatesAreConsistent(itsOutCoordSys) ) return false;
 
     // Also check that the size and centre of each dimension is the same.
-    if ( inShape != outShape ) {
+    if ( itsInShape != itsOutShape ) {
         //ASKAPLOG_INFO_STR(logger, "Input and output coordinates are not equal: shape mismatch");
         return false;
     }
     // test that the grid properties of each dimension are equal
-    for (casa::uInt dim=0; dim<inCoordSys.nCoordinates(); ++dim) {
+    for (casa::uInt dim=0; dim<itsInCoordSys.nCoordinates(); ++dim) {
 
-        if ( (inCoordSys.referencePixel()[dim] != outCoordSys.referencePixel()[dim]) ||
-             (fabs(inCoordSys.increment()[dim] - outCoordSys.increment()[dim]) > thresh) ||
-             (fabs(inCoordSys.referenceValue()[dim] - outCoordSys.referenceValue()[dim]) > thresh) ) {
+        if ( (itsInCoordSys.referencePixel()[dim] != itsOutCoordSys.referencePixel()[dim]) ||
+             (fabs(itsInCoordSys.increment()[dim] - itsOutCoordSys.increment()[dim]) > thresh) ||
+             (fabs(itsInCoordSys.referenceValue()[dim] - itsOutCoordSys.referenceValue()[dim]) > thresh) ) {
             //ASKAPLOG_INFO_STR(logger, "Coordinates are not equal: coord system mismatch for dim " << dim);
             return false;
         }
@@ -526,14 +578,14 @@ bool linmosAccumulator::CoordinatesAreEqual(void) {
 static void merge(const LOFAR::ParameterSet &parset) {
 
     // initialise an image accumulator
-    linmosAccumulator accumulator;
+    LinmosAccumulator accumulator;
 
     // load the parset
     bool expandable = true;
     const vector<string> inImgNames = parset.getStringVector("names", expandable);
     const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), expandable);
     const string outImgName = parset.getString("outname");
-    const string outWgtName = parset.getString("outweight", "");
+    const string outWgtName = parset.getString("outweight");
     const string weightTypeName = parset.getString("weighttype");
     const string weightStateName = parset.getString("weightstate", "Corrected");
     // extra input:
@@ -558,8 +610,8 @@ static void merge(const LOFAR::ParameterSet &parset) {
     accumulator.setOutputParameters(inImgNames, iacc);
 
     // set up the output pixel arrays
-    Array<float> outPix(accumulator.outShape,0.);
-    Array<float> outWgtPix(accumulator.outShape,0.);
+    Array<float> outPix(accumulator.outShape(),0.);
+    Array<float> outWgtPix(accumulator.outShape(),0.);
 
     // set up an indexing vector for the arrays
     IPosition curpos(outPix.shape());
@@ -578,8 +630,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         ASKAPLOG_INFO_STR(logger, " - and input weight image " << inWgtName);
 
         // set the input coordinate system and shape
-        accumulator.inCoordSys = iacc.coordSys(inImgName);
-        accumulator.inShape = iacc.shape(inImgName);
+        accumulator.setInputParameters(inImgName, iacc);
 
         Array<float> inPix;
         Array<float> inWgtPix;
@@ -588,7 +639,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         ASKAPASSERT(inPix.shape() == inWgtPix.shape());
 
         // set up an iterator for all directionCoordinate planes in the input image
-        scimath::MultiDimArrayPlaneIter planeIter(accumulator.inShape);
+        scimath::MultiDimArrayPlaneIter planeIter(accumulator.inShape());
 
         // test whether to simply add weighted pixels, or whether a regrid is required
         bool regridRequired = !accumulator.CoordinatesAreEqual();
@@ -642,7 +693,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
     // deweight the image pixels
     // use another iterator to loop over planes
     ASKAPLOG_INFO_STR(logger, "Deweighting accumulated images");
-    scimath::MultiDimArrayPlaneIter deweightIter(accumulator.outShape);
+    scimath::MultiDimArrayPlaneIter deweightIter(accumulator.outShape());
     for (; deweightIter.hasMore(); deweightIter.next()) {
         curpos = deweightIter.position();
         accumulator.deweightPlane(outPix, outWgtPix, curpos);
@@ -650,10 +701,10 @@ static void merge(const LOFAR::ParameterSet &parset) {
 
     // write result
     ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
-    iacc.create(outImgName, accumulator.outShape, accumulator.outCoordSys);
+    iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
     iacc.write(outImgName,outPix);
     ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
-    iacc.create(outWgtName, accumulator.outShape, accumulator.outCoordSys);
+    iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
     iacc.write(outWgtName,outWgtPix);
 
 };
