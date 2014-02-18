@@ -11,8 +11,6 @@ ms=${msbase}_Science_${mstag}.ms
 
 spw="[1, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
-echo "Running csimulator for science field, producing measurement set ${ms}"
-
 cat > ${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       ${ms}
 #
@@ -88,6 +86,8 @@ aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
 EOF
 
 latestID=`qsub ${depend} ${qsubfile}`
+
+echo "Running csimulator for science field, producing measurement set ${ms}: ID=${latestID}"
 
 
 

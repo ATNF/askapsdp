@@ -12,8 +12,6 @@ freq="${nurefMHz}e6"
 #direction=${dirlist[$POINTING]}
 direction=${baseDirection}
 
-echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}.restored"
-
 cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${ms}
 #
@@ -82,4 +80,6 @@ aprun ${cim} -c ${imParset} > ${imLogfile}
 EOF
 
 latestID=`qsub $depend $qsubfile`
+
+echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}.restored: ID=${latestID}"
 

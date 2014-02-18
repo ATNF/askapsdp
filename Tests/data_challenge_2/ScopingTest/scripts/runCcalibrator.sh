@@ -16,8 +16,6 @@ if [ $doCal == true ]; then
     mssplitParset=parsets/mssplit-${tag}-${POINTING}.in
     mssplitLog=logs/mssplit-${tag}-${POINTING}.log
 
-    echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}"
-
     ncycCal=10
     calInterval=1800
     calibparset=rndgains.in
@@ -114,5 +112,8 @@ aprun ${ccal} -c ${ccalParset} > ${ccalLog}
 EOF
 
     latestID=`qsub $depend $qsubfile`
+
+    echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}: ID=${latestID}"
+
 
 fi

@@ -16,8 +16,6 @@ ms=${msbase}_${mstag}_${POINTING}.ms
 
 spw="[1, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
-echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}"
-
 cat > ${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       ${ms}
 #
@@ -95,6 +93,9 @@ aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
 EOF
 
 latestID=`qsub ${depend} ${qsubfile}`
+
+echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}: ID=${latestID}"
+
 
 
 

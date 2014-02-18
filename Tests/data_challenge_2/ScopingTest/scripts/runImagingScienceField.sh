@@ -23,8 +23,6 @@ image=image.i.dirty.science.${imtag}
 freq="${nurefMHz}e6"
 direction=${dirlist[4]}
 
-echo "Running cimager for science field, imaging ${ms} to create ${image}.restored"
-
 cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${ms}
 ${selection}
@@ -92,4 +90,8 @@ aprun ${cim} -c ${imParset} > ${imLogfile}
 EOF
 
 latestID=`qsub $depend $qsubfile`
+
+
+echo "Running cimager for science field, imaging ${ms} to create ${image}.restored: ID=${latestID}"
+
 
