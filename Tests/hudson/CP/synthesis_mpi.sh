@@ -15,15 +15,7 @@ fi
 #
 # Setup environment
 #
-source /etc/profile.d/modules.sh
 source initaskap.sh
-if [ $MODULESHOME ]; then
-    module load openmpi
-else
-    echo 'Error: $MODULESHOME is not defined'
-    exit 1
-fi
-
 
 #
 # Build Synthesis
