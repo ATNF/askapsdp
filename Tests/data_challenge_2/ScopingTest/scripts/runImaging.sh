@@ -24,7 +24,7 @@ Cimager.Images.cellsize                         = [10arcsec,10arcsec]
 Cimager.Images.${image}.frequency          = [${freq},${freq}]
 Cimager.Images.${image}.nchan              = 1
 #Cimager.Images.${image}.direction          = [12h30m00.00, -45.00.00.00, J2000]
-Cimager.Images.${image}.direction          = ${direction}
+Cimager.Images.${image}.direction          = ${direction1934}
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = 800

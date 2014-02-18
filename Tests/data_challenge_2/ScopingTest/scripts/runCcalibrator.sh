@@ -25,7 +25,8 @@ if [ $doCal == true ]; then
     calSolve=gains
     #    calDirection=${dirlist[${POINTING}]}
     #    calDirection=${dirlist[${feedlist[${POINTING}]}]}
-    calDirection=${baseDirection}
+#    calDirection=${baseDirection}
+    calDirection=${direction1934}
     #    calModel="Ccalibrator.sources.src.flux.i                  = `echo ${sourceFlux} | awk '{print $1/2.}'`
     calModel="Ccalibrator.sources.src.calibrator  = \"1934-638\""
     ##     calModel="Ccalibrator.sources.src.flux.i                  = ${sourceFlux}

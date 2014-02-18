@@ -22,7 +22,7 @@ Csimulator.dataset                              =       ${ms}
 Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
-Csimulator.sources.DCmodel.direction            =       ${direction}
+Csimulator.sources.DCmodel.direction            =       ${direction1934}
 #Csimulator.sources.DCmodel.model                =       ${thisModelImage}
 #Csimulator.modelReadByMaster                    =       false
 Csimulator.sources.DCmodel.components            =       src
