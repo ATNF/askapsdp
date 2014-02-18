@@ -45,11 +45,12 @@ Csimulator.simulation.referencetime              =       [2010Jan30, UTC]
 Csimulator.simulation.integrationtime            =       30s
 #						 
 Csimulator.observe.number                        =       1
-Csimulator.observe.scan0                         =       [DCmodel, thisSPWS, -6h, 6h]
+#Csimulator.observe.scan0                         =       [DCmodel, thisSPWS, -6h, 6h]
+Csimulator.observe.scan0                         =       [DCmodel, thisSPWS, ${calHArange[$POINTING]}]
 #
 Csimulator.gridder                               =       AWProject
 Csimulator.gridder.padding                       =       1.
-Csimulator.gridder.snapshotimaging               =       true
+Csimulator.gridder.snapshotimaging               =       false
 Csimulator.gridder.snapshotimaging.wtolerance    =       1000
 Csimulator.gridder.AWProject.wmax               =       1000
 Csimulator.gridder.AWProject.nwplanes           =       ${nw}
