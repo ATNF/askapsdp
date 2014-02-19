@@ -14,12 +14,16 @@ antennas come online.
              these tools often results in memory exhaustion and will hang the login nodes,
              preventing all users from accessing the system.
 
-Running interactive CASA with GUI
----------------------------------
+Running interactive CASA with X11-Forwarding
+--------------------------------------------
 
 The two nodes that have been earmarked for temporary CASA usage are *esdm014* and
 *esdm015*.  These nodes cannot be accessed directly, and must be accessed via the login
-nodes. The following commands will launch CASA::
+nodes. The GUI tools can be used and will be displayed on your desktop via
+X11-Forwarding. This approach is better suited to local machines, and you will notice it
+is not particularly fast.
+
+The following commands will launch CASA::
 
     ssh -Y galaxy.ivec.org
     ssh -Y esdm014
