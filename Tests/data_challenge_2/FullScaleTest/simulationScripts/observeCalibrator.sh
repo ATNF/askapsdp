@@ -74,7 +74,7 @@ EOF_INNER
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N csim${POINTING}${tag}
+#PBS -N csimCal${POINTING}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
