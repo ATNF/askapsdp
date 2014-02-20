@@ -217,7 +217,7 @@ while [ \$IDX -lt ${NGROUPS_CSIM} ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${PBS_JOBID}.log
+logfile=${logdir}/merge_s2_output_\${PBS_JOBID}.log
 echo "Processing files: \$FILES" > \${logfile}
 aprun \${msmerge} -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
 EOF
