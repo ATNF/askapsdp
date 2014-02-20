@@ -289,7 +289,7 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
         // check for inputs associated with other kinds of weighting
 
         if (parset.isDefined("feeds.centre") ||
-            parset.isDefined("feeds.offsetfile") ||
+            parset.isDefined("feeds.offsetsfile") ||
             parset.isDefined("feeds.names") ||
             parset.isDefined("feeds.spacing") ) {
             ASKAPLOG_WARN_STR(logger, "Beam information specified in parset but ignored. Using weight images");
@@ -311,10 +311,10 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
             ASKAPCHECK(feedsCentre.size()==2, " -> the feeds.centre vector should have 2 elements");
             MVDirection centre = convertDir(feedsCentre[0], feedsCentre[1]);
 
-            if (parset.isDefined("feeds.offsetfile")) {
+            if (parset.isDefined("feeds.offsetsfile")) {
 
-                ASKAPLOG_INFO_STR(logger,  "Loading beam offsets from " << parset.getString("feeds.offsetfile"));
-                LOFAR::ParameterSet feed_parset(parset.getString("feeds.offsetfile"));
+                ASKAPLOG_INFO_STR(logger,  "Loading beam offsets from " << parset.getString("feeds.offsetsfile"));
+                LOFAR::ParameterSet feed_parset(parset.getString("feeds.offsetsfile"));
 
                 vector<string> beamNames;
                 ASKAPLOG_INFO_STR(logger, " -> looking for feed names");
