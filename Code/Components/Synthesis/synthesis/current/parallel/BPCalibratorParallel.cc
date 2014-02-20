@@ -52,6 +52,13 @@ ASKAP_LOGGER(logger, ".parallel");
 // own includes
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+#include <askapparallel/BlobIBufMW.h>
+#include <askapparallel/BlobOBufMW.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+#include <profile/AskapProfiler.h>
+
+
 
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
@@ -179,9 +186,12 @@ void BPCalibratorParallel::run()
                 solveNE();
            }
            if (itsComms.isParallel()) {
-               // send to the master comes here
+               // send the model to the master, add beam and channel tags first
+               itsModel->add("beam",static_cast<double>(indices.first));
+               itsModel->add("channel",static_cast<double>(indices.second));
+               sendModelToMaster();                
            } else {
-               // serial operation, write comes here
+               // serial operation, just write the result
                writeModel();
            }
       }     
@@ -189,25 +199,83 @@ void BPCalibratorParallel::run()
   if (itsComms.isMaster() && itsComms.isParallel()) {
       const casa::uInt numberOfWorkUnits = nBeam() * nChan();
       for (casa::uInt chunk = 0; chunk < numberOfWorkUnits; ++chunk) {
-           // asynchronous receive from workers comes here
+           // asynchronously receive result from workers
+           receiveModelFromWorker();
            writeModel();
       } 
   }
 } 
 
 /// @brief extract current beam/channel pair from the iterator
-/// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor()
+/// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor() for workers and
+/// in the serial mode. However, it extracts the current beam and channel info out of the model for the master
+/// in the parallel case. This is done because calibration data are sent to the master asynchronously and there is no
+/// way of knowing what iteration in the worker they correspond to without looking at the data.
 /// @return pair of beam (first) and channel (second) indices
 std::pair<casa::uInt, casa::uInt> BPCalibratorParallel::currentBeamAndChannel() const
 {
-  const casa::IPosition cursor = itsWorkUnitIterator.cursor();
-  ASKAPDEBUGASSERT(cursor.nelements() == 2);
-  ASKAPDEBUGASSERT((cursor[0] >= 0) && (cursor[1] >= 0));
-  const std::pair<casa::uInt,casa::uInt> result(static_cast<casa::uInt>(cursor[0]), static_cast<casa::uInt>(cursor[1]));
-  ASKAPDEBUGASSERT(result.first < nBeam());
-  ASKAPDEBUGASSERT(result.second < nChan());
-  return result;
+  if (itsComms.isMaster() && itsComms.isParallel()) {
+      ASKAPDEBUGASSERT(itsModel); 
+      ASKAPDEBUGASSERT(itsModel->has("beam") && itsModel->has("channel"));
+      const double beam = itsModel->scalarValue("beam");
+      const double channel = itsModel->scalarValue("channel");
+      ASKAPDEBUGASSERT((beam >= 0.) && (channel >= 0.));
+      const std::pair<casa::uInt,casa::uInt> result(static_cast<casa::uInt>(beam), static_cast<casa::uInt>(channel));
+      ASKAPDEBUGASSERT(result.first < nBeam());
+      ASKAPDEBUGASSERT(result.second < nChan());
+      return result;            
+  } else {
+      const casa::IPosition cursor = itsWorkUnitIterator.cursor();
+      ASKAPDEBUGASSERT(cursor.nelements() == 2);
+      ASKAPDEBUGASSERT((cursor[0] >= 0) && (cursor[1] >= 0));
+      const std::pair<casa::uInt,casa::uInt> result(static_cast<casa::uInt>(cursor[0]), static_cast<casa::uInt>(cursor[1]));
+      ASKAPDEBUGASSERT(result.first < nBeam());
+      ASKAPDEBUGASSERT(result.second < nChan());
+      return result;
+  }
 }
+
+#define BPCALIBRATOR_PARALLEL_BLOB_STREAM_VERSION 1
+
+/// @brief send current model to the master
+/// @details This method is supposed to be called from workers in the parallel mode and
+/// sends the current results to the master rank
+void BPCalibratorParallel::sendModelToMaster() const
+{
+   ASKAPDEBUGTRACE("BPCalibratorParallel::sendModelToMaster");
+   ASKAPLOG_DEBUG_STR(logger, "Sending results to the master");
+   itsComms.notifyMaster();
+   ASKAPDEBUGASSERT(itsModel);
+   
+   askapparallel::BlobOBufMW bobmw(itsComms, 0);
+   LOFAR::BlobOStream out(bobmw);
+   out.putStart("calmodel", BPCALIBRATOR_PARALLEL_BLOB_STREAM_VERSION);
+   out << *itsModel;
+   out.putEnd();
+   bobmw.flush();   
+}
+      
+/// @brief asynchronously receive model from one of the workers
+/// @details This method is supposed to be used in the master rank in the parallel mode. It
+/// waits until the result becomes available from any of the workers and then stores it 
+/// in itsModel. 
+void BPCalibratorParallel::receiveModelFromWorker()
+{
+   ASKAPDEBUGTRACE("BPCalibratorParallel::receiveModelFromWorker");
+   itsModel.reset(new scimath::Params);
+   
+   // wait for the notification
+   const int source = itsComms.waitForNotification().first;
+   ASKAPLOG_DEBUG_STR(logger, "Receiving results from rank "<<source);
+  
+   askapparallel::BlobIBufMW bibmw(itsComms, source);
+   LOFAR::BlobIStream in(bibmw);
+   const int version = in.getStart("calmodel");
+   ASKAPASSERT(version == BPCALIBRATOR_PARALLEL_BLOB_STREAM_VERSION);
+   in >> *itsModel;
+   in.getEnd();
+}
+
 
 
 /// @brief Calculate the normal equations (runs in workers)

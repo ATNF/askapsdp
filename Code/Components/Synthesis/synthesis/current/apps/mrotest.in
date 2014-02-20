@@ -1,11 +1,15 @@
 #Cimager.dataset = [/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk0.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk1.ms,/Users/vor010/ASKAP/MS/Sep2013/subset/s1chunk2.ms]
-Cimager.dataset = [/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_114658.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_150246.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-18_010322.ms]
+#Cimager.dataset = [/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_114658.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-17_150246.ms,/Users/vor010/ASKAP/MS/Nov2013/2013-11-18_010322.ms]
 #Cimager.dataset = [/Users/vor010/ASKAP/MS/Nov2013/subset/chunk0.ms,/Users/vor010/ASKAP/MS/Nov2013/subset/chunk1.ms,/Users/vor010/ASKAP/MS/Nov2013/subset/chunk2.ms]
+
+#Cimager.dataset = [/Users/vor010/ASKAP/MS/Jan2014/process/s1chunk0.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s1chunk1.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s1chunk2.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s1chunk3.ms]
+
+Cimager.dataset = [/Users/vor010/ASKAP/MS/Jan2014/process/s2chunk0.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s2chunk1.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s2chunk2.ms,/Users/vor010/ASKAP/MS/Jan2014/process/s2chunk3.ms]
 
 # first multibeam
 #Cimager.dataset = [/Users/vor010/ASKAP/MS/Apr2013/2013-04-04_132422.ms]
 
-Cimager.Feed = 0
+Cimager.Feed = 4
 Cimager.CorrelationType = cross
 #Cimager.Baseline = [0,1]
 Cimager.nUVWMachines                            = 8
@@ -14,8 +18,12 @@ Cimager.imagetype                               = casa
 Cimager.memorybuffers                           = false
 
 Cimager.calibrate = true
-#Cimager.calibaccess.parset = gainsmrotst1.in
-Cimager.calibaccess.parset = roughmbcalib.in
+Cimager.calibrate.allowflag = true
+Cimager.calibaccess = table
+Cimager.calibaccess.table = mbcaldata.tab
+
+
+#####Cimager.calibaccess.parset = roughmbcalib.in
 #Cimager.calibaccess.parset = mbcal25sep13.in
 ##Cimager.calibaccess.parset = multibeam9cal.in
 #Cimager.calibaccess.parset = squarebeamscal.in
@@ -26,12 +34,14 @@ Cimager.Images.writeAtMajorCycle                = false
 Cimager.Images.reuse                            = false
 Cimager.freqframe                               = topo
 #Cimager.Images.shape	                        = [768,768]
+#Cimager.Images.shape	                        = [4096,4096]
+#Cimager.Images.cellsize	                        = [10arcsec, 10arcsec]
 Cimager.Images.shape	                        = [1024,1024]
 Cimager.Images.cellsize	                        = [40arcsec, 40arcsec]
 #Cimager.Images.image.test.frequency	        = [0.940935e9,0.867935e9]
 #Cimager.Images.image.test.frequency	        = [0.942009e9,0.868009e9]
 #Cimager.Images.image.test.frequency	        = [0.935009e9,0.920009e9]
-Cimager.Images.image.test.frequency	        = [1.015009e9,0.984009e9]
+Cimager.Images.image.test.frequency	        = [1.015e9,0.711e9]
 Cimager.Images.image.test.nchan		= 1
 #Cimager.Images.image.test.nterms	= 2
 Cimager.Images.image.test.polarisation       = ["YY"]
@@ -140,12 +150,13 @@ Cimager.threshold.minorcycle                    = [80%]
 #Cimager.preconditioner.Names                    = [Wiener]
 #Cimager.preconditioner.Wiener.robustness        = 1
 
-Cimager.ncycles                                 = 1
+Cimager.ncycles                                 = 5
 #
 # Restore the image at the end
 #
 Cimager.restore                          	= true
 Cimager.restore.beam                     	= [130arcsec, 130arcsec, 0deg]
+#Cimager.restore.beam                     	= [13arcsec, 13arcsec, 0deg]
 #Cimager.restore.beam                     	= [1200arcsec, 170arcsec, 80.3deg]
 #Cimager.restore.beam                     	= fit
 #Cimager.restore.equalise                        = true

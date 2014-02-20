@@ -170,7 +170,10 @@ namespace askap
       inline casa::uInt nChan() const { return parset().getInt32("nChan", 304); }
       
       /// @brief extract current beam/channel pair from the iterator
-      /// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor()
+      /// @details This method encapsulates interpretation of the output of itsWorkUnitIterator.cursor() for workers and
+      /// in the serial mode. However, it extracts the current beam and channel info out of the model for the master
+      /// in the parallel case. This is done because calibration data are sent to the master asynchronously and there is no
+      /// way of knowing what iteration in the worker they correspond to without looking at the data.
       /// @return pair of beam (first) and channel (second) indices
       std::pair<casa::uInt, casa::uInt> currentBeamAndChannel() const; 
  
@@ -179,6 +182,17 @@ namespace askap
       /// @param[in] chan channel to work with
       /// @param[in] beam beam to work with
       void calcOne(const std::string& ms, const casa::uInt chan, const casa::uInt beam);
+      
+      /// @brief send current model to the master
+      /// @details This method is supposed to be called from workers in the parallel mode and
+      /// sends the current results to the master rank
+      void sendModelToMaster() const;
+      
+      /// @brief asynchronously receive model from one of the workers
+      /// @details This method is supposed to be used in the master rank in the parallel mode. It
+      /// waits until the result becomes available from any of the workers and then stores it 
+      /// in itsModel. 
+      void receiveModelFromWorker();
       
       /// uncorrupted model
       askap::scimath::Params::ShPtr itsPerfectModel;

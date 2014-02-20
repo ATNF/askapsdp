@@ -173,9 +173,9 @@ void process() {
                 resflux /= sqrt(sumsqwt);
             }
             // for weight
-            //pixels[0](curpos) = sqrt(sumsqwt); //resflux;
+            pixels[0](curpos) = sqrt(sumsqwt); //resflux;
             // for image
-            pixels[0](curpos) = resflux;
+            //pixels[0](curpos) = resflux;
        }
   }
  

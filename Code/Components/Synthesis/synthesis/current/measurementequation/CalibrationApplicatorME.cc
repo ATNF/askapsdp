@@ -117,7 +117,7 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
 
             casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
 
-            const float detThreshold = 1e-5;
+            const float detThreshold = 1e-25;
             if (itsFlagAllowed) {
                 if (casa::abs(det)<detThreshold) {
                     ASKAPCHECK(noiseAndFlagDA, "Accessor type passed to CalibrationApplicatorME does not support change of flags");
