@@ -22,3 +22,4 @@ data sets i.e. Hundereds of TB per hour.
    cflag.rst
    makecube.rst
    mssplit.rst
+   linmos.rst
