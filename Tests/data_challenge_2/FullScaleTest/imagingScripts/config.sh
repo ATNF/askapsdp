@@ -44,7 +44,7 @@ wmaxCal=800
 nwCal=129
 osCal=4
 
-inputCalMSbase=calibrator_J1934m638_2014-02-20-1203
+inputCalMSbase=../MS/calibrator_J1934m638_2014-02-20-1203
 
 ###################
 # Imaging parameters
@@ -68,6 +68,6 @@ IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
 IMAGING_EQUALISE=True
 
 imagebase=image.i.clean.sciencefield.SKADS
-scienceMS=sciencefield_SKADS_2014-02-20-1203.ms
+scienceMS=../MS/sciencefield_SKADS_2014-02-20-1203.ms
 
 
