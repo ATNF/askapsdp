@@ -2,7 +2,11 @@
 
 
 POINTING=0
-imdepend=${calDepend}
+if [ "${calDepend}" == "" ]; then
+    imdepend="-Wdepend=afterok"
+else
+    imdepend=${calDepend}
+fi
 while [ $POINTING -lt 9 ]; do
     . ${imScripts}/imageScienceFieldBeam.sh
     imdepend="${imdepend}:${latestID}"
@@ -50,8 +54,8 @@ aprun \${linmos} -c \${parset} > \${log}
 EOF
 
     if [ $doSubmit == true ]; then 
-	ID=`qsub -Wdepend=afterok${imdepend} ${linmosqsub}`
-	echo "Have submitted a linmos job for type ${imtag} with ID=${ID}, via 'qsub -Wdepend=afterok${imdepend} ${linmosqsub}'"
+	ID=`qsub ${imdepend} ${linmosqsub}`
+	echo "Have submitted a linmos job for type ${imtag} with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
     fi
 
     TAYLOR=`expr $TAYLOR + 1`
