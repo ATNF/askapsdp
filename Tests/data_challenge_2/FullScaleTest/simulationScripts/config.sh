@@ -9,7 +9,7 @@ csim=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.s
 ccal=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh
 cim=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh
 mssplit=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh
-msmerge=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/msmerge.sh
+msmerge=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh
 askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 now=`date +%F-%H%M`
@@ -58,7 +58,7 @@ calHArange=(
 )
 
 #Gridding parameters
-nw=501
+nw=201
 os=8
 
 
