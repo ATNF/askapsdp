@@ -2,11 +2,16 @@
 
 if [ $doCal == true ]; then
 
+    if [ "$depend" == "" ]; then
+        calDepend="-Wdepend=afterok"
+    else
+        calDepend=${depend}
+    fi
     POINTING=0
     while [ $POINTING -lt 9 ]; do
 
-	oldms=${inputMSbase}_BEAM${POINTING}.ms
-	newms=${inputMSbase}_BEAM${POINTING}_CAL.ms
+	oldms=${inputCalMSbase}_BEAM${POINTING}.ms
+	newms=${inputCalMSbase}_BEAM${POINTING}_CAL.ms
 
 	if [ $splitMSbeforeCal == true ]; then
 	    ms=${newms}
@@ -98,6 +103,7 @@ EOF
 	if [ $doSubmit == true ]; then
 
 	    latestID=`qsub $depend $qsubfile`
+	    calDepend="${calDepend}:${latestID}"
 
 	    echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}: ID=${latestID}"
 

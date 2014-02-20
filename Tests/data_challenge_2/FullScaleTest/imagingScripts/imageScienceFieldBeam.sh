@@ -90,7 +90,7 @@ EOF
 
 if [ $doSubmit == true ]; then
 
-    latestID=`qsub $depend $qsubfile`
+    latestID=`qsub $calDepend $qsubfile`
     echo "Running cimager for science field, imaging ${ms} to create ${image}.restored: ID=${latestID}"
 
 fi

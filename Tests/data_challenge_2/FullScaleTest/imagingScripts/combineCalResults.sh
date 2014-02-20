@@ -22,6 +22,7 @@ done
 EOF
 
 if [ $doSubmit == true ]; then
-    latestID=`qsub $depend $qsubfile`
+    latestID=`qsub $calDepend $qsubfile`
+    calDepend="${calDepend}:${latestID}"
 fi
 

@@ -2,7 +2,7 @@
 
 
 POINTING=0
-imdepend=""
+imdepend=${calDepend}
 while [ $POINTING -lt 9 ]; do
     . ${imScripts}/imageScienceFieldBeam.sh
     imdepend="${imdepend}:${latestID}"
