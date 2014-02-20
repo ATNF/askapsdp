@@ -175,7 +175,7 @@ mkdir -p ${logdir}
 logfile=${logdir}/merge_s1_output_GRP${GRP}_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
-aprun \${msmerge} -o ${msdir}/${msbaseSci}_GRP${GRP}.ms \$FILES >> \${logfile}
+aprun -n 1 -N 1 \${msmerge} -o ${msdir}/${msbaseSci}_GRP${GRP}.ms \$FILES >> \${logfile}
 
 EOF
 
@@ -219,7 +219,7 @@ done
 
 logfile=${logdir}/merge_s2_output_\${PBS_JOBID}.log
 echo "Processing files: \$FILES" > \${logfile}
-aprun \${msmerge} -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
+aprun -n 1 -N 1 \${msmerge} -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
 EOF
 
 if [ $doSubmit == true ]; then
