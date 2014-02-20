@@ -7,7 +7,7 @@ POINTING=${firstPointingID}
 MAXPOINTING=${lastPointingID}
 while [ $POINTING -le $MAXPOINTING ]; do
 
-    . ${scriptdir}/makeFeedParset.sh
+    . ${simScripts}/makeFeedParset.sh
 
     mkVisParset=${parsetdir}/csimCalibrator-${POINTING}.in
     mkVisLog=${logdir}/csimCalibrator-${POINTING}.log
@@ -87,9 +87,10 @@ aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
 
 EOF
 
-    latestID=`qsub ${qsubfile}`
-
-    echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}: ID=${latestID}"
+    if [ $doSubmit == true ]; then
+	latestID=`qsub ${qsubfile}`
+	echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}: ID=${latestID}"
+    fi
 
     POINTING=`expr $POINTING + 1`
 

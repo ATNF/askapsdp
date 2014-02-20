@@ -117,6 +117,7 @@ EOF
 
     if [ $doSubmit == true ]; then
 	csimID=`qsub ${depend} ${qsubfile}`
+	echo "Running csimulator for science field, producing measurement set ${ms}: ID=${csimID}"
 	if [ "$depend" == "" ]; then
 	    depend="-Wdepend=afterok:${csimID}"
 	else
@@ -124,11 +125,9 @@ EOF
 	fi
 	merge2dep="${merge2Dep}:${csimID}"
     fi
-    fi
 
-    echo "Running csimulator for science field, producing measurement set ${ms}: ID=${csimID}"
 
-    merge1qsub=${parsetdir}/mergeVisStage1_GRP${GRP}.qsub
+    merge1qsub=mergeVisStage1_GRP${GRP}.qsub
     
     cat > $merge1qsub <<EOF
 #!/bin/bash
@@ -177,11 +176,9 @@ done
 
 
 
-    if [ $doMergeStage2 == true ]; then
-
-	merge2qsub=${visdir}/${WORKDIR}/mergeVisStage2.qsub
+merge2qsub=mergeVisStage2.qsub
 	
-	cat > $merge2qsub <<EOF
+cat > $merge2qsub <<EOF
 #!/bin/bash
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
@@ -208,13 +205,9 @@ echo "Processing files: \$FILES" > \${logfile}
 aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
 EOF
 
-	if [ $doSubmit == true ]; then
-
-	    merge2ID=`qsub ${merge2dep} $merge2qsub`
-
-	fi
-
-    fi
-
+if [ $doSubmit == true ]; then
+	
+    merge2ID=`qsub ${merge2dep} $merge2qsub`
+	
 fi
 

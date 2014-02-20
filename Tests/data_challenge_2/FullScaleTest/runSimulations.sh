@@ -2,21 +2,23 @@
 
 simScripts=`pwd`/simulationScripts
 
-doSubmit=true
+#doSubmit=true
+doSubmit=false
+runIt=true
 
 if [ "${ASKAP_ROOT}" == "" ]; then
     echo "You have not set ASKAP_ROOT! Exiting."
-    doSubmit=false
+    runIt=false
 fi
 
 if [ "${AIPSPATH}" == "" ]; then
     echo "You have not set AIPSPATH! Exiting."
-    doSubmit=false
+    runIt=false
 fi
 
-if [ $doSubmit == true ]; then    
+if [ $runIt == true ]; then    
 
-    . ${scriptdir}/config.sh
+    . ${simScripts}/config.sh
     workdir="run_${now}"
     mkdir -p ${workdir}
     cd ${workdir}
