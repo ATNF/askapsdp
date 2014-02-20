@@ -85,7 +85,7 @@ multi-beam feed, *feeds* offset parameters from other applications are used for 
 specified, the reference pixel of each input image is used.
 
 The *feeds* parameters can be given either in the main linmos parset or a separate offsets parset file set by the
-*feeds.offsetfile* parameter. 
+*feeds.offsetsfile* parameter. 
 
 +------------------+------------------+--------------+------------------------------------------------------------+
 |**Parameter**     |**Type**          |**Default**   |**Description**                                             |
@@ -184,7 +184,7 @@ provided in an external file.
     # specify a beam offset file
     linmos.feeds.offsetsfile = linmos_beam_offsets.in
 
-    # Specify which feeds from the "offsetfile" (specified above) are to be used
+    # Specify which feeds from the "offsetsfile" (specified above) are to be used
     linmos.feeds.names       = [PAF36.feed14..15, PAF36.feed20..21]
 
 Below is the *linmos_beam_offsets.in* file refered to in the above parameter set:
