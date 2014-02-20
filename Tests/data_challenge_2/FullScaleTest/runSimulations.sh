@@ -6,6 +6,8 @@ simScripts=`pwd`/simulationScripts
 doSubmit=false
 runIt=true
 
+depend=""
+
 if [ "${ASKAP_ROOT}" == "" ]; then
     echo "You have not set ASKAP_ROOT! Exiting."
     runIt=false

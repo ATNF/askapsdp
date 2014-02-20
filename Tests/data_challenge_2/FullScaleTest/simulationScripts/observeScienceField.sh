@@ -1,6 +1,11 @@
 #!/bin/bash -l
 
-merge2Dep="-Wdepend=afterok"
+if [ "$depend" == "" ]; then
+    merge2Dep="-Wdepend=afterok"
+else
+    merge2Dep=${depend}
+fi
+
 GRP=0
 while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 
@@ -8,7 +13,7 @@ while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 
     ms=${msdir}/${msbaseSci}_GRP${GRP}_%w.ms
 
-    depend=""
+    grpDepend=$depend
     if [ $doFlatSpectrum == true ]; then 
 	skymodel=${slicedir}/${baseimage}
     else
@@ -18,7 +23,11 @@ while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 	    firstChanSlicer=`echo $GRP $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2*$3}'`
 	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
 	    . ${simScripts}/makeSlices.sh
-	    depend="-Wdepend=afterok:${slID}"
+	    if [ "$grpDepend" == "" ]; then
+		grpDepend="-Wdepend=afterok:${slID}"
+	    else
+		grpDepend="${grpDepend}:${slID}"
+	    fi
 	    merge2dep="${merge2dep}:${slID}"
 	fi
     fi
@@ -26,7 +35,7 @@ while [ $GRP -lt ${NGROUPS_CSIM} ]; do
     # Need to create an spws file for this group with the
     # appropriate channel settings, so we can reference with %w in
     # the parset
-    spwsInput="${spwbaseSci}_grp${GRP}.in"
+    spwsInput="${spwbaseSci}_GRP${GRP}.in"
     echo "spws.names  =  [GRP${GRP}_0" > $spwsInput
     I=1; while [ $I -lt ${NWORKERS_CSIM} ]; do echo ", GRP${GRP}_${I}" >> $spwsInput; I=`expr $I + 1`; done
     perl -pi -e 's/\n//g' $spwsInput
@@ -39,8 +48,8 @@ while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 	I=`expr $I + 1`
     done
 
-    mkVisParset=${parsetdir}/csim-Science-GRP${GRP}.in
-    mkVisLog=${logdir}/csim-Science-GRP${GRP}.log
+    mkVisParset=${parsetdir}/csimScience-GRP${GRP}.in
+    mkVisLog=${logdir}/csimScience-GRP${GRP}.log
 
     cat > ${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       ${ms}
@@ -96,12 +105,12 @@ Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
     pbstag="csimSci${GRP}"
-    qsubfile=csim_Science_${tag}.qsub
+    qsubfile=csimScience_GRP${GRP}.qsub
     cat > $qsubfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
+#PBS -l walltime=06:00:00
+#PBS -l mppwidth=${NCPU_CSIM}
+#PBS -l mppnppn=${NPPN_CSIM}
 #PBS -N ${pbstag}
 #PBS -m a
 #PBS -j oe
@@ -109,19 +118,21 @@ EOF_INNER
 
 cd \$PBS_O_WORKDIR
 
+csim=${csim}
+
 rm -rf $ms
 
-aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
+aprun -n ${NCPU_CSIM} -N ${NPPN_CSIM}  \${csim} -c ${mkVisParset} > ${mkVisLog}
 
 EOF
 
     if [ $doSubmit == true ]; then
-	csimID=`qsub ${depend} ${qsubfile}`
+	csimID=`qsub ${grpDepend} ${qsubfile}`
 	echo "Running csimulator for science field, producing measurement set ${ms}: ID=${csimID}"
 	if [ "$depend" == "" ]; then
-	    depend="-Wdepend=afterok:${csimID}"
+	    grpDepend="-Wdepend=afterok:${csimID}"
 	else
-	    depend="${depend}:${csimID}"
+	    grpDepend="${grpDepend}:${csimID}"
 	fi
 	merge2dep="${merge2Dep}:${csimID}"
     fi
@@ -138,6 +149,7 @@ EOF
 #PBS -N visMerge1_${GRP}
 #PBS -m a
 #PBS -j oe
+#PBS -v ASKAP_ROOT,AIPSPATH
 
 #######
 # AUTOMATICALLY CREATED
@@ -145,6 +157,8 @@ EOF
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1
+
+msmerge=${msmerge}
 
 cd \$PBS_O_WORKDIR
 
@@ -161,12 +175,12 @@ mkdir -p ${logdir}
 logfile=${logdir}/merge_s1_output_GRP${GRP}_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
-aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msdir}/${msbaseSci}_GRP${GRP}.ms \$FILES >> \${logfile}
+aprun \${msmerge} -o ${msdir}/${msbaseSci}_GRP${GRP}.ms \$FILES >> \${logfile}
 
 EOF
 
     if [ $doSubmit == true ]; then
-	merge1ID=`qsub ${depend} $merge1qsub`
+	merge1ID=`qsub ${grpDepend} $merge1qsub`
 	merge2dep="${merge2dep}:${merge1ID}"
     fi
 
@@ -187,9 +201,12 @@ cat > $merge2qsub <<EOF
 #PBS -N visMerge2
 #PBS -m a
 #PBS -j oe
+#PBS -v ASKAP_ROOT,AIPSPATH
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1
+
+msmerge=${msmerge}
 
 cd \$PBS_O_WORKDIR
 
@@ -202,7 +219,7 @@ done
 
 logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${PBS_JOBID}.log
 echo "Processing files: \$FILES" > \${logfile}
-aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
+aprun \${msmerge} -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
 EOF
 
 if [ $doSubmit == true ]; then

@@ -9,6 +9,7 @@ csim=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/csimulator.s
 ccal=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh
 cim=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh
 mssplit=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/mssplit.sh
+msmerge=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/msmerge.sh
 askapconfig=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 now=`date +%F-%H%M`
@@ -24,6 +25,7 @@ Tsys=50
 nchan=16416
 freqChanZeroMHz=1050
 chanw=-18.5185185e3
+rchan=0
 pol="XX YY"
 
 inttime=5s
@@ -44,14 +46,14 @@ dec1934str=-63.42.45.63
 direction1934="[${ra1934str}, ${dec1934str}, J2000]"
 
 calHArange=(
-"-0.5h,-0.4h",
-"-0.4h,-0.3h",
-"-0.3h,-0.2h",
-"-0.2h,-0.1h",
-"-0.1h,0.0h",
-"0.0h,0.1h",
-"0.1h,0.2h",
-"0.2h,0.3h",
+"-0.5h,-0.4h" 
+"-0.4h,-0.3h" 
+"-0.3h,-0.2h" 
+"-0.2h,-0.1h" 
+"-0.1h,0.0h" 
+"0.0h,0.1h" 
+"0.1h,0.2h" 
+"0.2h,0.3h" 
 "0.3h,0.4h"
 )
 

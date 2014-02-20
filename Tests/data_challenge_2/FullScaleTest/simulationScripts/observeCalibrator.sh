@@ -9,10 +9,10 @@ while [ $POINTING -le $MAXPOINTING ]; do
 
     . ${simScripts}/makeFeedParset.sh
 
-    mkVisParset=${parsetdir}/csimCalibrator-${POINTING}.in
-    mkVisLog=${logdir}/csimCalibrator-${POINTING}.log
+    mkVisParset=${parsetdir}/csimCalibrator-BEAM${POINTING}.in
+    mkVisLog=${logdir}/csimCalibrator-BEAM${POINTING}.log
 
-    ms=${msdir}/${msbaseCal}_${POINTING}.ms
+    ms=${msdir}/${msbaseCal}_BEAM${POINTING}.ms
 
     cat > ${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       ${ms}
@@ -68,7 +68,7 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-    qsubfile=csim_${POINTING}_${tag}.qsub
+    qsubfile=csimCalibrator_BEAM${POINTING}.qsub
     cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
@@ -81,9 +81,11 @@ EOF_INNER
 
 cd \$PBS_O_WORKDIR
 
+csim=${csim}
+
 rm -rf $ms
 
-aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
+aprun \${csim} -c ${mkVisParset} > ${mkVisLog}
 
 EOF
 
