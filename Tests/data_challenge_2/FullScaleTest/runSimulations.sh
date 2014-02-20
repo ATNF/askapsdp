@@ -6,15 +6,15 @@ doSubmit=true
 
 if [ "${ASKAP_ROOT}" == "" ]; then
     echo "You have not set ASKAP_ROOT! Exiting."
-    runIt=false
+    doSubmit=false
 fi
 
 if [ "${AIPSPATH}" == "" ]; then
     echo "You have not set AIPSPATH! Exiting."
-    runIt=false
+    doSubmit=false
 fi
 
-if [ $runIt == true ]; then    
+if [ $doSubmit == true ]; then    
 
     . ${scriptdir}/config.sh
     workdir="run_${now}"
