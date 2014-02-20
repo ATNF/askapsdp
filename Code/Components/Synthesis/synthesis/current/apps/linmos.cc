@@ -60,6 +60,7 @@ using namespace casa;
 using namespace askap;
 using namespace askap::synthesis;
 
+// See checkParset for these options.
 enum weight_types {FROM_WEIGHT_IMAGES=0, FROM_BP_MODEL};
 // FROM_WEIGHT_IMAGES   Obtain pixel weights from weight images (parset "weights" entries)
 // FROM_BP_MODEL        Generate pixel weights using a Gaussian primary-beam model
@@ -68,19 +69,54 @@ enum weight_states {CORRECTED=0, INHERENT, WEIGHTED};
 // INHERENT             Input images retain the natural primary-beam weighting of the visibilities
 // WEIGHTED             Input images have full primary-beam-squared weighting
 
+// convert RA and Dec strings to a MVDirection
+MVDirection convertDir(const std::string &ra, const std::string &dec) {
+  Quantity tmpra,tmpdec;
+  Quantity::read(tmpra, ra);
+  Quantity::read(tmpdec,dec);
+  return MVDirection(tmpra,tmpdec);  
+}
+
+// helper method to load beam offsets from the parset file sharing the same format
+// as csimulator feed definition. Due to lack of proper phase tracking per beam in the first experiments
+// we have to set all beam offsets in the MS to zero. Therefore, this information has to be supplied 
+// by other means.
+Vector<MVDirection> loadBeamOffsets(const LOFAR::ParameterSet &parset, const Vector<std::string> beamNames,
+                                          MVDirection centre) {
+    
+    Vector<MVDirection> centres (beamNames.size(), centre);
+
+    ASKAPLOG_INFO_STR(logger, " -> looking for the feed spacing");
+    Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
+    double spacing = qspacing.getValue("rad");
+    ASKAPLOG_INFO_STR(logger, "    beam spacing set to " << qspacing);       
+
+    ASKAPLOG_INFO_STR(logger, " -> looking for a feed offset for each image");
+    for (uint beam = 0; beam < beamNames.size(); ++beam) {
+         const string parName = "feeds." + beamNames[beam];
+         const Vector<double> xy(parset.getDoubleVector(parName));
+         ASKAPCHECK(xy.size() == 2, "Expect two elements for each offset");
+         // the shift appears to be positive in HA, so multiply by -1. Simulator.cc states:
+         // "x direction is flipped to convert az-el type frame to ra-dec"
+         centres[beam].shift(-xy[0]*spacing, xy[1]*spacing, casa::True);
+         ASKAPLOG_INFO_STR(logger, " -> " << parName << " centre: " << centres[beam] );
+    }
+    return centres;
+}
+
 class LinmosAccumulator {
 
   public:
 
     LinmosAccumulator();
 
-    /// @brief check parset image names
-    /// @param[in] const string& weightTypeName: value given for parset key 'weighttype'
-    /// @param[in] const string& weightStateName: value given for parset key 'weightstate'
+    /// @brief check parset parameters
+    /// @details check parset parameters for consistency and set any dependent variables
+    ///     weighttype: FromWeightImages or FromPrimaryBeamModel. No default.
+    ///     weightstate: Corrected, Inherent or Weighted. Default: Corrected.
+    /// @param[in] const LOFAR::ParameterSet &parset: linmos parset
     /// @return bool true=success, false=fail
-    bool checkParset(const vector<string>& inImgNames, const vector<string>& inWgtNames,
-                     const string& outImgName, const string& outWgtName,
-                     const string& weightTypeName, const string& weightStateName);
+    bool checkParset(const LOFAR::ParameterSet &parset);
 
     /// @brief test whether the output buffers are empty and need initialising
     /// @return bool
@@ -89,7 +125,8 @@ class LinmosAccumulator {
     /// @brief set the input coordinate system and shape
     /// @param[in] const string& inImgName: name of the input image
     /// @param[in] const accessors::IImageAccess& iac
-    void setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc);
+    /// @param[in] const int n: input order of the input file
+    void setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc, const int n);
 
     /// @brief set the output coordinate system and shape, based on the overlap of input images
     /// @details This method is based on the SynthesisParamsHelper::add and
@@ -106,8 +143,7 @@ class LinmosAccumulator {
     void initialiseInputBuffers(void);
 
     /// @brief set up regridder
-    /// @param[in] const String& method: ImageRegrid::regrid input option
-    void initialiseRegridder(const String& method="linear");
+    void initialiseRegridder(void);
 
     /// @brief load the temporary image buffers with the current plane of the current input image
     /// @param[in] const scimath::MultiDimArrayPlaneIter& planeIter: current plane id
@@ -117,10 +153,7 @@ class LinmosAccumulator {
                           Array<float>& inPix, Array<float>& inWgtPix);
 
     /// @brief call the regridder for the buffered plane
-    /// @param[in] const Int decimate: ImageRegrid::regrid input option
-    /// @param[in] const Bool replicate: ImageRegrid::regrid input option
-    /// @param[in] const Bool force: ImageRegrid::regrid input option
-    void regrid(const Int decimate=3, const Bool replicate=False, const Bool force=False);
+    void regrid(void);
 
     /// @brief add the current plane to the accumulation arrays
     /// @details This method adds from the regridded buffers
@@ -177,6 +210,10 @@ class LinmosAccumulator {
     // regridding options
     ImageRegrid<float> itsRegridder;
     IPosition itsAxes;
+    String itsMethod;
+    Int itsDecimate;
+    Bool itsReplicate;
+    Bool itsForce;
     Interpolate2D::Method itsEmethod;
     // regridding buffers
     TempImage<float> itsInBuffer, itsInWgtBuffer;
@@ -190,13 +227,34 @@ class LinmosAccumulator {
     int itsWeightType;
     int itsWeightState;
 
+    // 
+    Vector<MVDirection> itsCentres;
+    MVDirection itsInCentre;
+
 };
 
-LinmosAccumulator::LinmosAccumulator() : itsWeightType(-1), itsWeightState(-1) {}
+LinmosAccumulator::LinmosAccumulator() : itsMethod("linear"), itsDecimate(3), itsReplicate(false), itsForce(false),
+                                         itsWeightType(-1), itsWeightState(-1) {}
 
-bool LinmosAccumulator::checkParset(const vector<string>& inImgNames, const vector<string>& inWgtNames,
-                                    const string& outImgName, const string& outWgtName,
-                                    const string& weightTypeName, const string& weightStateName) {
+bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
+
+    const vector<string> inImgNames = parset.getStringVector("names", true);
+    const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), true);
+    const string outImgName = parset.getString("outname");
+    const string outWgtName = parset.getString("outweight");
+    const string weightTypeName = parset.getString("weighttype");
+    const string weightStateName = parset.getString("weightstate", "Corrected");
+    // extra input:
+    // - the ability to look for taylor-term images?
+    // - the ability to also merge sensitivity and other images?
+
+    // Check the input images and weights
+
+    ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater that 0");
+
+    for (uint img = 0; img < inImgNames.size(); ++img ) {
+        ASKAPCHECK(inImgNames[img]!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
+    }
 
     // Check weighting options. One of the following must be set:
     //  - weightTypeName==FromWeightImages: get weights from input weight images
@@ -210,30 +268,87 @@ bool LinmosAccumulator::checkParset(const vector<string>& inImgNames, const vect
         ASKAPLOG_INFO_STR(logger, "Weights are coming from weight images");
     } else if (boost::iequals(weightTypeName, "FromPrimaryBeamModel")) {
         itsWeightType = FROM_BP_MODEL;
-        ASKAPLOG_INFO_STR(logger, "Weights to be set using a Gaussian primary-beam model");
+        ASKAPLOG_INFO_STR(logger, "Weights to be set using a Gaussian primary-beam models");
     } else {
         ASKAPLOG_ERROR_STR(logger, "Unknown weighttype " << weightTypeName);
         return false;
     }
 
-    // Check the input images and weights
-
-    ASKAPCHECK(inImgNames.size()>1, "Number of input images should be greater that 1");
-
-    for (uint img = 0; img < inImgNames.size(); ++img ) {
-        ASKAPCHECK(inImgNames[img]!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
-    }
+    // If reading weights from images, check the input for those
 
     if (itsWeightType == FROM_WEIGHT_IMAGES) {
+
+        ASKAPLOG_INFO_STR(logger, "Looking for parset options associated with weight images");
+
         ASKAPCHECK(inImgNames.size()==inWgtNames.size(), "# weight images should equal # images");
         for (uint img = 0; img < inWgtNames.size(); ++img ) {
             ASKAPCHECK(inWgtNames[img]!=outWgtName,
                        "Output weight image, "<<outWgtName<<", is present among the inputs");
         }
+
+        // check for inputs associated with other kinds of weighting
+
+        if (parset.isDefined("feeds.centre") ||
+            parset.isDefined("feeds.offsetfile") ||
+            parset.isDefined("feeds.names") ||
+            parset.isDefined("feeds.spacing") ) {
+            ASKAPLOG_WARN_STR(logger, "Beam information specified in parset but ignored. Using weight images");
+        }
+
     }
 
-    if ( (itsWeightType == FROM_BP_MODEL) && (inWgtNames.size()>0) ) {
-        ASKAPLOG_WARN_STR(logger, "Weight images specified in parset but ignored. Using a primary-beam model");
+    // If setting weights using beam models, check the input for extra information
+
+    if (itsWeightType == FROM_BP_MODEL) {
+
+        ASKAPLOG_INFO_STR(logger, "Looking for parset options associated with primary-beam models");
+
+        // centres for each beam
+        if (parset.isDefined("feeds.centre")) {
+
+            ASKAPLOG_INFO_STR(logger, "Found centre of the feeds to use in beam models");
+            const vector<string> feedsCentre(parset.getStringVector("feeds.centre"));
+            ASKAPCHECK(feedsCentre.size()==2, " -> the feeds.centre vector should have 2 elements");
+            MVDirection centre = convertDir(feedsCentre[0], feedsCentre[1]);
+
+            if (parset.isDefined("feeds.offsetfile")) {
+
+                ASKAPLOG_INFO_STR(logger,  "Loading beam offsets from " << parset.getString("feeds.offsetfile"));
+                LOFAR::ParameterSet feed_parset(parset.getString("feeds.offsetfile"));
+
+                vector<string> beamNames;
+                ASKAPLOG_INFO_STR(logger, " -> looking for feed names");
+                if (parset.isDefined("feeds.names")) {
+                    beamNames = parset.getStringVector("feeds.names", true);
+                    ASKAPLOG_INFO_STR(logger,  "    using names given in the main parset");
+                } else if (feed_parset.isDefined("feeds.names")) {
+                    beamNames = feed_parset.getStringVector("feeds.names", true);
+                    ASKAPLOG_INFO_STR(logger,  "    using names given in the feed-offset parset");
+                }
+                ASKAPCHECK(beamNames.size() > 0, "No beams specified");
+
+                itsCentres = loadBeamOffsets(feed_parset, beamNames, centre);
+
+                if (parset.isDefined("feeds.spacing")) {
+                    ASKAPLOG_WARN_STR(logger, "Feed info specified in parset but ignored. Using offset file");
+                }
+
+            } else {
+
+                itsCentres = loadBeamOffsets(parset, inImgNames, centre);
+
+            }
+
+        } else {
+            ASKAPLOG_WARN_STR(logger, "Centre of the feeds not found. Setting beam centres to input ref. pixels");
+        }
+
+        // check for inputs associated with other kinds of weighting
+
+        if (inWgtNames.size()>0) {
+            ASKAPLOG_WARN_STR(logger, "Weight images specified in parset but ignored. Using a primary-beam model");
+        }
+
     }
 
     // Check the initial weighting state of the input images
@@ -252,6 +367,15 @@ bool LinmosAccumulator::checkParset(const vector<string>& inImgNames, const vect
         return false;
     }
 
+    if (parset.isDefined("regrid.method")) itsMethod = parset.getString("regrid.method");
+    if (parset.isDefined("regrid.decimate")) itsDecimate = parset.getInt("regrid.decimate");
+    if (parset.isDefined("regrid.replicate")) itsReplicate = parset.getBool("regrid.replicate");
+    if (parset.isDefined("regrid.force")) itsForce = parset.getBool("regrid.force");
+
+    if (parset.isDefined("psfref")) {
+        ASKAPCHECK(parset.getUint("psfref")<inImgNames.size(), "PSF reference-image number is too large");
+    }
+
     return true;
 
 }
@@ -260,15 +384,29 @@ bool LinmosAccumulator::outputBufferSetupRequired(void) {
     return ( itsOutBuffer.shape().nelements() == 0 );
 }
 
-void LinmosAccumulator::setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc) {
+void LinmosAccumulator::setInputParameters(const string& inImgName, const accessors::IImageAccess& iacc, const int n) {
     // set the input coordinate system and shape
     itsInCoordSys = iacc.coordSys(inImgName);
     itsInShape = iacc.shape(inImgName);
+
+    if (itsWeightType == FROM_BP_MODEL) {
+        // set the centre of the beam
+        if ( itsCentres.size() > 0 ) {
+            itsInCentre = itsCentres[n];
+        } else {
+            // no other information, so set the centre of the beam to be the reference pixel
+            const int dcPos = itsInCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
+            const DirectionCoordinate inDC = itsInCoordSys.directionCoordinate(dcPos);
+            inDC.toWorld(itsInCentre,inDC.referencePixel());
+        }
+    }
+
 }
 
 void LinmosAccumulator::setOutputParameters(const vector<string>& inImgNames, const accessors::IImageAccess& iacc) {
 
-    // test that there are some input image names ...
+    ASKAPLOG_INFO_STR(logger, "Determining output image properties based on the overlap of input images");
+    ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater that 0");
 
     const IPosition refShape = iacc.shape(inImgNames[0]);
     ASKAPDEBUGASSERT(refShape.nelements() >= 2);
@@ -357,8 +495,10 @@ void LinmosAccumulator::initialiseOutputBuffers(void) {
     // apparently the +100 forces it to use the memory
     double maxMemoryInMB = double(shape.product()*sizeof(float))/1024./1024.+100;
     itsOutBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
+    ASKAPCHECK(itsOutBuffer.shape().nelements()>0, "Output buffer does not appear to be set");
     if (itsWeightType == FROM_WEIGHT_IMAGES) {
         itsOutWgtBuffer = TempImage<float>(shape, cSysTmp, maxMemoryInMB);
+        ASKAPCHECK(itsOutWgtBuffer.shape().nelements()>0, "Output weights buffer does not appear to be set");
     }
 
 }
@@ -381,19 +521,18 @@ void LinmosAccumulator::initialiseInputBuffers() {
 
     double maxMemoryInMB = double(shape.product()*sizeof(float))/1024./1024.+100;
     itsInBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);
+    ASKAPCHECK(itsInBuffer.shape().nelements()>0, "Input buffer does not appear to be set");
     if (itsWeightType == FROM_WEIGHT_IMAGES) {
         itsInWgtBuffer = TempImage<float>(shape,cSys,maxMemoryInMB);       
+        ASKAPCHECK(itsInWgtBuffer.shape().nelements()>0, "Input weights buffer does not appear to be set");
     }
 
 }
 
-void LinmosAccumulator::initialiseRegridder(const String& method) {
-
-    // die if itsOutBuffer isn't set
-
+void LinmosAccumulator::initialiseRegridder() {
+    ASKAPLOG_INFO_STR(logger, "Initialising regridder for " << itsMethod << " interpolation");
     itsAxes = IPosition::makeAxisPath(itsOutBuffer.shape().nelements());
-    itsEmethod = Interpolate2D::stringToMethod(method);
-
+    itsEmethod = Interpolate2D::stringToMethod(itsMethod);
 }
 
 void LinmosAccumulator::loadInputBuffers(const scimath::MultiDimArrayPlaneIter& planeIter,
@@ -404,11 +543,13 @@ void LinmosAccumulator::loadInputBuffers(const scimath::MultiDimArrayPlaneIter& 
     }
 }
 
-void LinmosAccumulator::regrid(const Int decimate, const Bool replicate, const Bool force) {
-    // 
-    itsRegridder.regrid(itsOutBuffer, itsEmethod, itsAxes, itsInBuffer, replicate, decimate, False, force);
+void LinmosAccumulator::regrid() {
+    ASKAPLOG_INFO_STR(logger, " - regridding with dec="<<itsDecimate<<" rep="<<itsReplicate<<" force="<<itsForce);
+    ASKAPCHECK(itsOutBuffer.shape().nelements()>0, "Output buffer does not appear to be set");
+    itsRegridder.regrid(itsOutBuffer, itsEmethod, itsAxes, itsInBuffer, itsReplicate, itsDecimate, false, itsForce);
     if (itsWeightType == FROM_WEIGHT_IMAGES) {
-        itsRegridder.regrid(itsOutWgtBuffer, itsEmethod, itsAxes, itsInWgtBuffer, replicate, decimate, False, force);
+        itsRegridder.regrid(itsOutWgtBuffer, itsEmethod, itsAxes, itsInWgtBuffer, itsReplicate, itsDecimate, false,
+                            itsForce);
     }
 }
 
@@ -536,7 +677,7 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
     } else {
 
         Vector<double> pixel(2,0.);
-        MVDirection world0, world1;
+        MVDirection world;
         float offsetBeam, wt0;
 
         // get coordinates of the spectral axis and the current frequency
@@ -552,11 +693,7 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
 
         // get coordinates of the direction axes
         const int dcPos = itsInCoordSys.findCoordinate(Coordinate::DIRECTION,-1);
-        const DirectionCoordinate inDC = itsInCoordSys.directionCoordinate(dcPos);
         const DirectionCoordinate outDC = itsOutCoordSys.directionCoordinate(dcPos);
-
-        // set the centre of the input beam (needs to be more flexible -- and correct...)
-        inDC.toWorld(world0,inDC.referencePixel());
 
         // set the higher-order dimension to zero, as weights are on a 2D plane
         for (uInt dim=0; dim<curpos.nelements(); ++dim) {
@@ -573,8 +710,8 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
                 // get the current pixel location and distance from beam centre
                 pixel[0] = double(x);
                 pixel[1] = double(y);
-                outDC.toWorld(world1,pixel);
-                offsetBeam = world0.separation(world1);
+                outDC.toWorld(world,pixel);
+                offsetBeam = itsInCentre.separation(world);
 
                 // set the weight
                 wt0 = exp(-offsetBeam*offsetBeam*4.*log(2.)/fwhm/fwhm);
@@ -583,7 +720,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
             }
         }
     }
-
 
     if (itsWeightState == CORRECTED) {
         for (int x=0; x<outPix.shape()[0];++x) {
@@ -743,20 +879,12 @@ static void merge(const LOFAR::ParameterSet &parset) {
     // initialise an image accumulator
     LinmosAccumulator accumulator;
 
-    // load the parset
-    bool expandable = true;
-    const vector<string> inImgNames = parset.getStringVector("names", expandable);
-    const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), expandable);
+    // pass the parset
+    if ( !accumulator.checkParset(parset) ) return;
+    const vector<string> inImgNames = parset.getStringVector("names", true);
+    const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), true);
     const string outImgName = parset.getString("outname");
     const string outWgtName = parset.getString("outweight");
-    const string weightTypeName = parset.getString("weighttype");
-    const string weightStateName = parset.getString("weightstate", "Corrected");
-    // extra input:
-    // the ability to also merge sensitivity and other images?
-    // regridding options
-
-    if ( !accumulator.checkParset(inImgNames, inWgtNames, outImgName, outWgtName,
-                                  weightTypeName, weightStateName) ) return;
 
     // initialise an image accessor
     accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
@@ -786,7 +914,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         }
 
         // set the input coordinate system and shape
-        accumulator.setInputParameters(inImgName, iacc);
+        accumulator.setInputParameters(inImgName, iacc, img);
 
         Array<float> inPix;
         Array<float> inWgtPix;
@@ -862,13 +990,22 @@ static void merge(const LOFAR::ParameterSet &parset) {
         accumulator.deweightPlane(outPix, outWgtPix, curpos);
     }
 
-    // write result
+    // get psf beam information from the selected reference image (the first by default)
+    uint psfref = 0;
+    if (parset.isDefined("psfref")) psfref = parset.getUint("psfref");
+    ASKAPLOG_INFO_STR(logger, "Getting PSF beam info for the output image from input number " << psfref);
+    Vector<Quantum<double> > psfInfo = iacc.beamInfo(inImgNames[psfref]);
+    ASKAPCHECK(psfInfo.nelements()>=3, "beamInfo is supposed to have at least 3 elements");
+
+    // write accumulated images and weight images
     ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
     iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
     iacc.write(outImgName,outPix);
+    iacc.setBeamInfo(outImgName, psfInfo[0].getValue("rad"), psfInfo[1].getValue("rad"), psfInfo[2].getValue("rad"));
     ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
     iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
     iacc.write(outWgtName,outWgtPix);
+    iacc.setBeamInfo(outWgtName, psfInfo[0].getValue("rad"), psfInfo[1].getValue("rad"), psfInfo[2].getValue("rad"));
 
 };
 
