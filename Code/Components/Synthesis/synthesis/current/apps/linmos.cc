@@ -40,6 +40,7 @@
 // other 3rd party
 #include <Common/ParameterSet.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <casa/Arrays/Array.h>
 #include <images/Images/ImageRegrid.h>
@@ -194,6 +195,7 @@ class LinmosAccumulator {
 
     int weightType(void) {return itsWeightType;}
     int weightState(void) {return itsWeightState;}
+    int numTaylorTerms(void) {return itsNumTaylorTerms;}
 
   private:
 
@@ -226,6 +228,7 @@ class LinmosAccumulator {
     // options
     int itsWeightType;
     int itsWeightState;
+    int itsNumTaylorTerms;
 
     // 
     Vector<MVDirection> itsCentres;
@@ -234,7 +237,7 @@ class LinmosAccumulator {
 };
 
 LinmosAccumulator::LinmosAccumulator() : itsMethod("linear"), itsDecimate(3), itsReplicate(false), itsForce(false),
-                                         itsWeightType(-1), itsWeightState(-1) {}
+                                         itsWeightType(-1), itsWeightState(-1), itsNumTaylorTerms(-1) {}
 
 bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
 
@@ -250,10 +253,32 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
 
     // Check the input images and weights
 
-    ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater that 0");
+    ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater than 0");
 
-    for (uint img = 0; img < inImgNames.size(); ++img ) {
-        ASKAPCHECK(inImgNames[img]!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
+    const string taylor0 = "taylor.0";
+    size_t pos0, pos1;
+    string tmpName, taylorN;
+    if (parset.isDefined("nterms")) {
+        itsNumTaylorTerms = parset.getInt32("nterms");
+        ASKAPCHECK(itsNumTaylorTerms>=0, "Number of taylor terms should be greater than or equal to 0");
+        ASKAPLOG_INFO_STR(logger, "Looking for "<<itsNumTaylorTerms<<" taylor terms");
+        pos0 = outImgName.find(taylor0);
+        ASKAPCHECK(pos0!=string::npos, "Cannot find "<<taylor0<<" in output file "<<outImgName);
+        pos1 = outImgName.find(taylor0, pos0+1); // make sure there aren't multiple entries.
+        ASKAPCHECK(pos1==string::npos, "There are multiple "<<taylor0<<" strings in output file "<<outImgName);
+    }
+
+    for (uint img = 0; img < inImgNames.size(); ++img) {
+        string inImgName = inImgNames[img]; // short cut
+        ASKAPCHECK(inImgName!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
+
+        for (int n = 0; n < itsNumTaylorTerms; ++n) {
+            pos0 = inImgName.find(taylor0);
+            ASKAPCHECK(pos0!=string::npos, "Cannot find "<<taylor0<<" in input file "<<inImgName);
+            pos1 = inImgName.find(taylor0, pos0+1); // make sure there aren't multiple entries.
+            ASKAPCHECK(pos1==string::npos, "There are multiple "<<taylor0<<" strings in input file "<<inImgName);
+        }
+
     }
 
     // Check weighting options. One of the following must be set:
@@ -282,8 +307,15 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
 
         ASKAPCHECK(inImgNames.size()==inWgtNames.size(), "# weight images should equal # images");
         for (uint img = 0; img < inWgtNames.size(); ++img ) {
-            ASKAPCHECK(inWgtNames[img]!=outWgtName,
-                       "Output weight image, "<<outWgtName<<", is present among the inputs");
+            string inWgtName = inWgtNames[img]; // short cut
+            ASKAPCHECK(inWgtName!=outWgtName, "Output weight image, "<<outWgtName<<", is present among the inputs");
+
+            for (int n = 0; n < itsNumTaylorTerms; ++n) {
+                pos0 = inWgtName.find(taylor0);
+                ASKAPCHECK(pos0!=string::npos, "Cannot find "<<taylor0<<" in input weight file "<<inWgtName);
+                pos1 = inWgtName.find(taylor0, pos0+1); // make sure there aren't multiple entries.
+                ASKAPCHECK(pos1==string::npos, "There are multiple "<<taylor0<<" strings in input file "<<inWgtName);
+            }
         }
 
         // check for inputs associated with other kinds of weighting
@@ -883,8 +915,8 @@ static void merge(const LOFAR::ParameterSet &parset) {
     if ( !accumulator.checkParset(parset) ) return;
     const vector<string> inImgNames = parset.getStringVector("names", true);
     const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), true);
-    const string outImgName = parset.getString("outname");
-    const string outWgtName = parset.getString("outweight");
+    const string origOutImgName = parset.getString("outname");
+    const string origOutWgtName = parset.getString("outweight");
 
     // initialise an image accessor
     accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
@@ -892,120 +924,150 @@ static void merge(const LOFAR::ParameterSet &parset) {
     // set the output coordinate system and shape, based on the overlap of input images
     accumulator.setOutputParameters(inImgNames, iacc);
 
-    // set up the output pixel arrays
-    Array<float> outPix(accumulator.outShape(),0.);
-    Array<float> outWgtPix(accumulator.outShape(),0.);
-
-    // set up an indexing vector for the arrays
-    IPosition curpos(outPix.shape());
-    ASKAPASSERT(curpos.nelements()>=2);
-    for (uInt dim=0; dim<curpos.nelements(); ++dim) {
-        curpos[dim] = 0;
-    }
-
     // loop over the input images, reading each in an adding to the output pixel arrays
-    for (uInt img = 0; img < inImgNames.size(); ++img ) {
+    const string taylor0 = "taylor.0";
+    size_t pos;
+    for (int tterm = 0; tterm < accumulator.numTaylorTerms(); ++tterm) {
 
-        // short cuts
-        string inImgName = inImgNames[img];
-        ASKAPLOG_INFO_STR(logger, "Processing input image " << inImgName);
-        if (accumulator.weightType() == FROM_WEIGHT_IMAGES) {
-            ASKAPLOG_INFO_STR(logger, " - and input weight image " << inWgtNames[img]);
+        const string taylorN = "taylor." + boost::lexical_cast<string>(tterm);
+        string outImgName = origOutImgName;
+        string outWgtName = origOutWgtName;
+
+        if (accumulator.numTaylorTerms() > 0) {
+            pos = outImgName.find(taylor0);
+            outImgName.replace(pos, taylorN.length(), taylorN);
+            pos = outWgtName.find(taylor0);
+            outWgtName.replace(pos, taylorN.length(), taylorN);
         }
 
-        // set the input coordinate system and shape
-        accumulator.setInputParameters(inImgName, iacc, img);
+        // set up the output pixel arrays
+        Array<float> outPix(accumulator.outShape(),0.);
+        Array<float> outWgtPix(accumulator.outShape(),0.);
 
-        Array<float> inPix;
-        Array<float> inWgtPix;
-        inPix    = iacc.read(inImgName);
-        if (accumulator.weightType() == FROM_WEIGHT_IMAGES) {
-            inWgtPix = iacc.read(inWgtNames[img]);
-            ASKAPASSERT(inPix.shape() == inWgtPix.shape());
+        // set up an indexing vector for the arrays
+        IPosition curpos(outPix.shape());
+        ASKAPASSERT(curpos.nelements()>=2);
+        for (uInt dim=0; dim<curpos.nelements(); ++dim) {
+            curpos[dim] = 0;
         }
 
-        // set up an iterator for all directionCoordinate planes in the input image
-        scimath::MultiDimArrayPlaneIter planeIter(accumulator.inShape());
+        // loop over the input images, reading each in an adding to the output pixel arrays
+        for (uInt img = 0; img < inImgNames.size(); ++img ) {
 
-        // test whether to simply add weighted pixels, or whether a regrid is required
-        bool regridRequired = !accumulator.coordinatesAreEqual();
+            // short cuts
+            string inImgName = inImgNames[img];
+            string inWgtName;
 
-        // if regridding is required, set up buffer some images
-        if ( regridRequired ) {
-
-            ASKAPLOG_INFO_STR(logger, " - regridding -- input pixel grid is different from the output");
-
-            // currently all output planes have full-size, so only initialise once
-            // would be faster if this was reduced to the size of the current input image
-            if ( accumulator.outputBufferSetupRequired() ) {
-                ASKAPLOG_INFO_STR(logger, " - initialising output buffers and the regridder");
-                // set up temp images required for regridding
-                accumulator.initialiseOutputBuffers();
-                // set up regridder
-                accumulator.initialiseRegridder();
+            if (accumulator.numTaylorTerms() > 0) {
+                pos = inImgName.find(taylor0);
+                inImgName.replace(pos, taylorN.length(), taylorN);
             }
 
-            // set up temp images required for regridding
-            // are those of the previous iteration correctly freed?
-            accumulator.initialiseInputBuffers();
+            ASKAPLOG_INFO_STR(logger, "Processing input image " << inImgName);
+            if (accumulator.weightType() == FROM_WEIGHT_IMAGES) {
+                inWgtName = inWgtNames[img];
+                if (accumulator.numTaylorTerms() > 0) {
+                    pos = inWgtName.find(taylor0);
+                    inWgtName.replace(pos, taylorN.length(), taylorN);
+                }
+                ASKAPLOG_INFO_STR(logger, " - and input weight image " << inWgtName);
+            }
 
-        } else {
-            ASKAPLOG_INFO_STR(logger, " - not regridding -- input pixel grid is the same as the output");
-        }
+            // set the input coordinate system and shape
+            accumulator.setInputParameters(inImgName, iacc, img);
 
-        // iterator over planes (e.g. freq & polarisation), regridding and accumulating weights and weighted images
-        for (; planeIter.hasMore(); planeIter.next()) {
+            Array<float> inPix;
+            Array<float> inWgtPix;
+            inPix    = iacc.read(inImgName);
+            if (accumulator.weightType() == FROM_WEIGHT_IMAGES) {
+                inWgtPix = iacc.read(inWgtName);
+                ASKAPASSERT(inPix.shape() == inWgtPix.shape());
+            }
 
-            // set the indices of any higher-order dimensions for this slice
-            curpos = planeIter.position();
+            // set up an iterator for all directionCoordinate planes in the input image
+            scimath::MultiDimArrayPlaneIter planeIter(accumulator.inShape());
 
-            ASKAPLOG_INFO_STR(logger, " - slice " << curpos);
+            // test whether to simply add weighted pixels, or whether a regrid is required
+            bool regridRequired = !accumulator.coordinatesAreEqual();
 
+            // if regridding is required, set up buffer some images
             if ( regridRequired ) {
 
-                // load input buffer for the current plane
-                accumulator.loadInputBuffers(planeIter, inPix, inWgtPix);
-                // call regrid for any buffered images
-                accumulator.regrid();
-                // update the accululation arrays for this plane
-                accumulator.accumulatePlane(outPix, outWgtPix, curpos);
+                ASKAPLOG_INFO_STR(logger, " - regridding -- input pixel grid is different from the output");
+
+                // currently all output planes have full-size, so only initialise once
+                // would be faster if this was reduced to the size of the current input image
+                if ( accumulator.outputBufferSetupRequired() ) {
+                    ASKAPLOG_INFO_STR(logger, " - initialising output buffers and the regridder");
+                    // set up temp images required for regridding
+                    accumulator.initialiseOutputBuffers();
+                    // set up regridder
+                    accumulator.initialiseRegridder();
+                }
+
+                // set up temp images required for regridding
+                // are those of the previous iteration correctly freed?
+                accumulator.initialiseInputBuffers();
 
             } else {
+                ASKAPLOG_INFO_STR(logger, " - not regridding -- input pixel grid is the same as the output");
+            }
 
-                // Update the accululation arrays for this plane.
-                accumulator.accumulatePlane(outPix, outWgtPix, inPix, inWgtPix, curpos);
+            // iterator over planes (e.g. freq & polarisation), regridding and accumulating weights and weighted images
+            for (; planeIter.hasMore(); planeIter.next()) {
+
+                // set the indices of any higher-order dimensions for this slice
+                curpos = planeIter.position();
+
+                ASKAPLOG_INFO_STR(logger, " - slice " << curpos);
+
+                if ( regridRequired ) {
+
+                    // load input buffer for the current plane
+                    accumulator.loadInputBuffers(planeIter, inPix, inWgtPix);
+                    // call regrid for any buffered images
+                    accumulator.regrid();
+                    // update the accululation arrays for this plane
+                    accumulator.accumulatePlane(outPix, outWgtPix, curpos);
+
+                } else {
+
+                    // Update the accululation arrays for this plane.
+                    accumulator.accumulatePlane(outPix, outWgtPix, inPix, inWgtPix, curpos);
+
+                }
 
             }
 
+        } // img loop (over input images)
+
+        // deweight the image pixels
+        // use another iterator to loop over planes
+        ASKAPLOG_INFO_STR(logger, "Deweighting accumulated images");
+        scimath::MultiDimArrayPlaneIter deweightIter(accumulator.outShape());
+        for (; deweightIter.hasMore(); deweightIter.next()) {
+            curpos = deweightIter.position();
+            accumulator.deweightPlane(outPix, outWgtPix, curpos);
         }
 
-    } // loop over input images
+        // get psf beam information from the selected reference image (the first by default)
+        uint psfref = 0;
+        if (parset.isDefined("psfref")) psfref = parset.getUint("psfref");
+        ASKAPLOG_INFO_STR(logger, "Getting PSF beam info for the output image from input number " << psfref);
+        Vector<Quantum<double> > psfInfo = iacc.beamInfo(inImgNames[psfref]);
+        ASKAPCHECK(psfInfo.nelements()>=3, "beamInfo is supposed to have at least 3 elements");
 
-    // deweight the image pixels
-    // use another iterator to loop over planes
-    ASKAPLOG_INFO_STR(logger, "Deweighting accumulated images");
-    scimath::MultiDimArrayPlaneIter deweightIter(accumulator.outShape());
-    for (; deweightIter.hasMore(); deweightIter.next()) {
-        curpos = deweightIter.position();
-        accumulator.deweightPlane(outPix, outWgtPix, curpos);
-    }
+        // write accumulated images and weight images
+        ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
+        iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
+        iacc.write(outImgName,outPix);
+        iacc.setBeamInfo(outImgName,psfInfo[0].getValue("rad"),psfInfo[1].getValue("rad"),psfInfo[2].getValue("rad"));
+        ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
+        iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
+        iacc.write(outWgtName,outWgtPix);
+        iacc.setBeamInfo(outWgtName,psfInfo[0].getValue("rad"),psfInfo[1].getValue("rad"),psfInfo[2].getValue("rad"));
 
-    // get psf beam information from the selected reference image (the first by default)
-    uint psfref = 0;
-    if (parset.isDefined("psfref")) psfref = parset.getUint("psfref");
-    ASKAPLOG_INFO_STR(logger, "Getting PSF beam info for the output image from input number " << psfref);
-    Vector<Quantum<double> > psfInfo = iacc.beamInfo(inImgNames[psfref]);
-    ASKAPCHECK(psfInfo.nelements()>=3, "beamInfo is supposed to have at least 3 elements");
-
-    // write accumulated images and weight images
-    ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
-    iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
-    iacc.write(outImgName,outPix);
-    iacc.setBeamInfo(outImgName, psfInfo[0].getValue("rad"), psfInfo[1].getValue("rad"), psfInfo[2].getValue("rad"));
-    ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
-    iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
-    iacc.write(outWgtName,outWgtPix);
-    iacc.setBeamInfo(outWgtName, psfInfo[0].getValue("rad"), psfInfo[1].getValue("rad"), psfInfo[2].getValue("rad"));
+    } // tterm loop (over taylor terms)
 
 };
 

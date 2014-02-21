@@ -56,8 +56,13 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |                  |                  |              |- **Weighted**: Full primary-beam-squared weighting.        |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |psfref            |uint              |0             |Which of the input images to extract restoring-beam         |
-|                  |                  |              |information from. The default is the first behaviour is     |
-|                  |                  |              |to use the first image specified.                           |
+|                  |                  |              |information from. The default is behaviour is to use the    |
+|                  |                  |              |first image specified.                                      |
++------------------+------------------+--------------+------------------------------------------------------------+
+|nterms            |uint              |-1            |Process multiple taylor-term images. The string "taylor.0"  |
+|                  |                  |              |must be present in both input and output image names        |
+|                  |                  |              |(including weights images), and it will be incremented from |
+|                  |                  |              |0 to nterms-1.                                              |
 +------------------+------------------+--------------+------------------------------------------------------------+
 
 If input images need to be regridded, the following ImageRegrid options are available:
