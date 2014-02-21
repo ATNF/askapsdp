@@ -7,7 +7,7 @@ imLogfile=${logdir}/cim-Science-BEAM${POINTING}.log
 image=${imagebase}.BEAM${POINTING}
 
 cat > ${imParset} << EOF_INNER
-Cimager.dataset                                 = ${scienceMS}
+Cimager.dataset                                 = ${coarseMS}
 Cimager.Feed                                    = ${POINTING}
 #
 Cimager.Images.Names                            = [${image}]

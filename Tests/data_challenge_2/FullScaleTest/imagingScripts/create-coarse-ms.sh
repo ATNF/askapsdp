@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -l
 ##############################################################################
 # Measurement Set Averaging (For Gains calibration and Continuum imaging)
 ##############################################################################
@@ -66,7 +66,8 @@ EOF
 if [ ! -e ${coarseMS} ]; then
     echo "MS Averaging: Submitting"
     coarseID=`qsub ${depend} split-coarse.qsub`
-    imdepend="${imDepend}:${coarseID}"
+    calDepend="${calDepend}:${coarseID}"
+    imdepend="${imdepend}:${coarseID}"
 #    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
 #    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
 #    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
