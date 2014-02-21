@@ -117,10 +117,10 @@ The *feeds* parameters can be given either in the main linmos parset or a separa
 |                  |                  |              |linmos parset will be ignored.                              |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |feeds.names       |vector<string>    |*none*        |Optional parameter (required either here or below when      |
-|                  |                  |              |specifying a beam offset parset). The beam offset parset    |
+|                  |                  |              |specifying a beam offsets parset). The beam offsets parset  |
 |                  |                  |              |should have one line per input image, with parameter keys   |
 |                  |                  |              |(minus the *feeds.* prefix) specified by this parameter. If |
-|                  |                  |              |the offset parset also contains a *names* parameter, the    |
+|                  |                  |              |the offsets parset also contains a *names* parameter, the   |
 |                  |                  |              |main linmos entry will hold, to allow a subset of beams     |
 |                  |                  |              |from a general to be chosen.                                |
 +------------------+------------------+--------------+------------------------------------------------------------+
@@ -134,10 +134,10 @@ the linmos program), the file shall have the following format:
 |**Parameter**     |**Type**          |**Default**   |**Description**                                             |
 +==================+==================+==============+============================================================+
 |feeds.names       |vector<string>    |null          |Optional parameter (required either here or above when      |
-|                  |                  |              |specifying a beam offset parset). The beam offset parset    |
+|                  |                  |              |specifying a beam offsets parset). The beam offsets parset  |
 |                  |                  |              |should have one line per input image, with parameter keys   |
 |                  |                  |              |(minus the *feeds.* prefix) specified by this parameter. If |
-|                  |                  |              |the offset parset also contains a *names* parameter, the    |
+|                  |                  |              |the offsets parset also contains a *names* parameter, the   |
 |                  |                  |              |main linmos entry will hold, to allow a subset of beams     |
 |                  |                  |              |from a general to be chosen.                                |
 +------------------+------------------+--------------+------------------------------------------------------------+
@@ -186,7 +186,7 @@ provided in an external file.
 
     linmos.feeds.centre     = [12h30m00.00, -45.00.00.00]
 
-    # specify a beam offset file
+    # specify a beam offsets file
     linmos.feeds.offsetsfile = linmos_beam_offsets.in
 
     # Specify which feeds from the "offsetsfile" (specified above) are to be used
@@ -196,12 +196,13 @@ Below is the *linmos_beam_offsets.in* file refered to in the above parameter set
 
 .. code-block:: bash
 
+    feeds.spacing            = 1deg
     <snip>
-    feeds.PAF36.feed14          = [-0.5, -0.5]
-    feeds.PAF36.feed15          = [-0.5,  0.5]
+    feeds.PAF36.feed14       = [-0.5, -0.5]
+    feeds.PAF36.feed15       = [-0.5,  0.5]
     <snip>
-    feeds.PAF36.feed20          = [0.5, -0.5]
-    feeds.PAF36.feed21          = [0.5,  0.5]
+    feeds.PAF36.feed20       = [0.5, -0.5]
+    feeds.PAF36.feed21       = [0.5,  0.5]
     <snip>
 
 
