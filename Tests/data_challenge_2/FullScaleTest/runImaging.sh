@@ -33,6 +33,9 @@ if [ $runIt == true ]; then
     # Combine calibration parameters
     . ${imScripts}/combineCalResults.sh
 
+    # Create a coarse-channel (1MHz-resolution) MS
+    . ${imScripts}/create-coarse-ms.sh
+
     # Image the science field
     . ${imScripts}/imageScienceField.sh
 

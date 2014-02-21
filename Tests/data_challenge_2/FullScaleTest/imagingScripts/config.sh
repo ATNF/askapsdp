@@ -69,5 +69,7 @@ IMAGING_EQUALISE=True
 
 imagebase=image.i.clean.sciencefield.SKADS
 scienceMS=../MS/sciencefield_SKADS_2014-02-20-1203.ms
+coarseMS=MS/coarseChan.ms
+END_CHANNEL_CREATECOARSE=16416
 
 

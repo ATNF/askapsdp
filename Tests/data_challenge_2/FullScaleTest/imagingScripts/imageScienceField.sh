@@ -2,11 +2,6 @@
 
 
 POINTING=0
-if [ "${calDepend}" == "" ]; then
-    imdepend="-Wdepend=afterok"
-else
-    imdepend=${calDepend}
-fi
 while [ $POINTING -lt 9 ]; do
     . ${imScripts}/imageScienceFieldBeam.sh
     imdepend="${imdepend}:${latestID}"
