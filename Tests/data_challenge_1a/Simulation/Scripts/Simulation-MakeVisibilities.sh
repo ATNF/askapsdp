@@ -43,9 +43,10 @@ if [ $doCsim == true ]; then
 	if [ $doFlatSpectrum == true ]; then 
 	    skymodel=$slicebase
 	else
-	    slicebaseOrig=${slicebase}
-	    sedString="s/_slice\$/_GRP${GRP}_slice/g"
-	    slicebase=`echo ${slicebase} | sed -e $sedString`
+#	    slicebaseOrig=${slicebase}
+#	    sedString="s/_slice\$/_GRP${GRP}_slice/g"
+#	    slicebase=`echo ${slicebase} | sed -e $sedString`
+	    slicebase="${slicedir}/${baseimage}_GRP${GRP}_slice"
 	    skymodel=${slicebase}%w
 	    firstChanSlicer=`echo $GRP $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2*$3}'`
 	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
@@ -59,7 +60,7 @@ if [ $doCsim == true ]; then
 		    merge2dep="${merge2dep}:${slID}"
 		fi
 	    fi
-	    slicebase=${slicebaseOrig}
+#	    slicebase=${slicebaseOrig}
 	fi
 
 	# Need to create an spws file for this group with the
@@ -180,7 +181,7 @@ EOF
 	    if [ "$merge2dep" == "" ]; then
 		merge2dep="-Wdepend=afterok:${mkvisID}"
 	    else
-		merge2dep="${mergeDep}:${mkvisID}"
+		merge2dep="${merge2Dep}:${mkvisID}"
 	    fi
 	fi
 
@@ -227,7 +228,7 @@ EOF
 
 	    if [ $doSubmit == true ]; then
 		merge1ID=`qsub ${mergeDep} $merge1qsub`
-		merge2dep="${merge2dep}:${merge1D}"
+		merge2dep="${merge2dep}:${merge1ID}"
 	    fi
 
 	fi
