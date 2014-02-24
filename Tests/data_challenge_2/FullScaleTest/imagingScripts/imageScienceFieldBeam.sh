@@ -10,13 +10,17 @@ cat > ${imParset} << EOF_INNER
 Cimager.dataset                                 = ${coarseMS}
 Cimager.Feed                                    = ${POINTING}
 #
+Cimager.nworkergroups                           = 3
+# Each worker will read a single channel selection
+Cimager.Channels                                = [1, %w]
+#
 Cimager.Images.Names                            = [${image}]
 Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
 Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.${image}.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.${image}.nchan              = 1
 Cimager.Images.${image}.direction          = ${IMAGING_DIRECTION}
-Cimager.Images.image.i.clean.nterms             = 2
+Cimager.Images.${image}.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
 Cimager.visweights                              = MFS
