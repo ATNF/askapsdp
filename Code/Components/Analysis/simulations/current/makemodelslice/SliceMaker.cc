@@ -70,6 +70,26 @@ namespace askap {
 	    this->itsNpix = parset.getIntVector("npixslice");
 	    this->itsNchan = parset.getInt("nchanslice");
 
+	    this->itsChanRange = parset.getIntVector("chanRange");
+	    ASKAPASSERT(this->itsChanRange.size() == 2);
+	    ASKAPCHECK(this->itsNchan == (abs(this->itsChanRange[1]-this->itsChanRange[0])+1),
+		       "Channel range (["<<this->itsChanRange[0]<<","<<this->itsChanRange[1]
+		       <<"]) does not match requested number of channels ("<<this->itsNchan<<")");
+
+	}
+
+
+	void SliceMaker::initialise()
+	{
+
+	    std::stringstream firstChunk;
+	    firstChunk << this->itsModelName << "_w1__0_0_0_0__";
+
+	    const casa::PagedImage<float> refImage(firstChunk.str());
+	    this->itsRefShape = refImage.shape();
+	    this->itsRefCoordinates = refImage.coordinates();
+	    this->itsRefUnits = refImage.units();
+
 	    this->itsSpcAxis = this->itsRefCoordinates.spectralAxisNumber();
 	    this->itsLngAxis = this->itsRefCoordinates.directionAxesNumbers()[0];
 	    this->itsLatAxis = this->itsRefCoordinates.directionAxesNumbers()[1];
@@ -79,22 +99,15 @@ namespace askap {
 	    this->itsSliceShape[this->itsLatAxis] = this->itsNpix[1];
 	    this->itsSliceShape[this->itsSpcAxis] = this->itsNchan;
 
+	    ASKAPLOG_INFO_STR(logger, "Output slice shape = " << this->itsSliceShape);
+
 	    if(this->itsNumChunks > 1){
+	      ASKAPLOG_DEBUG_STR(logger, "Defining subimagedef since numchunks="<<this->itsNumChunks);
 		this->itsSubimageDef.define(this->itsSliceShape.size());
 		this->itsSubimageDef.setImageDim(this->itsSliceShape.asStdVector());
 	    }
-
-	    this->itsChanRange = parset.getIntVector("chanRange");
-	    ASKAPASSERT(this->itsChanRange.size() == 2);
-	    ASKAPCHECK(this->itsNchan == (abs(this->itsChanRange[1]-this->itsChanRange[0])+1),
-		       "Channel range (["<<this->itsChanRange[0]<<","<<this->itsChanRange[1]
-		       <<"]) does not match requested number of channels ("<<this->itsNchan<<")");
-	    
-	}
-
-
-	void SliceMaker::initialise()
-	{
+	    else
+	      ASKAPLOG_DEBUG_STR(logger, "No subimagedef as numchunks = " <<this->itsNumChunks);
 
 	    if(this->itsNumChunks == 1)
 		this->itsChunkList.push_back(this->itsModelName);
@@ -104,14 +117,10 @@ namespace askap {
 		    std::string loc = locationString(sec);
 		    std::stringstream chunkname;
 		    chunkname << this->itsModelName << "_w"  << i+1 << loc;
+		    if(i==0) ASKAPASSERT(firstChunk.str()==chunkname.str());
 		    this->itsChunkList.push_back(chunkname.str());
 		}
 	    }
-
-	    const casa::PagedImage<float> refImage(this->itsChunkList[0]);
-	    this->itsRefShape = refImage.shape();
-	    this->itsRefCoordinates = refImage.coordinates();
-	    this->itsRefUnits = refImage.units();
 
 //	    ASKAPASSERT(this->itsSliceShape[this->itsSpcAxis] == (fabs(this->itsChanRange[1]-this->itsChanRange[0])+1));
 
@@ -152,6 +161,7 @@ namespace askap {
 		casa::IPosition trc = img.shape()-1;
 		blc[this->itsSpcAxis] = std::min(this->itsChanRange[0],this->itsChanRange[1]);
 		trc[this->itsSpcAxis] = std::max(this->itsChanRange[0],this->itsChanRange[1]);
+		ASKAPLOG_INFO_STR(logger, "Chunk #"<<i<<": blc="<<blc <<", trc="<<trc);
 		casa::Slicer slicer(blc,trc,casa::Slicer::endIsLast);
 		ASKAPLOG_DEBUG_STR(logger, "Will use slicer " << slicer << " to extract");
 
@@ -159,6 +169,8 @@ namespace askap {
 	
 		casa::IPosition where(this->itsSliceShape.size(),0);
 		if (this->itsNumChunks > 1) where = this->itsSubimageDef.blc(i);
+
+		ASKAPLOG_INFO_STR(logger, "Putting array of shape " << arr.shape() << " into slice at " << where);
 
 		this->itsSlice->putSlice(arr,where,stride);
 
