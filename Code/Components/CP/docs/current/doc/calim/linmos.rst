@@ -175,8 +175,8 @@ images are used to weight the pixels.
     linmos.names      = [image_feed00..35_offset.i.dirty.restored]
     linmos.weights    = [weights_feed00..35_offset.i.dirty]
 
-    linmos.outname    = image_mosaic.test
-    linmos.outweight  = weights_mosaic.test
+    linmos.outname    = image_mosaic.i.dirty.restored
+    linmos.outweight  = weights_mosaic.i.dirty
 
 
 **Example 2:**
@@ -191,8 +191,8 @@ provided in an external file.
 
     linmos.names            = [image_feed14..15.i.dirty.restored, image_feed20..21.i.dirty.restored]
 
-    linmos.outname          = image_mosaic.test
-    linmos.outweight        = weights_mosaic.test
+    linmos.outname          = image_mosaic.i.dirty.restored
+    linmos.outweight        = weights_mosaic.i.dirty
 
     linmos.feeds.centre     = [12h30m00.00, -45.00.00.00]
 
@@ -227,8 +227,8 @@ The primary-beam offsets directly in the parameter set.
 
     linmos.names            = [image_feed14..15.i.dirty.restored, image_feed20..21.i.dirty.restored]
 
-    linmos.outname          = image_mosaic.test
-    linmos.outweight        = weights_mosaic.test
+    linmos.outname          = image_mosaic.i.dirty.restored
+    linmos.outweight        = weights_mosaic.i.dirty
 
     linmos.feeds.centre     = [12h30m00.00, -45.00.00.00]
 
@@ -237,4 +237,46 @@ The primary-beam offsets directly in the parameter set.
     linmos.feeds.image_feed15.i.dirty.restored = [-0.5,  0.5]
     linmos.feeds.image_feed20.i.dirty.restored = [0.5, -0.5]
     linmos.feeds.image_feed21.i.dirty.restored = [0.5,  0.5]
+
+
+**Example 4:**
+
+Example linmos parset to combine individual feed images from a 36-feed simulation for each of three
+separate taylor terms 0, 1 and 2. The location of taylor.* in all inputs and outputs is given explicitly.
+
+.. code-block:: bash
+
+    linmos.weighttype = FromWeightImages
+
+    linmos.names      = [image_feed00..35_offset.i.dirty.taylor.0.restored]
+    linmos.weights    = [weights_feed00..35_offset.i.dirty.taylor.0]
+
+    linmos.outname    = image_mosaic.i.dirty.taylor.0.restored
+    linmos.outweight  = weights_mosaic.i.dirty.taylor.0
+
+    linmos.nterms = 3
+
+
+**Example 5:**
+
+Example linmos parset to combine individual feed images from a 36-feed simulation for each set of images
+that has one image for each tag (param "names") but otherwise have equal names. Only the "image" and
+"residual" prefixes are currently supported. For example, if the outputs produced for Data Challenge 1A
+were produced for each feed and stored in a single directory, the following mosaics would be made:
+image_linmos.i.clean.taylor.0, image_linmos.i.clean.taylor.0.restored, image_linmos.i.clean.taylor.1,
+image_linmos.i.clean.taylor.1.restored, image_linmos.i.dirty.restored, residual_linmos.i.clean.taylor.0 and
+residual_linmos.i.clean.taylor.1. Associated weights images would also be made, however in situations where
+multiple mosaics have the same weights (e.g. image_linmos.i.clean.taylor.0, image_linmos.i.clean.taylor.0.restored
+and residual_linmos.i.clean.taylor.0), only one would be made.
+
+Furthermore, since the DC1A does not seem to produce weights.*.taylor.2 and we have specified weighttype
+FromWeightImages, mosaic image_linmos.clean.taylor.2 would not be made. It would be produced if weighttype were
+FromPrimaryBeamModel.
+
+.. code-block:: bash
+
+    linmos.weighttype  = FromWeightImages
+    linmos.findmosaics = true
+    linmos.names       = [feed00..35_offset]
+
 

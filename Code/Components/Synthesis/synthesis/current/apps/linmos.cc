@@ -295,7 +295,7 @@ bool LinmosAccumulator::loadParset(const LOFAR::ParameterSet &parset) {
     const string weightTypeName = parset.getString("weighttype");
     const string weightStateName = parset.getString("weightstate", "Corrected");
 
-    const bool findMosaics = parset.getBool("indmosaics", false);
+    const bool findMosaics = parset.getBool("findmosaics", false);
 
     // Check the input images
     ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater than 0");
@@ -554,9 +554,15 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
 
                 }
 
-                // replace the mosaic prefix with "weights" and set the output weights image name
+                // set the output weights image name
+                // replace the mosaic prefix with "weights"
                 nextName = mosaicName;
                 nextName.replace(0, (*pre).length(), "weights");
+                // remove any ".restored" sub-string from the weights file name
+                restored_pos = nextName.find(restored_tag);
+                if (restored_pos != string::npos) {
+                    nextName.replace(restored_pos, restored_tag.length(), "");
+                }
                 itsOutWgtNames[mosaicName] = nextName;
 
                 break; // found the prefix, so leave the loop
