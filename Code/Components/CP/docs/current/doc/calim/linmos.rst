@@ -64,6 +64,16 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |                  |                  |              |(including weights images), and it will be incremented from |
 |                  |                  |              |0 to nterms-1.                                              |
 +------------------+------------------+--------------+------------------------------------------------------------+
+|findmosaics       |bool              |false         |Instead of specifying specific input and output files to    |
+|                  |                  |              |mosaic search the current directory for suitable mosaics.   |
+|                  |                  |              |Parameter *names* is used to specify a vector of tags, and  |
+|                  |                  |              |all groups of images that have names that are equal apart   |
+|                  |                  |              |from these tags are mosaicked together. Groups must have one|
+|                  |                  |              |image per tag. Currently only groups with prefixes of       |
+|                  |                  |              |"image" and "residual" are allowed, with prefix "weights" a |
+|                  |                  |              |special case. Parameters *weights*, *outname*, *outweight*  |
+|                  |                  |              |and *nterms* are ignored if *findmosaic=true*.              |
++------------------+------------------+--------------+------------------------------------------------------------+
 
 If input images need to be regridded, the following ImageRegrid options are available:
 

@@ -64,7 +64,7 @@ using namespace casa;
 using namespace askap;
 using namespace askap::synthesis;
 
-// See checkParset for these options.
+// See loadParset for these options.
 enum weight_types {FROM_WEIGHT_IMAGES=0, FROM_BP_MODEL};
 // FROM_WEIGHT_IMAGES   Obtain pixel weights from weight images (parset "weights" entries)
 // FROM_BP_MODEL        Generate pixel weights using a Gaussian primary-beam model
@@ -73,41 +73,7 @@ enum weight_states {CORRECTED=0, INHERENT, WEIGHTED};
 // INHERENT             Input images retain the natural primary-beam weighting of the visibilities
 // WEIGHTED             Input images have full primary-beam-squared weighting
 
-// convert RA and Dec strings to a MVDirection
-MVDirection convertDir(const std::string &ra, const std::string &dec) {
-  Quantity tmpra,tmpdec;
-  Quantity::read(tmpra, ra);
-  Quantity::read(tmpdec,dec);
-  return MVDirection(tmpra,tmpdec);  
-}
-
-// helper method to load beam offsets from the parset file sharing the same format
-// as csimulator feed definition. Due to lack of proper phase tracking per beam in the first experiments
-// we have to set all beam offsets in the MS to zero. Therefore, this information has to be supplied 
-// by other means.
-Vector<MVDirection> loadBeamOffsets(const LOFAR::ParameterSet &parset, const Vector<std::string> beamNames,
-                                          MVDirection centre) {
-    
-    Vector<MVDirection> centres (beamNames.size(), centre);
-
-    ASKAPLOG_INFO_STR(logger, " -> looking for the feed spacing");
-    Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
-    double spacing = qspacing.getValue("rad");
-    ASKAPLOG_INFO_STR(logger, "    beam spacing set to " << qspacing);       
-
-    ASKAPLOG_INFO_STR(logger, " -> looking for a feed offset for each image");
-    for (uint beam = 0; beam < beamNames.size(); ++beam) {
-         const string parName = "feeds." + beamNames[beam];
-         const Vector<double> xy(parset.getDoubleVector(parName));
-         ASKAPCHECK(xy.size() == 2, "Expect two elements for each offset");
-         // the shift appears to be positive in HA, so multiply by -1. Simulator.cc states:
-         // "x direction is flipped to convert az-el type frame to ra-dec"
-         centres[beam].shift(-xy[0]*spacing, xy[1]*spacing, casa::True);
-         ASKAPLOG_INFO_STR(logger, " -> " << parName << " centre: " << centres[beam] );
-    }
-    return centres;
-}
-
+/// @brief the top-level class supporting linmos
 class LinmosAccumulator {
 
   public:
@@ -120,7 +86,22 @@ class LinmosAccumulator {
     ///     weightstate: Corrected, Inherent or Weighted. Default: Corrected.
     /// @param[in] const LOFAR::ParameterSet &parset: linmos parset
     /// @return bool true=success, false=fail
-    bool checkParset(const LOFAR::ParameterSet &parset);
+    bool loadParset(const LOFAR::ParameterSet &parset);
+
+    /// @brief search the current directory for suitable mosaics
+    /// @details based on a vector of image tags, look for sets of images with names
+    ///     that contain all tags but are otherwise equal and contain an allowed prefix.
+    /// @param[in] const vector<string> &imageTags : vector of image tags
+    void findAndSetMosacis(const vector<string> &imageTags);
+
+    /// @brief 
+    /// @details 
+    /// @param[in] 
+    /// @param[in] 
+    /// @param[in] 
+    /// @param[in] 
+    void findAndSetTaylorTerms(const vector<string> &inImgNames, const vector<string> &inWgtNames,
+                               const string &outImgName, const string &outWgtName);
 
     /// @brief test whether the output buffers are empty and need initialising
     /// @return bool
@@ -201,7 +182,6 @@ class LinmosAccumulator {
     int numTaylorTerms(void) {return itsNumTaylorTerms;}
     string mosaicTag(void) {return itsMosaicTag;}
     string taylorTag(void) {return itsTaylorTag;}
-    bool findImages(void) {return itsFindImages;}
 
     map<string,string> outWgtNames(void) {return itsOutWgtNames;}
     map<string,bool> outWgtDuplicates(void) {return itsOutWgtDuplicates;}
@@ -248,7 +228,6 @@ class LinmosAccumulator {
     // Set some objects to support multiple mosaics.
     const string itsMosaicTag;
     const string itsTaylorTag;
-    bool itsFindImages;
 
     map<string,string> itsOutWgtNames;
     map<string,bool> itsOutWgtDuplicates;
@@ -261,14 +240,62 @@ LinmosAccumulator::LinmosAccumulator() : itsMethod("linear"), itsDecimate(3), it
                                          itsWeightType(-1), itsWeightState(-1), itsNumTaylorTerms(-1),
                                          itsMosaicTag("linmos"), itsTaylorTag("taylor.0") {}
 
-bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
+
+// functions used by the linmos accumulator class
+
+/// @brief function to convert RA and Dec strings to a MVDirection
+/// @param[in] const std::string &ra
+/// @param[in] const std::string &dec
+/// @return MVDirection
+MVDirection convertDir(const std::string &ra, const std::string &dec) {
+  Quantity tmpra,tmpdec;
+  Quantity::read(tmpra, ra);
+  Quantity::read(tmpdec,dec);
+  return MVDirection(tmpra,tmpdec);  
+}
+
+/// @brief helper method to load beam offsets from the parset file
+/// @details shares the same format as csimulator feed definition. This is needed to support ASKAP BETA,
+///    which initially uses the same image centre for all beams, leaving beam offsets unspecified.
+///    Therefore, this information has to be supplied by other means. Copied from testlinmos.
+/// @param[in] const LOFAR::ParameterSet &parset : parset containing spacing and offset parameters
+/// @param[in] const Vector<std::string> beamNames : which offsets to get from the parset
+/// @param[in] MVDirection centre : the pointing centre, which all offsets are relative to
+/// @return Vector<MVDirection> : a MVDirection for each name in beamNames
+Vector<MVDirection> loadBeamOffsets(const LOFAR::ParameterSet &parset, const Vector<std::string> beamNames,
+                                          MVDirection centre) {
+    
+    Vector<MVDirection> centres (beamNames.size(), centre);
+
+    ASKAPLOG_INFO_STR(logger, " -> looking for the feed spacing");
+    Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
+    double spacing = qspacing.getValue("rad");
+    ASKAPLOG_INFO_STR(logger, "    beam spacing set to " << qspacing);       
+
+    ASKAPLOG_INFO_STR(logger, " -> looking for a feed offset for each image");
+    for (uint beam = 0; beam < beamNames.size(); ++beam) {
+         const string parName = "feeds." + beamNames[beam];
+         const Vector<double> xy(parset.getDoubleVector(parName));
+         ASKAPCHECK(xy.size() == 2, "Expect two elements for each offset");
+         // the shift appears to be positive in HA, so multiply by -1. Simulator.cc states:
+         // "x direction is flipped to convert az-el type frame to ra-dec"
+         centres[beam].shift(-xy[0]*spacing, xy[1]*spacing, casa::True);
+         ASKAPLOG_INFO_STR(logger, " -> " << parName << " centre: " << centres[beam] );
+    }
+    return centres;
+}
+
+
+// functions in the linmos accumulator class
+
+bool LinmosAccumulator::loadParset(const LOFAR::ParameterSet &parset) {
 
     const vector<string> inImgNames = parset.getStringVector("names", true);
     const vector<string> inWgtNames = parset.getStringVector("weights", vector<string>(), true);
     const string weightTypeName = parset.getString("weighttype");
     const string weightStateName = parset.getString("weightstate", "Corrected");
 
-    itsFindImages = parset.getBool("findimages", false);
+    const bool findMosaics = parset.getBool("indmosaics", false);
 
     // Check the input images
     ASKAPCHECK(inImgNames.size()>0, "Number of input images should be greater than 0");
@@ -291,177 +318,20 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
         return false;
     }
 
-    if (itsFindImages) {
+    if (findMosaics) {
 
         ASKAPLOG_INFO_STR(logger, "Image names to be automatically generated. Searching...");
-
-        // if automatically identifying images, output name parameters are ignored
-        if (parset.isDefined("outname") || parset.isDefined("outweight") ) {
-            ASKAPLOG_WARN_STR(logger, "  - output file names specified in parset but ignored.");
+        // check for useless parameters
+        if (parset.isDefined("outname") || parset.isDefined("outweight")) {
+            ASKAPLOG_WARN_STR(logger, "  - output file names are specified in parset but ignored.");
+        }
+        if (parset.isDefined("nterms")) {
+            ASKAPLOG_WARN_STR(logger, "  - nterms is specified in parset but ignored.");
         }
 
-        const string imageTag = inImgNames[0];
-
-        vector<string> prefixes;
-        prefixes.push_back("image");
-        prefixes.push_back("residual");
-        //prefixes.push_back("sensitivity");
-        //prefixes.push_back("mask");
-
-        // if this directory name changes from "./", the erase call below may also need to change
-        boost::filesystem::path p (".");
-
-        typedef vector<boost::filesystem::path> path_vec;
-        path_vec v;
-
-        copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
-
-        for (path_vec::const_iterator it (v.begin()); it != v.end(); ++it) {
-
-            // set name of the current file name and remove "./"
-            string name = it->string();
-            name.erase(0,2);
-
-            // make sure this is a directory
-            // a sym link to a directory will pass this test
-            if (!boost::filesystem::is_directory(*it)) {
-                //ASKAPLOG_INFO_STR(logger, name << " is not a directory. Ignoring.");
-                continue;
-            }
-
-            // see if the name contains the desired tag (i.e., contains the first tag in "names")
-            int pos = name.find(imageTag);
-            if (pos == string::npos) {
-                //ASKAPLOG_INFO_STR(logger, name << " is not a match. Ignoring.");
-                continue;
-            }
-
-            // set some variables for problem sub-strings
-            string restored_tag = ".restored";
-            int restored_pos;
-
-            // see if the name contains a desired prefix, and if so, check the other input names and weights
-            int full_set = 0, full_wgt_set = 0;
-            string mosaicName = name, nextName = name;
-            for (vector<string>::const_iterator pre (prefixes.begin()); pre != prefixes.end(); ++pre) {
-                if (name.find(*pre) == 0) {
-
-                    // both of these must remain set to 1 for this mosaic to be established
-                    full_set = 1;
-                    full_wgt_set = 1;
-
-                    // set the output mosaic name
-                    mosaicName.replace(pos, imageTag.length(), itsMosaicTag);
-
-                    // file seems good, but check that it is present in all input images
-                    for (uint img = 0; img < inImgNames.size(); ++img) {
-
-                        // name is initially set for image 0
-                        nextName = name;
-                        // replace the image 0 tag with the current image's tag
-                        if (img > 0) {
-                            nextName.replace(pos, imageTag.length(), inImgNames[img]);
-                            // check that the file exists
-                            if (!boost::filesystem::exists(nextName)) {
-                                full_set = -1;
-                                break;
-                            }
-                        }
-                        // add the image to this mosaics inputs
-                        itsInImgNameVecs[mosaicName].push_back(nextName);
-
-                        // look for weights image if required
-                        if (itsWeightType == FROM_WEIGHT_IMAGES) {
-                            // replace the prefix with "weights"
-                            nextName.replace(0, (*pre).length(), "weights");
-                            // remove any ".restored" sub-string from the weights file name
-                            restored_pos = nextName.find(restored_tag);
-                            if (restored_pos != string::npos) {
-                                nextName.replace(restored_pos, restored_tag.length(), "");
-                            }
-                            // check that the file exists
-                            if (!boost::filesystem::exists(nextName)) {
-                                full_wgt_set = -1;
-                                break;
-                            }
-                            // add the file to this mosaics inputs
-                            itsInWgtNameVecs[mosaicName].push_back(nextName);
-                        }
-
-                    }
-
-                    // replace the mosaic prefix with "weights" and set the output weights image name
-                    nextName = mosaicName;
-                    nextName.replace(0, (*pre).length(), "weights");
-                    itsOutWgtNames[mosaicName] = nextName;
-
-                    break; // found the prefix, so leave the loop
-
-                }
-            }
-
-            if (full_set==0) {
-                // this file did not have a relevant prefix, so just move on
-                continue;
-            }
-
-            if ((full_set == -1) || ((itsWeightType == FROM_WEIGHT_IMAGES) && (full_wgt_set == -1))) {
-                // this file did have a relevant prefix, but failed
-                if (full_set == -1) {
-                    ASKAPLOG_INFO_STR(logger, mosaicName << " does not have a full set of input files. Ignoring.");
-                }
-                if ((itsWeightType == FROM_WEIGHT_IMAGES) && (full_wgt_set == -1)) {
-                    ASKAPLOG_INFO_STR(logger, mosaicName << " does not have a full set of weights files. Ignoring.");
-                }
-
-                // clean up and move on
-                if (itsOutWgtNames.find(mosaicName)!=itsOutWgtNames.end()) itsOutWgtNames.erase(mosaicName);
-                if (itsInImgNameVecs.find(mosaicName)!=itsInImgNameVecs.end()) itsInImgNameVecs.erase(mosaicName);
-                if (itsInWgtNameVecs.find(mosaicName)!=itsInWgtNameVecs.end()) itsInWgtNameVecs.erase(mosaicName);
-
-                continue;
-            }
-
-            // check the size of the various maps and vectors
-            ASKAPCHECK(itsInImgNameVecs.size()==itsOutWgtNames.size(), "Inconsistent name maps.");
-            if (itsWeightType == FROM_WEIGHT_IMAGES) {
-                ASKAPCHECK(itsInImgNameVecs.size()==itsInWgtNameVecs.size(),
-                           "Something has gone wrong with automatic mosaic search. Inconsistent name maps.");
-                ASKAPCHECK(itsInImgNameVecs[mosaicName].size()==itsInWgtNameVecs[mosaicName].size(),
-                           "Something has gone wrong with automatic mosaic search. Inconsistent name vectors.");
-            }
-
-            ASKAPLOG_INFO_STR(logger, mosaicName << " seems complete. Mosaicking.");
-
-            // it is possible that there may be duplicate itsOutWgtNames (e.g. for image.* and residual.*)
-            // check that the input is the same for these duplicates, and then only write once
-            // if this is common, we should be avoiding more that just duplicate output
-            itsOutWgtDuplicates[mosaicName] = false;
-            string mosaicOrig;
-            for(map<string,string>::iterator ii=itsOutWgtNames.begin(); ii!=itsOutWgtNames.find(mosaicName); ++ii) {
-                if (itsOutWgtNames[mosaicName].compare((*ii).second) == 0) {
-                    itsOutWgtDuplicates[mosaicName] = true;
-                    mosaicOrig = (*ii).first;
-                    break;
-                }
-            }
-            if (itsOutWgtDuplicates[mosaicName] == true) {
-                if (itsWeightType == FROM_WEIGHT_IMAGES) {
-                    ASKAPCHECK(itsInWgtNameVecs[mosaicName]==itsInWgtNameVecs[mosaicOrig],
-                               "Conflicting output weights images.");
-                    ASKAPLOG_WARN_STR(logger, "  - output weights image " << itsOutWgtNames[mosaicName] <<
-                                              " will have already been written by " << mosaicOrig <<
-                                              ". However, input weights look consistant.");
-                } else {
-                    ASKAPLOG_WARN_STR(logger, "  - output weights image " << itsOutWgtNames[mosaicName] <<
-                                              " will have already been written by " << mosaicOrig << ".");
-                }
-            }
-
-        } // it loop (over potential images in this directory)
+        findAndSetMosacis(inImgNames);
 
         ASKAPCHECK(itsInImgNameVecs.size() > 0, "No suitable mosaics found.");
-
         ASKAPLOG_INFO_STR(logger, itsInImgNameVecs.size() << " suitable mosaics found.");
 
     } else {
@@ -476,71 +346,10 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
  
         // Check for taylor terms
  
-        size_t pos0, pos1;
-        string tmpName, taylorN;
         if (parset.isDefined("nterms")) {
  
             itsNumTaylorTerms = parset.getInt32("nterms");
-            ASKAPCHECK(itsNumTaylorTerms>=0, "Number of taylor terms should be greater than or equal to 0");
-            ASKAPLOG_INFO_STR(logger, "Looking for "<<itsNumTaylorTerms<<" taylor terms");
-            pos0 = outImgName.find(itsTaylorTag);
-            ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<<" in output file "<<outImgName);
-            pos1 = outImgName.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
-            ASKAPCHECK(pos1==string::npos, "There are multiple  "<< itsTaylorTag <<
-                                           " strings in output file "<<outImgName);
- 
-            const string outImgNameOrig = outImgName;
-            const string outWgtNameOrig = outWgtName;
-
-            for (int n = 0; n < itsNumTaylorTerms; ++n) {
-
-                outImgName = outImgNameOrig;
-                outWgtName = outWgtNameOrig;
-                const string taylorN = "taylor." + boost::lexical_cast<string>(n);
-
-                // set a new key for the various output file-name maps
-                outImgName.replace(outImgName.find(itsTaylorTag), taylorN.length(), taylorN);
-                outWgtName.replace(outWgtName.find(itsTaylorTag), taylorN.length(), taylorN);
-                itsOutWgtNames[outImgName] = outWgtName;
-
-                for (uint img = 0; img < inImgNames.size(); ++img) {
-
-                    // do some tests
-                    string inImgName = inImgNames[img]; // short cut
-                    pos0 = inImgName.find(itsTaylorTag);
-                    ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<<" in input file "<<inImgName);
-                    pos1 = inImgName.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
-                    ASKAPCHECK(pos1==string::npos, "There are multiple " << itsTaylorTag <<
-                                                   " strings in input file "<<inImgName);
-
-                    // set a new key for the input file-name-vector map
-                    inImgName.replace(pos0, taylorN.length(), taylorN);
-                    itsInImgNameVecs[outImgName].push_back(inImgName);
-
-                    // Check the input image
-                    ASKAPCHECK(inImgName!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
-
-                    if (itsWeightType == FROM_WEIGHT_IMAGES) {
-                        // do some tests
-                        string inWgtName = inWgtNames[img]; // short cut
-                        pos0 = inWgtName.find(itsTaylorTag);
-                        ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<<
-                                                       " in input weight file "<<inWgtName);
-                        pos1 = inWgtName.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
-                        ASKAPCHECK(pos1==string::npos, "There are multiple " << itsTaylorTag <<
-                                                       " strings in input file "<<inWgtName);
-
-                        // set a new key for the input weights file-name-vector map
-                        inWgtName.replace(pos0, taylorN.length(), taylorN);
-                        itsInWgtNameVecs[outImgName].push_back(inWgtName);
-
-                        // Check the input weights image
-                        ASKAPCHECK(inWgtName!=outWgtName, "Output wgt image, "<<outWgtName<<", is among the inputs");
-                    }
-
-                }
-
-            }
+            findAndSetTaylorTerms(inImgNames, inWgtNames, outImgName, outWgtName);
  
         } else {
 
@@ -651,6 +460,233 @@ bool LinmosAccumulator::checkParset(const LOFAR::ParameterSet &parset) {
     return true;
 
 }
+
+void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
+
+    vector<string> prefixes;
+    prefixes.push_back("image");
+    prefixes.push_back("residual");
+    //prefixes.push_back("sensitivity");
+    //prefixes.push_back("mask");
+
+    // if this directory name changes from "./", the erase call below may also need to change
+    boost::filesystem::path p (".");
+
+    typedef vector<boost::filesystem::path> path_vec;
+    path_vec v;
+
+    copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+    // find mosaics by looking for images that contain one of the tags. Then see which of those contain all tags.
+    const string searchTag = imageTags[0];
+
+    for (path_vec::const_iterator it (v.begin()); it != v.end(); ++it) {
+
+        // set name of the current file name and remove "./"
+        string name = it->string();
+        name.erase(0,2);
+
+        // make sure this is a directory
+        // a sym link to a directory will pass this test
+        if (!boost::filesystem::is_directory(*it)) {
+            //ASKAPLOG_INFO_STR(logger, name << " is not a directory. Ignoring.");
+            continue;
+        }
+
+        // see if the name contains the desired tag (i.e., contains the first tag in "names")
+        int pos = name.find(searchTag);
+        if (pos == string::npos) {
+            //ASKAPLOG_INFO_STR(logger, name << " is not a match. Ignoring.");
+            continue;
+        }
+
+        // set some variables for problem sub-strings
+        string restored_tag = ".restored";
+        int restored_pos;
+
+        // see if the name contains a desired prefix, and if so, check the other input names and weights
+        int full_set = 0, full_wgt_set = 0;
+        string mosaicName = name, nextName = name;
+        for (vector<string>::const_iterator pre (prefixes.begin()); pre != prefixes.end(); ++pre) {
+            if (name.find(*pre) == 0) {
+
+                // both of these must remain set to 1 for this mosaic to be established
+                full_set = 1;
+                full_wgt_set = 1;
+
+                // set the output mosaic name
+                mosaicName.replace(pos, searchTag.length(), itsMosaicTag);
+
+                // file seems good, but check that it is present in all input images
+                for (uint img = 0; img < imageTags.size(); ++img) {
+
+                    // name is initially set for image 0
+                    nextName = name;
+                    // replace the image 0 tag with the current image's tag
+                    if (img > 0) {
+                        nextName.replace(pos, searchTag.length(), imageTags[img]);
+                        // check that the file exists
+                        if (!boost::filesystem::exists(nextName)) {
+                            full_set = -1;
+                            break;
+                        }
+                    }
+                    // add the image to this mosaics inputs
+                    itsInImgNameVecs[mosaicName].push_back(nextName);
+
+                    // look for weights image if required
+                    if (itsWeightType == FROM_WEIGHT_IMAGES) {
+                        // replace the prefix with "weights"
+                        nextName.replace(0, (*pre).length(), "weights");
+                        // remove any ".restored" sub-string from the weights file name
+                        restored_pos = nextName.find(restored_tag);
+                        if (restored_pos != string::npos) {
+                            nextName.replace(restored_pos, restored_tag.length(), "");
+                        }
+                        // check that the file exists
+                        if (!boost::filesystem::exists(nextName)) {
+                            full_wgt_set = -1;
+                            break;
+                        }
+                        // add the file to this mosaics inputs
+                        itsInWgtNameVecs[mosaicName].push_back(nextName);
+                    }
+
+                }
+
+                // replace the mosaic prefix with "weights" and set the output weights image name
+                nextName = mosaicName;
+                nextName.replace(0, (*pre).length(), "weights");
+                itsOutWgtNames[mosaicName] = nextName;
+
+                break; // found the prefix, so leave the loop
+
+            }
+        }
+
+        if (full_set==0) {
+            // this file did not have a relevant prefix, so just move on
+            continue;
+        }
+
+        if ((full_set == -1) || ((itsWeightType == FROM_WEIGHT_IMAGES) && (full_wgt_set == -1))) {
+            // this file did have a relevant prefix, but failed
+            if (full_set == -1) {
+                ASKAPLOG_INFO_STR(logger, mosaicName << " does not have a full set of input files. Ignoring.");
+            }
+            if ((itsWeightType == FROM_WEIGHT_IMAGES) && (full_wgt_set == -1)) {
+                ASKAPLOG_INFO_STR(logger, mosaicName << " does not have a full set of weights files. Ignoring.");
+            }
+
+            // clean up and move on
+            if (itsOutWgtNames.find(mosaicName)!=itsOutWgtNames.end()) itsOutWgtNames.erase(mosaicName);
+            if (itsInImgNameVecs.find(mosaicName)!=itsInImgNameVecs.end()) itsInImgNameVecs.erase(mosaicName);
+            if (itsInWgtNameVecs.find(mosaicName)!=itsInWgtNameVecs.end()) itsInWgtNameVecs.erase(mosaicName);
+
+            continue;
+        }
+
+        // check the size of the various maps and vectors
+        ASKAPCHECK(itsInImgNameVecs.size()==itsOutWgtNames.size(), "Inconsistent name maps.");
+        if (itsWeightType == FROM_WEIGHT_IMAGES) {
+            ASKAPCHECK(itsInImgNameVecs.size()==itsInWgtNameVecs.size(),
+                       "Something has gone wrong with automatic mosaic search. Inconsistent name maps.");
+            ASKAPCHECK(itsInImgNameVecs[mosaicName].size()==itsInWgtNameVecs[mosaicName].size(),
+                       "Something has gone wrong with automatic mosaic search. Inconsistent name vectors.");
+        }
+
+        ASKAPLOG_INFO_STR(logger, mosaicName << " seems complete. Mosaicking.");
+
+        // it is possible that there may be duplicate itsOutWgtNames (e.g. for image.* and residual.*)
+        // check that the input is the same for these duplicates, and then only write once
+        // if this is common, we should be avoiding more that just duplicate output
+        itsOutWgtDuplicates[mosaicName] = false;
+        string mosaicOrig;
+        for(map<string,string>::iterator ii=itsOutWgtNames.begin(); ii!=itsOutWgtNames.find(mosaicName); ++ii) {
+            if (itsOutWgtNames[mosaicName].compare((*ii).second) == 0) {
+                itsOutWgtDuplicates[mosaicName] = true;
+                mosaicOrig = (*ii).first;
+                break;
+            }
+        }
+        if (itsOutWgtDuplicates[mosaicName] == true) {
+            if (itsWeightType == FROM_WEIGHT_IMAGES) {
+                ASKAPCHECK(itsInWgtNameVecs[mosaicName]==itsInWgtNameVecs[mosaicOrig],
+                           "Conflicting output weights images.");
+                ASKAPLOG_WARN_STR(logger, "  - output weights image " << itsOutWgtNames[mosaicName] <<
+                                          " will have already been written by " << mosaicOrig <<
+                                          ". However, input weights look consistant.");
+            } else {
+                ASKAPLOG_WARN_STR(logger, "  - output weights image " << itsOutWgtNames[mosaicName] <<
+                                          " will have already been written by " << mosaicOrig << ".");
+            }
+        }
+
+    } // it loop (over potential images in this directory)
+
+} // void LinmosAccumulator::findAndSetMosacis()
+
+void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, const vector<string> &inWgtNames,
+                                              const string &outImgNameOrig, const string &outWgtNameOrig) {
+
+    ASKAPLOG_INFO_STR(logger, "Looking for "<<itsNumTaylorTerms<<" taylor terms");
+    ASKAPCHECK(itsNumTaylorTerms>=0, "Number of taylor terms should be greater than or equal to 0");
+
+    size_t pos0, pos1;
+    pos0 = outImgNameOrig.find(itsTaylorTag);
+    ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<<" in output file "<<outImgNameOrig);
+    pos1 = outImgNameOrig.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
+    ASKAPCHECK(pos1==string::npos, "There are multiple  "<<itsTaylorTag<<" strings in output file "<<outImgNameOrig);
+
+    for (int n = 0; n < itsNumTaylorTerms; ++n) {
+
+        string outImgName = outImgNameOrig;
+        string outWgtName = outWgtNameOrig;
+        const string taylorN = "taylor." + boost::lexical_cast<string>(n);
+
+        // set a new key for the various output file-name maps
+        outImgName.replace(outImgName.find(itsTaylorTag), taylorN.length(), taylorN);
+        outWgtName.replace(outWgtName.find(itsTaylorTag), taylorN.length(), taylorN);
+        itsOutWgtNames[outImgName] = outWgtName;
+
+        for (uint img = 0; img < inImgNames.size(); ++img) {
+
+            // do some tests
+            string inImgName = inImgNames[img]; // short cut
+            pos0 = inImgName.find(itsTaylorTag);
+            ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<<" in input file "<<inImgName);
+            pos1 = inImgName.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
+            ASKAPCHECK(pos1==string::npos, "There are multiple "<<itsTaylorTag<<" strings in input file "<<inImgName);
+
+            // set a new key for the input file-name-vector map
+            inImgName.replace(pos0, taylorN.length(), taylorN);
+            itsInImgNameVecs[outImgName].push_back(inImgName);
+
+            // Check the input image
+            ASKAPCHECK(inImgName!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
+
+            if (itsWeightType == FROM_WEIGHT_IMAGES) {
+                // do some tests
+                string inWgtName = inWgtNames[img]; // short cut
+                pos0 = inWgtName.find(itsTaylorTag);
+                ASKAPCHECK(pos0!=string::npos, "Cannot find "<<itsTaylorTag<< " in input weight file "<<inWgtName);
+                pos1 = inWgtName.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
+                ASKAPCHECK(pos1==string::npos, "There are multiple " << itsTaylorTag <<
+                                               " strings in input file "<<inWgtName);
+
+                // set a new key for the input weights file-name-vector map
+                inWgtName.replace(pos0, taylorN.length(), taylorN);
+                itsInWgtNameVecs[outImgName].push_back(inWgtName);
+
+                // Check the input weights image
+                ASKAPCHECK(inWgtName!=outWgtName, "Output wgt image, "<<outWgtName<<", is among the inputs");
+            }
+
+        }
+
+    }
+
+} // void LinmosAccumulator::findAndSetTaylorTerms()
 
 bool LinmosAccumulator::outputBufferSetupRequired(void) {
     return ( itsOutBuffer.shape().nelements() == 0 );
@@ -896,7 +932,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
                 fullpos[1] = y;
                 pos[0] = x;
                 pos[1] = y;
-                //the restore seems to be unweighting the images. Need to know this...
                 outPix(fullpos)    = outPix(fullpos)    + itsOutBuffer.getAt(pos) * wgtBuffer.getAt(pos);
                 outWgtPix(fullpos) = outWgtPix(fullpos) + wgtBuffer.getAt(pos);
             }
@@ -908,7 +943,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
                 fullpos[1] = y;
                 pos[0] = x;
                 pos[1] = y;
-                //the restore seems to be unweighting the images. Need to know this...
                 outPix(fullpos)    = outPix(fullpos)    + itsOutBuffer.getAt(pos) * sqrt(wgtBuffer.getAt(pos));
                 outWgtPix(fullpos) = outWgtPix(fullpos) + wgtBuffer.getAt(pos);
             }
@@ -920,7 +954,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
                 fullpos[1] = y;
                 pos[0] = x;
                 pos[1] = y;
-                //the restore seems to be unweighting the images. Need to know this...
                 outPix(fullpos)    = outPix(fullpos)    + itsOutBuffer.getAt(pos);
                 outWgtPix(fullpos) = outWgtPix(fullpos) + wgtBuffer.getAt(pos);
             }
@@ -1000,7 +1033,7 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
                 fullpos[1] = y;
                 wgtpos[0] = x;
                 wgtpos[1] = y;
-                outPix(fullpos)    = outPix(fullpos   ) + inPix(fullpos) * wgtPix(wgtpos);
+                outPix(fullpos)    = outPix(fullpos)    + inPix(fullpos) * wgtPix(wgtpos);
                 outWgtPix(fullpos) = outWgtPix(fullpos) + wgtPix(wgtpos);
             }
         }
@@ -1151,8 +1184,8 @@ static void merge(const LOFAR::ParameterSet &parset) {
     // initialise an image accumulator
     LinmosAccumulator accumulator;
 
-    // pass the parset
-    if ( !accumulator.checkParset(parset) ) return;
+    // load the parset
+    if ( !accumulator.loadParset(parset) ) return;
 
     // initialise an image accessor
     accessors::IImageAccess& iacc = SynthesisParamsHelper::imageHandler();
@@ -1160,7 +1193,6 @@ static void merge(const LOFAR::ParameterSet &parset) {
     // loop over the mosaics, reading each in an adding to the output pixel arrays
     vector<string> inImgNames, inWgtNames;
     string outImgName, outWgtName;
-    size_t pos;
     map<string,string> outWgtNames = accumulator.outWgtNames();
     for(map<string,string>::iterator ii=outWgtNames.begin(); ii!=outWgtNames.end(); ++ii) {
 
