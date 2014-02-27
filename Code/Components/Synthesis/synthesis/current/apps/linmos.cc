@@ -145,7 +145,8 @@ class LinmosAccumulator {
     /// @param[out] Array<float>& outPix: accumulated weighted image pixels
     /// @param[out] Array<float>& outWgtPix: accumulated weight pixels
     /// @param[in] const IPosition& curpos: indices of the current plane
-    void accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix, const IPosition& curpos);
+    void accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix,
+                         const IPosition& curpos);
 
     /// @brief add the current plane to the accumulation arrays
     /// @details This method adds directly from the input arrays
@@ -162,8 +163,8 @@ class LinmosAccumulator {
     /// @param[in] const Array<float>& outWgtPix: accumulated weight pixels
     /// @param[in] const IPosition& curpos: indices of the current plane
     /// @param[in] const float cutoff: threshold to stop division by small numbers
-    void deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix, const IPosition& curpos,
-                       const float cutoff=1e-6);
+    void deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix,
+                       const IPosition& curpos, const float cutoff=1e-6);
 
     /// @brief check to see if the input and output coordinate grids are equal
     /// @return bool: true if they are equal
@@ -237,8 +238,8 @@ class LinmosAccumulator {
 };
 
 LinmosAccumulator::LinmosAccumulator() : itsMethod("linear"), itsDecimate(3), itsReplicate(false), itsForce(false),
-                                         itsWeightType(-1), itsWeightState(-1), itsNumTaylorTerms(-1),
-                                         itsMosaicTag("linmos"), itsTaylorTag("taylor.0") {}
+                                         itsWeightType(-1), itsWeightState(-1),
+                                         itsNumTaylorTerms(-1), itsMosaicTag("linmos"), itsTaylorTag("taylor.0") {}
 
 
 // functions used by the linmos accumulator class
@@ -466,7 +467,8 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
     vector<string> prefixes;
     prefixes.push_back("image");
     prefixes.push_back("residual");
-    //prefixes.push_back("sensitivity");
+    //prefixes.push_back("weights"); // these need to be handled separately
+    //prefixes.push_back("sensitivity"); // these need to be handled separately
     //prefixes.push_back("mask");
 
     // if this directory name changes from "./", the erase call below may also need to change
@@ -506,7 +508,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
 
         // see if the name contains a desired prefix, and if so, check the other input names and weights
         int full_set = 0, full_wgt_set = 0;
-        string mosaicName = name, nextName = name;
+        string mosaicName = name, nextName = name, tmpName;
         for (vector<string>::const_iterator pre (prefixes.begin()); pre != prefixes.end(); ++pre) {
             if (name.find(*pre) == 0) {
 
@@ -534,7 +536,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
                     // add the image to this mosaics inputs
                     itsInImgNameVecs[mosaicName].push_back(nextName);
 
-                    // look for weights image if required
+                    // look for weights image if required (weights are not needed when combining sensitivity images)
                     if (itsWeightType == FROM_WEIGHT_IMAGES) {
                         // replace the prefix with "weights"
                         nextName.replace(0, (*pre).length(), "weights");
@@ -554,7 +556,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
 
                 }
 
-                // set the output weights image name
+                // set the output weights image name (weights are not needed when combining sensitivity images)
                 // replace the mosaic prefix with "weights"
                 nextName = mosaicName;
                 nextName.replace(0, (*pre).length(), "weights");
@@ -584,7 +586,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
                 ASKAPLOG_INFO_STR(logger, mosaicName << " does not have a full set of weights files. Ignoring.");
             }
 
-            // clean up and move on
+            // if any of these were started for the current failed key, clean up and move on
             if (itsOutWgtNames.find(mosaicName)!=itsOutWgtNames.end()) itsOutWgtNames.erase(mosaicName);
             if (itsInImgNameVecs.find(mosaicName)!=itsInImgNameVecs.end()) itsInImgNameVecs.erase(mosaicName);
             if (itsInWgtNameVecs.find(mosaicName)!=itsInWgtNameVecs.end()) itsInWgtNameVecs.erase(mosaicName);
@@ -592,12 +594,12 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
             continue;
         }
 
-        // check the size of the various maps and vectors
-        ASKAPCHECK(itsInImgNameVecs.size()==itsOutWgtNames.size(), "Inconsistent name maps.");
+        // double check the size of the various maps and vectors. These should have been caught already
+        ASKAPCHECK(itsInImgNameVecs.size()==itsOutWgtNames.size(), mosaicName << "Inconsistent name maps.");
         if (itsWeightType == FROM_WEIGHT_IMAGES) {
-            ASKAPCHECK(itsInImgNameVecs.size()==itsInWgtNameVecs.size(),
+            ASKAPCHECK(itsInImgNameVecs.size()==itsInWgtNameVecs.size(), mosaicName <<
                        "Something has gone wrong with automatic mosaic search. Inconsistent name maps.");
-            ASKAPCHECK(itsInImgNameVecs[mosaicName].size()==itsInWgtNameVecs[mosaicName].size(),
+            ASKAPCHECK(itsInImgNameVecs[mosaicName].size()==itsInWgtNameVecs[mosaicName].size(), mosaicName <<
                        "Something has gone wrong with automatic mosaic search. Inconsistent name vectors.");
         }
 
@@ -714,7 +716,6 @@ void LinmosAccumulator::setInputParameters(const string& inImgName, const access
             inDC.toWorld(itsInCentre,inDC.referencePixel());
         }
     }
-
 }
 
 void LinmosAccumulator::setOutputParameters(const vector<string>& inImgNames, const accessors::IImageAccess& iacc) {
@@ -871,7 +872,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
 
     // copy the pixel iterator containing all dimensions
     IPosition fullpos(curpos);
-
     // set a pixel iterator that does not have the higher dimensions
     IPosition pos(2);
 
@@ -966,6 +966,26 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
         }
     }
 
+/*
+    float sensitivity, invVariance;
+
+    // Accumulate the pixels of this slice.
+    for (int x=0; x<outPix.shape()[0];++x) {
+        for (int y=0; y<outPix.shape()[1];++y) {
+            fullpos[0] = x;
+            fullpos[1] = y;
+            pos[0] = x;
+            pos[1] = y;
+            sensitivity = itsOutBuffer.getAt(pos);
+            if (sensitivity>cutoff) {
+                invVariance = 1.0 / (sensitivity * sensitivity);
+                outPix(fullpos)    = outPix(fullpos)    + invVariance;
+                outWgtPix(fullpos) = outWgtPix(fullpos) + invVariance * invVariance;
+            }
+        }
+    }
+*/
+
 }
 
 void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outWgtPix,
@@ -976,7 +996,6 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
 
     // copy the pixel iterator containing all dimensions
     IPosition fullpos(curpos);
-
     // set up an indexing vector for the weights. If weight images are used, these are as in the image.
     IPosition wgtpos(curpos);
 
@@ -1067,10 +1086,27 @@ void LinmosAccumulator::accumulatePlane(Array<float>& outPix, Array<float>& outW
         }
     }
 
+/*
+    float sensitivity, invVariance;
+
+    for (int x=0; x<outPix.shape()[0];++x) {
+        for (int y=0; y<outPix.shape()[1];++y) {
+            fullpos[0] = x;
+            fullpos[1] = y;
+            sensitivity = inPix(fullpos);
+            if (sensitivity>cutoff) {
+                invVariance = 1.0 / (sensitivity * sensitivity);
+                outPix(fullpos)    = outPix(fullpos)    + invVariance;
+                outWgtPix(fullpos) = outWgtPix(fullpos) + invVariance * invVariance;
+            }
+        }
+    }
+*/
+
 }
 
-void LinmosAccumulator::deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix, const IPosition& curpos,
-                                      const float cutoff) {
+void LinmosAccumulator::deweightPlane(Array<float>& outPix, const Array<float>& outWgtPix,
+                                      const IPosition& curpos, const float cutoff) {
 
     // copy the pixel iterator containing all dimensions
     IPosition fullpos(curpos);
@@ -1086,6 +1122,20 @@ void LinmosAccumulator::deweightPlane(Array<float>& outPix, const Array<float>& 
             }
         }
     }
+
+/*
+    for (int x=0; x<outPix.shape()[0];++x) {
+        for (int y=0; y<outPix.shape()[1];++y) {
+            fullpos[0] = x;
+            fullpos[1] = y;
+            if (sqrt(outWgtPix(fullpos))<cutoff) {
+                outPix(fullpos) = 0.0;
+            } else {
+                outPix(fullpos) = sqrt(outPix(fullpos) / outWgtPix(fullpos));
+            }
+        }
+    }
+*/
 
 }
 
@@ -1322,20 +1372,24 @@ static void merge(const LOFAR::ParameterSet &parset) {
         if (parset.isDefined("psfref")) psfref = parset.getUint("psfref");
         ASKAPLOG_INFO_STR(logger, "Getting PSF beam info for the output image from input number " << psfref);
         Vector<Quantum<double> > psf = iacc.beamInfo(inImgNames[psfref]);
-        ASKAPCHECK(psf.nelements()>=3, "beamInfo is supposed to have at least 3 elements");
+        if (psf.nelements()<3) 
+            ASKAPLOG_WARN_STR(logger, inImgNames[psfref] << ": beamInfo needs at least 3 elements. Not writing PSF");
 
         // write accumulated images and weight images
         ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
         iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
         iacc.write(outImgName,outPix);
-        iacc.setBeamInfo(outImgName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
+        if (psf.nelements()>=3) 
+            iacc.setBeamInfo(outImgName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
+
         if (accumulator.outWgtDuplicates()[outImgName] == true) {
             ASKAPLOG_INFO_STR(logger, "Accumulated weight image " << outWgtName << " already written");
         } else {
             ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
             iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
             iacc.write(outWgtName,outWgtPix);
-            iacc.setBeamInfo(outWgtName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
+            if (psf.nelements()>=3) 
+                iacc.setBeamInfo(outWgtName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
         }
 
     } // ii loop (separate mosaics for different image types)
