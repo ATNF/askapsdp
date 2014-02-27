@@ -46,12 +46,6 @@ class Tracing {
         // @param logfile[in] filename/path of the log file to write out
         static void finish(const std::string& logfile);
 
-        // @todo This is a bit of a hack. A better solution would be
-        // to dynamically manage states, using MPE_Log_get_event_number()
-        // to allocate IDs. The hardcoded IDs below start at 600 simply
-        // because that is what MPE_Log_get_event_number() seems to
-        // start with and it ensure they are clear of any private/internal
-        // IDs.
         enum State {
             Send,
             Receive,
