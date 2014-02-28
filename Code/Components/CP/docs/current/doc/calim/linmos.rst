@@ -32,10 +32,13 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |weights           |vector<string>    |null          |Optional parameter (required if using weight images). Names |
 |                  |                  |              |of input images containing pixel weights. There must be one |
 |                  |                  |              |weight image for each image, and the size must match.       |
+|                  |                  |              |Ignored if *weighttype=FromPrimaryBeamModel* or if          |
+|                  |                  |              |*findmosaics=true*.                                         |
 +------------------+------------------+--------------+------------------------------------------------------------+
-|outname           |string            |*none*        |Name of the output image.                                   |
+|outname           |string            |*none*        |Name of the output image. Ignored if *findmosaics=true*.    |
 +------------------+------------------+--------------+------------------------------------------------------------+
-|outweight         |string            |*none*        |Name of output image containing pixel weights.              |
+|outweight         |string            |*none*        |Name of output image containing pixel weights. Ignored if   |
+|                  |                  |              |*findmosaics=true*.                                         |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |weighttype        |string            |*none*        |How to determine the pixel weights. Options:                |
 |                  |                  |              |                                                            |
@@ -62,17 +65,18 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |nterms            |uint              |-1            |Process multiple taylor-term images. The string "taylor.0"  |
 |                  |                  |              |must be present in both input and output image names        |
 |                  |                  |              |(including weights images), and it will be incremented from |
-|                  |                  |              |0 to nterms-1.                                              |
+|                  |                  |              |0 to nterms-1. Ignored if *findmosaics=true.*               |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |findmosaics       |bool              |false         |Instead of specifying specific input and output files to    |
-|                  |                  |              |mosaic search the current directory for suitable mosaics.   |
+|                  |                  |              |mosaic, search the current directory for suitable mosaics.  |
 |                  |                  |              |Parameter *names* is used to specify a vector of tags, and  |
 |                  |                  |              |all groups of images that have names that are equal apart   |
 |                  |                  |              |from these tags are mosaicked together. Groups must have one|
 |                  |                  |              |image per tag. Currently only groups with prefixes of       |
-|                  |                  |              |"image" and "residual" are allowed, with prefix "weights" a |
-|                  |                  |              |special case. Parameters *weights*, *outname*, *outweight*  |
-|                  |                  |              |and *nterms* are ignored if *findmosaic=true*.              |
+|                  |                  |              |"image" and "residual" are allowed, with prefixes "weights" |
+|                  |                  |              |and "sensitivity" special cases that are searched for once  |
+|                  |                  |              |groups are identified. Parameters *weights*, *outname*,     |
+|                  |                  |              |*outweight* and *nterms* are ignored if *findmosaic=true*.  |
 +------------------+------------------+--------------+------------------------------------------------------------+
 
 If input images need to be regridded, the following ImageRegrid options are available:
@@ -259,15 +263,15 @@ separate taylor terms 0, 1 and 2. The location of taylor.* in all inputs and out
 
 **Example 5:**
 
-Example linmos parset to combine individual feed images from a 36-feed simulation for each set of images
-that has one image for each tag (param "names") but otherwise have equal names. Only the "image" and
-"residual" prefixes are currently supported. For example, if the outputs produced for Data Challenge 1A
+Example linmos parset to combine individual feed images from a 36-feed simulation. A mosaics is made for each set
+of 36 images that has one image for each tag (param "names") but filenames that are otherwise the same. Only the
+"image" and "residual" prefixes are currently supported. For example, if the outputs produced for Data Challenge 1A
 were produced for each feed and stored in a single directory, the following mosaics would be made:
 image_linmos.i.clean.taylor.0, image_linmos.i.clean.taylor.0.restored, image_linmos.i.clean.taylor.1,
 image_linmos.i.clean.taylor.1.restored, image_linmos.i.dirty.restored, residual_linmos.i.clean.taylor.0 and
-residual_linmos.i.clean.taylor.1. Associated weights images would also be made, however in situations where
-multiple mosaics have the same weights (e.g. image_linmos.i.clean.taylor.0, image_linmos.i.clean.taylor.0.restored
-and residual_linmos.i.clean.taylor.0), only one would be made.
+residual_linmos.i.clean.taylor.1. Associated weights and sensitivity images would also be made, however in
+situations where multiple mosaics have the same weights or sensitivites (e.g. image_linmos.i.clean.taylor.0,
+image_linmos.i.clean.taylor.0.restored and residual_linmos.i.clean.taylor.0), only one would be made.
 
 Furthermore, since the DC1A does not seem to produce weights.*.taylor.2 and we have specified weighttype
 FromWeightImages, mosaic image_linmos.clean.taylor.2 would not be made. It would be produced if weighttype were
