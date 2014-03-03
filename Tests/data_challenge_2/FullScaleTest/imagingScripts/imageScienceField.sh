@@ -8,21 +8,25 @@ while [ $POINTING -lt 9 ]; do
     POINTING=`expr $POINTING + 1`
 done
 
-TAYLOR=0
-while [ $TAYLOR -le 2 ]; do
+for type in "image residual sensitivity"; do
 
-    imageInput="${imagebase}.BEAM0..8.taylor.${TAYLOR}.restored"
-    imageOutput="${imagebase}.linmos.taylor.${TAYLOR}.restored"
-    weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8.taylor.${TAYLOR}
-    weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos.taylor.${TAYLOR}
+    if [ $type == "image" ]; then
+	imageInput="${imagebase}.BEAM0..8.taylor.0.restored"
+	imageOutput="${imagebase}.linmos.taylor.0.restored"
+    else
+	imageInput=`echo $imagebase} | sed -e 's/^image\./${type}\./g'`.BEAM0..8.taylor.0
+	imageOutput=`echo $imagebase} | sed -e 's/^image\./${type}\./g'`.linmos.taylor.0
+    fi
+    weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8.taylor.0
+    weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos.taylor.0
 
-    linmosqsub=linmos_Taylor${TAYLOR}.qsub
+    linmosqsub=linmos_${type}.qsub
     cat > $linmosqsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N linmos${imtag}
+#PBS -N linmos${type}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
@@ -31,17 +35,17 @@ cd \$PBS_O_WORKDIR
 
 linmos=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/linmos.sh
 
-parset=parsets/linmos_Taylor${TAYLOR}_\${PBS_JOBID}.in
+parset=parsets/linmos_${type}_\${PBS_JOBID}.in
 cat > \${parset} <<EOF_INNER
-linmos.names = [${imageInput}]
-linmos.weights = [${weightsInput}]
-linmos.outname = ${imageOutput}
-linmos.outweight = ${weightsOutput}
+linmos.names      = [${imageInput}]
+linmos.weights    = [${weightsInput}]
+linmos.outname    = ${imageOutput}
+linmos.outweight  = ${weightsOutput}
 linmos.weighttype = FromWeightImages
-#linmos.weightstate  = Corrected
-linmos.psfref = 4
+linmos.psfref     = 4
+linmos.nterms     = 2
 EOF_INNER
-log=logs/linmos_\${PBS_JOBID}.log
+log=logs/linmos_${type}_\${PBS_JOBID}.log
 
 aprun \${linmos} -c \${parset} > \${log}
 
@@ -50,10 +54,8 @@ EOF
 
     if [ $doSubmit == true ]; then 
 	ID=`qsub ${imdepend} ${linmosqsub}`
-	echo "Have submitted a linmos job for type ${imtag} with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
+	echo "Have submitted a linmos job for image type '${type'} with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
     fi
-
-    TAYLOR=`expr $TAYLOR + 1`
 
 done
 

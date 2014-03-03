@@ -19,14 +19,44 @@ if [ $doCal == true ]; then
 	    ms=${oldms}
 	fi
 
-	mssplitParset=${parsetdir}/mssplit-BEAM${POINTING}.in
-	mssplitLog=${logdir}/mssplit-BEAM${POINTING}.log
-	ccalParset=${parsetdir}/ccal-BEAM${POINTING}.in
-	ccalLog=${logdir}/ccal-BEAM${POINTING}.log
-
 	calFeed=${POINTING}
 
-	cat > ${ccalParset} <<EOF
+	qsubfile=ccal_BEAM${POINTING}.qsub
+	cat > $qsubfile <<EOF
+#!/bin/bash -l
+#PBS -l walltime=01:00:00
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
+#PBS -N ccal${POINTING}
+#PBS -m a
+#PBS -j oe
+#PBS -v ASKAP_ROOT,AIPSPATH
+
+cd \$PBS_O_WORKDIR
+
+mssplit=${mssplit}
+ccal=${ccal}
+
+mssplitParset=${parsetdir}/mssplit-BEAM${POINTING}-\${PBS_JOBID}.in
+mssplitLog=${logdir}/mssplit-BEAM${POINTING}-\${PBS_JOBID}.log
+ccalParset=${parsetdir}/ccal-BEAM${POINTING}-\${PBS_JOBID}.in
+ccalLog=${logdir}/ccal-BEAM${POINTING}-\${PBS_JOBID}.log
+
+rm -rf $newms
+
+flagRunSplit=${splitMSbeforeCal}
+if [ \$flagRunSplit == true ]; then
+    echo "Running mssplit to get MS with only feed ${feedlist[$POINTING]} in it"
+    cat > ${mssplitParset} <<EOFINNER
+vis = ${oldms}
+outputvis = ${newms}
+beams = [${POINTING}]
+channel = 1
+EOFINNER
+    aprun -n 1 -N 1 \${mssplit} -c ${mssplitParset} > ${mssplitLog}
+fi
+
+cat > \${ccalParset} <<EOF_INNER
 # parameters for calibrator
 Ccalibrator.dataset                             = $ms
 Ccalibrator.nAnt                                = 6
@@ -64,39 +94,9 @@ Ccalibrator.gridder.${calGridder}.frequencydependent    = true
 
 Ccalibrator.ncycles                             = $ncycCal
 
-EOF
+EOF_INNER
 
-	qsubfile=ccal_BEAM${POINTING}.qsub
-	cat > $qsubfile <<EOF
-#!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N ccal${POINTING}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
-
-mssplit=${mssplit}
-ccal=${ccal}
-
-rm -rf $newms
-
-flagRunSplit=${splitMSbeforeCal}
-if [ \$flagRunSplit == true ]; then
-    echo "Running mssplit to get MS with only feed ${feedlist[$POINTING]} in it"
-    cat > ${mssplitParset} <<EOFINNER
-vis = ${oldms}
-outputvis = ${newms}
-beams = [${POINTING}]
-channel = 1
-EOFINNER
-    aprun -n 1 -N 1 \${mssplit} -c ${mssplitParset} > ${mssplitLog}
-fi
-
-aprun -n 1 -N 1 \${ccal} -c ${ccalParset} > ${ccalLog}
+aprun -n 1 -N 1 \${ccal} -c \${ccalParset} > \${ccalLog}
 
 EOF
 

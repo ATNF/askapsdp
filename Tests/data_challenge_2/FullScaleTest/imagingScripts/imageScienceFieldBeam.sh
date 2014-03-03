@@ -1,12 +1,28 @@
 #!/bin/bash -l
 
 
-imParset=${parsetdir}/cimScience-BEAM${POINTING}.in
-imLogfile=${logdir}/cim-Science-BEAM${POINTING}.log
-
 image=${imagebase}.BEAM${POINTING}
 
-cat > ${imParset} << EOF_INNER
+pbstag="cimSci${POINTING}"
+qsubfile=cim_Science_BEAM${POINTING}.qsub
+cat > $qsubfile <<EOF
+#!/bin/bash -l
+#PBS -l walltime=01:00:00
+#PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
+#PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
+#PBS -N ${pbstag}
+#PBS -m a
+#PBS -j oe
+#PBS -v ASKAP_ROOT,AIPSPATH
+
+cim=${cim}
+
+cd \$PBS_O_WORKDIR
+
+imParset=${parsetdir}/cimScience-BEAM${POINTING}-\${PBS_JOBID}.in
+imLogfile=${logdir}/cim-Science-BEAM${POINTING}-\${PBS_JOBID}.log
+
+cat > \${imParset} << EOF_INNER
 Cimager.dataset                                 = ${coarseMS}
 Cimager.Feed                                    = ${POINTING}
 #
@@ -72,23 +88,9 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-pbstag="cimSci${POINTING}"
-qsubfile=cim_Science_BEAM${POINTING}.qsub
-cat > $qsubfile <<EOF
-#!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
-#PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
-#PBS -N ${pbstag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
 
-cim=${cim}
 
-cd \$PBS_O_WORKDIR
-
-aprun -n ${CONT_CLEAN_MPPWIDTH} -N ${CONT_CLEAN_MPPNPPN}  \${cim} -c ${imParset} > ${imLogfile}
+aprun -n ${CONT_CLEAN_MPPWIDTH} -N ${CONT_CLEAN_MPPNPPN}  \${cim} -c \${imParset} > \${imLogfile}
 
 EOF
 
