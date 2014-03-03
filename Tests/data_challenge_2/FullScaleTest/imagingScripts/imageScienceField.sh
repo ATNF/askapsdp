@@ -15,8 +15,9 @@ for type in image residual sensitivity; do
 	imageInput="${imagebase}.BEAM0..8.taylor.0.restored"
 	imageOutput="${imagebase}.linmos.taylor.0.restored"
     else
-	imageInput=`echo $imagebase} | sed -e 's/^image\./${type}\./g'`.BEAM0..8.taylor.0
-	imageOutput=`echo $imagebase} | sed -e 's/^image\./${type}\./g'`.linmos.taylor.0
+	sedstr="s/^image\./${type}\./g"
+	imageInput=`echo $imagebase} | sed -e ${sedstr}`.BEAM0..8.taylor.0
+	imageOutput=`echo $imagebase} | sed -e ${sedstr}`.linmos.taylor.0
     fi
     weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8.taylor.0
     weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos.taylor.0
