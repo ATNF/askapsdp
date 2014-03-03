@@ -8,6 +8,7 @@ while [ $POINTING -lt 9 ]; do
     POINTING=`expr $POINTING + 1`
 done
 
+count=1
 for type in image residual sensitivity; do
 
     if [ $type == "image" ]; then
@@ -26,7 +27,7 @@ for type in image residual sensitivity; do
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
 #PBS -l mppnppn=1
-#PBS -N linmos${type}
+#PBS -N linmos${count}
 #PBS -m a
 #PBS -j oe
 #PBS -v ASKAP_ROOT,AIPSPATH
@@ -56,6 +57,8 @@ EOF
 	ID=`qsub ${imdepend} ${linmosqsub}`
 	echo "Have submitted a linmos job for image type '${type}' with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
     fi
+
+    count=`expr $count + 1`
 
 done
 

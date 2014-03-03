@@ -47,13 +47,13 @@ rm -rf $newms
 flagRunSplit=${splitMSbeforeCal}
 if [ \$flagRunSplit == true ]; then
     echo "Running mssplit to get MS with only feed ${feedlist[$POINTING]} in it"
-    cat > ${mssplitParset} <<EOFINNER
+    cat > \${mssplitParset} <<EOFINNER
 vis = ${oldms}
 outputvis = ${newms}
 beams = [${POINTING}]
 channel = 1
 EOFINNER
-    aprun -n 1 -N 1 \${mssplit} -c ${mssplitParset} > ${mssplitLog}
+    aprun -n 1 -N 1 \${mssplit} -c \${mssplitParset} > \${mssplitLog}
 fi
 
 cat > \${ccalParset} <<EOF_INNER
