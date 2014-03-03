@@ -7,7 +7,7 @@ pbstag="cimSci${POINTING}"
 qsubfile=cim_Science_BEAM${POINTING}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 #PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
 #PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
 #PBS -N ${pbstag}
