@@ -54,7 +54,7 @@ EOF
 
     if [ $doSubmit == true ]; then 
 	ID=`qsub ${imdepend} ${linmosqsub}`
-	echo "Have submitted a linmos job for image type '${type'} with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
+	echo "Have submitted a linmos job for image type '${type}' with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
     fi
 
 done
