@@ -8,7 +8,7 @@ while [ $POINTING -lt 9 ]; do
     POINTING=`expr $POINTING + 1`
 done
 
-for type in "image residual sensitivity"; do
+for type in image residual sensitivity; do
 
     if [ $type == "image" ]; then
 	imageInput="${imagebase}.BEAM0..8.taylor.0.restored"
