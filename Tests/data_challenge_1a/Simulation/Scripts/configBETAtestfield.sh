@@ -68,6 +68,7 @@ doAntennaBased=false
 sourcelist=sumsscat.Feb-16-2012
 databaseCR=SUMSS
 listtypeCR=continuum
+posType=dms
 PAunits=deg
 baseimage=BETAtestfield_SUMSSmodel
 
@@ -111,8 +112,8 @@ stokesZero=0
 dstokes=0
 
 if [ $doFlatSpectrum == "true" ]; then
-    nsubxCR=9
-    nsubyCR=11
+    nsubxCR=1
+    nsubyCR=1
 else
     nsubxCR=16
     nsubyCR=21

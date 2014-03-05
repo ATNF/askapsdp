@@ -34,6 +34,7 @@ freqChanZeroMHz=1050
 
 baseimage="DCmodel"
 databaseCR=POSSUM
+posType=deg
 PAunits=rad
 WCSsources=true
 #databaseCR=POSSUMHI
