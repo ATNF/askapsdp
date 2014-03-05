@@ -68,6 +68,7 @@ cellsize=6
 delt=`echo $cellsize | awk '{print $1/3600.}'`
 ra=187.5
 dec=-45.0
+raStringVis="12h30m00.000"
 decStringVis="-45.00.00"
 raCat=0.
 decCat=0.

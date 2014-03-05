@@ -118,7 +118,7 @@ Csimulator.dataset                              =       $ms
 Csimulator.stman.bucketsize                     =       2097152
 #
 Csimulator.sources.names                        =       [DCmodel]
-Csimulator.sources.DCmodel.direction            =       [12h30m00.000, ${decStringVis}, J2000]
+Csimulator.sources.DCmodel.direction            =       [${raStringVis}, ${decStringVis}, J2000]
 Csimulator.sources.DCmodel.model                =       ${skymodel}
 Csimulator.modelReadByMaster                    =       false
 #
