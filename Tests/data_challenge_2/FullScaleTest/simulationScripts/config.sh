@@ -37,7 +37,7 @@ inttime=5s
 firstPointingID=0
 lastPointingID=8
 
-msbaseCal=calibrator_J1934m638_${now}
+msbaseCal=calibrator_J1934m638_${inttime}_${now}
 
 ra1934=294.854275
 ra1934str=19h39m25.036
@@ -66,31 +66,60 @@ os=8
 # For science field observation
 #
 
-msbaseSci=sciencefield_SKADS_${now}
+#model=SKADS
+model=BETAtestfield
 
-NGROUPS_CSIM=16
-NWORKERS_CSIM=171
-NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
-NPPN_CSIM=20
-chanPerMSchunk=6
+if [ $model == "SKADS" ]; then 
 
-doFlatSpectrum=false
-chunkdir=/scratch/askap/whi550/Simulations/BETA/InputModels/Images/Chunks
+    msbaseSci=sciencefield_SKADS_${inttime}_${now}
+    
+    NGROUPS_CSIM=16
+    NWORKERS_CSIM=171
+    NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
+    NPPN_CSIM=20
+    chanPerMSchunk=6
+    
+    doFlatSpectrum=false
+    chunkdir=/scratch/askap/whi550/Simulations/BETA/InputModels/Images/Chunks
 #slicedir=../ModelImages/Slices
-slicedir=/scratch/askap/whi550/Simulations/BETA/InputModels/Images/Slices
-baseimage=DCmodel_cont_dec45_1050_smallBETA
-modelimage=${chunkdir}/${baseimage}
-writeByNode=true
-
+    slicedir=/scratch/askap/whi550/Simulations/BETA/InputModels/Images/Slices
+    baseimage=DCmodel_cont_dec45_1050_smallBETA
+    modelimage=${chunkdir}/${baseimage}
+    writeByNode=true
+    
 # Whether to slice up the model prior to simulating
-#doSlice=true
-doSlice=false
-nsubxCR=18
-nsubyCR=11
-SLICERWIDTH=100
-SLICERNPPN=20
+    doSlice=true
+#doSlice=false
+    npixModel=2304
+    nsubxCR=18
+    nsubyCR=11
+    SLICERWIDTH=100
+    SLICERNPPN=20
 
-baseDirection="[12h30m00.000, -45.00.00, J2000]"
+    baseDirection="[12h30m00.000, -45.00.00, J2000]"
+
+else
+
+    msbaseSci=sciencefield_BETAtestfield_${inttime}_${now}
+    
+    NGROUPS_CSIM=16
+    NWORKERS_CSIM=171
+    NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
+    NPPN_CSIM=20
+    chanPerMSchunk=6
+    
+    doFlatSpectrum=true
+    slicedir=/scratch/askap/whi550/Simulations/DC2/FullBandwidth/InputModels/Images
+    baseimage=BETAtestfield_SUMSSmodel_dec79_1050_flat
+    writeByNode=false
+    
+# Whether to slice up the model prior to simulating
+    doSlice=false
+
+    baseDirection="[15h56m58.870,-79.14.04.28, J2000]"
+    
+
+fi
 
 spwbaseSci=${parsetdir}/spws_sciencefield
 

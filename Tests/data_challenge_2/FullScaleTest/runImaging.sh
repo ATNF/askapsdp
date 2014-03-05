@@ -2,8 +2,8 @@
 
 imScripts=`pwd`/imagingScripts
 
-#doSubmit=true
-doSubmit=false
+doSubmit=true
+#doSubmit=false
 runIt=true
 
 depend=""

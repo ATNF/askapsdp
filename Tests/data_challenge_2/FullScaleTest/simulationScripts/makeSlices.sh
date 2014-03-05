@@ -64,7 +64,7 @@ makeAllModelSlices.nsuby = ${nsubySlice}
 makeAllModelSlices.nchanmodel = ${nchanSlicer}
 makeAllModelSlices.firstchan = ${firstChanSlicer}
 makeAllModelSlices.slicewidth = ${chanPerMSchunk}
-makeAllModelSlices.npixslice = [${xsizeSlice}, ${ysizeSlice}]
+makeAllModelSlices.npixslice = [${npixModel}, ${npixModel}]
 makeAllModelSlices.nchanslice = ${chanPerMSchunk}
 EOFINNER
 

@@ -1,9 +1,9 @@
 #!/bin/bash -l
 
 if [ "$depend" == "" ]; then
-    merge2Dep="-Wdepend=afterok"
+    merge2dep="-Wdepend=afterok"
 else
-    merge2Dep=${depend}
+    merge2dep=${depend}
 fi
 
 GRP=0
@@ -87,7 +87,7 @@ Csimulator.gridder.AWProject.nwplanes            =       ${nw}
 Csimulator.gridder.AWProject.oversample          =       ${os}
 Csimulator.gridder.AWProject.diameter            =       12m
 Csimulator.gridder.AWProject.blockage            =       2m
-Csimulator.gridder.AWProject.maxsupport          =       512
+Csimulator.gridder.AWProject.maxsupport          =       1024
 Csimulator.gridder.AWProject.maxfeeds            =       9
 Csimulator.gridder.AWProject.frequencydependent  =       false
 Csimulator.gridder.AWProject.variablesupport     =       true 
@@ -128,13 +128,13 @@ EOF
 
     if [ $doSubmit == true ]; then
 	csimID=`qsub ${grpDepend} ${qsubfile}`
-	echo "Running csimulator for science field, producing measurement set ${ms}: ID=${csimID}"
+	echo "Running csimulator for science field, group $GRP, producing measurement set ${ms}: ID=${csimID} and dependency $grpDepend"
 	if [ "$depend" == "" ]; then
 	    grpDepend="-Wdepend=afterok:${csimID}"
 	else
 	    grpDepend="${grpDepend}:${csimID}"
 	fi
-	merge2dep="${merge2Dep}:${csimID}"
+	merge2dep="${merge2dep}:${csimID}"
     fi
 
 
@@ -181,6 +181,7 @@ EOF
 
     if [ $doSubmit == true ]; then
 	merge1ID=`qsub ${grpDepend} $merge1qsub`
+	echo "Running merging for science field, group ${GRP}: ID=${merge1ID} and dependency $grpDepend"
 	merge2dep="${merge2dep}:${merge1ID}"
     fi
 
@@ -225,6 +226,7 @@ EOF
 if [ $doSubmit == true ]; then
 	
     merge2ID=`qsub ${merge2dep} $merge2qsub`
-	
+    echo "Running merging for full science field: ID=${merge2ID} and dependency $merge2dep"
+
 fi
 
