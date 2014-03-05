@@ -55,7 +55,10 @@ msbase=DCvis
 #. ${scriptdir}/configASKAP12.sh
 #. ${scriptdir}/configASKAP12_dec30.sh
 #. ${scriptdir}/configASKAP12_dec04.sh
-
+#
+#. ${scriptdir}/configGASKAP.sh
+#. ${scriptdir}/configM31.sh
+#. ${scriptdir}/configBETAtestfield.sh
 
 ##############################
 # Cleaning up and verifying
