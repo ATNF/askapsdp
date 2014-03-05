@@ -87,7 +87,7 @@ msStage1=${msdir}/${msbase}_stage1
 finalMS=${msdir}/${msbase}.ms
 
 checkNumChan=`echo $chanPerMSchunk $NGROUPS_CSIM $NWORKERS_CSIM | awk '{print $1*$2*$3}'`
-if [ $checkNumChan != $nchan ]; then
+if [ $checkNumChan != $nchan ] && [ $doFlatSpectrum != "true" ]; then
     echo "ERROR - nchan = ${nchan},  but chanPerMSchunk = ${chanPerMSchunk}, NGROUPS_CSIM = ${NGROUPS_CSIM} and NWORKERS_CSIM = ${NWORKERS_CSIM} (product = ${checkNumChan})"
     echo Not running script.
     doSubmit=false
