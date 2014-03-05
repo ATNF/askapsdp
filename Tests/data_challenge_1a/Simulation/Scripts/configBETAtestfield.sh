@@ -114,12 +114,14 @@ dstokes=0
 if [ $doFlatSpectrum == "true" ]; then
     nsubxCR=1
     nsubyCR=1
+    CREATORWIDTH=1
+    CREATORPPN=1
 else
     nsubxCR=16
     nsubyCR=21
+    CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
+    CREATORPPN=20
 fi
-CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
-CREATORPPN=20
 
 writeByNode=true
 createTT_CR=true
