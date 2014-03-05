@@ -79,7 +79,7 @@ createFITS.addNoise         = false
 createFITS.doConvolution    = false
 createFITS.baseFreq         = ${basefreq}
 createFITS.flagSpectralInfo = false
-createFITS.PAunits          = rad
+createFITS.PAunits          = ${PAunits}
 createFITS.minMinorAxis     = 0.000100
 EOF_INNER
 

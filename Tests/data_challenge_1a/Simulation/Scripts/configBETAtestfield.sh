@@ -68,6 +68,7 @@ doAntennaBased=false
 sourcelist=sumsscat.Feb-16-2012
 databaseCR=SUMSS
 listtypeCR=continuum
+PAunits=deg
 baseimage=BETAtestfield_SUMSSmodel
 
 nfeeds=9
