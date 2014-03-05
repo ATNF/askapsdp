@@ -73,7 +73,7 @@ baseimage=BETAtestfield_SUMSSmodel
 
 nfeeds=9
 
-npix=2304
+npix=3072
 rpix=`echo $npix | awk '{print $1/2}'`
 cellsize=9.1234
 delt=`echo $cellsize | awk '{print $1/3600.}'`
@@ -81,8 +81,9 @@ ra=239.2452958333
 dec=-79.23452222222
 raStringVis="15h56m58.870"
 decStringVis="-79.14.04.28"
-raCat=0.
-decCat=0.
+WCSsources=false
+raCat=${ra}
+decCat=${dec}
 decSuffix=`echo $dec | awk '{printf "dec%02d",-$1}'`
 baseimage="${baseimage}_${decSuffix}"
 msbase="${msbase}_${decSuffix}"
@@ -120,11 +121,12 @@ CREATORWIDTH=`echo $nsubxCR $nsubyCR | awk '{print $1*$2+1}'`
 CREATORPPN=20
 
 writeByNode=true
+createTT_CR=true
 if [ $doFlatSpectrum == "true" ]; then
     writeByNode=false
+    createTT_CR=false
 fi
 modelimage=${imagedir}/${baseimage}
-createTT_CR=true
 if [ $writeByNode == "true" ]; then
     modelimage=${chunkdir}/${baseimage}
 fi

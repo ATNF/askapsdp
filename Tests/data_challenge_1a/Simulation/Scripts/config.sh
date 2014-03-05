@@ -35,6 +35,7 @@ freqChanZeroMHz=1050
 baseimage="DCmodel"
 databaseCR=POSSUM
 PAunits=rad
+WCSsources=true
 #databaseCR=POSSUMHI
 if [ $databaseCR == "POSSUM" ]; then
     listtypeCR=continuum
