@@ -72,7 +72,8 @@ model=BETAtestfield
 if [ $model == "SKADS" ]; then 
 
     msbaseSci=sciencefield_SKADS_${inttime}_${now}
-    
+    feeds=${askapconfig}/ASKAP9feeds.in
+
     NGROUPS_CSIM=16
     NWORKERS_CSIM=171
     NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
@@ -101,6 +102,28 @@ if [ $model == "SKADS" ]; then
 else
 
     msbaseSci=sciencefield_BETAtestfield_${inttime}_${now}
+
+    feeds=BETAtestfield_feeds.in
+    cat > $feeds <<EOF
+# A feeds parset that tries to replicate the beams used in the
+# commissioning observations with BETA in January/February 2014.
+# Offsets taken from https://pm.antf.csiro.au/askap/projects/seic/wiki/CommissioningRunJan2014_ 
+# (from the 1 Feb entry), with the RA offset sign reversed.
+
+feeds.spacing        =       1deg
+
+feeds.names     = [feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8]
+
+feeds.feed0          =       [0,0]
+feeds.feed1          =       [-0.572425, 0.947258]
+feeds.feed2          =       [-1.14485, 1.89452]
+feeds.feed3          =       [0.572425, -0.947258]
+feeds.feed4          =       [-1.23347, -0.0987957]
+feeds.feed5          =       [-1.8059, 0.848462]
+feeds.feed6          =       [0.661046, 1.04605]
+feeds.feed7          =       [0.0886209, 1.99331]
+feeds.feed8          =       [1.23347, 0.0987957]
+EOF
     
     NGROUPS_CSIM=16
     NWORKERS_CSIM=171

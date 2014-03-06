@@ -64,7 +64,7 @@ Csimulator.modelReadByMaster                    =       false
 # Define the antenna locations, feed locations, and spectral window definitions
 #
 Csimulator.antennas.definition                   =       ${askapconfig}/BETAXYZ.in
-Csimulator.feeds.definition                      =       ${askapconfig}/ASKAP9feeds.in
+Csimulator.feeds.definition                      =       ${feeds}
 Csimulator.spws.definition                       =       ${spwsInput}
 #						 
 Csimulator.simulation.blockage                   =       0.01
