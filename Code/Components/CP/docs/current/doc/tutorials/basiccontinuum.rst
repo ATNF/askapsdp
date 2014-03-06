@@ -106,5 +106,48 @@ This parset will solve for the gains for the first calibrator observation. We on
 
 The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.src.calibrator="1934-638"* entry) - this is a special unresolved component that accounts for 1934's spectral variation. It puts the component at the position indicated, which happens to be the direction of the observation.
 
+Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
+
+        #!/bin/bash -l
+	#PBS -l walltime=01:00:00
+	#PBS -l mppwidth=1
+	#PBS -l mppnppn=1
+	#PBS -N ccal0
+	#PBS -j oe
+	
+	cd $PBS_O_WORKDIR
+
+	aprun -n 1 -N 1 ccalibrator -c calibrator-BEAM0.in > calibrator-BEAM0_${PBS_JOBID}.log
+
+This runs as a serial job - i.e. using only a single processor
+
+Gains Parameters
+................
+
+The gains parameters, one for each polarisation, antenna and beam, are written to a file caldata-BEAM0.dat. This has entries that look like the following::
+
+	gain.g11.0.0 = [0.27819,0.680617]
+	gain.g11.0.1 = [1.10205,0.0753065]
+	gain.g11.0.2 = [0.554685,-0.540324]
+	gain.g11.0.3 = [0.670682,0.959503]
+	gain.g11.0.4 = [1.14376,-0.171543]
+	gain.g11.0.5 = [1.14408,-0.0398638]
+	gain.g11.0.6 = [-0.737403,0.560088]
+	gain.g11.0.7 = [1.02336,-0.255945]
+	gain.g11.0.8 = [-0.818433,-0.248333]
+	gain.g11.1.0 = [-0.631561,-0.409769]
+	gain.g11.1.1 = [1.29398,0.052276]
+	gain.g11.1.2 = [0.547655,0.834172]
+	gain.g11.1.3 = [0.271391,-0.790379]
+	gain.g11.1.4 = [0.380629,0.674252]
+	gain.g11.1.5 = [0.629311,0.410911]
+	gain.g11.1.6 = [-0.0787903,1.00496]
+	gain.g11.1.7 = [0.41577,-0.881319]
+	gain.g11.1.8 = [0.569721,-0.565723]
+
+This file is just a parset, with each line being a parameter specification. Its format is described in more detail on the `calibration solutions`_ page, but the format is basically **gain.pol.antenna.beam**. The only relevant entries from this calibration job are those for beam 0 - that is, those ending in *.0*.
+ 
+  .. _calibration solutions: ../calim/calibration_solutions
+
 Imaging
 -------
