@@ -65,6 +65,49 @@ Here's how you can get the working copies I've been using for testing. Most like
   
 Note that both of these are at the full spectral resolution, and so each calibrator MS is 2.6GB in size, while the science field MS is 291GB.
 
+Channel averaging
+-----------------
+
+The first step in imaging is to average the visibilities to 304 1MHz channels. This is done with the **mssplit** command (read :doc:`../calim/mssplit` for further information) - here is a typical parset::
+
+	# Input measurement set
+	# Default: <no default>
+	vis         = sciencefield_SKADS_5s_2014-02-24-1911.ms
+	
+	# Output measurement set
+	# Default: <no default>
+	outputvis   = coarse_sciencefield.ms
+	
+	# The channel range to split out into its own measurement set
+	# Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
+	# is inclusive of both the start and end, indexing is one-based. 
+	# Default: <no default>
+	channel     = 1-16416
+	
+	# Defines the number of channel to average to form the one output channel
+	# Default: 1
+	width       = 54
+
+
+Save this parset into a file, say **mssplit.in**. To run this, we need to create a qsub file, say, **mssplit.qsub**::
+
+        #!/bin/bash -l
+	#PBS -l walltime=01:00:00
+	#PBS -l mppwidth=1
+	#PBS -l mppnppn=1
+	#PBS -N mssplit
+	#PBS -j oe
+	
+	cd $PBS_O_WORKDIR
+
+	aprun -n 1 -N 1 mssplit -c mssplit.in > mssplit_${PBS_JOBID}.log
+
+This runs as a serial job, using only a single processor. Run this in the usual fashion via::
+
+  qsub mssplit.qsub
+	
+This step isn't necessary for the calibration observations. **ADD MORE DETAIL HERE - WHY NOT NECESSARY?**
+
 Calibration
 -----------
 
@@ -119,7 +162,9 @@ Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need 
 
 	aprun -n 1 -N 1 ccalibrator -c calibrator-BEAM0.in > calibrator-BEAM0_${PBS_JOBID}.log
 
-This runs as a serial job - i.e. using only a single processor
+Again, this runs as a serial job, and can be submitted in the usual fashion via::
+
+  qsub calibrator-BEAM0.qsub
 
 Gains Parameters
 ................
@@ -145,9 +190,168 @@ The gains parameters, one for each polarisation, antenna and beam, are written t
 	gain.g11.1.7 = [0.41577,-0.881319]
 	gain.g11.1.8 = [0.569721,-0.565723]
 
-This file is just a parset, with each line being a parameter specification. Its format is described in more detail on the `calibration solutions`_ page, but the format is basically **gain.pol.antenna.beam**. The only relevant entries from this calibration job are those for beam 0 - that is, those ending in *.0*.
+This file is just a parset, with each line being a parameter specification. Its format is described in more detail in :doc:`../calim/calibration_solutions`, but the format is basically **gain.pol.antenna.beam**. The only relevant entries from this calibration job are those for beam 0 - that is, those ending in *.0*.
  
-  .. _calibration solutions: ../calim/calibration_solutions
+Gains for each beam
+...................
+
+The above finds the correct gains for beam 0. To solve them for all other beams, we need to do the same for beams 1-8. To do this for beam 1, we copy the parset to **calibrator-BEAM1.in** and change "BEAM0" in the dataset name to "BEAM1". Similarly, copy the qsub file to **calibrator-BEAM1.qsub** and replace "BEAM0" in the filenames with "BEAM1", then submit.
+
+All other parameters (for now) can remain the same. The direction, importantly, is the same as this is the phase centre for the observation, which has been defined such that it is in the centre of the beam of interest for each measurement set.
+
+This is something that can easily be scripted. Here is one possibly solution using a bash script::
+
+	#!/bin/bash -l
+	
+	NUM=0
+	while [ $NUM -lt 9 ]; do
+	    parset="calibrator-BEAM${NUM}.in"
+	    cat > $parset << EOF
+	Ccalibrator.dataset                               = calibrator_J1934m638_5s_2014-02-24-1911_BEAM${NUM}.ms
+	< other parset contents follow >
+	EOF
+	
+	    qsubfile="calibrator-BEAM${NUM}.qsub"
+	    cat > $qsubfile << EOF
+	< qsub contents as above>
+	aprun -n 1 -N 1 ccalibrator -c calibrator-BEAM${NUM}.in > calibrator-BEAM${NUM}_\${PBS_JOBID}.log
+	EOF
+	
+	    qsub $qsubfile
+	
+	    NUM=`expr $NUM + 1`
+	done
+
+The next bit still feels a little like hacking, as this isn't quite how *ccalibrator* was designed. Once you have all the *caldata-BEAM?.dat* files, you can extract the relevant beam from each file. To get the calibration solution for beam 0, you could do the following::
+
+  grep "\.0 =" caldata-beam0.dat >> caldata-combined.dat
+
+and similarly for the other beams. This will produce a combined set of calibration solutions that can be applied to the science field.
+
+**DO WE NEED TO DO THE COMBINATION IF WE ARE IMAGING BY BEAM ANYWAY?**
 
 Imaging
 -------
+
+To do the imaging we select individual beams and image them independently. This is to replicate what is necessary for actual BETA data due to the lack of ...
+
+
+The imaging is done similarly to that in the introductory tutorial, with two additions. One, we will select an individual beam from the measurement set, and two, we will add some cleaning. Here is an example parset::
+
+	Cimager.dataset                                 = coarse_sciencefield.ms
+	Cimager.Feed                                    = 0
+	#
+	Cimager.nworkergroups                           = 3
+	# Each worker will read a single channel selection
+	Cimager.Channels                                = [1, %w]
+	#
+	Cimager.Images.Names                            = [image.i.clean.sciencefield.SKADS.BEAM0]
+	Cimager.Images.shape                            = [2048,2048]
+	Cimager.Images.cellsize                         = [10arcsec,10arcsec]
+	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.frequency          = [0.9e9,0.9e9]
+	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.nchan              = 1
+	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.direction          = [12h30m00.00, -45.00.00.00, J2000]
+	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.nterms             = 2
+	#
+	Cimager.visweights                              = MFS
+	Cimager.visweights.MFS.reffreq                  = 0.9e9
+	#
+	Cimager.gridder.snapshotimaging                 = true
+	Cimager.gridder.snapshotimaging.wtolerance      = 800
+	Cimager.gridder                                 = AWProject
+	Cimager.gridder.AWProject.wmax                  = 800
+	Cimager.gridder.AWProject.nwplanes              = 99
+	Cimager.gridder.AWProject.oversample            = 4
+	Cimager.gridder.AWProject.diameter              = 12m
+	Cimager.gridder.AWProject.blockage              = 2m
+	Cimager.gridder.AWProject.maxfeeds              = 9
+	Cimager.gridder.AWProject.maxsupport            = 512
+	Cimager.gridder.AWProject.variablesupport       = true
+	Cimager.gridder.AWProject.offsetsupport         = true
+	Cimager.gridder.AWProject.frequencydependent    = true
+	#
+	Cimager.solver                                  = Clean
+	Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
+	Cimager.solver.Clean.niter                      = 5000
+	Cimager.solver.Clean.gain                       = 0.5
+	Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
+	Cimager.solver.Clean.verbose                    = False
+	Cimager.solver.Clean.tolerance                  = 0.01
+	Cimager.solver.Clean.weightcutoff               = zero
+	Cimager.solver.Clean.weightcutoff.clean         = false
+	Cimager.solver.Clean.psfwidth                   = 512
+	Cimager.solver.Clean.logevery                   = 100
+	Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
+	Cimager.threshold.majorcycle                    = 1mJy
+	Cimager.ncycles                                 = 5
+	Cimager.Images.writeAtMajorCycle                = false
+	#
+	Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
+	Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
+	Cimager.preconditioner.Wiener.robustness        = 0.0
+	Cimager.preconditioner.Wiener.taper             = 64
+	#
+	Cimager.restore                                 = true
+	Cimager.restore.beam                            = fit
+	#
+	# Apply calibration
+	Cimager.calibrate                               = true
+	Cimager.calibaccess                             = parset
+	Cimager.calibaccess.parset                      = caldata-combined.dat
+	Cimager.calibrate.scalenoise                    = true
+	Cimager.calibrate.allowflag                     = true
+	
+Before running this, let's look at a few key features of this parset. First is this::
+
+	Cimager.Feed                                    = 0
+
+This does the selection-by-beam, where we only use data for *feed=0* in the measurement set. 
+
+We are doing multi-frequency synthesis for this image. This is controlled by the following parameters::
+
+	Cimager.visweights                              = MFS
+	Cimager.visweights.MFS.reffreq                  = 0.9e9
+
+This will result in the creation of "Taylor-term images". These represent the Taylor terms that represent the frequency dependence of each spatial pixel. The different terms relate to the spectral index (alpha) and spectral curvature (beta) of the spectrum, which can be defined through a second-order polynomial in log-space, shown in the first equation below. The second equation shows the result of a Taylor expansion about the reference frequency
+
+.. image:: figures/MFS_formulae.png
+   :width: 99%
+
+The Taylor term images then contain the coefficients of this expansion, so that the image with suffix *.taylor.0* contains I_0, *.taylor.1* contains I_0*alpha, and *.taylor.2* contains I_0*(0.5*alpha*(alpha-1)+beta).
+
+The cleaning is controlled by these parameters::
+
+	Cimager.solver                                  = Clean
+	Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
+
+and those following. The algorithm *BasisfunctionMFS* is necessary to do the multi-scale multi-frequency synthesis. Read :doc:`../calim/solver` for information on all the clean options. Note that the above parset has::
+
+	Cimager.Images.writeAtMajorCycle                = false
+
+Setting this to true can be useful if you want to look at the intermediate major cycles of the cleaning, but it does produce a lot more images. To save clutter we'll keep it at *false* for now.
+
+To run the imaging, we need a qsub file - call it **clean-BEAM0.qsub**::
+
+	#!/bin/bash -l
+	#PBS -l walltime=02:00:00
+	#PBS -l mppwidth=913
+	#PBS -l mppnppn=16
+	#PBS -N clean0
+	#PBS -j oe
+	
+	cd $PBS_O_WORKDIR
+	
+	aprun -n 913 -N 16 cimager -c clean-BEAM0.in > clean-BEAM0_${PBS_JOBID}.log
+
+Note that the number of processes has increased compared to the intro tutorial. That's because we are doing MFS imaging, and we have requested::
+
+	Cimager.nworkergroups                           = 3
+
+in the parset. This assigns each Taylor term to a separate processor, to spread the work and help speed things up. You can submit this in the usual way, but if you have run the mssplit job, this may still be going, and it needs that to finish first. You can still submit the imaging job, but make it depend on the successful completion of the mssplit job. If the ID of the mssplit job is 1234.rtc, then you can submit the imaging job via::
+
+  qsub -Wdepend=afterok:1234.rtc clean-BEAM0.qsub
+
+Mosaicing
+---------
+
+We repeat the imaging for each beam, imaging only a single beam each time. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`.
