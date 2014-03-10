@@ -5,7 +5,7 @@
 #
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
-nice python2.6 bootstrap.py -n
+nice python bootstrap.py -n
 
 #
 # Init askap environment

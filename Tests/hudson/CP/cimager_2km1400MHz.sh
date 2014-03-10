@@ -11,7 +11,7 @@ module load openmpi
 
 unset ASKAP_ROOT
 cd $WORKSPACE/trunk
-$NICE /usr/bin/python2.6 bootstrap.py -n
+$NICE /usr/bin/python bootstrap.py -n
 if [ $? -ne 0 ]; then
     echo "Error: Bootstrapping failed"
     exit 1
