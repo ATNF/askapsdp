@@ -1,7 +1,7 @@
 Basic Continuum Imaging Tutorial
 =================================
 
-.. note:: This tutorial is in the process of being written, but you probably already worked that out.
+.. note:: This tutorial is in the process of being written, so may be lacking in detail in some areas. And the data isn't in place yet anyway.
 
 This tutorial demonstrates basic continuum imaging using ASKAPsoft, with a simulated observation that aims to replicate a "typical" observation with BETA.
 
@@ -105,6 +105,8 @@ Save this parset into a file, say **mssplit.in**. To run this, we need to create
 This runs as a serial job, using only a single processor. Run this in the usual fashion via::
 
   qsub mssplit.qsub
+
+Make a note of the ID that qsub returns - you may need this to set up dependencies later on (see the imaging section below).
 	
 This step isn't necessary for the calibration observations. **ADD MORE DETAIL HERE - WHY NOT NECESSARY?**
 
@@ -233,7 +235,7 @@ and similarly for the other beams. This will produce a combined set of calibrati
 Imaging
 -------
 
-To do the imaging we select individual beams and image them independently. This is to replicate what is necessary for actual BETA data due to the lack of ...
+To do the imaging we select individual beams and image them independently. This is to replicate what is necessary for actual BETA data due to the lack of ...  **TO BE COMPLETED!**
 
 
 The imaging is done similarly to that in the introductory tutorial, with two additions. One, we will select an individual beam from the measurement set, and two, we will add some cleaning. Here is an example parset::
@@ -245,13 +247,13 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	# Each worker will read a single channel selection
 	Cimager.Channels                                = [1, %w]
 	#
-	Cimager.Images.Names                            = [image.i.clean.sciencefield.SKADS.BEAM0]
+	Cimager.Images.Names                            = [image.i.clean.sciencefield.BEAM0]
 	Cimager.Images.shape                            = [2048,2048]
 	Cimager.Images.cellsize                         = [10arcsec,10arcsec]
-	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.frequency          = [0.9e9,0.9e9]
-	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.nchan              = 1
-	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.direction          = [12h30m00.00, -45.00.00.00, J2000]
-	Cimager.Images.image.i.clean.sciencefield.SKADS.BEAM0.nterms             = 2
+	Cimager.Images.image.i.clean.sciencefield.BEAM0.frequency          = [0.9e9,0.9e9]
+	Cimager.Images.image.i.clean.sciencefield.BEAM0.nchan              = 1
+	Cimager.Images.image.i.clean.sciencefield.BEAM0.direction          = [12h30m00.00, -45.00.00.00, J2000]
+	Cimager.Images.image.i.clean.sciencefield.BEAM0.nterms             = 2
 	#
 	Cimager.visweights                              = MFS
 	Cimager.visweights.MFS.reffreq                  = 0.9e9
@@ -351,7 +353,66 @@ in the parset. This assigns each Taylor term to a separate processor, to spread 
 
   qsub -Wdepend=afterok:1234.rtc clean-BEAM0.qsub
 
+Once this completes, you will have a larger set of image products than was produced for the dirty imaging in the intro tutorial:
+
++---------------------------------------------+------------------------------------------------------------+
+| **Filename**                                | **Description**                                            |
++=============================================+============================================================+
+| image.i.clean.sciencefield.BEAM0            | The clean model image - pixel map of the clean components. |
++---------------------------------------------+------------------------------------------------------------+
+| image.i.clean.sciencefield.BEAM0.restored   | The cleaned, restored image.                               |
++---------------------------------------------+------------------------------------------------------------+
+| mask.i.clean.sciencefield.BEAM0             | The normalised mask showing the scaling of sensitivity due |
+|                                             | to the primary beam.                                       |
++---------------------------------------------+------------------------------------------------------------+
+| psf.i.clean.sciencefield.BEAM0              | The natural PSF image (transform of the UV coverage).      |
++---------------------------------------------+------------------------------------------------------------+
+| psf.image.i.clean.sciencefield.BEAM0        | The PSF image after preconditioning (weighting, tapering). |
+|                                             | This is the actual PSF of the image                        |
++---------------------------------------------+------------------------------------------------------------+
+| residual.i.clean.sciencefield.BEAM0         | Residual image                                             |
++---------------------------------------------+------------------------------------------------------------+
+| sensitivity.i.clean.sciencefield.BEAM0      | Sensitivity pattern image                                  |
++---------------------------------------------+------------------------------------------------------------+
+| weights.i.clean.sciencefield.BEAM0          | Weights image                                              |
++---------------------------------------------+------------------------------------------------------------+
+
+
 Mosaicing
 ---------
 
-We repeat the imaging for each beam, imaging only a single beam each time. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`.
+We repeat the imaging for each beam, imaging only a single beam each time, so that we get images for BEAM0 through BEAM8. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`. We are working on a more complete interface to the mosaicking, but the following indicates how to do it for the restored images. Doing, for instance, the residual images can be done by replacing image with residual and removing the .restored suffix.
+
+The mosaicking program, **linmos**, is driven by a simple parameter set. Consider the following::
+
+	linmos.names      = [image.i.clean.sciencefield.SKADS.BEAM0..8.taylor.0.restored]
+	linmos.weights    = [weights.i.clean.sciencefield.SKADS.BEAM0..8.taylor.0]
+	linmos.outname    = image.i.linmos.taylor.0.restored
+	linmos.outweight  = weights.i.linmos.taylor.0
+	linmos.weighttype = FromWeightImages
+	linmos.psfref     = 4
+	linmos.nterms     = 2
+
+The double-fullstop in the *names* and *weights* parameters indicates a range of numbers to iterate over. The *psfref* parameter indicates from which number out of that sequence the restoring beam information should be taken. This is necessary as the restoring beam could be different for different images (due to the effect of different calibration). 
+
+The *nterms* parameter tells *linmos* to look for taylor term images, and make multiple output images. (Note that currently it will only produce image.i.linmos.taylor.0.restored and image.i.linmos.taylor.1.restored, even though a .taylor.2 input image might be present.)
+
+Save this parset into a file, say **linmos_image.in**, and then create a qsub file as before, say, **linmos_image.qsub**::
+
+        #!/bin/bash -l
+	#PBS -l walltime=01:00:00
+	#PBS -l mppwidth=1
+	#PBS -l mppnppn=1
+	#PBS -N linmos
+	#PBS -j oe
+	
+	cd $PBS_O_WORKDIR
+
+	aprun -n 1 -N 1 linmos -c linmos_image.in > linmos_image_${PBS_JOBID}.log
+
+
+(again, this is using only a single processor, as **linmos** is a serial application) and run via::
+
+	qsub linmos_image.qsub
+
+
