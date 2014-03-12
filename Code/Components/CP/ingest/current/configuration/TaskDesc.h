@@ -58,7 +58,8 @@ class TaskDesc {
             FringeRotationTask,
             SimpleMonitorTask,
             ChannelFlagTask,
-            DerippleTask
+            DerippleTask,
+            TCPSink
         };
 
         /// @brief Constructor

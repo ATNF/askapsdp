@@ -54,6 +54,7 @@
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/sourcetask/NoMetadataSource.h"
 #include "ingestpipeline/derippletask/DerippleTask.h"
+#include "ingestpipeline/tcpsink/TCPSink.h"
 #include "ingestpipeline/phasetracktask/FringeRotationTask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
@@ -105,6 +106,9 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
         case TaskDesc::DerippleTask:
             task.reset(new DerippleTask(params, itsConfig));
+            break;
+        case TaskDesc::TCPSink:
+            task.reset(new TCPSink(params, itsConfig));
             break;
         default:
             ASKAPTHROW(AskapError, "Unknown task type specified");

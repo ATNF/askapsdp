@@ -101,6 +101,9 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "DerippleTask") {
         return TaskDesc::DerippleTask;
     }
+    if (type == "TCPSink") {
+        return TaskDesc::TCPSink;
+    }
 
     ASKAPTHROW(AskapError, "Unknown task type");
 }
