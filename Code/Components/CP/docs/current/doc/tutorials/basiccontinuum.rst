@@ -121,7 +121,6 @@ Here is a basic parameter set for use with ccalibrator. It has the same sort of 
 	Ccalibrator.nAnt                                  = 6
 	Ccalibrator.nBeam                                 = 9
 	Ccalibrator.solve                                 = gains
-	Ccalibrator.interval                              = 360
 	#						  
 	Ccalibrator.calibaccess                           = parset
 	Ccalibrator.calibaccess.parset                    = caldata-BEAM0.dat
@@ -201,7 +200,7 @@ The above finds the correct gains for beam 0. To solve them for all other beams,
 
 All other parameters (for now) can remain the same. The direction, importantly, is the same as this is the phase centre for the observation, which has been defined such that it is in the centre of the beam of interest for each measurement set.
 
-This is something that can easily be scripted. Here is one possibly solution using a bash script::
+This is something that can easily be scripted. Here is one possible solution using a bash script::
 
 	#!/bin/bash -l
 	
@@ -224,13 +223,6 @@ This is something that can easily be scripted. Here is one possibly solution usi
 	    NUM=`expr $NUM + 1`
 	done
 
-The next bit still feels a little like hacking, as this isn't quite how *ccalibrator* was designed. Once you have all the *caldata-BEAM?.dat* files, you can extract the relevant beam from each file. To get the calibration solution for beam 0, you could do the following::
-
-  grep "\.0 =" caldata-beam0.dat >> caldata-combined.dat
-
-and similarly for the other beams. This will produce a combined set of calibration solutions that can be applied to the science field.
-
-**DO WE NEED TO DO THE COMBINATION IF WE ARE IMAGING BY BEAM ANYWAY?**
 
 Imaging
 -------
@@ -299,7 +291,7 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	# Apply calibration
 	Cimager.calibrate                               = true
 	Cimager.calibaccess                             = parset
-	Cimager.calibaccess.parset                      = caldata-combined.dat
+	Cimager.calibaccess.parset                      = caldata-BEAM0.dat
 	Cimager.calibrate.scalenoise                    = true
 	Cimager.calibrate.allowflag                     = true
 	
@@ -378,8 +370,8 @@ Once this completes, you will have a larger set of image products than was produ
 +---------------------------------------------+------------------------------------------------------------+
 
 
-Mosaicing
----------
+Mosaicking
+----------
 
 We repeat the imaging for each beam, imaging only a single beam each time, so that we get images for BEAM0 through BEAM8. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`. We are working on a more complete interface to the mosaicking, but the following indicates how to do it for the restored images. Doing, for instance, the residual images can be done by replacing image with residual and removing the .restored suffix.
 
