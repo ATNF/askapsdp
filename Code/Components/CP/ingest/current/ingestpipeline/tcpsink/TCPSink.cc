@@ -208,8 +208,8 @@ bool TCPSink::connect(void)
     // Connect
     boost::asio::connect(itsSocket, endpoint_iterator, error);
     if (error) {
-        ASKAPLOG_WARN_STR(logger, "Connect failed to : " << hostname << ":"
-                << port << " failed: " << error.message());
+        ASKAPLOG_WARN_STR(logger, "Connect to '" << hostname << ":"
+                << port << "' failed: " << error.message());
         itsSocket.close();
         return false;
     }
