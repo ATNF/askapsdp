@@ -69,7 +69,7 @@ DO_SPECTRAL_LINE=false
 # change between different modes - eg. halve the bandwidth
 
 # original BETA specs: 304MHz, 36beams
-. ${SCRIPTDIR}/config_full_BETA.sh
+#. ${SCRIPTDIR}/config_full_BETA.sh
 
 ## trimmed-down BETA: 152MHz, 9beams
 #. ${SCRIPTDIR}/config_small_BETA.sh
@@ -79,5 +79,5 @@ DO_SPECTRAL_LINE=false
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12_dec30.sh
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12_dec04.sh
 
-
-
+## BETA observation of standard test field J1600-79
+. ${SCRIPTDIR}/config_BETAtestfield.sh
