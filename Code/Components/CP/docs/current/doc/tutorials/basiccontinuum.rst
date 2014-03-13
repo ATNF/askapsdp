@@ -48,8 +48,8 @@ and monitoring their status.
 
 Setting up a working directory
 ------------------------------
-Your working directory will not be within your home directory, instead it will reside
-on the fast Lustre filesystem::
+
+Your working directory will not be within your home directory, instead it will reside on the fast Lustre filesystem::
 
     cd /scratch/askap/$USER
     mkdir continuumtutorial
@@ -57,13 +57,19 @@ on the fast Lustre filesystem::
 
 Retrieving the tutorial dataset
 -------------------------------
-I have not yet put the measurement sets for this tutorial on the commissioning archive.
-Here's how you can get the working copies I've been using for testing. Most likely these will be put on the archive as the standard sets for the tutorial, but they aren't there yet::
 
-  cp -r /scratch/askap/whi550/Simulations/DC2/FullBandwidth/MS/calibrator_J1934m638_5s_2014-02-24-1911_BEAM?.ms .
-  cp -r /scratch/askap/whi550/Simulations/DC2/FullBandwidth/MS/sciencefield_SKADS_5s_2014-02-24-1911.ms
-  
-Note that both of these are at the full spectral resolution, and so each calibrator MS is 2.6GB in size, while the science field MS is 291GB.
+There are 11 measurement sets associated with this tutorial. There are nine for the calibration observations (one per beam), named calibrator_J1934m638_forSKADS_BEAM0.ms through calibrator_J1934m638_forSKADS_BEAM8.ms (these are 2.6GB each). The science field has one at full spectral resolution, named sciencefield_SKADS.ms (291GB), and an averaged version of this named sciencefield_SKADS_coarseChan.ms (5.5GB). You can start with the full-resolution version, and run the channel averaging yourself (see below), or you can start with the latter, and skip the channel averaging. 
+
+The measurement sets reside on the "Commissioning Archive" and can be retrieved using the scp command. As the measurement sets may need to be fetched from tape, they should be staged first::
+
+    ssh cortex.ivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/groupfs/askap/tutorials/basic_continuum/sciencefield_SKADS.ms
+    scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic_continuum/sciencefield_SKADS.ms .
+
+and similarly for the other measurement sets.
+
+You may notice the **scp** may stall. This is likely due to the fact the data has not been fetched (staged) from tape to disk. This is quite normal, and the length of the stall depends upon the load on the system (e.g. other users).
+
+
 
 Calibration
 -----------
@@ -182,15 +188,15 @@ This is something that can easily be scripted. Here is one possible solution usi
 Channel averaging
 -----------------
 
-The first step in imaging is to average the visibilities to 304 1MHz channels. This is done with the **mssplit** command (read :doc:`../calim/mssplit` for further information) - here is a typical parset::
+The first step in imaging is to average the visibilities to 304 1MHz channels. There is a measurement provided that has already had this done, but in case you want to do it yourself, here are the instructions. The averaging is done with the **mssplit** command (read :doc:`../calim/mssplit` for further information) - here is a typical parset::
 
 	# Input measurement set
 	# Default: <no default>
-	vis         = sciencefield_SKADS_5s_2014-02-24-1911.ms
+	vis         = sciencefield_SKADS.ms
 	
 	# Output measurement set
 	# Default: <no default>
-	outputvis   = coarse_sciencefield.ms
+	outputvis   = sciencefield_SKADS_coarseChan.ms
 	
 	# The channel range to split out into its own measurement set
 	# Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
@@ -230,7 +236,7 @@ To do the imaging we select individual beams and image them independently. This 
 
 The imaging is done similarly to that in the introductory tutorial, with two additions. One, we will select an individual beam from the measurement set, and two, we will add some cleaning. Here is an example parset::
 
-	Cimager.dataset                                 = coarse_sciencefield.ms
+	Cimager.dataset                                 = sciencefield_SKADS_coarse.ms
 	Cimager.Feed                                    = 0
 	#
 	# Each worker will read a single channel selection
