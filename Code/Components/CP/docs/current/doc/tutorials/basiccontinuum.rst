@@ -1,7 +1,6 @@
 Basic Continuum Imaging Tutorial
 =================================
 
-.. note:: This tutorial is in the process of being written, so may be lacking in detail in some areas. And the data isn't in place yet anyway.
 
 This tutorial demonstrates basic continuum imaging using ASKAPsoft, with a simulated observation that aims to replicate a "typical" observation with BETA.
 
