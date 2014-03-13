@@ -1,0 +1,9 @@
+/// The central processor visibility publisher package namespace.
+namespace askap::cp::vispublisher {};
+
+/// @mainpage ASKAP Central Processor Visibility Publisher
+///
+/// @note This package does not provide an externally consumable library & API.
+/// This package provides a set of programs.
+///
+/// @copyright 2014 CSIRO, All Rights Reserved.
