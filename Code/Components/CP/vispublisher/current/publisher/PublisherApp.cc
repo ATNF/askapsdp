@@ -46,6 +46,8 @@
 
 // Local package includes
 #include "publisher/OutputMessage.h"
+#include "publisher/InputMessage.h"
+#include "publisher/ZmqPublisher.h"
 
 // Using
 using namespace std;
@@ -55,50 +57,62 @@ using boost::asio::ip::tcp;
 
 ASKAP_LOGGER(logger, ".PublisherApp");
 
-struct InputVis {
-    uint32_t nRow;
-    uint32_t nChannel;
-    uint32_t nPol;
-    uint64_t time;
+OutputMessage PublisherApp::buildOutputMessage(const InputMessage& in,
+                                               uint32_t beam, uint32_t pol)
+{
+    OutputMessage out;
+    out.timestamp() = in.timestamp();
+    out.beamId() = beam;
+    out.polId() = pol;
+    out.nChannels() = in.nChannels();
+    out.chanWidth() = in.chanWidth();
+    out.frequency() = in.frequency();
+    out.nBaselines() = 0;
 
-    double chanWidth;
-    std::vector<double> frequency;
-
-    std::vector<uint32_t> antenna1;
-    std::vector<uint32_t> antenna2;
-    std::vector<uint32_t> beam;
-
-    std::vector< std::complex<float> > visibility;
-
-    std::vector<uint8_t> flag;
-};
+    return out;
+}
 
 int PublisherApp::run(int argc, char* argv[])
 {
+    const uint32_t N_POLS = 4;
     StatReporter stats;
     const LOFAR::ParameterSet subset = config().makeSubset("vispublisher.");
-    const uint32_t port = subset.getUint32("nbeams");
+    const uint32_t nBeams = subset.getUint32("nbeams");
+    const uint16_t inPort = subset.getUint16("in.port");
+    const uint16_t outPortStart = subset.getUint16("out.portstart");
 
-    // Create a socket for the Ingest Pipeline to connect to
-    //boost::asio::io_service io_service;
-    //const uint16_t port = subset.getUint16("in.port");
-    //tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port));
-    //tcp::socket socket(io_service);
-    //acceptor.accept(socket);
+    // Setup the ZeroMQ publisher object
+    ZmqPublisher zmqpub(nBeams, N_POLS, outPortStart);
 
-    // Read
-    //size_t len =
+    // Setup the TCP socket to receive data from the ingest pipeline
+    boost::asio::io_service io_service;
+    tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), inPort));
+    tcp::socket socket(io_service);
+    while (true) {
+        acceptor.accept(socket);
+        ASKAPLOG_DEBUG_STR(logger, "Accepted incoming connection from: "
+                << socket.remote_endpoint().address());
 
-    zmq::context_t context(1);
+        while (socket.is_open()) {
+            try {
+                InputMessage inMsg = InputMessage::build(socket);
+                ASKAPLOG_DEBUG_STR(logger, "Received a message");
+                for (uint32_t beam = 0; beam < nBeams; ++beam) {
+                    for (uint32_t pol = 0; pol < N_POLS; ++pol) {
+                        OutputMessage outmsg = buildOutputMessage(inMsg, beam, pol);
+                        ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << beam
+                                << " pol " << pol);
+                        zmqpub.publish(outmsg);
+                    }
+                }
 
-    zmq::socket_t socket(context, ZMQ_PUB);
-    socket.bind("tcp://*:5555");
-
-    zmq::message_t msg(1);
-    OutputMessage outmsg;
-    outmsg.encode(msg);
-
-    socket.send(msg);
+            } catch (AskapError& e) {
+                ASKAPLOG_DEBUG_STR(logger, "Error reading input message: " << e.what()
+                        << ", closing input socket");
+                socket.close();
+            }
+        }
+    }
 
     stats.logSummary();
     return 0;

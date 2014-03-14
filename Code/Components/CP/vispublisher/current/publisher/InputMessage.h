@@ -27,7 +27,13 @@
 #ifndef ASKAP_CP_VISPUBLISHER_INPUTMESSAGE_T
 #define ASKAP_CP_VISPUBLISHER_INPUTMESSAGE_T
 
+// System includes
+#include <complex>
+#include <vector>
+#include <stdint.h>
+
 // ASKAPsoft includes
+#include <boost/asio.hpp>
 
 // Local package includes
 
@@ -39,6 +45,61 @@ namespace vispublisher {
 class InputMessage {
     public:
         InputMessage();
+
+        static InputMessage build(boost::asio::ip::tcp::socket& socket);
+
+        uint64_t timestamp(void)  const;
+        uint32_t nRow(void) const;
+        uint32_t nPol(void) const;
+        uint32_t nChannels(void) const;
+        double chanWidth(void) const;
+        std::vector<double> frequency(void) const;
+        std::vector<uint32_t> antenna1(void) const;
+        std::vector<uint32_t> antenna2(void) const;
+        std::vector<uint32_t> beam(void) const;
+        std::vector< std::complex<float> > visibilities(void) const;
+        std::vector<uint8_t> flag(void) const;
+
+    private:
+
+        template <typename T>
+        static T read(boost::asio::ip::tcp::socket& socket);
+
+        template <typename T>
+        static std::vector<T> readVector(boost::asio::ip::tcp::socket& socket, size_t n);
+
+        uint32_t itsNRow;
+
+        // Number of spectral channels
+        uint32_t itsNChannel;
+
+        uint32_t itsNPol;
+
+        // Binary Atomic Time (BAT) of the correlator integration midpoint.
+        // The number of microseconds since Modified Julian Day (MJD) = 0
+        uint64_t itsTimestamp;
+
+        // Channel width (in Hz)
+        double itsChanWidth;
+
+        // Freqency (in Hz) for each of the nChannels
+        std::vector<double> itsFrequency;
+
+        // Antenna 1
+        std::vector<uint32_t> itsAntenna1;
+
+        // Antenna 2
+        std::vector<uint32_t> itsAntenna2;
+
+        // Beam
+        std::vector<uint32_t> itsBeam;
+
+        // Visibilities (nChannels * nPols * nRows)
+        std::vector< std::complex<float> > itsVisibilities;
+
+        // Flag (nChannels * nPols * nRows)
+        // 0=Visibility not flagged, 1=Visibility flagged
+        std::vector<uint8_t> itsFlag;
 };
 
 }

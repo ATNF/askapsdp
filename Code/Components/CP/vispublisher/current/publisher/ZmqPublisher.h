@@ -1,4 +1,4 @@
-/// @file PublisherApp.h
+/// @file ZmqPublisher.h
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,30 +24,43 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
-#define ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
+#ifndef ASKAP_CP_VISPUBLISHER_ZMQPUBLISHER_H
+#define ASKAP_CP_VISPUBLISHER_ZMQPUBLISHER_H
+
+// System includes
+#include <stdint.h>
+#include <map>
+#include <utility>
 
 // ASKAPsoft includes
-#include "askap/Application.h"
-#include "boost/scoped_ptr.hpp"
+#include <zmq.hpp>
+#include <boost/shared_ptr.hpp>
 
 // Local package includes
-#include "publisher/InputMessage.h"
 #include "publisher/OutputMessage.h"
 
 namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief Implementation of the VisPublisher application
-class PublisherApp : public askap::Application {
+/// @brief TODO: Write documentation...
+class ZmqPublisher {
     public:
-        /// Run the application
-        virtual int run(int argc, char* argv[]);
 
+        /// @brief Constructor
+        ZmqPublisher(uint32_t nBeams, uint32_t nPols, uint16_t startPort);
+
+        void publish(OutputMessage& outmsg);
+        
     private:
-        static OutputMessage buildOutputMessage(const InputMessage& in, uint32_t beam,
-                                                uint32_t pol);
+
+        typedef std::map< std::pair<uint32_t, uint16_t>, boost::shared_ptr<zmq::socket_t> > socketmap_t;
+
+        void initSockets(uint32_t nBeams, uint32_t nPols, uint16_t startPort);
+
+        zmq::context_t itsContext;
+
+        socketmap_t itsSockets;
 };
 
 }

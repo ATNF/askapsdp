@@ -44,3 +44,104 @@ ASKAP_LOGGER(logger, ".InputMessage");
 InputMessage::InputMessage()
 {
 }
+
+InputMessage InputMessage::build(boost::asio::ip::tcp::socket& socket)
+{
+    InputMessage msg;
+    msg.itsNRow = read<uint32_t>(socket);
+    msg.itsNChannel = read<uint32_t>(socket);
+    msg.itsNPol = read<uint32_t>(socket);
+    msg.itsTimestamp = read<uint64_t>(socket);
+    msg.itsChanWidth = read<double>(socket);
+    msg.itsFrequency = readVector<double>(socket, msg.itsNChannel);
+    msg.itsAntenna1 = readVector<uint32_t>(socket, msg.itsNRow);
+    msg.itsAntenna2 = readVector<uint32_t>(socket, msg.itsNRow);
+    msg.itsBeam = readVector<uint32_t>(socket, msg.itsNRow);
+    const size_t cubeSize = msg.itsNRow * msg.itsNChannel * msg.itsNPol;
+    msg.itsVisibilities = readVector< std::complex<float> >(socket, cubeSize);
+    msg.itsFlag = readVector<uint8_t>(socket, cubeSize);
+    return msg;
+}
+
+uint32_t InputMessage::nRow(void) const
+{
+    return itsNRow;
+}
+
+uint32_t InputMessage::nPol(void) const
+{
+    return itsNPol;
+}
+
+uint32_t InputMessage::nChannels(void) const
+{
+    return itsNChannel;
+}
+
+uint64_t InputMessage::InputMessage::timestamp(void) const
+{
+    return itsTimestamp;
+}
+
+double InputMessage::chanWidth(void) const
+{
+    return itsChanWidth;
+}
+
+std::vector<double> InputMessage::frequency(void) const
+{
+    return itsFrequency;
+}
+
+std::vector<uint32_t> InputMessage::antenna1(void) const
+{
+    return itsAntenna1;
+}
+
+std::vector<uint32_t> InputMessage::antenna2(void) const
+{
+    return itsAntenna2;
+}
+
+std::vector<uint32_t> InputMessage::beam(void) const
+{
+    return itsBeam;
+}
+
+std::vector< std::complex<float> > InputMessage::visibilities(void) const
+{
+    return itsVisibilities;
+}
+
+std::vector<uint8_t> InputMessage::flag(void) const
+{
+    return itsFlag;
+}
+
+template <typename T>
+T InputMessage::read(boost::asio::ip::tcp::socket& socket)
+{
+    T val;
+    size_t sz = sizeof (T);
+    boost::system::error_code error;
+    size_t len = boost::asio::read(socket, boost::asio::buffer(&val, sz), error);
+    if (error) {
+        ASKAPTHROW(AskapError, error.message());
+    }
+    ASKAPCHECK(len == sz, "Short read - Expected: " << sz << " Actual: " << len);
+    return val;
+}
+
+template <typename T>
+std::vector<T> InputMessage::readVector(boost::asio::ip::tcp::socket& socket, size_t n)
+{
+    std::vector<T> vec(n);
+    boost::system::error_code error;
+    size_t len = boost::asio::read(socket, boost::asio::buffer(boost::asio::buffer(vec)), error);
+    if (error) {
+        ASKAPTHROW(AskapError, error.message());
+    }
+    ASKAPCHECK(len == (n * sizeof (T)), "Short read - Expected: " << n << " x "
+            << sizeof (T) << " Actual: " << len);
+    return vec;
+}
