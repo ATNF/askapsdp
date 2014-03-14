@@ -67,7 +67,11 @@ OutputMessage PublisherApp::buildOutputMessage(const InputMessage& in,
     out.nChannels() = in.nChannels();
     out.chanWidth() = in.chanWidth();
     out.frequency() = in.frequency();
-    out.nBaselines() = 0;
+    out.nBaselines() = 21;
+    out.antenna1().resize(21);
+    out.antenna2().resize(21);
+    out.visibilities().resize(21 * in.nChannels());
+    out.flag().resize(21 * in.nChannels());
 
     return out;
 }
