@@ -86,26 +86,20 @@ We image this data set in the same way as for the SKADS simulation described in 
 	Cimager.dataset                                 = sciencefield_BETAtestfield_coarseChan.ms
 	Cimager.Feed                                    = 0
 	#
-	Cimager.nworkergroups                           = 3
 	# Each worker will read a single channel selection
 	Cimager.Channels                                = [1, %w]
 	#
-	Cimager.Images.Names                            = [image.i.clean.sciencefield.BETAtestfield.BEAM0]
+	Cimager.Images.Names                            = [image.i.clean.BETAtestfield.BEAM0]
 	Cimager.Images.shape                            = [3072,3072]
 	Cimager.Images.cellsize                         = [10arcsec,10arcsec]
-	Cimager.Images.image.i.clean.sciencefield.BETAtestfield.BEAM0.frequency          = [0.9e9,0.9e9]
-	Cimager.Images.image.i.clean.sciencefield.BETAtestfield.BEAM0.nchan              = 1
-	Cimager.Images.image.i.clean.sciencefield.BETAtestfield.BEAM0.direction          = [15h56m58.870,-79.14.04.28, J2000]
-	Cimager.Images.image.i.clean.sciencefield.BETAtestfield.BEAM0.nterms             = 2
-	Cimager.Images.writeAtMajorCycle                = true
-	#
-	Cimager.visweights                              = MFS
-	Cimager.visweights.MFS.reffreq                  = 0.9e9
+	Cimager.Images.image.i.clean.BETAtestfield.BEAM0.frequency          = [0.9e9,0.9e9]
+	Cimager.Images.image.i.clean.BETAtestfield.BEAM0.nchan              = 1
+	Cimager.Images.image.i.clean.BETAtestfield.BEAM0.direction          = [15h56m58.870,-79.14.04.28, J2000]
 	#
 	Cimager.gridder.snapshotimaging                 = true
-	Cimager.gridder.snapshotimaging.wtolerance      = 800
+	Cimager.gridder.snapshotimaging.wtolerance      = 2800
 	Cimager.gridder                                 = AWProject
-	Cimager.gridder.AWProject.wmax                  = 800
+	Cimager.gridder.AWProject.wmax                  = 2800
 	Cimager.gridder.AWProject.nwplanes              = 99
 	Cimager.gridder.AWProject.oversample            = 4
 	Cimager.gridder.AWProject.diameter              = 12m
@@ -130,6 +124,7 @@ We image this data set in the same way as for the SKADS simulation described in 
 	Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
 	Cimager.threshold.majorcycle                    = 1mJy
 	Cimager.ncycles                                 = 5
+	Cimager.Images.writeAtMajorCycle                = false
 	#
 	Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 	Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]

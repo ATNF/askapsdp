@@ -2,7 +2,12 @@ Basic Continuum Imaging Tutorial
 =================================
 
 
-This tutorial demonstrates basic continuum imaging using ASKAPsoft, with a simulated observation that aims to replicate a "typical" observation with BETA.
+This tutorial demonstrates basic continuum imaging using ASKAPsoft, with a simulated observation that aims to replicate a "typical" observation with BETA. This tutorial will cover the following tasks:
+
+* Download of the measurement sets
+* Calibration of individual beams using observations of 1934-638
+* Imaging of a simulated science observation of a complex continuum sky, including application of the gains calibration
+* Mosaicking individual beam images to form a full-field continuum image
 
 Observation summary
 -------------------
@@ -66,8 +71,7 @@ The measurement sets reside on the "Commissioning Archive" and can be retrieved 
 and then the files can be copied via scp::
 
     scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic_continuum/sciencefield_SKADS.ms .
-
-and similarly for the other measurement sets.
+    scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic_continuum/calibrator_J1934m638_forSKADS_BEAM?.ms .
 
 You may notice the **scp** may stall. This is likely due to the fact the data has not been fetched (staged) from tape to disk. This is quite normal, and the length of the stall depends upon the load on the system (e.g. other users).
 
@@ -115,7 +119,7 @@ The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.s
 
 Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
 
-        #!/bin/bash -l
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -165,7 +169,7 @@ All other parameters (for now) can remain the same. The direction, importantly, 
 
 This is something that can easily be scripted. Here is one possible solution using a bash script, that creates parsets and qsub files, and submits each qsub file to the queue::
 
-	#!/bin/bash -l
+	#!/usr/bin/env bash
 	
 	NUM=0
 	while [ $NUM -lt 9 ]; do
@@ -190,7 +194,7 @@ This is something that can easily be scripted. Here is one possible solution usi
 Channel averaging
 -----------------
 
-The first step in imaging is to average the visibilities to 304 1MHz channels. There is a measurement provided that has already had this done, but in case you want to do it yourself, here are the instructions. The averaging is done with the **mssplit** command (read :doc:`../calim/mssplit` for further information) - here is a typical parset::
+The first step in imaging is to average the visibilities to 304 1MHz channels. There is a measurement set provided that has already had this done, but in case you want to do it yourself, here are the instructions. The averaging is done with the **mssplit** command (read :doc:`../calim/mssplit` for further information) - here is a typical parset::
 
 	# Input measurement set
 	# Default: <no default>
@@ -213,7 +217,7 @@ The first step in imaging is to average the visibilities to 304 1MHz channels. T
 
 Save this parset into a file, say **mssplit.in**. To run this, we need to create a qsub file, say, **mssplit.qsub**::
 
-        #!/bin/bash -l
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -258,9 +262,9 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	Cimager.visweights.MFS.reffreq                  = 898.e6
 	#
 	Cimager.gridder.snapshotimaging                 = true
-	Cimager.gridder.snapshotimaging.wtolerance      = 800
+	Cimager.gridder.snapshotimaging.wtolerance      = 2800
 	Cimager.gridder                                 = AWProject
-	Cimager.gridder.AWProject.wmax                  = 800
+	Cimager.gridder.AWProject.wmax                  = 2800
 	Cimager.gridder.AWProject.nwplanes              = 99
 	Cimager.gridder.AWProject.oversample            = 4
 	Cimager.gridder.AWProject.diameter              = 12m
@@ -349,7 +353,7 @@ Setting this to true can be useful if you want to look at the intermediate major
 
 To run the imaging, we need a qsub file - call it **clean-BEAM0.qsub**::
 
-	#!/bin/bash -l
+	#!/usr/bin/env bash
 	#PBS -l walltime=02:00:00
 	#PBS -l mppwidth=913
 	#PBS -l mppnppn=20
@@ -422,7 +426,7 @@ The *nterms* parameter tells *linmos* to look for taylor term images, and make m
 
 Save this parset into a file, say **linmos_image.in**, and then create a qsub file as before, say, **linmos_image.qsub**::
 
-        #!/bin/bash -l
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
