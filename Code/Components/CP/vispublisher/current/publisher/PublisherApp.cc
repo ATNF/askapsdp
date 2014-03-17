@@ -32,6 +32,7 @@
 
 // System includes
 #include <vector>
+#include <set>
 #include <complex>
 #include <stdint.h>
 
@@ -81,7 +82,6 @@ int PublisherApp::run(int argc, char* argv[])
     const uint32_t N_POLS = 4;
     StatReporter stats;
     const LOFAR::ParameterSet subset = config().makeSubset("vispublisher.");
-    const uint32_t nBeams = subset.getUint32("nbeams");
     const uint16_t inPort = subset.getUint16("in.port");
     const uint16_t outPort = subset.getUint16("out.port");
 
@@ -101,10 +101,14 @@ int PublisherApp::run(int argc, char* argv[])
             try {
                 InputMessage inMsg = InputMessage::build(socket);
                 ASKAPLOG_DEBUG_STR(logger, "Received a message");
-                for (uint32_t beam = 0; beam < nBeams; ++beam) {
+
+                const vector<uint32_t> beamvector(inMsg.beam());
+                const set<uint32_t> beamset(beamvector.begin(), beamvector.end());
+                for (set<uint32_t>::const_iterator beamit = beamset.begin();
+                        beamit != beamset.end(); ++beamit) {
                     for (uint32_t pol = 0; pol < N_POLS; ++pol) {
-                        OutputMessage outmsg = buildOutputMessage(inMsg, beam, pol);
-                        ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << beam
+                        OutputMessage outmsg = buildOutputMessage(inMsg, *beamit, pol);
+                        ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << *beamit
                                 << " pol " << pol);
                         zmqpub.publish(outmsg);
                     }
