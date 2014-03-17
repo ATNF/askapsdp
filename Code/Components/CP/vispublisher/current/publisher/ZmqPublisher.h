@@ -29,12 +29,10 @@
 
 // System includes
 #include <stdint.h>
-#include <map>
-#include <utility>
+#include <string>
 
 // ASKAPsoft includes
 #include <zmq.hpp>
-#include <boost/shared_ptr.hpp>
 
 // Local package includes
 #include "publisher/OutputMessage.h"
@@ -48,19 +46,15 @@ class ZmqPublisher {
     public:
 
         /// @brief Constructor
-        ZmqPublisher(uint32_t nBeams, uint32_t nPols, uint16_t startPort);
+        ZmqPublisher(uint16_t port);
 
         void publish(OutputMessage& outmsg);
         
     private:
-
-        typedef std::map< std::pair<uint32_t, uint16_t>, boost::shared_ptr<zmq::socket_t> > socketmap_t;
-
-        void initSockets(uint32_t nBeams, uint32_t nPols, uint16_t startPort);
+        static std::string polToString(int pol);
 
         zmq::context_t itsContext;
-
-        socketmap_t itsSockets;
+        zmq::socket_t itsSocket;
 };
 
 }

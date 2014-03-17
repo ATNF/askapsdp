@@ -83,10 +83,10 @@ int PublisherApp::run(int argc, char* argv[])
     const LOFAR::ParameterSet subset = config().makeSubset("vispublisher.");
     const uint32_t nBeams = subset.getUint32("nbeams");
     const uint16_t inPort = subset.getUint16("in.port");
-    const uint16_t outPortStart = subset.getUint16("out.portstart");
+    const uint16_t outPort = subset.getUint16("out.port");
 
     // Setup the ZeroMQ publisher object
-    ZmqPublisher zmqpub(nBeams, N_POLS, outPortStart);
+    ZmqPublisher zmqpub(outPort);
 
     // Setup the TCP socket to receive data from the ingest pipeline
     boost::asio::io_service io_service;

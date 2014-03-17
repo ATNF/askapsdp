@@ -31,9 +31,12 @@
 #include <sstream>
 
 // ASKAPsoft includes
+#include "askap/AskapUtil.h"
 #include <zmq.hpp>
 
 using namespace std;
+using askap::utility::fromString;
+using askap::utility::toString;
 
 struct header_t
 {
@@ -41,6 +44,7 @@ struct header_t
     uint32_t beam;  // Zero based
     uint32_t pol;   // Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
     uint32_t nChan;
+    //.. we ignore the rest because we don't want to print it
 };
 
 static void printmsg(std::ostream& os, const zmq::message_t& msg)
@@ -60,37 +64,32 @@ static std::string makeConnectString(const std::string& hostname, int port)
     return ss.str();
 }
 
-template <typename T>
-static T fromString(const std::string& str)
-{
-    T val;
-    stringstream ss(str);
-    ss >> val;
-    return val;
-}
-
 int main(int argc, char *argv[])
 {
     if (argc != 5) {
-        cerr << "usage: " << argv[0] << " <hostname> <start port> <beam> <pol>" << endl;
+        cerr << "usage: " << argv[0] << " <hostname> <port> <beam> <pol>" << endl;
         return 1;
     }
-    const int nPol = 4;
     const string hostname(argv[1]);
-    const int startPort = fromString<int>(argv[2]);
-    const int beam = fromString<int>(argv[3]);
-    const int pol = fromString<int>(argv[4]);
-
-
-    // Determine port number
-    const int port = startPort + pol + (beam * nPol);
+    const int port = fromString<int>(argv[2]);
+    const string beam = argv[3];
+    const string pol = argv[4];
 
     zmq::context_t context;
     zmq::socket_t socket (context, ZMQ_SUB);
     socket.connect(makeConnectString(hostname, port).c_str());
-    socket.setsockopt(ZMQ_SUBSCRIBE, 0, 0); // Subscribe to all messages
+
+    // Build a filter, for example "0XX" for beam=0, pol=XX
+    string filter(toString(beam));
+    filter += pol;
+    socket.setsockopt(ZMQ_SUBSCRIBE, filter.c_str(), filter.size());
 
     while (true) {
+        // Read the itentity message
+        zmq::message_t identity;
+        socket.recv(&identity);
+
+        // Read the payload
         zmq::message_t msg;
         socket.recv(&msg);
         printmsg(cout, msg);

@@ -31,13 +31,11 @@
 #include "askap_vispublisher.h"
 
 // System includes
-#include <utility>
 #include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include <boost/shared_ptr.hpp>
 
 // Local package includes
 
@@ -47,41 +45,45 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::vispublisher;
 
-ZmqPublisher::ZmqPublisher(uint32_t nBeams, uint32_t nPols, uint16_t startPort)
+ZmqPublisher::ZmqPublisher(uint16_t port)
+    :itsSocket(itsContext, 1)
 {
-    initSockets(nBeams, nPols, startPort);
+    stringstream ss;
+    ss << "tcp://*:" << port;
+    itsSocket.bind(ss.str().c_str());
 }
 
 void ZmqPublisher::publish(OutputMessage& outmsg)
 {
-    // Lookup socket for this beam/pol
-    const std::pair<uint32_t, uint32_t> key = make_pair(outmsg.beamId(), outmsg.polId());
-    socketmap_t::iterator it = itsSockets.find(key);
-    if (it == itsSockets.end()) {
-        ASKAPLOG_WARN_STR(logger, "Could not find output socket for beam: " <<
-                outmsg.beamId() << ", pol: " << outmsg.polId());
-        return;
-    }
+    // Encode and send the identity (e.g. "0XX")
+    stringstream ss;
+    ss << outmsg.beamId() << polToString(outmsg.polId());
+    const size_t sz = ss.str().size();
+    zmq::message_t identity(sz + 1);
+    memcpy(identity.data(), ss.str().c_str(), sz);
+    char* contents = static_cast<char*>(identity.data());
+    contents[sz] = 0; // NULL terminate the string
+    itsSocket.send(identity, ZMQ_SNDMORE);
 
     // Encode and send message
     zmq::message_t msg(1);
     outmsg.encode(msg);
-    it->second->send(msg);
+    itsSocket.send(msg);
 }
 
-void ZmqPublisher::initSockets(uint32_t nBeams, uint32_t nPols, uint16_t startPort)
+std::string ZmqPublisher::polToString(int pol)
 {
-    uint16_t port = startPort;
-    for (uint32_t beam = 0; beam < nBeams; ++beam) {
-        for (uint32_t pol = 0; pol < nPols; ++pol) {
-            const std::pair<uint32_t, uint32_t> key = make_pair(beam, pol);
-            
-            boost::shared_ptr<zmq::socket_t> value(new zmq::socket_t(itsContext,  ZMQ_PUB));
-            stringstream ss;
-            ss << "tcp://*:" << port;
-            value->bind(ss.str().c_str());
-            itsSockets[key] = value;
-            ++port;
-        }
+    switch (pol) {
+        case 0: return "XX";
+                break;
+        case 1: return "XY";
+                break;
+        case 2: return "YX";
+                break;
+        case 3: return "YY";
+                break;
+        default:
+                ASKAPTHROW(AskapError, "Unknown polarisation id: " << pol);
+                break;
     }
 }
