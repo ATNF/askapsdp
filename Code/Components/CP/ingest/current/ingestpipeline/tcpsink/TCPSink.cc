@@ -53,6 +53,7 @@
 ASKAP_LOGGER(logger, ".TCPSink");
 
 using namespace askap;
+using namespace casa;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 using boost::asio::ip::tcp;
@@ -62,7 +63,7 @@ using boost::asio::ip::tcp;
 //////////////////////////////////
 
 TCPSink::TCPSink(const LOFAR::ParameterSet& parset,
-        const Configuration& config)
+                 const Configuration& config)
     : itsParset(parset), itsSocket(itsIOService)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
@@ -93,7 +94,7 @@ void TCPSink::process(VisChunk::ShPtr chunk)
 
     // 3: Release the lock and signal the network sender thread
     lock.unlock();
-    itsCondVar.notify_all(); 
+    itsCondVar.notify_all();
 }
 
 //////////////////////////////////
@@ -104,7 +105,7 @@ template <typename T>
 void TCPSink::pushBack(const T src, std::vector<uint8_t>& dest)
 {
     const size_t idx = dest.size(); // Must be before resize
-    const size_t nbytes = sizeof (T);
+    const size_t nbytes = sizeof(T);
     dest.resize(dest.size() + nbytes);
     memcpy(&dest[idx], &src, nbytes);
 }
@@ -113,7 +114,7 @@ template <typename T>
 void TCPSink::pushBackArray(const casa::Array<T>& src, std::vector<uint8_t>& dest)
 {
     const size_t idx = dest.size(); // Must be before resize
-    const size_t nbytes = src.size() * sizeof (T);
+    const size_t nbytes = src.size() * sizeof(T);
     dest.resize(dest.size() + nbytes);
     memcpy(&dest[idx], src.data(), nbytes);
 }
@@ -122,7 +123,7 @@ template <typename T>
 void TCPSink::pushBackVector(const std::vector<T>& src, std::vector<uint8_t>& dest)
 {
     const size_t idx = dest.size(); // Must be before resize
-    const size_t nbytes = src.size() * sizeof (T);
+    const size_t nbytes = src.size() * sizeof(T);
     dest.resize(dest.size() + nbytes);
     memcpy(&dest[idx], src.data(), nbytes);
 }
@@ -141,6 +142,15 @@ void TCPSink::serialiseVisChunk(const askap::cp::common::VisChunk& chunk, std::v
     pushBackArray<uint32_t>(chunk.antenna2(), v);
     pushBackArray<uint32_t>(chunk.beam1(), v);
 
+    // Stokes - Map from casa:StokesTypes to 0=XX, 1=XY, 2=YX, 3=YY
+    vector<uint32_t> stokesvec;
+    const casa::Vector<casa::Stokes::StokesTypes>& casaStokes = chunk.stokes();
+    for (size_t i = 0; i < casaStokes.size(); ++i) {
+        stokesvec.push_back(mapStokes(casaStokes[i]));
+    }
+    pushBackVector<uint32_t>(stokesvec, v);
+
+    // Visibilities
     pushBackArray< std::complex<float> >(chunk.visibility(), v);
 
     // Treat bool more specifically because there is no guarantee how they are
@@ -211,14 +221,30 @@ bool TCPSink::connect(void)
         ASKAPLOG_WARN_STR(logger, "Resolver failed: " << error.message());
         return false;
     }
-    
+
     // Connect
     boost::asio::connect(itsSocket, endpoint_iterator, error);
     if (error) {
         ASKAPLOG_WARN_STR(logger, "Connect to '" << hostname << ":"
-                << port << "' failed: " << error.message());
+                          << port << "' failed: " << error.message());
         itsSocket.close();
         return false;
     }
     return true;
+}
+
+uint32_t TCPSink::mapStokes(casa::Stokes::StokesTypes type)
+{
+    switch (type) {
+        case Stokes::XX: return 0;
+            break;
+        case Stokes::XY: return 1;
+            break;
+        case Stokes::YX: return 2;
+            break;
+        case Stokes::YY: return 3;
+            break;
+        default:         ASKAPTHROW(AskapError, "Unsupported stokes type");
+            break;
+    }
 }

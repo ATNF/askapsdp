@@ -787,13 +787,16 @@ bool MSSink::isPolarisationRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
 
 void MSSink::submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk)
 {
+    // Calculate flagged visibility counts
     int32_t flagCount = 0;
-
     const casa::Cube<casa::Bool>& flags = chunk->flag();
     for (Array<casa::Bool>::const_contiter it = flags.cbegin();
             it != flags.cend(); ++it) {
         if (*it) ++flagCount;
     }
+
+    ASKAPLOG_DEBUG_STR(logger, "  " << flagCount << " of " << flags.size()
+            << " visibilities flagged");
 
     // Submit monitoring data
     MonitorPoint<int32_t> flagCountPoint("VisFlagCount");

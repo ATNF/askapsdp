@@ -168,7 +168,9 @@ class NoMetadataSource : public ISource {
         /// @note it is 0 by default, which triggers the constructor to set it equal to the configuration
         /// (i.e. to write everything)
         casa::uInt itsBeamsToReceive;
-        
+
+        /// @brief Count of duplicate datagrams. This is reset on each integration cycle.
+        casa::uInt itsDuplicateDatagrams;        
 };
 
 }

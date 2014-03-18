@@ -140,7 +140,7 @@ boost::shared_ptr<CorrelatorSimulator> SimPlayback::makeCorrelatorSim(void)
     const double failureChance = itsParset.getDouble("corrsim.random_vis_send_fail", 0.0);
     return boost::shared_ptr<CorrelatorSimulator>(
             new CorrelatorSimulator(dataset, hostname, port, bmap, expansion,
-                failureChance));
+                failureChance, itsRank));
 }
 
 void SimPlayback::run(void)

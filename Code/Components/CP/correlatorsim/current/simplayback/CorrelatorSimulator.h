@@ -70,7 +70,8 @@ class CorrelatorSimulator : public ISimulator {
                             const std::string& port,
                             const BaselineMap& bmap,
                             const unsigned int expansionFactor = 1,
-                            const double visSendFail = 0.0);
+                            const double visSendFail = 0.0,
+                            const int shelf = 0);
 
         /// Destructor
         virtual ~CorrelatorSimulator();
@@ -92,6 +93,9 @@ class CorrelatorSimulator : public ISimulator {
 
         // The chance a VisChunk will not be sent.
         const double itsVisSendFailChance;
+
+        // Shelf number [1..]
+        const int itsShelf;
 
         // Cursor (index) for the main table of the measurement set
         unsigned int itsCurrentRow;

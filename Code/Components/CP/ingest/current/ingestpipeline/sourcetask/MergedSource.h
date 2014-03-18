@@ -163,6 +163,9 @@ class MergedSource : public ISource {
         /// configuration (i.e. to write everything)
         casa::uInt itsBeamsToReceive;
 
+        /// @brief Count of duplicate datagrams. This is reset on each integration cycle.
+        casa::uInt itsDuplicateDatagrams;
+
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);
 

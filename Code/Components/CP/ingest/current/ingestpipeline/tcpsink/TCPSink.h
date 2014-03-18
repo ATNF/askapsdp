@@ -40,6 +40,7 @@
 #include "boost/asio.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
+#include "measures/Measures/Stokes.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
@@ -62,7 +63,7 @@ class TCPSink : public askap::cp::ingest::ITask {
         /// @brief Destructor.
         virtual ~TCPSink();
 
-        /// @brief Writes out the data in the VisChunk parameter to the 
+        /// @brief Writes out the data in the VisChunk parameter to the
         /// measurement set.
         ///
         /// @param[in,out] chunk    the instance of VisChunk to send. Note
@@ -91,7 +92,7 @@ class TCPSink : public askap::cp::ingest::ITask {
                                       std::vector<uint8_t>& v);
 
         /// Is used to append the bytes for a primative type to the
-        /// byte vector 
+        /// byte vector
         template <typename T>
         static void pushBack(const T src, std::vector<uint8_t>& dest);
 
@@ -106,6 +107,8 @@ class TCPSink : public askap::cp::ingest::ITask {
         static void pushBackVector(const std::vector<T>& src, std::vector<uint8_t>& dest);
 
         static uint64_t convertToBAT(const casa::MVEpoch& time);
+
+        static uint32_t mapStokes(casa::Stokes::StokesTypes type);
 
         /// Parameter set
         const LOFAR::ParameterSet itsParset;

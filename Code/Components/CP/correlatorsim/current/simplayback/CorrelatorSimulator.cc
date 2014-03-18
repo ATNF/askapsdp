@@ -71,9 +71,11 @@ CorrelatorSimulator::CorrelatorSimulator(const std::string& dataset,
         const std::string& port,
         const BaselineMap& bmap,
         const unsigned int expansionFactor,
-        const double visSendFail)
+        const double visSendFail,
+        const int shelf)
     : itsBaselineMap(bmap), itsExpansionFactor(expansionFactor),
-        itsVisSendFailChance(visSendFail), itsCurrentRow(0), itsRandom(0.0, 1.0)
+        itsVisSendFailChance(visSendFail), itsShelf(shelf),
+        itsCurrentRow(0), itsRandom(0.0, 1.0)
 {
     if (expansionFactor > 1) {
         ASKAPLOG_DEBUG_STR(logger, "Using expansion factor of " << expansionFactor);
@@ -212,8 +214,16 @@ bool CorrelatorSimulator::sendNext(void)
                 continue;
             }
             payload.baselineid = baselineid;
+            unsigned int sliceOffset;
+            if (itsShelf == 1) {
+                sliceOffset = 0;
+            } else if (itsShelf == 2) {
+                sliceOffset = 8;
+            } else {
+                ASKAPTHROW(AskapError, "No support for more than two shelves yet");
+            }
             for (unsigned int slice = 0; slice < nSlices; ++slice) {
-                payload.slice = slice;
+                payload.slice = slice + sliceOffset;
                 for (unsigned int chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
                     const unsigned int offset = static_cast<unsigned int>(
                             ceil(((slice * N_CHANNELS_PER_SLICE) + chan) / itsExpansionFactor));
@@ -233,7 +243,7 @@ bool CorrelatorSimulator::sendNext(void)
                 // Sleep for a while to smooth the packet flow. This is an
                 // arbitary time suited to sending BETA scale datasets, and should
                 // be updated in future to be more general (TODO)
-                usleep(200);
+                usleep(50);
             }
         }
 

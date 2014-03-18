@@ -78,7 +78,8 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsInterrupted(false),
      itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
      itsMaxNBeams(params.getUint32("maxbeams", 0)),
-     itsBeamsToReceive(params.getUint32("beams2receive", 0))
+     itsBeamsToReceive(params.getUint32("beams2receive", 0)),
+     itsDuplicateDatagrams(0)
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
     const casa::MVEpoch dummyEpoch(56000.);
@@ -204,6 +205,11 @@ VisChunk::ShPtr MergedSource::next(void)
             " of expected " << datagramsExpected << " visibility datagrams");
     ASKAPLOG_DEBUG_STR(logger, "     - ignored " << datagramsIgnored
         << " successfully received datagrams");
+    if (itsDuplicateDatagrams > 0) {
+        ASKAPLOG_WARN_STR(logger, "     - " << itsDuplicateDatagrams
+                << " duplicate datagrams received");
+        itsDuplicateDatagrams = 0;
+    }
 
     // Submit monitoring data
     MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
@@ -215,7 +221,7 @@ VisChunk::ShPtr MergedSource::next(void)
     }
 
     // Apply any flagging specified in the TOS metadata
-    doFlagging(chunk, *itsMetadata);
+    //doFlagging(chunk, *itsMetadata);
 
     itsMetadata.reset();
     return chunk;
@@ -371,6 +377,13 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
+        // If the sample is already "unflagged" it means we have received it,
+        // and this VisChnk is a duplicate
+        if (chunk->flag()(row, chanOffset + chan, polidx) == false) {
+            ++itsDuplicateDatagrams;
+            return true;
+        }
+        
         casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
 
