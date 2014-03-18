@@ -66,6 +66,8 @@ if [ $model == "SKADS" ]; then
 
     IMAGING_DIRECTION="[12h30m00.00, -45.00.00.00, J2000]"
     IMAGING_MAXSUP=512
+    IMAGING_WTOL=2800
+    IMAGING_WMAX=2800
 #scienceMS=../MS/sciencefield_SKADS_2014-02-20-1203.ms
 #scienceMS=../MS/sciencefield_SKADS_30s_2014-02-24-0836.ms
     scienceMS=../MS/sciencefield_SKADS_5s_2014-02-24-1911.ms
@@ -75,14 +77,14 @@ else
 
     IMAGING_DIRECTION="[15h56m58.870,-79.14.04.28, J2000]"
     IMAGING_MAXSUP=1024
+    IMAGING_WTOL=1600
+    IMAGING_WMAX=1600
     scienceMS=../MS/sciencefield_BETAtestfield_5s_2014-03-05-1050.ms
     imagebase=image.i.clean.sciencefield.BETAtestfield
 
 fi
 
 # gridding parameters for imaging 
-IMAGING_WTOL=800
-IMAGING_WMAX=800
 IMAGING_NWPLANES=99
 IMAGING_OVERSAMPLE=4
 IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"

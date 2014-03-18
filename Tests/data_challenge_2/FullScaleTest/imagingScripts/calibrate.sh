@@ -79,9 +79,9 @@ Ccalibrator.sources.field1.components           = src
 Ccalibrator.sources.src.calibrator              = "1934-638"
 #
 Ccalibrator.gridder.snapshotimaging                 = true
-Ccalibrator.gridder.snapshotimaging.wtolerance      = 800
+Ccalibrator.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
 Ccalibrator.gridder                                 = ${calGridder}
-Ccalibrator.gridder.${calGridder}.wmax                  = ${wmaxCal}
+Ccalibrator.gridder.${calGridder}.wmax                  = ${IMAGING_WMAX}
 Ccalibrator.gridder.${calGridder}.nwplanes              = ${nwCal}
 Ccalibrator.gridder.${calGridder}.oversample            = ${osCal}
 Ccalibrator.gridder.${calGridder}.diameter              = 12m
