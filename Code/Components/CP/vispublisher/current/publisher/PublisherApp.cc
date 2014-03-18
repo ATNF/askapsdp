@@ -48,6 +48,7 @@
 // Local package includes
 #include "publisher/OutputMessage.h"
 #include "publisher/InputMessage.h"
+#include "publisher/SubsetExtractor.h"
 #include "publisher/ZmqPublisher.h"
 
 // Using
@@ -57,25 +58,6 @@ using namespace askap::cp::vispublisher;
 using boost::asio::ip::tcp;
 
 ASKAP_LOGGER(logger, ".PublisherApp");
-
-OutputMessage PublisherApp::buildOutputMessage(const InputMessage& in,
-                                               uint32_t beam, uint32_t pol)
-{
-    OutputMessage out;
-    out.timestamp() = in.timestamp();
-    out.beamId() = beam;
-    out.polId() = pol;
-    out.nChannels() = in.nChannels();
-    out.chanWidth() = in.chanWidth();
-    out.frequency() = in.frequency();
-    out.nBaselines() = 21;
-    out.antenna1().resize(21);
-    out.antenna2().resize(21);
-    out.visibilities().resize(21 * in.nChannels());
-    out.flag().resize(21 * in.nChannels());
-
-    return out;
-}
 
 int PublisherApp::run(int argc, char* argv[])
 {
@@ -107,7 +89,7 @@ int PublisherApp::run(int argc, char* argv[])
                 for (set<uint32_t>::const_iterator beamit = beamset.begin();
                         beamit != beamset.end(); ++beamit) {
                     for (uint32_t pol = 0; pol < N_POLS; ++pol) {
-                        OutputMessage outmsg = buildOutputMessage(inMsg, *beamit, pol);
+                        OutputMessage outmsg = SubsetExtractor::subset(inMsg, *beamit, pol);
                         ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << *beamit
                                 << " pol " << pol);
                         zmqpub.publish(outmsg);

@@ -41,24 +41,48 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief 
+/// @brief
 class InputMessage {
     public:
         InputMessage();
 
         static InputMessage build(boost::asio::ip::tcp::socket& socket);
 
-        uint64_t timestamp(void)  const;
-        uint32_t nRow(void) const;
-        uint32_t nPol(void) const;
-        uint32_t nChannels(void) const;
-        double chanWidth(void) const;
-        std::vector<double> frequency(void) const;
-        std::vector<uint32_t> antenna1(void) const;
-        std::vector<uint32_t> antenna2(void) const;
-        std::vector<uint32_t> beam(void) const;
-        std::vector< std::complex<float> > visibilities(void) const;
-        std::vector<uint8_t> flag(void) const;
+        uint64_t& timestamp(void);
+        const uint64_t& timestamp(void) const;
+
+        uint32_t& nRow(void);
+        const uint32_t& nRow(void) const;
+
+        uint32_t& nPol(void);
+        const uint32_t& nPol(void) const;
+
+        uint32_t& nChannels(void);
+        const uint32_t& nChannels(void) const;
+
+        double& chanWidth(void);
+        const double& chanWidth(void) const;
+
+        std::vector<double>& frequency(void);
+        const std::vector<double>& frequency(void) const;
+
+        std::vector<uint32_t>& antenna1(void);
+        const std::vector<uint32_t>& antenna1(void) const;
+
+        std::vector<uint32_t>& antenna2(void);
+        const std::vector<uint32_t>& antenna2(void) const;
+
+        std::vector<uint32_t>& beam(void);
+        const std::vector<uint32_t>& beam(void) const;
+
+        std::vector<uint32_t>& stokes(void);
+        const std::vector<uint32_t>& stokes(void) const;
+
+        std::vector< std::complex<float> >& visibilities(void);
+        const std::vector< std::complex<float> >& visibilities(void) const;
+
+        std::vector<uint8_t>& flag(void);
+        const std::vector<uint8_t>& flag(void) const;
 
     private:
 
@@ -93,6 +117,9 @@ class InputMessage {
 
         // Beam
         std::vector<uint32_t> itsBeam;
+
+        // Stokes
+        std::vector<uint32_t> itsStokes;
 
         // Visibilities (nChannels * nPols * nRows)
         std::vector< std::complex<float> > itsVisibilities;

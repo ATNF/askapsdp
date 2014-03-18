@@ -31,6 +31,8 @@
 #include "askap_vispublisher.h"
 
 // System includes
+#include <complex>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -57,63 +59,129 @@ InputMessage InputMessage::build(boost::asio::ip::tcp::socket& socket)
     msg.itsAntenna1 = readVector<uint32_t>(socket, msg.itsNRow);
     msg.itsAntenna2 = readVector<uint32_t>(socket, msg.itsNRow);
     msg.itsBeam = readVector<uint32_t>(socket, msg.itsNRow);
+    msg.itsStokes = readVector<uint32_t>(socket, msg.itsNPol);
     const size_t cubeSize = msg.itsNRow * msg.itsNChannel * msg.itsNPol;
     msg.itsVisibilities = readVector< std::complex<float> >(socket, cubeSize);
     msg.itsFlag = readVector<uint8_t>(socket, cubeSize);
     return msg;
 }
 
-uint32_t InputMessage::nRow(void) const
+uint32_t& InputMessage::nRow(void)
 {
     return itsNRow;
 }
 
-uint32_t InputMessage::nPol(void) const
+const uint32_t& InputMessage::nRow(void) const
+{
+    return itsNRow;
+}
+
+uint32_t& InputMessage::nPol(void)
 {
     return itsNPol;
 }
 
-uint32_t InputMessage::nChannels(void) const
+const uint32_t& InputMessage::nPol(void) const
+{
+    return itsNPol;
+}
+
+uint32_t& InputMessage::nChannels(void)
 {
     return itsNChannel;
 }
 
-uint64_t InputMessage::InputMessage::timestamp(void) const
+const uint32_t& InputMessage::nChannels(void) const
+{
+    return itsNChannel;
+}
+
+uint64_t& InputMessage::timestamp(void)
 {
     return itsTimestamp;
 }
 
-double InputMessage::chanWidth(void) const
+const uint64_t& InputMessage::timestamp(void) const
+{
+    return itsTimestamp;
+}
+
+double& InputMessage::chanWidth(void)
 {
     return itsChanWidth;
 }
 
-std::vector<double> InputMessage::frequency(void) const
+const double& InputMessage::chanWidth(void) const
+{
+    return itsChanWidth;
+}
+
+std::vector<double>& InputMessage::frequency(void)
 {
     return itsFrequency;
 }
 
-std::vector<uint32_t> InputMessage::antenna1(void) const
+const std::vector<double>& InputMessage::frequency(void) const
+{
+    return itsFrequency;
+}
+
+std::vector<uint32_t>& InputMessage::antenna1(void)
 {
     return itsAntenna1;
 }
 
-std::vector<uint32_t> InputMessage::antenna2(void) const
+const std::vector<uint32_t>& InputMessage::antenna1(void) const
+{
+    return itsAntenna1;
+}
+
+std::vector<uint32_t>& InputMessage::antenna2(void)
 {
     return itsAntenna2;
 }
 
-std::vector<uint32_t> InputMessage::beam(void) const
+const std::vector<uint32_t>& InputMessage::antenna2(void) const
+{
+    return itsAntenna2;
+}
+
+std::vector<uint32_t>& InputMessage::beam(void)
 {
     return itsBeam;
 }
 
-std::vector< std::complex<float> > InputMessage::visibilities(void) const
+const std::vector<uint32_t>& InputMessage::beam(void) const
+{
+    return itsBeam;
+}
+
+std::vector<uint32_t>& InputMessage::stokes(void)
+{
+    return itsStokes;
+}
+
+const std::vector<uint32_t>& InputMessage::stokes(void) const
+{
+    return itsStokes;
+}
+
+std::vector< std::complex<float> >& InputMessage::visibilities(void)
 {
     return itsVisibilities;
 }
 
-std::vector<uint8_t> InputMessage::flag(void) const
+const std::vector< std::complex<float> >& InputMessage::visibilities(void) const
+{
+    return itsVisibilities;
+}
+
+std::vector<uint8_t>& InputMessage::flag(void)
+{
+    return itsFlag;
+}
+
+const std::vector<uint8_t>& InputMessage::flag(void) const
 {
     return itsFlag;
 }
