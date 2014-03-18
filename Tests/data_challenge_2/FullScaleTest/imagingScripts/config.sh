@@ -46,25 +46,29 @@ osCal=4
 #inputCalMSbase=../MS/calibrator_J1934m638_2014-02-20-1203
 #inputCalMSbase=../MS/calibrator_J1934m638_30s_2014-02-24-0836
 #inputCalMSbase=../MS/calibrator_J1934m638_5s_2014-02-24-1911
-inputCalMSbase=../MS/calibrator_J1934m638_5s_2014-03-05-1050
+#inputCalMSbase=../MS/calibrator_J1934m638_5s_2014-03-05-1050
+inputCalMSbase=../MS/calibrator_J1934m638_5s_2014-03-06-0857
 
 ###################
 # Imaging parameters
 
-CONT_CLEAN_MPPWIDTH=913
-CONT_CLEAN_MPPNPPN=16
 CONT_CLEAN_FREQ=0.9e9
 
 # image size -- number of pixels and cellsize
-IMAGING_NUM_PIXELS=2048
 IMAGING_CELLSIZE=10arcsec
 
 #model=SKADS
 model=BETAtestfield
 
+
 if [ $model == "SKADS" ]; then
 
+    doMFS=true
+    CONT_CLEAN_MPPWIDTH=913
+    CONT_CLEAN_MPPNPPN=20
+
     IMAGING_DIRECTION="[12h30m00.00, -45.00.00.00, J2000]"
+    IMAGING_NUM_PIXELS=2048
     IMAGING_MAXSUP=512
     IMAGING_WTOL=2800
     IMAGING_WMAX=2800
@@ -74,11 +78,17 @@ if [ $model == "SKADS" ]; then
     imagebase=image.i.clean.sciencefield.SKADS
 
 else
+    
+    doMFS=false
+    CONT_CLEAN_MPPWIDTH=305
+    CONT_CLEAN_MPPNPPN=20
 
     IMAGING_DIRECTION="[15h56m58.870,-79.14.04.28, J2000]"
+    IMAGING_NUM_PIXELS=3072
     IMAGING_MAXSUP=1024
     IMAGING_WTOL=1600
     IMAGING_WMAX=1600
+#    scienceMS=../MS/sciencefield_BETAtestfield_5s_2014-03-05-1050.ms
     scienceMS=../MS/sciencefield_BETAtestfield_5s_2014-03-05-1050.ms
     imagebase=image.i.clean.sciencefield.BETAtestfield
 
@@ -89,8 +99,15 @@ IMAGING_NWPLANES=99
 IMAGING_OVERSAMPLE=4
 IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
 IMAGING_EQUALISE=True
+#IMAGING_CLEANSCALES="[0, 3, 10, 30]"
+IMAGING_CLEANSCALES="[0, 3, 10]"
 
-coarseMS=MS/coarseChan.ms
+doAverageMS=false
+if [ $doAverageMS == true ]; then
+    coarseMS=MS/coarseChan.ms
+else
+    coarseMS=`echo $scienceMS | sed -e 's/\.ms/-COARSE.ms/g'`
+fi
 END_CHANNEL_CREATECOARSE=16416
 
 

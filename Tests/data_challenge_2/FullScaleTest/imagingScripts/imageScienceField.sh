@@ -11,16 +11,24 @@ done
 count=1
 for type in image residual sensitivity; do
 
+    if [ $doMFS == true ]; then
+	mfsSuffix=".taylor.0"
+	nterms="linmos.nterms     = 2"
+    else
+	mfsSuffix=""
+	nterms="# no nterms parameter since not MFS"
+    fi
+
     if [ $type == "image" ]; then
-	imageInput="${imagebase}.BEAM0..8.taylor.0.restored"
-	imageOutput="${imagebase}.linmos.taylor.0.restored"
+	imageInput="${imagebase}.BEAM0..8${mfsSuffix}.restored"
+	imageOutput="${imagebase}.linmos${mfsSuffix}.restored"
     else
 	sedstr="s/^image\./${type}\./g"
-	imageInput=`echo $imagebase} | sed -e ${sedstr}`.BEAM0..8.taylor.0
-	imageOutput=`echo $imagebase} | sed -e ${sedstr}`.linmos.taylor.0
+	imageInput=`echo ${imagebase} | sed -e ${sedstr}`.BEAM0..8${mfsSuffix}
+	imageOutput=`echo ${imagebase} | sed -e ${sedstr}`.linmos${mfsSuffix}
     fi
-    weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8.taylor.0
-    weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos.taylor.0
+    weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8${mfsSuffix}
+    weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos${mfsSuffix}
 
     linmosqsub=linmos_${type}.qsub
     cat > $linmosqsub <<EOF
@@ -45,7 +53,7 @@ linmos.outname    = ${imageOutput}
 linmos.outweight  = ${weightsOutput}
 linmos.weighttype = FromWeightImages
 linmos.psfref     = 4
-linmos.nterms     = 2
+${nterms}
 EOF_INNER
 log=logs/linmos_${type}_\${PBS_JOBID}.log
 

@@ -3,29 +3,31 @@
 # Measurement Set Averaging (For Gains calibration and Continuum imaging)
 ##############################################################################
 
-# Create a directory to hold the output measurement sets
-AVGMSDIR=MS
-if [ ! -d ${AVGMSDIR} ]; then
-    mkdir ${AVGMSDIR}
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory ${AVGMSDIR}"
-        exit 1
-    fi
+if [ $doAverageMS == true ]; then
 
+# Create a directory to hold the output measurement sets
+    AVGMSDIR=MS
+    if [ ! -d ${AVGMSDIR} ]; then
+	mkdir ${AVGMSDIR}
+	if [ $? -ne 0 ]; then
+            echo "Error: Failed to create directory ${AVGMSDIR}"
+            exit 1
+	fi
+	
     # Will contain a small number of large files accessed
     # by multiple nodes, so stripe the files over a few
     # storage servers
-    lfs setstripe -c 8 MS
-fi
-
-if [ "${calDepend}" == "" ]; then
-    imdepend="-Wdepend=afterok"
-else
-    imdepend=${calDepend}
-fi
-
+	lfs setstripe -c 8 MS
+    fi
+    
+    if [ "${calDepend}" == "" ]; then
+	imdepend="-Wdepend=afterok"
+    else
+	imdepend=${calDepend}
+    fi
+    
 # Create the qsub file
-cat > split-coarse.qsub << EOF
+    cat > split-coarse.qsub << EOF
 #!/bin/bash
 ##PBS -W group_list=${QUEUEGROUP}
 #PBS -l mppwidth=1
@@ -63,14 +65,17 @@ EOF_INNER
 aprun \${mssplit} -c ${parsetdir}/mssplit-coarse.in > ${logdir}/mssplit-coarse.log
 EOF
 
-if [ ! -e ${coarseMS} ]; then
-    echo "MS Averaging: Submitting"
-    coarseID=`qsub ${depend} split-coarse.qsub`
-    calDepend="${calDepend}:${coarseID}"
-    imdepend="${imdepend}:${coarseID}"
+    if [ ! -e ${coarseMS} ]; then
+	echo "MS Averaging: Submitting"
+	coarseID=`qsub ${depend} split-coarse.qsub`
+	calDepend="${calDepend}:${coarseID}"
+	imdepend="${imdepend}:${coarseID}"
 #    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
 #    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
 #    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
-else
-    echo "MS Averaging: Skipping - Output already exists"
+    else
+	echo "MS Averaging: Skipping - Output already exists"
+    fi
+
 fi
+

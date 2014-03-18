@@ -3,11 +3,25 @@
 
 image=${imagebase}.BEAM${POINTING}
 
+if [ $doMFS == true ]; then
+
+    mfsParams="# Parameters needed for MFS:
+Cimager.Images.${image}.nterms             = 2
+Cimager.nworkergroups                           = 3
+Cimager.visweights                              = MFS
+Cimager.visweights.MFS.reffreq                  = ${CONT_CLEAN_FREQ}"
+
+else
+
+    mfsParams="# Not doing MFS"
+
+fi
+
 pbstag="cimSci${POINTING}"
 qsubfile=cim_Science_BEAM${POINTING}.qsub
 cat > $qsubfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=02:00:00
+#PBS -l walltime=03:00:00
 #PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
 #PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
 #PBS -N ${pbstag}
@@ -26,7 +40,6 @@ cat > \${imParset} << EOF_INNER
 Cimager.dataset                                 = ${coarseMS}
 Cimager.Feed                                    = ${POINTING}
 #
-Cimager.nworkergroups                           = 3
 # Each worker will read a single channel selection
 Cimager.Channels                                = [1, %w]
 #
@@ -36,11 +49,9 @@ Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING
 Cimager.Images.${image}.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.${image}.nchan              = 1
 Cimager.Images.${image}.direction          = ${IMAGING_DIRECTION}
-Cimager.Images.${image}.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
-Cimager.visweights                              = MFS
-Cimager.visweights.MFS.reffreq                  = ${CONT_CLEAN_FREQ}
+${mfsParams}
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
@@ -60,7 +71,7 @@ Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
 Cimager.solver.Clean.niter                      = 5000
 Cimager.solver.Clean.gain                       = 0.5
-Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
+Cimager.solver.Clean.scales                     = ${IMAGING_CLEANSCALES}
 Cimager.solver.Clean.verbose                    = False
 Cimager.solver.Clean.tolerance                  = 0.01
 Cimager.solver.Clean.weightcutoff               = zero
@@ -83,7 +94,7 @@ Cimager.restore.beam                            = fit
 # Apply calibration
 Cimager.calibrate                               = ${doCal}
 Cimager.calibaccess                             = parset
-Cimager.calibaccess.parset                      = caldata-combined.dat
+Cimager.calibaccess.parset                      = caldata-BEAM${POINTING}.dat
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
@@ -93,6 +104,10 @@ aprun -n ${CONT_CLEAN_MPPWIDTH} -N ${CONT_CLEAN_MPPNPPN}  \${cim} -c \${imParset
 EOF
 
 if [ $doSubmit == true ]; then
+
+    if [ "${imdepend}" == "" ]; then
+	imdepend="-Wdepend=afterok"
+    fi
 
     latestID=`qsub $calDepend $qsubfile`
     echo "Running cimager for science field, imaging ${ms} to create ${image}.restored: ID=${latestID}"
