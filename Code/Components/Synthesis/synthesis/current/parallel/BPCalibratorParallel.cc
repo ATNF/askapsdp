@@ -98,7 +98,7 @@ namespace synthesis {
 /// @param[in] comms communication object
 /// @param[in] parset ParameterSet for inputs
 BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& comms,
-          const LOFAR::ParameterSet& parset) : MEParallelApp(comms,parset), 
+          const LOFAR::ParameterSet& parset) : MEParallelApp(comms,emptyDatasetKeyword(parset)), 
       itsPerfectModel(new scimath::Params()), itsRefAntenna(-1), itsSolutionID(-1), itsSolutionIDValid(false)
 {
   ASKAPLOG_INFO_STR(logger, "Bandpass will be solved for using a specialised pipeline");
@@ -114,6 +114,9 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
       }
   }
   if (itsComms.isWorker()) {
+      // set datasets (we cannot rely on the code in base classes because we don't distribute by node here
+      setMeasurementSets(parset.getStringVector("dataset"));
+  
       /// Create solver in workers  
       itsSolver.reset(new scimath::LinearSolver);
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
@@ -135,16 +138,32 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
                    (itsComms.nProcs() - 1)<<" ranks, this one handles chunk "<<(itsComms.rank() - 1));
           itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()), itsComms.nProcs() - 1, itsComms.rank() - 1);
       } 
+
+      ASKAPCHECK((measurementSets().size() == 1) || (measurementSets().size() == nBeam()), 
+          "Number of measurement sets given in the parset ("<<measurementSets().size()<<
+          ") should be either 1 or equal the number of beams ("<<nBeam()<<")");      
   } 
   if (!itsComms.isParallel()) {
       // setup work units in the serial case - all work to be done here
       ASKAPLOG_INFO_STR(logger, "All work for "<<nBeam()<<" beams and "<<nChan()<<" channels will be handled by this rank");
       itsWorkUnitIterator.init(casa::IPosition(2, nBeam(), nChan()));
   }
-  ASKAPCHECK((measurementSets().size() == 1) || (measurementSets().size() == nBeam()), 
-       "Number of measurement sets given in the parset ("<<measurementSets().size()<<
-       ") should be either 1 or equal the number of beams ("<<nBeam()<<")");      
+
 }          
+
+/// @brief helper method to remove the dataset name from a parset
+/// @details We deal with multiple measurement sets in a dit different
+/// way from the other synthesis applications (they are not per worker
+/// here). This method allows to remove the string with measurement sets
+/// in the parset passed to base classes and replace it by empty string
+/// @param[in] parset input parset 
+/// @return a copy without the dataset keyword
+LOFAR::ParameterSet BPCalibratorParallel::emptyDatasetKeyword(const LOFAR::ParameterSet &parset)
+{
+  LOFAR::ParameterSet result(parset.makeSubset(""));
+  result.replace("dataset",std::string());
+  return result;
+}
 
 /// @brief method which does the main job
 /// @details it iterates over all channels/beams and writes the result.
@@ -189,6 +208,8 @@ void BPCalibratorParallel::run()
                // send the model to the master, add beam and channel tags first
                itsModel->add("beam",static_cast<double>(indices.first));
                itsModel->add("channel",static_cast<double>(indices.second));
+               itsModel->fix("beam");
+               itsModel->fix("channel");
                sendModelToMaster();                
            } else {
                // serial operation, just write the result

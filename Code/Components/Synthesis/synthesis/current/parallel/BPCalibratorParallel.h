@@ -152,6 +152,16 @@ namespace askap
       double solutionTime() const;
             
   private:
+      /// @brief helper method to remove the dataset name from a parset
+      /// @details We deal with multiple measurement sets in a dit different
+      /// way from the other synthesis applications (they are not per worker
+      /// here). This method allows to remove the string with measurement sets
+      /// in the parset passed to base classes and replace it by empty string
+      /// @param[in] parset input parset 
+      /// @return a copy without the dataset keyword
+      static LOFAR::ParameterSet emptyDatasetKeyword(const LOFAR::ParameterSet &parset);
+
+
       /// @brief read the model from parset file and populate itsPerfectModel
       /// @details This method is common between several classes and probably
       /// should be pushed up in the class hierarchy

@@ -89,6 +89,16 @@ protected:
    /// @return shared pointer to the gridder template
    inline IVisGridder::ShPtr gridder() const { return itsGridder; }
    
+
+protected:
+   /// @brief set the list of measurement sets
+   /// @details For bandpass calibration we need a different logic - number of measurement sets
+   /// is not 1, but less than the number of workers. Using this method allows to bypass
+   /// checks that the number of workers is equal to the number of measurement sets specified
+   /// in the parset
+   /// @param[in] ms vector with measurement sets
+   inline void setMeasurementSets(const std::vector<std::string>& ms) { itsMs = ms;}
+   
 private:   
 
    /// @brief name of the data column to use.
