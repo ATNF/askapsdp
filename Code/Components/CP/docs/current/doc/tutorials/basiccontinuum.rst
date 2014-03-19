@@ -62,7 +62,7 @@ Your working directory will not be within your home directory, instead it will r
 Retrieving the tutorial dataset
 -------------------------------
 
-There are 11 measurement sets associated with this tutorial. There are nine for the calibration observations (one per beam), named calibrator_J1934m638_forSKADS_BEAM0.ms through calibrator_J1934m638_forSKADS_BEAM8.ms (these are 2.6GB each). The science field has one at full spectral resolution, named sciencefield_SKADS.ms (291GB), and an averaged version of this named sciencefield_SKADS_coarseChan.ms (5.5GB). You can start with the full-resolution version, and run the channel averaging yourself (see below), or you can start with the latter, and skip the channel averaging. 
+There are 10 measurement sets associated with this tutorial. There are nine for the calibration observations (one per beam), named calibrator_J1934m638_forSKADS_BEAM0.ms through calibrator_J1934m638_forSKADS_BEAM8.ms (these are 2.6GB each). The science field has one measurement set, at full spectral resolution, named sciencefield_SKADS.ms (291GB).
 
 The measurement sets reside on the "Commissioning Archive" and can be retrieved using the scp command. As the measurement sets may need to be fetched from tape, they should be staged first. This can be done once on the directory::
 
@@ -84,7 +84,7 @@ The first step is to use the **ccalibrator** program to solve the gains calibrat
 
 Here is a basic parameter set for use with ccalibrator. It has the same sort of structure as the imaging one you would have seen in the intro tutorial, with a few calibration-specific parameters. As ususal, refer to the documentation pages on calibration, gridding and so forth for more details.::
 
-	Ccalibrator.dataset                               = calibrator_J1934m638_5s_2014-02-24-1911_BEAM0.ms
+	Ccalibrator.dataset                               = calibrator_J1934m638_forSKADS_BEAM0.ms
 	Ccalibrator.nAnt                                  = 6
 	Ccalibrator.nBeam                                 = 9
 	Ccalibrator.solve                                 = gains
@@ -98,9 +98,9 @@ Here is a basic parameter set for use with ccalibrator. It has the same sort of 
 	Ccalibrator.sources.src.calibrator                = "1934-638"
 	#						  
 	Ccalibrator.gridder.snapshotimaging               = true
-	Ccalibrator.gridder.snapshotimaging.wtolerance    = 800
+	Ccalibrator.gridder.snapshotimaging.wtolerance    = 2800
 	Ccalibrator.gridder                               = AWProject
-	Ccalibrator.gridder.AWProject.wmax                = 800
+	Ccalibrator.gridder.AWProject.wmax                = 2800
 	Ccalibrator.gridder.AWProject.nwplanes            = 129
 	Ccalibrator.gridder.AWProject.oversample          = 4
 	Ccalibrator.gridder.AWProject.diameter            = 12m
@@ -167,29 +167,7 @@ The above finds the correct gains for beam 0. To solve them for all other beams,
 
 All other parameters (for now) can remain the same. The direction, importantly, is the same as this is the phase centre for the observation, which has been defined such that it is in the centre of the beam of interest for each measurement set.
 
-This is something that can easily be scripted. Here is one possible solution using a bash script, that creates parsets and qsub files, and submits each qsub file to the queue::
-
-	#!/usr/bin/env bash
-	
-	NUM=0
-	while [ $NUM -lt 9 ]; do
-	    parset="calibrator-BEAM${NUM}.in"
-	    cat > $parset << EOF
-	Ccalibrator.dataset                               = calibrator_J1934m638_5s_2014-02-24-1911_BEAM${NUM}.ms
-	< other parset contents follow >
-	EOF
-	
-	    qsubfile="calibrator-BEAM${NUM}.qsub"
-	    cat > $qsubfile << EOF
-	< qsub contents as above>
-	aprun -n 1 -N 1 ccalibrator -c calibrator-BEAM${NUM}.in > calibrator-BEAM${NUM}_\${PBS_JOBID}.log
-	EOF
-	
-	    qsub $qsubfile
-	
-	    NUM=`expr $NUM + 1`
-	done
-
+This is something that could easily be scripted in one of a variety of ways - this is left as an exercise for the reader! By the end, you should have a set of calibration parsets *caldata-BEAM0.dat* through *caldata-BEAM8.dat*. These will be used to calibrate the individual beam images that will be made next. 
 
 Channel averaging
 -----------------
@@ -458,8 +436,8 @@ Close examination of the resulting image will show various features and artefact
 
 * Does it just require deeper cleaning? You can change the number of major cycles using the *Cimager.ncycles* parameter (you may need to increase the time requested in the qsub file.) You can also change the threshold levels for both the minor and major cycles (*Cimager.threshold.minorcycle* and *Cimager.threshold.majorcycle*).
 * Is the multi-scale clean capturing all the necessary structure? (This may be important for the bright, extended source at top.) You could try adding a larger-scale term to the *Cimager.solver.Clean.scales* list, although this can result in large-scale noise being added as well, so beware (I have tried it with *[0,3,10,30]*, and found large scale ripples appeared - perhaps these would disappear with better weighting. See the next point).
-* The preconditioning of the data will likely have an effect as well. The imaging done above used both Wiener filtering and Gaussian tapering, and both of these can be altered or removed. Some idea of the effect of different values of the parameters can be seen on Emil's `PSF simulations`_ page.
-* The fidelity of the image can also be improved by tweaking the gridding parameters, although this can be fiddly. Increasing the oversampling, for instance, can improve the image quality at the expense of greater memory usage. If your job fails due to running out of memory, you can decrease the number of processors per node - change the *mppnppn* to 16, say, from 20, as well as the *-N* flag for the aprun call. You will likely have to increase the maxsupport parameter as well - try going up in factors of 2.
+* The preconditioning of the data will likely have an effect as well. The imaging done above used both Wiener filtering and Gaussian tapering, and both of these can be altered or removed. Some idea of the effect of different values of the parameters can be seen on Emil's `PSF simulations`_ page (which I've moved to my website, but it remains the same...).
+* The fidelity of the image can also be improved by tweaking the gridding parameters, although this can be fiddly. Increasing the oversampling, for instance, can improve the image quality at the expense of greater memory usage. If your job fails due to running out of memory, you can decrease the number of processors per node - change the *mppnppn* to 16, say, from 20, as well as the *-N* flag for the aprun call. You will likely have to increase the maxsupport parameter as well - try going up in factors of 2. See :doc:`../calim/gridder` for explanations of the gridding parameters.
 
   .. _PSF simulations: http://www.atnf.csiro.au/people/Matthew.Whiting/ASKAP/psf/weighted/view.html
 
