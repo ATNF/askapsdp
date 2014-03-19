@@ -13,6 +13,7 @@ data sets i.e. Hundereds of TB per hour.
    cimager.rst
    csimulator.rst
    ccalibrator.rst
+   cbpcalibrator.rst
    ccalapply.rst
    gridder.rst
    solver.rst
