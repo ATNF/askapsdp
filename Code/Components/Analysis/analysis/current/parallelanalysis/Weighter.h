@@ -74,6 +74,7 @@ namespace askap {
 	    duchamp::Cube *itsCube;
 	    float itsNorm;
 	    float itsWeightCutoff;
+	    std::string itsCutoffType;
 	    bool itsFlagDoScaling;
 	    casa::Array<casa::Float> itsWeights;
 

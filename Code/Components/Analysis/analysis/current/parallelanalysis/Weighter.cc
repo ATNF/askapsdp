@@ -62,6 +62,11 @@ namespace askap {
       if(this->itsComms->isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsImage);
       this->itsFlagDoScaling = parset.getBool("scaleByWeights",false);
       this->itsWeightCutoff = parset.getFloat("weightsCutoff",-1.);
+      this->itsCutoffType = parset.getString("weightsCutoffType","zero");
+      if(this->itsCutoffType != "zero" && this->itsCutoffType != "blank"){
+	ASKAPLOG_WARN_STR(logger, "\"weightsCutoffType\" can only be \"zero\" or \"blank\" - setting to \"zero\"");
+	this->itsCutoffType = "zero";
+      }
     }
 
     Weighter::Weighter(const Weighter& other)
@@ -76,6 +81,9 @@ namespace askap {
       this->itsImage = other.itsImage;
       this->itsCube = other.itsCube;
       this->itsNorm = other.itsNorm;
+      this->itsWeightCutoff = other.itsWeightCutoff;
+      this->itsCutoffType = other.itsCutoffType;
+      this->itsFlagDoScaling = other.itsFlagDoScaling;
       this->itsWeights = other.itsWeights;
       return *this;
     }
@@ -172,9 +180,17 @@ namespace askap {
 	ASKAPASSERT(this->itsCube->getSize() == this->itsWeights.size());
 	ASKAPASSERT(this->itsCube->getRecon() > 0);
 	    
-	float blankValue = this->itsCube->pars().getBzeroKeyword() + this->itsCube->pars().getBlankKeyword()*this->itsCube->pars().getBscaleKeyword();
-	ASKAPASSERT(this->itsCube->pars().isBlank(blankValue));//, "Blank value failed isBlank test in Weighter::applyCutoff");
-	    
+	float blankValue;
+	if(this->itsCutoffType == "zero") blankValue = 0.;
+	else if(this->itsCutoffType == "blank"){
+	  blankValue = this->itsCube->pars().getBzeroKeyword() + this->itsCube->pars().getBlankKeyword()*this->itsCube->pars().getBscaleKeyword();
+	  ASKAPASSERT(this->itsCube->pars().isBlank(blankValue));//, "Blank value failed isBlank test in Weighter::applyCutoff");
+	}
+	else {
+	  ASKAPLOG_WARN_STR(logger, "Bad value for \"weightsCutoffType\" - using 0.");
+	  blankValue=0.;
+	}
+
 	for(size_t i=0; i<this->itsCube->getSize();i++){
 	  if(this->weight(i) < this->itsWeightCutoff)
 	    this->itsCube->getArray()[i] = blankValue;
