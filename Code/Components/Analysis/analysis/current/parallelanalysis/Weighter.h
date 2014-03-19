@@ -55,6 +55,14 @@ namespace askap {
 	    void initialise(duchamp::Cube &cube, bool doAllocation=true);
 	    float weight(size_t i);
 	    void search();
+	    void applyCutoff();
+	    float cutoff(){return itsWeightCutoff;};
+
+	    bool fileOK(){return (itsImage!="");};
+	    bool doApplyCutoff(){return fileOK() && (itsWeightCutoff>0.);};
+	    bool doScaling(){return fileOK() && itsFlagDoScaling;};
+	   
+	    bool isValid(){return fileOK() && (doScaling() || doApplyCutoff());};
 
 	protected:
 	    void findNorm();
@@ -65,6 +73,8 @@ namespace askap {
 	    duchamp::Section itsSection;
 	    duchamp::Cube *itsCube;
 	    float itsNorm;
+	    float itsWeightCutoff;
+	    bool itsFlagDoScaling;
 	    casa::Array<casa::Float> itsWeights;
 
 	};

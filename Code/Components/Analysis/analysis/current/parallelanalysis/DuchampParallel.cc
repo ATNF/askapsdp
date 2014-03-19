@@ -183,10 +183,7 @@ namespace askap {
 
 	    this->itsFlagThresholdPerWorker = this->itsParset.getBool("thresholdPerWorker",false);
 	    
-            this->itsFlagWeightImage = this->itsParset.getBool("WeightScaling", false);
-            if (this->itsFlagWeightImage){
-		this->itsWeighter = new Weighter(this->itsComms, this->itsParset.makeSubset("WeightScaling."));
-	    }
+	    this->itsWeighter = new Weighter(this->itsComms, this->itsParset.makeSubset("Weights."));
 
             this->itsFlagVariableThreshold = this->itsParset.getBool("VariableThreshold", false);
 	    this->itsVarThresher = new VariableThresholder(this->itsComms,this->itsParset.makeSubset("VariableThreshold."));
@@ -330,7 +327,7 @@ namespace askap {
 	    this->checkAndWarn("ThresholdImageName","VariableThreshold.ThresholdImageName");
 	    this->checkAndWarn("flagWriteNoiseImage","");
 	    this->checkAndWarn("NoiseImageName","VariableThreshold.NoiseImageName");
-	    this->checkAndWarn("weightsimage","WeightScaling.weightsImage");
+	    this->checkAndWarn("weightsimage","Weights.weightsImage");
 	}
 
 
@@ -527,9 +524,9 @@ namespace askap {
                                           << "About to read data from image " << this->itsCube.pars().getFullImageFile());
 
 		    bool flag=this->itsCube.pars().getFlagATrous();
-		    if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(true);
+		    if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(true);
                     result = this->itsCube.getCube();
-		    if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(flag);
+		    if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(flag);
 
                 } else { // if it's a CASA image
 		  result = getCASA(IMAGE);
@@ -607,12 +604,19 @@ namespace askap {
 		  this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
 		  this->itsVarThresher->calculate();
 	      }
-	      if(this->itsFlagWeightImage){
+	      if(this->itsWeighter->isValid() ){
 		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
 	      }
 	  }	      
 
 	  if(itsComms.isWorker()){
+
+	    if(this->itsWeighter->isValid() ){
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Preparing weights image");
+	      this->itsWeighter->initialise(this->itsCube);
+	      if(this->itsWeighter->doApplyCutoff())
+		this->itsWeighter->applyCutoff();
+	    }
 
 	    if(this->itsCube.pars().getFlagNegative()){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
@@ -623,10 +627,10 @@ namespace askap {
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Defining the variable threshold maps");
 		this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
 		this->itsVarThresher->calculate();
-	    } else if (this->itsFlagWeightImage){
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Initialising the weight scaling");
-		this->itsWeighter->initialise(this->itsCube);
-	    }
+	    } // else if (this->itsFlagWeightImage){
+	    // 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Initialising the weight scaling");
+	    // 	this->itsWeighter->initialise(this->itsCube);
+	    // }
 	    else if( this->itsFlagWavelet2D1D ){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reconstructing with the 2D1D wavelet algorithm");
 	      Recon2D1D recon2d1d(this->itsParset.makeSubset("recon2D1D."));
@@ -685,10 +689,9 @@ namespace askap {
                     if (this->itsFlagVariableThreshold) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching with a variable threshold");
 			this->itsVarThresher->search();
-		    } else if (this->itsFlagWeightImage){
+		    } else if (this->itsWeighter->doScaling()){
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weight scaling");
 		      this->itsWeighter->search();
-		      delete this->itsWeighter;
                     } else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
@@ -700,6 +703,9 @@ namespace askap {
                         this->itsCube.CubicSearch();
                     }
                 }
+
+		if(this->itsWeighter->isValid()) 
+		  delete this->itsWeighter;
 
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects. Now merging.");
 
@@ -2049,9 +2055,9 @@ namespace askap {
 // 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
 	  bool flag=this->itsCube.pars().getFlagATrous();
-	  if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(true);
+	  if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(true);
 	  this->itsCube.initialiseCube(dim);
-	  if(this->itsFlagVariableThreshold || this->itsFlagWeightImage) this->itsCube.pars().setFlagATrous(flag);
+	  if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(flag);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
 	  }
