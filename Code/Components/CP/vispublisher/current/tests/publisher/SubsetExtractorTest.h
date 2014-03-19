@@ -66,6 +66,8 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
 
             itsInMsg.frequency().push_back(1.0);
             itsInMsg.frequency().push_back(2.0);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(N_CHAN),
+                    itsInMsg.frequency().size());
 
             // Row 1
             itsInMsg.antenna1().push_back(0);
@@ -82,6 +84,21 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
             itsInMsg.antenna2().push_back(2);
             itsInMsg.beam().push_back(0);
 
+            // Row 4
+            itsInMsg.antenna1().push_back(0);
+            itsInMsg.antenna2().push_back(1);
+            itsInMsg.beam().push_back(1);
+
+            // Row 5
+            itsInMsg.antenna1().push_back(0);
+            itsInMsg.antenna2().push_back(2);
+            itsInMsg.beam().push_back(1);
+
+            // Row 6
+            itsInMsg.antenna1().push_back(1);
+            itsInMsg.antenna2().push_back(2);
+            itsInMsg.beam().push_back(1);
+
             // Stokes
             for (uint32_t pol = 0; pol < N_POL; ++pol) {
                 itsInMsg.stokes().push_back(pol);
@@ -96,7 +113,8 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
                 for (size_t chan = 0; chan < N_CHAN; ++chan) {
                     for (size_t pol = 0; pol < N_POL; ++pol) {
                         flag(row, chan, pol) = 1;
-                        vis(row, chan, pol) = 1.0 * chan;
+                        vis(row, chan, pol) = visgen(chan, itsInMsg.antenna1()[row],
+                                itsInMsg.antenna2()[row], itsInMsg.beam()[row], pol);
                     }
                 }
             }
@@ -140,7 +158,9 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
                         for (size_t chan = 0; chan < N_CHAN; ++chan) {
                             const size_t idx = chan + (N_CHAN * baseline);
                             CPPUNIT_ASSERT(idx < N_BASELINE * N_CHAN);
-                            CPPUNIT_ASSERT_EQUAL(std::complex<float>(1.0 * chan), vis[idx]);
+                            complex<float> expected = visgen(chan, out.antenna1()[baseline],
+                                    out.antenna2()[baseline], beam, pol);
+                            CPPUNIT_ASSERT_EQUAL(expected, vis[idx]);
                             CPPUNIT_ASSERT_EQUAL(static_cast<uint8_t>(1), flag[idx]);
                         }
                     }
@@ -178,7 +198,7 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(0ul, SubsetExtractor::inIndex(0, 0, 0, N_CHAN, N_ROW));
 
             // Test last element
-            CPPUNIT_ASSERT_EQUAL(23ul, SubsetExtractor::inIndex(N_ROW - 1, N_CHAN - 1, N_POL - 1,
+            CPPUNIT_ASSERT_EQUAL(sz - 1, SubsetExtractor::inIndex(N_ROW - 1, N_CHAN - 1, N_POL - 1,
                         N_CHAN, N_ROW));
         }
 
@@ -206,6 +226,19 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(0ul, ant2.size());
         }
 
+        /// Generates visibilities based on indexing information. Is used to populate
+        /// the datta structure and then as expected values
+        static std::complex<float> visgen(uint32_t chan, uint32_t ant1,
+                uint32_t ant2, uint32_t beam, uint32_t pol) {
+            // Note: the "magic numbers" below are just some prime numbers
+            float val = chan * 433;
+            val += ant1 * 809;
+            val += ant2 * 929;
+            val += beam * 67;
+            val += pol * 347;
+            return val;
+        }
+
     private:
 
         InputMessage itsInMsg;
@@ -215,7 +248,7 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
         static const uint32_t N_BASELINE;
 };
 
-const uint32_t SubsetExtractorTest::N_BEAM = 1;
+const uint32_t SubsetExtractorTest::N_BEAM = 2;
 const uint32_t SubsetExtractorTest::N_CHAN = 2;
 const uint32_t SubsetExtractorTest::N_POL = 4;
 const uint32_t SubsetExtractorTest::N_BASELINE = 3;
