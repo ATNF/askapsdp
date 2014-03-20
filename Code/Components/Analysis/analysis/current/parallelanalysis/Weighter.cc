@@ -173,6 +173,14 @@ namespace askap {
       return sqrt(this->itsWeights.data()[i]/this->itsNorm);
     }
 
+    bool Weighter::isValid(size_t i)
+    {
+      if (this->doApplyCutoff()) 
+	return (this->itsWeights.data()[i] > this->itsWeightCutoff);
+      else 
+	return true;
+    }
+
     void Weighter::applyCutoff()
     {
       if (this->itsWeightCutoff > 0.){
@@ -192,8 +200,7 @@ namespace askap {
 	}
 
 	for(size_t i=0; i<this->itsCube->getSize();i++){
-	  if(this->weight(i) < this->itsWeightCutoff)
-	    this->itsCube->getArray()[i] = blankValue;
+	  if(! this->isValid(i)) this->itsCube->getArray()[i] = blankValue;
 	}
 
       }

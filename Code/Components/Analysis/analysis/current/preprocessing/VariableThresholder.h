@@ -39,6 +39,7 @@
 #include <casa/Arrays/Slicer.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/aipstype.h>
+#include <parallelanalysis/Weighter.h>
 
 namespace askap {
 
@@ -71,6 +72,7 @@ namespace askap {
 	    virtual ~VariableThresholder(){};
 
 	    void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
+	    void setWeighter(Weighter *weighter){itsWeighter = weighter;};
 	    void setFilenames(askap::askapparallel::AskapParallel& comms);
 	    void calculate();
 	    void search();
@@ -80,7 +82,7 @@ namespace askap {
 	protected:
 	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc, bool doCreate);
 	    void writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc);
-	    void defineChunk(casa::Array<casa::Float> &chunk, size_t ctr);
+	    void defineChunk(casa::Array<Float> &inputChunkArr, casa::MaskedArray<Float> &outputChunk, size_t ctr);
 	    void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
 
 	    /// @brief The MPI communication information
@@ -114,6 +116,7 @@ namespace askap {
 	    /// @brief The subimage definition
 	    analysisutilities::SubimageDef *itsSubimageDef;
 	    duchamp::Cube *itsCube;
+	    Weighter *itsWeighter;
 	    casa::Slicer itsSlicer;
 	    casa::IPosition itsInputShape;
 	    casa::IPosition itsLocation;

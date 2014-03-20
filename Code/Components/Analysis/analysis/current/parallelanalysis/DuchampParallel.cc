@@ -626,6 +626,7 @@ namespace askap {
 	    if (this->itsFlagVariableThreshold) {
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Defining the variable threshold maps");
 		this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
+		if(this->itsWeighter->doApplyCutoff()) this->itsVarThresher->setWeighter(this->itsWeighter);
 		this->itsVarThresher->calculate();
 	    } // else if (this->itsFlagWeightImage){
 	    // 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Initialising the weight scaling");

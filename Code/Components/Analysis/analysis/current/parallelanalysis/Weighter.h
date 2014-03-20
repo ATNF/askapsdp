@@ -60,6 +60,7 @@ namespace askap {
 
 	    bool fileOK(){return (itsImage!="");};
 	    bool doApplyCutoff(){return fileOK() && (itsWeightCutoff>0.);};
+	    bool isValid(size_t i);
 	    bool doScaling(){return fileOK() && itsFlagDoScaling;};
 	   
 	    bool isValid(){return fileOK() && (doScaling() || doApplyCutoff());};

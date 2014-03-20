@@ -205,6 +205,7 @@ namespace askap {
 		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
+		casa::MaskedArray<Float> inputMaskedChunk(inputChunk,casa::LogicalArray(chunkshape,true));
 		casa::Array<Float> middle(chunkshape,0.);
 		casa::Array<Float> spread(chunkshape,0.);
 		casa::Array<Float> snr(chunkshape,0.);
@@ -222,11 +223,14 @@ namespace askap {
 		loc = loc + this->itsLocation;
 		
 		if(this->itsComms->isWorker()){
-		  this->defineChunk(inputChunk,ctr);
-		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
-		    snr = calcSNR(inputChunk,middle,spread);
+		  this->defineChunk(inputChunk,inputMaskedChunk,ctr);
+		  //		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
+		  slidingBoxMaskedStats(inputMaskedChunk, middle, spread, box, this->itsFlagRobustStats);
+		    // snr = calcSNR(inputChunk,middle,spread);
+		    snr = calcMaskedSNR(inputMaskedChunk,middle,spread);
 		    if(this->itsBoxSumImageName!=""){
-			boxsum = slidingArrayMath(inputChunk, box, SumFunc<Float>());
+			// boxsum = slidingArrayMath(inputChunk, box, SumFunc<Float>());
+		      boxsum = slidingArrayMath(inputMaskedChunk, box, MaskedSumFunc<Float>());
 		    }
 		}
 
@@ -242,18 +246,29 @@ namespace askap {
    
 	}
 
-	void VariableThresholder::defineChunk(casa::Array<Float> &chunk, size_t ctr)
+      void VariableThresholder::defineChunk(casa::Array<Float> &inputChunkArr, casa::MaskedArray<Float> &outputChunk, size_t ctr)
 	{
-	    casa::Array<Float>::iterator iter(chunk.begin());
+	    casa::Array<Float>::iterator iter(inputChunkArr.begin());
 	    int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
 	    int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
 	    size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
+	    casa::LogicalArray theMask(inputChunkArr.shape(),true);
+	    casa::LogicalArray::iterator itermask=theMask.begin();
 	    if(this->itsSearchType == "spatial"){
-		for(size_t i=0;iter!=chunk.end();iter++,i++) *iter = this->itsCube->getArray()[i+ctr*spatsize];
+	      for(size_t i=0;iter!=inputChunkArr.end();iter++,i++,itermask++){
+		size_t pos=i+ctr*spatsize;
+		*iter = this->itsCube->getArray()[pos];
+		*itermask = (!this->itsCube->isBlank(pos) || this->itsWeighter->isValid(pos));
+	      }
 	    }
 	    else{
-		for(size_t z=0;iter!=chunk.end();iter++,z++) *iter = this->itsCube->getArray()[ctr+z*spatsize];
+	      for(size_t z=0;iter!=inputChunkArr.end();iter++,z++,itermask++){
+		size_t pos = ctr+z*spatsize;
+		*iter = this->itsCube->getArray()[pos];
+		*itermask = (!this->itsCube->isBlank(pos) && this->itsWeighter->isValid(pos));
+	      }
 	    }
+	    outputChunk.setData(inputChunkArr,theMask);
 	}
 
 	void VariableThresholder::saveSNRtoCube(casa::Array<Float> &snr, size_t ctr)
