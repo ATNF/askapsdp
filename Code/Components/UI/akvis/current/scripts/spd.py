@@ -19,7 +19,7 @@ import threading
 import time
 import re
 import matplotlib.ticker as ticker
-from askap.akviz import corr_summary
+from askap.akvis import corr_summary
 import zmq
 import struct
 #__version__ = '0.1'
