@@ -1,0 +1,3 @@
+py-askap=Code/Base/py-askap/current
+scipy=3rdParty/scipy/scipy-0.11.0
+#py-zeromq=3rdParty/

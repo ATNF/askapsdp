@@ -1,0 +1,3 @@
+pymodule=askap.akvis
+# pure python module
+libs=
