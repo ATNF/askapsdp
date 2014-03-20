@@ -176,7 +176,7 @@ namespace askap {
     bool Weighter::isValid(size_t i)
     {
       if (this->doApplyCutoff()) 
-	return (this->itsWeights.data()[i] > this->itsWeightCutoff);
+	return (this->itsWeights.data()[i]/this->itsNorm > this->itsWeightCutoff);
       else 
 	return true;
     }
