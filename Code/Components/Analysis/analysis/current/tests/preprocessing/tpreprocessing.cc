@@ -32,6 +32,7 @@
 
 // Test includes
 #include <SlidingMathTests.h>
+#include <MaskedSlidingMathTests.h>
 
 int main(int argc, char *argv[])
 {
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
     }
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::analysis::SlidingMathTest::suite());
+    runner.addTest(askap::analysis::MaskedSlidingMathTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

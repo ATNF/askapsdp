@@ -205,7 +205,6 @@ namespace askap {
 		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
 		bool isStart=(ctr==0);
 		casa::Array<Float> inputChunk(chunkshape,0.);
-		if(this->itsComms->isWorker()) this->defineChunk(inputChunk,ctr);
 		casa::Array<Float> middle(chunkshape,0.);
 		casa::Array<Float> spread(chunkshape,0.);
 		casa::Array<Float> snr(chunkshape,0.);
@@ -223,6 +222,7 @@ namespace askap {
 		loc = loc + this->itsLocation;
 		
 		if(this->itsComms->isWorker()){
+		  this->defineChunk(inputChunk,ctr);
 		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
 		    snr = calcSNR(inputChunk,middle,spread);
 		    if(this->itsBoxSumImageName!=""){
