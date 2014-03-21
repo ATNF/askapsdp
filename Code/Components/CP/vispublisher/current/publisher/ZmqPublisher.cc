@@ -32,6 +32,8 @@
 
 // System includes
 #include <stdint.h>
+#include <string>
+#include <sstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"

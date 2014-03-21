@@ -39,22 +39,62 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief TODO: Write documentation...
+/// @brief Pure utility class that provides functionality to extract subsets of
+/// the input message for sending on the ZeroMQ socket.
 class SubsetExtractor {
     public:
 
-        static OutputMessage subset(const InputMessage& in, uint32_t beam, uint32_t pol);
+        /// Extract a subset of the InputMessage.
+        //
+        /// @param[in] in   the input message from which the subset will be extracted.
+        /// @param[in] beam the only extract data for this beam.
+        /// @param[in] pol  the only extract data for this polarisation product.
+        /// @return An OutputMessage instance which corresponds to the data for a
+        ///         specific beam and polarisation of the InputMessage.
+        static OutputMessage subset(const InputMessage& in, uint32_t beam,
+                                    uint32_t pol);
 
     private:
 
+        /// Creates filtered antenna index vectors.
+        /// The InputMessgae will likely contain data for multiple beams in its
+        /// antenna index vectors. This function builds ant1 and ant2 vectors for
+        /// only the selected beam. For example given these input vectors in
+        /// InputMessage:
+        /// <CODE>
+        /// beam = [0, 0, 0, 1, 1, 1]
+        /// ant1 = [0, 0, 1, 0, 0, 1]
+        /// ant2 = [0, 1, 1, 0, 1, 1]
+        /// </CODE>
+        /// the output should be if beam==1 is specified:
+        /// <CODE>
+        /// ant1out = [0, 0, 1]
+        /// ant2out = [0, 1, 1]
+        /// </CODE>
+        ///
+        /// @param[in] in   the input message to read the indexing vectors from. 
+        /// @param[in] beam the beam number to extract vectors for.
+        /// @param[out] ant1out the beam-n only subset of the antenna1 vector
+        ///                     in the InputMessage.
+        /// @param[out] ant2out the beam-n only subset of the antenna2 vector
+        ///                     in the InputMessage.
+        /// @return the size of the resulting ant1out and ant2out vectors (they are
+        ///         both guaranteed to be of equal length.
         static uint32_t makeAntennaVectors(const InputMessage& in, uint32_t beam,
                                            std::vector<uint32_t>& ant1out,
                                            std::vector<uint32_t>& ant2out);
 
-        static size_t inIndex(size_t row, size_t chan, size_t pol, size_t nChannels, size_t nPol);
+        /// Index into the InputMessage, converting a 3D index into a 1D index.
+        /// Given a 3D index, that is: row, channel, and polarisation (plus the dimensions),
+        /// return a 1D index.
+        static size_t inIndex(size_t row, size_t chan, size_t pol,
+                              size_t nChannels, size_t nPol);
 
+        /// Returns the element index of the first instance of "val" in the
+        /// vector "v".
         static size_t indexOfFirst(const std::vector<uint32_t>& v, uint32_t val);
 
+        /// For unit testing
         friend class SubsetExtractorTest;
 };
 

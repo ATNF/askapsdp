@@ -39,27 +39,62 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief 
+/// @brief Encapsulates the message published by the vispublisher.
+/// The accessor methods return references to the member variables
+/// for reasons of performance. This allows the message to be populated
+/// without any copying.
 class OutputMessage {
     public:
+        /// @brief Constructor.
         OutputMessage();
 
+        /// Encodes this instance of OutputMessage to the zmq::message passed.
+        ///
+        /// @param[out] msg     the message object to populate. This message
+        ///                     will be rebuilt (resized) and then its contents
+        ///                     will be populated with a serialised instance of
+        ///                     this class.
         void encode(zmq::message_t& msg) const;
 
+        /// Binary Atomic Time (BAT) of the correlator integration midpoint.
+        /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t& timestamp(void) { return itsTimestamp; };
+
+        /// Beam ID (zero based)
         uint32_t& beamId(void) { return itsBeamId; };
+
+        /// Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
         uint32_t& polId(void) { return itsPolarisationId; };
+
+        /// Number of spectral channels
         uint32_t& nChannels(void) { return itsNChannels; };
+
+        /// Channel width (in Hz)
         double& chanWidth(void) { return itsChanWidth; };
+
+        /// Freqency (in Hz) for each of the nChannels
         std::vector<double>& frequency(void) { return itsFrequency; };
+
+        /// Number of baselines
         uint32_t& nBaselines(void) { return itsNBaselines; };
+
+        /// Antenna 1 - Maps for baseline index to antenna index
         std::vector<uint32_t>& antenna1(void) { return itsAntenna1; };
+
+        /// Antenna 2 - Maps for baseline index to antenna index
         std::vector<uint32_t>& antenna2(void) { return itsAntenna2; };
+
+        /// Visibilities (nChannels * nBaselines)
         std::vector< std::complex<float> >& visibilities(void) { return itsVisibilities; };
+
+        /// Flag (nChannels * nBaselines)
+        /// 0=Visibility not flagged, 1=Visibility flagged
         std::vector< uint8_t >& flag(void) { return itsFlag; };
 
     private:
 
+        /// Returns the number of bytes required to encode this message.
+        /// This is used by encode() to build a message object.
         size_t sizeInBytes(void) const;
 
         template <typename T>
@@ -68,39 +103,39 @@ class OutputMessage {
         template <typename T>
         static uint8_t* pushBackVector(const std::vector<T>& src, uint8_t* ptr);
 
-        // Binary Atomic Time (BAT) of the correlator integration midpoint.
-        // The number of microseconds since Modified Julian Day (MJD) = 0
+        /// Binary Atomic Time (BAT) of the correlator integration midpoint.
+        /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t itsTimestamp;
 
-        // Beam ID (zero based)
+        /// Beam ID (zero based)
         uint32_t itsBeamId;
 
-        // Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
+        /// Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
         uint32_t itsPolarisationId; 
 
-        // Number of spectral channels
+        /// Number of spectral channels
         uint32_t itsNChannels;
 
-        // Channel width (in Hz)
+        /// Channel width (in Hz)
         double itsChanWidth;
 
-        // Freqency (in Hz) for each of the nChannels
+        /// Freqency (in Hz) for each of the nChannels
         std::vector<double> itsFrequency;
 
-        // Number of baselines
+        /// Number of baselines
         uint32_t itsNBaselines;
 
-        // Antenna 1
+        /// Antenna 1 - Maps for baseline index to antenna index
         std::vector<uint32_t> itsAntenna1;
 
-        // Antenna 2
+        /// Antenna 2 - Maps for baseline index to antenna index
         std::vector<uint32_t> itsAntenna2;
 
-        // Visibilities (nChannels * nBaselines)
+        /// Visibilities (nChannels * nBaselines)
         std::vector< std::complex<float> > itsVisibilities;
 
-        // Flag (nChannels * nBaselines)
-        // 0=Visibility not flagged, 1=Visibility flagged
+        /// Flag (nChannels * nBaselines)
+        /// 0=Visibility not flagged, 1=Visibility flagged
         std::vector<uint8_t> itsFlag;
 };
 

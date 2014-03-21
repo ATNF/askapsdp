@@ -27,9 +27,11 @@
 #ifndef ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
 #define ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
 
+// System includes
+#include <stdint.h>
+
 // ASKAPsoft includes
 #include "askap/Application.h"
-#include "boost/scoped_ptr.hpp"
 
 // Local package includes
 #include "publisher/InputMessage.h"
@@ -39,15 +41,15 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief Implementation of the VisPublisher application
+/// @brief Implementation of the VisPublisher application.
 class PublisherApp : public askap::Application {
     public:
         /// Run the application
         virtual int run(int argc, char* argv[]);
 
     private:
-        static OutputMessage buildOutputMessage(const InputMessage& in, uint32_t beam,
-                                                uint32_t pol);
+        static OutputMessage buildOutputMessage(const InputMessage& in,
+                                                uint32_t beam, uint32_t pol);
 };
 
 }

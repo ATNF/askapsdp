@@ -41,19 +41,30 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief TODO: Write documentation...
+/// @brief Encapsulates the code needed to send instance of OutputMessage
+/// to subscribers via ZeroMQ.
 class ZmqPublisher {
     public:
 
         /// @brief Constructor
         ZmqPublisher(uint16_t port);
 
+        /// @brief Publish the output message.
+        /// @param[in] outmsg   the OutputMessage to publish. The outmsg is actually
+        ///                     not modified (despite the reference being non-const),
+        ///                     it is just non-const as the message is not fully
+        ///                     encapsulated for reasons of performance.
         void publish(OutputMessage& outmsg);
         
     private:
+        /// Converts a polarisation index to a string.
+        /// 0="XX", 1="XY", 2="YX", 3="YY"
         static std::string polToString(int pol);
 
+        /// ZeroMQ context object
         zmq::context_t itsContext;
+
+        /// ZeroMQ socket object
         zmq::socket_t itsSocket;
 };
 

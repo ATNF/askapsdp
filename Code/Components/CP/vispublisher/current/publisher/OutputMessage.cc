@@ -47,18 +47,6 @@ OutputMessage::OutputMessage()
 {
 }
 
-size_t OutputMessage::sizeInBytes(void) const
-{
-    return sizeof (uint64_t)        // time
-        + (4 * sizeof (uint32_t))   // beamid, polid, nchannels, nbaselines
-        + sizeof (double)           // chanwidth
-        + (itsFrequency.size() * sizeof (double))
-        + (itsAntenna1.size() * sizeof (uint32_t))
-        + (itsAntenna2.size() * sizeof (uint32_t))
-        + (itsVisibilities.size() * sizeof (std::complex<float>))
-        + (itsFlag.size() * sizeof (uint8_t));
-}
-
 void OutputMessage::encode(zmq::message_t& msg) const
 {
     // Preconditions
@@ -85,6 +73,18 @@ void OutputMessage::encode(zmq::message_t& msg) const
 
     // Post-conditions
     ASKAPASSERT(ptr == static_cast<uint8_t*>(msg.data()) + sz);
+}
+
+size_t OutputMessage::sizeInBytes(void) const
+{
+    return sizeof (uint64_t)        // time
+        + (4 * sizeof (uint32_t))   // beamid, polid, nchannels, nbaselines
+        + sizeof (double)           // chanwidth
+        + (itsFrequency.size() * sizeof (double))
+        + (itsAntenna1.size() * sizeof (uint32_t))
+        + (itsAntenna2.size() * sizeof (uint32_t))
+        + (itsVisibilities.size() * sizeof (std::complex<float>))
+        + (itsFlag.size() * sizeof (uint8_t));
 }
 
 template <typename T>
