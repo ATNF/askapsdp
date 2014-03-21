@@ -77,6 +77,8 @@ int main(int argc, char *argv[])
 
     zmq::context_t context;
     zmq::socket_t socket (context, ZMQ_SUB);
+    const int RECV_HIGH_WATER_MARK = 1; // Only buffer one msg, drop messages if full
+    socket.setsockopt(ZMQ_RCVHWM, &RECV_HIGH_WATER_MARK, sizeof (int));
     socket.connect(makeConnectString(hostname, port).c_str());
 
     // Build a filter, for example "0XX" for beam=0, pol=XX

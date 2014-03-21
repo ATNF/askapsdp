@@ -48,6 +48,11 @@ using namespace askap::cp::vispublisher;
 ZmqPublisher::ZmqPublisher(uint16_t port)
     :itsSocket(itsContext, 1)
 {
+    // Limit the number of buffered messages to 1, don't want to have the
+    // consumer read stale data, rather drop messages if the buffer is full
+    const int SEND_HIGH_WATER_MARK = 1;
+    itsSocket.setsockopt(ZMQ_SNDHWM, &SEND_HIGH_WATER_MARK, sizeof (int));
+
     stringstream ss;
     ss << "tcp://*:" << port;
     itsSocket.bind(ss.str().c_str());
