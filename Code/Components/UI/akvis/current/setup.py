@@ -28,7 +28,7 @@ dep = Dependency()
 dep.add_package()
 
 ROOTPKG   = 'askap'
-COMPONENT = 'akviz'
+COMPONENT = 'akvis'
 
 setup(name = '%s.%s' % (ROOTPKG, COMPONENT),
       version = 'current',
