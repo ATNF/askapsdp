@@ -71,10 +71,7 @@ feeds.PAF36.feed35          = [2.5,  2.5]
 #
 # Antennas
 #
-#antennas.names              = [AK01,AK03,AK06,AK08,AK09,AK15]
-#antennas.names              = [AK06,AK01,AK03,AK15,AK08,AK09]
-antennas.names              = [AK06,AK01,AK03]
-#antennas.names              = [AK15,AK08,AK09]
+antennas.names              = [AK06,AK01,AK03,AK15,AK08,AK09]
 
 # antenna positions copied from sw-correlator parset
 antennas.AK01.location     = [-2556084.669, 5097398.337, -2848424.133]
@@ -109,7 +106,6 @@ antennas.AK09.diameter     = 12m
 antennas.AK09.mount        = equatorial
 antennas.AK09.feed_config  = PAF36
 
-
 #original position
 #antennas.AK15.location  = [-2555394.936910,5097674.796317,-2848567.461727]
 # our best so far
@@ -130,7 +126,7 @@ antennas.AK29.feed_config  = PAF36
 # Used for mapping from baselineid to antenna1/antenna2/polarisation product
 # Mapping is from baselineid to (ant1, ant2,  product)
 #
-baselinemap.baselineids            = [1..21]
+baselinemap.baselineids            = [1..78]
 
 baselinemap.1                      = [0, 0, XX]
 baselinemap.2                      = [0, 0, XY]
@@ -138,23 +134,83 @@ baselinemap.3                      = [0, 1, XX]
 baselinemap.4                      = [0, 1, XY]
 baselinemap.5                      = [0, 2, XX]
 baselinemap.6                      = [0, 2, XY]
-baselinemap.7                      = [0, 0, YY]
-baselinemap.8                      = [0, 1, YX]
-baselinemap.9                      = [0, 1, YY]
-baselinemap.10                     = [0, 2, YX]
-baselinemap.11                     = [0, 2, YY]
+baselinemap.7                      = [0, 3, XX]
+baselinemap.8                      = [0, 3, XY]
+baselinemap.9                      = [0, 4, XX]
+baselinemap.10                      = [0, 4, XY]
+baselinemap.11                      = [0, 5, XX]
+baselinemap.12                      = [0, 5, XY]
+baselinemap.13                      = [0, 0, YY]
+baselinemap.14                      = [0, 1, YX]
+baselinemap.15                      = [0, 1, YY]
+baselinemap.16                      = [0, 2, YX]
+baselinemap.17                      = [0, 2, YY]
+baselinemap.18                      = [0, 3, YX]
+baselinemap.19                      = [0, 3, YY]
+baselinemap.20                      = [0, 4, YX]
+baselinemap.21                      = [0, 4, YY]
+baselinemap.22                      = [0, 5, YX]
+baselinemap.23                      = [0, 5, YY]
 
-baselinemap.12                     = [1, 1, XX]
-baselinemap.13                     = [1, 1, XY]
-baselinemap.14                     = [1, 2, XX]
-baselinemap.15                     = [1, 2, XY]
-baselinemap.16                     = [1, 1, YY]
-baselinemap.17                     = [1, 2, YX]
-baselinemap.18                     = [1, 2, YY]
+baselinemap.24                      = [1, 1, XX]
+baselinemap.25                      = [1, 1, XY]
+baselinemap.26                      = [1, 2, XX]
+baselinemap.27                      = [1, 2, XY]
+baselinemap.28                      = [1, 3, XX]
+baselinemap.29                      = [1, 3, XY]
+baselinemap.30                      = [1, 4, XX]
+baselinemap.31                      = [1, 4, XY]
+baselinemap.32                      = [1, 5, XX]
+baselinemap.33                      = [1, 5, XY]
+baselinemap.34                      = [1, 1, YY]
+baselinemap.35                      = [1, 2, YX]
+baselinemap.36                      = [1, 2, YY]
+baselinemap.37                      = [1, 3, YX]
+baselinemap.38                      = [1, 3, YY]
+baselinemap.39                      = [1, 4, YX]
+baselinemap.40                      = [1, 4, YY]
+baselinemap.41                      = [1, 5, YX]
+baselinemap.42                      = [1, 5, YY]
 
-baselinemap.19                     = [2, 2, XX]
-baselinemap.20                     = [2, 2, XY]
-baselinemap.21                     = [2, 2, YY]
+baselinemap.43                      = [2, 2, XX]
+baselinemap.44                      = [2, 2, XY]
+baselinemap.45                      = [2, 3, XX]
+baselinemap.46                      = [2, 3, XY]
+baselinemap.47                      = [2, 4, XX]
+baselinemap.48                      = [2, 4, XY]
+baselinemap.49                      = [2, 5, XX]
+baselinemap.50                      = [2, 5, XY]
+baselinemap.51                      = [2, 2, YY]
+baselinemap.52                      = [2, 3, YX]
+baselinemap.53                      = [2, 3, YY]
+baselinemap.54                      = [2, 4, YX]
+baselinemap.55                      = [2, 4, YY]
+baselinemap.56                      = [2, 5, YX]
+baselinemap.57                      = [2, 5, YY]
+
+baselinemap.58                      = [3, 3, XX]
+baselinemap.59                      = [3, 3, XY]
+baselinemap.60                      = [3, 4, XX]
+baselinemap.61                      = [3, 4, XY]
+baselinemap.62                      = [3, 5, XX]
+baselinemap.63                      = [3, 5, XY]
+baselinemap.64                      = [3, 3, YY]
+baselinemap.65                      = [3, 4, YX]
+baselinemap.66                      = [3, 4, YY]
+baselinemap.67                      = [3, 5, YX]
+baselinemap.68                      = [3, 5, YY]
+
+baselinemap.69                      = [4, 4, XX]
+baselinemap.70                      = [4, 4, XY]
+baselinemap.71                      = [4, 5, XX]
+baselinemap.72                      = [4, 5, XY]
+baselinemap.73                      = [4, 4, YY]
+baselinemap.74                      = [4, 5, YX]
+baselinemap.75                      = [4, 5, YY]
+
+baselinemap.76                      = [5, 5, XX]
+baselinemap.77                      = [5, 5, XY]
+baselinemap.78                      = [5, 5, YY]
 
 #
 #  Observation specific
@@ -162,11 +218,11 @@ baselinemap.21                     = [2, 2, YY]
 observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 # Virgo
-#observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
+observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
 # 0407-658
 #observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
+#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790 (cluster field)
 #observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
 # 1742-289 (Galactic centre)
@@ -220,7 +276,8 @@ observation.scan0.interval          = 5000000
 #tasks.tasklist                          = [NoMetadataSource, PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, DerippleTask, CalcUVWTask, ChanSel, ChannelAvgTask, Monitor, MSSink]
 #tasks.tasklist                          = [NoMetadataSource,  PhaseTrackTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
-tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
+#tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChanFlag, ChannelAvgTask, Monitor, MSSink]
+tasks.tasklist                          = [NoMetadataSource,  FringeRotationTask, DerippleTask, CalcUVWTask, ChannelAvgTask,Monitor, TCPSink, MSSink]
 #tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, DerippleTask, ChanFlag, Monitor,MSSink]
 
 #
@@ -238,9 +295,7 @@ tasks.FringeRotationTask.params.ice.locator_port = 4061
 tasks.FringeRotationTask.params.icestorm.topicmanager = IceStorm/TopicManager@IceStorm.TopicManager
 tasks.FringeRotationTask.params.icestorm.outtopic = ingest2frt
 tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
-tasks.FringeRotationTask.params.fixeddelays = [146.2323, 0, -52.299]
-#tasks.FringeRotationTask.params.fixeddelays = [394.778, 0, 131.063]
-#tasks.FringeRotationTask.params.fixeddelays = [0, 0, 0]
+tasks.FringeRotationTask.params.fixeddelays = [-171.958, 0, -432.759, 655.536, 495.78, -621.721]
 tasks.FringeRotationTask.params.refant = AK01
 #tasks.FringeRotationTask.params.refant = AK08
 #tasks.FringeRotationTask.params.method = drxdelays
@@ -259,22 +314,16 @@ tasks.DerippleTask.type = DerippleTask
 # NoMetadataSource
 #
 tasks.NoMetadataSource.type                             = NoMetadataSource
-# for correlator shelf 2
-#tasks.NoMetadataSource.params.vis_source.port           = 16383
-# for correlator shelf 1
 tasks.NoMetadataSource.params.vis_source.port           = 16384
-tasks.NoMetadataSource.params.vis_source.buffer_size    = 24192
+tasks.NoMetadataSource.params.vis_source.buffer_size    = 89856
 
 # Number of channels a given ingest process is meant to receive/process
 tasks.NoMetadataSource.params.n_channels.0              = 16416
-#tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,10:9,11:10,12:11,13:12,14:13,15:14,16:15,17:16,18:17,19:18,20:19,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35"
 tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
-#tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4"
-#tasks.NoMetadataSource.params.beammap = "1:0"
+#tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,10:9,11:10,12:11,13:12,14:13,15:14,16:15,17:16,18:17,19:18,20:19,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35"
+#tasks.NoMetadataSource.params.beammap = "10:0,11:1,12:2,13:3,14:4,15:5,16:6,17:7,18:8"
 tasks.NoMetadataSource.params.maxbeams = 9
-#tasks.NoMetadataSource.params.maxbeams = 36
 tasks.NoMetadataSource.params.beams2receive = 36
-
 
 #
 # CalcUVWTask
@@ -286,8 +335,6 @@ tasks.CalcUVWTask.type                  = CalcUVWTask
 #
 tasks.ChannelAvgTask.type               = ChannelAvgTask
 tasks.ChannelAvgTask.params.averaging   = 54
-#tasks.ChannelAvgTask.params.averaging   = 50
-#tasks.ChannelAvgTask.params.averaging   = 27
 
 # ChannelSelTask
 tasks.ChanSel.type        = ChannelSelTask
@@ -304,13 +351,13 @@ tasks.ChanSel.params.nchan = 11826
 # SimpleMonitor
 tasks.Monitor.type  = SimpleMonitorTask
 tasks.Monitor.params.baselineids = [0,1,2]
-tasks.Monitor.params.0 = [0,1,YY]
-tasks.Monitor.params.1 = [1,2,YY]
-tasks.Monitor.params.2 = [0,2,YY]
+#tasks.Monitor.params.0 = [0,1,YY]
+#tasks.Monitor.params.1 = [1,2,YY]
+#tasks.Monitor.params.2 = [0,2,YY]
 
-#tasks.Monitor.params.0 = [0,0,YY]
-#tasks.Monitor.params.1 = [1,1,YY]
-#tasks.Monitor.params.2 = [2,2,YY]
+tasks.Monitor.params.0 = [0,1,XX]
+tasks.Monitor.params.1 = [1,2,XX]
+tasks.Monitor.params.2 = [0,2,XX]
 
 #tasks.Monitor.params.0 = [0,0,XX]
 #tasks.Monitor.params.1 = [0,0,YY]
@@ -347,7 +394,7 @@ tasks.FlagEven.params.5 = [1,2,YY]
 # MSSink
 #
 tasks.MSSink.type                       = MSSink
-tasks.MSSink.params.filename            = /data/AKSCOR01_2/scratch/vor010/MS/%d_%t.ms
+tasks.MSSink.params.filename            = /scratch/vor010/MS/%d_%t.ms
 tasks.MSSink.params.stman.bucketsize    = 131072
 tasks.MSSink.params.stman.tilencorr     = 4
 tasks.MSSink.params.stman.tilenchan     = 1026
@@ -360,3 +407,9 @@ monitoring.ice.locator_host = aktos02
 monitoring.ice.locator_port = 4061
 monitoring.servicename = MoniCAService@MoniCAAdminAdapter
 
+#
+# TCPSink
+# 
+tasks.TCPSink.type                       = TCPSink
+tasks.TCPSink.params.dest.hostname       = aktos01.atnf.csiro.au
+tasks.TCPSink.params.dest.port           = 9001
