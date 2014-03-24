@@ -15,6 +15,7 @@ import os
 import sys
 import logging
 from askap.akvis.testutils import Timer
+from askap.time import bat2utcDt
 import threading
 import time
 import re
@@ -22,9 +23,10 @@ import matplotlib.ticker as ticker
 from askap.akvis import corr_summary
 import zmq
 import struct
-#__version__ = '0.1'
 
 POL_STR = ('XX','XY','YX','YY')
+ANTENNA_LABELS = (6, 1, 3, 15, 8, 9)
+PLOT_MODES = 'abp' # (antenna, beam, polarisation)
 
 def printstack():
     import sys
@@ -92,101 +94,102 @@ def queue_idle(cmd, fig):
         win = fig.canvas.draw_idle()
     else:
         assert False, 'Unknown backend %s'  % backend
-
-
-def bl2idx(bl, nant):
-    """
-    >>> bl2idx((1, 2), 6)
-    0
-    >>> bl2idx((1, 3), 6)
-    1
-    >>> bl2idx((1, 4), 6)
-    2
-    >>> bl2idx((1, 5), 6)
-    3
-    >>> bl2idx((1, 6), 6)
-    4
-    >>> bl2idx((1, 2), 6)
-    0
-    >>> bl2idx((2, 1), 6)
-    0
-    >>> bl2idx((5, 6), 6)
-    15
     
-    """
-    a1, a2 = bl
-
-    assert a1 >= 0 and a1 <= nant
-    assert a2 >= 0 and a2 <= nant
-    assert a1 != a2
-
-    # bl 1-2 is the same as 2-1
-    if a1 > a2:
-        a1, a2 = a2, a1
-
-    idx = ((a1 - 1) +  nant*(a2 - 1 - 1)) / 2
-    return idx
-    
-
-def idx2bl(idx, nant):
-    """
-    >>> nant = 6
-    >>> idx2bl(0, nant)
-    (1, 1)
-    >>> idx2bl(1, nant)
-    (1, 2)
-    >>> idx2bl(7, nant)
-    (2, 1)
-    """
-    assert a1 >= 0 and a1 <= nant
-    assert a2 >= 0 and a2 <= nant
-
-    a1 = idx / nant
-    a2 = idx % nant
-    bl = (a1+1, a2+1)
-    return bl
-    
-
 class SpectrumPlotter(object):
-    def __init__(self, nant, nbeams, npol, nchan):
+    def __init__(self, dgen, nant, nbeams, npol, freq, antenna1=None, antenna2=None):
         self._nant = nant
-        self._nbl = nant * (nant - 1)/2
+        self._nbl = nant * (nant + 1)/2
         self._nbeams = nbeams
         self._npol = npol
-        self._nchan = nchan
-        self._cross = np.zeros((self._nbl, nbeams, npol, nchan), dtype=np.complex)
+        self._nchan = len(freq)
+        self._cross = np.zeros((self._nbl, nbeams, npol, self._nchan), dtype=np.complex)
         self._num_puts = 0
         self._prev_cross = None
-        self._auto = np.zeros((nant, nbeams, npol, nchan))
-        self._ant_mask = np.ones(nant, dtype=np.bool)
-        self._pol_mask = np.ones(npol, dtype=np.bool)
-        self._curr_beam = 0
         self._lines = []
         self._fig = pylab.figure(1)
+        self._mgr = SubscriptionManager(dgen, nant, npol, nbeams)
         self._varfunc = {'phase': lambda v, p: np.degrees(np.angle(v)), 
                         'amp':lambda v, p: abs(v),
+                         'dba': lambda v, p: 10*np.log10(abs(v)),
                         'real':lambda v, p: np.real(v),
                          'imag': lambda v, p: np.imag(v),
                          'diff': lambda v, p: abs(v - p),
                          'quot': lambda v, p: abs(v)/abs(p)}
 
-        self._var_ylim = {'phase':None, 'amp':None, 'real':None, 'imag': None, 'diff':None, 'quot':None}
+        self._var_ylim = {'phase':None, 'amp':None, 'real':None, 'imag': None, 'diff':None, 'quot':None, 'dba': None}
         self._variable = 'phase'
         self._do_averaging = False
         self._rsave = False
         self._navg = 0
         self._nxy = (3, 5)
         self._draw_timer = Timer()
-        self.replot()
-        
+        self._stack = 'p'
+        self._panel = 'a'
+        self._plot_autos = False
+        self._xmode = 'freq'
+        self._xdata = self._mgr.dgen.frequency
+        self.baselines_ant1 = antenna1
+        self.baselines_ant2 = antenna2
+        self._legend_labels = []
+        self._legend_lines = []
+        self._legend_on = False
+        self._figlegend = None
 
+        self.replot()
+
+    def set_legend(self, legon):
+        self._legend_on = bool(legon)
+        self._draw_legend()
+        self.redraw()
+
+    def _draw_legend(self):
+        if self._legend_on:
+            pylab.subplots_adjust(left=0.05, right=0.90, top=0.95, bottom=0.05)
+            lines_only = [line for (line, slice_list) in self._legend_lines]
+            self._figlegend = pylab.figlegend(lines_only, self._legend_labels, loc='upper right')
+        else:
+            pylab.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+            if self._figlegend is not None:
+                self._figlegend.set_visible(False)
+
+    def set_panel(self, pan):
+        assert pan in PLOT_MODES
+        self._panel = pan
+        self.replot()
+
+    def set_stack(self, stack):
+        print 'stack', stack, PLOT_MODES
+        assert stack in PLOT_MODES
+        self._stack = stack
+        self.replot()
+
+    def toggle_xmode(self):
+        if self._xmode == 'freq':
+            self.set_xmode('chan')
+        else:
+            self.set_xmode('freq')
+
+    def set_xmode(self, xmode):
+        assert xmode in ('freq','chan')
+
+        if xmode == 'freq':
+            self._xdata = self._mgr.dgen.frequency
+        elif xmode == 'chan':
+            self._xdata = np.arange(len(self._mgr.dgen.frequency))
+
+        self._xmode = xmode
+        self.set_line_xdata()
+        self._update_axes_limits(None, 'x')
+        self.redraw()
+        
     def set_variable(self, var):
-        """Set the variabel that is plotted.
+        """Set the variable that is plotted.
         var can be:
         'phase'
         'amp'
         'real'
         'imag'
+        'dba'
 
         """
         assert var in self._varfunc.keys(), 'Unknown variable requested:%s'%var
@@ -200,18 +203,16 @@ class SpectrumPlotter(object):
         
 
     def _update_axes_ylim(self):
-        ylim = self._var_ylim[self._variable]
+        ylim = self._var_ylim[self._variable]        
         self._update_axes_limits(ylim, 'y')
 
     def _update_axes_limits(self, limits, axis):
-
         assert axis == 'x' or axis == 'y'
 
         for ax in self._axes:
             if limits is None:
                 ax.relim()
                 ax.autoscale(True, axis)
-
             else:
                 if axis == 'y':
                     ax.set_ylim(limits)
@@ -234,7 +235,6 @@ class SpectrumPlotter(object):
     def set_averaging(self, do_averaging):
         self._navg = np.ones((self._nbl, self._nbeams, self._npol), dtype=int)
         self._do_averaging = bool(do_averaging)
-
 
     def save(self):
         if self._prev_cross is None: # lazy initialise
@@ -264,15 +264,21 @@ class SpectrumPlotter(object):
         redraw_time = str(self._draw_timer)
         num_puts = self._num_puts
         var = self._variable
-        beam = self._curr_beam
+        beam = np.arange(len(self._mgr.beam_mask))[self._mgr.beam_mask]
         avg = self._do_averaging
         navg = self._navg
-        polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._pol_mask[ipol]])
+        panel = self._panel
+        stack = self._stack
+        antennas = np.arange(len(self._mgr.ant_mask))[self._mgr.ant_mask]
+        polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._mgr.pol_mask[ipol]])
         
         s = """
 Shape: %(cross_shape)s Num puts: %(num_puts)s Redraw time: %(redraw_time)s
-Variable: %(var)s Beam: %(beam)s Polarisations: %(polstr)s
-Averaging %(avg)s Navg: %(navg)s
+Variable: %(var)s 
+Beams: %(beam)s
+Polarisations: %(polstr)s
+Antennas: %(antennas)s
+Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
 """ % locals()
         for var, ylim in self._var_ylim.iteritems():
             if ylim is None:
@@ -283,14 +289,16 @@ Averaging %(avg)s Navg: %(navg)s
         print s
                 
 
-    def _get_var(self, ibl, ipol):
+    def _get_var(self, slice_list):
         vfunc = self._varfunc[self._variable]
-        v = self._cross[ibl, self._curr_beam, ipol, :]
+        #v = self._cross[ibl, self._curr_beam, ipol, :]
+        v = self._cross[slice_list]
         p = None
         ps = None
         pcs = None
         if self._prev_cross is not None:
-            p = self._prev_cross[ibl, self._curr_beam, ipol, :]
+#            p = self._prev_cross[ibl, self._curr_beam, ipol, :]
+            p = self._prev_cross[slice_list]
             pcs = self._prev_cross.shape
             ps = p.shape
             
@@ -298,29 +306,64 @@ Averaging %(avg)s Navg: %(navg)s
         return d
 
     def replot(self):
-        nant = sum(self._ant_mask)
-        nant = self._nant
-        nbl = nant * (nant - 1) / 2
-        nrows = int(np.sqrt(nbl)) 
-        ncols = int(np.sqrt(nbl)) + 1
         nrows, ncols= self._nxy
         fig = self._fig
         self._lines = []
         self._axes = []
-        for ibl in xrange(self._nbl):
-            ax = pylab.subplot(nrows, ncols, ibl+1)
+        npanels = nrows * ncols
+        pylab.clf()
+        for ipan, (pan_dimidx, pan_vidx, pan_label) in \
+                enumerate(self._mgr.mode_iter(self._panel)):
+
+            if nrows * ncols == ipan:
+                # too many things to plot - nxy needs to be made larger
+                break
+            ax = pylab.subplot(nrows, ncols, ipan+1)
             self._axes.append(ax)
             pylab.cla()
             bllines = []
             self._lines.append(bllines)
-            for p in xrange(4): # polarisations
-                d = self._get_var(ibl, p)
-                line, = pylab.plot(d)
-                bllines.append(line)
+            if ipan == 0:
+                self._legend_lines = bllines
+                self._legend_labels = []
+
+            for istack, (st_dimidx, st_vidx, st_label) in \
+                    enumerate(self._mgr.mode_iter(self._stack)):
+                # make a slice list - containing slices for each of the 4 axes
+                # which are [baseline, beam, pol, chan]
+                # always choose all channels
+#                print 'bl mask', self._mgr.baseline_mask, np.nonzero(self._mgr.baseline_mask)
+#                print 'beam mask', self._mgr.beam_mask, np.nonzero(self._mgr.beam_mask)
+#                print 'pol_mask', self._mgr.pol_mask, np.nonzero(self._mgr.pol_mask)
+                slice_list = [np.nonzero(self._mgr.baseline_mask)[0][0],
+                              np.nonzero(self._mgr.beam_mask)[0][0],
+                              np.nonzero(self._mgr.pol_mask)[0][0],
+                              slice(None)]
+
+#                print 'orig slice list', slice_list, pan_dimidx, pan_vidx, st_dimidx, st_vidx
+                slice_list[pan_dimidx] = pan_vidx
+                slice_list[st_dimidx] = st_vidx
+
+                d = self._get_var(slice_list)
+                # transpose if required
+                dflat = d.flatten()
+
+ #               print 'Xdata shape', self._xdata.shape, \
+ #                   'Ydata shape', d.shape, dflat.shape, \
+ #                   'slice list', slice_list, \
+ #                   'pan label', pan_label, ipan, 'st_label', st_label
+                
+                if ipan == 0:
+                    self._legend_labels.append(st_label)
+
+                line, = pylab.plot(self._xdata, dflat, label=st_label)
+                bllines.append((line, slice_list))
 
             ax.get_xaxis().set_major_locator(matplotlib.ticker.MaxNLocator(4))
+            pylab.title(pan_label)
 
-        pylab.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+            
+        self._draw_legend()
         self.redraw()
 
     def set_line_ydata(self):
@@ -329,30 +372,17 @@ Averaging %(avg)s Navg: %(navg)s
         vfunc = self._varfunc[self._variable]
         ylim = self._var_ylim[self._variable]
         for ibl, (bllines, ax) in enumerate(zip(self._lines, self._axes)):
-            for p,line in enumerate(bllines):
-                d = self._get_var(ibl, p)
+            for p,(line, slice_list) in enumerate(bllines):
+                d = self._get_var(slice_list)
                 line.set_ydata(d)
-
 
         t.stop()
 
-    def set_polarisation_mask(self, pol_mask):
-        assert len(pol_mask) == len(self._pol_mask)
-        self._pol_mask = pol_mask
-        for bllines in self._lines:
-            for vis, pol_line in zip(pol_mask, bllines):
-                pol_line.set_visible(vis)
+    def set_line_xdata(self):
+        for ibl, (bllines, ax) in enumerate(zip(self._lines, self._axes)):
+            for p,(line, slice_list) in enumerate(bllines):
+                line.set_xdata(self._xdata)
 
-        self.redraw()
-
-    def set_antenna_mask(self):
-        raise NotImplemented('Havent got there yet. Baseline numbering is too hard for me')
-
-    def set_beam(self, beamno):
-        assert beamno >=0 and beamno < self._nbeams, 'Invalid beam %s' % beamno
-        self._curr_beam = beamno
-        self.update_data()
-        
     def update_data(self):
         #self._queue_idle(self.set_line_data)
         self.set_line_ydata()
@@ -388,94 +418,6 @@ Averaging %(avg)s Navg: %(navg)s
         self._num_puts += 1
 
 
-class SummaryPlotter(object):
-    def __init__(self, nant, nbeams, npol, nchan, start_freq, chanbw):
-        self._nant = nant
-        self._nbeams = nbeams
-        self._npol = npol
-        self._nchan = nchan
-        self._sum = corr_summary.Summariser(nant, nbeams, npol, nchan, start_freq, chanbw)
-        self._nbl = nant * (nant - 1) / 2
-        self._nhist = 100
-        n = self._nhist
-        self._amps = np.zeros((n, self._nbl, nbeams), dtype=np.float) +1 
-        self._delays = np.zeros((n, self._nbl, nbeams), dtype=np.float) +1 
-        self._phases = np.zeros((n, self._nbl, nbeams), dtype=np.float) +3 
-        self._times = np.zeros((n, self._nbl, nbeams), dtype=np.float) +4 
-        self._indexes = np.zeros((self._nbl, nbeams), dtype=np.int) +5
-        self._curr_beam = 0
-        self._amp_lines = []
-        self._phase_lines = []
-        self._delay_lines = []
-
-        self._fig = pylab.figure(2)
-        self.replot()
-
-
-    def put_cross(self, blidx, beam, pol, spectrum):
-        i = self._indexes[blidx, beam]
-        if pol == 0:
-            popt, pcov = self._sum.get_apd(spectrum)
-            amp, delay, phase = popt
-            self._amps[i, blidx, beam] = amp
-            self._phases[i, blidx, beam] = phase
-            self._delays[i, blidx, beam] = delay
-            self._times[i, blidx, beam] = time.time()
-            self._indexes[blidx, beam] =  (self._indexes[blidx, beam] + 1)  % self._nhist
-            print "SUM", blidx, beam, pol, amp, delay, phase
-
-    def replot(self):
-        t = self._times[:, :, self._curr_beam]
-        a = self._amps[:, :, self._curr_beam]
-        p = self._phases[:, :, self._curr_beam]
-        d = self._delays[:, :, self._curr_beam]
-        self._fig = pylab.figure(2)
-        ax1 = pylab.subplot(3,1,1)
-        self._amp_lines = pylab.plot(t, a)
-        ax2 = pylab.subplot(3,1,2)
-        self._phase_lines = pylab.plot(t, p)
-        ax3 = pylab.subplot(3,1,3)
-        self._delay_lines = pylab.plot(t, d)
-        self._axes = [ax1, ax2, ax3]
-        # 1 line for each baseline i.e. for 15 baselines # polarisations not supported yet
-        self._lines = [self._amp_lines, self._phase_lines, self._delay_lines]
-        self._ydata = [self._amps, self._delays, self._phases]
-        self._xdata = self._times
-        self.redraw()
-    
-    def redraw(self):
-        """ Adds a redraw to the idle queue"""
-        queue_idle(self._timed_draw, self._fig)
-
-    def set_line_data(self):
-        t = Timer()
-        t.start()
-        for lines, ax, ydata in zip(self._lines, self._axes, self._ydata): # For each subplot
-            for iline, line in enumerate(lines):
-                y = ydata[:, iline, self._curr_beam]
-                x = self._xdata[:, iline, self._curr_beam]
-                x = np.arange(iline, iline+10)
-                y = x**iline
-                line.set_ydata(y)
-                line.set_xdata(x)
-
-        t.stop()
-
-        
-    def _timed_draw(self):
-        with Timer() as t:
-            pylab.draw()
-
-        self._draw_timer = t
-        
-    def update_data(self):
-#        self.set_line_ydata()
-#        self._update_axes_ylim()
-#        self.redraw()
-#        self.replot() # slow
-        self.set_line_data()
-
-
 def complex_noise(amp, n):
     noise = np.random.randn(n)*amp + 1j*np.random.randn(n)*amp
     return noise
@@ -491,7 +433,15 @@ class TestDataGenerator(object):
 
     def _gen_noise(self):
         return complex_noise(self._noise_amp, self._nchan)
-        
+
+    def unsubscribe_all(self):
+        print 'Unsubscribe all'
+
+    def subscribe(self, beam, pol):
+        print 'Subscribe',beam, pol
+    
+    def unsubscribe(self, beam, pol):
+        print 'unsubscribe', beam, pol
 
     def push(self, plotters, delay_step=1.):
         t = Timer()
@@ -530,6 +480,7 @@ class TestDataGenerator(object):
 #        print 'Update data took', str(t)
         
         self._simstep += 1
+        time.sleep(3)
 
 class ZmqDataGenerator(object):
     def __init__(self, target):
@@ -538,6 +489,21 @@ class ZmqDataGenerator(object):
         self.socket = self.context.socket(zmq.SUB)
         self.socket.connect(target)
         self.subscriptions = []
+        self.subscribe(0, 'XX')
+        self.init_mesg = VisabilityMessage(self.socket.recv_multipart())
+        self.unsubscribe_all()
+
+        print self.init_mesg
+        m = self.init_mesg
+        self.antenna1 = m.antenna1
+        self.antenna2 = m.antenna2
+        self.frequency = m.frequency
+        self.nBaselines = m.nBaselines
+        self.nChannels = m.nChannels
+        self.chanWidth = m.chanWidth
+        print "ANTENNAS"
+        print self.antenna1
+        print self.antenna2
 
     def get_sockstring(self, beam, pol):
         assert pol.upper() in POL_STR
@@ -549,6 +515,7 @@ class ZmqDataGenerator(object):
         s = self.get_sockstring(beam, pol)
         assert s not in self.subscriptions
         self.socket.setsockopt_string(zmq.SUBSCRIBE, s.decode('ascii'))
+        print "Subscribed", s
         self.subscriptions.append(s)
 
     def unsubscribe(self, beam, pol):
@@ -622,11 +589,12 @@ class VisabilityMessage(object):
         self.pol_ident = msgs[0]
         r = BufferReader(msgs[1])
         self.timestamp = r.read_uint64()
+        self.timestamp_dt = bat2utcDt(int(self.timestamp))
         self.beamId = r.read_uint32()
         self.polarisationId = r.read_uint32()
         self.nChannels = r.read_uint32()
         self.chanWidth = r.read_double()
-        self.frequency = r.read_double(self.nChannels)
+        self.frequency = r.read_double(self.nChannels)/1e9
         self.nBaselines = r.read_uint32()
         self.antenna1 = r.read_uint32(self.nBaselines)
         self.antenna2 = r.read_uint32(self.nBaselines)
@@ -636,7 +604,8 @@ class VisabilityMessage(object):
         self.flag.shape = (self.nBaselines, self.nChannels)
 
     def __str__(self):
-        s = "t=%d beam=%d pol=%d chanWidth=%0.1f kHz Nbl: %d vishape: %s" % (self.timestamp, 
+        s = "t=%s beam=%d pol=%d chanWidth=%0.1f kHz Nbl: %d vishape: %s" % (
+            self.timestamp_dt.isoformat(),
                self.beamId, 
                self.polarisationId,
                self.chanWidth,
@@ -656,14 +625,101 @@ def push_data(plt, vis, gen):
     while True:
         t = Timer()
         with t:
-            gen.push(plotters)
+            try:
+                gen.push(plotters)
+            except:
+                logging.exception("Error pusshing data")
 #        print 'push took', str(t)
 
 
-
-sel_regex = re.compile(r'sel\s*(.*)|sel\s*(b)(\d+)')
+sel_regex = re.compile(r'sel\s*(.*)')
 chan_regex = re.compile(r'(\d+)[\s+:](\d+)\s*')
 scale_regex = re.compile(r'scale\s*((\d+\.?\d*)\s*(\d+\.?\d*))?')
+
+class SubscriptionManager(object):
+    def __init__(self, dgen, nant, npol, nbeams):
+        self.ant_mask = np.ones(nant, dtype=np.bool)
+        self.pol_mask = np.ones(npol, dtype=np.bool)
+        self.beam_mask = np.zeros(nbeams, dtype=np.bool)
+        nbl = nant*(nant+1)/2
+        self.baseline_mask = np.zeros(nbl, dtype=np.bool)
+        self.beam_mask[0] = True
+        self.dgen = dgen
+        self._calc_baseline_mask()
+
+    def set_pol_mask(self, new_pol_mask):
+        self.pol_mask[:] = new_pol_mask
+        self.resubscribe()
+
+    def set_ant_mask(self, new_ant_mask):
+        self.ant_mask[:] = new_ant_mask[:]
+        self._calc_baseline_mask()
+        self.resubscribe()
+
+    def set_beam_mask(self, new_beam_mask):
+        self.beam_mask[:] = new_beam_mask[:]
+        self.resubscribe()
+
+    def set_baseline_mask(self, new_baseline_mask):
+        self.baseline_mask[:] = new_baseline_mask[:]
+        self.resubscribe()
+
+    def _calc_baseline_mask(self):
+        for ibl, (a1, a2) in enumerate(zip(self.dgen.antenna1, self.dgen.antenna2)):
+            if self.ant_mask[a1] == True or self.ant_mask[a2] == True:
+                self.baseline_mask[ibl] = True
+
+    def resubscribe(self):
+        self.dgen.unsubscribe_all()
+#        print self.pol_mask
+#        print self.beam_mask
+
+        for ip in xrange(len(self.pol_mask)):
+            for ib in xrange(len(self.beam_mask)):
+                if self.pol_mask[ip] and self.beam_mask[ib]:
+                    self.dgen.subscribe(ib, POL_STR[ip])
+                    
+    def mode_iter(self, mode):
+        assert mode in PLOT_MODES
+        if mode == 'a':
+            for ibl in xrange(len(self.baseline_mask)):
+                if not self.baseline_mask[ibl]:
+                    continue
+
+                label ='AK%d-AK%d' % (ANTENNA_LABELS[self.dgen.antenna1[ibl]], 
+                                      ANTENNA_LABELS[self.dgen.antenna2[ibl]])
+#                label = 'BL%d' % ibl
+
+                yield 0, ibl, label
+
+        elif mode == 'b':
+            for ibeam in xrange(len(self.beam_mask)):
+                if not self.beam_mask[ibeam]:
+                    continue
+
+                label = 'B%d'%ibeam
+
+                yield 1, ibeam, label
+
+        elif mode == 'p':
+            for ip in xrange(len(self.pol_mask)):
+                if not self.pol_mask[ip]:
+                    continue
+
+                label = POL_STR[ip]
+
+                yield 2, ip, label
+
+
+def str2slice(s):
+    parts = map(int, s.strip().split(':'))
+    if len(parts) == 1:
+        sl = slice(parts[0], parts[0]+1)
+    else:
+        sl = slice(*parts)
+
+    print sl, parts
+    return sl
 
 def parse_command(cmd, plt, gen):
     import Tkinter
@@ -675,7 +731,7 @@ def parse_command(cmd, plt, gen):
     if cmd == 'quit':
         print 'Quitting'
         Tkinter.tkinter.quit()
-        sys.exit(0)
+        #sys.exit(0)
     elif cmd == '':
         pass
     elif cmd == 'a':
@@ -690,27 +746,56 @@ def parse_command(cmd, plt, gen):
         plt.set_variable('diff')
     elif cmd == 'q':
         plt.set_variable('quot')
+    elif cmd == 'dba':
+        plt.set_variable('dba')
     elif cmd == 'replot':
         plt.replot()
+    elif cmd == 'x':
+        plt.toggle_xmode()
+    elif cmd.startswith('panel'):
+        panval = cmd.split()[1]
+        plt.set_panel(panval)
+
+    elif cmd.startswith('stack'):
+        stackval = cmd.split()[1]
+        plt.set_stack(stackval)
+
     elif selm is not None:
-        if selm.group(1) is not None:
-            pol = selm.group(1)
-            pol_mask = [p.lower() in pol for p in POL_STR]
-            plt.set_polarisation_mask(pol_mask)
-            gen.unsubscribe_all()
-            for p in pol.split():
-                gen.subscribe(plt._curr_beam, p)
-            
-        elif selm.group(2) == 'b':
-            beamno = int(selm.group(3))
-            plt.set_beam(beamno)
-            gen.unsubscribe_all()
-            pols = [POL_STR[i] for i in xrange(len(POL_STR)) if plt._pol_mask[i]]
-            for p in pols:
-                gen.subscribe(beamno, p)
-        else:
-            print 'Unknown select command %s' % cmd
-            return
+        pol_mask = plt._mgr.pol_mask*False
+        for sel_str in selm.group(1).split():
+            sel_str = sel_str.upper()
+            if sel_str in POL_STR:
+                pol_mask[POL_STR.index(sel_str)] = True
+                         
+        assert sum(pol_mask) >= 1, 'Not polarisation selected %s' % pol_mask
+                
+        plt._mgr.set_pol_mask(pol_mask)
+        plt.replot()
+
+    elif cmd.startswith('array'):
+        if len(bits) >= 1:
+            arr_mask = plt._mgr.ant_mask*False
+            for a in bits[1:]:
+                arr_slice = str2slice(a)
+                arr_mask[arr_slice] = True
+
+            print "AARRR MASK", arr_mask
+            plt._mgr.set_ant_mask(arr_mask)
+            plt.replot()
+
+    elif cmd.startswith('beam'):
+        if len(bits) >= 1:
+            beam_mask = plt._mgr.beam_mask*False
+            print "BMASK BEFORE"
+            for b in bits[1:]:
+                beam_slice = str2slice(b)
+                beam_mask[beam_slice] = True
+                print b, beam_slice
+
+            print 'BMASK', beam_mask
+            plt._mgr.set_beam_mask(beam_mask)
+            plt.replot()
+
 
     elif cmd.startswith('chan'):
         if len(bits) == 1:
@@ -742,7 +827,7 @@ def parse_command(cmd, plt, gen):
         plt.save()
     elif cmd.startswith('pstat'):
         plt.print_stats()
-    elif cmd.startswith('layout'):
+    elif cmd.startswith('layout') or cmd.startswith('nxy'):
         if len(bits) == 3:
             try:
                 ncols, nrows = map(int, bits[1:])
@@ -760,22 +845,21 @@ def parse_command(cmd, plt, gen):
         else:
             print 'Invalid write command %s' % cmd
             
-    elif cmd.startswith('array'):
-        if len(bits) == 2:
-            a = bits[1]
-            arr_mask = [str(i) in a for i in xrange(1, plt.nant+1)]
-            plt.set_antenna_mask(arr_mask)
 
+    elif cmd.startswith('legon'):
+        plt.set_legend(True)
+    elif cmd.startswith('legoff'):
+        plt.set_legend(False)
     elif cmd.startswith('?') or cmd.startswith('help'):
         print_help()
     else:
         print 'Unknown command: %s' % cmd
 
 def print_help():
-    version = __version__
     s = """SPD for ASKAP %(version)s (C) CSIRO 2014
 --- Variable selection ---
 a = amplitudes
+dba = amplitudes (dB)
 p = phases
 r = real
 i = imaginary
@@ -783,10 +867,14 @@ d = difference between current and saved = abs(curr - saved)
 q = quotition of current and saved = abs(curr)/abs(saved)
 
 --- Data selection ---
-sel i|q|u|v = select stokes IQUV
-sel bN = select beam N
+sel xx|yy|xy|yx= select stokes XX YY YX XY
+beam X[ Y[ Z[ ..]]] = select beam s (e.g. beam 0 1  2 3 4 or beam 0:6:2)
+array A B C D = Select array (by indices) e.g. array 0 1 2 3 or array 0:6
+
+-- Plot selection --
 scale [start end] = set y scale between start and end. If not specified, autoscale
 chan [start end] = plot channels from start to end. If not specified, autoscale
+
 
 --- Previous buffer ---
 save - Save current data to previous buffer, so you can plot with 'd' or 'q'
@@ -801,6 +889,9 @@ noavg - Stop averaging
 pstat - print plotting statistics
 write FILE - Save figure to file: Supported formats from extension (e.g. spec.png, spec.pdf)
 layout X Y - Make figure X subfigs wide and Y subfigs tall
+nxy - same as 'layout'
+stack a|b|p - Set multiple lines on each panel to be (a)ntennas, (b)eams or (p)olarisations
+panel a|b|p - Set each panel in sequence to be (a)ntennas, (b)eams or (p)olarisations
 replot - Replot the figure.
 help - print this out
     """ % locals()
@@ -836,20 +927,26 @@ def _main():
     nant = 6;     nbeams = 1;     nchan = 16416
     #nant = 6; nbeams = 9 ; nchan = 16384
 #    nchan = 304
+    nbeams= 9
+    nchan = 16416
 
     npol = 4
 
     start_freq = 1.4 # Ghz
     chanbw = 1e-3 # Ghz
-    plt = SpectrumPlotter(nant, nbeams, npol, nchan)
-#    vis = SummaryPlotter(nant, nbeams, npol, nchan, start_freq, chanbw)
-    vis = None
+    freq = np.arange(nchan) * 0.304 + 1.4
+
 
     print values.infiles
     if values.infiles is None or len(values.infiles) == 0:
         gen = TestDataGenerator(nant, nbeams, npol, nchan)
     else:
         gen = ZmqDataGenerator(values.infiles[0])
+
+    plt = SpectrumPlotter(gen, nant, nbeams, npol, freq)
+#    vis = SummaryPlotter(nant, nbeams, npol, nchan, start_freq, chanbw)
+    vis = None
+
     
     thread = threading.Thread(target=push_data, args=(plt, vis, gen))
     thread.daemon = True
