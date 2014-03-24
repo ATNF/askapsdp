@@ -874,7 +874,9 @@ array A B C D = Select array (by indices) e.g. array 0 1 2 3 or array 0:6
 -- Plot selection --
 scale [start end] = set y scale between start and end. If not specified, autoscale
 chan [start end] = plot channels from start to end. If not specified, autoscale
-
+stack a|b|p - Set multiple lines on each panel to be (a)ntennas, (b)eams or (p)olarisations
+panel a|b|p - Set each panel in sequence to be (a)ntennas, (b)eams or (p)olarisations
+x = Swap between frequency (GHz) and channel number
 
 --- Previous buffer ---
 save - Save current data to previous buffer, so you can plot with 'd' or 'q'
@@ -886,12 +888,12 @@ avg - Start averaging
 noavg - Stop averaging
 
 --- Miscellaneous ---
+legon = Plot legend
+legoff = Turn off legend
 pstat - print plotting statistics
 write FILE - Save figure to file: Supported formats from extension (e.g. spec.png, spec.pdf)
 layout X Y - Make figure X subfigs wide and Y subfigs tall
 nxy - same as 'layout'
-stack a|b|p - Set multiple lines on each panel to be (a)ntennas, (b)eams or (p)olarisations
-panel a|b|p - Set each panel in sequence to be (a)ntennas, (b)eams or (p)olarisations
 replot - Replot the figure.
 help - print this out
     """ % locals()
