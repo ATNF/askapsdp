@@ -88,20 +88,28 @@ class LinmosAccumulator {
     /// @return bool true=success, false=fail
     bool loadParset(const LOFAR::ParameterSet &parset);
 
+    /// @brief set up a single mosaic
+    /// @param[in] const vector<string> &inImgNames : vector of images to mosaic
+    /// @param[in] const vector<string> &inWgtNames : vector of weight images, if required
+    /// @param[in] const string &outImgName : output mosaic image name
+    /// @param[in] const string &outWgtName : output mosaic weight image name
+    void setSingleMosaic(const vector<string> &inImgNames, const vector<string> &inWgtNames,
+                         const string &outImgName, const string &outWgtName);
+
+
+    /// @brief set up a single mosaic for each taylor term
+    /// @param[in] const vector<string> &inImgNames : vector of images to mosaic
+    /// @param[in] const vector<string> &inWgtNames : vector of weight images, if required
+    /// @param[in] const string &outImgName : output mosaic image name
+    /// @param[in] const string &outWgtName : output mosaic weight image name
+    void findAndSetTaylorTerms(const vector<string> &inImgNames, const vector<string> &inWgtNames,
+                               const string &outImgName, const string &outWgtName);
+
     /// @brief search the current directory for suitable mosaics
     /// @details based on a vector of image tags, look for sets of images with names
     ///     that contain all tags but are otherwise equal and contain an allowed prefix.
     /// @param[in] const vector<string> &imageTags : vector of image tags
-    void findAndSetMosacis(const vector<string> &imageTags);
-
-    /// @brief 
-    /// @details 
-    /// @param[in] 
-    /// @param[in] 
-    /// @param[in] 
-    /// @param[in] 
-    void findAndSetTaylorTerms(const vector<string> &inImgNames, const vector<string> &inWgtNames,
-                               const string &outImgName, const string &outWgtName);
+    void findAndSetMosaics(const vector<string> &imageTags);
 
     /// @brief test whether the output buffers are empty and need initialising
     /// @return bool
@@ -340,7 +348,7 @@ bool LinmosAccumulator::loadParset(const LOFAR::ParameterSet &parset) {
             ASKAPLOG_WARN_STR(logger, "  - nterms is specified in parset but ignored.");
         }
 
-        findAndSetMosacis(inImgNames);
+        findAndSetMosaics(inImgNames);
 
         ASKAPCHECK(itsInImgNameVecs.size() > 0, "No suitable mosaics found.");
         ASKAPLOG_INFO_STR(logger, itsInImgNameVecs.size() << " suitable mosaics found.");
@@ -364,17 +372,8 @@ bool LinmosAccumulator::loadParset(const LOFAR::ParameterSet &parset) {
  
         } else {
 
-            // Check the input images
-            for (uint img = 0; img < inImgNames.size(); ++img) {
-                ASKAPCHECK(inImgNames[img]!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
-            }
+            setSingleMosaic(inImgNames, inWgtNames, outImgName, outWgtName);
 
-            // set a single key for the various file-name maps
-            itsOutWgtNames[outImgName] = outWgtName;
-            itsInImgNameVecs[outImgName] = inImgNames;
-            if (itsWeightType == FROM_WEIGHT_IMAGES) {
-                itsInWgtNameVecs[outImgName] = inWgtNames;
-            }
         }
 
     }
@@ -472,7 +471,7 @@ bool LinmosAccumulator::loadParset(const LOFAR::ParameterSet &parset) {
 
 }
 
-void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
+void LinmosAccumulator::findAndSetMosaics(const vector<string> &imageTags) {
 
     vector<string> prefixes;
     prefixes.push_back("image");
@@ -578,7 +577,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
 
                 }
 
-                // set the output weights image name (weights are not needed when combining sensitivity images)
+                // set the output weights image name
                 // replace the mosaic prefix with "weights"
                 nextName = mosaicName;
                 nextName.replace(0, (*pre).length(), "weights");
@@ -590,7 +589,7 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
                 itsOutWgtNames[mosaicName] = nextName;
 
                 itsGenSensitivityImage[mosaicName] = false;
-                if (itsInSenNameVecs.find(mosaicName)!=itsInSenNameVecs.end()) {
+                if (itsInSenNameVecs.find(mosaicName)!=itsInSenNameVecs.end()) { // if key is found
                     if (itsInImgNameVecs[mosaicName].size()==itsInSenNameVecs[mosaicName].size()) {
                         itsGenSensitivityImage[mosaicName] = true;
                         // set an output sensitivity file name
@@ -676,7 +675,73 @@ void LinmosAccumulator::findAndSetMosacis(const vector<string> &imageTags) {
 
     } // it loop (over potential images in this directory)
 
-} // void LinmosAccumulator::findAndSetMosacis()
+} // void LinmosAccumulator::findAndSetMosaics()
+
+void LinmosAccumulator::setSingleMosaic(const vector<string> &inImgNames, const vector<string> &inWgtNames,
+                                        const string &outImgName, const string &outWgtName) {
+
+    // set some variables for the sensitivity image searches
+    string image_tag = "image", restored_tag = ".restored", tmpName;
+    itsDoSensitivity = true; // set false if any sensitivity images are missing or if not an image* mosaic
+
+    // Check the input images
+    for (uint img = 0; img < inImgNames.size(); ++img) {
+
+        // make sure the output image will not be overwritten
+        ASKAPCHECK(inImgNames[img]!=outImgName, "Output image, "<<outImgName<<", is present among the inputs");
+
+        // if this is an "image*" file, see if there is an appropriate sensitivity image 
+        if (itsDoSensitivity) {
+            tmpName = inImgNames[img];
+            int image_pos = tmpName.find(image_tag);
+            // if the file starts with image_tag, look for a sensitivity image
+            if (image_pos == 0) {
+                tmpName.replace(image_pos, image_tag.length(), "sensitivity");
+                // remove any ".restored" sub-string from the file name
+                int restored_pos = tmpName.find(restored_tag);
+                if (restored_pos != string::npos) {
+                    tmpName.replace(restored_pos, restored_tag.length(), "");
+                }
+                if (boost::filesystem::exists(tmpName)) {
+                    itsInSenNameVecs[outImgName].push_back(tmpName);
+                } else {
+                    ASKAPLOG_WARN_STR(logger, "Cannot find file "<<tmpName<<" . Ignoring sensitivities.");
+                    itsDoSensitivity = false;
+                }
+            } else {
+                ASKAPLOG_WARN_STR(logger, "Input not an image* file. Ignoring sensitivities.");
+                itsDoSensitivity = false;
+            }
+        }
+
+    }
+
+    // set a single key for the various file-name maps
+    itsOutWgtNames[outImgName] = outWgtName;
+    itsInImgNameVecs[outImgName] = inImgNames;
+    if (itsWeightType == FROM_WEIGHT_IMAGES) {
+        itsInWgtNameVecs[outImgName] = inWgtNames;
+    }
+    if (itsDoSensitivity) {
+        itsGenSensitivityImage[outImgName] = true;
+        // set an output sensitivity file name
+        tmpName = outImgName;
+        tmpName.replace(0, image_tag.length(), "sensitivity");
+        // remove any ".restored" sub-string from the weights file name
+        int restored_pos = tmpName.find(restored_tag);
+        if (restored_pos != string::npos) {
+            tmpName.replace(restored_pos, restored_tag.length(), "");
+        }
+        itsOutSenNames[outImgName] = tmpName;
+    } else {
+        itsGenSensitivityImage[outImgName] = false;
+        // if some but not all sensitivity images were found, remove this key from itsInSenNameVecs
+        if (itsInSenNameVecs.find(outImgName)!=itsInSenNameVecs.end()) {
+            itsInSenNameVecs.erase(outImgName);
+        }
+    }
+
+} // LinmosAccumulator::setSingleMosaic()
 
 void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, const vector<string> &inWgtNames,
                                               const string &outImgNameOrig, const string &outWgtNameOrig) {
@@ -690,6 +755,10 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
     pos1 = outImgNameOrig.find(itsTaylorTag, pos0+1); // make sure there aren't multiple entries.
     ASKAPCHECK(pos1==string::npos, "There are multiple  "<<itsTaylorTag<<" strings in output file "<<outImgNameOrig);
 
+    // set some variables for the sensitivity image searches
+    string image_tag = "image", restored_tag = ".restored", tmpName;
+    itsDoSensitivity = true; // set false if any sensitivity images are missing or if not an image* mosaic
+
     for (int n = 0; n < itsNumTaylorTerms; ++n) {
 
         string outImgName = outImgNameOrig;
@@ -697,8 +766,8 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
         const string taylorN = "taylor." + boost::lexical_cast<string>(n);
 
         // set a new key for the various output file-name maps
-        outImgName.replace(outImgName.find(itsTaylorTag), taylorN.length(), taylorN);
-        outWgtName.replace(outWgtName.find(itsTaylorTag), taylorN.length(), taylorN);
+        outImgName.replace(outImgName.find(itsTaylorTag), itsTaylorTag.length(), taylorN);
+        outWgtName.replace(outWgtName.find(itsTaylorTag), itsTaylorTag.length(), taylorN);
         itsOutWgtNames[outImgName] = outWgtName;
 
         for (uint img = 0; img < inImgNames.size(); ++img) {
@@ -711,7 +780,7 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
             ASKAPCHECK(pos1==string::npos, "There are multiple "<<itsTaylorTag<<" strings in input file "<<inImgName);
 
             // set a new key for the input file-name-vector map
-            inImgName.replace(pos0, taylorN.length(), taylorN);
+            inImgName.replace(pos0, itsTaylorTag.length(), taylorN);
             itsInImgNameVecs[outImgName].push_back(inImgName);
 
             // Check the input image
@@ -727,16 +796,60 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
                                                " strings in input file "<<inWgtName);
 
                 // set a new key for the input weights file-name-vector map
-                inWgtName.replace(pos0, taylorN.length(), taylorN);
+                inWgtName.replace(pos0, itsTaylorTag.length(), taylorN);
                 itsInWgtNameVecs[outImgName].push_back(inWgtName);
 
                 // Check the input weights image
                 ASKAPCHECK(inWgtName!=outWgtName, "Output wgt image, "<<outWgtName<<", is among the inputs");
             }
 
+            // if this is an "image*" file, see if there is an appropriate sensitivity image 
+            if (itsDoSensitivity) {
+                tmpName = inImgName;
+                int image_pos = tmpName.find(image_tag);
+                // if the file starts with image_tag, look for a sensitivity image
+                if (image_pos == 0) {
+                    tmpName.replace(image_pos, image_tag.length(), "sensitivity");
+                    // remove any ".restored" sub-string from the file name
+                    int restored_pos = tmpName.find(restored_tag);
+                    if (restored_pos != string::npos) {
+                        tmpName.replace(restored_pos, restored_tag.length(), "");
+                    }
+                    if (boost::filesystem::exists(tmpName)) {
+                        itsInSenNameVecs[outImgName].push_back(tmpName);
+                    } else {
+                        ASKAPLOG_WARN_STR(logger, "Cannot find file "<<tmpName<<" . Ignoring sensitivities.");
+                        itsDoSensitivity = false;
+                    }
+                } else {
+                    ASKAPLOG_WARN_STR(logger, "Input not an image* file. Ignoring sensitivities.");
+                    itsDoSensitivity = false;
+                }
+            }
+
+        } // img loop (input image)
+
+        // check whether any sensitivity images were found
+        if (itsDoSensitivity) {
+            itsGenSensitivityImage[outImgName] = true;
+            // set an output sensitivity file name
+            tmpName = outImgName;
+            tmpName.replace(0, image_tag.length(), "sensitivity");
+            // remove any ".restored" sub-string from the weights file name
+            int restored_pos = tmpName.find(restored_tag);
+            if (restored_pos != string::npos) {
+                tmpName.replace(restored_pos, restored_tag.length(), "");
+            }
+            itsOutSenNames[outImgName] = tmpName;
+        } else {
+            itsGenSensitivityImage[outImgName] = false;
+            // if some but not all sensitivity images were found, remove this key from itsInSenNameVecs
+            if (itsInSenNameVecs.find(outImgName)!=itsInSenNameVecs.end()) {
+                itsInSenNameVecs.erase(outImgName);
+            }
         }
 
-    }
+    } // n loop (taylor term)
 
 } // void LinmosAccumulator::findAndSetTaylorTerms()
 
@@ -1379,7 +1492,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         }
         if (accumulator.doSensitivity()) {
             inSenNames = accumulator.inSenNameVecs()[outImgName];
-            ASKAPLOG_INFO_STR(logger, " - also sensitivity images: " << inSenNames);
+            ASKAPLOG_INFO_STR(logger, " - input sensitivity images: " << inSenNames);
         }
 
         // set the output coordinate system and shape, based on the overlap of input images

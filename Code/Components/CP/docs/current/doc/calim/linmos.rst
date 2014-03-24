@@ -27,7 +27,9 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 +------------------+------------------+--------------+------------------------------------------------------------+
 |**Parameter**     |**Type**          |**Default**   |**Description**                                             |
 +==================+==================+==============+============================================================+
-|names             |vector<string>    |*none*        |Names of the input images.                                  |
+|names             |vector<string>    |*none*        |Names of the input images. If these images start with       |
+|                  |                  |              |"image" and have associated sensitivity images, the latter  |
+|                  |                  |              |are integrated into a sensitivity image for the mosaic.     |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |weights           |vector<string>    |null          |Optional parameter (required if using weight images). Names |
 |                  |                  |              |of input images containing pixel weights. There must be one |
