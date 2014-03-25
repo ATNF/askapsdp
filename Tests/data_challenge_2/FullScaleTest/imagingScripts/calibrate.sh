@@ -21,6 +21,30 @@ if [ $doCal == true ]; then
 
 	calFeed=${POINTING}
 
+	if [ "${calGridder}" == "AWProject" ]; then
+	    griddingPars="#
+Ccalibrator.gridder.snapshotimaging                 = true
+Ccalibrator.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
+Ccalibrator.gridder                                 = ${calGridder}
+Ccalibrator.gridder.${calGridder}.wmax                  = ${IMAGING_WMAX}
+Ccalibrator.gridder.${calGridder}.nwplanes              = ${nwCal}
+Ccalibrator.gridder.${calGridder}.oversample            = ${osCal}
+Ccalibrator.gridder.${calGridder}.diameter              = 12m
+Ccalibrator.gridder.${calGridder}.blockage              = 2m
+Ccalibrator.gridder.${calGridder}.maxfeeds              = 9
+Ccalibrator.gridder.${calGridder}.maxsupport            = 512
+Ccalibrator.gridder.${calGridder}.variablesupport       = true
+Ccalibrator.gridder.${calGridder}.offsetsupport         = true
+Ccalibrator.gridder.${calGridder}.frequencydependent    = true
+"
+	else
+	    griddingPars="#
+Ccalibrator.gridder.snapshotimaging                 = true
+Ccalibrator.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
+Ccalibrator.gridder                                 = ${calGridder}
+"
+	fi
+
 	qsubfile=ccal_BEAM${POINTING}.qsub
 	cat > $qsubfile <<EOF
 #!/bin/bash -l
@@ -78,20 +102,8 @@ Ccalibrator.sources.field1.direction	        = ${direction1934}
 Ccalibrator.sources.field1.components           = src
 Ccalibrator.sources.src.calibrator              = "1934-638"
 #
-Ccalibrator.gridder.snapshotimaging                 = true
-Ccalibrator.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
-Ccalibrator.gridder                                 = ${calGridder}
-Ccalibrator.gridder.${calGridder}.wmax                  = ${IMAGING_WMAX}
-Ccalibrator.gridder.${calGridder}.nwplanes              = ${nwCal}
-Ccalibrator.gridder.${calGridder}.oversample            = ${osCal}
-Ccalibrator.gridder.${calGridder}.diameter              = 12m
-Ccalibrator.gridder.${calGridder}.blockage              = 2m
-Ccalibrator.gridder.${calGridder}.maxfeeds              = 9
-Ccalibrator.gridder.${calGridder}.maxsupport            = 512
-Ccalibrator.gridder.${calGridder}.variablesupport       = true
-Ccalibrator.gridder.${calGridder}.offsetsupport         = true
-Ccalibrator.gridder.${calGridder}.frequencydependent    = true
-
+${griddingPars}
+#
 Ccalibrator.ncycles                             = $ncycCal
 
 EOF_INNER

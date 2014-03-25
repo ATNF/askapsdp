@@ -55,17 +55,17 @@ ${mfsParams}
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = ${IMAGING_WTOL}
-Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = ${IMAGING_WMAX}
-Cimager.gridder.AWProject.nwplanes              = ${IMAGING_NWPLANES}
-Cimager.gridder.AWProject.oversample            = ${IMAGING_OVERSAMPLE}
-Cimager.gridder.AWProject.diameter              = 12m
-Cimager.gridder.AWProject.blockage              = 2m
-Cimager.gridder.AWProject.maxfeeds              = 9
-Cimager.gridder.AWProject.maxsupport            = ${IMAGING_MAXSUP}
-Cimager.gridder.AWProject.variablesupport       = true
-Cimager.gridder.AWProject.offsetsupport         = true
-Cimager.gridder.AWProject.frequencydependent    = true
+Cimager.gridder                                 = ${IMAGING_GRIDDER}
+Cimager.gridder.${IMAGING_GRIDDER}.wmax                  = ${IMAGING_WMAX}
+Cimager.gridder.${IMAGING_GRIDDER}.nwplanes              = ${IMAGING_NWPLANES}
+Cimager.gridder.${IMAGING_GRIDDER}.oversample            = ${IMAGING_OVERSAMPLE}
+Cimager.gridder.${IMAGING_GRIDDER}.diameter              = 12m
+Cimager.gridder.${IMAGING_GRIDDER}.blockage              = 2m
+Cimager.gridder.${IMAGING_GRIDDER}.maxfeeds              = 9
+Cimager.gridder.${IMAGING_GRIDDER}.maxsupport            = ${IMAGING_MAXSUP}
+Cimager.gridder.${IMAGING_GRIDDER}.variablesupport       = true
+Cimager.gridder.${IMAGING_GRIDDER}.offsetsupport         = true
+Cimager.gridder.${IMAGING_GRIDDER}.frequencydependent    = true
 #
 Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS

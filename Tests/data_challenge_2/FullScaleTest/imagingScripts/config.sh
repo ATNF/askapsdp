@@ -38,7 +38,8 @@ calSolveNbeam=9
 calSolve=gains
 calDirection=${direction1934}
 
-calGridder=AWProject
+#calGridder=AWProject
+calGridder=SphFunc
 wmaxCal=800
 nwCal=129
 osCal=4
@@ -57,8 +58,8 @@ CONT_CLEAN_FREQ=0.9e9
 # image size -- number of pixels and cellsize
 IMAGING_CELLSIZE=10arcsec
 
-#model=SKADS
-model=BETAtestfield
+model=SKADS
+#model=BETAtestfield
 
 
 if [ $model == "SKADS" ]; then
@@ -88,15 +89,17 @@ else
     IMAGING_MAXSUP=1024
     IMAGING_WTOL=1600
     IMAGING_WMAX=1600
-#    scienceMS=../MS/sciencefield_BETAtestfield_5s_2014-03-05-1050.ms
     scienceMS=../MS/sciencefield_BETAtestfield_5s_2014-03-05-1050.ms
     imagebase=image.i.clean.sciencefield.BETAtestfield
 
 fi
 
 # gridding parameters for imaging 
+#IMAGING_GRIDDER=AWProject
+IMAGING_GRIDDER=WProject
 IMAGING_NWPLANES=99
 IMAGING_OVERSAMPLE=4
+#
 IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
 IMAGING_EQUALISE=True
 #IMAGING_CLEANSCALES="[0, 3, 10, 30]"
