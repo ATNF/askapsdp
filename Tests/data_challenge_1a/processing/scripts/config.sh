@@ -72,7 +72,7 @@ DO_SPECTRAL_LINE=false
 #. ${SCRIPTDIR}/config_full_BETA.sh
 
 ## trimmed-down BETA: 152MHz, 9beams
-#. ${SCRIPTDIR}/config_small_BETA.sh
+. ${SCRIPTDIR}/config_small_BETA.sh
 
 ## ASKAP-12 early science simulation
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12.sh
@@ -80,4 +80,4 @@ DO_SPECTRAL_LINE=false
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12_dec04.sh
 
 ## BETA observation of standard test field J1600-79
-. ${SCRIPTDIR}/config_BETAtestfield.sh
+#. ${SCRIPTDIR}/config_BETAtestfield.sh
