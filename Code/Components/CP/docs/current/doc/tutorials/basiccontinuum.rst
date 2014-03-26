@@ -95,27 +95,15 @@ Here is a basic parameter set for use with ccalibrator. It has the same sort of 
 	Ccalibrator.sources.names                         = [field1]
 	Ccalibrator.sources.field1.direction	          = [19h39m25.036, -63.42.45.63, J2000]
 	Ccalibrator.sources.field1.components             = src
-	Ccalibrator.sources.src.calibrator                = "1934-638"
+	Ccalibrator.sources.src.calibrator                = 1934-638
 	#						  
-	Ccalibrator.gridder.snapshotimaging               = true
-	Ccalibrator.gridder.snapshotimaging.wtolerance    = 2800
-	Ccalibrator.gridder                               = AWProject
-	Ccalibrator.gridder.AWProject.wmax                = 2800
-	Ccalibrator.gridder.AWProject.nwplanes            = 129
-	Ccalibrator.gridder.AWProject.oversample          = 4
-	Ccalibrator.gridder.AWProject.diameter            = 12m
-	Ccalibrator.gridder.AWProject.blockage            = 2m
-	Ccalibrator.gridder.AWProject.maxfeeds            = 9
-	Ccalibrator.gridder.AWProject.maxsupport          = 512
-	Ccalibrator.gridder.AWProject.variablesupport     = true
-	Ccalibrator.gridder.AWProject.offsetsupport       = true
-	Ccalibrator.gridder.AWProject.frequencydependent  = true
+	Ccalibrator.gridder                               = SphFunc
 	#						  
 	Ccalibrator.ncycles                               = 5
 
 This parset will solve for the gains for the first calibrator observation. We only care about the BEAM 0 from this observation (which is the beam pointing at 1934), but the task actually tries to solve for all beams.
 
-The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.src.calibrator="1934-638"* entry) - this is a special unresolved component that accounts for 1934's spectral variation. It puts the component at the position indicated, which happens to be the direction of the observation.
+The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.src.calibrator=1934-638* entry) - this is a special unresolved component that accounts for 1934's spectral variation. It puts the component at the position indicated, which happens to be the direction of the observation.
 
 Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
 
@@ -216,7 +204,7 @@ Make a note of the ID that qsub returns - you may need this to set up dependenci
 Imaging
 -------
 
-To do the imaging we select individual beams and image them independently. This is to replicate what is necessary for actual BETA data as the phase tracking is done independently for each beam. **CONFIRM THIS IS CORRECT**
+To do the imaging we select individual beams and image them independently. This is to replicate what is necessary for actual BETA data as the phase/delay tracking is done independently for each antenna, and this, combined with the poor knowledge of the primary beam, means the joint deconvolution (ie. of all beams at once) will not be reliable.
 
 The imaging is done similarly to that in the introductory tutorial, with two additions. One, we will select an individual beam from the measurement set, and two, we will add some cleaning. Here is an example parset::
 
@@ -240,9 +228,9 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	Cimager.visweights.MFS.reffreq                  = 898.e6
 	#
 	Cimager.gridder.snapshotimaging                 = true
-	Cimager.gridder.snapshotimaging.wtolerance      = 2800
+	Cimager.gridder.snapshotimaging.wtolerance      = 2600
 	Cimager.gridder                                 = AWProject
-	Cimager.gridder.AWProject.wmax                  = 2800
+	Cimager.gridder.AWProject.wmax                  = 2600
 	Cimager.gridder.AWProject.nwplanes              = 99
 	Cimager.gridder.AWProject.oversample            = 4
 	Cimager.gridder.AWProject.diameter              = 12m
