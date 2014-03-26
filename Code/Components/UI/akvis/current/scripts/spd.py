@@ -8,8 +8,8 @@ For some reason 2 plot windows doens't work - TK bug no doubt.
 
 Copyright (C) Keith Bannister 2014
 """
-import pylab
 import matplotlib
+import pylab
 import numpy as np
 import os
 import sys
@@ -87,11 +87,14 @@ def myafter(self, ms, func, *args):
     return v
 
 def queue_idle(cmd, fig):
+
     backend = matplotlib.get_backend()
     if backend == 'TkAgg':
         win = fig.canvas.manager.window
-#        myafter(win, 'idle', cmd) # Tell TkAgg to update the attached command when idle
-        win = fig.canvas.draw_idle()
+        print "DRAW IDLE"
+        fig.canvas.draw_idle()
+
+#        myafter(win, 'idle', cmd) # Tell TkAgg to update the attached command when ide
     else:
         assert False, 'Unknown backend %s'  % backend
     
@@ -200,6 +203,7 @@ class SpectrumPlotter(object):
         logging.debug('settign variable: %s %s', var, self._variable)
         
         self.update_data()
+        self.redraw()
         
 
     def _update_axes_ylim(self):
@@ -318,6 +322,7 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
             if nrows * ncols == ipan:
                 # too many things to plot - nxy needs to be made larger
                 break
+
             ax = pylab.subplot(nrows, ncols, ipan+1)
             self._axes.append(ax)
             pylab.cla()
@@ -400,10 +405,7 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
         print "DRAW TIMER", t, self._draw_timer
         self._draw_timer = t
 
-
-
     def put_cross(self, blidx, beam, pol, spectrum):
-
         if self._rsave:
             self._prev_cross[blidx, beam, pol, :] = self._cross[blidx, beam, pol, :]
 
@@ -417,70 +419,17 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
 
         self._num_puts += 1
 
+    def put_message(self, vismsg):
+        for bl in xrange(vismsg.nBaselines):
+            self.put_cross(bl, vismsg.beamId, vismsg.polarisationId, vismsg.visibilities[bl, :])
+        
+        self.update_data()
+        self.redraw()
+
 
 def complex_noise(amp, n):
     noise = np.random.randn(n)*amp + 1j*np.random.randn(n)*amp
     return noise
-
-class TestDataGenerator(object):
-    def __init__(self, nant, nbeams, npol, nchan):
-        self._nant = nant
-        self._nbeams = nbeams
-        self._npol = npol
-        self._nchan = nchan
-        self._simstep = 0
-        self._noise_amp = 0.1
-
-    def _gen_noise(self):
-        return complex_noise(self._noise_amp, self._nchan)
-
-    def unsubscribe_all(self):
-        print 'Unsubscribe all'
-
-    def subscribe(self, beam, pol):
-        print 'Subscribe',beam, pol
-    
-    def unsubscribe(self, beam, pol):
-        print 'unsubscribe', beam, pol
-
-    def push(self, plotters, delay_step=1.):
-        t = Timer()
-        t.start()
-        nant = self._nant
-        nbl = nant * (nant - 1)/2
-#        print 'Simstep', self._simstep
-        channels = np.arange(self._nchan)/float(self._nchan)
-        nspec = np.zeros(self._nchan, dtype=np.complex)
-        for bl in xrange(nbl):
-            delay = np.sin(self._simstep*delay_step)*bl
-#            print 'PUSH', 'BL', bl, 'delay', delay
-            phase = 0.1
-            phases = 1j*(2*np.pi*channels*delay + phase)
-            ispec = np.exp(phases)
-
-            for beam in xrange(self._nbeams):
-                for p in plotters:
-                    p.put_cross(bl, beam, 0, ispec + self._gen_noise()) # stokes I
-                for i in xrange(1, 4):
-                    for p in plotters:
-                        p.put_cross(bl, beam, i, nspec + self._gen_noise()) # stokes Q, U, V
-
-                 
-        t.stop()
-#        print 'Gen data took', str(t)
-
-        t = Timer()
-        with t:
-            for p in plotters:
-                p.update_data()
-                p.redraw() # vis REDRAW complains with RuntimeError: main thread is not in main loop. No idea why.
-
-            plotters[0].redraw()
-
-#        print 'Update data took', str(t)
-        
-        self._simstep += 1
-        time.sleep(3)
 
 class ZmqDataGenerator(object):
     def __init__(self, target):
@@ -490,7 +439,7 @@ class ZmqDataGenerator(object):
         self.socket.connect(target)
         self.subscriptions = []
         self.subscribe(0, 'XX')
-        self.init_mesg = VisabilityMessage(self.socket.recv_multipart())
+        self.init_mesg = VisibilityMessage(self.socket.recv_multipart())
         self.unsubscribe_all()
 
         print self.init_mesg
@@ -504,6 +453,9 @@ class ZmqDataGenerator(object):
         print "ANTENNAS"
         print self.antenna1
         print self.antenna2
+        print "FREQ", len(self.frequency), self.chanWidth, self.nChannels
+        print "Baseline", self.nBaselines
+
 
     def get_sockstring(self, beam, pol):
         assert pol.upper() in POL_STR
@@ -532,26 +484,26 @@ class ZmqDataGenerator(object):
 
     def push(self, plotters):
         msg = self.socket.recv_multipart()
-        vmsg = VisabilityMessage(msg)
+        vmsg = VisibilityMessage(msg)
         print "msg RX", msg[0], str(vmsg)
 
         t = Timer()
         t.start()
         nbl = vmsg.nBaselines # this includes autocorelations
-        nbl -= 6
-        
-        for bl in xrange(nbl):
-            for p in plotters:
-                p.put_cross(bl, vmsg.beamId, vmsg.polarisationId, vmsg.visibilities[bl, :])
+        for p in plotters:
+#            for bl in xrange(nbl):
+
+#                p.put_cross(bl, vmsg.beamId, vmsg.polarisationId, vmsg.visibilities[bl, :])
+            p.put_message(vmsg)
         t.stop()
 
-        t = Timer()
-        with t:
-            for p in plotters:
-                p.update_data()
-                p.redraw() # vis REDRAW complains with RuntimeError: main thread is not in main loop. No idea why.
+#        t = Timer()
+#        with t:
+#            for p in plotters:
+#                p.update_data()
+#                p.redraw() # vis REDRAW complains with RuntimeError: main thread is not in main loop. No idea why.
 
-            plotters[0].redraw()
+#            plotters[0].redraw()
 
 
 class BufferReader(object):
@@ -584,8 +536,11 @@ class BufferReader(object):
         self.off += n
         return d
 
-class VisabilityMessage(object):
-    def __init__(self, msgs):
+class VisibilityMessage(object):
+    def __init__(self, msgs=None):
+        if msgs is None:
+            return
+
         self.pol_ident = msgs[0]
         r = BufferReader(msgs[1])
         self.timestamp = r.read_uint64()
@@ -602,6 +557,34 @@ class VisabilityMessage(object):
         self.visibilities.shape = (self.nBaselines, self.nChannels)
         self.flag = r.read_uint8(self.nBaselines*self.nChannels)
         self.flag.shape = (self.nBaselines, self.nChannels)
+
+    def tofile(self, buff):
+        self.timestamp.tofile(buff)
+        self.beamId.tofile(buff)
+        self.polarisationId.tofile(buff)
+        self.nChannels.tofile(buff)
+        self.chanWidth.tofile(buff)
+        self.frequency.tofile(buff)
+        self.nBaselines.tofile(buff)
+        self.antenna1.tofile(buff)
+        self.antenna2.tofile(buff)
+        self.visibilities.flat.tofile(buff)
+        self.flag.flat.tofile(buff)
+
+    def tostring(self, s):
+        s.write(self.timestamp.tostring())
+        s.write(self.beamId.tostring())
+        s.write(self.polarisationId.tostring())
+        s.write(self.nChannels.tostring())
+        s.write(self.chanWidth.tostring())
+        s.write(self.frequency.tostring())
+        s.write(self.nBaselines.tostring())
+        s.write(self.antenna1.tostring())
+        s.write(self.antenna2.tostring())
+        s.write(self.visibilities.tostring())
+        s.write(self.flag.tostring())
+
+        
 
     def __str__(self):
         s = "t=%s beam=%d pol=%d chanWidth=%0.1f kHz Nbl: %d vishape: %s" % (
@@ -646,6 +629,8 @@ class SubscriptionManager(object):
         self.beam_mask[0] = True
         self.dgen = dgen
         self._calc_baseline_mask()
+        self.include_autos = False
+        self.include_cross = True
 
     def set_pol_mask(self, new_pol_mask):
         self.pol_mask[:] = new_pol_mask
@@ -686,11 +671,15 @@ class SubscriptionManager(object):
                 if not self.baseline_mask[ibl]:
                     continue
 
-                label ='AK%d-AK%d' % (ANTENNA_LABELS[self.dgen.antenna1[ibl]], 
-                                      ANTENNA_LABELS[self.dgen.antenna2[ibl]])
+                a1 = self.dgen.antenna1[ibl]
+                a2 = self.dgen.antenna2[ibl]
+                label ='AK%d-AK%d' % (ANTENNA_LABELS[a1], 
+                                      ANTENNA_LABELS[a2])
 #                label = 'BL%d' % ibl
 
-                yield 0, ibl, label
+                if (self.include_autos and a1 == a2) or \
+                        (self.include_cross and a1 != a2):
+                    yield 0, ibl, label
 
         elif mode == 'b':
             for ibeam in xrange(len(self.beam_mask)):
@@ -755,11 +744,21 @@ def parse_command(cmd, plt, gen):
     elif cmd.startswith('panel'):
         panval = cmd.split()[1]
         plt.set_panel(panval)
-
+    elif cmd.startswith('acs'):
+        plt._mgr.include_autos = True
+        plt.replot()
+    elif cmd.startswith('noacs'):
+        plt._mgr.include_autos = False
+        plt.replot()
+    elif cmd.startswith('ccs'):
+        plt._mgr.include_cross = True
+        plt.replot()
+    elif cmd.startswith('noccs'):
+        plt._mgr.include_cross = False
+        plt.replot()
     elif cmd.startswith('stack'):
         stackval = cmd.split()[1]
         plt.set_stack(stackval)
-
     elif selm is not None:
         pol_mask = plt._mgr.pol_mask*False
         for sel_str in selm.group(1).split():
@@ -772,7 +771,7 @@ def parse_command(cmd, plt, gen):
         plt._mgr.set_pol_mask(pol_mask)
         plt.replot()
 
-    elif cmd.startswith('array'):
+    elif cmd.startswith('iarray'):
         if len(bits) >= 1:
             arr_mask = plt._mgr.ant_mask*False
             for a in bits[1:]:
@@ -856,7 +855,7 @@ def parse_command(cmd, plt, gen):
         print 'Unknown command: %s' % cmd
 
 def print_help():
-    s = """SPD for ASKAP %(version)s (C) CSIRO 2014
+    s = """SPD for ASKAP (C) CSIRO 2014
 --- Variable selection ---
 a = amplitudes
 dba = amplitudes (dB)
@@ -867,9 +866,9 @@ d = difference between current and saved = abs(curr - saved)
 q = quotition of current and saved = abs(curr)/abs(saved)
 
 --- Data selection ---
-sel xx|yy|xy|yx= select stokes XX YY YX XY
+sel xx|yy|xy|yx= select stokes XX YY YX XY (can do multiple separated by space)
 beam X[ Y[ Z[ ..]]] = select beam s (e.g. beam 0 1  2 3 4 or beam 0:6:2)
-array A B C D = Select array (by indices) e.g. array 0 1 2 3 or array 0:6
+iarray A B C D = Select array (by indices) e.g. array 0 1 2 3 or array 0:6
 
 -- Plot selection --
 scale [start end] = set y scale between start and end. If not specified, autoscale
@@ -877,6 +876,10 @@ chan [start end] = plot channels from start to end. If not specified, autoscale
 stack a|b|p - Set multiple lines on each panel to be (a)ntennas, (b)eams or (p)olarisations
 panel a|b|p - Set each panel in sequence to be (a)ntennas, (b)eams or (p)olarisations
 x = Swap between frequency (GHz) and channel number
+acs - Plot autocorrelation
+noacs - don't plot autocorrelation
+ccs - Plot cross correlation
+noccs - Don't plot cross correlations
 
 --- Previous buffer ---
 save - Save current data to previous buffer, so you can plot with 'd' or 'q'
@@ -884,18 +887,19 @@ rsave - Save new data to previous buffer, so  you can plot with 'd' or 'q'
 norsave - Stop saving new data to previous buffer
 
 --- Averaging ---
-avg - Start averaging
-noavg - Stop averaging
+avg - Start averaging in time
+noavg - Stop averaging intime
 
 --- Miscellaneous ---
 legon = Plot legend
 legoff = Turn off legend
-pstat - print plotting statistics
+pstat - print plotting statistics to stdout
 write FILE - Save figure to file: Supported formats from extension (e.g. spec.png, spec.pdf)
 layout X Y - Make figure X subfigs wide and Y subfigs tall
 nxy - same as 'layout'
 replot - Replot the figure.
 help - print this out
+? - print this out
     """ % locals()
     print s
 
@@ -944,6 +948,7 @@ def _main():
         gen = TestDataGenerator(nant, nbeams, npol, nchan)
     else:
         gen = ZmqDataGenerator(values.infiles[0])
+        
 
     plt = SpectrumPlotter(gen, nant, nbeams, npol, freq)
 #    vis = SummaryPlotter(nant, nbeams, npol, nchan, start_freq, chanbw)
