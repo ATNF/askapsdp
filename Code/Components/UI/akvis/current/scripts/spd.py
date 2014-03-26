@@ -930,25 +930,15 @@ def _main():
     else:
         logging.basicConfig(level=logging.INFO)
 
-    nant = 6;     nbeams = 1;     nchan = 16416
+#    nant = 6;     nbeams = 1;     nchan = 16416
     #nant = 6; nbeams = 9 ; nchan = 16384
 #    nchan = 304
     nbeams= 9
-    nchan = 16416
-
+#    nchan = 16416
     npol = 4
-
-    start_freq = 1.4 # Ghz
-    chanbw = 1e-3 # Ghz
-    freq = np.arange(nchan) * 0.304 + 1.4
-
-
-    print values.infiles
-    if values.infiles is None or len(values.infiles) == 0:
-        gen = TestDataGenerator(nant, nbeams, npol, nchan)
-    else:
-        gen = ZmqDataGenerator(values.infiles[0])
-        
+    gen = ZmqDataGenerator(values.infiles[0])
+    nant = len(set(gen.antenna1))
+    freq = gen.frequency
 
     plt = SpectrumPlotter(gen, nant, nbeams, npol, freq)
 #    vis = SummaryPlotter(nant, nbeams, npol, nchan, start_freq, chanbw)
