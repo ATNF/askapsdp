@@ -91,7 +91,6 @@ def queue_idle(cmd, fig):
     backend = matplotlib.get_backend()
     if backend == 'TkAgg':
         win = fig.canvas.manager.window
-        print "DRAW IDLE"
         fig.canvas.draw_idle()
 
 #        myafter(win, 'idle', cmd) # Tell TkAgg to update the attached command when ide
@@ -143,6 +142,12 @@ class SpectrumPlotter(object):
     def set_legend(self, legon):
         self._legend_on = bool(legon)
         self._draw_legend()
+        self.redraw()
+
+    def set_grid(self, gridon):
+        for ax in self._axes:
+            ax.grid(gridon)
+
         self.redraw()
 
     def _draw_legend(self):
@@ -361,7 +366,7 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
                 if ipan == 0:
                     self._legend_labels.append(st_label)
 
-                line, = pylab.plot(self._xdata, dflat, label=st_label)
+                line, = pylab.step(self._xdata, dflat, label=st_label)
                 bllines.append((line, slice_list))
 
             ax.get_xaxis().set_major_locator(matplotlib.ticker.MaxNLocator(4))
@@ -648,11 +653,25 @@ class SubscriptionManager(object):
     def set_baseline_mask(self, new_baseline_mask):
         self.baseline_mask[:] = new_baseline_mask[:]
         self.resubscribe()
+    
+    def _baseline_iter(self):
+        for ibl, (a1, a2) in enumerate(zip(self.dgen.antenna1, self.dgen.antenna2)):
+            yield ibl, a1, a2
 
     def _calc_baseline_mask(self):
-        for ibl, (a1, a2) in enumerate(zip(self.dgen.antenna1, self.dgen.antenna2)):
+        for ibl, a1, a2 in self._baseline_iter():
             if self.ant_mask[a1] == True or self.ant_mask[a2] == True:
                 self.baseline_mask[ibl] = True
+
+    def find_baseline_idx(self, a1f, a2f):
+        af = (a1f, a2f) # tuple of antennas we're looking for
+        afr = (a2f, a1f) # reversed version
+        for ibl, a1, a2 in self._baseline_iter():
+            a = (a1, a2)
+            if a == af or a == afr: # if current = what we're looking for, or reverse
+                return ibl
+
+        raise ValueError('Unknown baseline combination: %s-%s' % (a1f, a2f))
 
     def resubscribe(self):
         self.dgen.unsubscribe_all()
@@ -717,7 +736,7 @@ def parse_command(cmd, plt, gen):
     selm = sel_regex.match(cmd)
 
 
-    if cmd == 'quit':
+    if cmd == 'quit' or cmd == 'exit':
         print 'Quitting'
         Tkinter.tkinter.quit()
         #sys.exit(0)
@@ -770,17 +789,40 @@ def parse_command(cmd, plt, gen):
                 
         plt._mgr.set_pol_mask(pol_mask)
         plt.replot()
+        
+    elif cmd.startswith('ibl'):
+        bl_mask = plt._mgr.baseline_mask*False
+        if len(bits) == 1:
+            bl_mask[:] = True
+        else:
+            for bl_str in bits[1:]:
+                if len(bl_str) == 2:
+                    a1, a2 = map(int, bl_str)
+                elif '-' in bl_str:
+                    a1, a2 = map(int, bl_str.split('-'))
+                else:
+                    raise ValueError('Invalid baseline spec: %s' % bl_str)
+                
+                blidx = plt._mgr.find_baseline_idx(a1, a2)
+                bl_mask[blidx] = True
+
+        plt._mgr.set_baseline_mask(bl_mask)
+        plt.replot()
 
     elif cmd.startswith('iarray'):
-        if len(bits) >= 1:
-            arr_mask = plt._mgr.ant_mask*False
+        arr_mask = plt._mgr.ant_mask*False
+        if len(bits) == 1:
+            arr_mask[:] = True
+        else:
             for a in bits[1:]:
                 arr_slice = str2slice(a)
                 arr_mask[arr_slice] = True
-
-            print "AARRR MASK", arr_mask
-            plt._mgr.set_ant_mask(arr_mask)
-            plt.replot()
+                
+        print "Array MASK", arr_mask
+        print "Antenna labels", ['AK%d' %ak for ak in ANTENNA_LABELS]
+        plt._mgr.set_ant_mask(arr_mask)
+        
+        plt.replot()
 
     elif cmd.startswith('beam'):
         if len(bits) >= 1:
@@ -849,6 +891,10 @@ def parse_command(cmd, plt, gen):
         plt.set_legend(True)
     elif cmd.startswith('legoff'):
         plt.set_legend(False)
+    elif cmd.startswith('gridon'):
+        plt.set_grid(True)
+    elif cmd.startswith('gridoff'):
+        plt.set_grid(False)
     elif cmd.startswith('?') or cmd.startswith('help'):
         print_help()
     else:
@@ -857,25 +903,26 @@ def parse_command(cmd, plt, gen):
 def print_help():
     s = """SPD for ASKAP (C) CSIRO 2014
 --- Variable selection ---
-a = amplitudes
-dba = amplitudes (dB)
-p = phases
-r = real
-i = imaginary
-d = difference between current and saved = abs(curr - saved)
-q = quotition of current and saved = abs(curr)/abs(saved)
+a - amplitudes
+dba - amplitudes (dB)
+p - phases
+r - real
+i - imaginary
+d - difference between current and saved = abs(curr - saved)
+q - quotition of current and saved = abs(curr)/abs(saved)
 
 --- Data selection ---
-sel xx|yy|xy|yx= select stokes XX YY YX XY (can do multiple separated by space)
-beam X[ Y[ Z[ ..]]] = select beam s (e.g. beam 0 1  2 3 4 or beam 0:6:2)
-iarray A B C D = Select array (by indices) e.g. array 0 1 2 3 or array 0:6
+sel xx|yy|xy|yx - select stokes XX YY YX XY (can do multiple separated by space)
+beam X[ Y[ Z[ ..]]] - select beam s (e.g. 'beam 0 1 2 3 4' or for a range 'beam start:stop:step' e.g. 'beam 0:6:2')
+iarray A B C D - Select array (by indices) e.g. 'iarray 0 1 2 3'. For a range, do i'array 0:6'. For all, just do iarray with no arguments.
+ibl AB[ CD[ EF[ ..]] - select baseline (by indicies). E.g 'ibl 01 02 03'. One day, for ASKAP we'll have > 9 antennas, so you can also separate indices by a hyphen. e.g. 'ibl 0-1 0-2 0-35'. Type 'ibl' to get all baselines (same as 'iarray')
 
--- Plot selection --
-scale [start end] = set y scale between start and end. If not specified, autoscale
-chan [start end] = plot channels from start to end. If not specified, autoscale
+-- Plot manipulation --
+scale [start end] - set y scale between start and end. If not specified, autoscale
+chan [start end] - plot channels from start to end. If not specified, autoscale
 stack a|b|p - Set multiple lines on each panel to be (a)ntennas, (b)eams or (p)olarisations
 panel a|b|p - Set each panel in sequence to be (a)ntennas, (b)eams or (p)olarisations
-x = Swap between frequency (GHz) and channel number
+x - Swap between frequency (GHz) and channel number
 acs - Plot autocorrelation
 noacs - don't plot autocorrelation
 ccs - Plot cross correlation
@@ -883,23 +930,28 @@ noccs - Don't plot cross correlations
 
 --- Previous buffer ---
 save - Save current data to previous buffer, so you can plot with 'd' or 'q'
-rsave - Save new data to previous buffer, so  you can plot with 'd' or 'q'
+rsave - Save new data to previous buffer, so you can plot with 'd' or 'q'
 norsave - Stop saving new data to previous buffer
 
 --- Averaging ---
-avg - Start averaging in time
-noavg - Stop averaging intime
+avg - Start averaging in time (see pstat for number of averages)
+noavg - Stop averaging in time
 
 --- Miscellaneous ---
-legon = Plot legend
-legoff = Turn off legend
+legon - Plot legend
+legoff - Turn off legend
+gridon - Draw a grid on the plots
+gridoff - Turn off grid
 pstat - print plotting statistics to stdout
 write FILE - Save figure to file: Supported formats from extension (e.g. spec.png, spec.pdf)
 layout X Y - Make figure X subfigs wide and Y subfigs tall
 nxy - same as 'layout'
 replot - Replot the figure.
 help - print this out
+quit - Leave program
+exit - Same as quit
 ? - print this out
+
     """ % locals()
     print s
 
@@ -922,7 +974,7 @@ def _main():
     from argparse import ArgumentParser
     parser = ArgumentParser(description='Script description')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Be verbose [Default %default]')
-    parser.add_argument(dest='infiles', nargs='*', help='Input data files (none for testing)')
+    parser.add_argument(dest='infiles', nargs=1, help='ZMQ url for vis service. E..g. tcp://aktos01:9002')
     parser.set_defaults(verbose=False)
     values = parser.parse_args()
     if values.verbose:
