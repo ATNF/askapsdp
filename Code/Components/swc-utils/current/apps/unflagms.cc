@@ -64,7 +64,7 @@ void process(const std::string &fname)
   casa::ScalarColumn<casa::Int> ant1(ms, "ANTENNA1");
   casa::ScalarColumn<casa::Int> ant2(ms, "ANTENNA2");
 
-  
+  /*
   // to load channel list from a file
   std::vector<int> channels;
   {
@@ -78,13 +78,15 @@ void process(const std::string &fname)
         }
      }
   }
+  */
   
   ASKAPLOG_INFO_STR(logger,"Total number of rows in the measurement set: "<<ms.nrow());
 
   for (casa::uInt row = 0; row<ms.nrow(); ++row) {
            
-       if ((ant1.get(row) != 0) || (ant2.get(row) != 1)) {
-           //continue;
+       if ((ant1.get(row) != 3) && (ant2.get(row) != 3)) {
+       //if ((ant1.get(row) != 0) || (ant2.get(row) != 1)) {
+           continue;
        }
        casa::Array<casa::Bool> buf;
        flagCol.get(row,buf);
@@ -92,16 +94,16 @@ void process(const std::string &fname)
        // to unflag
        //buf.set(false);
 
-       /*
+       
        // to flag certain rows
-       if (row >= 75006) {
+       if (row < 147420) {
            buf.set(true);
            continue;
        }
        //
-       */
        
        
+       /*
        // to flag channels based on a file
        for (size_t i = 0; i<channels.size(); ++i) {
             casa::Matrix<casa::Bool> thisRow(buf);
@@ -110,6 +112,7 @@ void process(const std::string &fname)
             thisRow.column(channels[i]).set(true);
        }
        //
+       */
        
 
        flagCol.put(row,buf);

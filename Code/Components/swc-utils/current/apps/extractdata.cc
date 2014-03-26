@@ -297,7 +297,7 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
     }
   }
   
-  /*
+  
   // exporting first row into a dat file
   if ((currentStep>0) || (counter!=0)) {
       std::ofstream os("fringe.dat");
@@ -309,7 +309,7 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
            os<<std::endl;
       }     
   }
-  */
+  
 }
 
 
