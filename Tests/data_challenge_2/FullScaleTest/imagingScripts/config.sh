@@ -71,8 +71,8 @@ if [ $model == "SKADS" ]; then
     IMAGING_DIRECTION="[12h30m00.00, -45.00.00.00, J2000]"
     IMAGING_NUM_PIXELS=2048
     IMAGING_MAXSUP=512
-    IMAGING_WTOL=2800
-    IMAGING_WMAX=2800
+    IMAGING_WTOL=2600
+    IMAGING_WMAX=2600
 #scienceMS=../MS/sciencefield_SKADS_2014-02-20-1203.ms
 #scienceMS=../MS/sciencefield_SKADS_30s_2014-02-24-0836.ms
     scienceMS=../MS/sciencefield_SKADS_5s_2014-02-24-1911.ms
