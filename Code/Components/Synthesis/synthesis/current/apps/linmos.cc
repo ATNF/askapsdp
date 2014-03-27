@@ -658,13 +658,15 @@ void LinmosAccumulator::findAndSetMosaics(const vector<string> &imageTags) {
                 break;
             }
         }
+
         // if this is a duplicate, just remove it. Can't with weights because we need them unaveraged
         if (itsOutSenNames.find(mosaicName)!=itsOutSenNames.end()) {
             for(map<string,string>::iterator ii=itsOutSenNames.begin(); ii!=itsOutSenNames.find(mosaicName); ++ii) {
                 if (itsOutSenNames[mosaicName].compare((*ii).second) == 0) {
+                    ASKAPLOG_INFO_STR(logger, "  - sensitivity image done in an earlier mosaic. Will not redo here.");
+                    itsGenSensitivityImage[mosaicName] = false;
                     itsOutSenNames.erase(mosaicName);
                     itsInSenNameVecs.erase(mosaicName);
-                    ASKAPLOG_INFO_STR(logger, "  - sensitivity image done in an earlier mosaic. Will not redo here.");
                     break;
                 }
             }
