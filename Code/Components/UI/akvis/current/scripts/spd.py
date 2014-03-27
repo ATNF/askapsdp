@@ -105,6 +105,7 @@ class SpectrumPlotter(object):
         self._npol = npol
         self._nchan = len(freq)
         self._cross = np.zeros((self._nbl, nbeams, npol, self._nchan), dtype=np.complex)
+        self._flags = np.zeros((self._nbl, self._nchan), dtype=np.bool)
         self._num_puts = 0
         self._prev_cross = None
         self._lines = []
@@ -136,12 +137,18 @@ class SpectrumPlotter(object):
         self._legend_lines = []
         self._legend_on = False
         self._figlegend = None
+        self._mask_flagged = True
 
         self.replot()
 
     def set_legend(self, legon):
         self._legend_on = bool(legon)
         self._draw_legend()
+        self.redraw()
+
+    def set_flag(self, flag):
+        self._mask_flagged = flag
+        self.update_data()
         self.redraw()
 
     def set_grid(self, gridon):
@@ -278,16 +285,18 @@ class SpectrumPlotter(object):
         navg = self._navg
         panel = self._panel
         stack = self._stack
+        mask_flagged = self._mask_flagged
         antennas = np.arange(len(self._mgr.ant_mask))[self._mgr.ant_mask]
         polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._mgr.pol_mask[ipol]])
         
         s = """
-Shape: %(cross_shape)s Num puts: %(num_puts)s Redraw time: %(redraw_time)s
+Shape: %(cross_shape)s Num puts: %(num_puts)s
 Variable: %(var)s 
 Beams: %(beam)s
 Polarisations: %(polstr)s
 Antennas: %(antennas)s
-Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
+Averaging %(avg)s Navg: %(navg)s Flagging: %(mask_flagged)s
+Panel: %(panel)s Stack: %(stack)s
 """ % locals()
         for var, ylim in self._var_ylim.iteritems():
             if ylim is None:
@@ -300,18 +309,26 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
 
     def _get_var(self, slice_list):
         vfunc = self._varfunc[self._variable]
-        #v = self._cross[ibl, self._curr_beam, ipol, :]
         v = self._cross[slice_list]
+        # flag shape is (nBaselines, Nchannels)
+        # data shape is (Nbaselines, nBeam, nPol, Nchan)
+        flag_slice_list = [slice_list[0], slice_list[3]]
+        flags = self._flags[flag_slice_list]
+        if self._mask_flagged:
+            v_ma = np.ma.masked_array(v, flags)
+        else:
+            v_ma = v
+
         p = None
-        ps = None
-        pcs = None
+        p_ma = None
         if self._prev_cross is not None:
-#            p = self._prev_cross[ibl, self._curr_beam, ipol, :]
             p = self._prev_cross[slice_list]
-            pcs = self._prev_cross.shape
-            ps = p.shape
-            
-        d = vfunc(v, p)
+            if self._mask_flagged:
+                p_ma = np.ma.masked_array(p, flags)
+            else:
+                p_ma = p
+    
+        d = vfunc(v_ma, p_ma)
         return d
 
     def replot(self):
@@ -379,8 +396,6 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
     def set_line_ydata(self):
         t = Timer()
         t.start()
-        vfunc = self._varfunc[self._variable]
-        ylim = self._var_ylim[self._variable]
         for ibl, (bllines, ax) in enumerate(zip(self._lines, self._axes)):
             for p,(line, slice_list) in enumerate(bllines):
                 d = self._get_var(slice_list)
@@ -425,16 +440,12 @@ Averaging %(avg)s Navg: %(navg)s Panel: %(panel)s Stack: %(stack)s
         self._num_puts += 1
 
     def put_message(self, vismsg):
+        self._flags = vismsg.flag == 1 # shape=(nbaselines, nchannels)
         for bl in xrange(vismsg.nBaselines):
             self.put_cross(bl, vismsg.beamId, vismsg.polarisationId, vismsg.visibilities[bl, :])
-        
+            
         self.update_data()
         self.redraw()
-
-
-def complex_noise(amp, n):
-    noise = np.random.randn(n)*amp + 1j*np.random.randn(n)*amp
-    return noise
 
 class ZmqDataGenerator(object):
     def __init__(self, target):
@@ -856,6 +867,10 @@ def parse_command(cmd, plt, gen):
                 print 'Invalid ylim cmd %s'%s
                 return
 
+    elif cmd.startswith('flag'):
+        plt.set_flag(True)
+    elif cmd.startswith('noflag'):
+        plt.set_flag(False)
     elif cmd.startswith('avg'):
         plt.set_averaging(True)
     elif cmd.startswith('noavg'):
