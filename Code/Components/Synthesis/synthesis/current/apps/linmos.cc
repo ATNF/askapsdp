@@ -48,6 +48,8 @@
 #include <casa/Arrays/Array.h>
 #include <images/Images/ImageRegrid.h>
 
+#include <images/Images/PagedImage.h>
+
 // ASKAPsoft includes
 #include <askap/Application.h>
 #include <askap/AskapError.h>
@@ -57,6 +59,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <utils/MultiDimArrayPlaneIter.h>
 #include <scimath/Mathematics/Interpolate2D.h>
+
+#include <fitting/ParamsCasaTable.h>
 
 ASKAP_LOGGER(logger, ".linmos");
 
@@ -1474,6 +1478,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         // get output files for this mosaic
         outImgName = (*ii).first;
         outWgtName = accumulator.outWgtNames()[outImgName];
+        ASKAPLOG_INFO_STR(logger, "++++++++++++++++++++++++++++++++++++++++++");
         ASKAPLOG_INFO_STR(logger, "Preparing mosaic " << outImgName);
         if (!accumulator.outWgtDuplicates()[outImgName]) {
             ASKAPLOG_INFO_STR(logger, " - also weights image " << outWgtName);
@@ -1617,10 +1622,14 @@ static void merge(const LOFAR::ParameterSet &parset) {
             accumulator.deweightPlane(outPix, outWgtPix, outSenPix, curpos);
         }
 
-        // get psf beam information from the selected reference image (the first by default)
+        // set one of the input images as a reference for metadata (the first by default)
         uint psfref = 0;
         if (parset.isDefined("psfref")) psfref = parset.getUint("psfref");
         ASKAPLOG_INFO_STR(logger, "Getting PSF beam info for the output image from input number " << psfref);
+        // get pixel units from the selected reference image
+        Table tmpTable(inImgNames[psfref]);
+        string units = tmpTable.keywordSet().asString("units");
+        // get psf beam information from the selected reference image
         Vector<Quantum<double> > psf = iacc.beamInfo(inImgNames[psfref]);
         if (psf.nelements()<3) 
             ASKAPLOG_WARN_STR(logger, inImgNames[psfref] << ": beamInfo needs at least 3 elements. Not writing PSF");
@@ -1629,6 +1638,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
         ASKAPLOG_INFO_STR(logger, "Writing accumulated image to " << outImgName);
         iacc.create(outImgName, accumulator.outShape(), accumulator.outCoordSys());
         iacc.write(outImgName,outPix);
+        iacc.setUnits(outImgName,units);
         if (psf.nelements()>=3) 
             iacc.setBeamInfo(outImgName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
 
@@ -1638,6 +1648,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
             ASKAPLOG_INFO_STR(logger, "Writing accumulated weight image to " << outWgtName);
             iacc.create(outWgtName, accumulator.outShape(), accumulator.outCoordSys());
             iacc.write(outWgtName,outWgtPix);
+            iacc.setUnits(outWgtName,units);
             if (psf.nelements()>=3) 
                 iacc.setBeamInfo(outWgtName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
         }
@@ -1646,6 +1657,7 @@ static void merge(const LOFAR::ParameterSet &parset) {
             ASKAPLOG_INFO_STR(logger, "Writing accumulated sensitivity image to " << outSenName);
             iacc.create(outSenName, accumulator.outShape(), accumulator.outCoordSys());
             iacc.write(outSenName,outSenPix);
+            iacc.setUnits(outSenName,units);
             if (psf.nelements()>=3) 
                 iacc.setBeamInfo(outSenName, psf[0].getValue("rad"), psf[1].getValue("rad"), psf[2].getValue("rad"));
         }
