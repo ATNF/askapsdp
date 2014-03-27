@@ -51,10 +51,10 @@ static void printmsg(std::ostream& os, const zmq::message_t& msg)
 {
     assert(msg.size() >= sizeof (header_t));
     const header_t* p = static_cast<const header_t*>(msg.data());
-    os << "Timestamp: " << p->timestamp << endl;
-    os << "    Beam: " << p->beam << endl;
-    os << "    Pol: " << p->pol << endl;
-    os << "    nChan: " << p->nChan << endl;
+    os << "Received Message - Beam: " << p->beam
+        << " Pol: " << p->pol
+        << " Time: " << p->timestamp
+        << endl;
 }
 
 static std::string makeConnectString(const std::string& hostname, int port)
@@ -66,14 +66,12 @@ static std::string makeConnectString(const std::string& hostname, int port)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5) {
-        cerr << "usage: " << argv[0] << " <hostname> <port> <beam> <pol>" << endl;
+    if (argc < 4) {
+        cerr << "usage: " << argv[0] << " <hostname> <port> <filter1> [filter2]..." << endl;
         return 1;
     }
     const string hostname(argv[1]);
     const int port = fromString<int>(argv[2]);
-    const string beam = argv[3];
-    const string pol = argv[4];
 
     zmq::context_t context;
     zmq::socket_t socket (context, ZMQ_SUB);
@@ -81,13 +79,14 @@ int main(int argc, char *argv[])
     socket.setsockopt(ZMQ_RCVHWM, &RECV_HIGH_WATER_MARK, sizeof (int));
     socket.connect(makeConnectString(hostname, port).c_str());
 
-    // Build a filter, for example "0XX" for beam=0, pol=XX
-    string filter(toString(beam));
-    filter += pol;
-    socket.setsockopt(ZMQ_SUBSCRIBE, filter.c_str(), filter.size());
+    // Subscribe to each of the filters passed in
+    for (int i = 3; i < argc; ++i) {
+        cout << "Subscribing to: " << argv[i] << endl;
+        socket.setsockopt(ZMQ_SUBSCRIBE, argv[i], strlen(argv[i]));
+    }
 
     while (true) {
-        // Read the itentity message
+        // Read the identity message
         zmq::message_t identity;
         socket.recv(&identity);
 
