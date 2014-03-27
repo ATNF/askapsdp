@@ -931,6 +931,8 @@ sel xx|yy|xy|yx - select stokes XX YY YX XY (can do multiple separated by space)
 beam X[ Y[ Z[ ..]]] - select beam s (e.g. 'beam 0 1 2 3 4' or for a range 'beam start:stop:step' e.g. 'beam 0:6:2')
 iarray A B C D - Select array (by indices) e.g. 'iarray 0 1 2 3'. For a range, do i'array 0:6'. For all, just do iarray with no arguments.
 ibl AB[ CD[ EF[ ..]] - select baseline (by indicies). E.g 'ibl 01 02 03'. One day, for ASKAP we'll have > 9 antennas, so you can also separate indices by a hyphen. e.g. 'ibl 0-1 0-2 0-35'. Type 'ibl' to get all baselines (same as 'iarray')
+flag - mask out flagged data
+noflag - Do not mask out flagged data
 
 -- Plot manipulation --
 scale [start end] - set y scale between start and end. If not specified, autoscale
