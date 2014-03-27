@@ -9,7 +9,11 @@ while [ $POINTING -lt 9 ]; do
 done
 
 count=1
-for type in image residual sensitivity; do
+#for type in image residual sensitivity; do
+for type in image residual; do
+
+    sedstr="s/^image\./${type}\./g"
+    basename=`echo ${imagebase} | sed -e ${sedstr}`
 
     if [ $doMFS == true ]; then
 	mfsSuffix=".taylor.0"
@@ -20,15 +24,54 @@ for type in image residual sensitivity; do
     fi
 
     if [ $type == "image" ]; then
-	imageInput="${imagebase}.BEAM0..8${mfsSuffix}.restored"
-	imageOutput="${imagebase}.linmos${mfsSuffix}.restored"
+	imSuffix=".restored"
     else
-	sedstr="s/^image\./${type}\./g"
-	imageInput=`echo ${imagebase} | sed -e ${sedstr}`.BEAM0..8${mfsSuffix}
-	imageOutput=`echo ${imagebase} | sed -e ${sedstr}`.linmos${mfsSuffix}
+	imSuffix=""
     fi
+    imageInput="${basename}.BEAM0..8${mfsSuffix}${imSuffix}"
+    imageOutput="${basename}.linmos${mfsSuffix}${imSuffix}"
+    
+
     weightsInput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.BEAM0..8${mfsSuffix}
     weightsOutput=`echo ${imagebase} | sed -e 's/^image\./weights\./g'`.linmos${mfsSuffix}
+
+    if [ ${IMAGING_GRIDDER} == "AWProject" ]; then
+	weightingPars="# Use the weight images directly:
+linmos.weighttype = FromWeightImages
+"
+    else
+	if [ ${model} == "SKADS" ]; then
+	    weightingPars="# Use primary beam models at specific positions:
+linmos.weighttype = FromPrimaryBeamModel
+linmos.feeds.centre = [12h30m00.00, -45.00.00.00]
+linmos.feeds.spacing = 1deg
+linmos.feeds.${basename}.BEAM0${mfsSuffix}${imSuffix} = [-1.0, -1.0]
+linmos.feeds.${basename}.BEAM1${mfsSuffix}${imSuffix} = [-1.0,  0.0]
+linmos.feeds.${basename}.BEAM2${mfsSuffix}${imSuffix} = [-1.0,  1.0]
+linmos.feeds.${basename}.BEAM3${mfsSuffix}${imSuffix} = [ 0.0, -1.0]
+linmos.feeds.${basename}.BEAM4${mfsSuffix}${imSuffix} = [ 0.0,  0.0]
+linmos.feeds.${basename}.BEAM5${mfsSuffix}${imSuffix} = [ 0.0,  1.0]
+linmos.feeds.${basename}.BEAM6${mfsSuffix}${imSuffix} = [-1.0, -1.0]
+linmos.feeds.${basename}.BEAM7${mfsSuffix}${imSuffix} = [ 0.0,  0.0]
+linmos.feeds.${basename}.BEAM8${mfsSuffix}${imSuffix} = [ 1.0,  1.0]
+"
+	else
+	    weightingPars="# Use primary beam models at specific positions:
+linmos.weighttype = FromPrimaryBeamModel
+linmos.feeds.centre = [12h30m00.00, -45.00.00.00]
+linmos.feeds.spacing = 1deg
+linmos.feeds.${basename}.BEAM0${mfsSuffix}${imSuffix} = [0,0]
+linmos.feeds.${basename}.BEAM1${mfsSuffix}${imSuffix} = [-0.572425, 0.947258]
+linmos.feeds.${basename}.BEAM2${mfsSuffix}${imSuffix} = [-1.14485, 1.89452]
+linmos.feeds.${basename}.BEAM3${mfsSuffix}${imSuffix} = [0.572425, -0.947258]
+linmos.feeds.${basename}.BEAM4${mfsSuffix}${imSuffix} = [-1.23347, -0.0987957]
+linmos.feeds.${basename}.BEAM5${mfsSuffix}${imSuffix} = [-1.8059, 0.848462]
+linmos.feeds.${basename}.BEAM6${mfsSuffix}${imSuffix} = [0.661046, 1.04605]
+linmos.feeds.${basename}.BEAM7${mfsSuffix}${imSuffix} = [0.0886209, 1.99331]
+linmos.feeds.${basename}.BEAM8${mfsSuffix}${imSuffix} = [1.23347, 0.0987957]
+"
+	fi
+    fi
 
     linmosqsub=linmos_${type}.qsub
     cat > $linmosqsub <<EOF
@@ -51,8 +94,8 @@ linmos.names      = [${imageInput}]
 linmos.weights    = [${weightsInput}]
 linmos.outname    = ${imageOutput}
 linmos.outweight  = ${weightsOutput}
-linmos.weighttype = FromWeightImages
 linmos.psfref     = 4
+${weightingPars}
 ${nterms}
 EOF_INNER
 log=logs/linmos_${type}_\${PBS_JOBID}.log
