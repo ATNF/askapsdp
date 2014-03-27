@@ -117,9 +117,10 @@ class SpectrumPlotter(object):
                         'real':lambda v, p: np.real(v),
                          'imag': lambda v, p: np.imag(v),
                          'diff': lambda v, p: abs(v - p),
-                         'quot': lambda v, p: abs(v)/abs(p)}
+                         'quot': lambda v, p: abs(v)/abs(p),
+                         'la': lambda v, a: abs(np.fft.fftshift(np.fft.fft(v)))}
 
-        self._var_ylim = {'phase':None, 'amp':None, 'real':None, 'imag': None, 'diff':None, 'quot':None, 'dba': None}
+        self._var_ylim = {'phase':None, 'amp':None, 'real':None, 'imag': None, 'diff':None, 'quot':None, 'dba': None, 'la':None}
         self._variable = 'phase'
         self._do_averaging = False
         self._rsave = False
@@ -288,7 +289,8 @@ class SpectrumPlotter(object):
         mask_flagged = self._mask_flagged
         antennas = np.arange(len(self._mgr.ant_mask))[self._mgr.ant_mask]
         polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._mgr.pol_mask[ipol]])
-        
+        subs = ' '.join(self._mgr.dgen.subscriptions)
+
         s = """
 Shape: %(cross_shape)s Num puts: %(num_puts)s
 Variable: %(var)s 
@@ -297,6 +299,7 @@ Polarisations: %(polstr)s
 Antennas: %(antennas)s
 Averaging %(avg)s Navg: %(navg)s Flagging: %(mask_flagged)s
 Panel: %(panel)s Stack: %(stack)s
+Subcriptions: %(subs)s
 """ % locals()
         for var, ylim in self._var_ylim.iteritems():
             if ylim is None:
@@ -740,6 +743,21 @@ def str2slice(s):
     print sl, parts
     return sl
 
+class CommandParser(object):
+    def __init__(self, context):
+        self.context = context
+
+    def run(self, cmd):
+        bits = cmd.split()
+        cmdname = bits[0]
+        func = getattr(self, cmdname, self.default_action)
+        return func(*bits[1:])
+
+    def a(self):
+        pass
+        
+        
+
 def parse_command(cmd, plt, gen):
     import Tkinter
     bits = cmd.split()
@@ -767,6 +785,8 @@ def parse_command(cmd, plt, gen):
         plt.set_variable('quot')
     elif cmd == 'dba':
         plt.set_variable('dba')
+    elif cmd == 'la':
+        plt.set_variable('la')
     elif cmd == 'replot':
         plt.replot()
     elif cmd == 'x':
@@ -925,6 +945,7 @@ r - real
 i - imaginary
 d - difference between current and saved = abs(curr - saved)
 q - quotition of current and saved = abs(curr)/abs(saved)
+la - amplitude of the lag spectrum (X axis is unchanged)
 
 --- Data selection ---
 sel xx|yy|xy|yx - select stokes XX YY YX XY (can do multiple separated by space)
