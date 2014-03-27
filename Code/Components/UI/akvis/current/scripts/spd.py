@@ -23,6 +23,8 @@ import matplotlib.ticker as ticker
 from askap.akvis import corr_summary
 import zmq
 import struct
+import datetime
+import pytz
 
 POL_STR = ('XX','XY','YX','YY')
 ANTENNA_LABELS = (6, 1, 3, 15, 8, 9)
@@ -120,7 +122,7 @@ class SpectrumPlotter(object):
                          'quot': lambda v, p: abs(v)/abs(p),
                          'la': lambda v, a: abs(np.fft.fftshift(np.fft.fft(v)))}
 
-        self._var_ylim = {'phase':None, 'amp':None, 'real':None, 'imag': None, 'diff':None, 'quot':None, 'dba': None, 'la':None}
+        self._var_ylim ={v:None for v in self._varfunc.keys()}
         self._variable = 'phase'
         self._do_averaging = False
         self._rsave = False
@@ -139,6 +141,11 @@ class SpectrumPlotter(object):
         self._legend_on = False
         self._figlegend = None
         self._mask_flagged = True
+        self._put_msg_timer = None
+        self._put_cross_timer = None
+        self._redraw_timer = None
+        self._update_data_timer = None
+        self._curr_timestamp = None
 
         self.replot()
 
@@ -290,6 +297,16 @@ class SpectrumPlotter(object):
         antennas = np.arange(len(self._mgr.ant_mask))[self._mgr.ant_mask]
         polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._mgr.pol_mask[ipol]])
         subs = ' '.join(self._mgr.dgen.subscriptions)
+        tmsg = self._put_msg_timer
+        tcross = self._put_cross_timer
+        treplot = self._replot_timer
+        tupdate = self._update_data_timer
+        tredraw = self._redraw_timer
+        curr_dt = self._curr_timestamp
+        delay = None
+        now = datetime.datetime.now(tz=pytz.utc)
+        if curr_dt is not None:
+            delay = now - curr_dt
 
         s = """
 Shape: %(cross_shape)s Num puts: %(num_puts)s
@@ -300,6 +317,19 @@ Antennas: %(antennas)s
 Averaging %(avg)s Navg: %(navg)s Flagging: %(mask_flagged)s
 Panel: %(panel)s Stack: %(stack)s
 Subcriptions: %(subs)s
+
+-- Timers --
+Put Message: %(tmsg)s
+Put cross: %(tcross)s
+Replot: %(treplot)s
+Update data: %(tupdate)s
+Redraw: %(tredraw)s
+
+Data timestamp: %(curr_dt)s
+Now: %(now)s
+delay: %(delay)s
+
+-- Scales --
 """ % locals()
         for var, ylim in self._var_ylim.iteritems():
             if ylim is None:
@@ -335,6 +365,8 @@ Subcriptions: %(subs)s
         return d
 
     def replot(self):
+        self._replot_timer = Timer()
+        self._replot_timer.start()
         nrows, ncols= self._nxy
         fig = self._fig
         self._lines = []
@@ -395,6 +427,7 @@ Subcriptions: %(subs)s
             
         self._draw_legend()
         self.redraw()
+        self._replot_timer.stop()
 
     def set_line_ydata(self):
         t = Timer()
@@ -412,14 +445,18 @@ Subcriptions: %(subs)s
                 line.set_xdata(self._xdata)
 
     def update_data(self):
+        self._update_data_timer = Timer()
+        self._update_data_timer.start()
         #self._queue_idle(self.set_line_data)
         self.set_line_ydata()
         self._update_axes_ylim()
-
+        self._update_data_timer.stop()
 
     def redraw(self):
         """ Adds a redraw to the idle queue"""
-        queue_idle(self._timed_draw, self._fig)
+        self._redraw_timer = Timer()
+        with self._redraw_timer:
+            queue_idle(self._timed_draw, self._fig)
         
     def _timed_draw(self):
         with Timer() as t:
@@ -429,6 +466,8 @@ Subcriptions: %(subs)s
         self._draw_timer = t
 
     def put_cross(self, blidx, beam, pol, spectrum):
+        self._put_cross_timer = Timer()
+        self._put_cross_timer.start()
         if self._rsave:
             self._prev_cross[blidx, beam, pol, :] = self._cross[blidx, beam, pol, :]
 
@@ -441,14 +480,30 @@ Subcriptions: %(subs)s
             self._cross[blidx, beam, pol, :] = spectrum
 
         self._num_puts += 1
+        self._put_cross_timer.stop()
 
     def put_message(self, vismsg):
+        self._put_msg_timer = Timer()
+        self._put_msg_timer.start()
         self._flags = vismsg.flag == 1 # shape=(nbaselines, nchannels)
         for bl in xrange(vismsg.nBaselines):
             self.put_cross(bl, vismsg.beamId, vismsg.polarisationId, vismsg.visibilities[bl, :])
-            
-        self.update_data()
-        self.redraw()
+
+        if self._curr_timestamp is None:
+            self._curr_timestamp = vismsg.timestamp_dt
+            self.received_msg_types = []
+
+        self.received_msg_types.append(vismsg.pol_ident)
+        self._to_be_received = set(self._mgr.dgen.subscriptions) - set(self.received_msg_types)
+        
+        if len(self._to_be_received) == 0 or self._curr_timestamp != vismsg.timestamp_dt:
+            self.update_data()
+            self.redraw()
+            self._curr_timestamp = vismsg.timestamp_dt
+            self._received_msg_truypes = []
+
+
+        self._put_msg_timer.stop()
 
 class ZmqDataGenerator(object):
     def __init__(self, target):
@@ -1004,6 +1059,8 @@ def input_loop(plt, vis, gen):
         cmd = sys.stdin.readline().strip()
         try:
             parse_command(cmd, plt, gen)
+        except KeyboardInterrupt:
+            break
         except:
             logging.info('Error running command', exc_info=True)
 
