@@ -307,7 +307,8 @@ module schedblock
          * @returns a ObsState enum value
          *
          **/
-        idempotent ObsState getState(long sbid);
+        idempotent ObsState getState(long sbid)
+	      throws NoSuchSchedulingBlockException;
 
         /**
          * Get the ObsProgram which owns the given Scheduling Block.
@@ -316,7 +317,8 @@ module schedblock
          * @returns the name of the ObsProgram
          *
          **/
-        idempotent string getOwner(long sbid);
+        idempotent string getOwner(long sbid)
+	      throws NoSuchSchedulingBlockException;
 
         /**
          * Get a list of all ObsPrograms associated  with the given Scheduling
@@ -326,7 +328,8 @@ module schedblock
          * @returns a list of ObsProgram names
          *
          **/
-        idempotent askap::interfaces::StringSeq getObsPrograms(long sbid);
+        idempotent askap::interfaces::StringSeq getObsPrograms(long sbid)
+	      throws NoSuchSchedulingBlockException;
 
         /**
          * Associate the given ObsProgram with the given Scheduling Block.
@@ -335,16 +338,20 @@ module schedblock
          * @param program The id of the ObsProgram
          *
          **/
-        void addObsProgram(long sbid, string program);
+        void addObsProgram(long sbid, string program)
+	  throws NoSuchSchedulingBlockException,
+	         NoSuchObsProgramException;
 
         /**
          * Disassociate an ObsProgram from the given Scheduling Block.
          *
          * @param sbid The id of the Scheduling Block
-         * @param progra, The id of the ObsProgram
+         * @param program, The id of the ObsProgram
          *
          **/
-        void removeObsProgram(long sbid, string program);
+        void removeObsProgram(long sbid, string program)
+	  throws NoSuchSchedulingBlockException,
+	         NoSuchObsProgramException;
 
     };
 };
