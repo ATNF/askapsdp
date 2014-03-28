@@ -146,6 +146,7 @@ class SpectrumPlotter(object):
         self._redraw_timer = None
         self._update_data_timer = None
         self._curr_timestamp = None
+        self._crange = None
 
         self.replot()
 
@@ -202,7 +203,7 @@ class SpectrumPlotter(object):
 
         self._xmode = xmode
         self.set_line_xdata()
-        self._update_axes_limits(None, 'x')
+        self.set_channel_range(self._crange)
         self.redraw()
         
     def set_variable(self, var):
@@ -250,11 +251,22 @@ class SpectrumPlotter(object):
         self._update_axes_ylim()
         self.redraw()
         
-    def set_channel_range(self, xlim):
-        self._xlim = xlim
-        logging.debug('Setting xlim %s' % xlim)
+    def set_channel_range(self, crange):
+        if crange is None:
+            crange = [0, len(self._mgr.dgen.frequency)-1]
+
+        self._crange = crange
+        if self._xmode == 'chan':
+            self._xlim = crange
+        elif self._xmode == 'freq':
+            f = self._mgr.dgen.frequency
+            self._xlim = [f[crange[0]], f[crange[1]]]
+                
+        else:
+            raise ValueError('Unknown xmode: %s' % self._xmode)
+
+        logging.debug('Setting xlim %s' % self._xlim)
         self._update_axes_limits(self._xlim, 'x')
-        self.redraw()
 
     def set_averaging(self, do_averaging):
         self._navg = np.ones((self._nbl, self._nbeams, self._npol), dtype=int)
@@ -297,6 +309,10 @@ class SpectrumPlotter(object):
         antennas = np.arange(len(self._mgr.ant_mask))[self._mgr.ant_mask]
         polstr = " ".join([pol for ipol, pol in enumerate(POL_STR) if self._mgr.pol_mask[ipol]])
         subs = ' '.join(self._mgr.dgen.subscriptions)
+        antenna1 = self._mgr.dgen.antenna1
+        antenna2 = self._mgr.dgen.antenna2
+        antenna_labels = ANTENNA_LABELS
+        
         tmsg = self._put_msg_timer
         tcross = self._put_cross_timer
         treplot = self._replot_timer
@@ -328,6 +344,11 @@ Redraw: %(tredraw)s
 Data timestamp: %(curr_dt)s
 Now: %(now)s
 delay: %(delay)s
+
+-- Antenna products ---
+Antenna1: %(antenna1)s
+Antenna2: %(antenna2)s
+Antenna labels: %(antenna_labels)s
 
 -- Scales --
 """ % locals()
@@ -424,7 +445,8 @@ delay: %(delay)s
             ax.get_xaxis().set_major_locator(matplotlib.ticker.MaxNLocator(4))
             pylab.title(pan_label)
 
-            
+        self._update_axes_ylim()
+        self.set_channel_range(self._crange)
         self._draw_legend()
         self.redraw()
         self._replot_timer.stop()
@@ -930,6 +952,8 @@ def parse_command(cmd, plt, gen):
         elif len(bits) == 3:
             xlim = map(int, bits[1:])
             plt.set_channel_range(xlim)
+
+        plt.redraw()
     
     elif cmd.startswith('scale'):
         if len(bits) == 1:
