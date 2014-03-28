@@ -91,25 +91,29 @@ antennas.AK06.feed_config  = PAF36
 
 # # easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
 # # lat: -26.699153192237; long: 116.631037279591; el: 370.810000
-antennas.AK08.location     = [-2556005.813742, 5097327.008027, -2848641.257970]
+#antennas.AK08.location     = [-2556005.813742, 5097327.008027, -2848641.257970]
+antennas.AK08.location     = [-2556002.713742, 5097320.608027, -2848637.727970]
+
+#antennas.AK08.location     = [-2556005.452742, 5097326.427027, -2848641.371970]
 antennas.AK08.diameter     = 12m
 antennas.AK08.mount        = equatorial
 antennas.AK08.feed_config  = PAF36
 
 # # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
 # # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
-# original position
-#antennas.AK09.location     = [-2555892.578900, 5097559.600315, -2848328.739449]
-# our best so far
-antennas.AK09.location     = [-2555892.0789,5097558.900315,-2848328.449449]
+#antennas.AK09.location     = [-2555892.0789,5097558.900315,-2848328.449449]
+antennas.AK09.location     = [-2555888.9789,5097552.500315,-2848324.911449]
+
+#antennas.AK09.location     = [-2555891.7179,5097558.319315,-2848328.335449]
 antennas.AK09.diameter     = 12m
 antennas.AK09.mount        = equatorial
 antennas.AK09.feed_config  = PAF36
 
-#original position
-#antennas.AK15.location  = [-2555394.936910,5097674.796317,-2848567.461727]
-# our best so far
-antennas.AK15.location  =  [-2555392.80943903,5097670.48452923,-2848565.421727]
+#antennas.AK15.location  =  [-2555392.80943903,5097670.48452923,-2848565.421727]
+antennas.AK15.location  =  [-2555389.70943903,5097664.08452923,-2848561.871727]
+
+
+#antennas.AK15.location  =  [-2555393.17043903,5097669.90352923,-2848565.535727]
 antennas.AK15.diameter     = 12m
 antennas.AK15.mount        = equatorial
 antennas.AK15.feed_config  = PAF36
@@ -218,9 +222,9 @@ baselinemap.78                      = [5, 5, YY]
 observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 # Virgo
-#observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
+observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
 # 0407-658
-observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
+#observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
 #observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
 # 1549-790 (cluster field)
@@ -235,6 +239,10 @@ observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
 #observation.scan0.field_direction   = [22h53m57.74, 16.08.53.56, J2000]
 # 0537-441
 #observation.scan0.field_direction   = [05h38m50.36, -44.05.08.94, J2000]
+# 1245-197
+#observation.scan0.field_direction   = [12h48m23.898, -19.59.18.59, J2000]
+# 0607-157
+#observation.scan0.field_direction   = [06h09m40.95, -15.42.40.67, J2000]
 
 
 
@@ -290,7 +298,8 @@ tasks.FringeRotationTask.params.ice.locator_port = 4061
 tasks.FringeRotationTask.params.icestorm.topicmanager = IceStorm/TopicManager@IceStorm.TopicManager
 tasks.FringeRotationTask.params.icestorm.outtopic = ingest2frt
 tasks.FringeRotationTask.params.icestorm.intopic = frt2ingest
-tasks.FringeRotationTask.params.fixeddelays = [-171.958, 0, -432.759, 655.536, 495.78, -621.721]
+#tasks.FringeRotationTask.params.fixeddelays = [-171.958, 0, -432.759, 655.536, 495.78, -621.721]
+tasks.FringeRotationTask.params.fixeddelays = [-171.958, 0, -432.759, 638.625, 478.939,-636.612]
 tasks.FringeRotationTask.params.refant = AK01
 #tasks.FringeRotationTask.params.refant = AK08
 #tasks.FringeRotationTask.params.method = drxdelays
