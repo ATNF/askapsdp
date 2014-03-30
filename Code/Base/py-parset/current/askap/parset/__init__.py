@@ -59,4 +59,5 @@ logger = logging.getLogger(__name__)
 
 from askap.parset.parset import (ParameterSet, decode, encode, extract, 
                                  to_dict, 
-                                 parset_to_dict, dict_to_parset, slice_parset)
+                                 parset_to_dict, dict_to_parset, slice_parset,
+                                 sub_parset)

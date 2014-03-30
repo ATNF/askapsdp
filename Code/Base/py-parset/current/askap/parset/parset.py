@@ -20,7 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
-__all__ = ["ParameterSet", "dict_to_parset", "parset_to_dict", "slice_parset"]
+__all__ = ["ParameterSet", "dict_to_parset", "parset_to_dict", "slice_parset",
+           "sub_parset"]
 
 import os
 import re
@@ -40,23 +41,36 @@ def slice_parset(d, key):
     """Return a subset of the `dict` d  return matching key prefix only"""
     return dict((k, v) for k,v in d.items() if k.startswith(key))
 
+def sub_parset(d, key):
+    return dict((k.replace(key+".",""), v) \
+                    for k,v in d.items() if k.startswith(key))
 
-def parset_to_dict(st):
+def parset_to_dict(st, raw=False):
     """Turn a parameterset string into a python `dict`"""
     d = {}
     for line in st.splitlines():
         pval, comm = extract(line)
         if pval:
-            d[pval[0]] = decode(pval[1])
+            val = raw and pval[1] or decode(pval[1])
+            d[pval[0]] = val
     return d
 
-def dict_to_parset(d):
-    """Turn a python `dict` into a parameterset string"""
+def dict_to_parset(d, sort=False):
+    """Turn a python `dict` into a parameterset string.
+
+    param d:    the dictionary object
+    param sort: whether to sort by key
+
+    """
     out = ""
-    for k, v  in d.items():        
-        line = " = ".join((k, encode(v)))
-        out = "\n".join((out, line))
+    keys = d.keys()
+    if sort:
+        keys = sorted(keys)
+    for k in keys:
+        line = " = ".join((k, encode(d[k])))
+        out = "".join((out, line, "\n"))
     return out
+
 
 class ParameterSet(object):
     """
