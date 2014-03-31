@@ -524,6 +524,12 @@ Antenna labels: %(antenna_labels)s
             self._curr_timestamp = vismsg.timestamp_dt
             self._received_msg_truypes = []
 
+        curr_dt = self._curr_timestamp
+        now = datetime.datetime.now(tz=pytz.utc)
+        delay = now - curr_dt
+        self._fig.canvas.set_window_title('%s (delay=%s)' % (curr_dt, delay))
+            
+
 
         self._put_msg_timer.stop()
 
