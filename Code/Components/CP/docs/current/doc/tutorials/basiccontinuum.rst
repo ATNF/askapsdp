@@ -254,7 +254,7 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	Cimager.solver.Clean.logevery                   = 100
 	Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
 	Cimager.threshold.majorcycle                    = 1mJy
-	Cimager.ncycles                                 = 5
+	Cimager.ncycles                                 = 4
 	Cimager.Images.writeAtMajorCycle                = false
 	#
 	Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
