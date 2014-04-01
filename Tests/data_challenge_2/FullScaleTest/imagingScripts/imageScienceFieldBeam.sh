@@ -80,7 +80,7 @@ Cimager.solver.Clean.psfwidth                   = 512
 Cimager.solver.Clean.logevery                   = 100
 Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
 Cimager.threshold.majorcycle                    = 1mJy
-Cimager.ncycles                                 = 5
+Cimager.ncycles                                 = ${IMAGING_CLEAN_NCYC}
 
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.GaussianTaper            = ${IMAGING_GAUSSTAPER}

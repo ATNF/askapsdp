@@ -8,6 +8,8 @@ while [ $POINTING -lt 9 ]; do
     POINTING=`expr $POINTING + 1`
 done
 
+range="BEAM0..8"
+
 if [ $doMFS == true ]; then
     nterms="linmos.nterms     = 2"
 else
