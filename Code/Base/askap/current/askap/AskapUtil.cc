@@ -36,8 +36,6 @@
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
-#include "boost/regex.hpp"
-#include "boost/algorithm/string/trim.hpp"
 #include "casa/aips.h"
 #include "casa/Quanta.h"
 #include "casa/Quanta/MVDirection.h"
@@ -144,6 +142,25 @@ casa::MEpoch asMEpoch(const vector<string>& epoch)
     return ep;
 }
 
+/// @brief Converts a colon separated latitude coordinate,
+/// a format not supported by casacore, to a format that is
+/// supported.
+/// For example:
+/// 45:00:0.00 -> 45h00m0.00
+static std::string convertLatitude(const std::string& s)
+{
+    std::string out(s);
+    size_t i = out.find_first_of(":");
+    if (i != string::npos) {
+        out[i] = 'd';
+        i = out.find_first_of(":");
+        if (i != string::npos) {
+            out[i] = 'm';
+        }
+    }
+    return out;
+}
+
 casa::MDirection asMDirection(const vector<string>& direction)
 {
     ASKAPCHECK(direction.size() == 3, "Not a valid direction");
@@ -151,17 +168,8 @@ casa::MDirection asMDirection(const vector<string>& direction)
     casa::Quantity lng;
     casa::Quantity::read(lng, direction[0]);
 
-    // In order to support colon separated fields for latitude (where
-    // the first element is degrees not hours) convert to dot separated
-    // so it will be parsed as deg:min:sec not hrs:min:sec
-    std::string latstr = direction[1];
-    boost::trim(latstr);
-    static const boost::regex re("[\\+\\-]?\\d+:\\d+:\\d+\\.\\d+");
-    if (boost::regex_match(latstr, re)) {
-        std::replace(latstr.begin(), latstr.end(), ':', '.');
-    }
     casa::Quantity lat;
-    casa::Quantity::read(lat, latstr);
+    casa::Quantity::read(lat, convertLatitude(direction[1]));
 
     casa::MDirection::Types type;
     casa::MDirection::getType(type, direction[2]);
