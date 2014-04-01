@@ -33,8 +33,8 @@ linmos.feeds.BEAM2   = [-1.0,  1.0]
 linmos.feeds.BEAM3   = [ 0.0, -1.0]
 linmos.feeds.BEAM4   = [ 0.0,  0.0]
 linmos.feeds.BEAM5   = [ 0.0,  1.0]
-linmos.feeds.BEAM6   = [-1.0, -1.0]
-linmos.feeds.BEAM7   = [ 0.0,  0.0]
+linmos.feeds.BEAM6   = [ 1.0, -1.0]
+linmos.feeds.BEAM7   = [ 1.0,  0.0]
 linmos.feeds.BEAM8   = [ 1.0,  1.0]
 "
     else
