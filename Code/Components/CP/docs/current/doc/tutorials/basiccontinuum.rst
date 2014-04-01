@@ -103,7 +103,7 @@ Here is a basic parameter set for use with ccalibrator. It has the same sort of 
 
 This parset will solve for the gains for the first calibrator observation. We only care about the BEAM 0 from this observation (which is the beam pointing at 1934), but the task actually tries to solve for all beams.
 
-The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.src.calibrator=1934-638* entry) - this is a special unresolved component that accounts for 1934's spectral variation. It puts the component at the position indicated, which happens to be the direction of the observation.
+The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.src.calibrator=1934-638* entry) - this is a special unresolved component that accounts for 1934's spectral variation. It puts the component at the position indicated, which happens to be the direction of the observation. *Note the particular format of the direction string, especially the declination!*
 
 Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
 
@@ -229,17 +229,17 @@ The imaging is done similarly to that in the introductory tutorial, with two add
 	#
 	Cimager.gridder.snapshotimaging                 = true
 	Cimager.gridder.snapshotimaging.wtolerance      = 2600
-	Cimager.gridder                                 = AWProject
-	Cimager.gridder.AWProject.wmax                  = 2600
-	Cimager.gridder.AWProject.nwplanes              = 99
-	Cimager.gridder.AWProject.oversample            = 4
-	Cimager.gridder.AWProject.diameter              = 12m
-	Cimager.gridder.AWProject.blockage              = 2m
-	Cimager.gridder.AWProject.maxfeeds              = 9
-	Cimager.gridder.AWProject.maxsupport            = 512
-	Cimager.gridder.AWProject.variablesupport       = true
-	Cimager.gridder.AWProject.offsetsupport         = true
-	Cimager.gridder.AWProject.frequencydependent    = true
+	Cimager.gridder                                 = WProject
+	Cimager.gridder.WProject.wmax                   = 2600
+	Cimager.gridder.WProject.nwplanes               = 99
+	Cimager.gridder.WProject.oversample             = 4
+	Cimager.gridder.WProject.diameter               = 12m
+	Cimager.gridder.WProject.blockage               = 2m
+	Cimager.gridder.WProject.maxfeeds               = 9
+	Cimager.gridder.WProject.maxsupport             = 512
+	Cimager.gridder.WProject.variablesupport        = true
+	Cimager.gridder.WProject.offsetsupport          = true
+	Cimager.gridder.WProject.frequencydependent     = true
 	#
 	Cimager.solver                                  = Clean
 	Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
@@ -287,6 +287,8 @@ The calibration is applied by the following::
 	Cimager.calibrate.allowflag                     = true
 
 where we choose the calibration parameters parset that was produced by ccalibrator for the beam we are selecting.
+
+We grid the data using the *WProject* gridder. We choose this for this simulation, since it does not include any primary beam correction. We don't know the primary beam for BETA well enough, so we grid with WProject, then apply analytic primary beam weights in the mosiacking stage.
 
 We are doing multi-frequency synthesis for this image. This is controlled by the following parameters::
 
@@ -366,7 +368,7 @@ Once this completes, you will have a larger set of image products than was produ
 
 The restored image should look something like the following (for the BEAM0 case). The image size has been chosen so that it is sufficient for the full mosaic image, and has the phase centre of the observation at the middle, but the portion imaged only includes our selected beam. The beam extends to where the weights drop to 1% of their peak - this is set by the *Cimager.solver.Clean.tolerance* parameter.:
 
-.. image:: figures/restoredSKADSbeam0.png
+.. image:: figures/restoredSKADSbeam0WProject.png
    :width: 99%
 
 
@@ -374,19 +376,34 @@ The restored image should look something like the following (for the BEAM0 case)
 Mosaicking
 ----------
 
-We repeat the imaging for each beam, imaging only a single beam each time, so that we get images for BEAM0 through BEAM8. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`. We are working on a more complete interface to the mosaicking, but the following indicates how to do it for the restored images. 
+We repeat the imaging for each beam, imaging only a single beam each time, so that we get images for BEAM0 through BEAM8. Once this is done, we need to mosaic the images together to form the final full-field image. This is done with the **linmos** program, information on which can be found at :doc:`../calim/linmos`.
 
-The mosaicking program, **linmos**, is driven by a simple parameter set. Consider the following::
+The mosaicking program is driven by a simple parameter set. Consider the following::
 
-	linmos.names      = [image.i.clean.sciencefield.BEAM0..8.taylor.0.restored]
-	linmos.weights    = [weights.i.clean.sciencefield.BEAM0..8.taylor.0]
-	linmos.outname    = image.i.linmos.taylor.0.restored
-	linmos.outweight  = weights.i.linmos.taylor.0
-	linmos.weighttype = FromWeightImages
+	linmos.names      = [BEAM0..8]
+	linmos.findmosaics = true
+	linmos.weighttype = FromPrimaryBeamModel
+	linmos.feeds.centre = [12h30m00.00, -45.00.00.00]
+	linmos.feeds.spacing = 1deg
+	linmos.feeds.BEAM0 = [-1.0, -1.0]
+	linmos.feeds.BEAM1 = [-1.0,  0.0]
+	linmos.feeds.BEAM2 = [-1.0,  1.0]
+	linmos.feeds.BEAM3 = [ 0.0, -1.0]
+	linmos.feeds.BEAM4 = [ 0.0,  0.0]
+	linmos.feeds.BEAM5 = [ 0.0,  1.0]
+	linmos.feeds.BEAM6 = [ 1.0, -1.0]
+	linmos.feeds.BEAM7 = [ 1.0,  0.0]
+	linmos.feeds.BEAM8 = [ 1.0,  1.0]
 	linmos.psfref     = 4
 	linmos.nterms     = 2
 
-The double-fullstop in the *names* and *weights* parameters indicates a range of numbers to iterate over. The *psfref* parameter indicates from which number out of that sequence the restoring beam information should be taken. This is necessary as the restoring beam could be different for different images (due to the effect of different calibration). 
+This aims (via the *findmosaics=true* parameter) to do the mosaicking for all sets of images that fit the pattern given in the *names* parameter. The double-fullstop indicates a range of numbers to iterate over. The output name, which isn't given in *findmosaics* mode, is instead determined by replace the pattern in the *names* parameter with **linmos**. 
+
+All sets of images that fit the pattern will be mosaicked. This will include, in our example, model & restored images for each taylor term, as well as residual, sensitivity and weights images.
+
+The weights are determined here by providing primary beam models, as well as a list of locations of these beams - one for each input image. These primary beam models are simple circularly-symmetric Gaussian functions, with FWHM determined from the frequency of the image being mosaicked.
+
+The *psfref* parameter indicates from which number out of that sequence the restoring beam information should be taken. This is necessary as the restoring beam could be different for different images (due to the effect of different calibration). 
 
 The *nterms* parameter tells *linmos* to look for taylor term images, and make multiple output images. (Note that currently it will only produce image.i.linmos.taylor.0.restored and image.i.linmos.taylor.1.restored, even though a .taylor.2 input image might be present.)
 
@@ -412,7 +429,7 @@ This job will produce the following images: image.i.linmos.taylor.0.restored, im
 
 See :doc:`intro` for details on visualisation of your images. The full mosaicked restored image (image.i.linmos.taylor.0.restored) should look something like this:
 
-.. image:: figures/restoredSKADSmosaic.png
+.. image:: figures/restoredSKADSmosaicWProject-contours.png
    :width: 99%
 
 If you compare this with the single-beam image from earlier, you'll notice that the sources around the edge that fall within other beams have been improved markedly - the strong sidelobes in the BEAM0 image have been weighted down and replaced with the good images from the appropriate beams. In short, what we expect from mosaicking.
