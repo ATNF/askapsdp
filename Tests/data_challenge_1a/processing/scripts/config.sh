@@ -69,10 +69,10 @@ DO_SPECTRAL_LINE=false
 # change between different modes - eg. halve the bandwidth
 
 # original BETA specs: 304MHz, 36beams
-#. ${SCRIPTDIR}/config_full_BETA.sh
+. ${SCRIPTDIR}/config_full_BETA.sh
 
 ## trimmed-down BETA: 152MHz, 9beams
-. ${SCRIPTDIR}/config_small_BETA.sh
+#. ${SCRIPTDIR}/config_small_BETA.sh
 
 ## ASKAP-12 early science simulation
 #. ${SCRIPTDIR}/config_earlyScience_ASKAP12.sh
