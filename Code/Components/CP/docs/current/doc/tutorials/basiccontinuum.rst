@@ -146,7 +146,7 @@ The gains parameters, one for each polarisation, antenna and beam, are written t
 	gain.g11.1.7 = [0.41577,-0.881319]
 	gain.g11.1.8 = [0.569721,-0.565723]
 
-This file is just a parset, with each line being a parameter specification. Its format is described in more detail in :doc:`../calim/calibration_solutions`, but the format is basically **gain.pol.antenna.beam**. The only relevant entries from this calibration job are those for beam 0 - that is, those ending in *.0*.
+This file is just a parset, with each line being a parameter specification. Its format is described in more detail in :doc:`../calim/calibration_solutions`, but the format is basically **gain.pol.antenna.beam**. The only relevant entries from this calibration job are those for beam 0 - that is, those with the gain parameter name ending in *.0*.
  
 Gains for each beam
 ...................
@@ -366,12 +366,14 @@ Once this completes, you will have a larger set of image products than was produ
 | weights.i.clean.sciencefield.BEAM0          | Weights image                                              |
 +---------------------------------------------+------------------------------------------------------------+
 
-The restored image should look something like the following (for the BEAM0 case). The image size has been chosen so that it is sufficient for the full mosaic image, and has the phase centre of the observation at the middle, but the portion imaged only includes our selected beam. The beam extends to where the weights drop to 1% of their peak - this is set by the *Cimager.solver.Clean.tolerance* parameter.:
+The restored image should look something like the following (for the BEAM0 case). 
 
 .. image:: figures/restoredSKADSbeam0WProject.png
    :width: 99%
 
+The image size has been chosen so that it is sufficient for the full mosaic image, and has the phase centre of the observation at the middle, but the portion imaged only includes our selected beam. Since we have used the WProject gridder, the weights image will be flat (the AWProject gridder produces weights images showing the primary beam pattern, but we are avoiding this for early BETA imaging). 
 
+However, it also means that the fluxes of sources in these individual beam images will be increasingly incorrect as we move away from the beam centre. For instance, the bright source near RA=12:26, Dec=-44, is actually >3Jy, but we measure its flux in BEAM0 as only about 62mJy. We will correct for this in the mosaicking step below.
 
 Mosaicking
 ----------
@@ -380,32 +382,33 @@ We repeat the imaging for each beam, imaging only a single beam each time, so th
 
 The mosaicking program is driven by a simple parameter set. Consider the following::
 
-	linmos.names      = [BEAM0..8]
-	linmos.findmosaics = true
-	linmos.weighttype = FromPrimaryBeamModel
-	linmos.feeds.centre = [12h30m00.00, -45.00.00.00]
+	linmos.names         = [BEAM0..8]
+	linmos.findmosaics   = true
+	linmos.weighttype    = FromPrimaryBeamModel
+	linmos.weightstate   = Inherent
+	linmos.feeds.centre  = [12h30m00.00, -45.00.00.00]
 	linmos.feeds.spacing = 1deg
-	linmos.feeds.BEAM0 = [-1.0, -1.0]
-	linmos.feeds.BEAM1 = [-1.0,  0.0]
-	linmos.feeds.BEAM2 = [-1.0,  1.0]
-	linmos.feeds.BEAM3 = [ 0.0, -1.0]
-	linmos.feeds.BEAM4 = [ 0.0,  0.0]
-	linmos.feeds.BEAM5 = [ 0.0,  1.0]
-	linmos.feeds.BEAM6 = [ 1.0, -1.0]
-	linmos.feeds.BEAM7 = [ 1.0,  0.0]
-	linmos.feeds.BEAM8 = [ 1.0,  1.0]
-	linmos.psfref     = 4
-	linmos.nterms     = 2
+	linmos.feeds.BEAM0   = [-1.0, -1.0]
+	linmos.feeds.BEAM1   = [-1.0,  0.0]
+	linmos.feeds.BEAM2   = [-1.0,  1.0]
+	linmos.feeds.BEAM3   = [ 0.0, -1.0]
+	linmos.feeds.BEAM4   = [ 0.0,  0.0]
+	linmos.feeds.BEAM5   = [ 0.0,  1.0]
+	linmos.feeds.BEAM6   = [ 1.0, -1.0]
+	linmos.feeds.BEAM7   = [ 1.0,  0.0]
+	linmos.feeds.BEAM8   = [ 1.0,  1.0]
+	linmos.psfref        = 4
+	linmos.nterms        = 2
 
-This aims (via the *findmosaics=true* parameter) to do the mosaicking for all sets of images that fit the pattern given in the *names* parameter. The double-fullstop indicates a range of numbers to iterate over. The output name, which isn't given in *findmosaics* mode, is instead determined by replace the pattern in the *names* parameter with **linmos**. 
+This aims (via the *findmosaics=true* parameter) to do the mosaicking for all sets of images that fit the pattern given in the *names* parameter. The double-fullstop indicates a range of numbers to iterate over. The output name, which isn't given in *findmosaics* mode, is instead determined by replacing the pattern in the *names* parameter with **linmos**. 
 
 All sets of images that fit the pattern will be mosaicked. This will include, in our example, model & restored images for each taylor term, as well as residual, sensitivity and weights images.
 
-The weights are determined here by providing primary beam models, as well as a list of locations of these beams - one for each input image. These primary beam models are simple circularly-symmetric Gaussian functions, with FWHM determined from the frequency of the image being mosaicked.
+The weights are determined here by providing primary beam models, as well as a list of locations of these beams - one for each input image. These primary beam models are simple circularly-symmetric Gaussian functions, with FWHM determined from the frequency of the image being mosaicked. By giving *weightstate = Inherent*, we assume that the input image reflects the primary beam response (which it does when imaged with the WProject gridder), and the mosaicking corrects for this so that the fluxes of sources are correct across the field.
 
 The *psfref* parameter indicates from which number out of that sequence the restoring beam information should be taken. This is necessary as the restoring beam could be different for different images (due to the effect of different calibration). 
 
-The *nterms* parameter tells *linmos* to look for taylor term images, and make multiple output images. (Note that currently it will only produce image.i.linmos.taylor.0.restored and image.i.linmos.taylor.1.restored, even though a .taylor.2 input image might be present.)
+The *nterms* parameter tells *linmos* to look for taylor term images, and make multiple output images, one for each taylor term present.
 
 Save this parset into a file, say **linmos_image.in**, and then create a qsub file as before, say, **linmos_image.qsub**::
 
@@ -425,14 +428,11 @@ Save this parset into a file, say **linmos_image.in**, and then create a qsub fi
 
 	qsub linmos_image.qsub
 
-This job will produce the following images: image.i.linmos.taylor.0.restored, image.i.linmos.taylor.1.restored, weights.i.linmos.taylor.0, weights.i.linmos.taylor.1. To produce mosaicked images of other types, you can replace the *linmos.names* parameter with, say *[residual.iclean.sciencefield.BEAM0..8.taylor.0]*, and the *linmos.outname* parameter with *residual.i.linmos.taylor.0*. The sensitivity map will not work correctly (since the scaling works in the opposite sense) - this is being worked on currently.
+This job will produce model, restored, weights, residual and sensitivity images for each of the taylor terms. See :doc:`intro` for details on visualisation of your images. The full mosaicked restored image (image.i.clean.sciencefield.linmos.taylor.0.restored) should look something like the following image. The red lines indicate the weights contours for 50% (inner line) and 1% (outer line) of the peak weight. Note that the outer edges of the field now have increased noise due to the scaling-up of the low-weight points (by the *weighttype=Inherent* correction). 
 
-See :doc:`intro` for details on visualisation of your images. The full mosaicked restored image (image.i.linmos.taylor.0.restored) should look something like this:
-
-.. image:: figures/restoredSKADSmosaicWProject-contours.png
+.. image:: figures/restoredSKADSmosaicWProject-contours-corrected.png
    :width: 99%
 
-If you compare this with the single-beam image from earlier, you'll notice that the sources around the edge that fall within other beams have been improved markedly - the strong sidelobes in the BEAM0 image have been weighted down and replaced with the good images from the appropriate beams. In short, what we expect from mosaicking.
 
 Exploring the imaging parameters
 --------------------------------
