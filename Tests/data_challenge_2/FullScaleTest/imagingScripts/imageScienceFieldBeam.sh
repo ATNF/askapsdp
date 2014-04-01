@@ -49,7 +49,7 @@ Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING
 Cimager.Images.${image}.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.${image}.nchan              = 1
 Cimager.Images.${image}.direction          = ${IMAGING_DIRECTION}
-Cimager.Images.writeAtMajorCycle                = true
+Cimager.Images.writeAtMajorCycle                = ${IMAGING_WRITEMAJORCYCLE}
 #
 ${mfsParams}
 #

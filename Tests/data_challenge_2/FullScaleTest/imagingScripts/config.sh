@@ -104,6 +104,7 @@ IMAGING_GAUSSTAPER="[30arcsec, 30arcsec, 0deg]"
 IMAGING_EQUALISE=True
 #IMAGING_CLEANSCALES="[0, 3, 10, 30]"
 IMAGING_CLEANSCALES="[0, 3, 10]"
+IMAGING_WRITEMAJORCYCLE=False
 
 doAverageMS=false
 if [ $doAverageMS == true ]; then
