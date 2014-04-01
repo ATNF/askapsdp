@@ -29,12 +29,15 @@
 
 // System includes
 #include <algorithm>
+#include <string>
 #include <sstream>
 #include <iomanip>
 #include <unistd.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
+#include "boost/regex.hpp"
+#include "boost/algorithm/string/trim.hpp"
 #include "casa/aips.h"
 #include "casa/Quanta.h"
 #include "casa/Quanta/MVDirection.h"
@@ -147,8 +150,19 @@ casa::MDirection asMDirection(const vector<string>& direction)
 
     casa::Quantity lng;
     casa::Quantity::read(lng, direction[0]);
+
+    // In order to support colon separated fields for latitude (where
+    // the first element is degrees not hours) convert to dot separated
+    // so it will be parsed as deg:min:sec not hrs:min:sec
+    std::string latstr = direction[1];
+    boost::trim(latstr);
+    static const boost::regex re("[\\+\\-]?\\d+:\\d+:\\d+\\.\\d+");
+    if (boost::regex_match(latstr, re)) {
+        std::replace(latstr.begin(), latstr.end(), ':', '.');
+    }
     casa::Quantity lat;
-    casa::Quantity::read(lat, direction[1]);
+    casa::Quantity::read(lat, latstr);
+
     casa::MDirection::Types type;
     casa::MDirection::getType(type, direction[2]);
     casa::MDirection dir(lng, lat, type);

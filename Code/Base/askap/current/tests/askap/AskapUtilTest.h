@@ -42,6 +42,7 @@ class AskapUtilTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(AskapUtilTest);
         CPPUNIT_TEST(testNint);
         CPPUNIT_TEST(testAsMDirection);
+        CPPUNIT_TEST(testAsMDirectionColonSeparated);
         CPPUNIT_TEST(testAsQuantity);
         CPPUNIT_TEST(testAsQuantityException);
         CPPUNIT_TEST(testBATConversions);
@@ -104,6 +105,29 @@ class AskapUtilTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, dir.getAngle("deg").getValue()(0),
                                          dblTolerance);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, dir.getAngle("deg").getValue()(1),
+                                         dblTolerance);
+        }
+
+        void testAsMDirectionColonSeparated() {
+            std::vector<std::string> input;
+            input.push_back("12:30:00.00");
+            input.push_back("-45:00:00.00");
+            input.push_back("J2000");
+
+            casa::MDirection dir = asMDirection(input);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, dir.getAngle("deg").getValue()(0),
+                                         dblTolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, dir.getAngle("deg").getValue()(1),
+                                         dblTolerance);
+
+            input[1] = "45:00:00.00";
+            dir = asMDirection(input);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, dir.getAngle("deg").getValue()(1),
+                                         dblTolerance);
+
+            input[1] = "+45:00:00.00";
+            dir = asMDirection(input);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, dir.getAngle("deg").getValue()(1),
                                          dblTolerance);
         }
 
