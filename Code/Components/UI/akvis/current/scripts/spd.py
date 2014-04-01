@@ -22,7 +22,6 @@ import re
 import matplotlib.ticker as ticker
 from askap.akvis import corr_summary
 import zmq
-import struct
 import datetime
 import pytz
 
@@ -146,7 +145,9 @@ class SpectrumPlotter(object):
         self._redraw_timer = None
         self._update_data_timer = None
         self._curr_timestamp = None
+        self._received_msg_types = []
         self._crange = None
+        self._print_message = False
 
         self.replot()
 
@@ -165,6 +166,18 @@ class SpectrumPlotter(object):
             ax.grid(gridon)
 
         self.redraw()
+        
+    def set_log(self, gridon):
+        for ax in self._axes:
+            if gridon:
+                ax.set_yscale('log')
+            else:
+                ax.set_yscale('linear')
+
+        self.redraw()
+
+    def set_print_message(self, print_message):
+        self._print_message = print_message
 
     def _draw_legend(self):
         if self._legend_on:
@@ -507,29 +520,44 @@ Antenna labels: %(antenna_labels)s
     def put_message(self, vismsg):
         self._put_msg_timer = Timer()
         self._put_msg_timer.start()
-        self._flags = vismsg.flag == 1 # shape=(nbaselines, nchannels)
+
+
+        # if this is the first message int his block set the current timestamp
+        # to that of the current message
+        
+        if len(self._received_msg_types) == 0:
+            self._curr_timestamp = vismsg.timestamp_dt
+            
+
+        # record which mssages we've received
+        self._received_msg_types.append(vismsg.pol_ident)
+        
+        # calcualte the ones we still haven't got yet
+        self._to_be_received = set(self._mgr.dgen.subscriptions) - set(self._received_msg_types)
+
+        if self._print_message:
+            print "msg RX", vismsg.pol_ident, str(vismsg), self._curr_timestamp, vismsg.timestamp_dt, "Equal?=", self._curr_timestamp == vismsg.timestamp_dt, "expecting", len(self._to_be_received), self._to_be_received, self._mgr.dgen.subscriptions, self._received_msg_types
+
+
+        # put data into buffers
         for bl in xrange(vismsg.nBaselines):
             self.put_cross(bl, vismsg.beamId, vismsg.polarisationId, vismsg.visibilities[bl, :])
 
-        if self._curr_timestamp is None:
-            self._curr_timestamp = vismsg.timestamp_dt
-            self.received_msg_types = []
-
-        self.received_msg_types.append(vismsg.pol_ident)
-        self._to_be_received = set(self._mgr.dgen.subscriptions) - set(self.received_msg_types)
-        
-        if len(self._to_be_received) == 0 or self._curr_timestamp != vismsg.timestamp_dt:
+        # If we've got everythying, redraw
+        if len(self._to_be_received) == 0:
+            curr_dt = self._curr_timestamp
+            now = datetime.datetime.now(tz=pytz.utc)
+            delay = now - curr_dt
+            self._fig.canvas.set_window_title('%s (delay=%s)' % (curr_dt, delay))
+            self._flags = vismsg.flag == 1 # shape=(nbaselines, nchannels)
             self.update_data()
             self.redraw()
+            self._received_msg_types = []
+        elif self._curr_timestamp != vismsg.timestamp_dt: 
+            # If we're running late
+            print "Running late! delay=", vismsg.timestamp_dt - self._curr_timestamp
+            self._received_msg_types = [vismsg.pol_ident]
             self._curr_timestamp = vismsg.timestamp_dt
-            self._received_msg_truypes = []
-
-        curr_dt = self._curr_timestamp
-        now = datetime.datetime.now(tz=pytz.utc)
-        delay = now - curr_dt
-        self._fig.canvas.set_window_title('%s (delay=%s)' % (curr_dt, delay))
-            
-
 
         self._put_msg_timer.stop()
 
@@ -587,8 +615,6 @@ class ZmqDataGenerator(object):
     def push(self, plotters):
         msg = self.socket.recv_multipart()
         vmsg = VisibilityMessage(msg)
-        print "msg RX", msg[0], str(vmsg)
-
         t = Timer()
         t.start()
         nbl = vmsg.nBaselines # this includes autocorelations
@@ -643,7 +669,7 @@ class VisibilityMessage(object):
         if msgs is None:
             return
 
-        self.pol_ident = msgs[0]
+        self.pol_ident = msgs[0][0:-1] # strip off final '0x00'
         r = BufferReader(msgs[1])
         self.timestamp = r.read_uint64()
         self.timestamp_dt = bat2utcDt(int(self.timestamp))
@@ -1011,10 +1037,18 @@ def parse_command(cmd, plt, gen):
         plt.set_legend(True)
     elif cmd.startswith('legoff'):
         plt.set_legend(False)
+    elif cmd.startswith('msgon'):
+        plt.set_print_message(True)
+    elif cmd.startswith('msgoff'):
+        plt.set_print_message(False)
     elif cmd.startswith('gridon'):
         plt.set_grid(True)
     elif cmd.startswith('gridoff'):
         plt.set_grid(False)
+    elif cmd.startswith('logon'):
+        plt.set_log(True)
+    elif cmd.startswith('logoff'):
+        plt.set_log(False)
     elif cmd.startswith('?') or cmd.startswith('help'):
         print_help()
     else:
@@ -1051,6 +1085,14 @@ noacs - don't plot autocorrelation
 ccs - Plot cross correlation
 noccs - Don't plot cross correlations
 
+--- Plotting cruft ---
+legon - Plot legend
+legoff - Turn off legend
+gridon - Draw a grid on the plots
+gridoff - Turn off grid
+logon - Make y axis a log scale
+logoff - Make y axis a linear scale
+
 --- Previous buffer ---
 save - Save current data to previous buffer, so you can plot with 'd' or 'q'
 rsave - Save new data to previous buffer, so you can plot with 'd' or 'q'
@@ -1061,11 +1103,9 @@ avg - Start averaging in time (see pstat for number of averages)
 noavg - Stop averaging in time
 
 --- Miscellaneous ---
-legon - Plot legend
-legoff - Turn off legend
-gridon - Draw a grid on the plots
-gridoff - Turn off grid
 pstat - print plotting statistics to stdout
+msgon - Turn on printing a message whenever one is received
+msgoff - Turn off printing a message whenever one is received
 write FILE - Save figure to file: Supported formats from extension (e.g. spec.png, spec.pdf)
 layout X Y - Make figure X subfigs wide and Y subfigs tall
 nxy - same as 'layout'
