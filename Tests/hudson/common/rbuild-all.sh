@@ -9,7 +9,7 @@ SRCDIR='trunk'
 
 LINUX_PYTHON='/usr/bin/python2.6'
 #MACOSX_PYTHON='/opt/local/bin/python2.6'
-MACOSX_PYTHON='/usr/bin/python2.6'
+MACOSX_PYTHON='/usr/bin/python2.7'
 WHEEZY_PYTHON='/usr/bin/python2.7'
 
 PNAME=`basename $0`
