@@ -56,7 +56,7 @@ public class SimpleSettingsRegister implements HasRegistrableSettings {
    */
   public synchronized boolean registerSettings(Object client, ParameterSet settings) {
     boolean res = true;
-    Iterator i = settings.keySet().iterator();
+    Iterator<?> i = settings.keySet().iterator();
     while (i.hasNext()) {
       String thiskey = (String) i.next();
       RegisteredSetting rs = itsRegistrations.get(thiskey);
@@ -95,7 +95,7 @@ public class SimpleSettingsRegister implements HasRegistrableSettings {
    */
   public synchronized boolean checkSettings(Object client, ParameterSet settings) {
     boolean res = true;
-    Iterator i = settings.keySet().iterator();
+    Iterator<?> i = settings.keySet().iterator();
     while (i.hasNext()) {
       String thiskey = (String) i.next();
       RegisteredSetting rs = itsRegistrations.get(thiskey);

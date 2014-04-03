@@ -22,7 +22,6 @@ package askap.util;
 
 import org.junit.*;
 import static org.junit.Assert.*;
-import askap.util.*;
 
 /**
  * Test class for SettingsRegistrar/HasRegistrableSettings/SimpleSettingsRegister

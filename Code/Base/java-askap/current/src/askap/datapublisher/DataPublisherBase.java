@@ -35,6 +35,9 @@ public abstract class DataPublisherBase {
    * Exception for when the IceStorm Topic could not be fully connected.
    */
   public class NotConnectedException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
     public NotConnectedException() {
       super("Cannot connect/publish via IceStorm");
     }

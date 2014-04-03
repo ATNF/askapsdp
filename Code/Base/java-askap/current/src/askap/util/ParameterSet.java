@@ -28,9 +28,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import sun.security.krb5.internal.PAData;
+//import sun.security.krb5.internal.PAData;
 
-import com.sun.org.apache.xml.internal.utils.IntVector;
+//import com.sun.org.apache.xml.internal.utils.IntVector;
 
 /**
  * Java representation of a ParameterSet.
@@ -39,7 +39,9 @@ import com.sun.org.apache.xml.internal.utils.IntVector;
  */
 public class ParameterSet extends Properties {
 
-	/** Create an empty ParameterSet. */
+    private static final long serialVersionUID = 1L;
+
+    /** Create an empty ParameterSet. */
 	public ParameterSet() {
 		super();
 	}
