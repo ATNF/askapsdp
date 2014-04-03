@@ -44,9 +44,6 @@ class AbortEvent(object):
     def is_set(self):
         return self.__flag
 
-    def is_raised(self):
-        return self.__message and self.__flag 
-    
     def message(self):
         return self.__message
 
@@ -98,5 +95,6 @@ def raise_abort(event):
     :param event: the :class:`AbortEvent` to check
 
     """
-    if event.is_raised():
+    if event.is_set():
+        msg = event.message() or "Unknown reason"
         raise AbortError(event.message())
