@@ -107,7 +107,7 @@ The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.s
 
 Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
 
-        #!/usr/bin/env bash
+    #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -168,7 +168,7 @@ The first step in imaging is to average the visibilities to 304 1MHz channels. T
 	
 	# Output measurement set
 	# Default: <no default>
-	outputvis   = sciencefield_SKADS_coarseChan.ms
+	outputvis   = sciencefield_SKADS_coarse.ms
 	
 	# The channel range to split out into its own measurement set
 	# Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
@@ -183,7 +183,7 @@ The first step in imaging is to average the visibilities to 304 1MHz channels. T
 
 Save this parset into a file, say **mssplit.in**. To run this, we need to create a qsub file, say, **mssplit.qsub**::
 
-        #!/usr/bin/env bash
+    #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -412,7 +412,7 @@ The *nterms* parameter tells *linmos* to look for taylor term images, and make m
 
 Save this parset into a file, say **linmos_image.in**, and then create a qsub file as before, say, **linmos_image.qsub**::
 
-        #!/usr/bin/env bash
+    #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
