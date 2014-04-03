@@ -1750,7 +1750,8 @@ namespace askap {
 	void DuchampParallel::writeToFITS()
 	{
 	  if(!this->itsIsFITSFile){
-	      ASKAPLOG_ERROR_STR(logger, "Writing to FITS files currently requires the input to be FITS, which is not the case here.");
+	    if(this->itsComms.isMaster())
+	      ASKAPLOG_WARN_STR(logger, "Writing the Duchamp-style FITS arrays currently requires the input file to be FITS, which is not the case here.");
 	  }
 	  else if(!this->itsComms.isParallel()){
 	      this->itsCube.pars().setFlagBlankPix(false);
