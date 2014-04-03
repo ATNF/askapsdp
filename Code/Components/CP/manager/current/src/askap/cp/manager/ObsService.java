@@ -105,7 +105,8 @@ public class ObsService extends _ICPObsServiceDisp {
 	@Override
 	public void startObs(long sbid, Current curr)
 			throws askap.interfaces.cp.NoSuchSchedulingBlockException,
-			askap.interfaces.cp.AlreadyRunningException
+			askap.interfaces.cp.AlreadyRunningException,
+			askap.interfaces.cp.PipelineStartException
 	{
 		logger.debug("Querying FCM");
 		ParameterSet fc = itsFCM.get();

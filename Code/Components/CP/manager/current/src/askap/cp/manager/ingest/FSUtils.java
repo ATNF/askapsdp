@@ -26,54 +26,14 @@ package askap.cp.manager.ingest;
 // Java core imports
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 
 // ASKAPsoft imports
 import askap.util.ParameterSet;
 
 public class FSUtils {
-	
-	/**
-	 * Makes a directory. 
-	 * @param dir	the directory to create.
-	 * @return true if and only if the directory was created.
-	 */
-	public static boolean mkdir(File dir) {
-		return dir.mkdir();
-	}
-
-	/**
-	 * Copies a file from "src" to "dest".
-	 * 
-	 * @param src	source file
-	 * @param dest	destination file
-	 * @throws IOException	if the file copy fails.
-	 */
-	public static void copyfile(File src, File dest) throws IOException {
-		if (!dest.exists()) {
-			dest.createNewFile();
-		}
-
-		FileInputStream fis = new FileInputStream(src);
-		FileChannel srcchan = fis.getChannel();
-		FileOutputStream fos = new FileOutputStream(dest);
-		FileChannel destchan = fos.getChannel();
-
-		long count = 0;
-		long size = srcchan.size();              
-		while ((count += destchan.transferFrom(srcchan, count, size-count)) < size);
-
-		srcchan.close();
-		fis.close();
-		destchan.close();
-		fos.close();
-	}
-
 	/**
 	 * Creates a file, populating it with the contents of the parameter set. The
 	 * parameter set is just a Map<String, String> and the file created will be an
