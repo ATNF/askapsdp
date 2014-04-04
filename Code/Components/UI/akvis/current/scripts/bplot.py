@@ -15,15 +15,17 @@ import threading
 import time
 from askap.accessors.calibration import Source
 from pylab import *
+from spd import str2slice
 
 def _main():
     from argparse import ArgumentParser
     parser = ArgumentParser(description='Plots bandpass')
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Be verbose [Default %default]')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Be verbose')
     parser.add_argument(dest='infiles', nargs='*', help='Data files to look at')
     parser.add_argument('-t', '--type', dest='type', help='Type of files: table|parset|raw', default='table')
-    parser.add_argument('-a', '--antenna', dest='antenna', type=int, help='Antena number to plot', default=0)
-    parser.add_argument('-b', '--beam', dest='beam', type=int, help='Beam numebr to plot', default=0)
+    parser.add_argument('-a', '--antenna', dest='antenna', help='Antena number to plot. Leave empty for all or start[:stop:[step]]', default=None)
+    parser.add_argument('-b', '--beam', dest='beam', help='Beam number to plot. Leave empty for all or start[:stop[:step]]', default=None)
+    parser.add_argument('-c', '--channel', dest='channel', help='Channels to plot. Leave empty for all or start[:stop[:step]]', default=None)
     
     parser.set_defaults(verbose=False)
     values = parser.parse_args()
@@ -32,28 +34,37 @@ def _main():
     else:
         logging.basicConfig(level=logging.INFO)
 
+
+    ant_slice = str2slice(values.antenna)
+    beam_slice = str2slice(values.beam)
+    chan_slice = str2slice(values.channel)
+
+
     for f in values.infiles:
         s = Source(f, values.type)
         print f, 'most recent soln', s.most_recent_solution_id
         ac = s.most_recent_accessor
-        bp_g1, bp_g2 = ac.bandpass[values.antenna, values.beam, :]
+        bp_g1, bp_g2 = ac.bandpass[ant_slice, beam_slice, chan_slice]
+        
+        nant, nbeam, nchan = bp_g1.shape
         
         figure()
         title(f + ' bandpass')
         subplot(2,2,1)
-        plot(abs(bp_g1[:, 0, :]).T)
-        ylabel('Amplitude')
-        title('G1')
-        subplot(2,2,3)
-        plot(degrees(angle(bp_g1[:, 0, :]).T))
-        ylabel('Phase (deg)')
-        xlabel('channel')
-        subplot(2,2,2)
-        plot(abs(bp_g2[:, 0, :]).T)
-        title('G2')
-        subplot(2,2,4)
-        plot(degrees(angle(bp_g2[:, 0, :]).T))
-        xlabel('channel')
+        for b in xrange(nbeam):
+            plot(abs(bp_g1[:, b, :]).T)
+            ylabel('Amplitude')
+            title('G1')
+            subplot(2,2,3)
+            plot(degrees(angle(bp_g1[:, b, :]).T))
+            ylabel('Phase (deg)')
+            xlabel('channel')
+            subplot(2,2,2)
+            plot(abs(bp_g2[:, b, :]).T)
+            title('G2')
+            subplot(2,2,4)
+            plot(degrees(angle(bp_g2[:, b, :]).T))
+            xlabel('channel')
 
 
         

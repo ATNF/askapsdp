@@ -843,13 +843,14 @@ class SubscriptionManager(object):
 
 
 def str2slice(s):
-    parts = map(int, s.strip().split(':'))
-    if len(parts) == 1:
-        sl = slice(parts[0], parts[0]+1)
+    if s is None:
+        sl = slice(None)
     else:
-        sl = slice(*parts)
-
-    print sl, parts
+        parts = map(int, s.strip().split(':'))
+        if len(parts) == 1:
+            sl = slice(parts[0], parts[0]+1)
+        else:
+            sl = slice(*parts)
     return sl
 
 class CommandParser(object):
