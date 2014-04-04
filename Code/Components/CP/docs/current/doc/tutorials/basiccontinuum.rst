@@ -107,7 +107,7 @@ The calibration is done assuming a model of 1934-638 (the *Ccalibrator.sources.s
 
 Save this parset into a file, say **calibrator-BEAM0.in**. To run this, we need to create a qsub file, say, **calibrator-BEAM0.qsub**::
 
-    #!/usr/bin/env bash
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -183,7 +183,7 @@ The first step in imaging is to average the visibilities to 304 1MHz channels. T
 
 Save this parset into a file, say **mssplit.in**. To run this, we need to create a qsub file, say, **mssplit.qsub**::
 
-    #!/usr/bin/env bash
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -298,7 +298,8 @@ We are doing multi-frequency synthesis for this image. This is controlled by the
 This will result in the creation of "Taylor-term images". These represent the Taylor terms that represent the frequency dependence of each spatial pixel. The different terms relate to the spectral index (alpha) and spectral curvature (beta) of the spectrum, which can be defined through a second-order polynomial in log-space, shown in the first equation below. The second equation shows the result of a Taylor expansion about the reference frequency.
 
 .. image:: figures/MFS_formulae.png
-   :width: 99%
+   :width: 80%
+   :align: center
 
 The Taylor term images then contain the coefficients of this expansion, so that the image with suffix *.taylor.0* contains I(nu0), *.taylor.1* contains I(nu0)*alpha, and *.taylor.2* contains I(nu0)*(0.5*alpha*(alpha-1)+beta). The reference frequency is given by the *Cimager.visweights.MFS.reffreq* parameter (in Hz) - this should be in the middle of the band for optimal performance.
 
@@ -321,7 +322,7 @@ Setting this to true can be useful if you want to look at the intermediate major
 
 To run the imaging, we need a qsub file - call it **clean-BEAM0.qsub**::
 
-	#!/usr/bin/env bash
+	    #!/usr/bin/env bash
 	#PBS -l walltime=02:00:00
 	#PBS -l mppwidth=913
 	#PBS -l mppnppn=20
@@ -369,7 +370,8 @@ Once this completes, you will have a larger set of image products than was produ
 The restored image should look something like the following (for the BEAM0 case). 
 
 .. image:: figures/restoredSKADSbeam0WProject.png
-   :width: 99%
+   :width: 90%
+   :align: center
 
 The image size has been chosen so that it is sufficient for the full mosaic image, and has the phase centre of the observation at the middle, but the portion imaged only includes our selected beam. Since we have used the WProject gridder, the weights image will be flat (the AWProject gridder produces weights images showing the primary beam pattern, but we are avoiding this for early BETA imaging). 
 
@@ -412,7 +414,7 @@ The *nterms* parameter tells *linmos* to look for taylor term images, and make m
 
 Save this parset into a file, say **linmos_image.in**, and then create a qsub file as before, say, **linmos_image.qsub**::
 
-    #!/usr/bin/env bash
+        #!/usr/bin/env bash
 	#PBS -l walltime=01:00:00
 	#PBS -l mppwidth=1
 	#PBS -l mppnppn=1
@@ -431,7 +433,8 @@ Save this parset into a file, say **linmos_image.in**, and then create a qsub fi
 This job will produce model, restored, weights, residual and sensitivity images for each of the taylor terms. See :doc:`intro` for details on visualisation of your images. The full mosaicked restored image (image.i.clean.sciencefield.linmos.taylor.0.restored) should look something like the following image. The red lines indicate the weights contours for 50% (inner line) and 1% (outer line) of the peak weight. Note that the outer edges of the field now have increased noise due to the scaling-up of the low-weight points (by the *weighttype=Inherent* correction). 
 
 .. image:: figures/restoredSKADSmosaicWProject-contours-corrected.png
-   :width: 99%
+   :width: 90%
+   :align: center
 
 
 Exploring the imaging parameters
