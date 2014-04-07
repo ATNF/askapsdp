@@ -370,10 +370,18 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(chunk->beam1()(row) == static_cast<casa::uInt>(beamid), errorMsg);
     ASKAPCHECK(chunk->beam2()(row) == static_cast<casa::uInt>(beamid), errorMsg);
 
+    // Does the TOS say this antenna should be flagged?
+    const bool flagged = metadata.flagged()
+        || metadata.antenna(antenna1).flagged()
+        || !metadata.antenna(antenna1).onSource()
+        || metadata.antenna(antenna2).flagged()
+        || !metadata.antenna(antenna2).onSource();
+
     // 4) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
+        ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
         // If the sample is already "unflagged" it means we have received it,
         // and this VisChnk is a duplicate
         if (chunk->flag()(row, chanOffset + chan, polidx) == false) {
@@ -381,18 +389,9 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             return true;
         }
         
-        casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
-        ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
-
+        const casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
-        // Does the TOS say this antenna should be flagged?
-        const bool flagged = !metadata.flagged()
-                && !metadata.antenna(antenna1).flagged()
-                && metadata.antenna(antenna1).onSource()
-                && !metadata.antenna(antenna2).flagged()
-                && metadata.antenna(antenna2).onSource();
-        
         // Unflag the sample if TOS metadata indicates it is ok
         if (!flagged) chunk->flag()(row, chanOffset + chan, polidx) = false;
 
@@ -401,7 +400,6 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             ASKAPDEBUGASSERT(polidx != 2);
             if (polidx == 1) {
                 chunk->visibility()(row, chanOffset + chan, 2) = conj(sample);
-                // unflag the sample
                 if (!flagged) chunk->flag()(row, chanOffset + chan, 2) = false;
             }
         }
