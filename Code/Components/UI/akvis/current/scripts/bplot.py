@@ -26,6 +26,8 @@ def _main():
     parser.add_argument('-a', '--antenna', dest='antenna', help='Antena number to plot. Leave empty for all or start[:stop:[step]]', default=None)
     parser.add_argument('-b', '--beam', dest='beam', help='Beam number to plot. Leave empty for all or start[:stop[:step]]', default=None)
     parser.add_argument('-c', '--channel', dest='channel', help='Channels to plot. Leave empty for all or start[:stop[:step]]', default=None)
+    parser.add_argument('-s', '--solnid', dest='solnid', help='Solution id to plot. Leave empty for last', default=None)
+    parser.add_argument('-m', '--time', dest='time', help='Time to plot - converted to a solid before plotting', default=None)
     
     parser.set_defaults(verbose=False)
     values = parser.parse_args()
@@ -39,11 +41,22 @@ def _main():
     beam_slice = str2slice(values.beam)
     chan_slice = str2slice(values.channel)
 
-
     for f in values.infiles:
         s = Source(f, values.type)
-        print f, 'most recent soln', s.most_recent_solution_id
-        ac = s.most_recent_accessor
+        print f, 'most recent soln ID', s.most_recent_solution_id
+ #        ac = s.most_recent_accessor
+
+        if values.time:
+            sid = s.get_solution_id_for_time(int(values.time))
+            print "SOlution ID for time", int(values.time), " is ", sid
+        elif values.solnid is None:
+            sid = s.most_recent_solution_id
+        else: # values.solnid is not None
+            sid = int(values.solnid)
+        
+        print "Using solution ID", sid
+        
+        ac = s.get_accessor_for_id(sid)
         bp_g1, bp_g2 = ac.bandpass[ant_slice, beam_slice, chan_slice]
         
         nant, nbeam, nchan = bp_g1.shape
