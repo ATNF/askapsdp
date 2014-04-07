@@ -28,6 +28,7 @@ import pytz
 POL_STR = ('XX','XY','YX','YY')
 ANTENNA_LABELS = (6, 1, 3, 15, 8, 9)
 PLOT_MODES = 'abp' # (antenna, beam, polarisation)
+BUFFER_LEN = 36 #  max numebr of products in the bufer 
 
 def printstack():
     import sys
@@ -566,6 +567,7 @@ class ZmqDataGenerator(object):
         self.target = target
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.SUB)
+        self.socket.setsockopt(zmq.RCVHWM, BUFFER_LEN)
         self.socket.connect(target)
         self.subscriptions = []
         self.subscribe(0, 'XX')
