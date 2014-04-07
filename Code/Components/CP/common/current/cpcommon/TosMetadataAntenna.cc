@@ -37,7 +37,7 @@
 using namespace askap::cp;
 
 TosMetadataAntenna::TosMetadataAntenna(const casa::String& name)
-    : itsName(name), itsOnSource(false), itsHwError(true)
+    : itsName(name), itsOnSource(false), itsFlagged(true)
 {
 }
 
@@ -86,12 +86,12 @@ void TosMetadataAntenna::onSource(const casa::Bool& val)
     itsOnSource = val;
 }
 
-casa::Bool TosMetadataAntenna::hwError(void) const
+casa::Bool TosMetadataAntenna::flagged(void) const
 {
-    return itsHwError;
+    return itsFlagged;
 }
 
-void TosMetadataAntenna::hwError(const casa::Bool& val)
+void TosMetadataAntenna::flagged(const casa::Bool& val)
 {
-    itsHwError = val;
+    itsFlagged = val;
 }

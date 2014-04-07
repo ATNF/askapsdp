@@ -74,7 +74,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             const casa::Int scanId = 0;
             const casa::Quantity polAngle(1.234567, "rad");
             const casa::Bool onSource = true;
-            const casa::Bool hwError = false;
+            const casa::Bool flagged = false;
 
             //////////////////////////////////////
             // Setup the source TosMetadata object
@@ -101,7 +101,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 ant.actualAzEl(testDir);
                 ant.actualPolAngle(polAngle);
                 ant.onSource(onSource);
-                ant.hwError(hwError);
+                ant.flagged(flagged);
             }
 
 #ifndef __LP64__
@@ -168,7 +168,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 resultAnt.actualPolAngle().getValue("rad"),
                 std::numeric_limits<float>::epsilon());
             CPPUNIT_ASSERT_EQUAL(srcAnt.onSource(), resultAnt.onSource());
-            CPPUNIT_ASSERT_EQUAL(srcAnt.hwError(), resultAnt.hwError());
+            CPPUNIT_ASSERT_EQUAL(srcAnt.flagged(), resultAnt.flagged());
         }
 
         void verifyDir(const casa::MDirection& d1, const casa::MDirection& d2) {

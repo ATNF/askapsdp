@@ -187,15 +187,15 @@ bool TosSimulator::sendNext(void)
         //    antMetadata.phaseTrackingCentre(direction, beam);
         //}
 
-        // <antenna name>.flag.on_source
+        // <antenna name>.on_source
         // TODO: Current no flagging, but it would be good to read this from the
         // actual measurement set
         antMetadata.onSource(true);
 
-        // <antenna name>.flag.hw_error
+        // <antenna name>.flagged
         // TODO: Current no flagging, but it would be good to read this from the
         // actual measurement set
-        antMetadata.hwError(false);
+        antMetadata.flagged(false);
 
         // <antenna name>.flag.detailed
         // TODO: Current no flagging, but it would be good to read this from the

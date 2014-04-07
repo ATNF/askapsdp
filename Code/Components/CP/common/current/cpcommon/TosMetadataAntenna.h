@@ -94,17 +94,17 @@ class TosMetadataAntenna {
         /// the entire integration cycle.
         void onSource(const casa::Bool& val);
 
-        /// @brief Get the value of the hwError (hardware error) flag.
+        /// @brief Get the value of the general (misc error) flag.
         ///
         /// @return true if hardware monitoring reveals a problem
         /// (eg. LO out of lock) that means all data from this antenna
         /// should be flagged.
-        casa::Bool hwError(void) const;
+        casa::Bool flagged(void) const;
 
-        /// @brief Set the value of the hwError (hardware error) flag.
+        /// @brief Set the value of the general (misc error) flag.
         /// @param[in] val teh value of the hardware error flag. Use true to
         /// indicate a hardware error, otherwise false.
-        void hwError(const casa::Bool& val);
+        void flagged(const casa::Bool& val);
 
     private:
 
@@ -128,7 +128,7 @@ class TosMetadataAntenna {
         /// True if hardware monitoring reveals a problem (eg. LO out of lock)
         /// that means all data from this antenna should be flagged. If this
         /// is true, other metadata for this antenna may be invalid.
-        casa::Bool itsHwError;
+        casa::Bool itsFlagged;
 };
 
 }

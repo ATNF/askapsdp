@@ -77,7 +77,7 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsBaselineMap(config.bmap()),
      itsInterrupted(false),
      itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
-     itsMaxNBeams(params.getUint32("maxbeams", 0)),
+     itsMaxNBeams(0),
      itsBeamsToReceive(params.getUint32("beams2receive", 0)),
      itsDuplicateDatagrams(0)
 {
@@ -167,7 +167,6 @@ VisChunk::ShPtr MergedSource::next(void)
 
     // Determine how many VisDatagrams are expected for a single integration
     const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
-    const casa::uInt nAntenna = itsConfig.antennas().size();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
@@ -191,7 +190,7 @@ VisChunk::ShPtr MergedSource::next(void)
         }
 
         datagramCount++;
-        if (addVis(chunk, *itsVis, nAntenna)) {
+        if (addVis(chunk, *itsVis, *itsMetadata)) {
             ++datagramsIgnored;
         }
         itsVis = itsVisSrc->next(timeout);
@@ -219,9 +218,6 @@ VisChunk::ShPtr MergedSource::next(void)
         packetsLostPercent.update((datagramsExpected - datagramCount)
                / static_cast<float>(datagramsExpected) * 100.);
     }
-
-    // Apply any flagging specified in the TOS metadata
-    //doFlagging(chunk, *itsMetadata);
 
     itsMetadata.reset();
     return chunk;
@@ -305,7 +301,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 }
 
 bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
-        const casa::uInt nAntenna)
+        const TosMetadata& metadata)
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
@@ -344,6 +340,7 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 
 
     // 2) Check the indexes in the VisDatagram are valid
+    const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
     ASKAPCHECK(static_cast<casa::uInt>(beamid) < itsMaxNBeams,
@@ -389,8 +386,15 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
 
         chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
-        // Unflag the sample
-        chunk->flag()(row, chanOffset + chan, polidx) = false;
+        // Does the TOS say this antenna should be flagged?
+        const bool flagged = !metadata.flagged()
+                && !metadata.antenna(antenna1).flagged()
+                && metadata.antenna(antenna1).onSource()
+                && !metadata.antenna(antenna2).flagged()
+                && metadata.antenna(antenna2).onSource();
+        
+        // Unflag the sample if TOS metadata indicates it is ok
+        if (!flagged) chunk->flag()(row, chanOffset + chan, polidx) = false;
 
         if (antenna1 == antenna2) {
             // for auto-correlations we duplicate cross-pols as index 2 should always be missing
@@ -398,49 +402,11 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             if (polidx == 1) {
                 chunk->visibility()(row, chanOffset + chan, 2) = conj(sample);
                 // unflag the sample
-                chunk->flag()(row, chanOffset + chan, 2) = false;
+                if (!flagged) chunk->flag()(row, chanOffset + chan, 2) = false;
             }
         }
     }
     return false;
-}
-
-// Flag based on information in the TosMetadata
-void MergedSource::doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata)
-{
-    for (unsigned int row = 0; row < chunk->nRow(); ++row) {
-        for (unsigned int chan = 0; chan < chunk->nChannel(); ++chan) {
-            for (unsigned int pol = 0; pol < chunk->nPol(); ++pol) {
-                doFlaggingSample(chunk, metadata, row, chan, pol);
-            }
-        }
-    }
-}
-
-void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
-        const TosMetadata& metadata,
-        const unsigned int row,
-        const unsigned int chan,
-        const unsigned int pol)
-{
-    // Don't bother if the sample is already flagged
-    if (chunk->flag()(row, chan, pol)) {
-        return;
-    }
-
-    const unsigned int ant1 = chunk->antenna1()(row);
-    const unsigned int ant2 = chunk->antenna2()(row);
-    const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
-    const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
-
-    // Flag the sample if one of the antenna was not on source or had a
-    // hardware error
-    if ((!mdAnt1.onSource()) || (!mdAnt2.onSource()) ||
-            mdAnt1.hwError() || mdAnt2.hwError() ||
-            metadata.flagged()) {
-        chunk->flag()(row, chan, pol) = true;
-        return;
-    }
 }
 
 void MergedSource::signalHandler(const boost::system::error_code& error,
@@ -459,7 +425,7 @@ void MergedSource::parseBeamMap(const LOFAR::ParameterSet& params)
         itsBeamIDMap.add(beamidmap);
     }
 
-    // The below implies the beams being received much be a subset (though not
+    // The below implies the beams being received must be a subset (though not
     // necessarily a proper subset) of the beams in the config
     itsMaxNBeams = itsConfig.antennas().at(0).feeds().nFeeds();
 

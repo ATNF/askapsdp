@@ -83,15 +83,7 @@ class MergedSource : public ISource {
         askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
 
         bool addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
-                const casa::uInt nAntenna);
-
-        void doFlagging(askap::cp::common::VisChunk::ShPtr chunk, const TosMetadata& metadata);
-
-        void doFlaggingSample(askap::cp::common::VisChunk::ShPtr chunk,
-                              const TosMetadata& metadata,
-                              const unsigned int row,
-                              const unsigned int chan,
-                              const unsigned int pol);
+                const TosMetadata& metadata);
 
         /// Handled the receipt of signals to "interrupt" the process
         void signalHandler(const boost::system::error_code& error,

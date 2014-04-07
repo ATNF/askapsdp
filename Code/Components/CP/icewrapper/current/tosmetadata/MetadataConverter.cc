@@ -143,7 +143,7 @@ void MetadataConverter::convertAntenna(unsigned int antId,
 
     // <antenna name>.flagged
     destMapper.setBool(makeMapKey(antennaName, "flagged"),
-            antenna.hwError());
+            antenna.flagged());
 }
 
 // Convert antenna portion of the Tos Metadata from
@@ -160,12 +160,12 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     TosMetadataAntenna& ant = dest.antenna(id);
 
     // hw_error
-    ant.hwError(srcMapper.getBool(makeMapKey(antennaName,
+    ant.flagged(srcMapper.getBool(makeMapKey(antennaName,
                     "flagged")));
 
     // If the antenna is flagged (other than for being !on_source then the other
     // metadata may not be present
-    if (!ant.hwError()) {
+    if (!ant.flagged()) {
         // actual_radec
         ant.actualRaDec(srcMapper.getDirection(makeMapKey(antennaName,
                         "actual_radec")));
