@@ -77,8 +77,7 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsBaselineMap(config.bmap()),
      itsInterrupted(false),
      itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
-     itsMaxNBeams(0),
-     itsBeamsToReceive(params.getUint32("beams2receive", 0)),
+     itsNBeams(0),
      itsDuplicateDatagrams(0)
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
@@ -170,7 +169,7 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected = itsBaselineMap.size() * itsBeamsToReceive * (nChannels / N_CHANNELS_PER_SLICE);
+    const casa::uInt datagramsExpected = itsBaselineMap.size() * itsNBeams * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = scanInfo.interval() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -231,7 +230,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     const casa::uInt nPol = scanInfo.stokes().size();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
-    const casa::uInt nRow = nBaselines * itsMaxNBeams;
+    const casa::uInt nRow = nBaselines * itsNBeams;
     const casa::uInt period = scanInfo.interval(); // in microseconds
 
     VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
@@ -266,7 +265,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;
-    for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
+    for (casa::uInt beam = 0; beam < itsNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             //const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
@@ -318,9 +317,9 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
         // this beam ID is intentionally unmapped
         return true;
     }
-    ASKAPCHECK(beamid < static_cast<casa::Int>(itsMaxNBeams),
+    ASKAPCHECK(beamid < static_cast<casa::Int>(itsNBeams),
         "Received beam id vis.beamid=" << vis.beamid << " mapped to beamid=" << beamid
-        << " which is outside the beam index range, itsMaxNBeams=" << itsMaxNBeams);
+        << " which is outside the beam index range, itsNBeams=" << itsNBeams);
 
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
@@ -343,7 +342,7 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
-    ASKAPCHECK(static_cast<casa::uInt>(beamid) < itsMaxNBeams,
+    ASKAPCHECK(static_cast<casa::uInt>(beamid) < itsNBeams,
         "Beam index " << beamid << " is invalid");
     ASKAPCHECK(polidx < 4, "Only 4 polarisation products are supported");
 
@@ -351,7 +350,7 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     casa::uInt idx = 0;
-    for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
+    for (casa::uInt beam = 0; beam < itsNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
                 if (ant1 == antenna1 &&
@@ -425,14 +424,7 @@ void MergedSource::parseBeamMap(const LOFAR::ParameterSet& params)
 
     // The below implies the beams being received must be a subset (though not
     // necessarily a proper subset) of the beams in the config
-    itsMaxNBeams = itsConfig.antennas().at(0).feeds().nFeeds();
-
-    if (itsBeamsToReceive == 0) itsBeamsToReceive = itsMaxNBeams;
-
-    ASKAPLOG_INFO_STR(logger, "Number of beams: " << itsBeamsToReceive
-        << " (to be received), " << itsMaxNBeams << " (to be written into MS)");
-    ASKAPDEBUGASSERT(itsMaxNBeams > 0);
-    ASKAPDEBUGASSERT(itsBeamsToReceive > 0);
+    itsNBeams = itsConfig.antennas().at(0).feeds().nFeeds();
 }
 
 void MergedSource::checkInterruptSignal()

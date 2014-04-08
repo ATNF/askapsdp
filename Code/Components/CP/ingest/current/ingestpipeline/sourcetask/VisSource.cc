@@ -108,9 +108,12 @@ void VisSource::handle_receive(const boost::system::error_code& error,
                     << " got " << itsRecvBuffer->version);
         }
 
-        // Add a pointer to the message to the back of the circular buffer.
-        // Waiters are notified.
-        itsBuffer.add(itsRecvBuffer);
+        // TODO: Remove this for ADE - For BETA only beams 1-9 are valid/used.
+        if (itsRecvBuffer->beamid <= 9) {
+            // Add a pointer to the message to the back of the circular buffer.
+            // Waiters are notified.
+            itsBuffer.add(itsRecvBuffer);
+        }
         itsRecvBuffer.reset();
     } else {
         ASKAPLOG_WARN_STR(logger, "Error reading visibilities from UDP socket. Error Code: "
