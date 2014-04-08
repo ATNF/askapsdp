@@ -24,6 +24,8 @@
 package askap.cp.manager.svcclients;
 
 // ASKAPsoft imports
+import java.io.IOException;
+
 import askap.interfaces.schedblock.NoSuchSchedulingBlockException;
 import askap.util.ParameterSet;
 
@@ -45,8 +47,13 @@ public class MockDataServiceClient implements IDataServiceClient {
 	 * 
 	 * @param obsparams
 	 */
-	public MockDataServiceClient(ParameterSet obsparams) {
-		itsObsParams = obsparams;
+	public MockDataServiceClient(String filename) {
+	    try {
+            itsObsParams = new ParameterSet(filename);
+        } catch (IOException e) {
+            System.err.println("IOException reading " + filename
+                    + ": " + e.getMessage());
+        }
 	}
 	
 	/*

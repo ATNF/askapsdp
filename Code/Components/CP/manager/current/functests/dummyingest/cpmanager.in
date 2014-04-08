@@ -15,11 +15,11 @@ ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
 
 # Use a mock FCM
 fcm.mock                        = true
-fcm.mock.fcm_parameter          = 123
+fcm.mock.filename               = mock_fcm.txt
 
 # Use a mock data service
 dataservice.mock                = true
-dataservice.mock.ds_parameter   = 456
+dataservice.mock.filename       = mock_sb.txt
 
 # Use the dummy ingest pipeline manager (it does nothing when commanded)
 ingest.managertype              = dummy

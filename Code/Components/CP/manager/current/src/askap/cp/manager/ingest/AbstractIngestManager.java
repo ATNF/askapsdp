@@ -84,7 +84,7 @@ public abstract class AbstractIngestManager {
         }
 
         // 2: Build the configuration for cpingest
-        ParameterSet parset = ConfigBuilder.build(facilityConfig, obsParams);
+        ParameterSet parset = ConfigBuilder.build(facilityConfig, obsParams, sbid);
 
         // 3: Create the directory for the scheduling block and create
         // the config parset file

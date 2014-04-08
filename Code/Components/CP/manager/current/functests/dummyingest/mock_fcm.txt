@@ -1,0 +1,237 @@
+###########################################################
+#               Common Parameters
+###########################################################
+
+common.array.name = ASKAP
+
+# This is the topic the TOS produces metadata on
+common.metadata.topic = metadata
+
+# Correlator modes
+common.correlator.mode.standard.n_chan     = 16416
+common.correlator.mode.standard.chan_width = 18.518518kHz
+common.correlator.mode.standard.stokes     = [XX, XY, YX, YY]
+common.correlator.mode.standard.interval   = 5000000
+
+
+#
+# Antenna Parameters
+#
+
+# List of key (indices) into common.antenna
+common.antennas = [ant1, ant3, ant6, ant8, ant9, ant15]
+
+# All antennas are means to "inherit" these parameters unless
+# otherwise overridden
+common.antenna.ant.diameter     = 12m
+common.antenna.ant.mount        = equatorial
+
+common.antenna.ant1.location    = [0.0, 0.0, 0.0]
+common.antenna.ant1.name        = ak01
+
+common.antenna.ant3.location    = [0.0, 0.0, 0.0]
+common.antenna.ant3.name        = ak03
+
+common.antenna.ant6.location    = [0.0, 0.0, 0.0]
+common.antenna.ant6.name        = ak06
+
+common.antenna.ant8.location    = [0.0, 0.0, 0.0]
+common.antenna.ant8.name        = ak01
+
+common.antenna.ant9.location    = [0.0, 0.0, 0.0]
+common.antenna.ant9.name        = ak01
+
+common.antenna.ant15.location   = [0.0, 0.0, 0.0]
+common.antenna.ant15.name       = ak01
+
+###########################################################
+#         Central Processor Specific  Parameters
+###########################################################
+
+#
+# Feed Configurations
+#
+cp.ingest.feeds.n_feeds                     = 9
+cp.ingest.feeds.spacing                     = 1deg
+
+cp.ingest.feeds.feed0                       = [0.0, 0.0]
+cp.ingest.feeds.feed1                       = [0.0, 0.0]
+cp.ingest.feeds.feed2                       = [0.0, 0.0]
+cp.ingest.feeds.feed3                       = [0.0, 0.0]
+cp.ingest.feeds.feed4                       = [0.0, 0.0]
+cp.ingest.feeds.feed5                       = [0.0, 0.0]
+cp.ingest.feeds.feed6                       = [0.0, 0.0]
+cp.ingest.feeds.feed7                       = [0.0, 0.0]
+cp.ingest.feeds.feed8                       = [0.0, 0.0]
+
+
+#
+# Baseline mapping:
+# Used for mapping from baselineid to antenna1/antenna2/polarisation product
+# Mapping is from baselineid to (ant1, ant2,  product)
+#
+
+# This array of antenna identities provides the indexing for the
+# antenna indices below
+cp.ingest.baselinemap.antennaidx = [ak06, ak01, ak03, ak15, ak08, ak09]
+
+cp.ingest.baselinemap.baselineids            = [0..77]
+
+cp.ingest.baselinemap.0                      = [0, 0, XX]
+cp.ingest.baselinemap.1                      = [0, 0, XY]
+cp.ingest.baselinemap.2                      = [0, 0, YY]
+
+cp.ingest.baselinemap.3                      = [0, 1, XX]
+cp.ingest.baselinemap.4                      = [0, 1, XY]
+cp.ingest.baselinemap.5                      = [0, 1, YX]
+cp.ingest.baselinemap.6                      = [0, 1, YY]
+
+cp.ingest.baselinemap.7                      = [0, 2, XX]
+cp.ingest.baselinemap.8                      = [0, 2, XY]
+cp.ingest.baselinemap.9                      = [0, 2, YX]
+cp.ingest.baselinemap.10                     = [0, 2, YY]
+
+cp.ingest.baselinemap.11                     = [0, 3, XX]
+cp.ingest.baselinemap.12                     = [0, 3, XY]
+cp.ingest.baselinemap.13                     = [0, 3, YX]
+cp.ingest.baselinemap.14                     = [0, 3, YY]
+
+cp.ingest.baselinemap.15                     = [0, 4, XX]
+cp.ingest.baselinemap.16                     = [0, 4, XY]
+cp.ingest.baselinemap.17                     = [0, 4, YX]
+cp.ingest.baselinemap.18                     = [0, 4, YY]
+
+cp.ingest.baselinemap.19                     = [0, 5, XX]
+cp.ingest.baselinemap.20                     = [0, 5, XY]
+cp.ingest.baselinemap.21                     = [0, 5, YX]
+cp.ingest.baselinemap.22                     = [0, 5, YY]
+
+cp.ingest.baselinemap.23                     = [1, 1, XX]
+cp.ingest.baselinemap.24                     = [1, 1, XY]
+cp.ingest.baselinemap.25                     = [1, 1, YY]
+
+cp.ingest.baselinemap.26                     = [1, 2, XX]
+cp.ingest.baselinemap.27                     = [1, 2, XY]
+cp.ingest.baselinemap.28                     = [1, 2, YX]
+cp.ingest.baselinemap.29                     = [1, 2, YY]
+
+cp.ingest.baselinemap.30                     = [1, 3, XX]
+cp.ingest.baselinemap.31                     = [1, 3, XY]
+cp.ingest.baselinemap.32                     = [1, 3, YX]
+cp.ingest.baselinemap.33                     = [1, 3, YY]
+
+cp.ingest.baselinemap.34                     = [1, 4, XX]
+cp.ingest.baselinemap.35                     = [1, 4, XY]
+cp.ingest.baselinemap.36                     = [1, 4, YX]
+cp.ingest.baselinemap.37                     = [1, 4, YY]
+
+cp.ingest.baselinemap.38                     = [1, 5, XX]
+cp.ingest.baselinemap.39                     = [1, 5, XY]
+cp.ingest.baselinemap.40                     = [1, 5, YX]
+cp.ingest.baselinemap.41                     = [1, 5, YY]
+
+cp.ingest.baselinemap.42                     = [2, 2, XX]
+cp.ingest.baselinemap.43                     = [2, 2, XY]
+cp.ingest.baselinemap.44                     = [2, 2, YY]
+
+cp.ingest.baselinemap.45                     = [2, 3, XX]
+cp.ingest.baselinemap.46                     = [2, 3, XY]
+cp.ingest.baselinemap.47                     = [2, 3, YX]
+cp.ingest.baselinemap.48                     = [2, 3, YY]
+
+cp.ingest.baselinemap.49                     = [2, 4, XX]
+cp.ingest.baselinemap.50                     = [2, 4, XY]
+cp.ingest.baselinemap.51                     = [2, 4, YX]
+cp.ingest.baselinemap.52                     = [2, 4, YY]
+
+cp.ingest.baselinemap.53                     = [2, 5, XX]
+cp.ingest.baselinemap.54                     = [2, 5, XY]
+cp.ingest.baselinemap.55                     = [2, 5, YX]
+cp.ingest.baselinemap.56                     = [2, 5, YY]
+
+cp.ingest.baselinemap.57                     = [3, 3, XX]
+cp.ingest.baselinemap.58                     = [3, 3, XY]
+cp.ingest.baselinemap.59                     = [3, 3, YY]
+
+cp.ingest.baselinemap.60                     = [3, 4, XX]
+cp.ingest.baselinemap.61                     = [3, 4, XY]
+cp.ingest.baselinemap.62                     = [3, 4, YX]
+cp.ingest.baselinemap.63                     = [3, 4, YY]
+
+cp.ingest.baselinemap.64                     = [3, 5, XX]
+cp.ingest.baselinemap.65                     = [3, 5, XY]
+cp.ingest.baselinemap.66                     = [3, 5, YX]
+cp.ingest.baselinemap.67                     = [3, 5, YY]
+
+cp.ingest.baselinemap.68                     = [4, 4, XX]
+cp.ingest.baselinemap.69                     = [4, 4, XY]
+cp.ingest.baselinemap.70                     = [4, 4, YY]
+
+cp.ingest.baselinemap.71                     = [4, 5, XX]
+cp.ingest.baselinemap.72                     = [4, 5, XY]
+cp.ingest.baselinemap.73                     = [4, 5, YX]
+cp.ingest.baselinemap.74                     = [4, 5, YY]
+
+cp.ingest.baselinemap.75                     = [5, 5, XX]
+cp.ingest.baselinemap.76                     = [5, 5, XY]
+cp.ingest.baselinemap.77                     = [5, 5, YY]
+
+
+#
+# Metadata topic config
+#
+cp.ingest.metadata_source.ice.locator_host        = localhost
+cp.ingest.metadata_source.ice.locator_port        = 4061
+cp.ingest.metadata_source.icestorm.topicmanager   = IceStorm/TopicManager@IceStorm.TopicManager
+cp.ingest.metadata_source.icestorm.topic          = tosmetadata
+
+#
+# Monitoring Data Publisher Configuration
+#
+cp.ingest.monitoring.enabled                      = true
+cp.ingest.monitoring.ice.locator_host             = localhost
+cp.ingest.monitoring.ice.locator_port             = 4061
+cp.ingest.monitoring.servicename                  = MoniCAService@MoniCAAdminAdapter
+
+#
+# Task List
+#
+cp.ingest.tasks.tasklist                          = [MergedSource, CalcUVWTask, TCPSink, MSSink]
+
+#
+# MergedSource
+#
+cp.ingest.tasks.MergedSource.type                   = MergedSource
+cp.ingest.tasks.MergedSource.params.beammap         = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
+cp.ingest.tasks.MergedSource.params.vis_source.port           = 3000
+cp.ingest.tasks.MergedSource.params.vis_source.buffer_size    = 44928
+
+# Number of channels a given ingest process is meant to receive/process
+cp.ingest.tasks.MergedSource.params.n_channels.0    = 16416
+
+#
+# CalcUVWTask
+#
+cp.ingest.tasks.CalcUVWTask.type                    = CalcUVWTask
+
+#
+# ChannelAvgTask
+#
+cp.ingest.tasks.ChannelAvgTask.type                 = ChannelAvgTask
+cp.ingest.tasks.ChannelAvgTask.params.averaging     = 54
+
+#
+# TCPSink
+#
+cp.ingest.tasks.TCPSink.type                        = TCPSink
+cp.ingest.tasks.TCPSink.params.dest.hostname        = localhost
+cp.ingest.tasks.TCPSink.params.dest.port            = 9001
+
+#
+# MSSink
+#
+cp.ingest.tasks.MSSink.type                         = MSSink
+cp.ingest.tasks.MSSink.params.filename              = ingest_test%w.ms
+cp.ingest.tasks.MSSink.params.stman.bucketsize      = 65536
+cp.ingest.tasks.MSSink.params.stman.tilencorr       = 4
+cp.ingest.tasks.MSSink.params.stman.tilenchan       = 1026

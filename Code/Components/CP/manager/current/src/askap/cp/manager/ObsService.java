@@ -74,7 +74,7 @@ public class ObsService extends _ICPObsServiceDisp {
 		// Instantiate real or mock FCM
 		boolean mockfcm = parset.getBoolean("fcm.mock", false);
 		if (mockfcm) {
-			itsFCM = new MockFCMClient(parset.subset("fcm.mock."));
+			itsFCM = new MockFCMClient(parset.getString("fcm.mock.filename"));
 		} else {
 			itsFCM = new IceFCMClient(ic);
 		}
@@ -82,7 +82,7 @@ public class ObsService extends _ICPObsServiceDisp {
 		// Instantiate real or mock data service interface
 		boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
 		if (mockdatasvc) {
-			itsDataService = new MockDataServiceClient(parset.subset("dataservice.mock."));
+			itsDataService = new MockDataServiceClient(parset.getString("dataservice.mock.filename"));
 		} else {
 			itsDataService = new IceDataServiceClient(ic);
 		}

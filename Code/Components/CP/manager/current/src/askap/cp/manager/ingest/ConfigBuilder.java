@@ -27,11 +27,13 @@ package askap.cp.manager.ingest;
 import askap.util.ParameterSet;
 
 public class ConfigBuilder {
-	public static ParameterSet build(ParameterSet facilityConfig, ParameterSet obsParams) {
+	public static ParameterSet build(ParameterSet facilityConfig,
+	        ParameterSet obsParams, long sbid) {
 		ParameterSet config = new ParameterSet();
 		
 		// TODO: For now just concatenate the two parsets, but need to fix
 		// this when the schema for the FCM and obs params is known.
+		config.put("sbid", Long.toString(sbid));
 		config.putAll(facilityConfig);
 		config.putAll(obsParams);
 		

@@ -23,6 +23,8 @@
  */
 package askap.cp.manager.svcclients;
 
+import java.io.IOException;
+
 import askap.util.ParameterSet;
 
 /**
@@ -31,25 +33,30 @@ import askap.util.ParameterSet;
  */
 public class MockFCMClient implements IFCMClient {
 
-	/**
-	 * The config that will be returned from get();
-	 */
-	private ParameterSet itsConfig;
-	
-	/**
-	 * Constructor.
-	 * @param config
-	 */
-	public MockFCMClient(ParameterSet config) {
-		itsConfig = config;
-	}
-	
-	/**
-	 * @see askap.cp.manager.svcclients.IFCMClient#get()
-	 */
-	@Override
-	public ParameterSet get() {
-		return itsConfig;
-	}
+    /**
+     * The config that will be returned from get();
+     */
+    private ParameterSet itsData;
+
+    /**
+     * Constructor.
+     * @param config
+     */
+    public MockFCMClient(String filename) {
+        try {
+            itsData = new ParameterSet(filename);
+        } catch (IOException e) {
+            System.err.println("IOException reading " + filename
+                    + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * @see askap.cp.manager.svcclients.IFCMClient#get()
+     */
+    @Override
+    public ParameterSet get() {
+        return itsData;
+    }
 
 }
