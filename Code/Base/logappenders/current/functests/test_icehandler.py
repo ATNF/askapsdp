@@ -84,8 +84,9 @@ class TestIceLogger(object):
     def test_info(self):
         time.sleep(1)
         # this sends a log message over icestorm to the logger topic
-        subprocess.check_call(['./tIceAppender'],# stderr=subprocess.PIPE,
-                             shell=True)
+#        with open('out.log', 'w') as outf:
+        subprocess.check_call(['./tIceAppender'], stderr=sys.stderr,
+                              shell=True)
         received = LOGEVENT.wait(10)
         if received is None:
             received = LOGEVENT.is_set()
