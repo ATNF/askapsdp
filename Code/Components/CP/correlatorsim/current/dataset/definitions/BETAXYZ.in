@@ -1,25 +1,18 @@
 antennas.telescope = BETA
 antennas.BETA.coordinates = global
-antennas.BETA.names = [Pad01,Pad03,Pad06,Pad08,Pad09,Pad29]
+antennas.BETA.names = [ak06, ak01 ,ak03, ak15, ak08, ak09]
 antennas.BETA.diameter = 12m
 antennas.BETA.scale = 1.0
 antennas.BETA.mount = equatorial
-# easting: 463334.040000; northing: 7047071.010000; el: 370.140000; Zone: 50 south
-# lat: -26.697000721961; long: 116.631424285887; el: 370.140000
-antennas.BETA.Pad01 = [-2556088.333184, 5097405.644248, -2848428.243729]
-# easting: 463369.990000; northing: 7047078.500000; el: 369.580000; Zone: 50 south
-# lat: -26.696934033924; long: 116.631785875968; el: 369.580000
-antennas.BETA.Pad03 = [-2556121.766414, 5097392.033236, -2848421.390498]
-# easting: 463469.700000; northing: 7047183.010000; el: 367.890000; Zone: 50 south
-# lat: -26.695993030157; long: 116.632791194436; el: 367.890000
-antennas.BETA.Pad06 = [-2556231.527388, 5097387.706446, -2848327.478204]
-# easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
-# lat: -26.699153192237; long: 116.631037279591; el: 370.810000
-antennas.BETA.Pad08 = [-2556006.138107, 5097327.654894, -2848641.621908]
-# easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
-# lat: -26.695996195140; long: 116.628972698055; el: 370.110000
-antennas.BETA.Pad09 = [-2555892.622948, 5097559.688165, -2848328.788867]
-# easting: 463899.970000; northing: 7047824.220000; el: 364.280000; Zone: 50 south
-# lat: -26.690214789597; long: 116.637134608883; el: 364.280000
-# Note an additional 16.66 m was added to elevation reported by surveyors
-antennas.BETA.Pad29 = [-2556745.438405, 5097448.114406, -2847753.833282]
+
+antennas.BETA.ak01 = [-2556084.669, 5097398.337, -2848424.133]
+
+antennas.BETA.ak03 = [-2556118.102, 5097384.726, -2848417.280]
+
+antennas.BETA.ak06 = [-2556227.863, 5097380.399, -2848323.367]
+
+antennas.BETA.ak08 = [-2556002.713742, 5097320.608027, -2848637.727970]
+
+antennas.BETA.ak09 = [-2555888.9789,5097552.500315,-2848324.911449]
+
+antennas.BETA.ak15 = [-2555389.70943903,5097664.08452923,-2848561.871727]

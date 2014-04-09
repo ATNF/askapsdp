@@ -2,7 +2,7 @@ Csimulator.dataset                              =       beta2.ms
 #
 # Storage manager configuration
 #
-Csimulator.stman.bucketsize                     =       1048576
+Csimulator.stman.bucketsize                     =       65536
 Csimulator.stman.tilenchan                      =       19
 #
 # The name of the model source is 10uJy. Specify direction and model file

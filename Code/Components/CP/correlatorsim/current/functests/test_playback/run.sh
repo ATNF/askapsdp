@@ -25,10 +25,6 @@ MDPID=$!
 ../../apps/vsnoop -v -p 3000 > vsnoop1.log 2>&1 &
 VISPID1=$!
 
-# And for the second correlator shelf
-../../apps/vsnoop -v -p 3001 > vsnoop2.log 2>&1 &
-VISPID2=$!
-
 # Run the test
 mpirun -np 3 ../../apps/playback.sh -c playback.in
 STATUS=$?

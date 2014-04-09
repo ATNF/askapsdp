@@ -1,7 +1,7 @@
 #
 # Correlator cycle time in seconds
 #
-playback.period = 10
+playback.period = 5
 
 #
 # Telescope Operating Simulator Configuration
@@ -40,7 +40,7 @@ playback.corrsim.shelf1.out.port            = 3000
 # Correlator Shelf 2
 playback.corrsim.shelf2.dataset             = ../../dataset/beta2.ms
 playback.corrsim.shelf2.out.hostname        = localhost
-playback.corrsim.shelf2.out.port            = 3001
+playback.corrsim.shelf2.out.port            = 3000
 
 # Mapping from antenna1/antenna2/polarisation product to baselineid
 # Mapping is from baselineid to (ant1, ant2,  product)
