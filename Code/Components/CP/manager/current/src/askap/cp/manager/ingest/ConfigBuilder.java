@@ -31,11 +31,17 @@ public class ConfigBuilder {
 	        ParameterSet obsParams, long sbid) {
 		ParameterSet config = new ParameterSet();
 		
-		// TODO: For now just concatenate the two parsets, but need to fix
-		// this when the schema for the FCM and obs params is known.
+		// Adds scheduling block id
 		config.put("sbid", Long.toString(sbid));
-		config.putAll(facilityConfig);
-		config.putAll(obsParams);
+		
+		// Use "cp.ingest" and "common" part of FCM, but those prefixes
+		// get removed
+		config.putAll(facilityConfig.subset("cp.ingest."));
+		config.putAll(facilityConfig.subset("common."));
+
+		// Add the scheduling block params in, but again without the "common"
+		// prefix
+		config.putAll(obsParams.subset("common."));
 		
 		return config;
 	}

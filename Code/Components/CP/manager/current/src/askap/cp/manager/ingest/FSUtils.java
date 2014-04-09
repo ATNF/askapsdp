@@ -28,7 +28,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
+
+
 
 // ASKAPsoft imports
 import askap.util.ParameterSet;
@@ -44,6 +49,8 @@ public class FSUtils {
 	 * <and so on>
 	 * </pre>
 	 * 
+	 * The output will be sorted alphabetically.
+	 * 
 	 * @param filename	filename to create
 	 * @param parset	the parameter set which will used to populate the file.
 	 * @throws IOException	if the file creating or writing to the file fails.
@@ -53,10 +60,18 @@ public class FSUtils {
 		FileWriter fstream = new FileWriter(filename);
 		BufferedWriter out = new BufferedWriter(fstream);
 
+		List<String> lst = new ArrayList<String>();
+
+		// Add each key/value to a list for sorting
 		for (Enumeration e = parset.keys(); e.hasMoreElements(); /**/) {
 			String key = (String) e.nextElement();
 			String value = parset.getProperty(key);
-			out.write(key + " = " + value + '\n');
+			lst.add(key + " = " + value + '\n');
+		}
+		
+		Collections.sort(lst);
+		for (String s : lst) {
+			out.write(s);
 		}
 
 		out.close();
