@@ -119,8 +119,8 @@ namespace askap {
 	  int xmin,ymin,xmax,ymax;
 	  if( this->itsBoxWidth>0){
 	      int hw = (this->itsBoxWidth - 1)/2;
-	      int xloc = int(this->itsXloc) + this->itsSource->getXOffset();
-	      int yloc = int(this->itsYloc) + this->itsSource->getYOffset();
+	      int xloc = int(this->itsXloc);
+	      int yloc = int(this->itsYloc);
 	      int zero=0;
 	      xmin = std::max(zero, xloc-hw);
 	      xmax=std::min(int(shape(this->itsLngAxis)-1),xloc+hw);
@@ -128,10 +128,10 @@ namespace askap {
 	      ymax=std::min(int(shape(this->itsLatAxis)-1),yloc+hw);
 	  }
 	  else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
-	      xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
-	      xmax = this->itsSource->getXmax() + this->itsSource->getXOffset();
-	      ymin = this->itsSource->getYmin() + this->itsSource->getYOffset();
-	      ymax = this->itsSource->getYmax() + this->itsSource->getYOffset();
+	      xmin = this->itsSource->getXmin();
+	      xmax = this->itsSource->getXmax();
+	      ymin = this->itsSource->getYmin();
+	      ymax = this->itsSource->getYmax();
 	  }
 	  casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
 	  blc(this->itsLngAxis)=xmin; blc(this->itsLatAxis)=ymin; blc(this->itsSpcAxis)=0;
