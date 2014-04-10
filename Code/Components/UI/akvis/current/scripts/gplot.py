@@ -34,9 +34,6 @@ def _main():
     ant_slice = str2slice(values.antenna)
     beam_slice = str2slice(values.beam)
 
-    print 'slices', ant_slice, beam_slice, time_slice
-    
-
     for f in values.infiles:
         s = Source(f, values.type)
         ntime = s.most_recent_solution_id

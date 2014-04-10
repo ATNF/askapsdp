@@ -45,7 +45,8 @@ setup(name = '%s.%s' % (ROOTPKG, COMPONENT),
       zip_safe = 1,
       dependency = dep,
       scripts = ["scripts/spd.py",
-#                 "scripts/vis.py"
+                 "scripts/bplot.py",
+                 "scripts/gplot.py",
                  ],
       test_suite = "nose.collector",
 )
