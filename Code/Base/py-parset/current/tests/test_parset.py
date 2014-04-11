@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
 import os
-from askap.parset import ParameterSet, decode, encode
+from askap.parset import ParameterSet, decode, encode, merge
 from nose.tools import raises, assert_equals
 
 # default constructor test
@@ -65,6 +65,10 @@ def test_set_value():
     p = ParameterSet()
     p.set_value("x.y", 1)
     p.set_value("x.z", 2)
+
+def test_len():
+    p = ParameterSet(a=1,b=2)
+    assert_equals(len(p), 2)
 
 # test __str__ function
 def test_str():
@@ -211,3 +215,13 @@ def test_pop():
     v = p.pop('a.b')
     assert_equals(p.keys(), ['a.x'])
     assert_equals(v.items(), [('c', 0),('d', 0),])
+
+def test_merge():
+    d1 = {'a': 1, 'b': 2}
+    d2 = {'a': 3, 'c': 4}
+    dmerged = d1.copy()
+    dmerged.update(d2)
+    p1 = ParameterSet(d1)
+    p2 = ParameterSet(d2)
+    pmerged = merge(p1,p2)
+    assert_equals(dmerged, pmerged.to_dict())

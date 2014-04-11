@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
 __all__ = ["ParameterSet", "dict_to_parset", "parset_to_dict", "slice_parset",
-           "sub_parset"]
+           "sub_parset", "merge"]
 
 import os
 import re
@@ -245,6 +245,16 @@ class ParameterSet(object):
         out.sort()
         return out
 
+    def set_doc(self, k, doc):
+        """Set the documenation for the given key
+        
+        :param string k:    the key
+        :param string doc:  the (new) documentation
+
+        """
+        
+        v = self.get_value(k)
+        self.set_value(k, v, doc)
 
     def set_value(self, k, v, doc=""):
         """
@@ -297,6 +307,9 @@ class ParameterSet(object):
                 child.set_value(tail, v, doc)
                 self._pdict[k] = child
             self._keys.append(k)
+
+    def __len__(self):
+        return len(self.keys())
 
     def __setitem__(self, k, v):
         self.set_value(k, v)
@@ -567,3 +580,21 @@ def extract(line, comment=""):
         line = line.strip()
         kv = line.split("=", 1)
         return [i.strip() for i in kv], comment
+
+
+def merge(*parsets, **kw):    
+    """Merge n :class:`ParameterSet` into one. Existing keys will be 
+    overwritten, so that the last given argument wins.
+
+    :param parsets: positional argument list of :class:`ParameterSet`.
+    
+    """
+    if len(parsets) < 2:
+        raise ValueError("Need to or more ParameterSets")
+    out = ParameterSet()
+    for p in parsets:
+        for k, v in p.items():
+            doc = p.get_doc(k)
+            out.set_value(k, v, doc)
+
+    return out

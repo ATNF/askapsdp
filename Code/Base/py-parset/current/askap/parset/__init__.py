@@ -58,6 +58,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 from askap.parset.parset import (ParameterSet, decode, encode, extract, 
-                                 to_dict, 
+                                 to_dict, merge, 
                                  parset_to_dict, dict_to_parset, slice_parset,
                                  sub_parset)

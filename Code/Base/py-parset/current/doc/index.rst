@@ -20,6 +20,8 @@ API
 
 .. autofunction:: askap.parset.extract
 
+.. autofunction:: askap.parset.merge
+
 
 Sphinx extension
 ================
