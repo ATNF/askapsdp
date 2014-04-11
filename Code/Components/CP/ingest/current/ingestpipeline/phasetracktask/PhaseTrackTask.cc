@@ -25,7 +25,6 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include "ingestpipeline/phasetracktask/PhaseTrackTask.h"
-#include "configuration/Scan.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
@@ -56,10 +55,9 @@ using namespace askap::cp::ingest;
 /// the first channel always have a fixed offset which is hard coded). 
 /// It is handy to encapsulate the formula in one method as it is used by more
 /// than one class.
-/// @param[in] config configuration object
-/// @param[in] scan scan number
+/// @param[in] chunk the visibility chunk for this integration cycle
 /// @return Effective LO frequency in Hz
-double askap::cp::ingest::getEffectiveLOFreq(const Configuration &config, const casa::uInt scan)
+double askap::cp::ingest::getEffectiveLOFreq(const VisChunk& chunk)
 {
    // here we need the effective LO frequency, we can deduce it from the start frequency of the very first
    // channel (global, not local for this rank)
@@ -84,8 +82,7 @@ double askap::cp::ingest::getEffectiveLOFreq(const Configuration &config, const 
    // within the uncertainty of the measurement when DRx delay was updated). Note the accuracy of the measurement
    // is equivalent to a few fine channels, but there doesn't seem to be any reason why such small offset might be
    // present.
-   const Scan scanInfo = config.observation().scans().at(scan);
-   return scanInfo.startFreq().getValue("Hz") - 343.5e6;
+   return chunk.frequency()(0) - 343.5e6;
 }
 
 
@@ -181,7 +178,7 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
     casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
 
     if (!itsTrackDelay) {
-        const double effLOFreq = getEffectiveLOFreq(itsConfig, chunk->scan());
+        const double effLOFreq = getEffectiveLOFreq(*chunk);
 
         const float phase = -2. * static_cast<float>(casa::C::pi * effLOFreq * delayInMetres / casa::C::c);
         const casa::Complex phasor(cos(phase), sin(phase));

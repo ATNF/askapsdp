@@ -31,6 +31,7 @@
 #include "askap_cpingest.h"
 
 // System includes
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -38,23 +39,23 @@
 #include "casa/aips.h"
 #include "casa/Quanta.h"
 #include "casa/BasicSL.h"
+#include "casa/Arrays/Vector.h"
 #include "measures/Measures/MPosition.h"
-
-// Local package includes
-#include "configuration/FeedConfig.h"
+#include "measures/Measures/MCPosition.h"
+#include <measures/Measures/MeasConvert.h>
 
 ASKAP_LOGGER(logger, ".Antenna");
 
 using namespace askap;
 using namespace askap::cp::ingest;
+using namespace casa;
 
 Antenna::Antenna(const casa::String& name,
                  const casa::String& mount,
                  const casa::Vector<casa::Double>& position,
-                 const casa::Quantity& diameter,
-                 const FeedConfig& feeds)
+                 const casa::Quantity& diameter)
         : itsName(name), itsMount(mount), itsPosition(position),
-        itsDiameter(diameter), itsFeeds(feeds)
+        itsDiameter(diameter)
 {
     ASKAPCHECK(itsDiameter.isConform("m"),
                "Diameter must conform to meters");
@@ -82,7 +83,22 @@ casa::Quantity Antenna::diameter(void) const
     return itsDiameter;
 }
 
-FeedConfig Antenna::feeds(void) const
+casa::Vector<casa::Double> Antenna::convertAntennaPosition(const std::vector<double>& wgs84)
 {
-    return itsFeeds;
+    const size_t LEN = 3;
+    ASKAPCHECK(wgs84.size() == LEN, "Position vector must be of length 3");
+    const MPosition pos(MVPosition(Quantity(wgs84[2], "m"),
+                Quantity(wgs84[0], "deg"),
+                Quantity(wgs84[1], "deg")),
+            MPosition::Ref(MPosition::WGS84));
+    const MPosition itrf = MPosition::Convert(pos, MPosition::ITRF)();
+    const MVPosition itrfValue = itrf.getValue();
+
+    casa::Vector<casa::Double> out(LEN);
+    for (size_t i = 0; i < LEN; ++i) {
+        out[i] = itrfValue.getValue()[i];
+    }
+
+    return out;
+
 }

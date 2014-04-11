@@ -28,7 +28,6 @@
 #include "ingestpipeline/phasetracktask/PhaseTrackTask.h"
 #include "ingestpipeline/phasetracktask/FrtDrxDelays.h"
 #include "ingestpipeline/phasetracktask/FrtHWAndDrx.h"
-#include "configuration/Scan.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
@@ -118,7 +117,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
     // Determine Greenwich Mean Sidereal Time
     const double gmst = calcGMST(chunk->time());
     casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
-    const double effLOFreq = getEffectiveLOFreq(itsConfig, chunk->scan());
+    const double effLOFreq = getEffectiveLOFreq(*chunk);
     const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
 
     for (casa::uInt ant = 0; ant < nAntennas(); ++ant) {

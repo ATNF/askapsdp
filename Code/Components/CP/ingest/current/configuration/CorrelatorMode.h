@@ -1,6 +1,6 @@
-/// @file Scan.h
+/// @file CorrelatorMode.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,10 +24,11 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_SCAN_H
-#define ASKAP_CP_INGEST_SCAN_H
+#ifndef ASKAP_CP_INGEST_CORRELATORMODE_H
+#define ASKAP_CP_INGEST_CORRELATORMODE_H
 
 // System includes
+#include <string>
 #include <vector>
 
 // ASKAPsoft includes
@@ -41,26 +42,18 @@ namespace cp {
 namespace ingest {
 
 /// @brief This class encapsulates a "scan", a part of a larger observation.
-class Scan {
+class CorrelatorMode {
     public:
 
         /// @brief Constructor
-        Scan(const casa::String& fieldName,
-             const casa::MDirection& fieldDirection,
-             const casa::Quantity& startFreq,
-             const casa::uInt nChan,
+        CorrelatorMode(const std::string& modeName,
              const casa::Quantity& chanWidth,
+             const casa::uInt nChan,
              const std::vector<casa::Stokes::StokesTypes>& stokes,
              const casa::uInt interval);
 
-        /// @brief Returns the name of the field being observed
-        casa::String name(void) const;
-
-        /// @brief Returns the direction of the field being observed
-        casa::MDirection fieldDirection(void) const;
-
-        /// @brief The frequency of the lowest numbered spectral channel
-        casa::Quantity startFreq(void) const;
+        /// @brief Returns the correlator mode name
+        std::string name(void) const;
 
         /// @brief The number of spectral channels
         casa::uInt nChan(void) const;
@@ -77,11 +70,9 @@ class Scan {
         casa::uInt interval(void) const;
 
     private:
-        casa::String itsFieldName;
-        casa::MDirection itsFieldDirection;
-        casa::Quantity itsCentreFreq;
-        casa::uInt itsNChan;
+        std::string itsModeName;
         casa::Quantity itsChanWidth;
+        casa::uInt itsNChan;
         std::vector<casa::Stokes::StokesTypes> itsStokes;
         casa::uInt itsInterval;
 };

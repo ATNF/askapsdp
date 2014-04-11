@@ -118,7 +118,7 @@ VisChunk::ShPtr MergedSource::next(void)
     }
 
     // Exit gracefully if this scan id is not defined in the parset
-    const size_t nScans = itsConfig.observation().scans().size();
+    const size_t nScans = itsConfig.nScans();
     if (itsMetadata->scanId() >= static_cast<casa::Int>(nScans)) {
         ASKAPLOG_WARN_STR(logger, "Scan ID " << itsMetadata->scanId()
                 << " is not defined in the parset, stopping ingest");
@@ -165,12 +165,12 @@ VisChunk::ShPtr MergedSource::next(void)
     VisChunk::ShPtr chunk = createVisChunk(*itsMetadata);
 
     // Determine how many VisDatagrams are expected for a single integration
-    const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
     const casa::uInt datagramsExpected = itsBaselineMap.size() * itsNBeams * (nChannels / N_CHANNELS_PER_SLICE);
-    const casa::uInt timeout = scanInfo.interval() * 2;
+    const casa::uInt interval = itsConfig.getTargetForScan(itsScanManager.scanIndex()).mode().interval();
+    const casa::uInt timeout = interval * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
     // returns a null pointer this indicates the timeout has been reached.
@@ -224,14 +224,15 @@ VisChunk::ShPtr MergedSource::next(void)
 
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
-    const Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
+    const Target& target= itsConfig.getTargetForScan(itsScanManager.scanIndex());
+    const CorrelatorMode& corrMode = target.mode();
     const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(nAntenna > 0, "Must have at least one antenna defined");
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nPol = scanInfo.stokes().size();
+    const casa::uInt nPol = corrMode.stokes().size();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt nRow = nBaselines * itsNBeams;
-    const casa::uInt period = scanInfo.interval(); // in microseconds
+    const casa::uInt period = corrMode.interval(); // in microseconds
 
     VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
 
@@ -261,35 +262,36 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     // Add the scan index
     chunk->scan() = itsScanManager.scanIndex();
 
+    chunk->directionFrame() = target.direction().getRef(); 
+
     // Determine and add the spectral channel width
-    chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
+    chunk->channelWidth() = corrMode.chanWidth().getValue("Hz");
+
+    // Build frequencies vector
+    // Frequency vector is not of length nRows, but instead nChannels
+    chunk->frequency() = itsChannelManager.localFrequencies(itsId,
+            metadata.centreFreq().getValue("Hz"),
+            corrMode.chanWidth().getValue("Hz"),
+            corrMode.nChan());
 
     casa::uInt row = 0;
     for (casa::uInt beam = 0; beam < itsNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
-            //const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
                 ASKAPCHECK(row <= nRow, "Row index (" << row <<
                         ") should not exceed nRow (" << nRow <<")");
-                //const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
 
-                chunk->directionFrame() = scanInfo.fieldDirection().getRef(); 
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;
                 chunk->beam2()(row) = beam;
                 chunk->beam1PA()(row) = 0;
                 chunk->beam2PA()(row) = 0;
-                chunk->pointingDir1()(row) = scanInfo.fieldDirection().getAngle();
-                chunk->pointingDir2()(row) = scanInfo.fieldDirection().getAngle();
-                chunk->dishPointing1()(row) = scanInfo.fieldDirection().getAngle();
-                chunk->dishPointing2()(row) = scanInfo.fieldDirection().getAngle();
+                chunk->pointingDir1()(row) = target.direction().getAngle();
+                chunk->pointingDir2()(row) = target.direction().getAngle();
+                chunk->dishPointing1()(row) = target.direction().getAngle();
+                chunk->dishPointing2()(row) = target.direction().getAngle();
                 chunk->uvw()(row) = 0.0;
-                
-                // Frequency vector is not of length nRows, but instead nChannels
-                chunk->frequency() = itsChannelManager.localFrequencies(itsId,
-                        scanInfo.startFreq().getValue("Hz"),
-                        scanInfo.chanWidth().getValue("Hz"));
 
                 row++;
             }
@@ -424,7 +426,7 @@ void MergedSource::parseBeamMap(const LOFAR::ParameterSet& params)
 
     // The below implies the beams being received must be a subset (though not
     // necessarily a proper subset) of the beams in the config
-    itsNBeams = itsConfig.antennas().at(0).feeds().nFeeds();
+    itsNBeams = itsConfig.feed().nFeeds();
 }
 
 void MergedSource::checkInterruptSignal()

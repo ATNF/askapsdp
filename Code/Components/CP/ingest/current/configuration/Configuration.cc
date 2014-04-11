@@ -32,10 +32,11 @@
 
 // System includes
 #include <string>
-#include <sstream>
 #include <vector>
 #include <map>
 #include <limits>
+#include <utility>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -51,11 +52,12 @@
 #include "casa/Arrays/Vector.h"
 
 // Local package includes
-#include "configuration/TopicConfig.h"
-#include "configuration/ServiceConfig.h"
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/Observation.h"
+#include "configuration/Target.h"
+#include "configuration/CorrelatorMode.h"
+#include "configuration/ServiceConfig.h"
+#include "configuration/TopicConfig.h"
 
 using namespace std;
 using namespace askap;
@@ -64,12 +66,19 @@ using namespace askap::cp::ingest;
 Configuration::Configuration(const LOFAR::ParameterSet& parset, int rank, int nprocs)
     : itsParset(parset), itsRank(rank), itsNProcs(nprocs)
 {
+    buildTasks();
+    buildFeeds();
+    buildAntennas();
+    buildBaselineMap();
+    buildCorrelatorModes();
+    buildTargets();
 }
 
 int Configuration::rank(void) const
 {
     return itsRank;
 }
+
 int Configuration::nprocs(void) const
 {
     return itsNProcs;
@@ -77,109 +86,38 @@ int Configuration::nprocs(void) const
 
 casa::String Configuration::arrayName(void) const
 {
-    return itsParset.getString("arrayname");
+    return itsParset.getString("array.name");
 }
 
-std::vector<TaskDesc> Configuration::tasks(void) const
+const std::vector<TaskDesc>& Configuration::tasks(void) const
 {
-    vector<TaskDesc> tasks;
+    return itsTasks;
+}
 
-    // Iterator over all tasks
-    const vector<string> names = itsParset.getStringVector("tasks.tasklist");
-    vector<string>::const_iterator it;
-    for (it = names.begin(); it != names.end(); ++it) {
-        const string keyBase = makeKey("tasks", *it);
-        const string typeStr = itsParset.getString(makeKey(keyBase, "type"));
-        const TaskDesc::Type type = TaskDesc::toType(typeStr);
-        ostringstream ss;
-        ss << keyBase << ".params.";
-        const LOFAR::ParameterSet params = itsParset.makeSubset(ss.str());
-        tasks.push_back(TaskDesc(*it, type, params));
+const FeedConfig& Configuration::feed(void) const
+{
+    if (itsFeedConfig.get() == 0) {
+        ASKAPTHROW(AskapError, "Feed config not initialised");
     }
-
-    return tasks;
+    return *itsFeedConfig;
 }
 
-std::vector<Antenna> Configuration::antennas(void) const
+const std::vector<Antenna>& Configuration::antennas(void) const
 {
-    vector<Antenna> antennas;
-    std::map<std::string, FeedConfig> feedConfigs = createFeeds(itsParset);
+    return itsAntennas;
+}
 
-    // Iterator over all antennas
-    const vector<string> names = itsParset.getStringVector("antennas.names");
-    vector<string>::const_iterator it;
-    for (it = names.begin(); it != names.end(); ++it) {
-        const string keyBase = makeKey("antennas", *it);
-        const string mount = itsParset.getString(makeKey(keyBase, "mount"));
-        const vector<casa::Double> location = itsParset.getDoubleVector(makeKey(keyBase, "location"));
-        const casa::Quantity diameter = asQuantity(itsParset.getString(
-                    makeKey(keyBase, "diameter")), "m");
-        const string feedConfigName = itsParset.getString(makeKey(keyBase, "feed_config"));
-        std::map<std::string, FeedConfig>::const_iterator feedIt = feedConfigs.find(feedConfigName);
-        if (feedIt == feedConfigs.end()) {
-                ASKAPTHROW(AskapError, "Invalid feed config: " << feedConfigName);
-        }
-
-        antennas.push_back(Antenna(*it, mount, location, diameter, feedIt->second));
+const BaselineMap& Configuration::bmap(void) const
+{
+    if (itsBaselineMap.get() == 0) {
+        ASKAPTHROW(AskapError, "BaselineMap not initialised");
     }
-
-    return antennas;
+    return *itsBaselineMap;
 }
 
-BaselineMap Configuration::bmap(void) const
+casa::uInt Configuration::schedulingBlockID(void) const
 {
-    return BaselineMap(itsParset.makeSubset("baselinemap."));
-}
-
-Observation Configuration::observation(void) const
-{
-    const casa::uInt schedulingBlockID = itsParset.getUint32("observation.sbid");
-    vector<Scan> scans;
-
-    // Look for scans 0..*
-    const unsigned int c_maxint = std::numeric_limits<unsigned int>::max();
-    for (unsigned int i = 0; i < c_maxint; ++i) {
-        ostringstream ss;
-        ss << "observation" << "." << "scan" << i; 
-        const string keyBase = ss.str();
-        if (!itsParset.isDefined(makeKey(keyBase, "field_name"))) {
-            break;
-        }
-
-        const casa::String fieldName = itsParset.getString(makeKey(keyBase, "field_name"));
-        const casa::MDirection fieldDirection = asMDirection(
-                itsParset.getStringVector(makeKey(keyBase, "field_direction")));
-        const casa::Quantity startFreq = asQuantity(
-                itsParset.getString(makeKey(keyBase, "start_freq")),
-                "Hz"); // Must conform to Hz
-
-        const casa::uInt nChan = itsParset.getUint32(makeKey(keyBase, "n_chan"));
-        const casa::Quantity chanWidth = asQuantity(itsParset.getString(
-                    makeKey(keyBase, "chan_width")), "Hz"); // Must conform to Hz
-
-        vector<casa::Stokes::StokesTypes> stokes;
-        const vector<string> stokesStrings = itsParset.getStringVector(makeKey(keyBase, "stokes"));
-        for (vector<string>::const_iterator it = stokesStrings.begin();
-                it != stokesStrings.end(); ++it) {
-            stokes.push_back(casa::Stokes::type(*it));
-        }
-
-        const casa::uInt interval = itsParset.getUint32(makeKey(keyBase, "interval"));
-
-        scans.push_back(Scan(fieldName, fieldDirection, startFreq, nChan,
-                    chanWidth, stokes, interval));
-    }
-
-    return Observation(schedulingBlockID, scans);
-}
-
-TopicConfig Configuration::metadataTopic(void) const
-{
-    const string registryHost = itsParset.getString("metadata_source.ice.locator_host");
-    const string registryPort = itsParset.getString("metadata_source.ice.locator_port");
-    const string topicManager = itsParset.getString("metadata_source.icestorm.topicmanager");
-    const string topic = itsParset.getString("metadata_source.icestorm.topic");
-    return TopicConfig(registryHost, registryPort, topicManager, topic);
+    return itsParset.getUint32("sbid");
 }
 
 ServiceConfig Configuration::calibrationDataService(void) const
@@ -202,47 +140,156 @@ ServiceConfig Configuration::monitoringArchiverService(void) const
     }
 }
 
-std::string Configuration::makeKey(const std::string& prefix,
-                const std::string& suffix)
+TopicConfig Configuration::metadataTopic(void) const
 {
-    ostringstream ss;
-    ss << prefix << "." << suffix;
-    return ss.str();
+    const string registryHost = itsParset.getString("metadata_source.ice.locator_host");
+    const string registryPort = itsParset.getString("metadata_source.ice.locator_port");
+    const string topicManager = itsParset.getString("metadata_source.icestorm.topicmanager");
+    const string topic = itsParset.getString("metadata.topic");
+    return TopicConfig(registryHost, registryPort, topicManager, topic);
 }
 
-std::map<std::string, FeedConfig> Configuration::createFeeds(const LOFAR::ParameterSet& itsParset)
+uint32_t Configuration::nScans(void) const
 {
-    const int nReceptors = 2; // Only support receptors "X Y"
+    return static_cast<uint32_t>(itsScans.size());
+}
 
-    map<string, FeedConfig> feedConfigs;
-
-    const vector<string> names = itsParset.getStringVector("feeds.names");
-    vector<string>::const_iterator it;
-    for (it = names.begin(); it != names.end(); ++it) {
-        const string keyBase = makeKey("feeds", *it);
-        const casa::uInt nFeeds = itsParset.getUint32(makeKey(keyBase, "n_feeds"));
-        const casa::Quantity spacing = asQuantity(itsParset.getString(
-                    makeKey(keyBase, "spacing")), "rad");
-
-        // Get offsets for each feed/beam
-        casa::Matrix<casa::Quantity> offsets(nFeeds, nReceptors);
-        for (unsigned int i = 0; i < nFeeds; ++i) {
-            ostringstream ss;
-            ss << keyBase << "." << "feed" << i;
-            if (!itsParset.isDefined(ss.str())) {
-                ASKAPTHROW(AskapError, "Expected " << nFeeds << " feed offsets");
-            }
-            const vector<casa::Double> xy = itsParset.getDoubleVector(ss.str());
-            offsets(i, 0) = spacing * xy.at(0);
-            offsets(i, 1) = spacing * xy.at(1);
-        }
-
-        casa::Vector<casa::String> pols(nFeeds, "X Y");
-
-        // Create the FeedConfig instance and add to the map
-        pair<string, FeedConfig> element(*it, FeedConfig(offsets, pols)); 
-        feedConfigs.insert(element);
+const Target& Configuration::getTargetForScan(uint32_t scanId) const
+{
+    if (scanId >= itsScans.size()) {
+        ASKAPTHROW(AskapError, "Scan index " << scanId << " is out of range");
     }
 
-    return feedConfigs;
+    const string targetId = itsScans[scanId];
+    map<string, Target>::const_iterator targetIter = itsTargets.find(targetId);
+    if (targetIter == itsTargets.end()) {
+        ASKAPTHROW(AskapError, "Target " << targetId << " not found");
+    }
+    return targetIter->second;
+}
+
+void Configuration::buildTasks(void)
+{
+    // Iterator over all tasks
+    const vector<string> names = itsParset.getStringVector("tasks.tasklist");
+    vector<string>::const_iterator it;
+    for (it = names.begin(); it != names.end(); ++it) {
+        const string keyBase = "tasks." + *it;
+        const string typeStr = itsParset.getString(keyBase + ".type");
+        const TaskDesc::Type type = TaskDesc::toType(typeStr);
+        const LOFAR::ParameterSet params = itsParset.makeSubset(keyBase + ".params.");
+        itsTasks.push_back(TaskDesc(*it, type, params));
+    }
+}
+
+void Configuration::buildAntennas(void)
+{
+    const vector<string> antId = itsParset.getStringVector("antennas");
+    const casa::Quantity defaultDiameter = asQuantity(itsParset.getString("antenna.ant.diameter"));
+    const string defaultMount = itsParset.getString("antenna.ant.mount");
+
+    vector<string>::const_iterator it;
+    for (it = antId.begin(); it != antId.end(); ++it) {
+        const string keyBase = "antenna." + *it + ".";
+        const string name = itsParset.getString(keyBase + "name");
+        const vector<double> location = itsParset.getDoubleVector(keyBase + "location");
+
+        casa::Quantity diameter;
+        if (itsParset.isDefined(keyBase + "diameter")) {
+            diameter = asQuantity(itsParset.getString(keyBase + "diameter"));
+        } else {
+            diameter = defaultDiameter;
+        }
+
+        string mount;
+        if (itsParset.isDefined(keyBase + "mount")) {
+            mount = itsParset.getString(keyBase + "mount");
+        } else {
+            mount = defaultMount;
+        }
+
+        const casa::Vector<casa::Double> xyzLocation = Antenna::convertAntennaPosition(location);
+        itsAntennas.push_back(Antenna(name, mount, xyzLocation, diameter));
+    }
+}
+
+void Configuration::buildBaselineMap(void)
+{
+    itsBaselineMap.reset(new BaselineMap(itsParset.makeSubset("baselinemap.")));
+}
+
+void Configuration::buildCorrelatorModes(void)
+{
+    const vector<string> modes = itsParset.getStringVector("correlator.modes");
+    vector<string>::const_iterator it;
+    for (it = modes.begin(); it != modes.end(); ++it) {
+        const string name = *it;
+        const string keyBase = "correlator.mode." + name + ".";
+        const casa::Quantity chanWidth = asQuantity(itsParset.getString(keyBase + "chan_width"));
+        const casa::uInt nChan = itsParset.getUint32(keyBase + "n_chan");
+
+        vector<casa::Stokes::StokesTypes> stokes;
+        const vector<string> stokesStrings = itsParset.getStringVector(keyBase + "stokes");
+        for (vector<string>::const_iterator it = stokesStrings.begin();
+                it != stokesStrings.end(); ++it) {
+            stokes.push_back(casa::Stokes::type(*it));
+        }
+
+        const casa::uInt interval = itsParset.getUint32(keyBase + "interval");
+
+        const CorrelatorMode mode(name, chanWidth, nChan, stokes, interval);
+        itsCorrelatorModes.insert(make_pair(name, mode));
+    }
+}
+
+void Configuration::buildTargets(void)
+{
+    itsScans = itsParset.getStringVector("targets");
+    vector<string>::const_iterator it;
+    for (it = itsScans.begin(); it != itsScans.end(); ++it) {
+        const string id = *it;
+
+        // Check if this target has already been processed
+        if (itsTargets.find(id) != itsTargets.end()) {
+            continue;
+        }
+
+        // First time we have seen this target
+        const string keyBase = "target." + id + ".";
+        const string name = itsParset.getString(keyBase + "field_name");
+        const casa::MDirection dir = asMDirection(itsParset.getStringVector(
+                    keyBase + "field_direction"));
+
+        // Get a reference to the correlator mode
+        const string modename = itsParset.getString(keyBase + "corrmode");
+
+        map<string, CorrelatorMode>::const_iterator modeIt = itsCorrelatorModes.find(modename);
+        if (modeIt == itsCorrelatorModes.end()) {
+            ASKAPTHROW(AskapError, "Unknown correlator mode: " << modename);
+        }
+
+        itsTargets.insert(make_pair(id, Target(name, dir, modeIt->second)));
+    }
+}
+
+void Configuration::buildFeeds(void)
+{
+    const uint32_t N_RECEPTORS = 2; // Only support receptors "X Y"
+    const uint32_t nFeeds = itsParset.getUint32("feeds.n_feeds");
+    const casa::Quantity spacing = asQuantity(itsParset.getString("feeds.spacing"), "rad");
+
+    // Get offsets for each feed/beam
+    casa::Matrix<casa::Quantity> offsets(nFeeds, N_RECEPTORS);
+    for (uint32_t i = 0; i < nFeeds; ++i) {
+        const string key = "feeds.feed" + utility::toString(i);
+        if (!itsParset.isDefined(key)) {
+            ASKAPTHROW(AskapError, "Expected " << nFeeds << " feed offsets");
+        }
+        const vector<casa::Double> xy = itsParset.getDoubleVector(key);
+        offsets(i, 0) = spacing * xy.at(0);
+        offsets(i, 1) = spacing * xy.at(1);
+    }
+    casa::Vector<casa::String> pols(nFeeds, "X Y");
+
+    itsFeedConfig.reset(new FeedConfig(offsets, pols));
 }

@@ -47,6 +47,10 @@ using namespace askap::cp;
 using namespace askap::cp::ingest;
 using namespace casa;
 
+BaselineMap::BaselineMap()
+{
+}
+
 BaselineMap::BaselineMap(const LOFAR::ParameterSet& parset)
 {
     const vector<int32_t> ids = parset.getInt32Vector("baselineids", true);

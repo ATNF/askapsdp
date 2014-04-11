@@ -195,11 +195,11 @@ void CalcUVWTask::createPositionMatrix(const Configuration& config)
 
 void CalcUVWTask::setupBeamOffsets(const Configuration& config)
 {
-        const FeedConfig& feeds = config.antennas().at(0).feeds();
-        const uInt nFeeds = feeds.nFeeds();
+        const FeedConfig& feedConfig = config.feed();
+        const uInt nFeeds = feedConfig.nFeeds();
         itsBeamOffset.resize(nFeeds);
         for (uInt feed = 0; feed < nFeeds; feed++) {
-            itsBeamOffset(feed)(0) = feeds.offsetX(feed).getValue("rad");
-            itsBeamOffset(feed)(1) = feeds.offsetY(feed).getValue("rad");
+            itsBeamOffset(feed)(0) = feedConfig.offsetX(feed).getValue("rad");
+            itsBeamOffset(feed)(1) = feedConfig.offsetY(feed).getValue("rad");
         }
 }

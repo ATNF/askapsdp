@@ -32,6 +32,7 @@
 #include "boost/shared_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
 #include "casa/aips.h"
+#include "casa/Quanta.h"
 
 // CP Ice interfaces
 #include "TypedValues.h"
@@ -55,10 +56,9 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     TosMetadata dest;
 
     // time
-    //dest.time(srcMapper.getLong("timestamp"));
     dest.time(source.timestamp);
 
-    // period
+    // scan_id
     dest.scanId(srcMapper.getInt("scan_id"));
 
     if (dest.scanId() < 0) {
@@ -66,8 +66,12 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
         return dest;
     }
 
-    // user_flag
-    dest.flagged(srcMapper.getBool("user_flag"));
+    // Global flag
+    dest.flagged(srcMapper.getBool("flagged"));
+
+    // Centre frequency
+    const float centreFreqInMHz = srcMapper.getFloat("sky_frequency");
+    dest.centreFreq(casa::Quantity(centreFreqInMHz, "MHz"));
 
     // antenna_names
     const std::vector<casa::String> antennaNames = srcMapper.getStringSeq("antennas");
@@ -93,8 +97,11 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
     // scan_id
     destMapper.setInt("scan_id", source.scanId());
 
-    // user_flag
-    destMapper.setBool("user_flag", source.flagged());
+    // Global flag
+    destMapper.setBool("flagged", source.flagged());
+
+    // Centre frequency
+    destMapper.setFloat("sky_frequency", static_cast<float>(source.centreFreq().getValue("MHz")));
 
     // antenna_names
     std::vector<casa::String> antennaNames;

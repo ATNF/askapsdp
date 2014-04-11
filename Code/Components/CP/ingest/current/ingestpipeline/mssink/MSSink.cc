@@ -360,8 +360,8 @@ void MSSink::initAntennas(void)
                 it->diameter().getValue("m"));
 
         // For each antenna one or more feed entries must be created
-        const FeedConfig& feeds = it->feeds();
-        initFeeds(feeds, id);
+        const FeedConfig& feed = itsConfig.feed();
+        initFeeds(feed, id);
     }
 }
 
@@ -638,9 +638,9 @@ casa::Int MSSink::addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>&
 
 casa::Int MSSink::findOrAddField(const casa::Int scanId)
 {
-    const Scan scan = itsConfig.observation().scans().at(scanId);
-    const casa::String fieldName = scan.name();
-    const casa::MDirection fieldDirection = scan.fieldDirection();
+    const Target& target= itsConfig.getTargetForScan(scanId);
+    const casa::String fieldName = target.name();
+    const casa::MDirection fieldDirection = target.direction();
     const casa::String& calCode = "";
 
     MSColumns msc(*itsMs);

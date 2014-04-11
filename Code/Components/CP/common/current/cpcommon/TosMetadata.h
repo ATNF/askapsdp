@@ -32,6 +32,7 @@
 
 // ASKAPsoft includes
 #include "casa/aips.h"
+#include "casa/Quanta.h"
 
 // Local package includes
 #include "cpcommon/TosMetadataAntenna.h"
@@ -72,6 +73,9 @@ class TosMetadata {
         /// be flagged.
         casa::Bool flagged(void) const;
 
+        /// @return the centre frequency
+        casa::Quantity centreFreq(void) const;
+
         /////////////////////
         // Setters
         /////////////////////
@@ -89,6 +93,9 @@ class TosMetadata {
         /// @brief Set the FLAG which indicates the entire integration should
         /// be flagged.
         void flagged(const casa::Bool flag);
+
+        /// @brief Set the centre frequency
+        void centreFreq(const casa::Quantity& freq);
 
         /////////////////////////
         // Antenna access methods
@@ -146,6 +153,9 @@ class TosMetadata {
         // Indicates this integration (as indicated by the timestamp) should be flagged
         // in its entirety
         casa::Bool itsFlagged;
+
+        // The centre frequency
+        casa::Quantity itsCentreFreq;
 
         // Vector an TosMetadataAntenna objects
         std::vector<TosMetadataAntenna> itsAntenna;

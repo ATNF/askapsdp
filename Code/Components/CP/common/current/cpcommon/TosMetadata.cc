@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "casa/aips.h"
+#include "casa/Quanta.h"
 
 // Using
 using namespace askap::cp;
@@ -74,6 +75,16 @@ casa::Bool TosMetadata::flagged(void) const
 void TosMetadata::flagged(const casa::Bool flag)
 {
     itsFlagged = flag;
+}
+
+casa::Quantity TosMetadata::centreFreq(void) const
+{
+    return itsCentreFreq;
+}
+
+void TosMetadata::centreFreq(const casa::Quantity& freq)
+{
+    itsCentreFreq = freq;
 }
 
 casa::uInt TosMetadata::addAntenna(const casa::String& name)

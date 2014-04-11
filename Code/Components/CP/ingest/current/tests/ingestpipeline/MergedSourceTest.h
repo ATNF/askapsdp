@@ -157,7 +157,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(1 * N_CHANNELS_PER_SLICE, chunk->nChannel());
             CPPUNIT_ASSERT_EQUAL(nCorr, chunk->nPol());
             const uint32_t nBaselines = config.bmap().size();
-            const uint32_t nBeam = config.antennas().front().feeds().nFeeds();
+            const uint32_t nBeam = config.feed().nFeeds();
             CPPUNIT_ASSERT_EQUAL(nBaselines * nBeam, chunk->nRow());
 
             // Ensure the visibilities that were supplied (most were not)

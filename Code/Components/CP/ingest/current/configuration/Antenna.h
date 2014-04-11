@@ -27,14 +27,14 @@
 #ifndef ASKAP_CP_INGEST_ANTENNA_H
 #define ASKAP_CP_INGEST_ANTENNA_H
 
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Quanta.h"
 #include "casa/BasicSL.h"
 #include "casa/Arrays/Vector.h"
-
-// Local package includes
-#include "configuration/FeedConfig.h"
 
 namespace askap {
 namespace cp {
@@ -48,8 +48,7 @@ class Antenna {
         Antenna(const casa::String& name,
                 const casa::String& mount,
                 const casa::Vector<casa::Double>& position,
-                const casa::Quantity& diameter,
-                const FeedConfig& feeds);
+                const casa::Quantity& diameter);
 
         /// @brief Antenna name (e.g. "ak01")
         casa::String name(void) const;
@@ -64,15 +63,14 @@ class Antenna {
         /// @brief Nominal diameter of the dish.
         casa::Quantity diameter(void) const;
 
-        /// @brief The feed configuration on the antenna.
-        FeedConfig feeds(void) const;
+
+        static casa::Vector<casa::Double> convertAntennaPosition(const std::vector<double>& wgs84);
 
     private:
         casa::String itsName;
         casa::String itsMount;
         casa::Vector<casa::Double> itsPosition;
         casa::Quantity itsDiameter;
-        FeedConfig itsFeeds;
 };
 
 }

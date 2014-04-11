@@ -43,13 +43,13 @@ int main(int argc, char *argv[])
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
     runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::ScanManagerTest::suite());
+    //runner.addTest(askap::cp::ingest::ScanManagerTest::suite());
     runner.addTest(askap::cp::ingest::ChannelManagerTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::NoMetadataSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
+    //runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
+    //runner.addTest(askap::cp::ingest::NoMetadataSourceTest::suite());
+    //runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
+    //runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
+    //runner.addTest(askap::cp::ingest::CalTaskTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

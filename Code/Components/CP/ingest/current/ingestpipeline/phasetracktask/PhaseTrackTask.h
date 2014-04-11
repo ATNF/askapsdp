@@ -50,10 +50,9 @@ namespace ingest {
 /// the first channel always have a fixed offset which is hard coded). 
 /// It is handy to encapsulate the formula in one method as it is used by more
 /// than one class.
-/// @param[in] config configuration object
-/// @param[in] scan scan number
+/// @param[in] chunk the visibility chunk for this integration cycle
 /// @return Effective LO frequency in Hz
-double getEffectiveLOFreq(const Configuration &config, const casa::uInt scan);
+double getEffectiveLOFreq(const askap::cp::common::VisChunk& chunk);
 
 
 /// @brief task to apply phase tracking

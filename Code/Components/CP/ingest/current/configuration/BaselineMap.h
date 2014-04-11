@@ -80,6 +80,9 @@ class BaselineMap {
         ///     An example is shown in the class comments.
         BaselineMap(const LOFAR::ParameterSet& parset);
 
+        /// @brief Empty Constructor
+        BaselineMap();
+
         /// Given a baseline is, return antenna 1
         ///
         /// @param[in] id   the baseline id.

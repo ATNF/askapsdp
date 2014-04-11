@@ -170,7 +170,10 @@ class NoMetadataSource : public ISource {
         casa::uInt itsBeamsToReceive;
 
         /// @brief Count of duplicate datagrams. This is reset on each integration cycle.
-        casa::uInt itsDuplicateDatagrams;        
+        casa::uInt itsDuplicateDatagrams;
+
+        /// @brief Centre frequency
+        const casa::Quantity itsCentreFreq;
 };
 
 }

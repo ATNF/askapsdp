@@ -49,7 +49,7 @@ using namespace askap::cp::ingest;
 ScanManager::ScanManager(const Configuration& config)
     : itsConfig(config), itsScanIndex(-1), itsObsComplete(false)
 {
-    const size_t nScans = itsConfig.observation().scans().size();
+    const size_t nScans = itsConfig.nScans();
     if (nScans < 1) {
         ASKAPTHROW(AskapError, "Configuration contains no scans");
     }
@@ -82,7 +82,7 @@ void ScanManager::update(const casa::Int scanId)
             // Alternatively handle the case where a -1 has been received,
             // indicating end-of-observation
             itsObsComplete = true;
-            const size_t nScans = itsConfig.observation().scans().size();
+            const size_t nScans = itsConfig.nScans();
             if (itsScanIndex < static_cast<casa::Int>(nScans) - 1) {
                 ASKAPLOG_WARN_STR(logger, "Observation ended before all specified scans were executed");
             }
@@ -105,20 +105,20 @@ void ScanManager::submitMonitoringPoints(void) const
 {
     if (itsObsComplete) return;
 
-    const Observation obs = itsConfig.observation();
     submitPoint<int32_t>("obs.ScanId", itsScanIndex);
+    const Target& target= itsConfig.getTargetForScan(itsScanIndex);
+    const CorrelatorMode& corrMode = target.mode();
 
     if (itsScanIndex > -1) {
-        submitPoint<int32_t>("obs.nScans", obs.scans().size());
-        const Scan s = obs.scans()[itsScanIndex];
-        submitPoint<string>("obs.FieldName", s.name());
-        submitPoint<string>("obs.dir1", askap::printLat(s.fieldDirection()));
-        submitPoint<string>("obs.dir2", askap::printLon(s.fieldDirection()));
-        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(s.fieldDirection().type()));
-        submitPoint<int32_t>("obs.Interval", s.interval() / 1000);
-        submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz"));
-        submitPoint<int32_t>("obs.nChan", s.nChan());
-        submitPoint<float>("obs.ChanWidth", s.chanWidth().getValue("kHz"));
+        submitPoint<int32_t>("obs.nScans", itsConfig.nScans());
+        submitPoint<string>("obs.FieldName", target.name());
+        submitPoint<string>("obs.dir1", askap::printLat(target.direction()));
+        submitPoint<string>("obs.dir2", askap::printLon(target.direction()));
+        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.direction().type()));
+        submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
+        //submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz")); // !!! TODO !!!
+        submitPoint<int32_t>("obs.nChan", corrMode.nChan());
+        submitPoint<float>("obs.ChanWidth", corrMode.chanWidth().getValue("kHz"));
     } else {
         submitPointNull("obs.nScans");
         submitPointNull("obs.FieldName");

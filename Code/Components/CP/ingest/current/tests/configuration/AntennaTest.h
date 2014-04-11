@@ -33,7 +33,6 @@
 #include "casa/Quanta.h"
 #include "casa/BasicSL.h"
 #include "casa/Arrays/Vector.h"
-#include "configuration/FeedConfig.h"
 
 // Classes to test
 #include "configuration/Antenna.h"
@@ -59,27 +58,16 @@ class AntennaTest : public CppUnit::TestFixture {
         void testAll() {
             casa::Double dblTolerance = 1e-15;
 
-            // Setup objects to create the instance with
-            const casa::Int nFeeds = 3;
-            casa::Matrix<casa::Quantity> offsets(nFeeds, 2);
-            casa::Vector<casa::String> pols(nFeeds);
-            for (casa::Int i = 0; i < nFeeds; ++i) {
-                pols[i] = "XX YY";
-                offsets(i, 0) = casa::Quantity((1.0 * i), "deg"); // X
-                offsets(i, 1) = casa::Quantity((2.0 * i), "deg"); // Y
-            }
-            FeedConfig feedConfig(offsets, pols);
-
-            const casa::String name = "askap01";
+            const casa::String name = "ak01";
             const casa::String mount = "equatorial";
             casa::Vector<casa::Double> position(3);
-            position(0) = 1;
-            position(1) = 2;
-            position(2) = 3;
+            position(0) = -2556084.669;
+            position(1) = 5097398.337;
+            position(2) = -2848424.133;
             const casa::Quantity diameter(12, "m");
 
             // Create instance
-            Antenna instance(name, mount, position, diameter, feedConfig);
+            Antenna instance(name, mount, position, diameter);
 
             // Test instance
             CPPUNIT_ASSERT(name == instance.name());
@@ -92,10 +80,10 @@ class AntennaTest : public CppUnit::TestFixture {
 
             // Check exceptional inputs
             const casa::Quantity badDiameter(12, "rad");
-            CPPUNIT_ASSERT_THROW(Antenna(name, mount, position, badDiameter, feedConfig),
+            CPPUNIT_ASSERT_THROW(Antenna(name, mount, position, badDiameter), 
                     askap::AskapError);
             casa::Vector<casa::Double> badPosition(2);
-            CPPUNIT_ASSERT_THROW(Antenna(name, mount, badPosition, diameter, feedConfig),
+            CPPUNIT_ASSERT_THROW(Antenna(name, mount, badPosition, diameter),
                     askap::AskapError);
         }
 };

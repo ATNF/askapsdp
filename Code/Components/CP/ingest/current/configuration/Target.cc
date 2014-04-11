@@ -1,6 +1,6 @@
-/// @file Observation.h
+/// @file Target.cc
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,45 +24,38 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_OBSERVATION_H
-#define ASKAP_CP_INGEST_OBSERVATION_H
+// Include own header file first
+#include "Target.h"
 
-// System includes
-#include <vector>
+// Include package level header file
+#include "askap_cpingest.h"
 
 // ASKAPsoft includes
-#include "casa/aips.h"
+#include "askap/AskapError.h"
+#include "casa/BasicSL.h"
+#include "measures/Measures/MDirection.h"
 
-// Local package includes
-#include "configuration/Scan.h"
+using namespace askap;
+using namespace askap::cp::ingest;
 
-namespace askap {
-namespace cp {
-namespace ingest {
-
-/// @brief This class encapsulates the description of an observation.
-/// The observation is modeled as a sequence of "scans".
-class Observation {
-    public:
-
-        /// @brief Constructor
-        Observation(const casa::uInt schedulingBlockID,
-                    const std::vector<Scan>& scans);
-
-        /// @brief The schedule block identifier (from the Telescope Operating
-        /// System).
-        casa::uInt schedulingBlockID(void) const;
-
-        /// @brief A sequence of scans to be executed in order (0..n).
-        std::vector<Scan> scans(void) const;
-
-    private:
-        casa::uInt itsSchedulingBlockID;
-        std::vector<Scan> itsScans;
-};
-
-}
-}
+Target::Target(const casa::String& name,
+        const casa::MDirection& dir,
+        const CorrelatorMode& mode)
+: itsName(name), itsDirection(dir), itsMode(mode)
+{
 }
 
-#endif
+casa::String Target::name(void) const
+{
+    return itsName;
+}
+
+casa::MDirection Target::direction(void) const
+{
+    return itsDirection;
+}
+
+const CorrelatorMode& Target::mode(void) const
+{
+    return itsMode;
+}

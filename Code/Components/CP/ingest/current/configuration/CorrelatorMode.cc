@@ -1,6 +1,6 @@
-/// @file Scan.cc
+/// @file CorrelatorMode.cc
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "Scan.h"
+#include "CorrelatorMode.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
@@ -40,56 +40,40 @@
 using namespace askap;
 using namespace askap::cp::ingest;
 
-Scan::Scan(const casa::String& fieldName,
-           const casa::MDirection& fieldDirection,
-           const casa::Quantity& startFreq,
-           const casa::uInt nChan,
-           const casa::Quantity& chanWidth,
-           const std::vector<casa::Stokes::StokesTypes>& stokes,
-           const casa::uInt interval)
-: itsFieldName(fieldName), itsFieldDirection(fieldDirection),
-    itsCentreFreq(startFreq), itsNChan(nChan),
-    itsChanWidth(chanWidth), itsStokes(stokes),
-    itsInterval(interval)
+CorrelatorMode::CorrelatorMode(const std::string& modeName,
+        const casa::Quantity& chanWidth,
+        const casa::uInt nChan,
+        const std::vector<casa::Stokes::StokesTypes>& stokes,
+        const casa::uInt interval)
+        : itsModeName(modeName), itsChanWidth(chanWidth), itsNChan(nChan),
+        itsStokes(stokes), itsInterval(interval)
 {
-    ASKAPCHECK(startFreq.isConform("Hz"),
-            "Start frequency must conform to Hz");
     ASKAPCHECK(chanWidth.isConform("Hz"),
             "Channel width must conform to Hz");
     ASKAPCHECK(!stokes.empty(), "Stokes vector is empty");
 }
 
-casa::String Scan::name(void) const
+std::string CorrelatorMode::name(void) const
 {
-    return itsFieldName;
+    return itsModeName;
 }
 
-casa::MDirection Scan::fieldDirection(void) const
-{
-    return itsFieldDirection;
-}
-
-casa::Quantity Scan::startFreq(void) const
-{
-    return itsCentreFreq;
-}
-
-casa::uInt Scan::nChan(void) const
+casa::uInt CorrelatorMode::nChan(void) const
 {
         return itsNChan;
 }
 
-casa::Quantity Scan::chanWidth(void) const
+casa::Quantity CorrelatorMode::chanWidth(void) const
 {
         return itsChanWidth;
 }
 
-std::vector<casa::Stokes::StokesTypes> Scan::stokes(void) const
+std::vector<casa::Stokes::StokesTypes> CorrelatorMode::stokes(void) const
 {
         return itsStokes;
 }
 
-casa::uInt Scan::interval(void) const
+casa::uInt CorrelatorMode::interval(void) const
 {
     return itsInterval;
 }

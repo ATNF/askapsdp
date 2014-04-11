@@ -30,18 +30,22 @@
 // System includes
 #include <vector>
 #include <string>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "casa/BasicSL.h"
 #include "Common/ParameterSet.h"
 
 // Local package includes
+#include "boost/shared_ptr.hpp"
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
 #include "configuration/BaselineMap.h"
-#include "configuration/Observation.h"
-#include "configuration/TopicConfig.h"
+#include "configuration/Target.h"
+#include "configuration/FeedConfig.h"
+#include "configuration/CorrelatorMode.h"
 #include "configuration/ServiceConfig.h"
+#include "configuration/TopicConfig.h"
 
 namespace askap {
 namespace cp {
@@ -71,18 +75,20 @@ class Configuration {
         casa::String arrayName(void) const;
 
         /// @brief A sequence of tasks configuration.
-        std::vector<TaskDesc> tasks(void) const;
+        const std::vector<TaskDesc>& tasks(void) const;
+
+        /// @briefFeed configuration
+        const FeedConfig& feed(void) const;
 
         /// @brief A sequence of antennas
-        std::vector<Antenna> antennas(void) const;
+        const std::vector<Antenna>& antennas(void) const;
 
         /// @brief Mapping from the baseline ID that the Correlator IOC sends
         ///  and the actual antenna pair and correlation product.
-        BaselineMap bmap(void) const;
+        const BaselineMap& bmap(void) const;
 
-        /// @brief Information about the observation itself, such as
-        ///  pointing directions, etc.
-        Observation observation(void) const;
+        // Returns the scheduling block id for this observation
+        casa::uInt schedulingBlockID(void) const;
 
         /// @brief Ice configuration for the TOS metadata topic.
         TopicConfig metadataTopic(void) const;
@@ -93,17 +99,26 @@ class Configuration {
         /// @brief Ice configuration for the monitoring archiver (MoniCA).
         ServiceConfig monitoringArchiverService(void) const;
 
+        /// @brief Number of scans
+        uint32_t nScans(void) const;
+
+        /// @brief Maps a scan id (zero based indexing) to a reference to
+        /// a Target.
+        const Target& getTargetForScan(uint32_t scanId) const;
+
     private:
 
-        /// @brief Simple helper used to make parset keys.
-        /// @param[in] prefix   a prefix string
-        /// @param[in] suffix   a suffix string
-        /// @returns the concatenation: prefix + "." + suffix
-        static std::string makeKey(const std::string& prefix,
-                                   const std::string& suffix);
+        void buildTasks(void);
 
-        // This fnuction create a map of feed name/type to the actual feed configuration
-        static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
+        void buildFeeds(void);
+
+        void buildAntennas(void);
+
+        void buildBaselineMap(void);
+
+        void buildCorrelatorModes(void);
+
+        void buildTargets(void);
 
         // The input configuration parameter set that this "Configuration" encapsulates.
         const LOFAR::ParameterSet itsParset;
@@ -113,6 +128,23 @@ class Configuration {
 
         /// The total number of processes
         const int itsNProcs;
+
+        // Maps scans to targets
+        // The index is the scan id, and the element is the target index (i.e. the index into
+        // the targets vector)
+        std::vector<std::string> itsScans;
+
+        std::map<std::string, Target> itsTargets;
+
+        boost::shared_ptr<FeedConfig> itsFeedConfig;
+
+        std::vector<Antenna> itsAntennas;
+
+        std::vector<TaskDesc> itsTasks;
+
+        std::map<std::string, CorrelatorMode> itsCorrelatorModes;
+
+        boost::shared_ptr<BaselineMap> itsBaselineMap;
 };
 
 }

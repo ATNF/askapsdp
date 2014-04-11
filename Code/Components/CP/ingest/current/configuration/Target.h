@@ -1,6 +1,6 @@
-/// @file Observation.cc
+/// @file Target.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,38 +24,49 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "Observation.h"
-
-// Include package level header file
-#include "askap_cpingest.h"
+#ifndef ASKAP_CP_INGEST_TARGET_H
+#define ASKAP_CP_INGEST_TARGET_H
 
 // System includes
-#include <vector>
+#include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "measures/Measures/MDirection.h"
 
 // Local package includes
-#include "configuration/Scan.h"
+#include "configuration/CorrelatorMode.h"
 
-using namespace askap;
-using namespace askap::cp::ingest;
+namespace askap {
+namespace cp {
+namespace ingest {
 
-Observation::Observation(const casa::uInt schedulingBlockID,
-                         const std::vector<Scan>& scans)
-        : itsSchedulingBlockID(schedulingBlockID), itsScans(scans)
-{
-    ASKAPCHECK(!scans.empty(), "Observation must have one or more scans");
+/// @brief This class encapsulates a "target"
+class Target {
+    public:
+
+        /// @brief Constructor
+        Target(const casa::String& name,
+             const casa::MDirection& dir,
+             const CorrelatorMode& mode);
+
+        /// @brief Returns the name of the target field being observed
+        casa::String name(void) const;
+
+        /// @brief Returns the direction of the field being observed
+        casa::MDirection direction(void) const;
+
+        /// @brief Correlator mode for this target
+        const CorrelatorMode& mode(void) const;
+
+    private:
+        casa::String itsName;
+        casa::MDirection itsDirection;
+        CorrelatorMode itsMode;
+};
+
+}
+}
 }
 
-casa::uInt Observation::schedulingBlockID(void) const
-{
-    return itsSchedulingBlockID;
-}
-
-std::vector<Scan> Observation::scans(void) const
-{
-    return itsScans;
-}
+#endif

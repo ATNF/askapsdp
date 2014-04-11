@@ -51,80 +51,73 @@ class ConfigurationHelper {
             LOFAR::ParameterSet parset;
 
             // Array name
-            parset.add("arrayname", "ASKAP");
+            parset.add("array.name", "ASKAP");
+
+            // Metadata Topic
+            parset.add("metadata.topic", "metadata");
 
             // Observation specific
-            parset.add("observation.sbid", "0");
+            parset.add("sbid", "0");
 
-            // Scan0
-            parset.add("observation.scan0.field_name", "test-field0");
-            parset.add("observation.scan0.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
-            parset.add("observation.scan0.start_freq", "1.400GHz");
-            parset.add("observation.scan0.n_chan", "16416");
-            parset.add("observation.scan0.chan_width", "18.51851851kHz");
-            parset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
-            parset.add("observation.scan0.interval", "5000000");
+            // Targets
+            parset.add("targets", "[src1, src2, src3]");
 
             // Scan1
-            parset.add("observation.scan1.field_name", "test-field2");
-            parset.add("observation.scan1.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
-            parset.add("observation.scan1.start_freq", "1.400GHz");
-            parset.add("observation.scan1.n_chan", "16416");
-            parset.add("observation.scan1.chan_width", "18.51851851kHz");
-            parset.add("observation.scan1.stokes", "[XX, XY, YX, YY]");
-            parset.add("observation.scan1.interval", "5000000");
-
+            parset.add("target.src1.field_name", "test-field1");
+            parset.add("target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            parset.add("target.src1.corrmode", "standard");
+            
             // Scan2
-            parset.add("observation.scan2.field_name", "test-field2");
-            parset.add("observation.scan2.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
-            parset.add("observation.scan2.start_freq", "1.400GHz");
-            parset.add("observation.scan2.n_chan", "16416");
-            parset.add("observation.scan2.chan_width", "18.51851851kHz");
-            parset.add("observation.scan2.stokes", "[XX, XY, YX, YY]");
-            parset.add("observation.scan2.interval", "5000000");
+            parset.add("target.src2.field_name", "test-field2");
+            parset.add("target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            parset.add("target.src2.corrmode", "standard");
+
+            // Scan3
+            parset.add("target.src3.field_name", "test-field3");
+            parset.add("target.src3.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            parset.add("target.src3.corrmode", "standard");
+
+            // Correlator mode(s)
+            parset.add("correlator.modes", "[standard]");
+
+            parset.add("correlator.mode.standard.chan_width", "18.518518kHz");
+            parset.add("correlator.mode.standard.interval", "5000000");
+            parset.add("correlator.mode.standard.n_chan", "16416");
+            parset.add("correlator.mode.standard.stokes", "[XX, XY, YX, YY]");
 
             // Feed configurations
-            parset.add("feeds.names", "[PAF]");
+            parset.add("feeds.n_feeds", "4");
+            parset.add("feeds.spacing", "1deg");
 
-            parset.add("feeds.PAF.n_feeds", "4");
-            parset.add("feeds.PAF.spacing", "1deg");
-            parset.add("feeds.PAF.feed0", "[-2.5, -1.5]");
-            parset.add("feeds.PAF.feed1", "[-2.5, -0.5]");
-            parset.add("feeds.PAF.feed2", "[-2.5, 0.5]");
-            parset.add("feeds.PAF.feed3", "[-2.5, 1.5]");
+            parset.add("feeds.feed0", "[-2.5, -1.5]");
+            parset.add("feeds.feed1", "[-2.5, -0.5]");
+            parset.add("feeds.feed2", "[-2.5, 0.5]");
+            parset.add("feeds.feed3", "[-2.5, 1.5]");
 
             // Antennas
-            parset.add("antennas.names", "[A0, A1, A2, A3, A4, A5]");
 
-            parset.add("antennas.A0.location" , "[-2652616.854602326, 5102312.637997697, -2749946.411592145]");
-            parset.add("antennas.A0.diameter" , "12m");
-            parset.add("antennas.A0.mount" , "equatorial");
-            parset.add("antennas.A0.feed_config" , "PAF");
+            parset.add("antennas", "[ant1, ant3, ant6, ant8, ant9, ant15]");
 
-            parset.add("antennas.A1.location" , "[-2653178.349042055, 5102446.673161191, -2749155.53718417]");
-            parset.add("antennas.A1.diameter" , "12m");
-            parset.add("antennas.A1.mount" , "equatorial");
-            parset.add("antennas.A1.feed_config" , "PAF");
+            parset.add("antenna.ant.diameter", "12m");
+            parset.add("antenna.ant.mount", "equatorial");
 
-            parset.add("antennas.A2.location" , "[-2652931.204894244, 5102600.67778301, -2749108.177002157]");
-            parset.add("antennas.A2.diameter" , "12m");
-            parset.add("antennas.A2.mount" , "equatorial");
-            parset.add("antennas.A2.feed_config" , "PAF");
+            parset.add("antenna.ant1.name", "ak01");
+            parset.add("antenna.ant1.location", "[116.6314242861317, -26.697000722524, 360.990124660544]");
 
-            parset.add("antennas.A3.location" , "[-2652731.709913884, 5102780.937978324, -2748966.073105379]");
-            parset.add("antennas.A3.diameter" , "12m");
-            parset.add("antennas.A3.mount" , "equatorial");
-            parset.add("antennas.A3.feed_config" , "PAF");
+            parset.add("antenna.ant3.name", "ak03");
+            parset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
 
-            parset.add("antennas.A4.location" , "[-2652803.638192114, 5102632.431992128, -2749172.362663322]");
-            parset.add("antennas.A4.diameter" , "12m");
-            parset.add("antennas.A4.mount" , "equatorial");
-            parset.add("antennas.A4.feed_config" , "PAF");
+            parset.add("antenna.ant6.name", "ak06");
+            parset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897");
 
-            parset.add("antennas.A5.location" , "[-2652492.544738157, 5102823.769989723, -2749117.418823366]");
-            parset.add("antennas.A5.diameter" , "12m");
-            parset.add("antennas.A5.mount" , "equatorial");
-            parset.add("antennas.A5.feed_config" , "PAF");
+            parset.add("antenna.ant8.name", "ak08");
+            parset.add("antenna.ant8.location", "[116.6310382605877, -26.69915356409521, 362.0615070033818]");
+
+            parset.add("antenna.ant9.name", "ak09");
+            parset.add("antenna.ant9.location", "[116.6289723379451, -26.69599760606219, 361.1683603106067]");
+
+            parset.add("antenna.ant15.name", "ak15");
+            parset.add("antenna.ant15.location", "[116.6239853521759, -26.69841096756231, 356.8405737774447]");
 
             // Baseline ID Map
             parset.add("baselinemap.baselineids","[1..21]");
@@ -152,6 +145,30 @@ class ConfigurationHelper {
             parset.add("baselinemap.19", "[2, 2, XX]");    
             parset.add("baselinemap.20", "[2, 2, XY]");    
             parset.add("baselinemap.21", "[2, 2, YY]");
+
+            /////////////////////////////
+            // Task Configuration
+            /////////////////////////////
+            parset.add("tasks.tasklist", "[MergedSource, CalcUVWTask, ChannelAvgTask, MSSink]");
+
+            // MergedSource
+            parset.add("tasks.MergedSource.type", "MergedSource");
+            parset.add("tasks.MergedSource.params.vis_source.port", "3000");
+            parset.add("tasks.MergedSource.params.vis_source.buffer_size", "459648");
+
+            // CalcUVWTask
+            parset.add("tasks.CalcUVWTask.type", "CalcUVWTask");
+
+            // ChannelAvgTask
+            parset.add("tasks.ChannelAvgTask.type", "ChannelAvgTask");
+            parset.add("tasks.ChannelAvgTask.params.averaging", "54");
+
+            // MSSink
+            parset.add("tasks.MSSink.type", "MSSink");
+            parset.add("tasks.MSSink.params.filenamebase", "ingest_test");
+            parset.add("tasks.MSSink.params.stman.bucketsize", "65536");
+            parset.add("tasks.MSSink.params.stman.tilencorr", "4");
+            parset.add("tasks.MSSink.params.stman.tilenchan", "1026");
 
             return Configuration(parset);
         }

@@ -73,16 +73,23 @@ class ChannelManager {
         ///
         /// @param[in] rank the MPI rank of the process for which
         ///                 information is desired.
-        /// @param[in] startFreq    the frequency of the lowest numbered
-        ///                         channel for the whole system.
+        /// @param[in] centreFreq   the frequency at the centre of the band
         /// @param[in] chanWidth    the width of the spectral channels. All
         ///                         channels thus have the same width given
         ///                         this is a scalar parameter.
+        /// @param[in] totalNChan   total number of channels in the system,
+        ///                         e.g. 16416 for BETA
         casa::Vector<casa::Double> localFrequencies(const int rank,
-                const casa::Double startFreq,
-                const casa::Double chanWidth) const;
+                const casa::Double centreFreq,
+                const casa::Double chanWidth,
+                const casa::uInt totalNChan) const;
 
     private:
+
+        /// Converts a centre frequency into a start frequency
+        static casa::Double centreFreqToStartFreq(const casa::Double centreFreq,
+                                                  const casa::Double chanWidth,
+                                                  const casa::uInt totalNChan);
 
         // Tracks the number of channels each process handles
         // first: is the process rank, second: is the number

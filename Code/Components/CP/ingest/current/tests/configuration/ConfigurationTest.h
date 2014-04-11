@@ -41,68 +41,73 @@ namespace ingest {
 class ConfigurationTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(ConfigurationTest);
         CPPUNIT_TEST(testArrayName);
+        CPPUNIT_TEST(testSchedulingBlockID);
         CPPUNIT_TEST(testTasks);
         CPPUNIT_TEST(testAntennas);
-        CPPUNIT_TEST(testObservation);
-        CPPUNIT_TEST(testTopicConfig);
+        CPPUNIT_TEST(testFeed);
+        CPPUNIT_TEST(testNScans);
+        CPPUNIT_TEST(testGetTargetForScan);
         CPPUNIT_TEST(testServiceConfig);
         CPPUNIT_TEST_SUITE_END();
 
     public:
         void setUp() {
-            // Array name
-            itsParset.add("arrayname", "ASKAP");
+            // Observation (from Scheduling block)
+            itsParset.add("sbid", "0");
+            itsParset.add("targets", "[src1, src2]");
 
+            itsParset.add("target.src1.field_name", "test-field1");
+            itsParset.add("target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            itsParset.add("target.src1.corrmode", "standard");
+
+            itsParset.add("target.src2.field_name", "test-field2");
+            itsParset.add("target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            itsParset.add("target.src2.corrmode", "standard");
+
+            // Array name
+            itsParset.add("array.name", "ASKAP");
+
+            // TOS metadata topic
+            itsParset.add("metadata.topic", "metadata");
 
             // Feed configurations
-            itsParset.add("feeds.names", "[SPF, PAF4]");
-
-            itsParset.add("feeds.SPF.n_feeds", "1");
-            itsParset.add("feeds.SPF.spacing", "1deg");
-            itsParset.add("feeds.SPF.feed0", "[0.0, 0.0]");
-
-            itsParset.add("feeds.PAF4.n_feeds", "4");
-            itsParset.add("feeds.PAF4.spacing", "1deg");
-            itsParset.add("feeds.PAF4.feed0", "[-0.5, 0.5]");
-            itsParset.add("feeds.PAF4.feed1", "[0.5, 0.5]");
-            itsParset.add("feeds.PAF4.feed2", "[-0.5, -0.5]");
-            itsParset.add("feeds.PAF4.feed3", "[0.5, -0.5]");
-
+            itsParset.add("feeds.n_feeds", "4");
+            itsParset.add("feeds.spacing", "1deg");
+            itsParset.add("feeds.feed0", "[-0.5, 0.5]");
+            itsParset.add("feeds.feed1", "[0.5, 0.5]");
+            itsParset.add("feeds.feed2", "[-0.5, -0.5]");
+            itsParset.add("feeds.feed3", "[0.5, -0.5]");
 
             // Antennas
-            itsParset.add("antennas.names", "[A0, A1]");
+            itsParset.add("antennas", "[ant1, ant3]");
 
-            itsParset.add("antennas.A0.location" , "[-175.233429,  -1673.460938,  0.0000]");
-            itsParset.add("antennas.A0.diameter" , "12m");
-            itsParset.add("antennas.A0.mount" , "equatorial");
-            itsParset.add("antennas.A0.feed_config" , "PAF4");
+            itsParset.add("antenna.ant.diameter", "12m");
+            itsParset.add("antenna.ant.mount", "equatorial");
 
-            itsParset.add("antennas.A1.location" , "[-175.233429,  -1673.460938,  0.0000]");
-            itsParset.add("antennas.A1.diameter" , "15m");
-            itsParset.add("antennas.A1.mount" , "equatorial");
-            itsParset.add("antennas.A1.feed_config" , "SPF");
+            itsParset.add("antenna.ant1.name", "ak01");
+            itsParset.add("antenna.ant1.location", "[116.6314242861317, -26.697000722524, 360.990124660544]");
 
-            // Observation specific
-            itsParset.add("observation.sbid", "0");
-            itsParset.add("observation.scan0.field_name", "test-field");
-            itsParset.add("observation.scan0.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
-            itsParset.add("observation.scan0.start_freq", "1.420GHz");
-            itsParset.add("observation.scan0.n_chan", "16416");
-            itsParset.add("observation.scan0.chan_width", "18.51851851kHz");
-            itsParset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
-            itsParset.add("observation.scan0.interval", "5000000");
+            itsParset.add("antenna.ant3.name", "ak03");
+            itsParset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
 
+            itsParset.add("correlator.modes", "[standard]");
+            itsParset.add("correlator.mode.standard.chan_width", "18.518518kHz");
+            itsParset.add("correlator.mode.standard.interval", "5000000");
+            itsParset.add("correlator.mode.standard.n_chan", "16416");
+            itsParset.add("correlator.mode.standard.stokes", "[XX, XY, YX, YY]");
 
             // Metadata topic config
             itsParset.add("metadata_source.ice.locator_host", "localhost");
             itsParset.add("metadata_source.ice.locator_port", "4061");
             itsParset.add("metadata_source.icestorm.topicmanager", "TopicManager");
-            itsParset.add("metadata_source.icestorm.topic", "tosmetadata");
 
-            // Calibration data service config
-            itsParset.add("cal_data_service.ice.locator_host", "localhost");
-            itsParset.add("cal_data_service.ice.locator_port", "4061");
-            itsParset.add("cal_data_service.servicename", "CalibrationDataService");
+            // Baseline IDs
+            itsParset.add("baselinemap.baselineids", "[0..2]");
+            itsParset.add("baselinemap.antennaidx", "[ak06, ak01, ak03, ak15, ak08, ak09]");
+
+            itsParset.add("baselinemap.0", "[0, 0, XX]");
+            itsParset.add("baselinemap.1", "[0, 0, XY]");
+            itsParset.add("baselinemap.2", "[0, 0, YY]");
 
             /////////////////////////////
             // Task Configuration
@@ -124,9 +129,9 @@ class ConfigurationTest : public CppUnit::TestFixture {
             // MSSink
             itsParset.add("tasks.MSSink.type", "MSSink");
             itsParset.add("tasks.MSSink.params.filenamebase", "ingest_test");
-            itsParset.add("tasks.MSSink.params.stman.bucketsize", "1048576");
+            itsParset.add("tasks.MSSink.params.stman.bucketsize", "65536");
             itsParset.add("tasks.MSSink.params.stman.tilencorr", "4");
-            itsParset.add("tasks.MSSink.params.stman.tilenchan", "1");
+            itsParset.add("tasks.MSSink.params.stman.tilenchan", "1026");
         };
 
         void tearDown() {
@@ -137,6 +142,12 @@ class ConfigurationTest : public CppUnit::TestFixture {
             Configuration conf(itsParset);
             CPPUNIT_ASSERT_EQUAL(casa::String("ASKAP"), conf.arrayName());
         }
+
+        void testSchedulingBlockID() {
+            Configuration conf(itsParset);
+            CPPUNIT_ASSERT_EQUAL(0u, conf.schedulingBlockID());
+        }
+
 
         void testTasks() {
             Configuration conf(itsParset);
@@ -174,47 +185,54 @@ class ConfigurationTest : public CppUnit::TestFixture {
 
             // A0
             unsigned int idx = 0;
-            CPPUNIT_ASSERT_EQUAL(casa::String("A0"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("ak01"), conf.antennas().at(idx).name());
             CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());
-            CPPUNIT_ASSERT_EQUAL(4u, conf.antennas().at(idx).feeds().nFeeds());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"),
-                    conf.antennas().at(idx).feeds().offsetX(0));
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"),
-                    conf.antennas().at(idx).feeds().offsetY(0));
-            CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), conf.antennas().at(0).feeds().pol(0));
 
             // A1
             idx = 1;
-            CPPUNIT_ASSERT_EQUAL(casa::String("A1"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("ak03"), conf.antennas().at(idx).name());
             CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(15, "m"), conf.antennas().at(idx).diameter());
-            CPPUNIT_ASSERT_EQUAL(1u, conf.antennas().at(idx).feeds().nFeeds());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.0, "deg"),
-                    conf.antennas().at(idx).feeds().offsetX(0));
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.0, "deg"),
-                    conf.antennas().at(idx).feeds().offsetY(0));
-            CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), conf.antennas().at(0).feeds().pol(0));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());
         }
 
-        void testObservation() {
+        void testFeed() {
             Configuration conf(itsParset);
-            const Observation obs = conf.observation();
-            CPPUNIT_ASSERT_EQUAL(0u, obs.schedulingBlockID());
+            const FeedConfig& feed = conf.feed();
+            CPPUNIT_ASSERT_EQUAL(4u, feed.nFeeds());
 
-            // Check Scans
-            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), obs.scans().size());
-            Scan s = obs.scans().at(0);
-            CPPUNIT_ASSERT_EQUAL(casa::String("test-field"), s.name());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(1.420, "GHz"), s.startFreq());
-            CPPUNIT_ASSERT_EQUAL(16416u, s.nChan());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), s.chanWidth());
-            CPPUNIT_ASSERT_EQUAL(4ul, s.stokes().size());
-            CPPUNIT_ASSERT_EQUAL(5000000u, s.interval());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"), feed.offsetX(0));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"), feed.offsetY(0));
+
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"), feed.offsetX(1));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"), feed.offsetY(1));
+
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"), feed.offsetX(2));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"), feed.offsetY(2));
+
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"), feed.offsetX(3));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"), feed.offsetY(3));
+
+            CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), feed.pol(0));
         }
 
-        void testTopicConfig() {
+        void testNScans() {
             Configuration conf(itsParset);
+            CPPUNIT_ASSERT_EQUAL(2u, conf.nScans());
+        }
+
+        void testGetTargetForScan() {
+            Configuration conf(itsParset);
+
+            const Target& t0 = conf.getTargetForScan(0);
+            CPPUNIT_ASSERT_EQUAL(casa::String("test-field1"), t0.name());
+            const CorrelatorMode& c0 = t0.mode();
+            CPPUNIT_ASSERT_EQUAL(16416u, c0.nChan());
+
+            const Target& t1 = conf.getTargetForScan(1);
+            CPPUNIT_ASSERT_EQUAL(casa::String("test-field2"), t1.name());
+            const CorrelatorMode& c1 = t1.mode();
+            CPPUNIT_ASSERT_EQUAL(16416u, c1.nChan());
         }
 
         void testServiceConfig() {
