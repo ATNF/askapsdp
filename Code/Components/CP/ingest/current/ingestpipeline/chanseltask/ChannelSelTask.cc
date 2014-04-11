@@ -1,6 +1,5 @@
 /// @file ChannelSelTask.h
 ///
-///
 /// Selection of subset of channels
 ///
 /// @copyright (c) 2010 CSIRO
@@ -55,7 +54,8 @@ ChannelSelTask::ChannelSelTask(const LOFAR::ParameterSet& parset,
     itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    ASKAPCHECK(config.nprocs() == 1, "The current implementation of channel selection task works in the standalone mode only");
+    ASKAPCHECK(config.nprocs() == 1,
+            "The current implementation of channel selection task works in the standalone mode only");
     itsStart = parset.getUint32("start");
     itsNChan = parset.getUint32("nchan");
 }
@@ -72,14 +72,15 @@ void ChannelSelTask::process(VisChunk::ShPtr chunk)
     const casa::uInt nChanOriginal = chunk->nChannel();
 
     if (itsStart + itsNChan > nChanOriginal) {
-        ASKAPLOG_WARN_STR(logger, "Channel selection task got chunk with "<<nChanOriginal<<
-                 " channels, unable to select "<<itsNChan<<" channels starting from "<<itsStart);
+        ASKAPLOG_WARN_STR(logger, "Channel selection task got chunk with " << nChanOriginal
+                 << " channels, unable to select " << itsNChan
+                 << " channels starting from " << itsStart);
         chunk->flag().set(true);
         return;
     }
 
-    // extract required frequencies
-    // don't take const reference to be able to take slice (although we don't change the chunk yet)
+    // extract required frequencies - don't take const reference to be able to
+    // take slice (although we don't change the chunk yet)
     casa::Vector<casa::Double>& origFreq = chunk->frequency();
     casa::Vector<casa::Double> newFreq = origFreq(casa::Slice(itsStart,itsNChan));
     ASKAPDEBUGASSERT(newFreq.nelements() == itsNChan);

@@ -49,25 +49,6 @@ namespace ingest {
 /// ingest pipeline. This task calculates UVW coordinates for the visibilities
 /// contained in a VisChunk.
 ///
-/// The class requires antenna locations to be passed as part of the parameter
-/// set passed to the constructor. The following is an example:
-///
-/// @verbatim
-/// uvw.antennas.location = [+117.471deg, -25.692deg, 192m, WGS84]
-/// uvw.antennas.names    = [A0, A1, A2, A3, A4, A5]
-/// uvw.antenna.sscale    = 1.0
-/// uvw.antennas.A0       = [-175.233429,  -1673.460938,  0.0000]
-/// uvw.antennas.A1       = [261.119019,   -796.922119,   0.0000]
-/// uvw.antennas.A2       = [-29.200520,   -744.432068,   0.0000]
-/// uvw.antennas.A3       = [-289.355286,  -586.936035,   0.0000]
-/// uvw.antennas.A4       = [-157.031570,  -815.570068,   0.0000]
-/// uvw.antennas.A5       = [-521.311646,  -754.674927,   0.0000]
-/// @endverbatim
-///
-/// @todo: Once a better way of managing configuration data (such as antenna
-/// positions) is determined for ASKAPsoft, this class needs to be
-/// modified accordingly.
-///
 /// This class implements the ITask interface which specified the process()
 /// method. These "tasks" are treated polymorphically by the ingest pipeline.
 /// Once data is sourced into the pipeline, the process() method is called
@@ -113,7 +94,8 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         /// @param[in] dishPointing pointing centre for the whole dish
         /// @param[in] beam beam index to work 
         /// @return direction measure for the phase centre
-        casa::MDirection phaseCentre(const casa::MDirection &dishPointing, const casa::uInt beam) const;
+        casa::MDirection phaseCentre(const casa::MDirection &dishPointing,
+                                     const casa::uInt beam) const;
 
         /// @brief obtain gmst for the given epoch
         /// @param[in] epoch UTC epoch to convert to GMST

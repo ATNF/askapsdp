@@ -43,6 +43,7 @@
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/MCDirection.h>
 #include <measures/Measures/MeasConvert.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/MatrixMath.h>
 
 ASKAP_LOGGER(logger, ".FringeRotationTask");
@@ -71,7 +72,8 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
         const std::vector<Antenna> antennas = config.antennas();
         const size_t nAnt = antennas.size();
         for (size_t id = 0; id < casa::min(casa::uInt(nAnt),casa::uInt(itsFixedDelays.size())); ++id) {
-             ASKAPLOG_INFO_STR(logger, "    antenna: " << antennas.at(id).name()<<" (id="<<id << ") delay: " << itsFixedDelays[id] << " ns");
+             ASKAPLOG_INFO_STR(logger, "    antenna: " << antennas.at(id).name()<<" (id="<<id << ") delay: "
+                     << itsFixedDelays[id] << " ns");
         }
         if (nAnt < itsFixedDelays.size()) {
             ASKAPLOG_INFO_STR(logger,  "    other fixed delays are ignored");
@@ -85,7 +87,8 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
 /// @param[in] chunk the instance of VisChunk to search through
 /// @param[in] ant antenna index
 /// @return dish pointing
-casa::MVDirection FringeRotationTask::dishPointing(const askap::cp::common::VisChunk::ShPtr &chunk, const casa::uInt ant) const
+casa::MVDirection FringeRotationTask::dishPointing(const askap::cp::common::VisChunk::ShPtr &chunk,
+                                                   const casa::uInt ant) const
 {
   // this may not be the tidiest way of getting pointing per antenna
   for (casa::uInt testRow = 0; testRow < chunk->nRow(); ++testRow) {
@@ -99,7 +102,8 @@ casa::MVDirection FringeRotationTask::dishPointing(const askap::cp::common::VisC
 }
 
 /// @brief process one VisChunk 
-/// @details Perform fringe tracking, correct residual effects on visibilities in the specified VisChunk.
+/// @details Perform fringe tracking, correct residual effects on visibilities in the
+/// specified VisChunk.
 ///
 /// @param[in,out] chunk  the instance of VisChunk for which the
 ///                       phase factors will be applied.
@@ -111,8 +115,8 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 
     casa::Matrix<double> delays(nAntennas(), nBeams(),0.);
     casa::Matrix<double> rates(nAntennas(),nBeams(),0.);
-    // calculate delays (in seconds) and rates (in radians per seconds) for each antenna and beam
-    // the values are absolute per antenna w.r.t the Earth centre
+    // calculate delays (in seconds) and rates (in radians per seconds) for each antenna
+    // and beam the values are absolute per antenna w.r.t the Earth centre
 
     // Determine Greenwich Mean Sidereal Time
     const double gmst = calcGMST(chunk->time());
@@ -146,7 +150,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
               rates(ant,beam) = (cd * sH0 * xyz(0) + cd * cH0 * xyz(1)) * siderealRate * casa::C::_2pi / casa::C::c * effLOFreq;
          }
     }
-    // 
+
     itsFrtMethod->process(chunk, delays, rates, effLOFreq);
 }
 
@@ -171,4 +175,3 @@ IFrtApproach::ShPtr FringeRotationTask::fringeRotationMethod(const LOFAR::Parame
   ASKAPCHECK(result, "Method "<<name<<" is unknown");
   return result;
 }
-

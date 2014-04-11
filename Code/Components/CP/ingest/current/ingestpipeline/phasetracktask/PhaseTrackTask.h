@@ -47,7 +47,7 @@ namespace ingest {
 /// @brief helper method to obtain effective LO frequency
 /// @details The effective LO frequency is deduced from the sky frequency as
 /// ASKAP has a simple conversion chain (the effective LO and the sky frequency of
-/// the first channel always have a fixed offset which is hard coded). 
+/// the first channel always have a fixed offset which is hard coded).
 /// It is handy to encapsulate the formula in one method as it is used by more
 /// than one class.
 /// @param[in] chunk the visibility chunk for this integration cycle

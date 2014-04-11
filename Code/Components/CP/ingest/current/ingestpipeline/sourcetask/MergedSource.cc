@@ -365,7 +365,7 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             }
         }
     }
-    const std::string errorMsg = "Indexing failed to find row";
+    static const std::string errorMsg = "Indexing failed to find row";
     ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
     ASKAPCHECK(chunk->antenna2()(row) == antenna2, errorMsg);
     ASKAPCHECK(chunk->beam1()(row) == static_cast<casa::uInt>(beamid), errorMsg);

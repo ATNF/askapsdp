@@ -34,9 +34,6 @@
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
 
-// casa includes
-#include <casa/Arrays/Matrix.h>
-
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
@@ -64,9 +61,9 @@ class FringeRotationTask : public askap::cp::ingest::CalcUVWTask {
         /// @param[in] parset the configuration parameter set.
         /// @param[in] config configuration
         FringeRotationTask(const LOFAR::ParameterSet& parset,
-                       const Configuration& config);
+                           const Configuration& config);
 
-        /// @brief process one VisChunk 
+        /// @brief process one VisChunk
         /// @details Perform fringe tracking, correct residual effects on visibilities in the specified VisChunk.
         ///
         /// @param[in,out] chunk  the instance of VisChunk for which the
@@ -75,14 +72,14 @@ class FringeRotationTask : public askap::cp::ingest::CalcUVWTask {
 
     protected:
         /// @brief factory method for the fringe rotation approach classes
-        /// @details This class is used to create implementations of 
+        /// @details This class is used to create implementations of
         /// IFrtApproach interface based on the parset. These classes do
         /// actual work on application of delays and rates
         /// @param[in] parset the configuration parameter set.
         /// @param[in] config configuration
-        static IFrtApproach::ShPtr fringeRotationMethod(const LOFAR::ParameterSet& parset, 
-               const Configuration &config);
-        
+        static IFrtApproach::ShPtr fringeRotationMethod(const LOFAR::ParameterSet& parset,
+                const Configuration &config);
+
         /// @brief helper method to find dish pointing for a given antenna index
         /// @param[in] chunk the instance of VisChunk to search through
         /// @param[in] ant antenna index

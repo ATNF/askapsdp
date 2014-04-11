@@ -88,7 +88,8 @@ void CalcUVWTask::process(VisChunk::ShPtr chunk)
 /// @param[in] dishPointing pointing centre for the whole dish
 /// @param[in] beam beam index to work 
 /// @return direction measure for the phase centre
-casa::MDirection CalcUVWTask::phaseCentre(const casa::MDirection &dishPointing, const casa::uInt beam) const
+casa::MDirection CalcUVWTask::phaseCentre(const casa::MDirection &dishPointing,
+                                          const casa::uInt beam) const
 {
     // Current phase center
     casa::MDirection fpc(dishPointing);

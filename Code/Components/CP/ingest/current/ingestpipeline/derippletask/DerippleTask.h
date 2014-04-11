@@ -1,6 +1,6 @@
-/// @file
+/// @file DerippleTask.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2013 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -35,11 +35,6 @@
 #include "ingestpipeline/ITask.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
-// std includes
-#include <fstream>
-#include <string>
-#include <vector>
-
 namespace askap {
 namespace cp {
 namespace ingest {
@@ -49,37 +44,33 @@ namespace ingest {
 /// unclear. Ideally, this functionality should be with ioc or even in the hardware. But for now it is handy
 /// to be able to correct the data in the hardware
 class DerippleTask : public askap::cp::ingest::ITask {
-public:
+    public:
 
-   /// @brief Constructor
-   /// @param[in] parset the configuration parameter set.
-   /// @param[in] config configuration
-   DerippleTask(const LOFAR::ParameterSet& parset,
-             const Configuration& config);
+        /// @brief Constructor
+        /// @param[in] parset the configuration parameter set.
+        /// @param[in] config configuration
+        DerippleTask(const LOFAR::ParameterSet& parset,
+                     const Configuration& config);
 
-   /// @brief destructor
-   ~DerippleTask();
+        /// @brief destructor
+        ~DerippleTask();
 
-   /// @brief Scale visibilities in the specified VisChunk.
-   /// @details This method applies static scaling factors to correct for FFB ripple
-   ///
-   /// @param[in,out] chunk  the instance of VisChunk for which the
-   ///                       scaling factors will be applied.
-   virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
+        /// @brief Scale visibilities in the specified VisChunk.
+        /// @details This method applies static scaling factors to correct for FFB ripple
+        ///
+        /// @param[in,out] chunk  the instance of VisChunk for which the
+        ///                       scaling factors will be applied.
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
-protected:   
+    private:
 
-private:
-
-   /// @brief correction coefficients
-   static const float theirCoeffs[54];
+        /// @brief correction coefficients
+        static const float theirCoeffs[54];
 
 }; // DerippleTask class
 
 } // ingest
-
 } // cp
-
 } // askap
 
 #endif // #ifndef ASKAP_CP_INGEST_DERIPPLETASK_H

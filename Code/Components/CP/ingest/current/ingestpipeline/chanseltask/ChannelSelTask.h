@@ -1,6 +1,5 @@
 /// @file ChannelSelTask.h
 ///
-///
 /// Selection of subset of channels
 ///
 /// @copyright (c) 2010 CSIRO

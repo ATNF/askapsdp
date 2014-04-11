@@ -98,7 +98,8 @@ PhaseTrackTask::PhaseTrackTask(const LOFAR::ParameterSet& parset,
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 
     if (itsTrackDelay) {
-        ASKAPLOG_INFO_STR(logger, "The phase tracking task will track the geometric delays as well (note, accuracy depends on the spectral resolution)");
+        ASKAPLOG_INFO_STR(logger,
+                "The phase tracking task will track the geometric delays as well (note, accuracy depends on the spectral resolution)");
     } else if (itsFixedDelays.size() != 0) {
         ASKAPLOG_INFO_STR(logger, "The phase tracking task will apply fixed delays in addition to phase rotation");
     }
@@ -208,4 +209,3 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
         }
     }
 }
-

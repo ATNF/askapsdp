@@ -45,6 +45,7 @@ class ChannelManagerTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(ChannelManagerTest);
         CPPUNIT_TEST(testLocalNChannels);
         CPPUNIT_TEST(testLocalFrequencies);
+        CPPUNIT_TEST(testLocalFrequenciesBETA);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -92,6 +93,22 @@ class ChannelManagerTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_THROW(cman.localFrequencies(2, centreFreq, chanWidth, totalNChan),
                     askap::AskapError);
         };
+
+        void testLocalFrequenciesBETA() {
+            LOFAR::ParameterSet params;
+            params.add("n_channels.0", "16416");
+            const int nChan = 16416;
+
+            const double centreFreq = 864;
+            const double chanWidth = -(1.0/54.0);
+            const double tolerance = 1e-2;
+
+            ChannelManager cman(params);
+            casa::Vector<casa::Double> f0 = cman.localFrequencies(0, centreFreq, chanWidth, nChan);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(16416), f0.size());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1015.99, f0(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(712.009, f0(16415), tolerance);
+        }
 
     private:
 

@@ -172,8 +172,8 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
            const casa::MVEpoch timeSince = epoch - itsRequestCompletedTimes[ant];
            // look at issue #5736 for the 14.5s fudge factor
            if ((timeSince.getTime("s").getValue() >= timeOut) && (itsFRUpdateBATs[ant] + 14500000 < currentBAT)) {
-               ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "<<itsAntennaNames[ant]<<
-                                 ", unflagging the antenna");
+               ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "
+                       << itsAntennaNames[ant] << ", unflagging the antenna");
                itsAntennaStatuses[ant] = ANT_VALID;
            }
        }
@@ -192,26 +192,28 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
                    const std::map<std::string, int>::const_iterator ciBATlow = reply->find("bat_low");
                    const std::map<std::string, int>::const_iterator ciBAThigh = reply->find("bat_high"); 
                    if ((ciBATlow != reply->end()) != (ciBAThigh != reply->end())) {
-                       ASKAPLOG_WARN_STR(logger, "Incomplete application BAT was found in the reply for "<<itsAntennaNames[ant]);
+                       ASKAPLOG_WARN_STR(logger, "Incomplete application BAT was found in the reply for "
+                               << itsAntennaNames[ant]);
                    } else {
                        if (ciBATlow != reply->end()) {
                            ASKAPDEBUGASSERT(ciBAThigh != reply->end());
                            const uint64_t batLow = static_cast<uint64_t>(ciBATlow->second);
                            const uint64_t batHigh = static_cast<uint64_t>(ciBAThigh->second) << 32;
                            itsFRUpdateBATs[ant] = (batLow & 0xffffffff) + (batHigh & 0xffffffff00000000);
-                           ASKAPLOG_DEBUG_STR(logger, "Received update BAT of "<<itsFRUpdateBATs[ant]<<" for "<<itsAntennaNames[ant]);
+                           ASKAPLOG_DEBUG_STR(logger, "Received update BAT of "<<itsFRUpdateBATs[ant]
+                                   << " for " << itsAntennaNames[ant]);
                        }
                    }
                    //
                    if (itsCyclesToWait > 0) {
-                       ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters have been applied for "<<itsAntennaNames[ant]<<
-                                     ", waiting "<<itsCyclesToWait<<" cycles before unflagging it");
+                       ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters have been applied for "
+                               << itsAntennaNames[ant] << ", waiting "<<itsCyclesToWait<<" cycles before unflagging it");
                        itsAntennaStatuses[ant] = ANT_BEING_UPDATED;
                        itsRequestCompletedTimes[ant] = epoch;
                    } else {
                        // do not wait
-                       ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "<<itsAntennaNames[ant]<<
-                                 ", unflagging the antenna");
+                       ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "
+                               << itsAntennaNames[ant] << ", unflagging the antenna");
                        itsAntennaStatuses[ant] = ANT_VALID;
                    }                   
                }
@@ -259,7 +261,8 @@ std::map<std::string, int> FrtCommunicator::getDRxDelayMsg(const casa::uInt ant,
 /// @param[in] phaseRate phase rate to set (in the units required by hardware)
 /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
 /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
-void FrtCommunicator::setFRParameters(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset)
+void FrtCommunicator::setFRParameters(const casa::uInt ant, const int phaseRate,
+                                      const int phaseSlope, const int phaseOffset)
 {
    ASKAPDEBUGASSERT(ant < itsAntennaRequestIDs.size());
    ASKAPDEBUGASSERT(ant < itsAntennaStatuses.size());
@@ -278,7 +281,8 @@ void FrtCommunicator::setFRParameters(const casa::uInt ant, const int phaseRate,
 /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
 /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
 /// @return map with the message
-std::map<std::string, int> FrtCommunicator::getFRParametersMsg(const casa::uInt ant, const int phaseRate, const int phaseSlope, const int phaseOffset)
+std::map<std::string, int> FrtCommunicator::getFRParametersMsg(const casa::uInt ant, const int phaseRate,
+                                                               const int phaseSlope, const int phaseOffset)
 {
    ASKAPASSERT(ant < itsAntennaNames.size());
    const std::string antName = itsAntennaNames[ant];
@@ -303,7 +307,8 @@ std::map<std::string, int> FrtCommunicator::getFRParametersMsg(const casa::uInt 
 /// @param[in] phaseRate phase rate to set (in the units required by hardware)
 /// @param[in] phaseSlope phase slope to set (in the units required by hardware)
 /// @param[in] phaseOffset phase offset to set (in the units required by hardware)
-void FrtCommunicator::setDRxAndFRParameters(const casa::uInt ant, const int delay, const int phaseRate, const int phaseSlope, const int phaseOffset)
+void FrtCommunicator::setDRxAndFRParameters(const casa::uInt ant, const int delay, const int phaseRate,
+                                            const int phaseSlope, const int phaseOffset)
 {
    ASKAPDEBUGASSERT(ant < itsAntennaRequestIDs.size());
    ASKAPDEBUGASSERT(ant < itsAntennaStatuses.size());
@@ -320,10 +325,10 @@ void FrtCommunicator::setDRxAndFRParameters(const casa::uInt ant, const int dela
 
 
 /// @brief helper method to tag a message with time-based ID
-/// @details We need to be able to track which requests are completed and when. It is done
-/// by passing an ID string which is buffered per antenna. When reply is received, the post-processing
-/// actions are finalised. This method forms an ID based on current epoch, tags the message and
-/// returns the id
+/// @details We need to be able to track which requests are completed and when. It is
+/// done by passing an ID string which is buffered per antenna. When reply is received,
+/// the post-processing actions are finalised. This method forms an ID based on current
+/// epoch, tags the message and returns the id
 /// @param[in] msg message to update
 /// @return assigned ID (same as msg["id"])
 int FrtCommunicator::tagMessage(std::map<std::string, int> &msg) const
@@ -332,10 +337,6 @@ int FrtCommunicator::tagMessage(std::map<std::string, int> &msg) const
   return itsMsgCounter++;
 }
 
-
-
 } // namespace ingest 
 } // namespace cp 
 } // namespace askap 
-
-

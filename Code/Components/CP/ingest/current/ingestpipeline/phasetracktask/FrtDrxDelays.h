@@ -51,7 +51,7 @@ namespace ingest {
 /// @brief simplest fringe rotation method, essentially just a proof of concept
 /// @details A number of different approaches to fringe rotation are possible (i.e. with/without DRx, with/without hw-rotator
 /// with more or with less correction in the software. It seems convenient to represent all different approaches by a hierarchy of
-/// classes and get the task itself responsible for just delay and rate calculation (as accurate as possible, approximations and caching 
+/// classes and get the task itself responsible for just delay and rate calculation (as accurate as possible, approximations and caching
 /// are done in implementations of this interface)
 class FrtDrxDelays : virtual public IFrtApproach {
     public:
@@ -64,27 +64,27 @@ class FrtDrxDelays : virtual public IFrtApproach {
         /// Process a VisChunk.
         ///
         /// This method is called once for each correlator integration.
-        /// 
+        ///
         /// @param[in] chunk    a shared pointer to a VisChunk object. The
         ///             VisChunk contains all the visibilities and associated
         ///             metadata for a single correlator integration. This method
-        ///             is expected to correct visibilities in this VisChunk 
+        ///             is expected to correct visibilities in this VisChunk
         ///             as required (some methods may not need to do any correction at all)
         /// @param[in] delays matrix with delays for all antennas (rows) and beams (columns) in seconds
-        /// @param[in] rates matrix with phase rates for all antennas (rows) and 
+        /// @param[in] rates matrix with phase rates for all antennas (rows) and
         ///                  beams (columns) in radians per second
         /// @param[in] effLO effective LO frequency in Hz
-        virtual void process(const askap::cp::common::VisChunk::ShPtr& chunk, 
-                     const casa::Matrix<double> &delays, const casa::Matrix<double> &rates, const double effLO);
-    
+        virtual void process(const askap::cp::common::VisChunk::ShPtr& chunk,
+                             const casa::Matrix<double> &delays, const casa::Matrix<double> &rates, const double effLO);
+
     private:
         /// @brief communicator with the python part executing OSL scripts
         FrtCommunicator itsFrtComm;
-        
+
         /// @brief tolerance on the DRx setting
         /// @details The DRx delay is updated when the required value goes outside the tolerance.
         int itsDRxDelayTolerance;
-        
+
         /// @brief if true, attempt to track residual delays in software
         bool itsTrackResidualDelay;
 
@@ -92,8 +92,8 @@ class FrtDrxDelays : virtual public IFrtApproach {
         casa::uInt itsRefAntIndex;
 };
 
-} // namespace ingest 
-} // namespace cp 
-} // namespace askap 
+} // namespace ingest
+} // namespace cp
+} // namespace askap
 
 #endif // #ifndef ASKAP_CP_INGEST_FRTDRXDELAYS_H

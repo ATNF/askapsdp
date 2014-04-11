@@ -58,8 +58,8 @@ FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuratio
    if (itsDRxDelayTolerance == 0) {
        ASKAPLOG_INFO_STR(logger, "DRx delays will be updated every time the delay changes by 1.3 ns");
    } else {
-       ASKAPLOG_INFO_STR(logger, "DRx delays will be updated when the required delay diverges more than "<<itsDRxDelayTolerance<<
-                         " 1.3ns steps");
+       ASKAPLOG_INFO_STR(logger, "DRx delays will be updated when the required delay diverges more than "
+               << itsDRxDelayTolerance << " 1.3ns steps");
    } 
    if (itsTrackResidualDelay) {
        ASKAPLOG_INFO_STR(logger, "Residual delays and phases will be tracked in software");       
@@ -94,11 +94,14 @@ FrtDrxDelays::FrtDrxDelays(const LOFAR::ParameterSet& parset, const Configuratio
 ///                  beams (columns) in radians per second
 /// @param[in] effLO effective LO frequency in Hz
 void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk, 
-              const casa::Matrix<double> &delays, const casa::Matrix<double> &/*rates*/, const double effLO)
+                           const casa::Matrix<double> &delays,
+                           const casa::Matrix<double> &/*rates*/,
+                           const double effLO)
 {
   ASKAPDEBUGASSERT(delays.ncolumn() > 0);
   ASKAPDEBUGASSERT(itsRefAntIndex < delays.nrow());
-  // signal about new timestamp (there is no much point to mess around with threads as actions are tide down to correlator cycles
+  // signal about new timestamp (there is no much point to mess around with threads as actions are
+  // tide down to correlator cycles
   itsFrtComm.newTimeStamp(chunk->time());
 
   const double samplePeriod = 1./768e6; // sample rate is 768 MHz
@@ -106,7 +109,8 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
        // negate the sign here because we want to compensate the delay
        const double diffDelay = (delays(itsRefAntIndex,0) - delays(ant,0))/samplePeriod;
        // ideal delay
-       ASKAPLOG_INFO_STR(logger, "delays between "<<ant<<" and ref="<<itsRefAntIndex<<" are "<<diffDelay*samplePeriod*1e9<<" ns");
+       ASKAPLOG_INFO_STR(logger, "delays between "<<ant<<" and ref="<<itsRefAntIndex
+               <<" are "<<diffDelay*samplePeriod*1e9<<" ns");
        casa::Int drxDelay = static_cast<casa::Int>(2048. + diffDelay);
        if (drxDelay < 0) {
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (below 0)");
@@ -175,4 +179,3 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
 } // namespace ingest 
 } // namespace cp 
 } // namespace askap 
-

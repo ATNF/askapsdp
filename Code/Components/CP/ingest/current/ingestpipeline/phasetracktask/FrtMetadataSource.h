@@ -56,8 +56,8 @@ namespace ingest {
 /// to control fringe rotation. We probably don't need buffering, but reuse
 /// of Ben's thread-safe circular buffer seems to make things easier.
 class FrtMetadataSource :
-        virtual public askap::cp::icewrapper::FrtMetadataReceiver,
-        boost::noncopyable {
+    virtual public askap::cp::icewrapper::FrtMetadataReceiver,
+    boost::noncopyable {
     public:
         /// @brief Constructor.
         ///
@@ -78,11 +78,11 @@ class FrtMetadataSource :
         ///                         becomes full then the older objects are discarded
         ///                         to make room for the newer incoming objects.
         FrtMetadataSource(const std::string& locatorHost,
-                       const std::string& locatorPort,
-                       const std::string& topicManager,
-                       const std::string& topic,
-                       const std::string& adapterName,
-                       const unsigned int bufSize);
+                          const std::string& locatorPort,
+                          const std::string& topicManager,
+                          const std::string& topic,
+                          const std::string& adapterName,
+                          const unsigned int bufSize);
 
         /// @brief Callback method, called when a new message is available.
         ///
