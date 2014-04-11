@@ -184,12 +184,13 @@ void Configuration::buildTasks(void)
 
 void Configuration::buildAntennas(void)
 {
+    // Build a map of name->Antenna
     const vector<string> antId = itsParset.getStringVector("antennas");
     const casa::Quantity defaultDiameter = asQuantity(itsParset.getString("antenna.ant.diameter"));
     const string defaultMount = itsParset.getString("antenna.ant.mount");
+    map<string, Antenna> antennaMap;
 
-    vector<string>::const_iterator it;
-    for (it = antId.begin(); it != antId.end(); ++it) {
+    for (vector<string>::const_iterator it = antId.begin(); it != antId.end(); ++it) {
         const string keyBase = "antenna." + *it + ".";
         const string name = itsParset.getString(keyBase + "name");
         const vector<double> location = itsParset.getDoubleVector(keyBase + "location");
@@ -209,7 +210,18 @@ void Configuration::buildAntennas(void)
         }
 
         const casa::Vector<casa::Double> xyzLocation = Antenna::convertAntennaPosition(location);
-        itsAntennas.push_back(Antenna(name, mount, xyzLocation, diameter));
+        antennaMap.insert(make_pair(name, Antenna(name, mount, xyzLocation, diameter)));
+    }
+    
+    // Now read "baselinemap.antennaidx" and build the antenna vector with the
+    // ordering that maps to the baseline mapping
+    const vector<string> antOrdering = itsParset.getStringVector("baselinemap.antennaidx");
+    for (vector<string>::const_iterator it = antOrdering.begin(); it != antOrdering.end(); ++it) {
+        map<string, Antenna>::const_iterator antit = antennaMap.find(*it);
+        if (antit == antennaMap.end()) {
+            ASKAPTHROW(AskapError, "Antenna " << *it << " is not configured");
+        }
+        itsAntennas.push_back(antit->second);
     }
 }
 

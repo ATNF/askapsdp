@@ -79,7 +79,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
             itsParset.add("feeds.feed3", "[0.5, -0.5]");
 
             // Antennas
-            itsParset.add("antennas", "[ant1, ant3]");
+            itsParset.add("antennas", "[ant1, ant3, ant6, ant8, ant9, ant15]");
 
             itsParset.add("antenna.ant.diameter", "12m");
             itsParset.add("antenna.ant.mount", "equatorial");
@@ -89,6 +89,18 @@ class ConfigurationTest : public CppUnit::TestFixture {
 
             itsParset.add("antenna.ant3.name", "ak03");
             itsParset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
+
+            itsParset.add("antenna.ant6.name", "ak06");
+            itsParset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897]");
+
+            itsParset.add("antenna.ant8.name", "ak08");
+            itsParset.add("antenna.ant8.location", "[116.6310382605877, -26.69915356409521, 362.0615070033818]");
+
+            itsParset.add("antenna.ant9.name", "ak09");
+            itsParset.add("antenna.ant9.location", "[116.6289723379451, -26.69599760606219, 361.1683603106067]");
+
+            itsParset.add("antenna.ant15.name", "ak15");
+            itsParset.add("antenna.ant15.location", "[116.6239853521759, -26.69841096756231, 356.8405737774447]");
 
             itsParset.add("correlator.modes", "[standard]");
             itsParset.add("correlator.mode.standard.chan_width", "18.518518kHz");
@@ -181,16 +193,22 @@ class ConfigurationTest : public CppUnit::TestFixture {
         void testAntennas() {
             Configuration conf(itsParset);
 
-            CPPUNIT_ASSERT_EQUAL(2ul, conf.antennas().size());
+            CPPUNIT_ASSERT_EQUAL(6ul, conf.antennas().size());
 
             // A0
             unsigned int idx = 0;
-            CPPUNIT_ASSERT_EQUAL(casa::String("ak01"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("ak06"), conf.antennas().at(idx).name());
             CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());
 
             // A1
             idx = 1;
+            CPPUNIT_ASSERT_EQUAL(casa::String("ak01"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());
+
+            // A2
+            idx = 2;
             CPPUNIT_ASSERT_EQUAL(casa::String("ak03"), conf.antennas().at(idx).name());
             CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());

@@ -198,7 +198,7 @@ metadata_source.icestorm.topicmanager   = IceStorm/TopicManager@IceStorm.TopicMa
 #
 # Monitoring Data Publisher Configuration
 #
-monitoring.enabled                      = true
+monitoring.enabled                      = false
 monitoring.ice.locator_host             = localhost
 monitoring.ice.locator_port             = 4061
 monitoring.servicename                  = MoniCAService@MoniCAAdminAdapter

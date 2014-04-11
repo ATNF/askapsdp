@@ -3,127 +3,107 @@
 #
 
 #
-# Array Name
+#  Observation details
 #
-arrayname = ASKAP
+sbid                        = 0
+targets                     = [src1]
+
+target.src1.field_name      = test-field1
+target.src1.field_direction = [12h30m49.43, +12.23.28.01, J2000]
+target.src1.corrmode        = standard
+
+# Virgo
+#observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
+# 0407-658
+#observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
+# 1934-638
+#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
+# 1549-790 (cluster field)
+#observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
+# 1742-289 (Galactic centre)
+#observation.scan0.field_direction   = [17h45m40.04, -29.00.28.07, J2000]
+
+# some other calibrators
+# 1921-293
+#observation.scan0.field_direction   = [19h24m51.06, -29.14.30.12, J2000]
+# 2251+158
+#observation.scan0.field_direction   = [22h53m57.74, 16.08.53.56, J2000]
+# 0537-441
+#observation.scan0.field_direction   = [05h38m50.36, -44.05.08.94, J2000]
+# 1245-197
+#observation.scan0.field_direction   = [12h48m23.898, -19.59.18.59, J2000]
+# 0607-157
+#observation.scan0.field_direction   = [06h09m40.95, -15.42.40.67, J2000]
+
+
+# zenith at some sidereal time
+#observation.scan0.field_direction   = [22h12m00.00, -26.41.49.20, J2000]
+# south pole
+#observation.scan0.field_direction   = [22h12m00.00, -90.00.00.00, J2000]
+
+# S9
+#observation.scan0.field_direction   = [17h52m06.00, -34.25.42.01, J2000]
+# Galactic HI Tb~160K 
+#observation.scan0.field_direction   = [09h46m14.00, -54.26.48.6, J2000]
+# NGC 4945
+#observation.scan0.field_direction   = [13h05m27.50, -49.28.06, J2000]
+# NGC253
+#observation.scan0.field_direction   = [00h47m33.0, -25.17.18, J2000]
+# 1830-210
+#observation.scan0.field_direction   = [18h33m39.9150, -21.03.40.050, J2000]
+
+# Array Name
+array.name                  = ASKAP
+
+# TOS metadata topic
+metadata.topic              = metadata
 
 #
 # Feed Configurations
 #
-feeds.names                 = [PAF36]
-feeds.PAF36.n_feeds         = 36
-feeds.PAF36.spacing         = 1deg
+feeds.n_feeds               = 9
 
-feeds.PAF36.feed0           = [0., 0.]
-feeds.PAF36.feed1           = [0., 0.]
-feeds.PAF36.feed2           = [0., 0.]
-feeds.PAF36.feed3           = [0., 0.]
-feeds.PAF36.feed4           = [0., 0.]
-feeds.PAF36.feed5           = [0., 0.]
-feeds.PAF36.feed6           = [0., 0.]
-feeds.PAF36.feed7           = [0., 0.]
-feeds.PAF36.feed8           = [0., 0.]
-feeds.PAF36.feed9           = [0., 0.]
+feeds.spacing               = 1deg
 
+feeds.feed0                 = [0.0, 0.0]
+feeds.feed1                 = [0.0, 0.0]
+feeds.feed2                 = [0.0, 0.0]
+feeds.feed3                 = [0.0, 0.0]
+feeds.feed4                 = [0.0, 0.0]
+feeds.feed5                 = [0.0, 0.0]
+feeds.feed6                 = [0.0, 0.0]
+feeds.feed7                 = [0.0, 0.0]
+feeds.feed8                 = [0.0, 0.0]
 
-#feeds.PAF36.feed0           = [-2.5, -2.5]
-#feeds.PAF36.feed1           = [-2.5, -1.5]
-#feeds.PAF36.feed2           = [-2.5, -0.5]
-#feeds.PAF36.feed3           = [-2.5,  0.5]
-#feeds.PAF36.feed4           = [-2.5,  1.5]
-#feeds.PAF36.feed5           = [-2.5,  2.5]
-
-#feeds.PAF36.feed6           = [-1.5, -2.5]
-#feeds.PAF36.feed7           = [-1.5, -1.5]
-#feeds.PAF36.feed8           = [-1.5, -0.5]
-#feeds.PAF36.feed9           = [-1.5,  0.5]
-feeds.PAF36.feed10          = [-1.5,  1.5]
-feeds.PAF36.feed11          = [-1.5,  2.5]
-
-feeds.PAF36.feed12          = [-0.5, -2.5]
-feeds.PAF36.feed13          = [-0.5, -1.5]
-feeds.PAF36.feed14          = [-0.5, -0.5]
-feeds.PAF36.feed15          = [-0.5,  0.5]
-feeds.PAF36.feed16          = [-0.5,  1.5]
-feeds.PAF36.feed17          = [-0.5,  2.5]
-
-feeds.PAF36.feed18          = [0.5, -2.5]
-feeds.PAF36.feed19          = [0.5, -1.5]
-feeds.PAF36.feed20          = [0.5, -0.5]
-feeds.PAF36.feed21          = [0.5,  0.5]
-feeds.PAF36.feed22          = [0.5,  1.5]
-feeds.PAF36.feed23          = [0.5,  2.5]
-
-feeds.PAF36.feed24          = [1.5, -2.5]
-feeds.PAF36.feed25          = [1.5, -1.5]
-feeds.PAF36.feed26          = [1.5, -0.5]
-feeds.PAF36.feed27          = [1.5,  0.5]
-feeds.PAF36.feed28          = [1.5,  1.5]
-feeds.PAF36.feed29          = [1.5,  2.5]
-
-feeds.PAF36.feed30          = [2.5, -2.5]
-feeds.PAF36.feed31          = [2.5, -1.5]
-feeds.PAF36.feed32          = [2.5, -0.5]
-feeds.PAF36.feed33          = [2.5,  0.5]
-feeds.PAF36.feed34          = [2.5,  1.5]
-feeds.PAF36.feed35          = [2.5,  2.5]
 
 #
 # Antennas
 #
-antennas.names              = [AK06,AK01,AK03,AK15,AK08,AK09]
+antennas                = [ant1, ant3, ant6, ant8, ant9, ant15]
 
-# antenna positions copied from sw-correlator parset
-antennas.AK01.location     = [-2556084.669, 5097398.337, -2848424.133]
-antennas.AK01.diameter     = 12m
-antennas.AK01.mount        = equatorial
-antennas.AK01.feed_config  = PAF36
+# Common to all antennas
+antenna.ant.diameter    = 12m
+antenna.ant.mount       = equatorial
 
-antennas.AK03.location     = [-2556118.102, 5097384.726, -2848417.280]
-antennas.AK03.diameter     = 12m
-antennas.AK03.mount        = equatorial
-antennas.AK03.feed_config  = PAF36
+# Per antenna config
+antenna.ant1.name       = ak01
+antenna.ant1.location   = [116.6314242861317, -26.697000722524, 360.990124660544]
 
-antennas.AK06.location     = [-2556227.863, 5097380.399, -2848323.367]
-antennas.AK06.diameter     = 12m
-antennas.AK06.mount        = equatorial
-antennas.AK06.feed_config  = PAF36
+antenna.ant3.name       = ak03
+antenna.ant3.location   = [116.6317858746065, -26.69693403662801, 360.4301465414464]
 
-# # easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
-# # lat: -26.699153192237; long: 116.631037279591; el: 370.810000
-#antennas.AK08.location     = [-2556005.813742, 5097327.008027, -2848641.257970]
-antennas.AK08.location     = [-2556002.713742, 5097320.608027, -2848637.727970]
+antenna.ant6.name       = ak06
+antenna.ant6.location   = [116.6327911957065, -26.69599302652372, 358.7396716130897]
 
-#antennas.AK08.location     = [-2556005.452742, 5097326.427027, -2848641.371970]
-antennas.AK08.diameter     = 12m
-antennas.AK08.mount        = equatorial
-antennas.AK08.feed_config  = PAF36
+antenna.ant8.name       = ak08
+antenna.ant8.location   = [116.6310382605877, -26.69915356409521, 362.0615070033818]
 
-# # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
-# # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
-#antennas.AK09.location     = [-2555892.0789,5097558.900315,-2848328.449449]
-antennas.AK09.location     = [-2555888.9789,5097552.500315,-2848324.911449]
+antenna.ant9.name       = ak09
+antenna.ant9.location   = [116.6289723379451, -26.69599760606219, 361.1683603106067]
 
-#antennas.AK09.location     = [-2555891.7179,5097558.319315,-2848328.335449]
-antennas.AK09.diameter     = 12m
-antennas.AK09.mount        = equatorial
-antennas.AK09.feed_config  = PAF36
+antenna.ant15.name      = ak15
+antenna.ant15.location  = [116.6239853521759, -26.69841096756231, 356.8405737774447]
 
-#antennas.AK15.location  =  [-2555392.80943903,5097670.48452923,-2848565.421727]
-antennas.AK15.location  =  [-2555389.70943903,5097664.08452923,-2848561.871727]
-
-
-#antennas.AK15.location  =  [-2555393.17043903,5097669.90352923,-2848565.535727]
-antennas.AK15.diameter     = 12m
-antennas.AK15.mount        = equatorial
-antennas.AK15.feed_config  = PAF36
-
-# # easting: 463899.970000; northing: 7047824.220000; el: 364.280000; Zone: 50 south
-# # lat: -26.690214789597; long: 116.637134608883; el: 364.280000
-antennas.AK29.location     = [-2556745.438405, 5097448.114406, -2847753.833282]
-antennas.AK29.diameter     = 12m
-antennas.AK29.mount        = equatorial
-antennas.AK29.feed_config  = PAF36
 
 #
 # Baseline mapping:
@@ -131,6 +111,9 @@ antennas.AK29.feed_config  = PAF36
 # Mapping is from baselineid to (ant1, ant2,  product)
 #
 baselinemap.baselineids            = [1..78]
+
+# This maps the antenna indexes (used below) to antenna names
+baselinemap.antennaidx = [ak06, ak01, ak03, ak15, ak08, ak09]
 
 baselinemap.1                      = [0, 0, XX]
 baselinemap.2                      = [0, 0, XY]
@@ -217,65 +200,15 @@ baselinemap.77                      = [5, 5, XY]
 baselinemap.78                      = [5, 5, YY]
 
 #
-#  Observation specific
+# Correlator mode(s)
 #
-observation.sbid                    = 0
-observation.scan0.field_name        = test-field
-# Virgo
-observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
-# 0407-658
-#observation.scan0.field_direction   = [04h08m20.38, -65.45.09.1, J2000]
-# 1934-638
-#observation.scan0.field_direction   = [19h39m25.026, -63.42.45.63, J2000]
-# 1549-790 (cluster field)
-#observation.scan0.field_direction   = [15h56m58.871, -79.14.04.28, J2000]
-# 1742-289 (Galactic centre)
-#observation.scan0.field_direction   = [17h45m40.04, -29.00.28.07, J2000]
+correlator.modes                        = [standard]
 
-# some other calibrators
-# 1921-293
-#observation.scan0.field_direction   = [19h24m51.06, -29.14.30.12, J2000]
-# 2251+158
-#observation.scan0.field_direction   = [22h53m57.74, 16.08.53.56, J2000]
-# 0537-441
-#observation.scan0.field_direction   = [05h38m50.36, -44.05.08.94, J2000]
-# 1245-197
-#observation.scan0.field_direction   = [12h48m23.898, -19.59.18.59, J2000]
-# 0607-157
-#observation.scan0.field_direction   = [06h09m40.95, -15.42.40.67, J2000]
+correlator.mode.standard.chan_width     = 18.5185185kHz
+correlator.mode.standard.interval       = 5000000
+correlator.mode.standard.n_chan         = 16416
+correlator.mode.standard.stokes         = [XX, XY, YX, YY]
 
-
-
-# zenith at some sidereal time
-#observation.scan0.field_direction   = [22h12m00.00, -26.41.49.20, J2000]
-# south pole
-#observation.scan0.field_direction   = [22h12m00.00, -90.00.00.00, J2000]
-
-# S9
-#observation.scan0.field_direction   = [17h52m06.00, -34.25.42.01, J2000]
-# Galactic HI Tb~160K 
-#observation.scan0.field_direction   = [09h46m14.00, -54.26.48.6, J2000]
-# NGC 4945
-#observation.scan0.field_direction   = [13h05m27.50, -49.28.06, J2000]
-# NGC253
-#observation.scan0.field_direction   = [00h47m33.0, -25.17.18, J2000]
-# 1830-210
-#observation.scan0.field_direction   = [18h33m39.9150, -21.03.40.050, J2000]
-
-
-
-# For LO=5872MHz
-observation.scan0.start_freq        = 1.0155GHz
-# For LO=6416MHz
-#observation.scan0.start_freq        = 1.5595GHz
-# For LO=6432MHz
-#observation.scan0.start_freq        = 1.5755GHz
-observation.scan0.n_chan            = 16416
-observation.scan0.chan_width        = -18.518518kHz
-observation.scan0.stokes            = [XX, XY, YX, YY]
-observation.scan0.interval          = 5000000
-#observation.scan0.interval          = 5031936
-#observation.scan0.interval          = 4976640
 
 #
 # Task List
@@ -319,15 +252,22 @@ tasks.DerippleTask.type = DerippleTask
 #
 tasks.NoMetadataSource.type                             = NoMetadataSource
 tasks.NoMetadataSource.params.vis_source.port           = 16384
-tasks.NoMetadataSource.params.vis_source.buffer_size    = 89856
+tasks.NoMetadataSource.params.vis_source.buffer_size    = 44928
 
 # Number of channels a given ingest process is meant to receive/process
 tasks.NoMetadataSource.params.n_channels.0              = 16416
 tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
-#tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,10:9,11:10,12:11,13:12,14:13,15:14,16:15,17:16,18:17,19:18,20:19,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35"
-#tasks.NoMetadataSource.params.beammap = "10:0,11:1,12:2,13:3,14:4,15:5,16:6,17:7,18:8"
-tasks.NoMetadataSource.params.maxbeams = 9
-tasks.NoMetadataSource.params.beams2receive = 36
+tasks.NoMetadataSource.params.maxbeams                  = 9
+tasks.NoMetadataSource.params.beams2receive             = 9
+tasks.NoMetadataSource.params.centre_freq               = 850MHz
+
+# NOTE!!! The below are start_freq, the above is centre_freq
+# For LO=5872MHz
+observation.scan0.start_freq        = 1.0155GHz
+# For LO=6416MHz
+#observation.scan0.start_freq        = 1.5595GHz
+# For LO=6432MHz
+#observation.scan0.start_freq        = 1.5755GHz
 
 #
 # CalcUVWTask
@@ -423,7 +363,7 @@ tasks.FlagEven.params.5 = [1,2,YY]
 #
 tasks.MSSink.type                       = MSSink
 tasks.MSSink.params.filename            = /scratch/vor010/MS/%d_%t.ms
-tasks.MSSink.params.stman.bucketsize    = 131072
+tasks.MSSink.params.stman.bucketsize    = 65536
 tasks.MSSink.params.stman.tilencorr     = 4
 tasks.MSSink.params.stman.tilenchan     = 1026
 

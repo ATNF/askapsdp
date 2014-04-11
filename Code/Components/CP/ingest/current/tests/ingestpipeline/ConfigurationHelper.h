@@ -108,7 +108,7 @@ class ConfigurationHelper {
             parset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
 
             parset.add("antenna.ant6.name", "ak06");
-            parset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897");
+            parset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897]");
 
             parset.add("antenna.ant8.name", "ak08");
             parset.add("antenna.ant8.location", "[116.6310382605877, -26.69915356409521, 362.0615070033818]");
@@ -121,6 +121,8 @@ class ConfigurationHelper {
 
             // Baseline ID Map
             parset.add("baselinemap.baselineids","[1..21]");
+
+            parset.add("baselinemap.antennaidx", "[ak06, ak01, ak03, ak15, ak08, ak09]");
 
             parset.add("baselinemap.1", "[0, 0, XX]");     
             parset.add("baselinemap.2", "[0, 0, XY]");     

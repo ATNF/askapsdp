@@ -7,4 +7,4 @@ source ../../init_package_env.sh
 export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
 
 # Run the ingest pipeline
-mpirun -np 2 ../../apps/cpingest.sh -c cpingest.in
+../../apps/cpingest.sh -s -c cpingest.in
