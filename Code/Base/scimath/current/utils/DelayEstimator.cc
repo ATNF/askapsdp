@@ -32,6 +32,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include "utils/DelayEstimator.h"
+#include "utils/PhaseUnwrapper.h"
 #include <casa/BasicSL/Constants.h>
 #include <askap/AskapError.h>
 
@@ -55,19 +56,9 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    const float threshold = 3 * casa::C::pi / 2;
 
    // unambiguate phases
-   float wrapCompensation = 0.;
+   PhaseUnwrapper<float> phu(threshold);
    for (size_t chan=0; chan<phases.size(); ++chan) {
-        const casa::Float curPhase = arg(vis[chan]);
-        if (chan > 0) {
-            const float prevOrigPhase = phases[chan - 1] - wrapCompensation;
-            const float diff = curPhase - prevOrigPhase;
-            if (diff >= threshold) {
-                wrapCompensation -= 2. * casa::C::pi;
-            } else if (diff <= -threshold) {
-                wrapCompensation += 2. * casa::C::pi;
-            }
-        }
-        phases[chan] = curPhase + wrapCompensation;
+        phases[chan] = phu(arg(vis[chan]));
    }
    
    // do LSF into phase vs. channel
