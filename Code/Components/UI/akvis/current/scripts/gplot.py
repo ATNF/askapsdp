@@ -60,13 +60,15 @@ def _main():
             title('G1')
             subplot(2,2,3)
             plot(degrees(angle(data[:,b,:,0].T)))
+            np.savetxt("g1phase.dat",degrees(angle(data[:,b,:,0].T)))
             ylabel('Phase (deg)')
             xlabel('Time step')
             subplot(2,2,2)
-            plot(abs(data[:,b,:,0].T))
+            plot(abs(data[:,b,:,1].T))
             title('G2')
             subplot(2,2,4)
-            plot(degrees(angle(data[:,b,:,0].T)))
+            plot(degrees(angle(data[:,b,:,1].T)))
+            np.savetxt("g2phase.dat",degrees(angle(data[:,b,:,1].T)))
             xlabel('Time step')
 
 
