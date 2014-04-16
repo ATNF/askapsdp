@@ -37,6 +37,7 @@
 #include <askap/AskapError.h>
 
 #include <vector>
+#include <cmath>
 
 namespace askap {
 
@@ -58,13 +59,21 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    // unambiguate phases
    PhaseUnwrapper<float> phu(threshold);
    for (size_t chan=0; chan<phases.size(); ++chan) {
-        phases[chan] = phu(arg(vis[chan]));
+        const float curPhase = arg(vis[chan]);
+        if (isnan(curPhase)) {
+            phases[chan] = curPhase;
+        } else {
+            phases[chan] = phu(arg(vis[chan]));
+        }
    }
    
    // do LSF into phase vs. channel
    double sx = 0., sy = 0., sx2 = 0., sxy = 0.;
    // could've combined two loops, but keep it easy for now
    for (size_t chan=0; chan < phases.size(); ++chan) {
+        if (isnan(phases[chan])) {
+            continue;
+        }
         sx += double(chan);
         sx2 += double(chan)*double(chan);
         sy += double(phases[chan]);
