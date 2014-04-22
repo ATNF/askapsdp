@@ -29,6 +29,7 @@
 
 // Support classes
 #include <sstream>
+#include <cmath>
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
@@ -56,7 +57,9 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testFiftyFourToOne);
         CPPUNIT_TEST(testEightToTwo);
         CPPUNIT_TEST(testFullFineToCoarse);
+        CPPUNIT_TEST(testNoAveraging);
         CPPUNIT_TEST(testInvalid);
+        CPPUNIT_TEST(testAllFlagged);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -83,12 +86,33 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             averageTest(304 * 54, 304);
         }
 
+        // Test where no averaging is requested. The output VisChunk should be
+        // identical to the input.
+        void testNoAveraging() {
+            averageTest(304 * 54, 1);
+        }
+
+        // Test where all visibilities are flagged. This ensures no divide by
+        // zero occurs
+        void testAllFlagged() {
+            averageTest(304 * 54, 304, true);
+        }
+
         void testInvalid() {
             // This is an invalid configuraion, so should throw an exception
             CPPUNIT_ASSERT_THROW(averageTest(4, 3), askap::AskapError);
         }
 
-        void averageTest(const unsigned int nChan, const unsigned int channelAveraging) {
+        /// Generic avergaing test driver
+        /// @param[in] nChan            number of spectral channels to create
+        /// @param[in] channelAveraging number of channels to average
+        ///                             together to form one. This must evenly
+        ///                             divide nChan
+        /// @param[in] allFlagged       if true, the test drvier creates a VisChunk
+        ///                             with all visibilities flagged. This is an edge
+        ///                             case that can often result in a divide-by-zero.
+        void averageTest(const unsigned int nChan, const unsigned int channelAveraging,
+                         bool allFlagged = false) {
             // Setup the parset for the channel averaging task
             std::ostringstream ss;
             ss << channelAveraging;
@@ -147,7 +171,7 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
                                   static_cast<float>(chan + 2));
                 chunk->visibility()(row, chan, pol) = val;
                 visSum(newIdx) += val;
-                chunk->flag()(row, chan, pol) = false;
+                chunk->flag()(row, chan, pol) = allFlagged;
 
                 // Also set frequency information
                 chunk->frequency()(chan) = startFreq + (chan * freqInc);
@@ -168,19 +192,30 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             // Iterate over each of the new channels
             for (unsigned int i = 0; i < nChanNew; ++i) {
                 // Determine the values for post-conditions
-                const float realAvg = visSum(i).real() / channelAveraging;
-                const float imagAvg = visSum(i).imag() / channelAveraging;
-                const double freqAvg = freqSum(i) / channelAveraging;
+                float expectedReal = visSum(i).real() / channelAveraging;
+                float expectedImag = visSum(i).imag() / channelAveraging;
+                double expectedFreq = freqSum(i) / channelAveraging;
+                bool expectedFlag = allFlagged;
 
                 // Check post-conditions
                 CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
                 CPPUNIT_ASSERT_EQUAL(nChanNew, chunk->nChannel());
                 CPPUNIT_ASSERT_EQUAL(nChanNew,
                                      static_cast<unsigned int>(chunk->frequency().size()));
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(freqAvg, chunk->frequency()(i), tol);
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(expectedFreq, chunk->frequency()(i), tol);
 
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, i, pol).real(), tol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, i, pol).imag(), tol);
+                CPPUNIT_ASSERT(!std::isnan(chunk->visibility()(row, i, pol).real()));
+                CPPUNIT_ASSERT(!std::isnan(chunk->visibility()(row, i, pol).imag()));
+
+                if (allFlagged) {
+                    expectedReal = 0.0;
+                    expectedImag = 0.0;
+                }
+                CPPUNIT_ASSERT_EQUAL(expectedFlag, chunk->flag()(row, i, pol));
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(expectedReal,
+                        chunk->visibility()(row, i, pol).real(), tol);
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(expectedImag,
+                        chunk->visibility()(row, i, pol).imag(), tol);
             }
 
             // Check the channel width has been updated

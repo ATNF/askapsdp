@@ -116,16 +116,16 @@ void ChannelAvgTask::process(VisChunk::ShPtr chunk)
                         numGoodSamples++;
                     }
                 }
-                casa::Complex avg(sum.real() / numGoodSamples,
-                        sum.imag() / numGoodSamples);
-                newVis(row, newIdx, pol) = avg;
 
-                // Flag if there were no samples to average
                 if (numGoodSamples > 0) {
+                    newVis(row, newIdx, pol) = casa::Complex(sum.real() / numGoodSamples,
+                                                             sum.imag() / numGoodSamples);
                     newFlag(row, newIdx, pol) = false;
                 } else {
+                    newVis(row, newIdx, pol) = casa::Complex(0.0, 0.0);
                     newFlag(row, newIdx, pol) = true;
                 }
+
             }
         }
     }
