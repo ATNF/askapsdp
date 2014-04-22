@@ -85,22 +85,22 @@ class ConfigurationTest : public CppUnit::TestFixture {
             itsParset.add("antenna.ant.mount", "equatorial");
 
             itsParset.add("antenna.ant1.name", "ak01");
-            itsParset.add("antenna.ant1.location", "[116.6314242861317, -26.697000722524, 360.990124660544]");
+            itsParset.add("antenna.ant1.location.itrf", "[-2556084.669, 5097398.337, -2848424.133]");
 
             itsParset.add("antenna.ant3.name", "ak03");
-            itsParset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
+            itsParset.add("antenna.ant3.location.itrf", "[-2556118.102, 5097384.726, -2848417.280]");
 
             itsParset.add("antenna.ant6.name", "ak06");
-            itsParset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897]");
+            itsParset.add("antenna.ant6.location.itrf", "[-2556227.863, 5097380.399, -2848323.367]");
 
             itsParset.add("antenna.ant8.name", "ak08");
-            itsParset.add("antenna.ant8.location", "[116.6310382605877, -26.69915356409521, 362.0615070033818]");
+            itsParset.add("antenna.ant8.location.itrf", "[-2556002.713742, 5097320.608027, -2848637.727970]");
 
             itsParset.add("antenna.ant9.name", "ak09");
-            itsParset.add("antenna.ant9.location", "[116.6289723379451, -26.69599760606219, 361.1683603106067]");
+            itsParset.add("antenna.ant9.location.itrf", "[-2555888.9789, 5097552.500315, -2848324.911449]");
 
             itsParset.add("antenna.ant15.name", "ak15");
-            itsParset.add("antenna.ant15.location", "[116.6239853521759, -26.69841096756231, 356.8405737774447]");
+            itsParset.add("antenna.ant15.location.itrf", "[-2555389.70943903, 5097664.08452923, -2848561.871727]");
 
             itsParset.add("correlator.modes", "[standard]");
             itsParset.add("correlator.mode.standard.chan_width", "18.518518kHz");

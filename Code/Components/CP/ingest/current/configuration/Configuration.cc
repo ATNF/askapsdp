@@ -193,7 +193,7 @@ void Configuration::buildAntennas(void)
     for (vector<string>::const_iterator it = antId.begin(); it != antId.end(); ++it) {
         const string keyBase = "antenna." + *it + ".";
         const string name = itsParset.getString(keyBase + "name");
-        const vector<double> location = itsParset.getDoubleVector(keyBase + "location");
+        const vector<double> location = itsParset.getDoubleVector(keyBase + "location.itrf");
 
         casa::Quantity diameter;
         if (itsParset.isDefined(keyBase + "diameter")) {
@@ -209,8 +209,7 @@ void Configuration::buildAntennas(void)
             mount = defaultMount;
         }
 
-        const casa::Vector<casa::Double> xyzLocation = Antenna::convertAntennaPosition(location);
-        antennaMap.insert(make_pair(name, Antenna(name, mount, xyzLocation, diameter)));
+        antennaMap.insert(make_pair(name, Antenna(name, mount, location, diameter)));
     }
     
     // Now read "baselinemap.antennaidx" and build the antenna vector with the

@@ -95,29 +95,28 @@ class ConfigurationHelper {
             parset.add("feeds.feed3", "[-2.5, 1.5]");
 
             // Antennas
-
             parset.add("antennas", "[ant1, ant3, ant6, ant8, ant9, ant15]");
 
             parset.add("antenna.ant.diameter", "12m");
             parset.add("antenna.ant.mount", "equatorial");
 
             parset.add("antenna.ant1.name", "ak01");
-            parset.add("antenna.ant1.location", "[116.6314242861317, -26.697000722524, 360.990124660544]");
+            parset.add("antenna.ant1.location.itrf", "[-2556084.669, 5097398.337, -2848424.133]");
 
             parset.add("antenna.ant3.name", "ak03");
-            parset.add("antenna.ant3.location", "[116.6317858746065, -26.69693403662801, 360.4301465414464]");
+            parset.add("antenna.ant3.location.itrf", "[-2556118.102, 5097384.726, -2848417.280]");
 
             parset.add("antenna.ant6.name", "ak06");
-            parset.add("antenna.ant6.location", "[116.6327911957065, -26.69599302652372, 358.7396716130897]");
+            parset.add("antenna.ant6.location.itrf", "[-2556227.863, 5097380.399, -2848323.367]");
 
             parset.add("antenna.ant8.name", "ak08");
-            parset.add("antenna.ant8.location", "[116.6310382605877, -26.69915356409521, 362.0615070033818]");
+            parset.add("antenna.ant8.location.itrf", "[-2556002.713742, 5097320.608027, -2848637.727970]");
 
             parset.add("antenna.ant9.name", "ak09");
-            parset.add("antenna.ant9.location", "[116.6289723379451, -26.69599760606219, 361.1683603106067]");
+            parset.add("antenna.ant9.location.itrf", "[-2555888.9789, 5097552.500315, -2848324.911449]");
 
             parset.add("antenna.ant15.name", "ak15");
-            parset.add("antenna.ant15.location", "[116.6239853521759, -26.69841096756231, 356.8405737774447]");
+            parset.add("antenna.ant15.location.itrf", "[-2555389.70943903, 5097664.08452923, -2848561.871727]");
 
             // Baseline ID Map
             parset.add("baselinemap.baselineids","[1..21]");

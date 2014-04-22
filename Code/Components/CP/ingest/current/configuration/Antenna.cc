@@ -40,9 +40,6 @@
 #include "casa/Quanta.h"
 #include "casa/BasicSL.h"
 #include "casa/Arrays/Vector.h"
-#include "measures/Measures/MPosition.h"
-#include "measures/Measures/MCPosition.h"
-#include <measures/Measures/MeasConvert.h>
 
 ASKAP_LOGGER(logger, ".Antenna");
 
@@ -81,24 +78,4 @@ casa::Vector<casa::Double> Antenna::position(void) const
 casa::Quantity Antenna::diameter(void) const
 {
     return itsDiameter;
-}
-
-casa::Vector<casa::Double> Antenna::convertAntennaPosition(const std::vector<double>& wgs84)
-{
-    const size_t LEN = 3;
-    ASKAPCHECK(wgs84.size() == LEN, "Position vector must be of length 3");
-    const MPosition pos(MVPosition(Quantity(wgs84[2], "m"),
-                Quantity(wgs84[0], "deg"),
-                Quantity(wgs84[1], "deg")),
-            MPosition::Ref(MPosition::WGS84));
-    const MPosition itrf = MPosition::Convert(pos, MPosition::ITRF)();
-    const MVPosition itrfValue = itrf.getValue();
-
-    casa::Vector<casa::Double> out(LEN);
-    for (size_t i = 0; i < LEN; ++i) {
-        out[i] = itrfValue.getValue()[i];
-    }
-
-    return out;
-
 }

@@ -63,9 +63,6 @@ class Antenna {
         /// @brief Nominal diameter of the dish.
         casa::Quantity diameter(void) const;
 
-
-        static casa::Vector<casa::Double> convertAntennaPosition(const std::vector<double>& wgs84);
-
     private:
         casa::String itsName;
         casa::String itsMount;
