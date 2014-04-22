@@ -36,6 +36,7 @@ class AbortEvent(object):
         self.__message = ""
         self.__cond = Condition(Lock())
         self.__flag = False
+        self.raised = False
 
     def _reset_internal_locks(self):
         # private!  called by Thread._reset_internal_locks by _after_fork()
@@ -58,8 +59,11 @@ class AbortEvent(object):
 
     def raise_exception(self, reason):
         """set the event and provide a reason"""
+        if self.raised:
+            return
         self.__cond.acquire()
         try:
+            self.raised = True
             self.__flag = True
             self.__message = reason
             self.__cond.notify_all()
@@ -94,7 +98,7 @@ def raise_abort(event):
 
     :param event: the :class:`AbortEvent` to check
 
-    """
-    if event.is_set():
+    """    
+    if event.is_set() and not event.raised:
         msg = event.message() or "Unknown reason"
         raise AbortError(event.message())
