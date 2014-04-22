@@ -1,7 +1,9 @@
 /// @file 
 ///
-/// @brief unflags all visibilities for a given MS
-/// @details This application is intended to fix flag column. It unflags all records 
+/// @brief flags visibilities which contain NaN
+/// @details This application is intended to fix flag and data column. Some datasets were
+/// found to contain NaNs for some reason which complicates processing. This application
+/// replaces NaNs with zeros and flags the appropriate point.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -50,73 +52,61 @@
 #include <askapparallel/AskapParallel.h>
 #include <CommandLineParser.h>
 
-ASKAP_LOGGER(logger, ".unflag");
+ASKAP_LOGGER(logger, ".flagnans");
 
 using namespace askap;
 //using namespace askap::swcorrelator;
 
 void process(const std::string &fname) 
 {
-  ASKAPLOG_INFO_STR(logger,  "Unflagging all data for "<<fname);
+  ASKAPLOG_INFO_STR(logger,  "Searching "<<fname<<" for NaNs and flagging appropriate points");
   casa::Table ms(fname, casa::Table::Update);
   
   casa::ArrayColumn<casa::Bool> flagCol(ms, "FLAG");
-  casa::ScalarColumn<casa::Int> ant1(ms, "ANTENNA1");
-  casa::ScalarColumn<casa::Int> ant2(ms, "ANTENNA2");
-
-  
-  // to load channel list from a file
-  std::vector<int> channels;
-  {
-     std::ifstream is("flags.dat"); 
-     ASKAPCHECK(is, "Unable to open flags.dat");
-     while (is) {
-        int buf;
-        is >> buf;
-        if (is) {
-           channels.push_back(buf);
-        }
-     }
-  }
-  
+  casa::ArrayColumn<casa::Complex> visCol(ms, "DATA");
   
   ASKAPLOG_INFO_STR(logger,"Total number of rows in the measurement set: "<<ms.nrow());
+  size_t nFlagged = 0;
+  size_t nAlreadyFlagged = 0;
 
   for (casa::uInt row = 0; row<ms.nrow(); ++row) {
-       /*    
-       if ((ant1.get(row) != 1) && (ant2.get(row) != 2)) {
-       //if ((ant1.get(row) != 0) || (ant2.get(row) != 1)) {
-           continue;
-       }
-       */
-       casa::Array<casa::Bool> buf;
-       flagCol.get(row,buf);
+       casa::Array<casa::Bool> flagBuf;
+       flagCol.get(row,flagBuf);
 
-       // to unflag
-       //buf.set(false);
+       casa::Array<casa::Complex> visBuf;
+       visCol.get(row, visBuf);
 
-       /*
-       // to flag certain rows
-       if (row >= 560196) {
-           buf.set(true);
-       }
-       //
-       */
-       
-       
-       // to flag channels based on a file
-       for (size_t i = 0; i<channels.size(); ++i) {
-            casa::Matrix<casa::Bool> thisRow(buf);
-            // order reversed w.r.t. the accessor
-            ASKAPASSERT(channels[i] < int(thisRow.ncolumn()));
-            thisRow.column(channels[i]).set(true);
-       }
-       //
-       
-       
+       bool changed = false;
 
-       flagCol.put(row,buf);
+       ASKAPDEBUGASSERT(flagBuf.shape().nelements() == 2);
+       ASKAPDEBUGASSERT(visBuf.shape().nelements() == 2);
+       ASKAPDEBUGASSERT(visBuf.shape() == flagBuf.shape());
+
+       casa::Matrix<casa::Complex> vis(visBuf);
+       casa::Matrix<casa::Bool> flag(flagBuf);
+       for (casa::uInt ch=0; ch<vis.nrow(); ++ch) {
+            for (casa::uInt pol=0; pol<vis.ncolumn(); ++pol) {
+                 if (isnan(real(vis(ch,pol))) || isnan(imag(vis(ch,pol)))) {
+                     changed = true;
+                     vis(ch,pol) = casa::Complex(0.,0.);
+                     if (flag(ch,pol)) {
+                         ++nAlreadyFlagged;
+                     } else {
+                         flag(ch,pol) = true;
+                         ++nFlagged;
+                     }
+                 }
+            }
+       }
+            
+       if (changed) {
+           flagCol.put(row,flagBuf);
+           visCol.put(row,visBuf);
+       }
   }
+  ASKAPLOG_INFO_STR(logger,"Total number of NaNs found: "<<(nFlagged + nAlreadyFlagged));
+  ASKAPLOG_INFO_STR(logger,"  Already flagged: "<<nAlreadyFlagged);
+  ASKAPLOG_INFO_STR(logger,"  Newly flagged: "<<nFlagged);
 }
 
 
