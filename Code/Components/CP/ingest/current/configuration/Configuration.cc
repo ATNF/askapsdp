@@ -117,7 +117,7 @@ const BaselineMap& Configuration::bmap(void) const
 
 casa::uInt Configuration::schedulingBlockID(void) const
 {
-    return itsParset.getUint32("sbid");
+    return itsParset.getUint32("sb.id");
 }
 
 ServiceConfig Configuration::calibrationDataService(void) const
@@ -255,7 +255,7 @@ void Configuration::buildCorrelatorModes(void)
 
 void Configuration::buildTargets(void)
 {
-    itsScans = itsParset.getStringVector("targets");
+    itsScans = itsParset.getStringVector("sb.targets");
     vector<string>::const_iterator it;
     for (it = itsScans.begin(); it != itsScans.end(); ++it) {
         const string id = *it;
@@ -266,7 +266,7 @@ void Configuration::buildTargets(void)
         }
 
         // First time we have seen this target
-        const string keyBase = "target." + id + ".";
+        const string keyBase = "sb.target." + id + ".";
         const string name = itsParset.getString(keyBase + "field_name");
         const casa::MDirection dir = asMDirection(itsParset.getStringVector(
                     keyBase + "field_direction"));

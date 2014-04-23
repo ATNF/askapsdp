@@ -53,16 +53,16 @@ class ConfigurationTest : public CppUnit::TestFixture {
     public:
         void setUp() {
             // Observation (from Scheduling block)
-            itsParset.add("sbid", "0");
-            itsParset.add("targets", "[src1, src2]");
+            itsParset.add("sb.id", "0");
+            itsParset.add("sb.targets", "[src1, src2]");
 
-            itsParset.add("target.src1.field_name", "test-field1");
-            itsParset.add("target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            itsParset.add("target.src1.corrmode", "standard");
+            itsParset.add("sb.target.src1.field_name", "test-field1");
+            itsParset.add("sb.target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            itsParset.add("sb.target.src1.corrmode", "standard");
 
-            itsParset.add("target.src2.field_name", "test-field2");
-            itsParset.add("target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            itsParset.add("target.src2.corrmode", "standard");
+            itsParset.add("sb.target.src2.field_name", "test-field2");
+            itsParset.add("sb.target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            itsParset.add("sb.target.src2.corrmode", "standard");
 
             // Array name
             itsParset.add("array.name", "ASKAP");

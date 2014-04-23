@@ -3,18 +3,18 @@
 #
 
 #
-#  Observation details
+#  Scheduling Block Parameters
 #
-sbid                        = 0
-targets                     = [src1, src2]
+sb.id                          = 0
+sb.targets                     = [src1, src2]
 
-target.src1.field_name      = test-field1
-target.src1.field_direction = [12h30m00.000, -45d00m00.000, J2000]
-target.src1.corrmode        = standard
+sb.target.src1.field_name      = test-field1
+sb.target.src1.field_direction = [12h30m00.000, -45d00m00.000, J2000]
+sb.target.src1.corrmode        = standard
 
-target.src2.field_name      = test-field1
-target.src2.field_direction = [12h30m00.000, -45d00m00.000, J2000]
-target.src2.corrmode        = standard
+sb.target.src2.field_name      = test-field1
+sb.target.src2.field_direction = [12h30m00.000, -45d00m00.000, J2000]
+sb.target.src2.corrmode        = standard
 
 # Array Name
 array.name                  = ASKAP
