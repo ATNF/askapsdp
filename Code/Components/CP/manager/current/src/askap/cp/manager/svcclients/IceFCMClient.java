@@ -43,7 +43,7 @@ public class IceFCMClient implements IFCMClient {
 	
 	public IceFCMClient(Ice.Communicator ic) {
 		logger.info("Creating FCMClient");
-		Ice.ObjectPrx obj = ic.stringToProxy("FCMService");
+		Ice.ObjectPrx obj = ic.stringToProxy("FCMService@FCMAdapter");
 		itsProxy = IFCMServicePrxHelper.checkedCast(obj);
 	}
 	
