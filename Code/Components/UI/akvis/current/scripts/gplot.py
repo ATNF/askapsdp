@@ -36,7 +36,7 @@ def _main():
 
     for f in values.infiles:
         s = Source(f, values.type)
-        ntime = s.most_recent_solution_id
+        ntime = s.most_recent_solution_id + 1
         print f, 'most recent soln ID', s.most_recent_solution_id
         
         data = None
