@@ -32,16 +32,21 @@ public class ConfigBuilder {
 		ParameterSet config = new ParameterSet();
 		
 		// Adds scheduling block id
-		config.put("sbid", Long.toString(sbid));
+		config.put("sb.id", Long.toString(sbid));
 		
 		// Use "cp.ingest" and "common" part of FCM, but those prefixes
 		// get removed
 		config.putAll(facilityConfig.subset("cp.ingest."));
 		config.putAll(facilityConfig.subset("common."));
 
-		// Add the scheduling block params in, but again without the "common"
-		// prefix
-		config.putAll(obsParams.subset("common."));
+		// Grab just the "common" scheduling block keys
+		ParameterSet sbCommon = obsParams.subset("common.");
+		
+		// Add each to the config being built, but prefixed with "sb."
+		for (Object o : sbCommon.keySet()) {
+			String key = (String) o;
+			config.put("sb." + key, sbCommon.get(o));
+		}
 		
 		return config;
 	}
