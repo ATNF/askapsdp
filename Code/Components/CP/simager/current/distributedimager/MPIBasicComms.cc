@@ -316,7 +316,7 @@ void MPIBasicComms::receiveMessage(IMessage& msg, int source)
 void MPIBasicComms::receiveMessageAnySrc(IMessage& msg, int& actualSource)
 {
     // First receive the size of the byte stream
-    unsigned long size;
+    unsigned long size = 0;
     const int type = msg.getMessageType();
     MPI_Status status;
     receive(&size, sizeof(long), MPI_ANY_SOURCE, type, status);

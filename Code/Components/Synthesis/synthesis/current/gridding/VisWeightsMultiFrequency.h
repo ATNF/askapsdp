@@ -25,7 +25,7 @@
 ///
 /// @author Urvashi Rau <rurvashi@aoc.nrao.edu>
 ///
-#ifndef VISWIEGHTSMULTIFREQUENCY_H_
+#ifndef VISWEIGHTSMULTIFREQUENCY_H_
 #define VISWEIGHTSMULTIFREQUENCY_H_
 
 #include <gridding/IVisWeights.h>

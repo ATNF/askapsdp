@@ -457,6 +457,9 @@ T Image2DConvolver<T>::fillKernel(casa::Matrix<T>& kernelMatrix,
         fillGaussian(maxValKernel, volumeKernel, kernelMatrix, height,
                      xCentre, yCentre, major, ratio, pa);
     } else if (kernelType == casa::VectorKernel::BOXCAR) {
+        // TODO: Unsure why fillBoxcar is commented out. Rather than an uninitialised
+        // volumeKernel, throw an exception until this is fixed.
+        ASKAPTHROW(AskapError, "VectorKernel::BOXCAR not supported");
         /*
            fillBoxcar (maxValKernel, volumeKernel, kernelMatrix, height,
            xCentre, yCentre, major, ratio, pa);

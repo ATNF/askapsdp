@@ -103,8 +103,6 @@ private:
    /// @details A negative value means that the class has not been initialised (-1) or is in a 
    /// single plane image mode (-2).
    int itsImageNChan;
-   /// @brief number of accessor channels
-   casa::uInt itsAccessorNChan;
    /// @brief map of accessor channels to image channels
    /// @details the value is negative if no mapping exists for a particular channel
    std::vector<int> itsMap;   

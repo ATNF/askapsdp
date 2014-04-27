@@ -60,7 +60,7 @@ namespace askap
 
       private:
         ImageDFTEquation *p1, *p2;
-        Params *params1, *params2, *params3;
+        Params *params1, *params2;
         accessors::IDataSharedIter idi;
 
       public:
