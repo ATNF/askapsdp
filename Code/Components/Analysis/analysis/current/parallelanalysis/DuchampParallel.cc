@@ -1634,7 +1634,7 @@ namespace askap {
                 outtypes.push_back("best");
 	      
 		if(this->itsCube.pars().getFlagNegative()){
-		  this->itsCube.reInvert();
+		  this->itsCube.invert(false,true);
 
 		  std::vector<sourcefitting::RadioSource>::iterator src;
 		  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {

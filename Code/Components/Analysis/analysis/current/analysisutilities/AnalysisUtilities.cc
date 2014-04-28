@@ -286,7 +286,6 @@ namespace askap {
             par.setAtrousCut(parset.getFloat("snrRecon", par.getAtrousCut()));
 	    par.setReconConvergence(parset.getFloat("reconConvergence", par.getReconConvergence()));
             par.setFilterCode(parset.getInt16("filterCode", par.getFilterCode()));
-            par.filter().define(par.getFilterCode());
 
 	    //
 
