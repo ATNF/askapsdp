@@ -133,6 +133,11 @@ public class ObsService extends _ICPObsServiceDisp {
 	}
 
 	@Override
+	public void waitObs(Current curr) {
+        // TODO: Implement!!
+    }
+
+	@Override
 	public String getServiceVersion(Current curr) {
 		Package p = this.getClass().getPackage();
         return p.getImplementationVersion();

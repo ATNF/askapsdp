@@ -94,9 +94,20 @@ module cp
          * scheduling block indicate if data processing should be attempted
          * for an aborted observation.
          *
-         * This method is non-blocking.
+         * This method is non-blocking. To wait until the observation has been
+         * aborted, follow this call with a call to waitObs().
          */
         void abortObs();
+
+        /**
+         * Blocks until the observation in progress is completed. Specifically,
+         * until the ingest pipeline finishes, either successfully or with
+         * error. When this method returns, the central processor is ready to
+         * start a new observation.
+         * If called while no observation is in progress, it simply returns
+         * immediately.
+         */
+        void waitObs();
     };
 
 };
