@@ -922,7 +922,7 @@ namespace askap {
                         size_t i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
                         size_t j = x + y * dimArray[0];
 
-                        if ((j >= 0) && (j < dimArray[0]*dimArray[1])) f(i) = fluxArray[j];
+                        if (j < dimArray[0]*dimArray[1]) f(i) = fluxArray[j];
                         else f(i) = 0.;
 
                         sigma(i) = this->itsNoiseLevel;

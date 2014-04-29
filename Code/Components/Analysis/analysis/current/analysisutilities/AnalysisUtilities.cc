@@ -627,11 +627,10 @@ namespace askap {
             // Need to correct the value of l according to the correct quandrant it is in.
             // This is worked out using the signs of sinl and cosl
             if (sinl > 0) {
-                if (cosl > 0) gl = gl;
-                else       gl = M_PI - gl;
+                if (cosl < 0) gl = M_PI - gl;
             } else {
                 if (cosl > 0) gl = 2.*M_PI - gl;
-                else       gl = M_PI + gl;
+                else          gl = M_PI + gl;
             }
 
             // Find the correct values of the lat & lon in degrees.
@@ -671,8 +670,7 @@ namespace askap {
 	  // Need to correct the value of pa according to the correct quandrant it is in.
 	  // This is worked out using the signs of sin and cos
 	  if (sin2pa1 > 0) {
-	    if (cos2pa1 > 0) pa1 = pa1;
-	    else             pa1 = M_PI - pa1;
+	    if (cos2pa1 < 0) pa1 = M_PI - pa1;
 	  } else {
 	    if (cos2pa1 > 0) pa1 = 2.*M_PI - pa1;
 	    else             pa1 = M_PI + pa1;
@@ -694,9 +692,9 @@ namespace askap {
 	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header, duchamp::Param &par)
 	{
 	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
-	    size_t lng=header.getWCS()->lng;
-	    size_t lat=header.getWCS()->lat;
-	    size_t spec=header.getWCS()->spec;
+	    int lng=header.getWCS()->lng;
+	    int lat=header.getWCS()->lat;
+	    int spec=header.getWCS()->spec;
 	    long xoff=object->getXOffset();
 	    long yoff=object->getYOffset();
 	    long zoff=object->getZOffset();
