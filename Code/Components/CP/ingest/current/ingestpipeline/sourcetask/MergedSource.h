@@ -27,11 +27,16 @@
 #ifndef ASKAP_CP_INGEST_MERGEDSOURCE_H
 #define ASKAP_CP_INGEST_MERGEDSOURCE_H
 
+// System includes
+#include <set>
+#include <string>
+
 // ASKAPsoft includes
 #include "askap/IndexConverter.h"
 #include "boost/shared_ptr.hpp"
 #include "boost/system/error_code.hpp"
 #include "boost/asio.hpp"
+#include "boost/tuple/tuple.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
@@ -80,10 +85,26 @@ class MergedSource : public ISource {
 
     private:
 
+        /// Identifies a datagram based on baselineid, sliceid & beamid.
+        /// This is used for duplicate detection
+        typedef boost::tuple<int32_t, int32_t, int32_t> DatagramIdentity;
+
+        /// Creates an "empty" VisChunk
         askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
 
+        /// @brief process one datagram
+        /// @param[in] chunk visibility chunk to fill
+        /// @param[in] vis datagram to get the data from
+        /// @param[in] nAntenna number of antennas (to verify that all are present)
+        /// @param[inout] rowsRecieved a vector for tracking the rows received.
+        ///                            this method is responsible for setting
+        ///                            rowsRecieved[row] when a new row is received.
+        ///
+        /// @return false if the datagram is ignored, e.g. because of the beam selection,
+        ///         or a duplicate datagram is received.
         bool addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
-                const TosMetadata& metadata);
+                    const TosMetadata& metadata,
+                    std::set<DatagramIdentity>& receivedDatagrams);
 
         /// Handled the receipt of signals to "interrupt" the process
         void signalHandler(const boost::system::error_code& error,
@@ -141,8 +162,9 @@ class MergedSource : public ISource {
         /// @brief Number of beams to handle
         casa::uInt itsNBeams;
 
-        /// @brief Count of duplicate datagrams. This is reset on each integration cycle.
-        casa::uInt itsDuplicateDatagrams;
+        /// @brief The last timestamp processed. This is stored to avoid the situation
+        /// where we may produce two consecutive VisChunks with the same timestamp
+        casa::uLong itsLastTimestamp;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);

@@ -33,19 +33,22 @@
 // System includes
 #include <string>
 #include <stdint.h>
+#include <set>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
-#include "boost/scoped_ptr.hpp"
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisDatagram.h"
 #include "utils/PolConverter.h"
 #include "casa/Quanta/MVEpoch.h"
 #include "casa/Quanta.h"
+#include "casa/Arrays/Matrix.h"
 #include "measures/Measures.h"
 #include "measures/Measures/MeasFrame.h"
 #include "measures/Measures/MCEpoch.h"
@@ -79,8 +82,8 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsSignals(itsIOService, SIGINT, SIGTERM, SIGUSR1),
         itsMaxNBeams(params.getUint32("maxbeams",0)),
         itsBeamsToReceive(params.getUint32("beams2receive",0)),
-        itsDuplicateDatagrams(0),
-        itsCentreFreq(asQuantity(params.getString("centre_freq")))
+        itsCentreFreq(asQuantity(params.getString("centre_freq"))),
+        itsLastTimestamp(-1)
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
     const casa::MVEpoch dummyEpoch(56000.);
@@ -114,13 +117,16 @@ VisChunk::ShPtr NoMetadataSource::next(void)
         itsVis = itsVisSrc->next(10000000); // 1 second timeout
 
         itsIOService.poll();
-        if (itsInterrupted) {
-            throw InterruptedException();
-        }
+        if (itsInterrupted) throw InterruptedException();
     }
 
     // This is the BAT timestamp for the current integration being processed
     const casa::uLong currentTimestamp = itsVis->timestamp;
+
+    // Protect against producing VisChunks with the same timestamp
+    ASKAPCHECK(currentTimestamp != itsLastTimestamp,
+            "Consecutive VisChunks have the same timestamp");
+    itsLastTimestamp = currentTimestamp;
 
     // Now the streams are synced, start building a VisChunk
     VisChunk::ShPtr chunk = createVisChunk(currentTimestamp);
@@ -140,11 +146,10 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     // be recieved and move on
     casa::uInt datagramCount = 0;
     casa::uInt datagramsIgnored = 0;
+    std::set<DatagramIdentity> receivedDatagrams;
     while (itsVis && currentTimestamp >= itsVis->timestamp) {
         itsIOService.poll();
-        if (itsInterrupted) {
-            throw InterruptedException();
-        }
+        if (itsInterrupted) throw InterruptedException();
 
         if (currentTimestamp > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
@@ -153,26 +158,25 @@ VisChunk::ShPtr NoMetadataSource::next(void)
             continue;
         }
 
-        datagramCount++;
-        if (addVis(chunk, *itsVis, nAntenna)) {
+        if (addVis(chunk, *itsVis, nAntenna, receivedDatagrams)) {
+            ++datagramCount;
+        } else {
             ++datagramsIgnored;
         }
-        itsVis = itsVisSrc->next(timeout);
+        itsVis.reset();
+
         if (datagramCount == datagramsExpected) {
             // This integration is finished
             break;
         }
+
+        itsVis = itsVisSrc->next(timeout);
     }
 
     ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
-                       " of expected " << datagramsExpected << " visibility datagrams");
+            " of expected " << datagramsExpected << " visibility datagrams");
     ASKAPLOG_DEBUG_STR(logger, "     - ignored " << datagramsIgnored
             << " successfully received datagrams");
-    if (itsDuplicateDatagrams > 0) {
-        ASKAPLOG_WARN_STR(logger, "     - " << itsDuplicateDatagrams
-                << " duplicate datagrams received");
-        itsDuplicateDatagrams = 0;
-    }
 
     // Submit monitoring data
     MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
@@ -273,7 +277,8 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
 }
 
 bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
-                              const casa::uInt nAntenna)
+                              const casa::uInt nAntenna,
+                              std::set<DatagramIdentity>& receivedDatagrams)
 {
     // 0) Map from baseline to antenna pair and stokes type
     if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
@@ -281,7 +286,7 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
         itsBaselineMap.idToStokes(vis.baselineid) == casa::Stokes::Undefined) {
             ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
                     << " has no valid mapping to antenna pair and stokes");
-        return true;
+        return false;
     }
 
     const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
@@ -289,7 +294,7 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     const casa::Int beamid = itsBeamIDMap(vis.beamid);
     if (beamid < 0) {
         // this beam ID is intentionally unmapped
-        return true;
+        return false;
     }
     ASKAPCHECK(beamid < static_cast<casa::Int>(itsMaxNBeams), 
                "Received beam id vis.beamid="<<vis.beamid<<" mapped to beamid="<<beamid<<
@@ -308,17 +313,26 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     if (polidx < 0) {
         ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
                               << " is not configured for storage");
-        return true;
+        return false;
     }
-
 
     // 2) Check the indexes in the VisDatagram are valid
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
     ASKAPCHECK(static_cast<casa::uInt>(beamid) < itsMaxNBeams, "Beam index " << beamid << " is invalid");
     ASKAPCHECK(polidx < 4, "Only 4 polarisation products are supported");
+    ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
 
-    // 3) Find the row for the given beam and baseline
+    // 3) Detect duplicate datagrams
+    const DatagramIdentity identity(vis.baselineid, vis.slice, vis.beamid);
+    if (receivedDatagrams.find(identity) != receivedDatagrams.end()) {
+        ASKAPLOG_WARN_STR(logger, "Duplicate VisDatagram - BaselineID: " << vis.baselineid
+                << ", Slice: " << vis.slice << ", Beam: " << vis.beamid);
+        return false;
+    }
+    receivedDatagrams.insert(identity);
+
+    // 4) Find the row for the given beam and baseline
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     casa::uInt idx = 0;
@@ -343,17 +357,9 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(chunk->beam1()(row) == static_cast<casa::uInt>(beamid), errorMsg);
     ASKAPCHECK(chunk->beam2()(row) == static_cast<casa::uInt>(beamid), errorMsg);
 
-    // 4) Determine the channel offset and add the visibilities
-    ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
+    // 5) Determine the channel offset and add the visibilities
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
-        // If the sample is already "unflagged" it means we have received it,
-        // and this VisChnk is a duplicate
-        if (chunk->flag()(row, chanOffset + chan, polidx) == false) {
-            ++itsDuplicateDatagrams;
-            return true;
-        }
-
         casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
 
@@ -373,7 +379,7 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
             }
         }
     }
-    return false;
+    return true;
 }
 
 void NoMetadataSource::signalHandler(const boost::system::error_code& error,
