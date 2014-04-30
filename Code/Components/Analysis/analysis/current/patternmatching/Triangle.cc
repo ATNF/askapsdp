@@ -53,22 +53,34 @@ namespace askap {
 
       Triangle::Triangle()
       {
-	this->itsPts = std::vector<Point>(3); 
+	this->initialise();
       }
 
       Triangle::Triangle(Point &a, Point &b, Point &c)
       {
-	this->itsPts = std::vector<Point>(3);
+	this->initialise();
 	this->define(a, b, c);
       }
 
       Triangle::Triangle(double x1, double y1, double x2, double y2, double x3, double y3)
       {
-	this->itsPts = std::vector<Point>(3); 
+	this->initialise();
 	Point pt1(x1, y1);
 	Point pt2(x2, y2);
 	Point pt3(x3, y3);
 	this->define(pt1, pt2, pt3);
+      }
+
+      void Triangle::initialise()
+      {
+	this->itsPts = std::vector<Point>(3); 
+	this->itIsClockwise = true;
+	this->itsLogPerimeter = 0.;
+	this->itsRatio = 0.;
+	this->itsRatioTolerance = 0.;
+	this->itsAngle = 0.;
+	this->itsAngleTolerance = 0.;
+
       }
 
       //**************************************************************//

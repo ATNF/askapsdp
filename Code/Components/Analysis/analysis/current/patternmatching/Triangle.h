@@ -107,6 +107,8 @@ namespace askap {
 
                 protected:
 
+		    void initialise();
+
                     /// @brief The log of the perimeter of the triangle
                     double itsLogPerimeter;
                     /// @brief Whether the sides increase in size in a clockwise fashion
