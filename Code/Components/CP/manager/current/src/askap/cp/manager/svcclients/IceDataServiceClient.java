@@ -41,9 +41,9 @@ public class IceDataServiceClient implements IDataServiceClient {
 	
 	ISchedulingBlockServicePrx itsProxy;
 	
-	public IceDataServiceClient(Ice.Communicator ic) {
+	public IceDataServiceClient(Ice.Communicator ic, String iceIdentity) {
 		logger.info("Creating DataServiceClient");
-		Ice.ObjectPrx obj = ic.stringToProxy("SchedulingBlockService@DataServiceAdapter");
+		Ice.ObjectPrx obj = ic.stringToProxy(iceIdentity);
 		itsProxy = ISchedulingBlockServicePrxHelper.checkedCast(obj);
 	}
 	

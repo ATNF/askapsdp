@@ -39,6 +39,10 @@ try:
     svc.abortObs()
     print "DONE"
 
+    print "Waiting for observation to complete/abort...",
+    svc.waitObs(-1)
+    print "DONE"
+
 except:
     traceback.print_exc()
     status = 1

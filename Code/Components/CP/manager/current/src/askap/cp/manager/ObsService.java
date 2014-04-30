@@ -41,52 +41,60 @@ import askap.cp.manager.svcclients.MockDataServiceClient;
 import askap.cp.manager.svcclients.MockFCMClient;
 
 public class ObsService extends _ICPObsServiceDisp {
-	
+
 	private static final long serialVersionUID = 1L;
-		
+
 	/**
 	 * Logger.
 	 */
 	private static Logger logger = Logger.getLogger(ObsService.class.getName());
-	
+
 	/**
 	 * Facility Configuration Manager client wrapper instance
 	 */
 	IFCMClient itsFCM;
-	
+
 	/**
 	 * TOS Data Service client wrapper instance
 	 */
 	IDataServiceClient itsDataService;
-	
+
 	/**
 	 * Ingest Pipeline Controller
 	 */
 	AbstractIngestManager itsIngestManager;
-    
+
 	/**
 	 * @param ic
 	 * @param parset
 	 */
 	public ObsService(Ice.Communicator ic, ParameterSet parset) {
-		logger.info("Creating ObsService");
-		
+		logger.debug("Creating ObsService");
+
 		// Instantiate real or mock FCM
 		boolean mockfcm = parset.getBoolean("fcm.mock", false);
 		if (mockfcm) {
 			itsFCM = new MockFCMClient(parset.getString("fcm.mock.filename"));
 		} else {
-			itsFCM = new IceFCMClient(ic);
+			String identity = parset.getString("fcm.ice.identity");
+			if (identity == null) {
+				throw new RuntimeException("Parameter 'fcm.ice.identity' not found");
+			}
+			itsFCM = new IceFCMClient(ic, identity);
 		}
-				
+
 		// Instantiate real or mock data service interface
 		boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
 		if (mockdatasvc) {
 			itsDataService = new MockDataServiceClient(parset.getString("dataservice.mock.filename"));
 		} else {
-			itsDataService = new IceDataServiceClient(ic);
+			String identity = parset.getString("dataservice.ice.identity");
+			if (identity == null) {
+				throw new RuntimeException("Parameter 'fcm.ice.identity' not found");
+			}
+			itsDataService = new IceDataServiceClient(ic, identity);
 		}
-				
+
 		// Create Ingest Manager
 		String managertype = parset.getString("ingest.managertype", "process");
 		if (managertype.equalsIgnoreCase("process")) {
@@ -94,38 +102,40 @@ public class ObsService extends _ICPObsServiceDisp {
 		} else if (managertype.equalsIgnoreCase("dummy")) {
 			itsIngestManager = new DummyIngestManager(parset);
 		} else {
-			throw new RuntimeException("Unknown ingest manager type: " + managertype);
+			throw new RuntimeException("Unknown ingest manager type: "
+					+ managertype);
 		}
 	}
-	
+
 	public void finalize() {
-		logger.info("Destroying ObsService");
+		logger.debug("Destroying ObsService");
 	}
-	
+
 	@Override
 	public void startObs(long sbid, Current curr)
 			throws askap.interfaces.cp.NoSuchSchedulingBlockException,
 			askap.interfaces.cp.AlreadyRunningException,
-			askap.interfaces.cp.PipelineStartException
-	{
-		logger.debug("Querying FCM");
+			askap.interfaces.cp.PipelineStartException {
+		logger.info("Executing scheduling block " + sbid);
+
+		logger.debug("Obtaining FCM parameters");
 		ParameterSet fc = itsFCM.get();
-		
-		logger.debug("Getting observation parameters");
+
+		logger.debug("Obtaining observation parameters");
 		ParameterSet obsParams;
-		
+
 		try {
 			obsParams = itsDataService.getObsParameters(sbid);
 		} catch (askap.interfaces.schedblock.NoSuchSchedulingBlockException e) {
 			String msg = "Scheduling block " + sbid + " does not exist";
 			throw new askap.interfaces.cp.NoSuchSchedulingBlockException(msg);
 		}
-		
+
 		// BLOCKING: Will block until the ingest pipeline starts, or
 		// an error occurs
 		itsIngestManager.startIngest(fc, obsParams, sbid);
 	}
-	
+
 	@Override
 	public void abortObs(Current curr) {
 		// Blocking (until aborted)
@@ -134,13 +144,12 @@ public class ObsService extends _ICPObsServiceDisp {
 
 	@Override
 	public boolean waitObs(long timeout, Current curr) {
-        // TODO: Implement!!
-		return true;
-    }
+		return itsIngestManager.waitIngest(timeout);
+	}
 
 	@Override
 	public String getServiceVersion(Current curr) {
 		Package p = this.getClass().getPackage();
-        return p.getImplementationVersion();
+		return p.getImplementationVersion();
 	}
 }

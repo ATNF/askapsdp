@@ -14,6 +14,10 @@ ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
 
 ################## CP Manager Specific Properties ######################
 
+# Object identity and proxy to use for the CP manager ICE object
+ice.servicename                 = CentralProcessorService
+ice.adaptername                 = CentralProcessorAdapter
+
 # Use a mock FCM
 fcm.mock                        = true
 fcm.mock.filename               = mock_fcm.txt
@@ -26,5 +30,5 @@ dataservice.mock.filename       = mock_sb.txt
 ingest.workdir                  = /tmp
 
 # Ingest pipeline command and arguments
-ingest.command                  = /scratch/hum092/ASKAPsoft/Code/Components/CP/ingest/current/apps/cpingest.sh
-ingest.args                     = -s -c cpingest.in -l /scratch/hum092/ASKAPsoft/Code/Components/CP/manager/current/functests/processingest/cpingest.log_cfg
+ingest.command                  = /Users/hum092/ASKAPsoft/Code/Components/CP/ingest/current/apps/cpingest.sh
+ingest.args                     = -s -c cpingest.in -l /Users/hum092/ASKAPsoft/Code/Components/CP/manager/current/functests/processingest/cpingest.log_cfg

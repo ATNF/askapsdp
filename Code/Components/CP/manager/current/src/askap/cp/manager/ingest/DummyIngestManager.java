@@ -66,7 +66,7 @@ public class DummyIngestManager extends AbstractIngestManager {
 	 * that starts and finishes immediately.
 	 */
 	@Override
-	protected boolean isRunning() {
+	public boolean isRunning() {
 		return false;
 	}
 }

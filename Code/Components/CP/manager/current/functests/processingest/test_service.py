@@ -34,11 +34,16 @@ try:
     svc.startObs(0)
     print "DONE"
 
-    # Sleep for a second to let the pipeline at least start
-    time.sleep(1)
+    print "Waiting 5s for observation to complete (it shouldn't)...",
+    svc.waitObs(5000)
+    print "DONE"
 
     print "Aborting observation...",
     svc.abortObs()
+    print "DONE"
+
+    print "Waiting for observation to abort...",
+    svc.waitObs(-1)
     print "DONE"
 
 except:

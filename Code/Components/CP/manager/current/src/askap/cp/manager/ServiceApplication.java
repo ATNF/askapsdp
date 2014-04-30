@@ -80,9 +80,6 @@ public abstract class ServiceApplication {
 	private static Logger logger = Logger.getLogger(
 			ServiceApplication.class.getName());
 
-	/** Service name */
-	String itsServiceName;
-
 	/** Command line parser */
 	CmdLineParser itsCmdlineParser = new CmdLineParser();
 
@@ -95,8 +92,7 @@ public abstract class ServiceApplication {
 	/** Ice Communicator */
 	Ice.Communicator itsCommunicator;
 
-	public ServiceApplication(String serviceName) {
-		itsServiceName = serviceName;
+	public ServiceApplication() {
 	}
 
 	/**

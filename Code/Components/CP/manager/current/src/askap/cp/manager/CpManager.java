@@ -30,12 +30,9 @@ import org.apache.log4j.Logger;
 public class CpManager extends ServiceApplication {
 	/** Logger */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
-	
-	public static String SERVICE_NAME = "CentralProcessorService";
-	public static String ADAPTER_NAME = "CentralProcessorAdapter";
 
-	public CpManager(String serviceName) {
-		super(serviceName);
+	public CpManager() {
+		super();
 	}
 
 	/**
@@ -44,12 +41,23 @@ public class CpManager extends ServiceApplication {
 	@Override
 	public int run(String[] args) {
 		logger.info("ASKAP Central Processor Manager");
+		
+		final String serviceName = config().getString("ice.servicename");
+		if (serviceName == null) {
+			logger.error("Parameter 'ice.servicename' not found");
+			return 1;
+		}
+		final String adapterName = config().getString("ice.adaptername");
+		if (adapterName == null) {
+			logger.error("Parameter 'ice.adaptername' not found");
+			return 1;
+		}
 
 		// Create and register the ObsService object
 		ObsService svc = new ObsService(communicator(), config());
 
 		// Blocks until shutdown
-		ServiceManager.runService(communicator(), svc, SERVICE_NAME, ADAPTER_NAME);
+		ServiceManager.runService(communicator(), svc, serviceName, adapterName);
 
 		return 0;
 	}
@@ -59,7 +67,7 @@ public class CpManager extends ServiceApplication {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		CpManager svr = new CpManager(SERVICE_NAME);
+		CpManager svr = new CpManager();
 		int status = svr.servicemain(args);
 		System.exit(status);
 	}

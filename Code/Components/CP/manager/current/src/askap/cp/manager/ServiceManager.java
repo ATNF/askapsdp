@@ -31,6 +31,15 @@ public class ServiceManager {
 	private static Logger logger = Logger.getLogger(ServiceManager.class
 			.getName());
 
+	/**
+	 * Runs an Ice Service. This call blocks until the Ice communicator
+	 * is shutdown.
+	 * 
+	 * @param ic
+	 * @param svc
+	 * @param serviceName
+	 * @param adapterName
+	 */
 	public static void runService(Ice.Communicator ic, Ice.Object svc,
 			final String serviceName, final String adapterName) {
 
