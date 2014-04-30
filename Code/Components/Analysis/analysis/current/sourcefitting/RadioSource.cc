@@ -341,8 +341,8 @@ namespace askap {
 
                 if (size % 2 == 0) {
                     std::nth_element(localArray, localArray + size / 2 - 1, localArray + size);
-                    median += localArray[size/2-1];
-                    median /= 2.;
+                    madfm += localArray[size/2-1];
+                    madfm /= 2.;
                 }
 
                 this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
@@ -591,7 +591,7 @@ namespace askap {
                 base.setPeak(this->peakFlux);
                 base.setX(this->xpeak);
                 base.setY(this->ypeak);
-                double a, b, c;
+                double a=0., b=0., c=0.;
 
                 if (this->getSize() < 3) {
                     base.setPA(0);

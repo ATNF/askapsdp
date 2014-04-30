@@ -173,7 +173,7 @@ namespace askap {
 	  }
 	  else{
 	      int nstoke=this->itsInputCubePtr->shape()[stokeAxis];
-	      ASKAPCHECK(nstoke=nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
+	      ASKAPCHECK(nstoke==nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
 	      bool haveMatch=false;
 	      for(int i=0;i<nstoke;i++){
 		  haveMatch = haveMatch || (this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[i] == stokes);
