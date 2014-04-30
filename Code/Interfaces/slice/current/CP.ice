@@ -102,12 +102,20 @@ module cp
         /**
          * Blocks until the observation in progress is completed. Specifically,
          * until the ingest pipeline finishes, either successfully or with
-         * error. When this method returns, the central processor is ready to
-         * start a new observation.
+         * error. When this method returns with a return value of true, the
+         * central processor is ready to start a new observation.
+         *
          * If called while no observation is in progress, it simply returns
-         * immediately.
+         * true immediately.
+         *
+         * @param timeout the maximum time to wait in milliseconds. Once the
+         *                timeout expires, if the observation is still running
+         *                this call will return "false".
+         * @return true if the observation is complete (or not running when called)
+         *         and false if the timeout limit is reached and the observation
+         *         is still running.
          */
-        void waitObs();
+        bool waitObs(long timeout);
     };
 
 };

@@ -133,8 +133,9 @@ public class ObsService extends _ICPObsServiceDisp {
 	}
 
 	@Override
-	public void waitObs(Current curr) {
+	public boolean waitObs(long timeout, Current curr) {
         // TODO: Implement!!
+		return true;
     }
 
 	@Override
