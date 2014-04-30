@@ -110,7 +110,11 @@ module cp
          *
          * @param timeout the maximum time to wait in milliseconds. Once the
          *                timeout expires, if the observation is still running
-         *                this call will return "false".
+         *                this call will return "false". A value of -1 will
+         *                block until the observation is complete, and a value
+         *                of 0 will provide non-blocking semantics, allowing
+         *                the caller to simply determine if an observation is
+         *                running or not.
          * @return true if the observation is complete (or not running when called)
          *         and false if the timeout limit is reached and the observation
          *         is still running.
