@@ -331,13 +331,12 @@ void Recon2D1D::reconstruct()
 		    }
                     std = sqrt(std / (goodSize + 1));
 
-		    float middle,spread,threshold;
+		    float middle,spread;
 		    if(this->itsCube->pars().getFlagRobustStats()){
 			findMedianStats<float>(work[writeToZ],size,isGood,middle,spread);
 			spread=Statistics::madfmToSigma(spread);
 		    }
 		    else findNormalStats<float>(work[writeToZ],size,isGood,middle,spread);
-		    threshold = middle + this->itsReconThreshold * spread;
 
                     // Threshold coefficients
                     for(size_t i = 0; i < size; i++){
