@@ -163,7 +163,7 @@ void Application::initLogging(const std::string& argv0)
         } else {
             // 3: Look for one where the program resides
             const std::string name(argv0 + ".log_cfg");
-            std::ifstream config2(name, std::ifstream::in);
+            std::ifstream config2(name.c_str(), std::ifstream::in);
             if (config2) {
                 ASKAPLOG_INIT(name.c_str());
             } else {
