@@ -31,7 +31,8 @@ logdirVis=${visdir}/Logs
 # Model
 doFlatSpectrum=false
 doCreateCR=true
-doSlice=false
+doSlice=true
+#doSlice=false
 if [ $doFlatSpectrum == "true" ]; then
     doSlice=false
 fi
@@ -61,6 +62,7 @@ doAntennaBased=false
 
 baseimage=fullASKAPcontinuum
 freqChanZeroMHz=1421
+msbase=ASKAPvis
 
 npix=12288
 rpix=`echo $npix | awk '{print $1/2}'`
@@ -113,7 +115,7 @@ SLICERNPPN=20
 
 csimSelect="#PBS -l select=1:ncpus=1:mem=20GB:mpiprocs=1"
 
-array=A27CR3P6BXYZ.in.in
+array=A27CR3P6BXYZ.in
 nfeeds=36
 feeds=ASKAP${nfeeds}feeds.in
 inttime=5s
@@ -139,21 +141,18 @@ else
     noiseName="noNoise"
 fi
 
-NGROUPS_CSIM=1
-NWORKERS_CSIM=152
+NGROUPS_CSIM=16
+NWORKERS_CSIM=19
 NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
-NPPN_CSIM=20
-chanPerMSchunk=2
-
-numMSchunks=152
-msPerStage1job=38
+NPPN_CSIM=2
+chanPerMSchunk=1
 
 doSnapshot=true
-wtol=1000
+wtol=5000
 gridder=AWProject
 if [ $doSnapshot == true ]; then
-    wmax=1000
-    maxsup=512
+    wmax=5000
+    maxsup=2048
 else
     wmax=15000
     maxsup=8192
