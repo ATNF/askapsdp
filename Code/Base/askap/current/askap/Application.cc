@@ -41,6 +41,10 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
+#include "log4cxx/logger.h"
+#include "log4cxx/logmanager.h"
+#include "log4cxx/consoleappender.h"
+#include "log4cxx/patternlayout.h"
 #include "boost/program_options.hpp"
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
@@ -143,7 +147,7 @@ void Application::initLogging(const std::string& argv0)
 {
     if (parameterExists("log-config")) {
         // 1: First try the file passed on the command line (fail if it was passed
-        // but cannot be accessed.
+        // but cannot be accessed)
         const std::string filename = parameter("log-config");
         std::ifstream config(filename.c_str(), std::ifstream::in);
         if (!config) {
@@ -157,16 +161,30 @@ void Application::initLogging(const std::string& argv0)
             // 2: Next try the default "askap.log_cfg"
             ASKAPLOG_INIT("askap.log_cfg");
         } else {
-            // 3: Finally, look for one where the program resides
-            std::ostringstream ss;
-            ss << argv0 << ".log_cfg";
-            ASKAPLOG_INIT(ss.str().c_str());
+            // 3: Look for one where the program resides
+            const std::string name(argv0 + ".log_cfg");
+            std::ifstream config2(name, std::ifstream::in);
+            if (config2) {
+                ASKAPLOG_INIT(name.c_str());
+            } else {
+                // 4: Setup a default log configuration
+                log4cxx::LogManager::getLoggerRepository()->setConfigured(true);
+                log4cxx::LoggerPtr root = log4cxx::Logger::getRootLogger();
+                static const log4cxx::LogString pattern("%-5p %c{2} (%X{mpirank}, %X{hostname}) [%d] - %m%n");
+                log4cxx::LayoutPtr layout(new log4cxx::PatternLayout(pattern));
+                log4cxx::AppenderPtr appender(new log4cxx::ConsoleAppender(layout));
+                root->addAppender(appender);
+                root->setLevel(log4cxx::Level::getInfo());
+            }
         }
     }
 
-    // Set the nodename
+    // Set the nodename and an "invalid" mpirank that can be later changed
+    // by a class that knows the mpirank
     ASKAPLOG_REMOVECONTEXT("hostname");
     ASKAPLOG_PUTCONTEXT("hostname", nodeName().c_str());
+    ASKAPLOG_REMOVECONTEXT("mpirank");
+    ASKAPLOG_PUTCONTEXT("mpirank", "-1");
 
     // Ensure that CASA log messages are captured
     casa::LogSinkInterface* globalSink = new askap::Log4cxxLogSink();

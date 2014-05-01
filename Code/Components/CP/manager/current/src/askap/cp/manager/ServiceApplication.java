@@ -32,14 +32,13 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Map;
 
-import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.DOMConfigurator;
-
-
-
 
 // Local package includes
 import askap.util.ParameterSet;
@@ -247,14 +246,19 @@ public abstract class ServiceApplication {
 				PropertyConfigurator.configure(logcfg);
 			}
 		} else {
-			BasicConfigurator.configure();
+			// Setup a default appender
+			final String pattern = "%-5p %c{2} (%X{hostname}) [%d] - %m%n";
+			Logger root = Logger.getRootLogger();
+		    root.addAppender(new ConsoleAppender(
+		           new PatternLayout(pattern)));
+		    root.setLevel(Level.INFO);
 		}
 
 		String hostname = "<unknown>";
 		try {
 			hostname = InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
-			// USe default hostname
+			// Use default hostname
 		}
 
 		MDC.put("hostname", hostname);
