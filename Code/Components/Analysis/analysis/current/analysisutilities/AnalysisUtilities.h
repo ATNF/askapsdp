@@ -72,7 +72,7 @@ namespace askap {
         double findSpread(bool robust, double middle, int size, float *array);
 
         /// @brief Find an rms for an array given a mean value, with masking of pixels.
-        double findSpread(bool robust, double middle, int size, float *array, bool *mask);
+        double findSpread(bool robust, double middle, int size, float *array, std::vector<bool> mask);
 
         /// @brief Remove blank spaces from the beginning of a string
         std::string removeLeadingBlanks(std::string s);

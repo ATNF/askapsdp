@@ -101,7 +101,7 @@ namespace askap {
 		if(!this->itsCube->pars().getFlagStatSec() || this->itsCube->pars().statsec().isValid()) {
 		    float *array=0;
 		    // make a mask in case there are blank pixels.
-		    bool *mask = this->itsCube->pars().makeStatMask(this->itsCube->getArray(), this->itsCube->getDimArray());
+		    std::vector<bool> mask = this->itsCube->pars().makeStatMask(this->itsCube->getArray(), this->itsCube->getDimArray());
 		    for(size_t i=0;i<this->itsCube->getSize();i++) if(mask[i]) size++;		      
 
 		    if (size > 0) {
@@ -175,7 +175,7 @@ namespace askap {
 		  } else if (this->itsCube->pars().getFlagSmooth()) array = this->itsCube->getRecon();
 		  else array = this->itsCube->getArray();
 		  
-		  bool *mask = this->itsCube->pars().makeStatMask(array, this->itsCube->getDimArray());
+		  std::vector<bool> mask = this->itsCube->pars().makeStatMask(array, this->itsCube->getDimArray());
 		  for(size_t i=0;i<this->itsCube->getSize();i++) if(mask[i]) size++;		      
 
 		  if(size>0)

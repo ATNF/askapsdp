@@ -185,16 +185,11 @@ void Recon2D1D::reconstruct()
 	work[i] = new float[size];
 	origwork[i] = work[i];
     }
-    bool *isGood = new bool[size];
-
 
     // Check for bad values and initialize the output to 0.
-    // Use the isBlank function of the duchamp::Param 
-    for(ulong i = 0; i < size; i++)
-    {
-	isGood[i] = !this->itsCube->pars().isBlank(input[i]);
-	output[i] = 0.;
-    }
+    // Use the makeBlankMask function of the duchamp::Cube class 
+    std::vector<bool> isGood = this->itsCube->makeBlankMask();
+    for(size_t i=0;i<size; i++) output[i] = 0.;
 
     // Start the iteration loop
     do{
@@ -370,7 +365,6 @@ void Recon2D1D::reconstruct()
 	
     } while(iteration < this->itsNumIterations);
     
-    delete [] isGood;
     for(int i=2;i>=0;i--) delete [] origwork[i];
 
     this->itsCube->setReconFlag(true);

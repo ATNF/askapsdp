@@ -378,7 +378,7 @@ namespace askap {
         }
 
 
-        double findSpread(bool robust, double middle, int size, float *array, bool *mask)
+        double findSpread(bool robust, double middle, int size, float *array, std::vector<bool> mask)
         {
             /// @details
             /// Finds the "spread" (ie. the rms or standard deviation) of an
