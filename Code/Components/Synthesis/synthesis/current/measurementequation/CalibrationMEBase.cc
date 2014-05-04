@@ -239,9 +239,17 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
                ComplexDiffMatrix cdm = thisChanCDM * ComplexDiffMatrix(perfectVisPolVector);
                
                DesignMatrix designmatrix;
+               
                // we can probably add below actual weights taken from the data accessor
                designmatrix.addModel(cdm, measuredVisPolVector, 
                        casa::Vector<double>(measuredVisPolVector.nelements(),1.));
+               /*
+               // temporary hack to investigate the impact of cross-pols
+               casa::Vector<double> wtVector(measuredVisPolVector.nelements(),1.);
+               ASKAPDEBUGASSERT(wtVector.nelements()>3);
+               wtVector[1] = 0.; wtVector[2] = 0.;
+               designmatrix.addModel(cdm, measuredVisPolVector, wtVector);
+               */
       
                ne.add(designmatrix);               
           }

@@ -118,7 +118,7 @@ BPCalibratorParallel::BPCalibratorParallel(askap::askapparallel::AskapParallel& 
       setMeasurementSets(parset.getStringVector("dataset"));
   
       /// Create solver in workers  
-      itsSolver.reset(new scimath::LinearSolver);
+      itsSolver.reset(new scimath::LinearSolver(1e3));
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       ASKAPCHECK(!parset.isDefined("refgain"), "usage of refgain is deprecated, define reference antenna instead");
       itsRefAntenna = parset.getInt32("refantenna",-1);

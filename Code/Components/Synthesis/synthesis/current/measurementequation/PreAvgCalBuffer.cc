@@ -356,9 +356,17 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
                      const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
                      for (casa::uInt pol2 = 0; pol2<acc.nPol(); ++pol2) {
+                          /*
+                          // temporary hack
+                          if (((pol != 0) && (pol != 3)) || ((pol2 != 0) && (pol2 != 3))) {
+                              continue;
+                          }
+                          //
+                          */
                           // different polarisations can have different weight?
                           // ignoring for now
                           pxpSlice.addModelMeasProduct(pol,pol2,weight * std::conj(model) * measuredVis(row,chan,pol2));
+                          //pxpSlice.addModelMeasProduct(pol,pol2,weight * std::conj(model) * (pol == pol2 ? measuredVis(row,chan,pol2) : casa::Complex(0.,0.)));
                           if (pol2<=pol) {
                               pxpSlice.addModelProduct(pol,pol2, weight * std::conj(model) * modelVis(row,chan,pol2));
                           }
