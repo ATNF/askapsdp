@@ -491,12 +491,12 @@ void LinmosAccumulator::setSingleMosaic(const vector<string> &inImgNames, const 
         // if this is an "image*" file, see if there is an appropriate sensitivity image 
         if (itsDoSensitivity) {
             tmpName = inImgNames[img];
-            int image_pos = tmpName.find(image_tag);
+            size_t image_pos = tmpName.find(image_tag);
             // if the file starts with image_tag, look for a sensitivity image
             if (image_pos == 0) {
                 tmpName.replace(image_pos, image_tag.length(), "sensitivity");
                 // remove any ".restored" sub-string from the file name
-                int restored_pos = tmpName.find(restored_tag);
+                size_t restored_pos = tmpName.find(restored_tag);
                 if (restored_pos != string::npos) {
                     tmpName.replace(restored_pos, restored_tag.length(), "");
                 }
@@ -526,7 +526,7 @@ void LinmosAccumulator::setSingleMosaic(const vector<string> &inImgNames, const 
         tmpName = outImgName;
         tmpName.replace(0, image_tag.length(), "sensitivity");
         // remove any ".restored" sub-string from the weights file name
-        int restored_pos = tmpName.find(restored_tag);
+        size_t restored_pos = tmpName.find(restored_tag);
         if (restored_pos != string::npos) {
             tmpName.replace(restored_pos, restored_tag.length(), "");
         }
@@ -604,12 +604,12 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
             // if this is an "image*" file, see if there is an appropriate sensitivity image 
             if (itsDoSensitivity) {
                 tmpName = inImgName;
-                int image_pos = tmpName.find(image_tag);
+                size_t image_pos = tmpName.find(image_tag);
                 // if the file starts with image_tag, look for a sensitivity image
                 if (image_pos == 0) {
                     tmpName.replace(image_pos, image_tag.length(), "sensitivity");
                     // remove any ".restored" sub-string from the file name
-                    int restored_pos = tmpName.find(restored_tag);
+                    size_t restored_pos = tmpName.find(restored_tag);
                     if (restored_pos != string::npos) {
                         tmpName.replace(restored_pos, restored_tag.length(), "");
                     }
@@ -634,7 +634,7 @@ void LinmosAccumulator::findAndSetTaylorTerms(const vector<string> &inImgNames, 
             tmpName = outImgName;
             tmpName.replace(0, image_tag.length(), "sensitivity");
             // remove any ".restored" sub-string from the weights file name
-            int restored_pos = tmpName.find(restored_tag);
+            size_t restored_pos = tmpName.find(restored_tag);
             if (restored_pos != string::npos) {
                 tmpName.replace(restored_pos, restored_tag.length(), "");
             }
@@ -685,7 +685,7 @@ void LinmosAccumulator::findAndSetMosaics(const vector<string> &imageTags) {
         }
 
         // see if the name contains the desired tag (i.e., contains the first tag in "names")
-        int pos = name.find(searchTag);
+        size_t pos = name.find(searchTag);
         if (pos == string::npos) {
             //ASKAPLOG_INFO_STR(logger, name << " is not a match. Ignoring.");
             continue;
@@ -693,7 +693,7 @@ void LinmosAccumulator::findAndSetMosaics(const vector<string> &imageTags) {
 
         // set some variables for problem sub-strings
         string restored_tag = ".restored";
-        int restored_pos;
+        size_t restored_pos;
 
         // see if the name contains a desired prefix, and if so, check the other input names and weights
         int full_set = 0, full_wgt_set = 0;
