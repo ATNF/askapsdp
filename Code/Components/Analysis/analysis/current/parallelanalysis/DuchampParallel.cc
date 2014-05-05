@@ -1630,6 +1630,8 @@ namespace askap {
             /// manner.
             if (itsComms.isMaster()) {
 
+		this->itsCube.sortDetections();
+
                 std::vector<std::string> outtypes = this->itsFitParams.fitTypes();
                 outtypes.push_back("best");
 	      
