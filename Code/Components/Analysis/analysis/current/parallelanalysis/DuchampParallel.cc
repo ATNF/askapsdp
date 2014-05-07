@@ -276,6 +276,9 @@ namespace askap {
 		    this->itsParset.replace(LOFAR::KVpair("overlapz",this->itsSubimageDef.overlapz()));
 		}
 	    }
+	    else {
+		this->itsSubimageDef = SubimageDef();
+	    }		
 	    
 	}
 
