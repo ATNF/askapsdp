@@ -381,7 +381,9 @@ namespace askap {
 	    int returnCode;
             if (this->itsIsFITSFile){
                    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
-                    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
+		   this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
+		   this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
+		   this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
 
                     if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
                         this->itsCube.pars().setFlagSubsection(true);
@@ -2020,7 +2022,7 @@ namespace askap {
 	/// the distributed nature of the data to determine the
 	/// subimage shape, or whether just to get the whole image
 	/// dimensions.
-	/// @return duchamp::SUCCESS if successfull, duchamp::FAILURE otherwise.
+	/// @return duchamp::SUCCESS if successful, duchamp::FAILURE otherwise.
 
 	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
