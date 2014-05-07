@@ -172,6 +172,7 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 	    bool useCasa = this->itsParset.getBool("useCASAforFITS",true);
 	    this->itsIsFITSFile = this->itsIsFITSFile && !useCasa;
+	    if(this->itsIsFITSFile) ASKAPLOG_DEBUG_STR(logger, "Using the Duchamp FITS-IO tasks");
 
 	    bool flagSubsection = this->itsParset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = this->itsParset.getString("subsection","");
