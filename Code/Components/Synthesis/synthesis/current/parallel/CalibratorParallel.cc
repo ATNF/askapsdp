@@ -191,6 +191,14 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
                for (casa::uInt beam = 0; beam<nBeam; ++beam) {
                     itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX), casa::Complex(1.,0.));
                     itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY), casa::Complex(1.,0.));
+                    /*
+                    // temporary hack to fix some gains
+                    if ((ant == 0) || (ant == 3)) {
+                         itsModel->fix(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX));
+                         itsModel->fix(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY));
+                    }
+                    //
+                    */
                }
           }
       }

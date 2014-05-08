@@ -112,7 +112,11 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc, const bool fdp)
   // initialise buffers
   itsAntenna1 = acc.antenna1();
   itsAntenna2 = acc.antenna2();
-  itsBeam = acc.feed1();
+  if (itsBeamIndependent) {
+      itsBeam.set(0);
+  } else {
+      itsBeam = acc.feed1();
+  }
   casa::uInt unusedBeamId = casa::max(itsBeam)*10;
   const casa::Vector<casa::uInt>& feed2 = acc.feed2();
   for (casa::uInt row=0; row<numberOfRows; ++row) {
