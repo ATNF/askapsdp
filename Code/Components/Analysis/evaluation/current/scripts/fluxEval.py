@@ -139,7 +139,7 @@ if __name__ == '__main__':
         x=append(x,m.ra)
         y=append(y,m.dec)
         missType=append(missType,'R')
-        if sourceCatType=="Selavy" :
+        if refCatType=="Selavy" :
             npo2=append(npo2,refCat[m.id].npixObj)
             imagerms2=append(imagerms2,refCat[m.id].RMSimage)
                          

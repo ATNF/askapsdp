@@ -49,18 +49,20 @@ def readMisses(missfile,catalogue,key):
 # Reads a catalogue of objects
 def readCat(filename,catalogueType):
 
-    if(catalogueType == "Selavy" or catalogueType=="Continuum" or catalogueType=="ContinuumID"):
+    if(catalogueType == "Selavy" or catalogueType=="Continuum" or catalogueType=="ContinuumID" or catalogueType=="SUMSS"):
 
         catDict={}
         fin=open(filename)
         for line in fin:
             if(line[0]!='#'):
-                if(catalogueType=="Selavy"):
+                if catalogueType=="Selavy":
                     obj=SelavyObject(line)
-                elif(catalogueType=="Continuum"):
+                elif catalogueType=="Continuum":
                     obj=ContinuumObject(line)
-                elif(catalogueType=="ContinuumID"):
+                elif catalogueType=="ContinuumID":
                     obj=ContinuumIDObject(line)
+                elif catalogueType=="SUMSS":
+                    obj=SUMSSObject(line)
                 catDict[obj.id] = obj
         fin.close()
 

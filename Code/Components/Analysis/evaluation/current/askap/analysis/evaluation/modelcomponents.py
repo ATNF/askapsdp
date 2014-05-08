@@ -117,6 +117,39 @@ class ContinuumIDObject:
     def flux(self):
         return self.flux0
 
+
+class SUMSSObject:
+    def __init__(self,line):
+        self.line = line
+        if(line[0]!='#'):
+            cols=line.split()
+            self.ra=15.*(float(cols[0])+float(cols[1])/60.+float(cols[2])/3600.)
+            self.dec=abs(float(cols[3]))+float(cols[4])/60.+float(cols[5])/3600.
+            if cols[3][0]=='-':
+                self.dec = -1. * self.dec
+            self.id = cols[0]+":"+cols[1]+":"+cols[2]+"_"+cols[3]+":"+cols[4]+":"+cols[5]
+            self.raErr = float(cols[6])
+            self.decErr = float(cols[7])
+            self.Fpeak = float(cols[8])
+            self.FpeakErr = float(cols[9])
+            self.Fint = float(cols[10])
+            self.FintErr = float(cols[11])
+            self.maj = float(cols[12])
+            self.min = float(cols[13])
+            self.pa = float(cols[14])
+            self.majDECONV = float(cols[15])
+            self.minDECONV = float(cols[16])
+            if cols[17] == '---':
+                self.paDECONV = 0.
+            else:
+                self.paDECONV = float(cols[17])
+            self.mosaicName = cols[18]
+            self.numMosaics = int(cols[19])
+            self.xpos = float(cols[20])
+            self.ypos = float(cols[21])
+
+    def flux(self):
+        return self.Fint
     
 class Match:
     def __init__(self,line,srcCat,refCat):
