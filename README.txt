@@ -1,4 +1,4 @@
-Building ASKAPsoft                                           29 July 2010
+Building ASKAPsoft                                           9 May 2014
 ==================
 
 These notes provide just a brief outline.
@@ -34,7 +34,7 @@ Quick Start
 
 svn co https://svn.atnf.csiro.au/askapsoft/Src/trunk ASKAPsoft
 cd ASKAPsoft
-/usr/bin/python2.6 bootstrap.py  # only once
+/usr/bin/python2.7 bootstrap.py  # only once
 . initaskap.sh                   # execute everytime a new session is started
 
 The above steps make installs go to the ASKAPsoft hierarchy
