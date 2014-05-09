@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 if (sys.version_info[0] < 3) and (sys.version_info[1] < 6):
-        print ">>> The nominal supported version is 2.6."
+        print ">>> The nominal supported version is 2.7."
         print ">>> Python versions less than 2.6 are unsupported. Exiting."
         sys.exit(1)
 
