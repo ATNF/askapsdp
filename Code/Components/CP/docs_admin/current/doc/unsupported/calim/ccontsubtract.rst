@@ -1,15 +1,23 @@
-ccontsubtract Documentation
-===========================
+ccontsubtract
+=============
 
-This page provides some details about ccontsubtract application located in: $ASKA_ROOT/Code/Components/Synthesis/synthesis/current/apps
+The purpose of this software is to subtract continuum in a parallel/distributed
+environment or on a single computer system. The software leverages MPI, however
+can be run on a simple laptop or a large supercomputer.
 
-The purpose of this software is to subtract continuum in a parallel/distributed environment or on a single computer system. The software leverages MPI, however can be run on a simple laptop or a large supercomputer.
+Parset parameters understood by ccontsubtract are given in the following table
+(all parameters must have *CContSubtract* prefix, i.e. *CContSubtract.dataset*).
+For a number of parameters certain keywords are substituted, i.e. *%w* is
+replaced by the rank and *%n* by the number of nodes in the parallel case. In
+the serial case, these special strings are substituted by 0 and 1, respectively.
+This substitution allows to reuse the same parameter file on all nodes of the
+cluster if the difference between jobs assigned to individual nodes can be coded
+by using these keywords (e.g. using specially crafted file names). If a
+parameter supports substitution, it is clearly stated in the description. 
 
-Parset parameters understood by ccontsubtract are given in the following table (all parameters must have *CContSubtract* prefix, i.e. *CContSubtract.dataset*). For a number of parameters certain keywords are substituted, i.e. *%w* is replaced by the rank and *%n* by the number of nodes in the parallel case. In the serial case, these special strings are substituted by 0 and 1, respectively. This substitution allows to reuse the same parameter file on all nodes of the cluster if the difference between jobs assigned to 
-individual nodes can be coded by using these keywords (e.g. using specially crafted file names). If a parameter supports substitution, it is clearly stated in the description. 
-
-A number of other parameters allowing to narrow down the data selection are understood. They are given in the "Data Selection" documentation  and should also have the *CContSubtract* prefix.
-
+A number of other parameters allowing to narrow down the data selection are
+understood. They are given in the "Data Selection" documentation  and should
+also have the *CContSubtract* prefix.
 
 +------------------------+------------+------------+----------------------------------------------------------+
 |*Parameter*             |*Type*      |*Default*   |*Description*                                             |

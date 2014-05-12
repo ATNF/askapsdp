@@ -1,5 +1,5 @@
-Synthesis Documentation
-=======================
+Calibration & Imaging
+=====================
 
 **Contents:**
 
@@ -8,3 +8,4 @@ Synthesis Documentation
 
    ccontsubtract.rst
    cdeconvolver.rst
+   noiseadder.rst

@@ -1,5 +1,5 @@
-RFI Source Service Documentation
-================================
+RFI Source Service
+==================
 
 .. note:: TODO: Write this documentation
 

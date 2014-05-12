@@ -4,7 +4,8 @@ ASKAP Central Processor Administrator Documentation
 .. toctree::
    :titlesonly:
    :maxdepth: 2
-   
+ 
+   manager/index.rst
+   ingestpipeline/index.rst
    cpservices/index.rst
-   synthesis/index.rst
-   analysis/index.rst
+   unsupported/index.rst

@@ -1,5 +1,5 @@
-Science Analysis Documentation
-===============================
+Science Analysis
+================
 
 **Contents:**
 

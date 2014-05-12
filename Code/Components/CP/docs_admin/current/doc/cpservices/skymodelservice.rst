@@ -1,5 +1,5 @@
-Sky Model Service Documentation
-===============================
+Sky Model Service
+=================
 
 .. note:: TODO: Write this documentation
 
