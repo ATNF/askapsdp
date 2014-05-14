@@ -40,14 +40,15 @@ bashinit = """\
 ASKAP_ROOT=%s
 export ASKAP_ROOT
 
-if [ "${RBUILD_REMOTE_ARCHIVE}" !=  "" ]
+if [ ! "${RBUILD_REMOTE_ARCHIVE}" ]
 then
     RBUILD_REMOTE_ARCHIVE="%s"
+    export RBUILD_REMOTE_ARCHIVE
 fi
 
 pypath="${ASKAP_ROOT}/share/scons_tools"
 
-if [ "${PYTHONPATH}" !=  "" ]
+if [ "${PYTHONPATH}" ]
 then
     PYTHONPATH=`echo $PYTHONPATH | sed "s#:*$pypath:*##"`
     PYTHONPATH="${pypath}:${PYTHONPATH}"
@@ -87,6 +88,10 @@ test -f /etc/askap/site/epicsenv.sh && . /etc/askap/site/epicsenv.sh || true
 tcshinit = """\
 setenv ASKAP_ROOT %s
 set pypath="${ASKAP_ROOT}/share/scons_tools"
+
+if ( ! ($?RBUILD_REMOTE_ARCHIVE) ) then
+    setenv RBUILD_REMOTE_ARCHIVE "%s"
+endif
 
 if ($?PYTHONPATH) then
     setenv PYTHONPATH `echo ${PYTHONPATH} | sed "s#:*${pypath}:*##"`
