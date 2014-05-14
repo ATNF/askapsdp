@@ -6,6 +6,7 @@ import optparse
 import shutil
 import subprocess
 import sys
+import ConfigParser
 
 if (sys.version_info[0] < 3) and (sys.version_info[1] < 6):
         print ">>> The nominal supported version is 2.7."
@@ -82,9 +83,20 @@ invoked_path    = sys.argv[0]
 absolute_path   = os.path.abspath(invoked_path)
 python_exe      = sys.executable
 
+remote_archive = ""
 os.chdir(os.path.dirname(absolute_path))
 
 (opts, args) = parser.parse_args()
+
+cfg_parser = ConfigParser.ConfigParser()
+cfg_parser.read("bootstrap.ini")
+try:
+    remote_archive = cfg_parser.get("Environment", "remote_archive")
+except:
+    pass
+
+if remote_archive:
+    os.environ["RBUILD_REMOTE_ARCHIVE"] = remote_archive
 
 if opts.preserve:
     print ">>> No pre-clean up of existing bootstrap generated files."
@@ -114,6 +126,7 @@ else:
     print ">>> %s does not exist." % os.path.abspath(networkx_path)
     sys.exit()
 
+
 print ">>> Attempting to create initaskap.sh."
 os.system("%s initenv.py >/dev/null" % python_exe)
 print ">>> Attempting to create initaskap.csh."
@@ -130,7 +143,7 @@ else:
     sys.exit()
 
 if os.path.exists(epicsdb_path):
-    print ">>> Attempting to clean and build rbuild."
+    print ">>> Attempting to clean and build epicsdb."
     os.system(". ./initaskap.sh && cd %s && python setup.py -q clean"
                 % epicsdb_path)
     os.system(". ./initaskap.sh && cd %s && python setup.py -q install"

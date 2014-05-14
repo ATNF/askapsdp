@@ -40,6 +40,11 @@ bashinit = """\
 ASKAP_ROOT=%s
 export ASKAP_ROOT
 
+if [ "${RBUILD_REMOTE_ARCHIVE}" !=  "" ]
+then
+    RBUILD_REMOTE_ARCHIVE="%s"
+fi
+
 pypath="${ASKAP_ROOT}/share/scons_tools"
 
 if [ "${PYTHONPATH}" !=  "" ]
@@ -77,7 +82,7 @@ ANT_HOME="${ASKAP_ROOT}/share/ant"
 export ANT_HOME
 
 test -f /etc/askap/site/epicsenv.sh && . /etc/askap/site/epicsenv.sh || true
-""" % os.getcwd()
+""" % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
