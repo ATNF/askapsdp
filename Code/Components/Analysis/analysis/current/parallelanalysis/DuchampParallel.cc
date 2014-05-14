@@ -372,6 +372,30 @@ namespace askap {
 
 	}
 
+        //**************************************************************//
+
+	void DuchampParallel::setSubimageDefForFITS()
+	{
+	    /// @details This utility function sets up the SubimageDef
+	    /// object appropriate for the case that we are accessing
+	    /// a FITS file. Upon completion, the SubimageDef object
+	    /// will have its image name, subsection string, image
+	    /// dimensions and nsub/overlap parameters defined. If no
+	    /// subsectioning is required, the subsection string in
+	    /// the cube parameters will be set to the null subsection
+	    /// of appropriate dimensionality.
+
+	    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
+	    this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
+	    this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
+	    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
+
+	    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
+		this->itsCube.pars().setFlagSubsection(true);
+		this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+	    }
+
+	}
 
         //**************************************************************//
 
@@ -384,15 +408,8 @@ namespace askap {
             /// either duchamp::SUCCESS or duchamp::FAILURE
 	    int returnCode;
             if (this->itsIsFITSFile){
-                   this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
-		   this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
-		   this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
-		   this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
 
-                    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
-                        this->itsCube.pars().setFlagSubsection(true);
-                        this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-                    }
+		this->setSubimageDefForFITS();
 
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
@@ -494,13 +511,8 @@ namespace askap {
                 int result;
 
                 if (this->itsIsFITSFile) {
-                    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
-                    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
 
-                    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
-                        this->itsCube.pars().setFlagSubsection(true);
-                        this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-                    }
+		    this->setSubimageDefForFITS();
 
                     if (itsComms.isParallel()) {
 		      this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);

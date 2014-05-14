@@ -125,6 +125,9 @@ namespace askap {
 
 		void weightSearch();
 
+		/// @brief Set up the Subimage definition for the case of a FITS file.
+		void setSubimageDefForFITS();
+
                 /// @brief Read the metadata only from the image file.
                 int getMetadata();
 
