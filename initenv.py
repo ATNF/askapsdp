@@ -125,8 +125,7 @@ setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
 test -f /etc/askap/site/epicsenv.sh && echo 'Warning: Ignoring system /etc/askap/site/epicsenv.sh as it is bash environment.' || true
 
-"""  % os.getcwd()
-
+""" % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
 
 if java_home:
    tcshinit += 'setenv JAVA_HOME %s\n' % java_home
