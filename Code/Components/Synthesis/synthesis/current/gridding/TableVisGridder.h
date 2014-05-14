@@ -69,7 +69,7 @@ namespace askap
     /// This is calculated by direct evaluation.
     ///
     /// @ingroup gridding
-    class TableVisGridder : virtual public VisGridderWithPadding
+    class TableVisGridder : public VisGridderWithPadding
     {
   public:
 
