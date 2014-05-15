@@ -1,0 +1,20 @@
+--- src/doxygen.pro.in.orig	2010-05-08 18:57:08.000000000 +1000
++++ src/doxygen.pro.in	2012-01-20 11:43:33.042027618 +1100
+@@ -18,7 +18,7 @@
+ CONFIG       =	console warn_on $extraopts
+ HEADERS      =	doxygen.h 
+ SOURCES      =	main.cpp 
+-unix:LIBS                  += -L../lib -ldoxygen -ldoxycfg -lqtools -lmd5 -lpthread
++unix:LIBS                  += -L../lib -L/usr/local/lib -ldoxygen -ldoxycfg -lqtools -lmd5 -liconv -lpthread
+ win32:INCLUDEPATH          += .
+ win32-mingw:LIBS           += -L../lib -ldoxygen -ldoxycfg -lqtools -lmd5 -lpthread
+ win32-msvc:LIBS            += qtools.lib md5.lib doxygen.lib doxycfg.lib shell32.lib iconv.lib
+@@ -28,7 +28,7 @@
+ win32:TMAKE_CXXFLAGS       += -DQT_NODLL
+ win32-g++:LIBS             = -L../lib -ldoxygen -ldoxycfg -lqtools -lmd5 -liconv -lpthread
+ win32-g++:TMAKE_CXXFLAGS   += -fno-exceptions -fno-rtti
+-INCLUDEPATH                += ../qtools ../libmd5 .
++INCLUDEPATH                += ../qtools ../libmd5 . /usr/local/include
+ DESTDIR                    =  ../bin
+ TARGET                     =  doxygen
+ unix:TARGETDEPS            =  ../lib/libdoxygen.a ../lib/libdoxycfg.a

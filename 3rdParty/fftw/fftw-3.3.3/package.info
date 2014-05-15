@@ -1,0 +1,2 @@
+# Custom because we use double build.
+libs=fftw3 fftw3f fftw3_threads fftw3f_threads pthread m

@@ -1,0 +1,12 @@
+## Register all support components
+dbLoadDatabase("dbd/@@@appname@@@.dbd",0,0)
+@@@appname@@@_registerRecordDeviceDriver(pdbbase)
+
+## Load record instances
+dbLoadRecords("db/@@@appname@@@.db")
+
+cd iocBoot/${IOC}
+iocInit()
+
+## Start any sequence programs
+#seq sncxxx,"user=myuser"

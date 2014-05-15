@@ -1,0 +1,61 @@
+--- ./src/examples/cpp/console.cpp.orig 2009-12-17 17:12:41.000000000 +1100
++++ ./src/examples/cpp/console.cpp  2009-12-17 17:13:19.000000000 +1100
+@@ -15,7 +15,9 @@
+  * limitations under the License.
+  */
+
+-#include <stdlib.h>
++#include <cstdlib>
++#include <cstring>
++#include <cstdio>
+ #include <log4cxx/logger.h>
+ #include <log4cxx/consoleappender.h>
+ #include <log4cxx/simplelayout.h>
+
+--- src/main/cpp/inputstreamreader.cpp.orig	2008-04-01 09:34:09.000000000 +1100
++++ src/main/cpp/inputstreamreader.cpp	2009-09-04 21:31:36.000000000 +1000
+@@ -15,6 +15,8 @@
+  * limitations under the License.
+  */
+ 
++#include <cstring>
++
+ #include <log4cxx/logstring.h>
+ #include <log4cxx/helpers/inputstreamreader.h>
+ #include <log4cxx/helpers/exception.h>
+
+--- src/main/cpp/socketoutputstream.cpp.orig	2008-04-01 09:34:09.000000000 +1100
++++ src/main/cpp/socketoutputstream.cpp	2009-09-04 21:31:58.000000000 +1000
+@@ -15,6 +15,8 @@
+  * limitations under the License.
+  */
+ 
++#include <cstring>
++
+ #include <log4cxx/logstring.h>
+ #include <log4cxx/helpers/socketoutputstream.h>
+ #include <log4cxx/helpers/socket.h>
+
+--- src/main/cpp/systemerrwriter.cpp.orig	2008-04-01 09:34:09.000000000 +1100
++++ src/main/cpp/systemerrwriter.cpp	2009-09-04 21:33:53.000000000 +1000
+@@ -24,6 +24,8 @@
+ #endif
+ #include <log4cxx/private/log4cxx_private.h>
+ 
++#include <cstdio>
++
+ using namespace log4cxx;
+ using namespace log4cxx::helpers;
+
+ 
+--- src/main/cpp/systemoutwriter.cpp.orig	2008-04-01 09:34:09.000000000 +1100
++++ src/main/cpp/systemoutwriter.cpp	2009-09-04 21:34:09.000000000 +1000
+@@ -24,6 +24,8 @@
+ #endif
+ #include <log4cxx/private/log4cxx_private.h>
+ 
++#include <cstdio>
++
+ using namespace log4cxx;
+ using namespace log4cxx::helpers;
+ 

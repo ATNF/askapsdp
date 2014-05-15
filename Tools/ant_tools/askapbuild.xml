@@ -1,0 +1,173 @@
+<project name="common" basedir=".">
+
+    <property name="install.dir" value="install"/>
+    <property name="src.dir" value="src"/>
+    <property name="test.dir" value="tests"/>
+    <property name="build.dir" value="build"/>
+    <property name="doc.dir" value="doc"/>
+    <property name="report.dir" value="test_reports"/>
+    <property name="generated.dir" value="icetmp"/>
+    <property name="project.jar" value="${ant.project.name}.jar"/>
+    <property name="debug" value="off"/>
+    <property name="verbose" value="false"/>
+    <property name="ice.version" value="3.5.0"/>
+    <property name="junit.version" value="4.7"/>
+    <condition property="ice.home" value="${dep_ice}/install" >
+        <and>
+            <available file="${dep_ice}"/>
+            <isset property="slice.dir"/>
+        </and>
+    </condition>
+    <!-- You can override resources.list to include resources in jar file -->
+    <resources id="resources.list"/>
+
+    <target name="task-init" if="ice.home" >
+        <condition property="task.jar.file" value="${ice.home}/lib/ant-ice-${ice.version}.jar">
+            <available file="${ice.home}/lib/ant-ice-${ice.version}.jar"/>
+        </condition>
+
+        <taskdef name="slice2java" classpath="${task.jar.file}"
+                 classname="Slice2JavaTask"/>
+    </target>
+
+    <target name="init" depends="task-init">
+      <!-- Create the time stamp -->
+      <tstamp/>
+    </target>
+
+    <!-- The target to generate java bindings from slice -->
+    <target name="generate" depends="task-init" if="ice.home"
+            description="run slice2java">
+        <!-- Create the output directory for generated code -->
+        <mkdir dir="${generated.dir}"/>
+        <slice2java stream="on" outputdir="${generated.dir}"
+                    dependencyfile="${generated.dir}/.depend.Ice">
+            <includepath>
+                <pathelement path="${slice.dir}" />
+            </includepath>
+        <fileset refid="slice.files"/>
+        </slice2java>
+    </target>
+
+    <!-- target to compile ice -->
+    <target name="compile-ice" depends="generate,init"
+            description="compile the source" if="ice.home" >
+        <mkdir dir="${build.dir}"/>
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac classpath="${classpath}"
+               srcdir="${generated.dir}"
+               destdir="${build.dir}"
+               debug="${debug}"
+               verbose="${verbose}"/>
+    </target>
+
+
+    <target name="compile" depends="compile-ice"
+            description="compile the source " >
+        <mkdir dir="${build.dir}"/>
+
+        <!-- Compile the java code from ${src.dir} into ${build.dir} -->
+        <javac srcdir="${src.dir}"
+               destdir="${build.dir}"
+               debug="${debug}"
+               verbose="${verbose}">
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
+            </classpath>
+        </javac>
+        <!-- Also compile the java code from ${test.dir} into ${build.dir} -->
+        <mkdir dir="${test.dir}"/>
+        <javac srcdir="${test.dir}"
+               destdir="${build.dir}"
+               debug="${debug}"
+               verbose="${verbose}">
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="app-dist" depends="compile"
+            description="generate the distribution with application"
+            if="main.exe">
+        <jar jarfile="${project.jar}">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Main-Class" value="${main.exe}"/>
+		<attribute name="Implementation-Version" value="${askap_version}"/>
+<!--                <attribute name="Class-Path" value="${classpath}"/> -->
+            </manifest>
+            <fileset dir="${build.dir}"/>
+            <resources refid="resources.list"/>
+        </jar>
+    </target>
+
+    <target name="dist" depends="compile"
+            description="generate the distribution without application"
+            unless="main.exe">
+        <!-- Create the distribution directory -->
+
+        <jar jarfile="${project.jar}">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+		<attribute name="Implementation-Version" value="${askap_version}"/>
+<!--                <attribute name="Class-Path" value="${classpath}"/> -->
+            </manifest>
+            <fileset dir="${build.dir}"/>
+            <resources refid="resources.list"/>
+        </jar>
+    </target>
+
+    <target name="install" depends="dist,app-dist"
+            description="install the distributable" >
+        <!-- Install the ${dist} to the ${install.dir} directory tree -->
+        <mkdir dir="${install.dir}/lib"/>
+        <copy file="${project.jar}" todir="${install.dir}/lib"/>
+    </target>
+
+    <!-- Build javadoc documentation tree -->
+    <target name="doc">
+        <mkdir dir="${doc.dir}/"/>
+        <javadoc destdir="${doc.dir}/">
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
+            </classpath>
+            <link href="http://java.sun.com/javase/6/docs/api/"/>
+            <fileset dir="${src.dir}/" includes="**/*.java" />
+        </javadoc>
+    </target>
+
+    <target name="test" depends="compile"
+            description="run junit tests" >
+            <mkdir dir="${report.dir}/"/>
+        <junit printsummary="${verbose}">
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
+                <!--<pathelement location="${project.jar}"/>-->
+                <pathelement location="${build.dir}"/>
+            </classpath>
+            <batchtest fork="yes" todir="${report.dir}">
+                <formatter type="brief" usefile="false"/>
+                <formatter type="xml"/>
+                <fileset dir="${test.dir}">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+
+    <target name="clean" description="clean up" >
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${install.dir}"/>
+        <delete dir="${build.dir}"/>
+        <delete dir="${generated.dir}"/>
+        <delete dir="${report.dir}"/>
+        <delete file="${project.jar}"/>
+    </target>
+
+</project>

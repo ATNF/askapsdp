@@ -1,0 +1,3 @@
+Note the patchfiles here are relative to the astlyle/buildxxx subdirectory.
+This is because the build has to cd to this directory and not the top-level
+astyle directory.

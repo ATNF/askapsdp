@@ -1,0 +1,45 @@
+import glob
+import os
+import sys
+
+import askapdev.rbuild.utils as utils
+
+
+if not "install" in BUILD_TARGETS:
+    sys.exit(0)
+
+platform = utils.get_platform()
+prefix = ARGUMENTS['prefix']
+opts = Variables('options.cfg', ARGUMENTS)
+env = Environment(options=opts)
+
+# If on the Cray platform, import the whole environment
+# so environment modules work correctly
+if os.environ.has_key("CRAYOS_VERSION"):
+    env["ENV"] = os.environ
+
+conf = Configure(env)
+conf.env.Tool("fortran")
+fort = conf.env.Detect(["gfortran",])
+if not fort:
+    print "Couldn't find any known fortran compiler"
+    sys.exit(1)
+
+conf.env["FORTRAN"] = fort
+conf.env["SHFORTRAN"] = fort
+
+if platform['architecture'] == '64bit':
+    conf.env.AppendUnique(FORTRANFLAGS=["-fPIC"])
+
+conf.env.Append(FORTRANFLAGS=["-w", "-O2"])
+
+if platform['system'] == 'Darwin':
+    conf.env.Append(LINKFLAGS='-compatibility_version 1')
+    conf.env.Append(LINKFLAGS='-current_version 1')
+
+env = conf.Finish()
+sources = glob.glob('*.f')
+tlib = os.path.join(prefix, 'lib', 'blas')
+env.StaticLibrary(target = tlib, source = sources)
+env.SharedLibrary(target = tlib, source = sources)
+env.Alias("install", prefix)

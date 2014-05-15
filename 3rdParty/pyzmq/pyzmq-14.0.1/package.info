@@ -1,0 +1,2 @@
+pymodule=pyzmq==14.0.1
+libs=

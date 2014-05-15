@@ -1,0 +1,6 @@
+# The list of libraries this package provides
+libs=duchamp
+# The custom location of libraries, if other than ./lib/
+# The custom location of headers, if other than ./include/
+
+

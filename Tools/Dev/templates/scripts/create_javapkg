@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+#
+'''
+Create a Java++ package skeleton in the Code/Components subtree.
+Uses just need to specify the component nad package names.
+For Java ASKAsoft uses the following  name space convention.
+askapsoft.component.package
+'''
+
+import optparse
+import os
+import sys
+
+import askapdev.templates.common as common
+
+templ_ext   = ".tmpl"
+templates = {
+            # In egg namespace  must use '/' delimiter.
+            'dir':    "../../templates/java/",
+            'files':  ["build.py", "build.xml", "dependencies.default",
+                       "package.info",],
+#            'ftest':  ["build.xml"], # Do not know what to do yet.
+            'update': ["build.xml", "dependencies.default", "package.info"],
+            }
+
+final_msg = '''
+Java package template completed succesfully.
+    If you did not supply all the options you need to edit various files
+    and fill in the placemarkers defined by @@@name@@@.
+    You may need to modify the dependencies.default file.
+'''
+
+usage_msg = '''usage: %prog [options] component package
+
+    Create template component Java in the 'askap' namespace.
+    These are created in Code/Components as:
+    <component>/<package>/current
+
+    The lower case options are used to fill in the build.xml template.
+    You can do this manually later if preferred.'''
+
+
+parser = optparse.OptionParser(usage=usage_msg)
+# For all these options, the 'dest' value must match the placemarker
+# name in the template SConstruct file.
+# If it becomes necessary to add options that are unrelated to the
+# SConstruct file, it may be possible to use OptionGroup to group them
+# together to pass them through to update_setup_file().
+parser.add_option("-a", "--author", dest="author",
+        help="specify package author")
+parser.add_option("-e", "--email", dest="email",
+        help="specify author's email")
+parser.add_option("-i", "--ice", action="store_true", dest="ice", default=False,
+        help="specify package uses Ice interface")
+parser.add_option("-p", "--project-name", dest="project-name",
+        help="specify the project name in build.xml (default is to use package name")
+
+
+
+def copy_templates(path):
+    '''Copy the template files into the new package area specified by path.'''
+    # The build infrastructure files.
+    for template in templates['files']:
+        tfn = templates['dir'] + template + templ_ext
+        common.write_file(tfn, path, template)
+
+    # The functional test directory.
+#    ftest_dir = common.get_func_test_dir(path)
+#    for template in templates['ftest']:
+#        tfn = templates['dir'] + template + templ_ext
+#        common.write_file(tfn, ftest_dir, template)
+
+
+if __name__ == "__main__":
+    (opts, args) = parser.parse_args()
+    opts_dict = eval(opts.__str__()) # Create a dictionary of just the options.
+
+    if len(args) == 2:
+        component, package = args[0], args[1]
+        opts_dict['component'] = component
+        opts_dict['package'] = package
+        if not opts_dict['project-name']: # i.e. None or ''
+            opts_dict['project-name'] = package
+        fs_path = os.path.join(common.askap_root, "Code", "Components",
+                                component, package, "current")
+    else:
+        print "Error: you must give the component and the package names.\n"
+        parser.print_help()
+        sys.exit(1)
+
+    os.makedirs(fs_path, 0755) # Fail if this cannot be done.
+    os.makedirs(os.path.join(fs_path, "src"), 0755)
+    common.create_test_dirs(fs_path)
+    copy_templates(fs_path)
+
+    for key in opts_dict.keys():
+        if key.isupper():
+            opts_dict.pop(key) # Only pass thru the lowercase options.
+
+    common.update_template_files(fs_path, opts_dict, templates['update'])
+    print final_msg
+    rel_path = fs_path.replace(common.askap_root, '').strip('/')
+
+    print "    Templates in ${ASKAP_ROOT}/%s" % rel_path

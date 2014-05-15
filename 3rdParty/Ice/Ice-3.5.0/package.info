@@ -1,0 +1,4 @@
+pymodule=IcePy==3.5b
+# in dependency order
+libs=IceGrid Glacier2 IceBox IcePatch2 IceStorm IceXML Slice Ice IceUtil
+jars=Ice-3.5.0.jar Freeze.jar IceStorm.jar

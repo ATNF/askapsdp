@@ -1,0 +1,11 @@
+--- apu-config.in	2009-06-10 13:34:22.000000000 +1000
++++ apu-config.in.new	2014-05-08 22:09:23.000000000 +1000
+@@ -27,7 +27,7 @@
+ libdir="@libdir@"
+ includedir="@includedir@"
+ 
+-LIBS="@APRUTIL_EXPORT_LIBS@"
++LIBS=""
+ INCLUDES="@APRUTIL_INCLUDES@"
+ LDFLAGS="@APRUTIL_LDFLAGS@"
+ LDAP_LIBS="@LDADD_ldap@"

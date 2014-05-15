@@ -1,0 +1,115 @@
+#!/bin/sh
+
+# makepkglinks: make symlinks to packages
+#
+#  Copyright (C) 2002
+#  ASTRON (Netherlands Foundation for Research in Astronomy)
+#  P.O.Box 2, 7990 AA Dwingeloo, The Netherlands, seg@astron.nl
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#  $Id: makepkglinks,v 1.13 2003/12/19 10:41:45 diepen Exp $
+
+
+# This script is used by lofar_package.m4 to create symlinks for
+# packages used by the given package.
+# It also writes the used libraries in a depfile which can be used to
+# generate the library dependencies.
+# It writes lines into lofar_config.h containing HAVE_LOFAR_PACKAGE
+# definitions which can be used in source code.
+# It is all done in a recursive way.
+#
+# usage:
+#  makepkglinks pkgname incdir libdir pkginc pkglib depfile conffile
+#               option count
+
+# The package name is the last part of the full package name.
+# The library name is the lowercase version of the package name.
+# option=0 means that makepkglinks descends recursively into
+#          all packages used by this package.
+# option=1 means not recursively
+# option=2 means not recursively, no library in depfile, and no
+#          HAVE lines in config file
+#
+# count is used to determine if endless recursion is taking place
+# (e.g. if packages include each other).
+
+fullnm=$1
+pkgnm=`echo $fullnm | sed -e "s%.*/%%g"`
+upkgnm=`echo $pkgnm | tr a-z A-Z`
+libnm=`echo $pkgnm | tr A-Z a-z`
+incdir=$2
+if [ -d $incdir ]; then
+  incdir=`cd $incdir  &&  pwd`
+fi
+libdir=$3
+if [ -d $libdir ]; then
+  libdir=`cd $libdir  &&  pwd`
+fi
+inclin=$4
+liblin=$5
+libdep=$6
+conffile=$7
+option=$8
+count=$9
+
+# The count is used to detect mutual dependencies
+if [ "$count" -gt 25 ]; then
+  echo "Mutual package dependencies found for package $fullnm"
+  exit 1;
+fi
+
+# Remove the full package name from the include and library path to be able
+# to derive the library path of subpackages from it.
+incdir1=`echo $incdir | sed -e "s%/$fullnm/.*%%" -e "s%/$fullnm$%%"`
+incdir2=`echo $incdir | sed -e "s%.*/$fullnm%%"`
+libdir1=`echo $libdir | sed -e "s%/$fullnm/.*%%" -e "s%/$fullnm$%%"`
+libdir2=`echo $libdir | sed -e "s%.*/$fullnm%%"`
+
+# Create symlink to the include directory and to the build directory
+\rm -f $inclin/$pkgnm
+ln -s $incdir/src $inclin/$pkgnm
+\rm -f $liblin/$pkgnm
+ln -s $libdir/src $liblin/$pkgnm
+
+if [ "$option" != 2 ]; then
+  echo "$libdir/src/lib$libnm.la" >> $libdep;
+  echo "" >> $conffile
+  echo "#if !defined(HAVE_LOFAR_$upkgnm)" >> $conffile;
+  echo "# define HAVE_LOFAR_$upkgnm 1" >> $conffile;
+  echo "#endif" >> $conffile;
+fi
+
+# Make symlinks to packages used by this package.
+if [ "$option" = "0" ]; then
+  confs=`find $incdir1/$fullnm -name configure.in -print`
+  for conf in $confs
+  do
+    pkgs=`grep "^[ \t]*lofar_PACKAGE[ \t]*(.*)" $conf`
+    for pkg in $pkgs
+    do
+      # Only keep package name possibly followed by ,option.
+      nm=`echo $pkg | sed -e "s/.*lofar_PACKAGE//" -e "s/ //g" -e "s/.*(//" -e "s/).*//"`
+      # Check if the package has to be examined recursively.
+      opt=`echo $nm | sed -e "s/.*,//"`
+      if [ "$opt" = ""  -o  "$opt" = "$nm" ]; then
+        opt=$option;
+      fi
+      nm=`echo $nm | sed -e "s/,.*//"`
+      cnt=`expr $count + 1`
+      $0 $nm $incdir1/$nm$incdir2 $libdir1/$nm$libdir2 $inclin $liblin $libdep $conffile $opt $cnt  ||  exit 1
+    done
+  done
+fi

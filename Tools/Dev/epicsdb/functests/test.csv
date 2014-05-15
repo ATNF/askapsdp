@@ -1,0 +1,147 @@
+REG_NAME,REC_TYPE,REC_DIR,DESC,DESC_TRUE,DESC_FALSE,NELM,FTVL,EGU,HIHI,LOLO,HIGH,LOW,HHSV,LLSV,HSV,LSV,HYST,ZSV,OSV,COSV,CALC,INP,INPA,INPB,INPC,INPD,INPE,INPF,MASK,ADDR
+CTRL_INTR_TOP_IS,long,ro,FPGA top-level interrupt summary register,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000000
+CTRL_INTR_TOP_IS_MSK,long,rw,FPGA top-level interrupt summary register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000001
+CTRL_SYS_INTR,long,rw,SYS interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000040
+CTRL_SYS_INTR_MSK,long,rw,SYS interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000041
+CTRL_SYS_GOODBEEF,long,ro,Control card goodbeef test register raw value,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000042
+CTRL_SYS_ID1,long,ro,System ID register 1.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000043
+CTRL_SYS_ID1_CHIP_TYPE,calc,ro,System chip type,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A>>28)&0xf,,CTRL_SYS_ID1,,,,,,,
+CTRL_SYS_ID1_YEAR_STAMP,calc,ro,Firmware year stamp as BCD,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,A&0xfffffff,,CTRL_SYS_ID1,,,,,,,
+CTRL_SYS_ID2,long,ro,System ID register 2.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000044
+CTRL_SYS_ID2_TIME_STAMP,calc,ro,Firmware time stamp as BCD,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,A&0xffffffff,,CTRL_SYS_ID2,,,,,,,
+CTRL_SYS_CTRL,long,rw,Ethernet Control,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000045
+CTRL_SYS_STATUS,long,ro,Ethernet Status,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000046
+CTRL_SYS_STATUS_TIMEOUT_COUNT,calc,ro,A count of timeouts occurred on the 1 wire interface,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A>>16)&0xff,,CTRL_SYS_STATUS,,,,,,,
+CTRL_SYS_STATUS_BAD_COUNT,calc,ro,A count of bad packets received,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A>>8)&0xff,,CTRL_SYS_STATUS,,,,,,,
+CTRL_SYS_STATUS_DUPLICATE_COUNT,calc,ro,A count of duplicate packets sent,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,A&0xff,,CTRL_SYS_STATUS,,,,,,,
+CTRL_SYS_MDIO_CTRL,long,rw,Ethernet PHY MDIO Interface,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000047
+CTRL_SYS_MDIO_STATUS,long,ro,Ethernet MDIO Status,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000048
+CTRL_SYS_MDIO_DATA,long,rw,MDIO register for data used in transactions,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000049
+CTRL_SYS_REG_VERSION,long,ro,Subversion register for the register interface.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000004A
+CTRL_SYS_REG_VERSION_MOD,b,ro,Version modified bit. Indicates modification state of the register document.,Modified,Not modified,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_SYS_REG_VERSION,,,,,,,0x80000000,
+CTRL_SYS_REG_VERSION_NUM,calc,ro,Subversion revision number for the XML register definition document.,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,A&0xfffffff,,CTRL_SYS_REG_VERSION,,,,,,,
+CTRL_CARD_INTR,long,rw,CARD interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000080
+CTRL_CARD_INTR_MSK,long,rw,CARD interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000081
+CTRL_CARD_CTRL,long,rw,Control card general control register,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000082
+CTRL_CARD_CTRL_RESET,b,rw,Reset the Control FPGA,Held in reset,Normal operation,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_CARD_CTRL,,,,,,,0x00000001,
+CTRL_CARD_STATUS,long,ro,Control card general status register,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000083
+CTRL_CARD_ID0,long,ro,Control Card Silicon Serial Number,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000084
+CTRL_CARD_ID1,long,ro,Control Card Silicon Serial Number,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000085
+CTRL_CARD_TEMP_CTRL,long,rw,MAX6696 Temperature sensor control.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000086
+CTRL_CARD_TEMP_STAT,long,ro,MAX6696 Temperature sensor status.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000087
+CTRL_CARD_TEMP_DATA,long,rw,MAX6696 Temperature sensor manual mode data register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000088
+CTRL_CARD_TEMP_RES,long,ro,MAX6696 Temperature sensor temperatures.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000089
+CTRL_CARD_TEMP_RES_EXT2_TEMP,calc,ro,Temperature in degrees C of the FPGA temp diode (only updated in auto mode),,,0,,C,90,0,50,10,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,2,,,,(A>>16)&0xff,,CTRL_CARD_TEMP_RES,,,,,,,
+CTRL_CARD_TEMP_RES_EXT1_TEMP,calc,ro,Temperature in degrees C of power supplies (only updated in auto mode),,,0,,C,90,0,55,10,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,2,,,,(A>>8)&0xff,,CTRL_CARD_TEMP_RES,,,,,,,
+CTRL_CARD_TEMP_RES_INT_TEMP,calc,ro,Temperature of the MAX6696 chip in degrees C (only updated in auto mode),,,0,,C,90,0,40,10,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,2,,,,A&0xff,,CTRL_CARD_TEMP_RES,,,,,,,
+CTRL_CARD_MON_CTRL,long,rw,Control Card Power monitor control,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008A
+CTRL_CARD_MON_STAT,long,ro,Control Card Power monitor status,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008B
+CTRL_CARD_MON_48V,long,ro,Control Card power monitor output,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008C
+CTRL_CARD_MON_48V_VCC_IN,calc,ro,Control card 48V input voltage,,,0,,V,60,40,52,48,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,1,,,,((A>>16)&0xffff)*0.025,,CTRL_CARD_MON_48V,,,,,,,
+CTRL_CARD_MON_48V_VCC_AMPS,calc,ro,Control card 48V input current,,,0,,mA,200,100,150,120,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,A&0xffff,,CTRL_CARD_MON_48V,,,,,,,
+CTRL_CARD_MON_TEMP,long,ro,System Monitor FPGA Temperature,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008D
+CTRL_CARD_MON_TEMP_TEMP,calc,ro,System monitor FPGA temp,,,0,,C,80,0,50,20,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,2,,,,((A&0xffff)*503.975/1024)-273.15,,CTRL_CARD_MON_TEMP,,,,,,,
+CTRL_CARD_MON_FPGA,long,ro,Control Card FPGA system monitor voltages,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008E
+CTRL_CARD_MON_FPGA_VCC_INT,calc,ro,Control Card FPGA Core Voltage,,,0,,V,1,0,1,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*3/1024,,CTRL_CARD_MON_FPGA,,,,,,,
+CTRL_CARD_MON_FPGA_VCC_AUX,calc,ro,Control Card FPGA Auxiliary Voltage,,,0,,V,2,2,2,2,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*3/1024,,CTRL_CARD_MON_FPGA,,,,,,,
+CTRL_CARD_MON_VCC0,long,ro,Control Card FPGA system monitor voltages register 0,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000008F
+CTRL_CARD_MON_VCC0_VCC_1V,calc,ro,Control Card 1V plane voltage,,,0,,V,1,0,1,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*10010/(4990*1024),,CTRL_CARD_MON_VCC0,,,,,,,
+CTRL_CARD_MON_VCC0_VCC_1VMGT,calc,ro,Control Card 1V MGT supply,,,0,,V,1,0,1,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*10010/(4990*1024),,CTRL_CARD_MON_VCC0,,,,,,,
+CTRL_CARD_MON_VCC1,long,ro,Control Card FPGA system monitor voltages register 1,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000090
+CTRL_CARD_MON_VCC1_VCC_1V2,calc,ro,Control Card 1.2V supply,,,0,,V,1,1,1,1,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*12010/(4990*1024),,CTRL_CARD_MON_VCC1,,,,,,,
+CTRL_CARD_MON_VCC1_VCC_2V5,calc,ro,Control Card 2.5V supply,,,0,,V,2,2,2,2,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*25010/(4990*1024),,CTRL_CARD_MON_VCC1,,,,,,,
+CTRL_CARD_MON_VCC2,long,ro,Control Card FPGA system monitor voltages register 2,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000091
+CTRL_CARD_MON_VCC2_VCC_3V3,calc,ro,Control Card 3.3V supply,,,0,,V,3,3,3,3,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*33010/(4990*1024),,CTRL_CARD_MON_VCC2,,,,,,,
+CTRL_CARD_FREQ_CHECK,long,ro,Frequency check register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000092
+CTRL_CARD_FREQ_CHECK_CLK_REF,b,ro,Input reference clock frequency status,Frequency OK,Frequency error,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,MAJOR,,,,CTRL_CARD_FREQ_CHECK,,,,,,,0x00000008,
+CTRL_CARD_FREQ_CHECK_CLK_ADC,b,ro,ADC sampling clock frequency status.,Frequency OK,Frequency error,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_CARD_FREQ_CHECK,,,,,,,0x00000002,
+CTRL_CARD_FREQ_CHECK_CLK_SER,b,ro,156 MHz clock frequency status,Frequency OK,Frequency error,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_CARD_FREQ_CHECK,,,,,,,0x00000001,
+CTRL_CARD_MEM_CTRL,long,rw,Control register for onboard 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000093
+CTRL_CARD_MEM_STATUS,long,ro,Onboard Silicon Serial Number,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000094
+CTRL_CARD_MEM_READ_LOW,long,ro,Data read register for onboard memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000095
+CTRL_CARD_MEM_READ_HIGH,long,ro,Data read register for onboard memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000096
+CTRL_CARD_MEM_WRITE_LOW,long,rw,Data register for onboard 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000097
+CTRL_CARD_MEM_WRITE_HIGH,long,rw,Data register for onboard 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000098
+CTRL_CARD_JTAG_MUX_CTRL,long,rw,MAX6696 Temperature sensor control.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000099
+CTRL_CARD_JTAG_MUX_STAT,long,ro,MAX6696 Temperature sensor status.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000009A
+CTRL_SHELF_INTR,long,rw,SHELF interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C0
+CTRL_SHELF_INTR_MSK,long,rw,SHELF interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C1
+CTRL_SHELF_ID0,long,ro,Backplane Silicon Serial Number LSB,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C2
+CTRL_SHELF_ID1,long,ro,Backplane Silicon Serial Number MSB,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C3
+CTRL_SHELF_ID1_RACK_ID,calc,ro,Shelf ID as read from the backplane,,,0,,,0,0,4,1,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0x3)+1,,CTRL_SHELF_ID1,,,,,,,
+CTRL_SHELF_MEM_CTRL,long,rw,Control register for backplane 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C4
+CTRL_SHELF_MEM_STATUS,long,ro,Status register for backplane 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C5
+CTRL_SHELF_MEM_READ_LOW,long,ro,Data read register for backplane memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C6
+CTRL_SHELF_MEM_READ_HIGH,long,ro,Data read register for backplane memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C7
+CTRL_SHELF_MEM_WRITE_LOW,long,rw,Data register for backplane 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C8
+CTRL_SHELF_MEM_WRITE_HIGH,long,rw,Data register for backplane 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000C9
+CTRL_SHELF_CARD_STATUS,long,ro,Card presence and configured status,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x000000CA
+CTRL_SHELF_CARD_STATUS_CONFIGURED,mbb,ro,Indicates if the specified digitiser is programmed or not. The shelf power must be enabled for this register to mean anything.,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_SHELF_CARD_STATUS,,,,,,,0x0FFF0000,
+CTRL_SHELF_CARD_STATUS_PRESENT,mbb,ro,Indicates if the specified digitiser card is present or not. The shelf power must be enabled for this register to mean anything.,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_SHELF_CARD_STATUS,,,,,,,0x00000FFF,
+CTRL_POWER_INTR,long,rw,POWER interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000100
+CTRL_POWER_INTR_MSK,long,rw,POWER interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000101
+CTRL_POWER_CTRL,long,rw,Control register for shelf power card.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000102
+CTRL_POWER_CTRL_MAN_DISABLE,b,rw,Disable local control of the power supply,Supply disabled,Supply enabled,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_POWER_CTRL,,,,,,,0x02000000,
+CTRL_POWER_CTRL_ENABLE,b,rw,Software power supply enable,Supply enabled,Supply disabled,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_POWER_CTRL,,,,,,,0x01000000,
+CTRL_POWER_STATUS,long,ro,Shelf power supply status register,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000103
+CTRL_POWER_STATUS_POWER_FAULT,b,ro,Indicates if the power supply card has a problem,Fault detected,No fault,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,MAJOR,,,CTRL_POWER_STATUS,,,,,,,0x02000000,
+CTRL_POWER_STATUS_POWER_STATE,b,ro,Current status of the rack power supply card,Supply enabled,Supply disabled,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,MINOR,,,,CTRL_POWER_STATUS,,,,,,,0x01000000,
+CTRL_POWER_ID0,long,ro,Power card silicon serial number register 1,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000104
+CTRL_POWER_ID1,long,ro,Power card silicon serial number register 2,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000105
+CTRL_POWER_MON_12VA,long,ro,Data outputs for 9.6V supply A power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000106
+CTRL_POWER_MON_12VA_VCC_12,calc,ro,9.6V supply A output voltage,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_12VA,,,,,,,
+CTRL_POWER_MON_12VA_IOUT_12,calc,ro,9.6V supply A output current,,,0,,mA,27000,0,20000,150,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,50,,,,(A&0xffff)*20.0/3,,CTRL_POWER_MON_12VA,,,,,,,
+CTRL_POWER_MON_12VB,long,ro,Data outputs for 9.6V supply B power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000107
+CTRL_POWER_MON_12VB_VCC_12,calc,ro,9.6V supply B output voltage,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_12VB,,,,,,,
+CTRL_POWER_MON_12VB_IOUT_12,calc,ro,9.6V supply B output current,,,0,,mA,27000,0,21000,150,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,50,,,,(A&0xffff)*20.0/3,,CTRL_POWER_MON_12VB,,,,,,,
+CTRL_POWER_MON_4VA,long,ro,Data outputs A for 4V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000108
+CTRL_POWER_MON_4VA_VIN_12,calc,ro,9.6V input voltage to 4V regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_4VA,,,,,,,
+CTRL_POWER_MON_4VA_IIN_12,calc,ro,9.6V input current to 4V regulator,,,0,,mA,10000,0,8000,80,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_4VA,,,,,,,
+CTRL_POWER_MON_4VB,long,ro,Data outputs B for 4V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000109
+CTRL_POWER_MON_4VB_VCC_4V,calc,ro,4V regulator output voltage,,,0,,V,4,3,4,3,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*0.002,,CTRL_POWER_MON_4VB,,,,,,,
+CTRL_POWER_MON_1V5AA,long,ro,Data outputs A for 1.7V A power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010A
+CTRL_POWER_MON_1V5AA_VIN_12,calc,ro,9.6V input voltage to 1.7V left regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_1V5AA,,,,,,,
+CTRL_POWER_MON_1V5AA_IIN_12,calc,ro,9.6V input current to 1.7V left regulator,,,0,,mA,15800,0,5600,100,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_1V5AA,,,,,,,
+CTRL_POWER_MON_1V5AB,long,ro,Data outputs B for 1.7V A power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010B
+CTRL_POWER_MON_1V5AB_VCC_1V5,calc,ro,1.7V left regulator output voltage,,,0,,V,2,1,1,1,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*1.499/2000,,CTRL_POWER_MON_1V5AB,,,,,,,
+CTRL_POWER_MON_6VA,long,ro,Data outputs A for 5.5V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010C
+CTRL_POWER_MON_6VA_VIN_12,calc,ro,9.6V input voltage to 5.5V regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_6VA,,,,,,,
+CTRL_POWER_MON_6VA_IIN_12,calc,ro,9.6V input current to 5.5V regulator,,,0,,mA,10000,0,400,80,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_6VA,,,,,,,
+CTRL_POWER_MON_6VB,long,ro,Data outputs B for 5.5V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010D
+CTRL_POWER_MON_6VB_VCC_6V,calc,ro,5.5V regulator ouput voltage,,,0,,V,6,5,5,5,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*5.99/2000,,CTRL_POWER_MON_6VB,,,,,,,
+CTRL_POWER_MON_3V3A,long,ro,Data outputs A for 3.3V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010E
+CTRL_POWER_MON_3V3A_VIN_12,calc,ro,9.6V input voltage to 3.3V regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_3V3A,,,,,,,
+CTRL_POWER_MON_3V3A_IIN_12,calc,ro,9.6V input current to 3.3V regulator,,,0,,mA,10000,0,2700,80,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_3V3A,,,,,,,
+CTRL_POWER_MON_3V3B,long,ro,Data outputs B for 3.3V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000010F
+CTRL_POWER_MON_3V3B_VCC_3V3,calc,ro,3.3V regulator output voltage,,,0,,V,3,3,3,3,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*3.32/2000,,CTRL_POWER_MON_3V3B,,,,,,,
+CTRL_POWER_MON_2V5A,long,ro,Data outputs A for 2.5V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000110
+CTRL_POWER_MON_2V5A_VIN_12,calc,ro,9.6V input voltage to 2.5V regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_2V5A,,,,,,,
+CTRL_POWER_MON_2V5A_IIN_12,calc,ro,9.6V input current to 2.5V regulator,,,0,,mA,15800,0,4300,240,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_2V5A,,,,,,,
+CTRL_POWER_MON_2V5B,long,ro,Data outputs B for 2.5V power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000111
+CTRL_POWER_MON_2V5B_VCC_2V5,calc,ro,2.5V regulator output voltage,,,0,,V,2,2,2,2,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*2.5/2000,,CTRL_POWER_MON_2V5B,,,,,,,
+CTRL_POWER_MON_1V5BA,long,ro,Data outputs A for 1.5V B power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000112
+CTRL_POWER_MON_1V5BA_VIN_12,calc,ro,9.6V input voltage to 1.7V right regulator,,,0,,V,10,8,9,9,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,((A>>16)&0xffff)*0.025,,CTRL_POWER_MON_1V5BA,,,,,,,
+CTRL_POWER_MON_1V5BA_IIN_12,calc,ro,9.6V input current to 1.7V right regulator,,,0,,mA,15800,0,5600,100,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,10,,,,(A&0xffff)*2,,CTRL_POWER_MON_1V5BA,,,,,,,
+CTRL_POWER_MON_1V5BB,long,ro,Data outputs B for 1.5V B power & current monitor,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000113
+CTRL_POWER_MON_1V5BB_VCC_1V5,calc,ro,1.7V right regulator ouput voltage,,,0,,V,2,1,1,1,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,(A&0xffff)*1.499/2000,,CTRL_POWER_MON_1V5BB,,,,,,,
+CTRL_POWER_MEM_CTRL,long,rw,Control register for power card 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000114
+CTRL_POWER_MEM_STATUS,long,ro,Power Card Silicon Serial Number,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000115
+CTRL_POWER_MEM_READ_LOW,long,ro,Data read register for power card memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000116
+CTRL_POWER_MEM_READ_HIGH,long,ro,Data read register for power card memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000117
+CTRL_POWER_MEM_WRITE_LOW,long,rw,Data register for power card 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000118
+CTRL_POWER_MEM_WRITE_HIGH,long,rw,Data register for power card 1-wire memory,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000119
+CTRL_EVENT_INTR,long,rw,Event Generator interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000140
+CTRL_EVENT_INTR_MSK,long,rw,Event Generator interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000141
+CTRL_EVENT_EVENTS_INTR,long,rw,Event Generator interrupt event register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000142
+CTRL_EVENT_EVENTS_INTR_MSK,long,rw,Event Generator interrupt event enable register.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000143
+CTRL_EVENT_CTRL,long,rw,Event Generator control.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000144
+CTRL_EVENT_STATUS,long,ro,Event Generator status.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000145
+CTRL_EVENT_REF_FIFO_LS,long,rw,Event Generator Frame FIFO lower word.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000146
+CTRL_EVENT_REF_FIFO_MS,long,rw,Event Generator Frame FIFO upper word.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000147
+CTRL_EVENT_FRAME_FIFO,long,ro,Event Generator BAT capture FIFO.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000148
+CTRL_EVENT_FRAME_FIFO_FRAME_DATA,waveform,ro,The captured frame data.,,,23,ulong,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,
+CTRL_EVENT_ASYNC_EVENT,long,rw,Generate asynchronous events.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x00000149
+CTRL_EVENT_ASYNC_EVENT_EVENTS,mbb,rw,The desired event output,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_EVENT_ASYNC_EVENT,,,,,,,0x0000FFFF,
+CTRL_EVENT_EVENT_STATUS,long,ro,View the state of the event generator outputs.,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000014A
+CTRL_EVENT_EVENT_STATUS_EVENTS,mbb,ro,The 16 bit event bus,,,0,,,0,0,0,0,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,CTRL_EVENT_EVENT_STATUS,,,,,,,0x0000FFFF,
+CTRL_EVENT_DELAY_CTRL,long,rw,Delay the event outputs,,,0,,,,,,,NO_ALARM,NO_ALARM,NO_ALARM,NO_ALARM,0,,,,,,,,,,,,,0x0000014B

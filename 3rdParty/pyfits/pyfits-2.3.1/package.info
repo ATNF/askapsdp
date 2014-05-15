@@ -1,0 +1,3 @@
+pymodule=pyfits
+# pure python module
+libs=

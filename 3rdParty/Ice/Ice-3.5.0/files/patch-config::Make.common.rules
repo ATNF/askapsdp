@@ -1,0 +1,11 @@
+--- config/Make.common.rules.orig	2009-03-13 21:24:35.000000000 +1100
++++ config/Make.common.rules	2009-03-13 21:29:17.000000000 +1100
+@@ -57,7 +57,7 @@
+ 
+ ifeq ($(UNAME),Linux)
+    ifeq ($(MACHINE_TYPE),x86_64)
+-      lp64suffix	= 64
++#      lp64suffix	= 64
+       ifeq ($(LP64),)
+           LP64      	= yes
+       endif

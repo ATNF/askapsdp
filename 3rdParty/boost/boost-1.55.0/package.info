@@ -1,0 +1,4 @@
+# The list of libraries this package provides
+# don't enable boost_python as mostly only templated headers are used
+# Don't reinsert this line! libs=boost_python
+libs=boost_date_time boost_filesystem boost_program_options boost_system boost_thread boost_regex

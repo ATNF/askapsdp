@@ -1,0 +1,4 @@
+libdir=
+jars=hibernate3.jar lib/required/antlr-2.7.6.jar lib/required/commons-collections-3.1.jar lib/required/dom4j-1.6.1.jar lib/required/javassist-3.12.0.GA.jar lib/required/jta-1.1.jar lib/required/slf4j-api-1.6.1.jar lib/jpa/hibernate-jpa-2.0-api-1.0.0.Final.jar lib/optional/c3p0/c3p0-0.9.1.jar
+libs=
+incdir=

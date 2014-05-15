@@ -1,0 +1,14 @@
+--- Makefile.orig	2011-11-12 08:08:04.000000000 +1100
++++ Makefile	2012-02-03 13:38:33.843202739 +1100
+@@ -6,9 +6,9 @@
+ 
+ include make.inc
+ 
+-all: lapack_install lib blas_testing lapack_testing 
++all: lapack_install lib
+ 
+-lib: lapacklib tmglib
++lib: lapacklib
+ #lib: blaslib variants lapacklib tmglib
+ 
+ clean: cleanlib cleantesting cleanblas_testing 

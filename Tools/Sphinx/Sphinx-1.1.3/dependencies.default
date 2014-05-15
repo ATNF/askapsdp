@@ -1,0 +1,3 @@
+docutils=Tools/docutils/docutils-0.7
+Jinja2=Tools/Jinja2/Jinja2-2.5
+Pygments=Tools/Pygments/Pygments-1.3.1

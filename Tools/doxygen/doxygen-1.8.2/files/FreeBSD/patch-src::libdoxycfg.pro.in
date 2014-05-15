@@ -1,0 +1,11 @@
+--- src/libdoxycfg.pro.in.orig	2010-01-01 22:53:11.000000000 +1100
++++ src/libdoxycfg.pro.in	2012-01-20 11:33:55.598597127 +1100
+@@ -20,7 +20,7 @@
+ SOURCES      =	config.cpp configoptions.cpp portable.cpp portable_c.c
+ win32:TMAKE_CXXFLAGS       += -DQT_NODLL
+ win32-g++:TMAKE_CXXFLAGS   += -fno-exceptions -fno-rtti
+-INCLUDEPATH                += ../qtools
++INCLUDEPATH                += ../qtools /usr/local/include
+ win32:INCLUDEPATH          += .
+ DESTDIR                    =  ../lib
+ TARGET                     =  doxycfg

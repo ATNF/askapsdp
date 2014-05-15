@@ -1,0 +1,3 @@
+pymodule=MySQL-python==1.2.4
+# pure python module
+libs=

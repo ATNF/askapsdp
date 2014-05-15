@@ -1,0 +1,2 @@
+# This file lists the external dependencies
+numpy=3rdParty/numpy/numpy-1.6.2

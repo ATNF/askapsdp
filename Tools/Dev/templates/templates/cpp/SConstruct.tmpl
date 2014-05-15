@@ -1,0 +1,27 @@
+# @file
+# SConstruct build script for this module.
+# This is template.
+#
+# @author @@@author@@@ <@@@email@@@>
+#
+
+import os
+
+from askapenv import env    # Always import this.
+
+#env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-g'])
+
+# create build object with library name
+pkg = env.AskapPackage("@@@package@@@")
+
+# add subpackages
+# pkg.AddSubPackages("subpackage_name")
+
+# enable if this package should be built as a shared library
+# pkg.build_shared = True
+
+# add functional tests
+env.SConscript("functests/SConscript")
+
+# Run the build process.
+pkg()

@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+#
+'''
+Create a python package skeleton in the Code/Components subtree.
+Uses just need to specify the component nad package names.
+For python ASKAsoft uses the following  name spaceconvention.
+askapsoft.component.package
+'''
+
+import optparse
+import os
+import sys
+
+import askapdev.templates.common as common
+
+templ_ext = '.tmpl'
+templates = { 'components':
+                {
+                # In egg namespace must use '/' delimeter.
+                'dir':    "../../templates/python/components/",
+                'update': ['setup.py', 'package.info'],
+                'files':  ['build.py', 'dependencies.default',
+                           'setup.py', 'package.info'],
+                'init':   '__init__.py',
+                'ipkg':   '__init__.py.package',
+                'doc':    ['conf.py', 'index.rst', 'Makefile'],
+                'docupdate': ['conf.py', 'index.rst'],
+                },
+             'systems':
+                {
+                'dir':    '../../templates/python/systems/',
+                'update': ['setup.py', 'package.info'],
+                'files':  ['build.py', 'dependencies.default',
+                           'setup.py', 'package.info'],
+                }
+            }
+
+ignore_list = []
+
+final_msg = '''
+Python package template completed succesfully.
+    If you did not supply all the options you need to edit setup.py
+    and fill in the placemarkers defined by @@@name@@@.
+    You may need to create a dependencies.default file.
+    You need to manually add and commmit the created tree to subversion.
+'''
+
+sys_msg = '''
+    You need to edit setup.py to add scripts and modules.
+'''
+
+usage_msg = '''usage: %prog [options] component package
+   or: %prog -S [options] module
+
+    The first form is used to create template python packages in the
+    'askap' namespace e.g. askap.<component>.<package>
+    These are created in Code/Components as:
+    <component>/<package>/current/<component.lower()><package.lower()>
+
+    The second form is for the creation of non-standard namespace
+    python packages in the Code/Systems hierarchy (but this location
+    is not enforced).  These are created in the current directory as:
+    <module>
+
+    The lower case options are used to fill in the setup.py template.
+    You can do this manually later if preferred.'''
+
+parser = optparse.OptionParser(usage=usage_msg)
+# For all these options, the 'dest' value must match the placemarker
+# name in the template setup.py file.
+# If it becomes necessary to add options that are unrelated to the
+# setup.py file, it may be possible to use OptionGroup to group them
+# together to pass them through to update_template_files().
+parser.add_option("-S", action="store_true", dest="SYSTEM", default=False,
+        help="A boolean flag [default: %default] indicating a non-standard namespace python package.")
+parser.add_option("-a", "--author", dest="author",
+        help="Specify package author.")
+parser.add_option("-e", "--email", dest="email",
+        help="Specify author's email.")
+parser.add_option("-d", "--description", dest="description",
+        help="Single line description of package.")
+parser.add_option("-k", "--keywords", dest="keywords",
+        help="A space separated list e.g. -k 'datastore on-line test'.")
+parser.add_option("-l", "--long_description", dest="long_description",
+        help="This can be multi-line.  Use '\\n' to separate lines.")
+
+
+def copy_component_templates(path, template, comp, pkg):
+    '''Copy the template files into the new package area specified by path.'''
+    # The build infrastructure files.
+    for fn in template['files']:
+        tfn = template['dir'] + fn + templ_ext
+        common.write_file(tfn, path, fn)
+
+    # The askap and component level __init__.py file.
+    tfn = template['dir'] + template['init'] + templ_ext
+    askapdir = os.path.join(path, "askap")
+    compdir = os.path.join(askapdir, comp)
+    for outdir in [askapdir, compdir]:        
+        common.write_file(tfn, outdir, template['init'])
+
+    # The package level __init__.py file.
+    tfn = template['dir'] + template['ipkg'] + templ_ext
+    pkgdir = os.path.join(compdir, pkg)
+    common.write_file(tfn, pkgdir, template['ipkg'].rstrip(".package"))
+
+    # The doc templates
+    for fn in template['doc']:
+        docdir = os.path.join(path, "doc")
+        tfn = template['dir'] + fn + templ_ext
+        common.write_file(tfn, docdir, fn)
+    
+def copy_system_templates(path, template):
+    '''Copy the template files into the new package area specified by path.'''
+    # The build infrastructure files.
+    for fn in template['files']:
+        tfn = template['dir'] + fn + templ_ext
+        common.write_file(tfn, path, fn)
+
+def make_doc_dirs(path):
+    docdir = os.path.join(path, "doc")
+    os.makedirs(docdir, 0755)
+    for p in ["_static", "_templates"]:
+        p = os.path.join(docdir, p)
+        os.makedirs(p, 0755)        
+
+if __name__ == "__main__":
+    (opts, args) = parser.parse_args()
+    opts_dict = eval(opts.__str__()) # Create a dictionary of just the options.
+
+    if opts.SYSTEM == True:
+        if len(args) == 1:
+            templates = templates['systems']
+            module = args[0]
+            opts_dict['module'] = module
+            top_path = os.getcwd()
+            fs_path = os.path.join(top_path, module)
+            py_path = fs_path
+            doc_path = os.path.join(fs_path, "doc")
+        else:
+            print "Error: you must give just the module name.\n"
+            parser.print_help()
+            sys.exit(1)
+    else:
+        if len(args) == 2:
+            templates = templates['components']
+            component, package = args[0], args[1]
+            top_path = os.path.join(common.askap_root, "Code", "Components")
+            fs_path = os.path.join(top_path, component, package, "current")
+            py_component, py_package = component.lower(), package.lower()
+            py_path = os.path.join(fs_path, "askap", py_component, py_package)
+            doc_path = os.path.join(fs_path, "doc")
+            opts_dict['py_component'] = py_component
+            opts_dict['py_package'] = py_package
+        else:
+            print "Error: you must give the component and the package names.\n"
+            parser.print_help()
+            sys.exit(1)
+
+    os.makedirs(py_path, 0755) # Fail if this cannot be done.
+    make_doc_dirs(fs_path)
+
+    if opts.SYSTEM == True:
+        copy_system_templates(py_path, templates)
+        os.makedirs(os.path.join(py_path, "scripts"), 0755)
+        os.makedirs(os.path.join(py_path, "modules"), 0755)
+        common.add_to_svn(os.path.join(fs_path))
+        final_msg += sys_msg
+    else:
+        copy_component_templates(fs_path, templates, py_component, py_package)
+        # Add the newly created package to the repository.
+        # Try to do just the package first because the component may already
+        # exist and there may be other files/directories that we do not
+        # want to add.
+        # If we cannot add the package it means (most likely) that the
+        # component is also new so we need to add at component level.
+        added_ok = common.add_to_svn(os.path.join(top_path, component, package))
+        if added_ok == False:
+            added_ok = common.add_to_svn(os.path.join(top_path, component))
+        if added_ok == True:
+            common.set_svn_ignores(py_path, ignore_list)
+        else:
+            print "warning: Unable to add template to repository."
+
+    for key in opts_dict.keys():
+        if key.isupper():
+            opts_dict.pop(key) # Only pass thru the lowercase options.
+
+    common.update_template_files(fs_path, opts_dict, templates['update'])
+    common.update_template_files(doc_path, opts_dict, templates['docupdate'])
+
+
+    print final_msg
+    rel_path = fs_path.replace(common.askap_root, '').strip('/')
+    print "    Templates in ${ASKAP_ROOT}/%s" % rel_path

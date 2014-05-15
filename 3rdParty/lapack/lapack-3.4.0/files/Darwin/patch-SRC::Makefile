@@ -1,0 +1,23 @@
+--- SRC/Makefile.orig	2011-07-23 17:10:27.581525089 +1000
++++ SRC/Makefile	2011-07-23 17:08:24.621488865 +1000
+@@ -369,7 +369,9 @@
+    zla_heamv.o zla_hercond_c.o zla_hercond_x.o zla_herpvgrw.o		\
+    zla_lin_berr.o zlarscl2.o zlascl2.o zla_wwaddw.o
+ 
+-all: ../$(LAPACKLIB)
++all: ../$(LAPACKLIB) ../liblapack.dylib
++
++
+ 
+ ifdef USEXBLAS
+ ALLXOBJ=$(SXLASRC) $(DXLASRC) $(CXLASRC) $(ZXLASRC) $(ALLXAUX)
+@@ -402,6 +404,9 @@
+ 	$(DZLAUX) $(ZCLASRC)
+ 	$(RANLIB) ../$(LAPACKLIB)
+ 
++../liblapack.dylib: $(ALLOBJ)
++	$(FORTRAN) -dynamiclib -undefined dynamic_lookup -compatibility_version 1 -current_version 3.4.0 -Wl,-dylib_install_name,liblapack.dylib -o $@ $(ALLOBJ)
++
+ $(ALLAUX): $(FRC)
+ $(SCLAUX): $(FRC)
+ $(DZLAUX): $(FRC)

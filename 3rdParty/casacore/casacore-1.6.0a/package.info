@@ -1,0 +1,4 @@
+# The list of libraries this package provides
+libs=casa_images casa_components casa_coordinates casa_lattices casa_msfits casa_derivedmscal casa_ms casa_meas casa_measures casa_scimath casa_scimath_f casa_tables casa_fits casa_mirlib casa_casa 
+# The custom location of headers, if other than ./include/
+incdir=include/casacore

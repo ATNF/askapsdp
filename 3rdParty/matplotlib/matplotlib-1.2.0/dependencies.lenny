@@ -1,0 +1,7 @@
+# This file lists the external dependencies
+# use pkgname=ASKAP_ROOT_relative_path
+
+libpng=3rdParty/libpng/libpng-1.4.7
+freetype=3rdParty/freetype/freetype-2.3.5
+sip=3rdParty/sip/sip-4.14.2
+pyqt=3rdParty/PyQt/PyQt-4.9.6

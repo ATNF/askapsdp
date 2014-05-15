@@ -1,0 +1,21 @@
+# @file
+# SConstruct build script for this module.
+#
+# @author Tony Maher <Tony.Maher@csiro.au>
+#
+import os
+
+askap_root = os.environ['ASKAP_ROOT']
+incdir = '%s/include' % askap_root
+libdir = '%s/lib' % askap_root
+
+env = Environment()
+
+env.AppendUnique(CPPPATH=["%s/include" % askap_root])
+
+testutils = env.Library('testutils', ['AskapTestRunner.cc'])
+
+env.Install(incdir, 'AskapTestRunner.h')
+env.Install(libdir, testutils)
+env.Alias('install', incdir)
+env.Alias('install', libdir)

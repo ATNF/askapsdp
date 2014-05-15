@@ -1,0 +1,3 @@
+pymodule=askap.accessors
+# pure python module
+libs=

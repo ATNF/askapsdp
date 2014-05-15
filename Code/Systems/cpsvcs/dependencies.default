@@ -1,0 +1,3 @@
+manager=Code/Components/CP/manager/current
+#cpdataservices=Code/Components/CP/cpdataservices/server/current
+ingest=Code/Components/CP/ingest/current

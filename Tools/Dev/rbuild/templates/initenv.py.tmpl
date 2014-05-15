@@ -1,0 +1,162 @@
+## @file initenv.py
+# Script which creates a shell script that sets ASKAP specific environment
+# variables.
+#
+# copyright (c) 2010 ASKAP. All Rights Reserved.
+# @author Tony Maher <Tony.Maher@csiro.au>
+#
+import os
+import sys
+import time
+
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("-s", "--shell",
+                  dest="shell",
+                  action="store",
+                  type="choice",
+                  choices=["bash", "sh", "tcsh", "csh"],
+                  default="bash",
+                  help="specify the type of shell to generate the script for")
+
+(opts, args) = parser.parse_args()
+
+major = sys.version_info[0]
+minor = sys.version_info[1]
+pyver = '%s.%s' % (major, minor)
+pyexe = sys.executable
+pysite= os.path.join('lib', 'python%s' % pyver, 'site-packages')
+
+if (major < 3) and (minor < 6):
+    print ">>> Python versions less than 2.6 are not supported.  Exiting."
+    sys.exit(1)
+
+invoked_path = sys.argv[0]
+absolute_path = os.path.abspath(invoked_path)
+os.chdir(os.path.dirname(absolute_path))
+
+# Shell like initialisation defintion.
+
+bashinit = """\
+ASKAP_ROOT=%(askaproot)s
+export ASKAP_ROOT
+
+if [ "${PATH}" != "" ]
+then
+    PATH=`echo $PATH | sed "s#:$ASKAP_ROOT/bin:##"`
+    PATH="%%%PATH%%%:${PATH}"
+else
+    PATH="%%%PATH%%%:/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+fi
+export PATH
+
+if [ "${%%%ldprefix%%%LD_LIBRARY_PATH}" != "" ]
+then
+    %%%ldprefix%%%LD_LIBRARY_PATH=`echo $%%%ldprefix%%%LD_LIBRARY_PATH | sed "s#:$ASKAP_ROOT/lib:##"`
+    %%%ldprefix%%%LD_LIBRARY_PATH="%%%LD_LIBRARY_PATH%%%:${%%%ldprefix%%%LD_LIBRARY_PATH}"
+else
+    %%%ldprefix%%%LD_LIBRARY_PATH=%%%LD_LIBRARY_PATH%%%
+fi
+export %%%ldprefix%%%LD_LIBRARY_PATH
+
+
+if [ "${CLASSPATH}" != "" ]
+then
+    CLASSPATH=`echo $CLASSPATH | sed "s#:$ASKAP_ROOT/lib:##"`
+    CLASSPATH="%%%CLASSPATH%%%:${CLASSPATH}"
+else
+    CLASSPATH="%%%CLASSPATH%%%"
+fi
+export CLASSPATH
+
+
+if [ "${MANPATH}" != "" ]
+then
+    MANPATH=`echo $MANPATH | sed "s#:$ASKAP_ROOT/man:##"`
+    MANPATH="${ASKAP_ROOT}/man:${MANPATH}"
+else
+    MANPATH="${ASKAP_ROOT}/man"
+fi
+export MANPATH
+
+psset=`echo $PS1 | grep askap`
+if [ "$psset" = "" ]
+then
+   PS1="askap ${PS1}"
+   export PS1
+fi
+""" % {'askaproot': os.getcwd(), 'pysite': pysite}
+
+
+# C shell like initialisation definition.
+
+tcshinit = """\
+setenv ASKAP_ROOT %(askaproot)s
+
+if ($?PATH) then
+    setenv PATH `echo $PATH | sed "s#:$ASKAP_ROOT/bin:##"`
+    setenv PATH "%%%PATH%%%:${PATH}"
+else
+    setenv PATH "%%%PATH%%%:/usr/bin:/bin:/usr/sbin:/sbin"
+endif
+
+if ($?%%%ldprefix%%%LD_LIBRARY_PATH) then
+    setenv %%%ldprefix%%%LD_LIBRARY_PATH `echo %%%ldprefix%%%LD_LIBRARY_PATH | sed "s#:$ASKAP_ROOT/lib:##"`
+    setenv %%%ldprefix%%%LD_LIBRARY_PATH "%%%LD_LIBRARY_PATH%%%:${%%%ldprefix%%%LD_LIBRARY_PATH}"
+else
+    setenv %%%ldprefix%%%LD_LIBRARY_PATH "%%%LD_LIBRARY_PATH%%%"
+endif
+
+if ($?MANPATH) then
+    setenv MANPATH `echo $MANPATH | sed "s#:$ASKAP_ROOT/man:##"`
+    setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
+else
+    setenv MANPATH "${ASKAP_ROOT}/man"
+endif
+
+if ($?prompt) then
+    set noglob
+    set psset=`echo $prompt |grep askap`
+    unset noglob
+    if ("$psset" == "") then
+        set prompt="\(askap\)${prompt}"
+    endif
+else
+    set prompt="\(askap\) > "
+endif
+""" % {'askaproot': os.getcwd(), 'pysite': pysite}
+
+# Map various shells to the initialisation type.
+
+shmap = {
+        "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
+        "sh"   : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
+        "tcsh" : { "suffix": "csh", "init" : "source", "file" : tcshinit },
+        "csh"  : { "suffix": "csh", "init" : "source", "file" : tcshinit },
+        }
+
+shell =  shmap[opts.shell]
+filename = "initaskap.%s" % shell["suffix"]
+
+if os.path.exists(filename):
+    now = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    os.rename(filename, "%s.%s" % (filename, now))
+    print "Regenerating %s." % filename
+
+f = file(filename, "w")
+f.write(shell["file"])
+f.close()
+
+# Having a shell alias for python is not enough.  For python scripts
+# using '#!/usr/bin/env python', they will search $PATH and ignore the alias.
+# Do NOT catch any exceptions - they should be fatal.
+if not os.path.exists("bin"):
+    os.mkdir("bin", 0755)
+
+binpy = os.path.join("bin", "python")
+
+if not os.path.exists(binpy):
+    os.symlink(pyexe, binpy)
+
+print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )

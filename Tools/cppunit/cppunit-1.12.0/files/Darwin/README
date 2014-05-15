@@ -1,0 +1,3 @@
+Libtool on Leopard creates conftest.dSYM bundles which can't be deleted
+via a simple rm, as they are directories, which causes configure to fail
+

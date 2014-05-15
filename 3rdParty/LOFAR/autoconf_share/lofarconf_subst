@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#  lofarconf_subst
+#
+#  Copyright (C) 2002
+#  ASTRON (Netherlands Foundation for Research in Astronomy)
+#  P.O.Box 2, 7990 AA Dwingeloo, The Netherlands, seg@astron.nl
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#  $Id: lofarconf_subst,v 1.4 2006/03/08 11:31:37 diepen Exp $
+
+
+# Substitute variables in lofarconf options.
+#
+# Use as
+#    lofarconf_subst basedir host options
+
+lfr_base="$1"
+lfr_host="$2"
+lfr_cmp="$3"
+lfr_var="$4"
+opts="$5"
+
+# Substitute possible variables by their value defined in a variants file.
+# Variables are defined as $(name).
+# It is done recursively. Use the count to check for endless recursion.
+cnt=0;
+while true
+do
+  cnt=`expr $cnt + 1`
+  if [ $cnt -gt 50 ]; then
+    echo "Endless recursion in variable substition of '$3'"
+    exit 2
+  fi
+  # First test if a variable is defined.
+  # Exit the loop if no more variables.
+  a1=`echo "$opts" | sed -e 's/\$([^) ]\+)//'`
+  if [ "$opts" = "$a1" ]; then
+    break;
+  fi
+  # Get the part before, the name and the part after.
+  r1=`echo "$opts" | sed -e 's/\(.*\)\$([^) ]\+).*/\1/'`
+  var=`echo "$opts" | sed -e 's/.*\$(\([^) ]\+\)).*/\1/'`
+  r2=`echo "$opts" | sed -e 's/.*\$([^) ]\+)\(.*\)/\1/'`
+  # Try to find the variable in one of the variant files.
+  varval=`egrep "^$lfr_cmp\.compiler\.$var\.var:" variants_local`
+  if [ "x$varval" = "x" ]; then
+    varval=`egrep "^$var\.var:" variants_local`
+  fi
+  if [ "x$varval" = "x" ]; then
+    varval=`egrep "^$lfr_cmp\.compiler\.$var\.var:" $lfr_base/variants`
+  fi
+  if [ "x$varval" = "x" ]; then
+    varval=`egrep "^$var\.var:" $lfr_base/variants`
+  fi
+  if [ "x$varval" = "x" ]; then
+    echo "Warning: variants variable '$var' not found in variant files"
+  else
+    varval=`echo $varval | sed -e "s%.*\.var: *%%"`
+  fi
+  opts="$r1$varval$r2"
+done
+
+echo $opts
+exit 0

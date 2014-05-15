@@ -1,0 +1,4 @@
+# This file lists the external dependencies
+# use pkgname=askap_relative_path
+openmpi=3rdParty/openmpi/current
+

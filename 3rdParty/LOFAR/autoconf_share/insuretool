@@ -1,0 +1,116 @@
+#!/bin/sh
+
+# insuretool: wrapper to compile with insure tools
+#
+#  Copyright (C) 2002
+#  ASTRON (Netherlands Foundation for Research in Astronomy)
+#  P.O.Box 2, 7990 AA Dwingeloo, The Netherlands, seg@astron.nl
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#  $Id: insuretool 2654 2004-05-19 12:25:13Z diepen $
+
+
+# Check for enough arguments
+#
+if test $# -lt 6 ; then
+  echo "usage: insuretool [0|1]  [0|1]    [0|1] top_builddir insuretool_prefix compiler ..."
+  echo "                  ^      ^        ^"
+  echo " enable         insure inuse tca"
+  exit 1
+fi
+
+#
+# Determine which tools have been installed
+#
+have_insure=$1
+shift
+have_inuse=$1
+shift
+have_tca=$1
+shift
+
+#
+# Determine location of build directory
+#
+top_builddir=$1
+shift
+
+#
+# Determine whether running insure, inuse, or tca
+#
+insuretools_prefix=$1
+shift
+
+#
+# Test whether QA env variable is set
+#
+if test "$QA" == "no"; then
+
+  #
+  # INSURE not defined so simply strip the path to the insure binary
+  # and call the compiler directly
+  #
+  echo "$*"
+  $*
+
+else
+
+  #
+  # Insure found, so save the path to insure and call insure
+  # with INSURE_OPTIONS as arguments
+  #
+  error=0
+  if test "$QA" != ""; then
+    case $QA in
+      insure);;
+      inuse);;
+      tca);;
+      *)
+	echo QA should be set to one of:
+	if test $have_insure -eq 1; then
+	    echo "    insure"
+        fi
+	if test $have_inuse -eq 1; then
+	    echo "    inuse"
+        fi
+	if test $have_tca -eq 1; then
+	    echo "    tca"
+        fi
+	error=1
+    esac
+  fi
+
+  #
+  # Define options for insure, inuse, and tca
+  #
+  if test $error -eq 0; then
+
+    # Insure cannot deal with compiler (compiler is mentioned in .psrc file).
+    # So copy .psrc created in lofar_qatools.m4 and add compiler line.
+    # Add inuse line if that is used.
+    \rm -f .psrc
+    cp $top_builddir/psrc .psrc
+    echo "compiler $1" >> .psrc
+    shift
+    case $QA in
+	inuse)  echo "insure++.inuse on" >> .psrc
+    esac
+    echo "$insuretools_prefix/insure $*"
+    $insuretools_prefix/insure $*
+  else
+    false
+  fi
+fi

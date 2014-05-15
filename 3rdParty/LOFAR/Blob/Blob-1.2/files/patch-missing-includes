@@ -1,0 +1,20 @@
+--- src/KeyParse.cc-orig	2009-09-04 22:33:35.000000000 +1000
++++ src/KeyParse.cc	2009-09-04 22:34:07.000000000 +1000
+@@ -36,6 +36,7 @@
+ int KeyTokenizelex (YYSTYPE*);
+ #define KeyParselex KeyTokenizelex
+ #include <stdio.h>
++#include <stdlib.h>
+ 
+ #ifndef __cplusplus
+ #ifndef __STDC__
+--- ./include/Blob/BlobStringTraits.h.orig	2009-12-17 17:42:05.062529760 +1100
++++ ./include/Blob/BlobStringTraits.h	2009-12-17 17:42:16.212537433 +1100
+@@ -40,6 +40,7 @@
+ 
+ 
+ #include <Common/LofarTypedefs.h>
++#include <cstdio>
+ #include <string>
+ #include <cstring>
+ 

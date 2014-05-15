@@ -1,0 +1,45 @@
+--- ./src/hexdump.cc.orig	2009-12-17 17:30:35.102449485 +1100
++++ ./src/hexdump.cc	2009-12-17 17:30:57.472591956 +1100
+@@ -23,6 +23,8 @@
+ //# Always #include <lofar_config.h> first!
+ #include <lofar_config.h>
+ 
++#include <cstdio>
++
+ #include <Common/hexdump.h>
+ #include <Common/StringUtil.h>
+ 
+--- src/ParameterValue.cc.orig	2009-12-17 17:34:08.272534191 +1100
++++ src/ParameterValue.cc	2009-12-17 17:33:14.762536549 +1100
+@@ -20,7 +20,10 @@
+ //#
+ //#  $Id: ParameterValue.cc 12371 2008-12-23 13:18:31Z loose $
+ 
+-#include<lofar_config.h>
++#include <lofar_config.h>
++
++#include <cstdio>
++
+ #include <Common/ParameterValue.h>
+ #include <Common/Exceptions.h>
+ #include <Common/LofarLogger.h>
+--- ./src/StringUtil.cc.orig	2009-12-17 17:35:46.982533193 +1100
++++ ./src/StringUtil.cc	2009-12-17 17:36:01.572451362 +1100
+@@ -29,6 +29,7 @@
+ #include <Common/lofar_algorithm.h>
+ #include <Common/lofar_iostream.h>
+ #include <Common/lofar_iomanip.h>
++#include <cstdio>
+ #include <cstring>
+ #include <cstdarg>
+ #include <ctime>
+--- src/SystemUtil.cc.orig	2009-12-17 17:37:26.922532731 +1100
++++ src/SystemUtil.cc	2009-12-17 17:37:40.222532376 +1100
+@@ -24,6 +24,7 @@
+ #include <Common/LofarLogger.h>
+ #include <Common/StringUtil.h>
+ #include <Common/SystemUtil.h>
++#include <cstdio>
+ #include <unistd.h>
+ #include <cstdlib>
+ #include <cstring>

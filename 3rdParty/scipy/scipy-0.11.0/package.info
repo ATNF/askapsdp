@@ -1,0 +1,4 @@
+pymodule=scipy==0.11.0 
+distdir=scipy-0.11.0/dist
+# pure python module
+libs=

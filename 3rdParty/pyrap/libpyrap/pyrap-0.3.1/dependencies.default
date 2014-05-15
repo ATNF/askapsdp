@@ -1,0 +1,3 @@
+casacore=3rdParty/casacore/casacore-1.6.0a;casa_casa
+boost=3rdParty/boost/boost-1.55.0;boost_python
+numpy=3rdParty/numpy/numpy-1.6.2

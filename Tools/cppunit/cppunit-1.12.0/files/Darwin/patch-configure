@@ -1,0 +1,1524 @@
+--- configure.old	2008-01-15 08:42:13.000000000 +0200
++++ configure	2008-01-15 09:03:08.000000000 +0200
+@@ -2572,11 +2572,11 @@
+    { (exit 1); exit 1; }; }
+ fi
+ 
+-rm -f conftest$ac_cv_exeext
++rm -rf conftest$ac_cv_exeext
+ echo "$as_me:$LINENO: result: $ac_cv_exeext" >&5
+ echo "${ECHO_T}$ac_cv_exeext" >&6
+ 
+-rm -f conftest.$ac_ext
++rm -rf conftest.$ac_ext
+ EXEEXT=$ac_cv_exeext
+ ac_exeext=$EXEEXT
+ echo "$as_me:$LINENO: checking for suffix of object files" >&5
+@@ -2623,7 +2623,7 @@
+    { (exit 1); exit 1; }; }
+ fi
+ 
+-rm -f conftest.$ac_cv_objext conftest.$ac_ext
++rm -rf conftest.$ac_cv_objext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_objext" >&5
+ echo "${ECHO_T}$ac_cv_objext" >&6
+@@ -2652,7 +2652,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -2681,7 +2681,7 @@
+ 
+ ac_compiler_gnu=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ ac_cv_c_compiler_gnu=$ac_compiler_gnu
+ 
+ fi
+@@ -2711,7 +2711,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -2740,7 +2740,7 @@
+ 
+ ac_cv_prog_cc_g=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_prog_cc_g" >&5
+ echo "${ECHO_T}$ac_cv_prog_cc_g" >&6
+@@ -2828,7 +2828,7 @@
+ for ac_arg in "" -qlanglvl=ansi -std1 -Ae "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
+ do
+   CC="$ac_save_CC $ac_arg"
+-  rm -f conftest.$ac_objext
++  rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -2857,9 +2857,9 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext
++rm -rf conftest.err conftest.$ac_objext
+ done
+-rm -f conftest.$ac_ext conftest.$ac_objext
++rm -rf conftest.$ac_ext conftest.$ac_objext
+ CC=$ac_save_CC
+ 
+ fi
+@@ -2883,7 +2883,7 @@
+   choke me
+ #endif
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -2929,7 +2929,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -2958,7 +2958,7 @@
+ 
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+   cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+@@ -2974,7 +2974,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -3002,9 +3002,9 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ done
+-rm -f conftest*
++rm -rf conftest*
+ if test -n "$ac_declaration"; then
+   echo '#ifdef __cplusplus' >>confdefs.h
+   echo $ac_declaration      >>confdefs.h
+@@ -3016,7 +3016,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -3333,7 +3333,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -3362,7 +3362,7 @@
+ 
+ ac_compiler_gnu=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ ac_cv_cxx_compiler_gnu=$ac_compiler_gnu
+ 
+ fi
+@@ -3392,7 +3392,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -3421,7 +3421,7 @@
+ 
+ ac_cv_prog_cxx_g=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_prog_cxx_g" >&5
+ echo "${ECHO_T}$ac_cv_prog_cxx_g" >&6
+@@ -3464,7 +3464,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -3493,7 +3493,7 @@
+ 
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+   cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+@@ -3509,7 +3509,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -3537,9 +3537,9 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ done
+-rm -f conftest*
++rm -rf conftest*
+ if test -n "$ac_declaration"; then
+   echo '#ifdef __cplusplus' >>confdefs.h
+   echo $ac_declaration      >>confdefs.h
+@@ -4387,7 +4387,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -4416,7 +4416,7 @@
+ 
+ lt_cv_cc_needs_belf=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+      ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+@@ -4746,7 +4746,7 @@
+   # Broken: fails on valid input.
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+   # OK, works on sane cases.  Now check whether non-existent headers
+   # can be detected and how.
+@@ -4786,11 +4786,11 @@
+ ac_preproc_ok=:
+ break
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+ done
+ # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ if $ac_preproc_ok; then
+   break
+ fi
+@@ -4853,7 +4853,7 @@
+   # Broken: fails on valid input.
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+   # OK, works on sane cases.  Now check whether non-existent headers
+   # can be detected and how.
+@@ -4893,11 +4893,11 @@
+ ac_preproc_ok=:
+ break
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+ done
+ # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ if $ac_preproc_ok; then
+   :
+ else
+@@ -4939,7 +4939,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -4968,7 +4968,7 @@
+ 
+ ac_cv_header_stdc=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ 
+ if test $ac_cv_header_stdc = yes; then
+   # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
+@@ -4987,7 +4987,7 @@
+ else
+   ac_cv_header_stdc=no
+ fi
+-rm -f conftest*
++rm -rf conftest*
+ 
+ fi
+ 
+@@ -5008,7 +5008,7 @@
+ else
+   ac_cv_header_stdc=no
+ fi
+-rm -f conftest*
++rm -rf conftest*
+ 
+ fi
+ 
+@@ -5047,7 +5047,7 @@
+   exit (0);
+ }
+ _ACEOF
+-rm -f conftest$ac_exeext
++rm -rf conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>&5
+   ac_status=$?
+@@ -5110,7 +5110,7 @@
+ 
+ #include <$ac_header>
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -5139,7 +5139,7 @@
+ 
+ eval "$as_ac_Header=no"
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+ echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+@@ -5178,7 +5178,7 @@
+ $ac_includes_default
+ #include <$ac_header>
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -5207,7 +5207,7 @@
+ 
+ ac_header_compiler=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+ echo "${ECHO_T}$ac_header_compiler" >&6
+ 
+@@ -5247,7 +5247,7 @@
+ 
+   ac_header_preproc=no
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+ echo "${ECHO_T}$ac_header_preproc" >&6
+ 
+@@ -5370,7 +5370,7 @@
+   # Broken: fails on valid input.
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+   # OK, works on sane cases.  Now check whether non-existent headers
+   # can be detected and how.
+@@ -5410,11 +5410,11 @@
+ ac_preproc_ok=:
+ break
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+ done
+ # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ if $ac_preproc_ok; then
+   break
+ fi
+@@ -5477,7 +5477,7 @@
+   # Broken: fails on valid input.
+ continue
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+   # OK, works on sane cases.  Now check whether non-existent headers
+   # can be detected and how.
+@@ -5517,11 +5517,11 @@
+ ac_preproc_ok=:
+ break
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ 
+ done
+ # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ if $ac_preproc_ok; then
+   :
+ else
+@@ -5670,7 +5670,7 @@
+ 
+       end
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -5699,7 +5699,7 @@
+ 
+ ac_compiler_gnu=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ ac_cv_f77_compiler_gnu=$ac_compiler_gnu
+ 
+ fi
+@@ -5720,7 +5720,7 @@
+ 
+       end
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -5749,7 +5749,7 @@
+ 
+ ac_cv_prog_f77_g=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ 
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_prog_f77_g" >&5
+@@ -5967,7 +5967,7 @@
+   # Check to see that the pipe works correctly.
+   pipe_works=no
+ 
+-  rm -f conftest*
++  rm -rf conftest*
+   cat > conftest.$ac_ext <<EOF
+ #ifdef __cplusplus
+ extern "C" {
+@@ -6064,7 +6064,7 @@
+     echo "$progname: failed program was:" >&5
+     cat conftest.$ac_ext >&5
+   fi
+-  rm -f conftest* conftst*
++  rm -rf conftest* conftst*
+ 
+   # Do not use the global_symbol_pipe unless it works.
+   if test "$pipe_works" = yes; then
+@@ -6662,7 +6662,7 @@
+        lt_prog_compiler_static_works=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+    LDFLAGS="$save_LDFLAGS"
+ 
+ fi
+@@ -6714,7 +6714,7 @@
+        lt_cv_prog_compiler_rtti_exceptions=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_rtti_exceptions" >&5
+@@ -6969,7 +6969,7 @@
+        lt_prog_compiler_pic_works=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works" >&5
+@@ -7031,14 +7031,14 @@
+      fi
+    fi
+    chmod u+w .
+-   $rm conftest*
++   $rm -r conftest*
+    # SGI C++ compiler will create directory out/ii_files/ for
+    # template instantiation
+    test -d out/ii_files && $rm out/ii_files/* && rmdir out/ii_files
+    $rm out/* && rmdir out
+    cd ..
+    rmdir conftest
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_c_o" >&5
+@@ -7051,7 +7051,7 @@
+   echo "$as_me:$LINENO: checking if we can lock with hard links" >&5
+ echo $ECHO_N "checking if we can lock with hard links... $ECHO_C" >&6
+   hard_links=yes
+-  $rm conftest*
++  $rm -r conftest*
+   ln conftest.a conftest.b 2>/dev/null && hard_links=no
+   touch conftest.a
+   ln conftest.a conftest.b 2>&5 || hard_links=no
+@@ -7412,7 +7412,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -7445,7 +7445,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -7473,7 +7473,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -7506,7 +7506,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -7957,7 +7957,7 @@
+       # to ld, don't add -lc before -lgcc.
+       echo "$as_me:$LINENO: checking whether -lc should be explicitly linked in" >&5
+ echo $ECHO_N "checking whether -lc should be explicitly linked in... $ECHO_C" >&6
+-      $rm conftest*
++      $rm -r conftest*
+       printf "$lt_simple_compile_test_code" > conftest.$ac_ext
+ 
+       if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+@@ -7991,7 +7991,7 @@
+       else
+         cat conftest.err 1>&5
+       fi
+-      $rm conftest*
++      $rm -r conftest*
+       echo "$as_me:$LINENO: result: $archive_cmds_need_lc" >&5
+ echo "${ECHO_T}$archive_cmds_need_lc" >&6
+       ;;
+@@ -8668,7 +8668,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -8697,7 +8697,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -8772,7 +8772,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -8801,7 +8801,7 @@
+ 
+ ac_cv_func_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_shl_load" >&5
+@@ -8838,7 +8838,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -8867,7 +8867,7 @@
+ 
+ ac_cv_lib_dld_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -8932,7 +8932,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -8961,7 +8961,7 @@
+ 
+ ac_cv_func_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_dlopen" >&5
+@@ -8998,7 +8998,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -9027,7 +9027,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -9065,7 +9065,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -9094,7 +9094,7 @@
+ 
+ ac_cv_lib_svld_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -9132,7 +9132,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -9161,7 +9161,7 @@
+ 
+ ac_cv_lib_dld_dld_link=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -10352,7 +10352,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -10385,7 +10385,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -10414,7 +10414,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -10447,7 +10447,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -11231,7 +11231,7 @@
+   echo "libtool.m4: error: problem compiling CXX test program"
+ fi
+ 
+-$rm -f confest.$objext
++$rm -rf conftest.$objext
+ 
+ case " $postdeps_CXX " in
+ *" -lc "*) archive_cmds_need_lc_CXX=no ;;
+@@ -11547,7 +11547,7 @@
+        lt_prog_compiler_pic_works_CXX=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_CXX" >&5
+@@ -11609,14 +11609,14 @@
+      fi
+    fi
+    chmod u+w .
+-   $rm conftest*
++   $rm -r conftest*
+    # SGI C++ compiler will create directory out/ii_files/ for
+    # template instantiation
+    test -d out/ii_files && $rm out/ii_files/* && rmdir out/ii_files
+    $rm out/* && rmdir out
+    cd ..
+    rmdir conftest
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_c_o_CXX" >&5
+@@ -11629,7 +11629,7 @@
+   echo "$as_me:$LINENO: checking if we can lock with hard links" >&5
+ echo $ECHO_N "checking if we can lock with hard links... $ECHO_C" >&6
+   hard_links=yes
+-  $rm conftest*
++  $rm -r conftest*
+   ln conftest.a conftest.b 2>/dev/null && hard_links=no
+   touch conftest.a
+   ln conftest.a conftest.b 2>&5 || hard_links=no
+@@ -11698,7 +11698,7 @@
+       # to ld, don't add -lc before -lgcc.
+       echo "$as_me:$LINENO: checking whether -lc should be explicitly linked in" >&5
+ echo $ECHO_N "checking whether -lc should be explicitly linked in... $ECHO_C" >&6
+-      $rm conftest*
++      $rm -r conftest*
+       printf "$lt_simple_compile_test_code" > conftest.$ac_ext
+ 
+       if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+@@ -11732,7 +11732,7 @@
+       else
+         cat conftest.err 1>&5
+       fi
+-      $rm conftest*
++      $rm -r conftest*
+       echo "$as_me:$LINENO: result: $archive_cmds_need_lc_CXX" >&5
+ echo "${ECHO_T}$archive_cmds_need_lc_CXX" >&6
+       ;;
+@@ -12409,7 +12409,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12438,7 +12438,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -12513,7 +12513,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12542,7 +12542,7 @@
+ 
+ ac_cv_func_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_shl_load" >&5
+@@ -12579,7 +12579,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12608,7 +12608,7 @@
+ 
+ ac_cv_lib_dld_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -12673,7 +12673,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12702,7 +12702,7 @@
+ 
+ ac_cv_func_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_dlopen" >&5
+@@ -12739,7 +12739,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12768,7 +12768,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -12806,7 +12806,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12835,7 +12835,7 @@
+ 
+ ac_cv_lib_svld_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -12873,7 +12873,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -12902,7 +12902,7 @@
+ 
+ ac_cv_lib_dld_dld_link=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -13923,7 +13923,7 @@
+        lt_prog_compiler_pic_works_F77=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_F77" >&5
+@@ -13985,14 +13985,14 @@
+      fi
+    fi
+    chmod u+w .
+-   $rm conftest*
++   $rm -r conftest*
+    # SGI C++ compiler will create directory out/ii_files/ for
+    # template instantiation
+    test -d out/ii_files && $rm out/ii_files/* && rmdir out/ii_files
+    $rm out/* && rmdir out
+    cd ..
+    rmdir conftest
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_c_o_F77" >&5
+@@ -14005,7 +14005,7 @@
+   echo "$as_me:$LINENO: checking if we can lock with hard links" >&5
+ echo $ECHO_N "checking if we can lock with hard links... $ECHO_C" >&6
+   hard_links=yes
+-  $rm conftest*
++  $rm -r conftest*
+   ln conftest.a conftest.b 2>/dev/null && hard_links=no
+   touch conftest.a
+   ln conftest.a conftest.b 2>&5 || hard_links=no
+@@ -14356,7 +14356,7 @@
+ 
+       end
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -14389,7 +14389,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -14407,7 +14407,7 @@
+ 
+       end
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -14440,7 +14440,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -14891,7 +14891,7 @@
+       # to ld, don't add -lc before -lgcc.
+       echo "$as_me:$LINENO: checking whether -lc should be explicitly linked in" >&5
+ echo $ECHO_N "checking whether -lc should be explicitly linked in... $ECHO_C" >&6
+-      $rm conftest*
++      $rm -r conftest*
+       printf "$lt_simple_compile_test_code" > conftest.$ac_ext
+ 
+       if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+@@ -14925,7 +14925,7 @@
+       else
+         cat conftest.err 1>&5
+       fi
+-      $rm conftest*
++      $rm -r conftest*
+       echo "$as_me:$LINENO: result: $archive_cmds_need_lc_F77" >&5
+ echo "${ECHO_T}$archive_cmds_need_lc_F77" >&6
+       ;;
+@@ -16039,7 +16039,7 @@
+        lt_cv_prog_compiler_rtti_exceptions=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_rtti_exceptions" >&5
+@@ -16294,7 +16294,7 @@
+        lt_prog_compiler_pic_works_GCJ=yes
+      fi
+    fi
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_GCJ" >&5
+@@ -16356,14 +16356,14 @@
+      fi
+    fi
+    chmod u+w .
+-   $rm conftest*
++   $rm -r conftest*
+    # SGI C++ compiler will create directory out/ii_files/ for
+    # template instantiation
+    test -d out/ii_files && $rm out/ii_files/* && rmdir out/ii_files
+    $rm out/* && rmdir out
+    cd ..
+    rmdir conftest
+-   $rm conftest*
++   $rm -r conftest*
+ 
+ fi
+ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_c_o_GCJ" >&5
+@@ -16376,7 +16376,7 @@
+   echo "$as_me:$LINENO: checking if we can lock with hard links" >&5
+ echo $ECHO_N "checking if we can lock with hard links... $ECHO_C" >&6
+   hard_links=yes
+-  $rm conftest*
++  $rm -r conftest*
+   ln conftest.a conftest.b 2>/dev/null && hard_links=no
+   touch conftest.a
+   ln conftest.a conftest.b 2>&5 || hard_links=no
+@@ -16737,7 +16737,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -16770,7 +16770,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -16798,7 +16798,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -16831,7 +16831,7 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
+ 
+@@ -17282,7 +17282,7 @@
+       # to ld, don't add -lc before -lgcc.
+       echo "$as_me:$LINENO: checking whether -lc should be explicitly linked in" >&5
+ echo $ECHO_N "checking whether -lc should be explicitly linked in... $ECHO_C" >&6
+-      $rm conftest*
++      $rm -r conftest*
+       printf "$lt_simple_compile_test_code" > conftest.$ac_ext
+ 
+       if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+@@ -17316,7 +17316,7 @@
+       else
+         cat conftest.err 1>&5
+       fi
+-      $rm conftest*
++      $rm -r conftest*
+       echo "$as_me:$LINENO: result: $archive_cmds_need_lc_GCJ" >&5
+ echo "${ECHO_T}$archive_cmds_need_lc_GCJ" >&6
+       ;;
+@@ -17993,7 +17993,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18022,7 +18022,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -18097,7 +18097,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18126,7 +18126,7 @@
+ 
+ ac_cv_func_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_shl_load" >&5
+@@ -18163,7 +18163,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18192,7 +18192,7 @@
+ 
+ ac_cv_lib_dld_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -18257,7 +18257,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18286,7 +18286,7 @@
+ 
+ ac_cv_func_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_dlopen" >&5
+@@ -18323,7 +18323,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18352,7 +18352,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -18390,7 +18390,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18419,7 +18419,7 @@
+ 
+ ac_cv_lib_svld_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -18457,7 +18457,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -18486,7 +18486,7 @@
+ 
+ ac_cv_lib_dld_dld_link=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -19727,7 +19727,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -19756,7 +19756,7 @@
+ 
+ ac_cv_func_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_func_shl_load" >&5
+@@ -19797,7 +19797,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -19826,7 +19826,7 @@
+ 
+ ac_cv_lib_dld_shl_load=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -19869,7 +19869,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -19898,7 +19898,7 @@
+ 
+ ac_cv_lib_dl_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -19930,7 +19930,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -19990,7 +19990,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -20019,7 +20019,7 @@
+ 
+ ac_cv_lib_svld_dlopen=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -20062,7 +20062,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -20091,7 +20091,7 @@
+ 
+ ac_cv_lib_dld_dld_link=no
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+@@ -20112,7 +20112,7 @@
+ 
+ 
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ 
+ fi
+@@ -20187,7 +20187,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext conftest$ac_exeext
++rm -rf conftest.$ac_objext conftest$ac_exeext
+ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+   (eval $ac_link) 2>conftest.er1
+   ac_status=$?
+@@ -20216,7 +20216,7 @@
+ 
+ eval "$as_ac_var=no"
+ fi
+-rm -f conftest.err conftest.$ac_objext \
++rm -rf conftest.err conftest.$ac_objext \
+       conftest$ac_exeext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
+@@ -20402,7 +20402,7 @@
+ 
+ #include <$ac_header>
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20431,7 +20431,7 @@
+ 
+ eval "$as_ac_Header=no"
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+ echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+ echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+@@ -20488,7 +20488,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20517,7 +20517,7 @@
+ 
+ ac_cv_cxx_rtti=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -20580,7 +20580,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20609,7 +20609,7 @@
+ 
+ ac_cv_cxx_gcc_abi_demangle=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -20656,7 +20656,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20685,7 +20685,7 @@
+ 
+ ac_cv_cxx_namespaces=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -20737,7 +20737,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20766,7 +20766,7 @@
+ 
+ ac_cv_cxx_string_compare_string_first=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -20817,7 +20817,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20846,7 +20846,7 @@
+ 
+ ac_cv_cxx_have_sstream=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -20905,7 +20905,7 @@
+ $ac_includes_default
+ #include <$ac_header>
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -20934,7 +20934,7 @@
+ 
+ ac_header_compiler=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+ echo "${ECHO_T}$ac_header_compiler" >&6
+ 
+@@ -20974,7 +20974,7 @@
+ 
+   ac_header_preproc=no
+ fi
+-rm -f conftest.err conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_ext
+ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+ echo "${ECHO_T}$ac_header_preproc" >&6
+ 
+@@ -21053,7 +21053,7 @@
+   return 0;
+ }
+ _ACEOF
+-rm -f conftest.$ac_objext
++rm -rf conftest.$ac_objext
+ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>conftest.er1
+   ac_status=$?
+@@ -21082,7 +21082,7 @@
+ 
+ ac_cv_cxx_have_class_strstream=no
+ fi
+-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
++rm -rf conftest.err conftest.$ac_objext conftest.$ac_ext
+  ac_ext=cc
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -22685,5 +22685,5 @@
+ echo "$as_me: error: input file $ac_prefix_conf_IN does not exist,     skip generating $ac_prefix_conf_OUT" >&2;}
+    { (exit 1); exit 1; }; }
+   fi
+-  rm -f conftest.*
++  rm -rf conftest.*
+ fi

@@ -1,0 +1,3 @@
+The patch files patch.mcpp.2.7.2 comes from ThirdParty-Sources-3.4.0.tar.gz
+(which is in the Ice package directory).
+Renamed to fit our scheme i.e. patch-mcpp.2.7.2

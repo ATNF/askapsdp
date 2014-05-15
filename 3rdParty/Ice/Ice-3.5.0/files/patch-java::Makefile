@@ -1,0 +1,24 @@
+--- java/Makefile.orig	2013-08-12 21:19:04.584121829 +1000
++++ java/Makefile	2013-08-12 21:24:14.306633870 +1000
+@@ -8,16 +8,18 @@
+ # **********************************************************************
+ 
+ all:
+-	ant -emacs
++	ant -emacs ice-jar freeze-jar icestorm-jar
+ 
+ clean:
+ 	ant -emacs clean
+ 
++install_targets ?= install-common install-jar install-tasks install-slice
++
+ install::
+ ifeq ($(prefix),)
+-	ant -emacs install
++	ant -emacs ice-jar freeze-jar icestorm-jar ${install_targets}
+ else
+-	ant -emacs -Dprefix=$(prefix) install
++	ant -emacs ice-jar freeze-jar icestorm-jar -Dprefix=$(prefix) ${install_targets}
+ endif
+ 
+ test::

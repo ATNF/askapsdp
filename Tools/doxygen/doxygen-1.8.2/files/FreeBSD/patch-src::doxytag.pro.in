@@ -1,0 +1,10 @@
+--- src/doxytag.pro.in.orig	2010-01-01 22:53:11.000000000 +1100
++++ src/doxytag.pro.in	2012-01-20 11:33:55.578435766 +1100
+@@ -26,6 +26,6 @@
+ win32-borland:LIBS         += qtools.lib shell32.lib
+ win32-borland:TMAKE_LFLAGS += -L..\lib -L$(BCB)\lib\psdk
+ win32:TMAKE_CXXFLAGS       += -DQT_NODLL
+-INCLUDEPATH                += ../qtools
++INCLUDEPATH                += ../qtools /usr/local/include
+ OBJECTS_DIR                =  ../objects
+ TARGET                     =  ../bin/doxytag

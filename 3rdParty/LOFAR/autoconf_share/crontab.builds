@@ -1,0 +1,45 @@
+#
+# crontab for daily and weekly builds of LOFAR source code
+#
+
+#
+# setup environment
+#
+SHELL=/bin/sh
+MAILTO=LOFAR_CRONMAILTO
+CROOT=LOFAR_CRONROOT
+CVSROOT=:pserver:LOFAR_CRONCVSUSER@dop01:/dop01_0/cvs/cvsroot
+
+#
+# FORMAT
+#              field          allowed values
+#              -----          --------------
+#              minute         0-59
+#              hour           0-23
+#              day of month   1-31
+#              month          1-12 (or names, see below)
+#              day of week    0-7 (0 or 7 is Sun, or use names)
+
+#
+# Run daily compile at 5 minutes past midnight
+#
+# Daily compile consists of:
+#    * check out sources into $CROOT/daily (zipped log in cvs_co_LOFAR_log.gz)
+#    * save status of checkout files into zipped logfile: cvs_status_v_log.gz
+#    * build and check all packages as specified in toplevel Makefile
+# Every Saturday a full check-out (a la weekly) is done.
+#
+5 0 * * 0-5	( mkdir -p $CROOT/daily && cd $CROOT/daily && (cvs co LOFAR 2>&1 | gzip > cvs_co_LOFAR_log.gz) && (cvs status -v 2>&1 | gzip > cvs_status_v_log.gz ) && cd $CROOT/daily/LOFAR && make daily 2>&1 | tee build.log  | grep ^:::::: )
+5 0 * * 6	( rm -rf $CROOT/daily/LOFAR && rm -f $CROOT/daily/*log.gz && mkdir -p $CROOT/daily && cd $CROOT/daily && (cvs co LOFAR 2>&1 | gzip > cvs_co_LOFAR_log.gz ) && (cvs status -v 2>&1 | gzip > cvs_status_v_log.gz ) && cd $CROOT/daily/LOFAR && make daily 2>&1 | tee build.log  | grep ^:::::: )
+
+#
+# Run weekly compile at 2 hours past midnight on Saturday
+#
+# Weekly compile consists of:
+#    * remove $CROOT/weekly to ensure clean checkout
+#    * check out sources into $CROOT/weekly (zipped log in cvs_co_LOFAR_log.gz)
+#    * save status of checkout files into zipped logfile: cvs_status_v_log.gz
+#    * build and check all packages as specified in toplevel Makefile
+#
+00 2 * * 6	( rm -rf $CROOT/weekly/LOFAR && rm -f $CROOT/weekly/*log.gz && mkdir -p $CROOT/weekly && cd $CROOT/weekly && (cvs co LOFAR 2>&1 | gzip > cvs_co_LOFAR_log.gz ) && (cvs status -v 2>&1 | gzip > cvs_status_v_log.gz ) && cd $CROOT/weekly/LOFAR && make weekly 2>&1 | tee build.log  | grep ^:::::: )
+

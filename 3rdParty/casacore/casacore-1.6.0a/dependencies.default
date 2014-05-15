@@ -1,0 +1,7 @@
+# This file lists the external dependencies
+# use pkgname=askapsoft_relative_path
+
+cfitsio=3rdParty/cfitsio/cfitsio-3.35
+lapack=3rdParty/lapack/lapack-3.4.0
+wcslib=3rdParty/wcslib/wcslib-4.18
+fftw3=3rdParty/fftw/fftw-3.3.3

@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+#
+'''
+Create an EPICS application skeleton for use within ASKAP project.
+This script invokes makeBaseApp.pl so an EPICS base is required.
+'''
+
+import optparse
+import os
+import sys
+import subprocess
+
+import askapdev.templates.common as common
+
+templ_ext   = ".tmpl"
+templates = {
+            'dir':    "../../templates/epics/",
+            'files':  ["build.py", "dependencies.default"],
+            'update': ["build.py", "dependencies.default", os.path.join('configure', 'CONFIG_SITE')],
+            'iocboot': ["st.cmd.template"],
+            'update_iocboot': ['st.cmd.template'],
+            }
+
+final_msg = '''
+EPICS package template completed succesfully.
+    If you did not supply all the options you need to edit various files
+    and fill in the placemarkers defined by @@@name@@@.
+    You may need to modify the dependencies.default file.
+'''
+
+usage_msg = '''usage: %prog [options] application_name
+
+    This script creates an EPICS application skeleton to be used in ASKAP project.
+    The application will be created in the current directory as
+      <application_name>/current
+    It contains all the necessary files to compile under ASKAPsoft recursive build
+    system.
+    This script invokes makeBaseApp.pl script that comes with EPICS base, so an installed
+    EPICS base is required.
+'''
+
+parser = optparse.OptionParser(usage=usage_msg)
+parser.add_option("-e", "--epics", dest="epics_version", default='3.14.12', help="specify EPICS base version")
+parser.add_option("-i", "--ice", action="store_true", dest="ice", default=False,
+        help="specify package uses Ice interface")
+parser.add_option("-t", "--type", default='ioc',
+                  help='type of EPICS application; matches same option as makeBaseApp.pl')
+parser.add_option("-l", action="store_true", dest="LIST", default=False,
+                  help='List valid application types for this installation. If this is specified the other options are not used')
+
+valid_types = ['caClient', 'caServer', 'example', 'ioc', 'support']
+
+def runcmd(cmd, shell=False):
+    # In Popen() when shell=False the command must be a sequence.
+    # Being pedantic, we can accept a string if it is just the executable
+    # with no arguments.
+    # So to be safe always convert a string to a sequence unless we are
+    # using a shell.
+    if type(cmd) == str and not shell:
+        cmd = cmd.split()
+    proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
+                                              stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    return (stdout, stderr, proc.returncode)
+
+def get_epics_base(epics_version):
+    epics_dir = os.path.join(common.askap_root, '3rdParty', 'EPICS', epics_version, 'base')
+    comm = os.path.join(epics_dir, "EpicsHostArch")
+    if not os.path.exists(comm):
+        return ''
+    epicsarch = runcmd(comm)[0].strip()
+    epics_bin_dir = os.path.join(epics_dir, 'install', 'bin', epicsarch)
+    if os.path.exists(os.path.join(epics_bin_dir, 'makeBaseApp.pl')):
+        os.environ['EPICS_HOST_ARCH'] = epicsarch
+        os.environ['EPICS_BASE'] = os.path.join(epics_dir, 'install')
+        return epics_bin_dir
+    else:
+        return ''
+    
+def copy_templates(templatefiles, frompath, topath):
+    '''Copy the template files into the new package area specified by path.'''
+    # The build infrastructure files.
+    for template in templatefiles:
+        tfn = frompath + template + templ_ext
+        common.write_file(tfn, topath, template)
+
+def execute_epicsmakebaseapp(path, epicsbinpath, type, appname):
+    cwd = os.getcwd()
+    os.chdir(path)
+    cmd = "%s/makeBaseApp.pl -t %s %s" % (epicsbinpath, type, appname)
+    print "Executing %s" % cmd
+    os.system(cmd)
+    os.chdir(cwd)
+    
+if __name__ == "__main__":
+    (opts, args) = parser.parse_args()
+    opts_dict = eval(opts.__str__()) # Create a dictionary of just the options.
+
+    if opts.LIST == True:
+        print '''Valid application types are:
+            caClient
+            caServer
+            example
+            ioc
+            support'''
+        sys.exit(0)
+ 
+    if opts.type not in valid_types:
+        print "Error: Type %s not valid; type create_epicspkg -l to print a list of valid types." % opts.type
+        sys.exit(1)
+        
+    if len(args) == 1:
+        appname = args[0]
+        opts_dict['appname'] = appname
+        opts_dict['appname_upper'] = appname.upper()
+        fs_path = os.path.join(os.getcwd(), appname, 'current')        
+        if os.path.exists(fs_path):
+            print "Error: package %s/current already exist. Please delete or rename it before running this script." % appname
+            sys.exit(1)
+        # If type ioc or example, add the appnameVersion.c file to the template file update list
+        if opts.type == 'ioc' or opts.type == 'example':
+            templates['update'].append(os.path.join(fs_path, '%sApp' % appname, 'src', '%sVersion.c' % appname))
+    else:
+        print "Error: you must give just the application name.\n"
+        parser.print_help()
+        sys.exit(1)
+
+    # Check that EPICS base is installed and makeBaseApp.pl is present
+    epics_binpath = get_epics_base(opts_dict['epics_version'])
+    if epics_binpath is '':
+        print "Error: EPICS base version %s is not installed in this system." % opts_dict['epics_version']
+        sys.exit(1)
+
+    # Create directories
+    os.makedirs(fs_path, 0755)
+    print "%s directory created" % fs_path
+    iocboot_path = os.path.join(fs_path, 'files', 'ioc'+appname)
+    os.makedirs(iocboot_path, 0755)
+    print "%s directory created" % iocboot_path
+    common.create_test_dirs(fs_path)
+    
+    # Copy templates to appname path and iocboot path
+    copy_templates(templates['files'], templates['dir'], fs_path)
+    copy_templates(templates['iocboot'], templates['dir'], iocboot_path)
+
+    # Run the makeBaseApp.pl script
+    execute_epicsmakebaseapp(fs_path, epics_binpath, opts_dict['type'], appname)
+
+    for key in opts_dict.keys():
+        if key.isupper():
+            opts_dict.pop(key) # Only pass thru the lowercase options.
+    common.update_template_files(fs_path, opts_dict, templates['update'])
+    common.update_template_files(iocboot_path, opts_dict, templates['update_iocboot'])
+    
+    print final_msg
+    print "    EPICS %s templates in %s" % (opts.type, fs_path)

@@ -1,0 +1,4 @@
+pymodule=pytz
+# pure python module
+libs=
+incdir=

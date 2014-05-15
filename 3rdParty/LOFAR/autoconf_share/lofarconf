@@ -1,0 +1,208 @@
+#!/bin/sh
+
+#  lofarconf
+
+#  Copyright (C) 2002
+#  ASTRON (Netherlands Foundation for Research in Astronomy)
+#  P.O.Box 2, 7990 AA Dwingeloo, The Netherlands, seg@astron.nl
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#  $Id: lofarconf,v 1.33 2006/09/14 20:56:31 loose Exp $
+
+
+# Run configure for a specific build variant.
+# The current directory is used as the variant name.
+#
+# Use as
+#    lofarconf configure-directory [-norecursive] [configure-options]
+
+
+# Get the current directory.
+lfr_curdir=`pwd`
+# Get the LOFAR base from the full path of this script.
+# Keep the original source path.
+lfr_sdir=`dirname $0`
+lfr_srcdir=`cd $lfr_sdir && pwd`
+lfr_root=`echo $lfr_srcdir | sed -e "s%/LOFAR/.*%/LOFAR%"`
+lfr_base=$lfr_root/autoconf_share
+
+lfr_recur=1
+if [ "$1" = "-norecursive" ]; then
+  lfr_recur=0
+  shift
+fi
+
+# Find package, lofar root, compiler, variant.
+# Exit if not found.
+lfr_result=`$lfr_base/findpkg "$lfr_srcdir" -l`
+if [ $? != 0 ]; then
+  echo "Could not derive package from build directory $lfr_curdir";
+  echo "The build directory should be in the source tree like"
+  echo "      LOFAR/'package'/build/'variant'"
+  echo "or in another tree like"
+  echo "      something/build/'variant'/'package'"
+  echo "or    something/'package'/build/'variant'"
+  echo "where variant is, for example, gnu_opt."
+  exit 2
+fi
+lfr_cmp=`echo $lfr_result | awk '{print $1}'`
+lfr_var=`echo $lfr_result | awk '{print $2}'`
+lfr_cvdir=`echo $lfr_result | awk '{print $3}'`
+lfr_dirform=`echo $lfr_result | awk '{print $4}'`
+lfr_pkg=`echo $lfr_result | awk '{print $5}'`
+
+# Get the directory of the configure files for the package.
+lfr_confdir=$lfr_root/$lfr_pkg;
+
+# If there is a file lofarconf.in, we have to configure recursively.
+if [ -r $lfr_confdir/lofarconf.in.private ]; then
+  $lfr_base/lofarconf_recur "$lfr_confdir/lofarconf.in.private" "$lfr_srcdir" "$lfr_recur" "$@" || exit 2
+  exit 0
+fi
+if [ -r $lfr_confdir/lofarconf.in ]; then
+  $lfr_base/lofarconf_recur "$lfr_confdir/lofarconf.in" "$lfr_srcdir" "$lfr_recur" "$@" || exit 2
+  exit 0
+fi
+
+# Get the default install directory.
+# It is the root of the build tree followed by installed/variant.
+lfr_back=`echo $lfr_pkg | sed -e "s%/[^/]\+%/..%g" -e "s%^[^/]\+%..%"`
+lfr_install=`cd ../../$lfr_back && pwd`
+lfr_install=$lfr_install/installed/$lfr_cvdir
+
+# Get the configure and make options from the variants file.
+# Look first for a host specific one; if not found, for a general one.
+# See if the host specific file is redirected to another one.
+# Remove possible domain part from host name.
+lfr_host=`uname -n | sed -e "s%\..*%%"`
+cmpopts=
+varopts=
+cmpmakes=
+varmakes=
+touch variants_local   # make sure there is always a local file
+if [ -f $lfr_base/variants.$lfr_host ]; then
+  # Check for possible includes (recursively).
+  cp $lfr_base/variants.$lfr_host variants_local
+  while [ 1=1 ]; do
+    # Find all includes and remove whitespace and comment, so we get one word.
+    allinc=`grep '^[ \t]*include[ \t].*' variants_local | sed -e 's/#.*//' -e 's/ //g'`
+    if [ "$allinc" = "" ]; then
+      break;        # no includes
+    fi
+    # Handle all includes.
+    for INCFIL in $allinc
+    do
+      # Strip include from the name and see if anything is left.
+      fnm=`echo $INCFIL | sed -e 's/^include//'`
+      if [ "$fnm" = "" ]; then
+        echo "Error: no file name given in include"
+        exit 1
+      fi
+      if [ ! -f "$lfr_base/$fnm" ]; then
+        echo "Error: included file $fnm does not exist in $lfr_base"
+      fi
+      # Replace the include line by the contents of the file.
+      # Do it such that it works fine if the same file is multiply included.
+      # First get until the include line (inclusive) and outcomment the line.
+      sed -e "/^[ \t]*include[ \t]*$fnm/q" variants_local | sed -e "s/^\([ \t]*include[ \t]*$fnm\)/## \1/" > variants_local2
+      # Now insert the file contents.
+      cat $lfr_base/$fnm >> variants_local2
+      # Finally append the remainder (by deleting the first part).
+      sed -e "1,/^[ \t]*include[ \t]*$fnm/d" variants_local >> variants_local2
+      mv variants_local2 variants_local
+    done
+  done
+  # Extract the options from the generated file.
+  cmpopts=`egrep "^$lfr_cmp.compiler.conf:" variants_local`
+  varopts=`egrep "^$lfr_var.variant.conf:" variants_local`
+  cmpmakes=`egrep "^$lfr_cmp.compiler.make:" variants_local`
+  varmakes=`egrep "^$lfr_var.variant.make:" variants_local`
+fi
+if [ "x$cmpopts" = "x" ]; then
+  cmpopts=`egrep "^$lfr_cmp.compiler.conf:" $lfr_base/variants`
+fi
+if [ "x$varopts" = "x" ]; then
+  varopts=`egrep "^$lfr_var.variant.conf:" $lfr_base/variants`
+fi
+if [ "x$varmakes" = "x" ]; then
+  varmakes=`egrep "^$lfr_var.variant.make:" $lfr_base/variants`
+fi
+if [ "x$cmpmakes" = "x" ]; then
+  cmpmakes=`egrep "^$lfr_cmp.compiler.make:" $lfr_base/variants`
+fi
+
+# Exit if the compiler is unknown.
+if [ "x$cmpopts" = "x" ]; then
+  echo "Cannot configure; $lfr_cmp.compiler.conf not found in $lfr_base/variants[.$lfr_host]"
+  exit 1;
+fi
+# Get the options only from the configure lines.
+# Substitute possible variables by their value defined in a variants file.
+cmpopts=`echo $cmpopts | sed -e "s%.*\.compiler\.conf: *%%"`
+varopts=`echo $varopts | sed -e "s%.*\.variant\.conf: *%%"`
+opts=`$lfr_base/lofarconf_subst "$lfr_base" "$lfr_host" "$lfr_cmp" "$lfr_var" "$cmpopts $varopts"`
+if [ $? != 0 ]; then
+  echo "$opts"
+  exit 2
+fi
+# Add default install path to options.
+opts="--prefix=$lfr_install $opts"
+
+# Now do the configure.
+echo "${lfr_cmp}_$lfr_var configure will be done on host $lfr_host for package $lfr_pkg"
+#trap '\rm -f /tmp/lofarconf.$PPID' exit
+# Note that "$@" preserves quotes around each argument.
+# However, that does not work in an eval, which we need for the quotes
+# around values found in variants files.
+# So assemble all arguments and put quotes around them.
+while [ $# != 0 ]
+do
+  opts="$opts '$1'"
+  shift
+done
+# Do the actual configure.
+echo $lfr_confdir/configure $opts
+eval $lfr_confdir/configure $opts
+if [ "$?" != 0 ]; then
+  echo "Error during configure"
+  exit 2
+fi
+
+# Get the compiler make options.
+cmpmakes=`echo $cmpmakes | sed -e "s%.*\.compiler\.make: *%%"`
+varmakes=`echo $varmakes | sed -e "s%.*\.variant\.make: *%%"`
+
+# Write the options into the makeoptions file.
+\rm -f makeoptions
+touch makeoptions
+
+# Substitute possible variables by their value defined in a variants file.
+if [ "$cmpmakes$varmakes" != "" ]; then
+  opts=`$lfr_base/lofarconf_subst "$lfr_base" "$lfr_host" "$lfr_cmp" "$lfr_var" "$cmpmakes $varmakes"`
+  if [ $? != 0 ]; then
+    echo "$opts"
+    exit 2
+  fi
+
+  echo ""
+  echo "$opts" > makeoptions
+  echo "make options"
+  echo "  $opts";
+  echo "written into makeoptions file";
+fi
+
+# Delete the local variant file that has been created.
+\rm -f variants_local

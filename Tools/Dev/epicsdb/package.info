@@ -1,0 +1,3 @@
+pymodule=askapdev.epicsdb
+# pure python module
+libs=

@@ -1,0 +1,11 @@
+--- src/libdoxygen.pro.in.orig	2010-04-30 20:45:25.000000000 +1000
++++ src/libdoxygen.pro.in	2012-01-20 11:33:55.618755973 +1100
+@@ -244,7 +244,7 @@
+ linux-g++:TMAKE_CXXFLAGS    += -fno-exceptions -fno-rtti
+ INCLUDEPATH                += ../qtools
+ #INCLUDEPATH                += ../libpng
+-INCLUDEPATH                += ../libmd5
++INCLUDEPATH                += ../libmd5 /usr/local/include
+ win32:INCLUDEPATH          += .
+ #win32-g++:INCLUDEPATH      = ../qtools /usr/include/libpng12 ../libmd5
+ win32-g++:INCLUDEPATH      = ../qtools ../libmd5

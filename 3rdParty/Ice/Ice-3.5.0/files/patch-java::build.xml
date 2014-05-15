@@ -1,0 +1,15 @@
+--- java/build.xml.orig	2013-08-12 21:22:42.480703050 +1000
++++ java/build.xml	2013-08-12 21:22:56.496997910 +1000
+@@ -860,12 +860,8 @@
+ 
+     <target name="install-jar">
+         <copy file="${lib.dir}/Ice.jar" todir="${prefix}/lib"/>
+-        <copy file="${lib.dir}/Glacier2.jar" todir="${prefix}/lib"/>
+         <copy file="${lib.dir}/Freeze.jar" todir="${prefix}/lib"/>
+-        <copy file="${lib.dir}/IceBox.jar" todir="${prefix}/lib"/>
+-        <copy file="${lib.dir}/IcePatch2.jar" todir="${prefix}/lib"/>
+         <copy file="${lib.dir}/IceStorm.jar" todir="${prefix}/lib"/>
+-        <copy file="${lib.dir}/IceGrid.jar" todir="${prefix}/lib"/>
+     </target>
+ 
+     <target name="install-tasks">

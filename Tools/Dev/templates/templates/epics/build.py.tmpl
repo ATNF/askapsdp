@@ -1,0 +1,17 @@
+import os.path
+
+from askapdev.rbuild.builders import Epics as Builder
+
+# 'epicsbase' must be the name used in dependnecies.default
+# to define the EPICS base.
+builder = Builder(pkgname='.', epicsbase='epicsbase')
+
+# Support modules must be defined in dependencies file (example with asyn)
+# Each support module this application depends must be added to builder
+# The builder will automatically add an entry in the auto-generated RELEASE.<arch> file
+#builder.add_support('asyn')
+
+# Add installation of IOC bootscripts
+builder.add_install_iocboot(os.path.join('files', 'ioc@@@appname@@@'))
+
+builder.build()
