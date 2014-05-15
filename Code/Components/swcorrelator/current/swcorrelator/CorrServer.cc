@@ -1,0 +1,182 @@
+/// @file 
+///
+/// @brief main tcp server functionality for the correlator
+/// @details This class manages tcp server side which starts a new 
+/// receiving thread for each new tcp connection. Each thread receives
+/// the data into a buffer from the pool.
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+
+// own includes
+#include <askap/AskapError.h>
+#include <askap_swcorrelator.h>
+#include <askap/AskapLogging.h>
+#include <swcorrelator/CorrServer.h>
+#include <swcorrelator/FillerWorker.h>
+#include <swcorrelator/ExtendedBufferManager.h>
+#include <swcorrelator/CorrWorker.h>
+#include <swcorrelator/CaptureWorker.h>
+#include <swcorrelator/StreamConnection.h>
+#include <swcorrelator/FloatStreamConnection.h>
+#include <swcorrelator/HeaderPreprocessor.h>
+#include <boost/asio.hpp>
+
+ASKAP_LOGGER(logger, ".corrserver");
+
+namespace askap {
+
+namespace swcorrelator {
+
+
+bool CorrServer::theirStopRequested = false;
+
+boost::asio::io_service CorrServer::theirIOService;
+
+
+/// @brief stop the server
+void CorrServer::stop()
+{
+  theirStopRequested = true;
+  theirIOService.stop();
+}
+
+/// @brief constructor, attaches the server to the given port
+/// @details Configuration is done via the parset
+/// @param[in] parset parset file with configuration info
+CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService), 
+     itsCaptureMode(parset.getBool("capturemode", false)),
+     itsStatsOnly(parset.getBool("capturemode.statsonly",false)),
+     itsStreamType(parset.getString("streamtype","int"))
+{
+  theirStopRequested = false;
+  ASKAPCHECK((itsStreamType == "int") || (itsStreamType == "float"), "Only 'int' and 'float' stream types are supported, you have "<<itsStreamType);
+  // setup acceptor
+  const int port = parset.getInt32("port");
+  ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port<<", stream type is "<<itsStreamType);
+  
+
+  if (itsCaptureMode) {
+     boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
+     // it doesn't matter how many antennas are chosen in this mode
+     itsBufferManager.reset(new BufferManager(parset.getInt("nbeam"),parset.getInt("nchan"), 3, hdrProc));     
+  } else {
+     itsFiller.reset(new CorrFiller(parset));
+     boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
+     if (itsFiller->nAnt() == 3) {
+         // special case of the 3-antenna correlator
+         ASKAPLOG_INFO_STR(logger, "Number of antennas is exactly 3, use special 3-baseline version of the correlator");
+         itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));
+     } else {
+         ASKAPCHECK(itsFiller->nAnt() > 3, "Less than 3 antennas are not supported.");
+         // generic case of more than 3 antennas
+         ASKAPLOG_INFO_STR(logger, "Number of antennas is "<<itsFiller->nAnt()<<", use generic version of the correlator");
+         itsBufferManager.reset(new ExtendedBufferManager(itsFiller->nBeam(),itsFiller->nChan(), itsFiller->nAnt(), hdrProc));         
+     }
+  }
+  const bool duplicate2nd = parset.getBool("duplicate2nd", false);
+  if (duplicate2nd) {
+      ASKAPLOG_INFO_STR(logger, "The data from the 2nd antenna will be duplicated to get the 3rd antenna");
+  }
+  ASKAPDEBUGASSERT(itsBufferManager);
+  itsBufferManager->duplicate2nd(duplicate2nd);
+  
+  // initialise tcp endpoint
+  boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
+  itsAcceptor.open(endpoint.protocol());
+  itsAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+  itsAcceptor.bind(endpoint);
+  itsAcceptor.listen();
+  initAsyncAccept();
+}
+  
+/// @brief run the main loop
+/// @details This method waits for connections and assigns new threads to
+/// manage each connection.
+void CorrServer::run()
+{
+  ASKAPDEBUGASSERT(itsBufferManager);
+  if (!itsCaptureMode) {
+      ASKAPDEBUGASSERT(itsFiller);
+      ASKAPLOG_INFO_STR(logger, "About to start writing thread");
+      itsThreads.create_thread(FillerWorker(itsFiller));
+      const int nCorrThreads = itsFiller->nBeam() * itsFiller->nChan();
+      ASKAPLOG_INFO_STR(logger, "About to start "<<nCorrThreads<<" correlator thread(s)");
+      for (int i = 0; i<nCorrThreads; ++i) {
+          itsThreads.create_thread(CorrWorker(itsFiller,itsBufferManager));
+      }
+  } else {
+      ASKAPLOG_INFO_STR(logger, "About to start data dump thread");
+      itsThreads.create_thread(CaptureWorker(itsBufferManager,itsStatsOnly));
+  }
+  
+  ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");
+  theirIOService.run();
+  ASKAPLOG_INFO_STR(logger, "Waiting for all I/O and correlator threads to finish");
+  itsThreads.interrupt_all();
+  ASKAPLOG_DEBUG_STR(logger, "   - interrupt signal has been sent to I/O and correlator threads");
+  itsThreads.join_all();
+  ASKAPLOG_DEBUG_STR(logger, "   - I/O and correlator threads have been terminated");
+  if (!itsCaptureMode) {
+      ASKAPLOG_INFO_STR(logger, "Shutting down the filler");
+      ASKAPDEBUGASSERT(itsFiller);
+      itsFiller->shutdown();
+  }
+  ASKAPLOG_DEBUG_STR(logger, "Destroying the filler");
+  ASKAPDEBUGASSERT(itsFiller);
+  itsFiller.reset();
+  // just in case we run it from a wrapper
+  ASKAPLOG_DEBUG_STR(logger, "Resetting I/O service");
+  theirIOService.reset();
+}
+
+/// @brief initiate asynchronous accept
+void CorrServer::initAsyncAccept()
+{
+  itsSocketBuf.reset(new boost::asio::ip::tcp::socket(theirIOService));
+  itsAcceptor.async_accept(*itsSocketBuf, boost::bind(&CorrServer::asyncAcceptHandler, this, boost::asio::placeholders::error));
+}
+  
+/// @brief handler of asynchronous accept
+/// @param[in] e error code
+void CorrServer::asyncAcceptHandler(const boost::system::error_code &e)
+{
+  if (!e) {
+     if (itsStreamType == "int") {
+         itsThreads.create_thread(StreamConnection(itsSocketBuf, itsBufferManager));
+     } else {
+         itsThreads.create_thread(FloatStreamConnection(itsSocketBuf, itsBufferManager));
+     }
+     itsSocketBuf.reset();
+  }
+  if (!theirStopRequested) {
+     initAsyncAccept();
+  }
+}
+
+
+} // namespace swcorrelator
+
+} // namespace askap
+

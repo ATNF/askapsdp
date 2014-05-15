@@ -1,0 +1,32 @@
+########################## Ice Properties ##############################
+
+# Registry location
+ice_properties.Ice.Default.Locator                  = IceGrid/Locator:tcp -h localhost -p 4061
+
+# Object adapter
+ice_properties.CentralProcessorAdapter.Endpoints    = tcp
+ice_properties.CentralProcessorAdapter.AdapterId    = CentralProcessorAdapter
+
+ice_properties.Ice.MessageSizeMax                   = 131072
+ice_properties.Ice.ThreadPool.Server.Size           = 4
+ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
+
+################## CP Manager Specific Properties ######################
+
+# Object identity and proxy to use for the CP manager ICE object
+ice.servicename                 = CentralProcessorService
+ice.adaptername                 = CentralProcessorAdapter
+
+# Use a mock FCM
+fcm.mock                        = true
+fcm.mock.filename               = mock_fcm.txt
+
+# Use a mock data service
+dataservice.mock                = true
+dataservice.mock.filename       = mock_sb.txt
+
+# Use the dummy ingest pipeline manager (it does nothing when commanded)
+ingest.managertype              = dummy
+
+# Ingest working directory
+ingest.workdir                  = /tmp

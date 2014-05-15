@@ -1,0 +1,7 @@
+/// The askapparallel package namespace.
+namespace askap::askapparallel{};
+
+/// @mainpage ASKAP Parallel Framework
+///
+
+/// @copyright 2012 CSIRO, All Rights Reserved.

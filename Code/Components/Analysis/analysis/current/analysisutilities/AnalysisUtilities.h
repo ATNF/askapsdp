@@ -1,0 +1,108 @@
+/// @file
+///
+/// Provides general utility functions to support the analysis code
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
+///
+#ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
+#define ASKAP_ANALYSIS_ANALYSISUTILS_H_
+
+#include <analysisparallel/SubimageDef.h>
+#include <askapparallel/AskapParallel.h>
+#include <casainterface/CasaInterface.h>
+
+#include <string>
+#include <vector>
+
+#include <Common/ParameterSet.h>
+#include <casa/namespace.h>
+#include <casa/Arrays/Array.h>
+#include <scimath/Functionals/Gaussian2D.h>
+
+#include <duchamp/Utils/Section.hh>
+#include <duchamp/param.hh>
+#include <duchamp/FitsIO/Beam.hh>
+#include <duchamp/Detection/detection.hh>
+
+namespace askap {
+    namespace analysis {
+
+	/// @ingroup analysisutilities
+	/// @{
+
+	/// @brief A simple way of printing the worker number
+	std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms);
+      
+        /// @brief Return an array of axis dimensions for a FITS file.
+        std::vector<long> getFITSdimensions(std::string filename);
+
+        /// @brief Return the probability of obtaining a chisq value by
+        ///        chance, for a certain number of degrees of freedom.
+        float chisqProb(float ndof, float chisq);
+
+        /// @brief Check for the use of a particular parameter in a ParameterSet and warn the user it is not used.
+	void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
+
+        /// @brief Parse a ParameterSet and define duchamp::param parameters.
+        duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
+
+        /// @brief Find an rms for an array given a mean value
+        double findSpread(bool robust, double middle, int size, float *array);
+
+        /// @brief Find an rms for an array given a mean value, with masking of pixels.
+        double findSpread(bool robust, double middle, int size, float *array, std::vector<bool> mask);
+
+        /// @brief Remove blank spaces from the beginning of a string
+        std::string removeLeadingBlanks(std::string s);
+
+        /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
+        double dmsToDec(std::string input);
+
+        /// @brief Converts a decimal into a dd:mm:ss.ss format.
+        std::string decToDMS(const double input, std::string type = "DEC",
+                             int secondPrecision = 2, std::string separator = ":");
+
+        /// @brief Find the angular separation of two sky positions
+        double angularSeparation(const std::string ra1, const std::string dec1,
+                                 const std::string ra2, const std::string dec2);
+
+        /// @brief Find the angular separation of two sky positions.
+        double angularSeparation(double ra1, double dec1, double ra2, double dec2);
+
+        /// @brief Convert equatorial coordinates to Galactic.
+        void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
+
+	/// @brief Return the Gaussian after deconvolution with the given beam
+	std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
+	
+	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header, duchamp::Param &par);
+	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
+
+	/// @}
+
+    }
+}
+
+#endif

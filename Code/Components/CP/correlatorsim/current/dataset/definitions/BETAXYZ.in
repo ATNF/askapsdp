@@ -1,0 +1,18 @@
+antennas.telescope = BETA
+antennas.BETA.coordinates = global
+antennas.BETA.names = [ak06, ak01 ,ak03, ak15, ak08, ak09]
+antennas.BETA.diameter = 12m
+antennas.BETA.scale = 1.0
+antennas.BETA.mount = equatorial
+
+antennas.BETA.ak01 = [-2556084.669, 5097398.337, -2848424.133]
+
+antennas.BETA.ak03 = [-2556118.102, 5097384.726, -2848417.280]
+
+antennas.BETA.ak06 = [-2556227.863, 5097380.399, -2848323.367]
+
+antennas.BETA.ak08 = [-2556002.713742, 5097320.608027, -2848637.727970]
+
+antennas.BETA.ak09 = [-2555888.9789,5097552.500315,-2848324.911449]
+
+antennas.BETA.ak15 = [-2555389.70943903,5097664.08452923,-2848561.871727]

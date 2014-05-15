@@ -1,0 +1,31 @@
+# @file
+# SConstruct build script for this module.
+# Package dependencies are read from 'dependencies.default'
+#
+# @author Malte Marquarding <Malte.Marquarding@csiro.au>
+#
+
+# Always import this
+from askapenv import env
+import os
+
+if 'AIPSPATH' not in os.environ:
+   os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
+
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-O3'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+env.Append(universal=0)
+
+# create build object with library name
+pkg = env.AskapPackage("accessors")
+
+# add sub packages 
+pkg.AddSubPackage("dataaccess")
+pkg.AddSubPackage("imageaccess")
+pkg.AddSubPackage("calibaccess")
+pkg.AddSubPackage("votable")
+
+# run the build process
+pkg()

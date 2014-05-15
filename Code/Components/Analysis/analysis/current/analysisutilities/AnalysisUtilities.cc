@@ -1,0 +1,828 @@
+/// @file
+///
+/// @brief General utility functions to support the analysis software
+/// @details
+/// These functions are unattached to any classes, but provide simple
+/// support for the rest of the analysis package.
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
+///
+
+#include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
+#include <askapparallel/AskapParallel.h>
+
+#include <analysisutilities/AnalysisUtilities.h>
+
+#include <gsl/gsl_sf_gamma.h>
+
+#include <casa/namespace.h>
+#include <scimath/Functionals/Gaussian2D.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
+#include <images/Images/ImageOpener.h>
+#include <images/Images/SubImage.h>
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+
+#include <duchamp/fitsHeader.hh>
+#include <duchamp/Utils/Statistics.hh>
+#include <duchamp/Utils/Section.hh>
+#include <duchamp/FitsIO/Beam.hh>
+#include <duchamp/param.hh>
+
+#define WCSLIB_GETWCSTAB // define this so that we don't try and redefine 
+//  wtbarr (this is a problem when using gcc v.4+)
+#include <fitsio.h>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".analysisutilities");
+
+namespace askap {
+    namespace analysis {
+
+      std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms)
+      {
+	std::stringstream ss;
+	if (comms.isParallel()) {
+	  if (comms.isMaster())
+	    ss << "MASTER: ";
+	  else if (comms.isWorker())
+	    ss << "Worker #" << comms.rank() << ": ";
+	} else ss << "";
+	return ss.str();
+      }
+
+        std::vector<long> getFITSdimensions(std::string filename)
+        {
+            /// @details A simple function to open a FITS file and read the
+            /// axis dimensions, returning the array of values.
+            int numAxes, status = 0;  /* MUST initialize status */
+            fitsfile *fptr;
+            std::vector<long> dim;
+            // Open the FITS file
+            status = 0;
+
+            if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)) {
+                fits_report_error(stderr, status);
+                ASKAPTHROW(AskapError, "FITS Error opening file")
+            } else {
+                // Read the size of the FITS file -- number and sizes of the axes
+                status = 0;
+
+                if (fits_get_img_dim(fptr, &numAxes, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                long *dimAxes = new long[numAxes];
+
+                for (int i = 0; i < numAxes; i++) dimAxes[i] = 1;
+
+                status = 0;
+
+                if (fits_get_img_size(fptr, numAxes, dimAxes, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                // Close the FITS file -- not needed any more in this function.
+                status = 0;
+                fits_close_file(fptr, &status);
+
+                if (status) {
+                    fits_report_error(stderr, status);
+                }
+
+                dim = std::vector<long>(numAxes);
+
+                for (int i = 0; i < numAxes; i++) dim[i] = dimAxes[i];
+
+                delete [] dimAxes;
+
+            }
+
+            return dim;
+        }
+
+        float chisqProb(float ndof, float chisq)
+        {
+            /// @details Returns the probability of exceeding the given
+            /// value of chisq by chance. If it comes from a fit, this
+            /// probability is assuming the fit is valid.
+            ///
+            /// Typical use: say you have a fit with ndof=5 degrees of
+            /// freedom that gives a chisq value of 12. You call this
+            /// function via chisqProb(5,12.), which will return
+            /// 0.0347878. If your confidence limit is 95% (ie. you can
+            /// tolerate a 1-in-20 chance that a valid fit will produce a
+            /// chisq value that high), you would reject that fit (since
+            /// 0.0347878 < 0.05), but if it is 99%, you would accept it
+            /// (since 0.0347878 > 0.01).
+            return gsl_sf_gamma_inc(ndof / 2., chisq / 2.) / gsl_sf_gamma(ndof / 2.);
+        }
+
+      void checkUnusedParameter(const LOFAR::ParameterSet& parset, const std::string &paramName)
+      {
+
+	if(parset.isDefined(paramName)){
+	    ASKAPLOG_WARN_STR(logger, "Parameter '"<<paramName << "' is not used by the ASKAP duchamp implementation");
+	  }
+
+      }
+
+        duchamp::Param parseParset(const LOFAR::ParameterSet& parset)
+        {
+            /// @details
+            /// Takes a ParameterSet and reads in the necessary Duchamp
+            /// parameters. It checks many of the duchamp::param parameters,
+            /// and if they are not present, a default value, defined
+            /// herein, is set (note that this is not necessarily the
+            /// standard Duchamp default value).
+            ///
+            /// The excpetions are the image names, as these will in general
+            /// depend on the node and on whether the current node is a
+            /// master or worker. These should be set by the calling
+            /// function.
+            duchamp::Param par;
+
+	    if(parset.isDefined("image"))
+	      par.setImageFile(parset.getString("image"));
+	    else if(parset.isDefined("imageFile"))
+	      par.setImageFile(parset.getString("imageFile"));
+	    else
+	      ASKAPLOG_ERROR_STR(logger, "No image defined - use either 'imageFile' or 'image' parameters (the former is for consistency with Duchamp parameters)");
+            par.setFlagSubsection(parset.getBool("flagSubsection", false));
+	    par.setSubsection(parset.getString("subsection", ""));
+	    if(!par.getFlagSubsection()) par.setSubsection("");
+	    checkUnusedParameter(parset,"flagReconExists");
+	    checkUnusedParameter(parset,"reconFile");
+	    checkUnusedParameter(parset,"flagSmoothExists");
+	    checkUnusedParameter(parset,"smoothFile");
+	    par.setFlagUsePrevious(parset.getBool("usePrevious",par.getFlagUsePrevious()));
+	    par.setObjectList(parset.getString("objectList",par.getObjectList()));
+
+            par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
+	    par.setLogFile(parset.getString("logFile",par.getLogFile()));
+	    if(parset.isDefined("resultsFile"))
+		par.setOutFile(parset.getString("resultsFile",par.getOutFile()));
+	    else 
+		par.setOutFile(parset.getString("outFile",par.getOutFile()));
+	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
+	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
+	    par.setFlagWriteBinaryCatalogue( parset.getBool("flagWriteBinaryCatalogue",par.getFlagWriteBinaryCatalogue()) );
+	    par.setBinaryCatalogue( parset.getString("binaryCatalogue",par.getBinaryCatalogue()) );
+	    par.setFlagPlotSpectra(false); // no graphics, so not plotting
+	    checkUnusedParameter(parset,"flagPlotSpectra");// no graphics
+	    checkUnusedParameter(parset,"flagPlotIndividualSpectra"); // no graphics
+	    checkUnusedParameter(parset,"spectraFile");// no graphics
+	    par.setFlagTextSpectra(parset.getBool("flagTextSpectra", par.getFlagTextSpectra()));
+	    par.setSpectraTextFile(parset.getString("spectraTextFile",par.getSpectraTextFile()));
+	    checkUnusedParameter(parset,"flagOutputBaseline");// 
+	    checkUnusedParameter(parset,"fileOutputBaseline");// 
+	    par.setFlagOutputMomentMask(parset.getBool("flagOutputMomentMask",par.getFlagOutputMomentMask()));
+	    par.setFileOutputMomentMask(parset.getString("fileOutputMomentMask",par.getFileOutputMomentMask()));
+	    par.setFlagOutputMask(parset.getBool("flagOutputMask",par.getFlagOutputMask()));
+	    par.setFileOutputMask(parset.getString("fileOutputMask",par.getFileOutputMask()));
+	    par.setFlagMaskWithObjectNum(parset.getBool("flagMaskWithObjectNum",par.getFlagMaskWithObjectNum()));
+	    par.setFlagOutputSmooth(parset.getBool("flagOutputSmooth",par.getFlagOutputSmooth()));
+	    par.setFileOutputSmooth(parset.getString("fileOutputSmooth",par.getFileOutputSmooth()));
+	    par.setFlagOutputRecon(parset.getBool("flagOutputRecon",par.getFlagOutputRecon()));
+	    par.setFileOutputRecon(parset.getString("fileOutputRecon",par.getFileOutputRecon()));
+	    par.setFlagOutputResid(parset.getBool("flagOutputResid",par.getFlagOutputResid()));
+	    par.setFileOutputResid(parset.getString("fileOutputResid",par.getFileOutputResid()));
+	    // par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
+	    par.setFlagVOT(parset.getBool("flagVOT",true));
+	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
+            par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
+	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
+	    par.setFlagDS9(parset.getBool("flagDS9",true)); // different from Duchamp default
+	    par.setDS9File(parset.getString("ds9File",par.getDS9File()));
+	    par.setFlagCasa(parset.getBool("flagCasa",true)); // different from Duchamp default
+	    par.setCasaFile(parset.getString("casaFile",par.getCasaFile()));
+	    //
+	    par.setFlagMaps(false); // flagMaps
+	    checkUnusedParameter(parset,"flagMaps");//  - not using X
+	    checkUnusedParameter(parset,"detectMap");//  - not using X
+	    checkUnusedParameter(parset,"momentMap");//  - not using X
+	    par.setFlagXOutput(false);
+	    checkUnusedParameter(parset,"flagXOutput");//  - not using X
+	    checkUnusedParameter(parset,"newFluxUnits");//  - not using - caused confusion...
+	    par.setPrecFlux(parset.getInt16("precFlux",par.getPrecFlux()));
+	    par.setPrecVel(parset.getInt16("precVel",par.getPrecVel()));
+	    par.setPrecSNR(parset.getInt16("precSNR",par.getPrecSNR()));
+
+	    //
+
+	    checkUnusedParameter(parset,"flagTrim");// Not clear if this is necessary for our case.
+	    par.setFlaggedChannelList(parset.getString("flaggedChannels",""));
+// 	    par.setFlagMW(parset.getBool("flagMW",par.getFlagMW()));
+// 	    par.setMinMW(parset.getInt16("minMW",par.getMinMW()));
+// 	    par.setMaxMW(parset.getInt16("maxMW",par.getMaxMW()));
+	    checkUnusedParameter(parset,"flagBaseline");// Need additional infrastructure to pass baseline values to Master.
+	    checkUnusedParameter(parset,"baselineType");
+	    checkUnusedParameter(parset,"baselineBoxWidth");
+	    //
+
+            par.setFlagStatSec(parset.getBool("flagStatSec", par.getFlagStatSec()));
+            par.setStatSec(parset.getString("statsec", par.getStatSec()));
+            par.setFlagRobustStats(parset.getBool("flagRobustStats", par.getFlagRobustStats()));
+	    par.setFlagNegative(parset.getBool("flagNegative",par.getFlagNegative()));
+            par.setCut(parset.getFloat("snrCut", par.getCut()));
+            if (parset.isDefined("threshold")) {
+                par.setFlagUserThreshold(true);
+                par.setThreshold(parset.getFloat("threshold",par.getThreshold()));
+            } else {
+                par.setFlagUserThreshold(false);
+            }
+            par.setFlagGrowth(parset.getBool("flagGrowth", par.getFlagGrowth()));
+            par.setGrowthCut(parset.getFloat("growthCut", par.getGrowthCut()));
+            if (parset.isDefined("growthThreshold")) {
+	      par.setGrowthThreshold(parset.getFloat("growthThreshold",par.getGrowthThreshold()));
+	      par.setFlagUserGrowthThreshold(true);
+            }
+            if (parset.isDefined("beamSize")) {
+	      par.setBeamSize(parset.getFloat("beamSize"));
+	      ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea=" << par.getBeamSize());
+            }
+            par.setBeamSize(parset.getFloat("beamArea", par.getBeamSize()));
+            par.setBeamFWHM(parset.getFloat("beamFWHM", par.getBeamFWHM()));
+	    par.setSearchType(parset.getString("searchType", par.getSearchType()));
+
+	    //
+
+            par.setFlagATrous(parset.getBool("flagATrous", par.getFlagATrous()));
+            par.setReconDim(parset.getInt16("reconDim", par.getReconDim()));
+            par.setMinScale(parset.getInt16("scaleMin", par.getMinScale()));
+            par.setMaxScale(parset.getInt16("scaleMax", par.getMaxScale()));
+            par.setAtrousCut(parset.getFloat("snrRecon", par.getAtrousCut()));
+	    par.setReconConvergence(parset.getFloat("reconConvergence", par.getReconConvergence()));
+            par.setFilterCode(parset.getInt16("filterCode", par.getFilterCode()));
+
+	    //
+
+            if (par.getFlagATrous()) par.setFlagSmooth(false);
+            else par.setFlagSmooth(parset.getBool("flagSmooth", false));
+            par.setSmoothType(parset.getString("smoothType", par.getSmoothType()));
+            par.setHanningWidth(parset.getInt16("hanningWidth", par.getHanningWidth()));
+            par.setKernMaj(parset.getFloat("kernMaj", par.getKernMaj()));
+            par.setKernMin(parset.getFloat("kernMin", par.getKernMin()));
+            par.setKernPA(parset.getFloat("kernPA", par.getKernPA()));
+	    par.setSmoothEdgeMethod(parset.getString("smoothEdgeMethod", par.getSmoothEdgeMethod()));
+	    par.setSpatialSmoothCutoff(parset.getFloat("spatialSmoothCutoff", par.getSpatialSmoothCutoff()));
+
+	    checkUnusedParameter(parset,"flagFDR");// ? How to deal with distributed case?
+	    checkUnusedParameter(parset,"alphaFDR");//  ?
+	    checkUnusedParameter(parset,"FDRnumCorChan");//  ?
+
+            par.setFlagAdjacent(parset.getBool("flagAdjacent", par.getFlagAdjacent()));
+            par.setThreshS(parset.getFloat("threshSpatial", par.getThreshS()));
+            par.setThreshV(parset.getFloat("threshVelocity", par.getThreshV()));
+            par.setMinPix(parset.getInt16("minPix", par.getMinPix()));
+            par.setMinChannels(parset.getInt16("minChannels", par.getMinChannels()));
+	    par.setMinVoxels(parset.getInt16("minVoxels", par.getMinVoxels()));
+            par.setMaxPix(parset.getInt16("maxPix", par.getMaxPix()));
+            par.setMaxChannels(parset.getInt16("maxChannels", par.getMaxChannels()));
+	    par.setMaxVoxels(parset.getInt16("maxVoxels", par.getMaxVoxels()));
+	    par.setFlagRejectBeforeMerge(parset.getBool("flagRejectBeforeMerge",par.getFlagRejectBeforeMerge()));
+	    par.setFlagTwoStageMerging(parset.getBool("flagTwoStageMerging",par.getFlagTwoStageMerging()));
+
+	    //
+	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));
+	    par.setSpectralType(parset.getString("spectralType",par.getSpectralType()));
+	    par.setRestFrequency(parset.getFloat("restFrequency",par.getRestFrequency()));
+
+            par.setVerbosity(parset.getBool("verbose", false));
+	    par.setDrawBorders(parset.getBool("drawBorders", par.drawBorders()));
+	    checkUnusedParameter(parset,"drawBlankEdges");// No graphics
+            par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
+	    checkUnusedParameter(parset,"spectralMethod"); // only used for graphical output.
+	    par.setSortingParam(parset.getString("sortingParam","ra"));
+
+            par.checkPars();
+
+ 	    // The next bit ensures that the output mask is put in the current directory
+	    std::string maskfileRequested = par.outputMaskFile();
+	    size_t loc=maskfileRequested.rfind('/');
+	    std::string maskfileUsed = (loc!=std::string::npos) ? maskfileRequested.substr(loc+1,maskfileRequested.size()) : maskfileRequested;
+	    ASKAPLOG_INFO_STR(logger, "Changing the mask output file from " << maskfileRequested << " to " << maskfileUsed);
+	    par.setFileOutputMask(maskfileUsed);
+
+           return par;
+        }
+
+        double findSpread(bool robust, double middle, int size, float *array)
+        {
+            /// @details
+            /// Finds the "spread" (ie. the rms or standard deviation) of an
+            /// array of values using a given mean value. The option exists
+            /// to use the standard deviation, or, by setting robust=true,
+            /// the median absolute deviation from the median. In the latter
+            /// case, the middle value given is assumed to be the median,
+            /// and the returned value is the median absolute difference of
+            /// the data values from the median.
+            double spread = 0.;
+
+            if (robust) {
+                float *arrayCopy = new float[size];
+
+                for (int i = 0; i < size; i++) arrayCopy[i] = fabs(array[i] - middle);
+
+                bool isEven = ((size % 2) == 0);
+                std::nth_element(arrayCopy, arrayCopy + size / 2, arrayCopy + size);
+                spread = arrayCopy[size/2];
+
+                if (isEven) {
+                    std::nth_element(arrayCopy, arrayCopy + size / 2 - 1, arrayCopy + size);
+                    spread += arrayCopy[size/2-1];
+                    spread /= 2.;
+                }
+
+                delete [] arrayCopy;
+                spread = Statistics::madfmToSigma(spread);
+            } else {
+                for (int i = 0; i < size; i++) spread += (array[i] - middle) * (array[i] - middle);
+
+                spread = sqrt(spread / double(size - 1));
+            }
+
+            return spread;
+        }
+
+
+        double findSpread(bool robust, double middle, int size, float *array, std::vector<bool> mask)
+        {
+            /// @details
+            /// Finds the "spread" (ie. the rms or standard deviation) of an
+            /// array of values using a given mean value. The option exists
+            /// to use the standard deviation, or, by setting robust=true,
+            /// the median absolute deviation from the median. In the latter
+            /// case, the middle value given is assumed to be the median,
+            /// and the returned value is the median absolute difference of
+            /// the data values from the median.
+            int goodSize = 0;
+
+            for (int i = 0; i < size; i++) if (mask[i]) goodSize++;
+
+            double spread = 0.;
+
+            if (robust) {
+                float *arrayCopy = new float[goodSize];
+                int j = 0;
+
+                for (int i = 0; i < size; i++) if (mask[i]) arrayCopy[j++] = fabs(array[i] - middle);
+
+                bool isEven = ((goodSize % 2) == 0);
+                std::nth_element(arrayCopy, arrayCopy + goodSize / 2, arrayCopy + goodSize);
+                spread = arrayCopy[goodSize/2];
+
+                if (isEven) {
+                    std::nth_element(arrayCopy, arrayCopy + goodSize / 2 - 1, arrayCopy + goodSize);
+                    spread += arrayCopy[goodSize/2-1];
+                    spread /= 2.;
+                }
+
+                delete [] arrayCopy;
+                spread = Statistics::madfmToSigma(spread);
+            } else {
+                for (int i = 0; i < size; i++) if (mask[i]) spread += (array[i] - middle) * (array[i] - middle);
+
+                spread = sqrt(spread / double(goodSize - 1));
+            }
+
+            return spread;
+        }
+
+
+        std::string removeLeadingBlanks(std::string s)
+        {
+            /// @brief Remove blank spaces from the beginning of a string
+            /// @details
+            /// All blank spaces from the start of the string to the first
+            /// non-blank-space character are deleted.
+            ///
+            int i = 0;
+
+            while (s[i] == ' ') {
+                i++;
+            }
+
+            std::string newstring;
+
+            for (unsigned int j = i; j < s.size(); j++) newstring += s[j];
+
+            return newstring;
+        }
+
+        double dmsToDec(std::string input)
+        {
+            /// @details
+            ///  Assumes the angle given is in degrees, so if passing RA as
+            ///  the argument, need to multiply by 15 to get the result in
+            ///  degrees rather than hours.  The sign of the angle is
+            ///  preserved, if present.
+            ///
+            std::string dms = removeLeadingBlanks(input);
+            bool isNeg = false;
+
+            if (dms[0] == '-') isNeg = true;
+
+            for (unsigned int i = 0; i < dms.size(); i++) if (dms[i] == ':') dms[i] = ' ';
+
+            std::stringstream ss;
+            ss.str(dms);
+            double d, m, s;
+            ss >> d >> m >> s;
+            double dec = fabs(d) + m / 60. + s / 3600.;
+
+            if (isNeg) dec = dec * -1.;
+
+            return dec;
+        }
+
+        std::string decToDMS(const double input, std::string type, int secondPrecision, std::string separator)
+        {
+            /// @details
+            ///  This is the general form, where one can specify the degree of
+            ///  precision of the seconds, and the separating character. The format reflects the axis type:
+            ///  @li RA   (right ascension):     hh:mm:ss.ss, with dec modulo 360. (24hrs)
+            ///  @li DEC  (declination):        sdd:mm:ss.ss  (with sign, either + or -)
+            ///  @li GLON (galactic longitude): ddd:mm:ss.ss, with dec made modulo 360.
+            ///  @li GLAT (galactic latitude):  sdd:mm:ss.ss  (with sign, either + or -)
+            ///    Any other type defaults to RA, and prints warning.
+            /// @param input Angle in decimal degrees.
+            /// @param type Axis type to be used
+            /// @param secondPrecision How many decimal places to quote the seconds to.
+            /// @param separator The character (or string) to use as a
+            /// separator between hh and mm, and mm and ss.sss.
+            ///
+            double normalisedInput = input;
+            int degSize = 2; // number of figures in the degrees part of the output.
+            std::string sign = "";
+
+            if ((type == "RA") || (type == "GLON")) {
+                if (type == "GLON")  degSize = 3; // longitude has three figures in degrees.
+
+                // Make these modulo 360.;
+                while (normalisedInput < 0.) { normalisedInput += 360.; }
+
+                while (normalisedInput > 360.) { normalisedInput -= 360.; }
+
+                if (type == "RA") normalisedInput /= 15.;  // Convert to hours.
+            } else if ((type == "DEC") || (type == "GLAT")) {
+                if (normalisedInput < 0.) sign = "-";
+                else sign = "+";
+            } else { // UNKNOWN TYPE -- DEFAULT TO RA.
+                std::cerr << "WARNING <decToDMS> : Unknown axis type ("
+                              << type << "). Defaulting to using RA.\n";
+
+                while (normalisedInput < 0.) { normalisedInput += 360.; }
+
+                while (normalisedInput > 360.) { normalisedInput -= 360.; }
+
+                normalisedInput /= 15.;
+            }
+
+            normalisedInput = fabs(normalisedInput);
+
+            int secondWidth = 2;
+
+            if (secondPrecision > 0) secondWidth += 1 + secondPrecision;
+
+            double dec_abs = normalisedInput;
+            int hourOrDeg = int(dec_abs);
+            int min = int(fmod(dec_abs, 1.) * 60.);
+            const double onemin = 1. / 60.;
+            double sec = fmod(dec_abs, onemin) * 3600.;
+
+            if (fabs(sec - 60.) < 1.e-10) { // to prevent rounding errors stuffing things up
+                sec = 0.;
+                min++;
+            } else if (sec > 60.) {
+                sec -= 60.;
+                min++;
+            }
+
+            if (min == 60) {
+                min = 0;
+                hourOrDeg++;
+            }
+
+            if (type == "RA") hourOrDeg = hourOrDeg % 24;
+            else if (type == "GLON") hourOrDeg = hourOrDeg % 360;
+            else if (type == "GLAT" || type == "DEC") hourOrDeg = ((hourOrDeg + 90) % 180) - 90;
+
+            std::stringstream output;
+            output.setf(std::ios::fixed);
+            output << sign
+                << std::setw(degSize) << std::setfill('0') << std::setprecision(0)
+                << fabs(hourOrDeg) << separator
+                << std::setw(2) << std::setfill('0') << std::setprecision(0)
+                << min  << separator ;
+            output << std::setw(secondWidth) << std::setfill('0')
+                << std::setprecision(secondPrecision) << sec;
+            return output.str();
+        }
+
+
+        double angularSeparation(const std::string ra1, const std::string dec1,
+                                 const std::string ra2, const std::string dec2)
+        {
+            /// @details
+            /// Calculates the angular separation between two sky positions,
+            /// given as strings for RA and DEC. Uses the function
+            /// angularSeparation(double,double,double,double).
+            /// @param ra1 The right ascension for the first position.
+            /// @param dec1 The declination for the first position.
+            /// @param ra2 The right ascension for the second position.
+            /// @param dec2 The declination for the second position.
+            /// @return The angular separation in degrees.
+            ///
+            if ((ra1 == ra2) && (dec1 == dec2))
+                return 0.;
+            else {
+                double sep = angularSeparation(
+                                 dmsToDec(ra1) * 15.,
+                                 dmsToDec(dec1),
+                                 dmsToDec(ra2) * 15.,
+                                 dmsToDec(dec2)
+                             );
+                return sep;
+            }
+        }
+
+        double angularSeparation(double ra1, double dec1, double ra2, double dec2)
+        {
+            /// @details
+            /// Calculates the angular separation between two sky positions,
+            /// where RA and DEC are given in decimal degrees.
+            /// @param ra1 The right ascension for the first position.
+            /// @param dec1 The declination for the first position.
+            /// @param ra2 The right ascension for the second position.
+            /// @param dec2 The declination for the second position.
+            /// @return The angular separation in degrees.
+            ///
+            double r1, d1, r2, d2;
+            r1 = ra1  * M_PI / 180.;
+            d1 = dec1 * M_PI / 180.;
+            r2 = ra2  * M_PI / 180.;
+            d2 = dec2 * M_PI / 180.;
+            long double angsep = cos(r1 - r2) * cos(d1) * cos(d2) + sin(d1) * sin(d2);
+            return acosl(angsep)*180. / M_PI;
+        }
+
+
+        void equatorialToGalactic(double ra, double dec, double &gl, double &gb)
+        {
+            /// @details
+            /// Converts an equatorial (ra,dec) position to galactic
+            /// coordinates. The equatorial position is assumed to be J2000.0.
+            ///
+            /// @param ra Right Ascension, J2000.0
+            /// @param dec Declination, J2000.0
+            /// @param gl Galactic Longitude. Returned value.
+            /// @param gb Galactic Latitude. Returned value.
+            ///
+            const double NGP_RA = 192.859508 * M_PI / 180.;
+            const double NGP_DEC = 27.128336 * M_PI / 180.;
+            const double ASC_NODE = 32.932;
+            double deltaRA = ra * M_PI / 180. - NGP_RA;
+            double d = dec     * M_PI / 180.;
+            double sinb = cos(d) * cos(NGP_DEC) * cos(deltaRA) + sin(d) * sin(NGP_DEC);
+            gb = asin(sinb);
+            // The l in sinl and cosl here is really gl-ASC_NODE
+            double sinl = (sin(d) * cos(NGP_DEC) - cos(d) * cos(deltaRA) * sin(NGP_DEC)) / cos(gb);
+            double cosl = cos(d) * sin(deltaRA) / cos(gb);
+            gl = atan(fabs(sinl / cosl));
+
+            // atan of the abs.value of the ratio returns a value between 0 and 90 degrees.
+            // Need to correct the value of l according to the correct quandrant it is in.
+            // This is worked out using the signs of sinl and cosl
+            if (sinl > 0) {
+                if (cosl < 0) gl = M_PI - gl;
+            } else {
+                if (cosl > 0) gl = 2.*M_PI - gl;
+                else          gl = M_PI + gl;
+            }
+
+            // Find the correct values of the lat & lon in degrees.
+            gb = asin(sinb) * 180. / M_PI;
+            gl = gl * 180. / M_PI + ASC_NODE;
+        }
+
+      std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam)
+      {
+	/// @details Deconvolution of a Gaussian shape, assuming it
+	/// was convolved with the given beam. This procedure
+	/// replicates the approach described in Wild (1970), AuJPh
+	/// 23, 113.
+	/// @param measured Gaussian shape to be deconvolved
+	/// @param beam Beam shape of image
+	/// @return A vector containing (in order), the major & minor
+	/// axes, and the position angle (in radians).
+	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa()*M_PI/180.;
+	double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
+	// ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
+	double d0=a0*a0-b0*b0,d2=a2*a2-b2*b2;
+
+	double d1 = sqrt( d0*d0 + d2*d2 - 2*d0*d2*cos(2.*(pa0-pa2)) );
+	double a1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2+d1), b1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2-d1);
+	double a1=0.,b1=0.;
+	if(a1sq>0.) a1=sqrt(a1sq);
+	if(b1sq>0.) b1=sqrt(b1sq);
+	// ASKAPLOG_DEBUG_STR(logger, "Deconvolving: d0="<<d0<<", d2="<<d2<<", d1="<<d1<<", a1sq="<<a1sq<<", b1sq="<<b1sq<<", a1="<<a1<<", b1="<<b1);
+	double pa1;
+	if((d0*cos(2.*pa0)-d2*cos(2.*pa2))==0.) pa1=0.;
+	else{
+	  double sin2pa1 = (d0 * sin(2.*pa0) + d2 * sin(2.*pa2));
+	  double cos2pa1 = (d0 * cos(2.*pa0) + d2 * cos(2.*pa2));
+	  pa1 = atan(fabs(sin2pa1 / cos2pa1));
+
+	  // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
+	  // Need to correct the value of pa according to the correct quandrant it is in.
+	  // This is worked out using the signs of sin and cos
+	  if (sin2pa1 > 0) {
+	    if (cos2pa1 < 0) pa1 = M_PI - pa1;
+	  } else {
+	    if (cos2pa1 > 0) pa1 = 2.*M_PI - pa1;
+	    else             pa1 = M_PI + pa1;
+	  }
+	}
+
+	std::vector<Double> deconv(3);
+	double maj=std::max(std::max(a1,b1),0.);
+	double min=std::max(std::min(a1,b1),0.);
+	// ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min<<", pa1="<<pa1);
+	deconv[0] = maj;
+	deconv[1] = min;
+	deconv[2] = pa1;
+
+	return deconv;
+
+      }
+
+	void calcObjectParamsFromCutout(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header, duchamp::Param &par)
+	{
+	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
+	    int lng=header.getWCS()->lng;
+	    int lat=header.getWCS()->lat;
+	    int spec=header.getWCS()->spec;
+	    long xoff=object->getXOffset();
+	    long yoff=object->getYOffset();
+	    long zoff=object->getZOffset();
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim size = " << dim.size());
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim = " << dim[0] << " " << dim[1] << " " << dim[2] << " " << dim[3]);
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin() << "   " << padding);
+	    long zero=0;
+	    size_t xmin = size_t(std::max(zero, object->getXmin() - padding));
+	    size_t ymin = size_t(std::max(zero, object->getYmin() - padding));
+	    //	    size_t zmin = size_t(std::max(zero, object->getZmin() - padding));
+	    size_t zmin=0;
+	    size_t xmax = std::min(dim[0]-1, size_t(object->getXmax() + padding));
+	    size_t ymax = std::min(dim[1]-1, size_t(object->getYmax() + padding));
+	    //	    size_t zmax = (dim.size()>2) ? std::min(dim[spec]-1, size_t(object->getZmax() + padding)) : 0;
+	    size_t zmax = dim[spec]-1;
+	    ASKAPLOG_DEBUG_STR(logger, "mins: " << xmin << " " << ymin << " " << zmin << "   maxs: " << xmax << " " << ymax << " " << zmax);
+
+// 	    Slice xrange=casa::Slice(xmin,xmax-xmin+1,1);
+// 	    Slice yrange=casa::Slice(ymin,ymax-ymin+1,1);
+// 	    Slice zrange=casa::Slice(zmin,zmax-zmin+1,1);
+// 	    ASKAPLOG_DEBUG_STR(logger, "Slices to be used for object " << object->getID()<<" : x=(" << xrange << ") y=(" << yrange << ") z=(" << zrange<<")");
+
+	    casa::IPosition start(dim.size(),0);
+	    casa::IPosition length(dim.size(),1);
+	    start[lng]=xmin;
+	    start[lat]=ymin;
+	    if(spec>=0) start[spec]=zmin;
+	    length[lng]=xmax-xmin+1;
+	    length[lat]=ymax-ymin+1;
+	    if(spec>=0) length[spec]=zmax-zmin+1;
+
+	    ASKAPLOG_DEBUG_STR(logger, "Defining slicer with start = " << start << " and length = " << length);
+
+	    Slicer theBox=casa::Slicer(start,length);
+	    ASKAPLOG_DEBUG_STR(logger, "Slicer to be used is " << theBox);
+
+	    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+	    
+            if (lattPtr == 0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
+	    
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	    
+	    const SubImage<Float> *subimagePtr = new SubImage<Float>(*imagePtr,theBox);
+	    casa::Array<casa::Float> fluxarray = subimagePtr->get();
+
+	    wcsprm *wcs = analysisutilities::casaImageToWCS(subimagePtr);
+	    duchamp::FitsHeader newhead(header);
+	    newhead.setWCS(wcs);
+
+	    //	    casa::Array<casa::Float> fluxarray = analysisutilities::getPixelsInBox(imageName, theBox,false);
+	    std::vector<size_t> shape(3);
+	    shape[0]=size_t(fluxarray.shape()(lng));
+	    shape[1]=size_t(fluxarray.shape()(lat));
+	    shape[2]=(spec>=0) ? size_t(fluxarray.shape()(spec)) : 0;
+	    ASKAPLOG_DEBUG_STR(logger, "Flux array has size " << fluxarray.size() << " and shape " << fluxarray.shape() << " but we use " << shape[0] << ","<<shape[1]<<","<<shape[2]);
+
+	    object->setXOffset(-xmin);
+	    object->setYOffset(-ymin);
+	    object->setZOffset(-zmin);
+	    object->addOffsets();
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+// 	    header.getWCS()->crpix[lng] = header.getWCS()->crpix[lng] - xmin;
+// 	    header.getWCS()->crpix[lat] = header.getWCS()->crpix[lat] - ymin;
+// 	    if(spec>=0) header.getWCS()->crpix[spec] = header.getWCS()->crpix[spec] - zmin;
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin());
+
+	    object->calcFluxes(fluxarray.data(),shape.data());
+	    object->findShape(fluxarray.data(),shape.data(),newhead);
+	    object->calcIntegFlux(fluxarray.data(),shape.data(),newhead,par);
+
+	    object->setXOffset(xmin);
+	    object->setYOffset(ymin);
+	    object->setZOffset(zmin);
+	    object->addOffsets();
+ 	    object->setXOffset(xoff);
+ 	    object->setYOffset(yoff);
+ 	    object->setZOffset(zoff);
+// 	    header.getWCS()->crpix[lng] = header.getWCS()->crpix[lng] + xmin;
+// 	    header.getWCS()->crpix[lat] = header.getWCS()->crpix[lat] + ymin;
+// 	    if(spec>=0) header.getWCS()->crpix[spec] = header.getWCS()->crpix[spec] + zmin;
+// 	    if(object->getID()==6) wcsprt(header.getWCS());
+
+	    object->calcWCSparams(header);
+
+	}
+
+
+	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header)
+	{
+
+	    std::vector<size_t> dim = analysisutilities::getCASAdimensions(imageName);
+	    const int lng=header.getWCS()->lng;
+	    const int lat=header.getWCS()->lat;
+	    const int spec=header.getWCS()->spec;
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim size = " << dim.size());
+	    ASKAPLOG_DEBUG_STR(logger, "Image dim = " << dim[0] << " " << dim[1] << " " << dim[2] << " " << dim[3]);
+	    ASKAPLOG_DEBUG_STR(logger, object->getXmin() << " " << object->getYmin() << " " << object->getZmin() << "   " << padding);
+	    long zero=0;
+	    size_t xmin = size_t(std::max(zero, object->getXmin() - padding));
+	    size_t ymin = size_t(std::max(zero, object->getYmin() - padding));
+	    //	    size_t zmin = size_t(std::max(zero, object->getZmin() - padding));
+	    size_t zmin=0;
+	    size_t xmax = std::min(dim[0]-1, size_t(object->getXmax() + padding));
+	    size_t ymax = std::min(dim[1]-1, size_t(object->getYmax() + padding));
+	    //	    size_t zmax = (dim.size()>2) ? std::min(dim[spec]-1, size_t(object->getZmax() + padding)) : 0;
+	    size_t zmax = dim[spec]-1;
+
+	    std::stringstream subsectionString;
+	    subsectionString << "[";
+	    for(int i=0;i<int(dim.size());i++){
+	      if(i==lng)              subsectionString << xmin+1 << ":" << xmax+1;
+	      else if (i==lat)        subsectionString << ymin+1 << ":" << ymax+1;
+	      else if (i==spec)       subsectionString << zmin+1 << ":" << zmax+1;
+	      else                    subsectionString << "*";
+	      if(i<int(dim.size()-1)) subsectionString << ",";
+	    }
+	    subsectionString << "]";
+	  
+	    return subsectionString.str();
+
+	}
+
+
+    }
+}

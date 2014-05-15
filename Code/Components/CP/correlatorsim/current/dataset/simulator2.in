@@ -1,0 +1,48 @@
+Csimulator.dataset                              =       beta2.ms
+#
+# Storage manager configuration
+#
+Csimulator.stman.bucketsize                     =       65536
+Csimulator.stman.tilenchan                      =       19
+#
+# The name of the model source is 10uJy. Specify direction and model file
+#
+Csimulator.sources.names                        =       [10uJy]
+Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
+Csimulator.sources.10uJy.model                  =       10uJy.model.small
+#
+# Define the antenna locations, feed locations, and spectral window definitions
+#
+Csimulator.antennas.definition                  =       definitions/BETAXYZ.in
+Csimulator.feeds.definition                     =       definitions/ASKAP36feeds.in
+Csimulator.spws.definition                      =       definitions/ASKAPspws.in
+#
+# Standard settings for the simulaton step
+#
+Csimulator.simulation.blockage                  =       0.01
+Csimulator.simulation.elevationlimit            =       8deg
+Csimulator.simulation.autocorrwt                =       1.0
+Csimulator.simulation.usehourangles             =       True
+Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
+#
+# 
+#
+Csimulator.simulation.integrationtime           =       5s
+#
+# Observe source 10uJy for 12 hours with a single channel spectral window
+#
+Csimulator.observe.number                       =       2
+Csimulator.observe.scan0                        =       [10uJy, Coarse2_1, 0h, 0h02m]
+Csimulator.observe.scan1                        =       [10uJy, Coarse2_1, 0h2m, 0h04m]
+#
+# Use a gridder to apply primary beam during the W projection step.
+#
+Csimulator.gridder                              = AWProject
+Csimulator.gridder.AWProject.wmax               = 3000
+Csimulator.gridder.AWProject.nwplanes           = 11
+Csimulator.gridder.AWProject.oversample         = 2
+Csimulator.gridder.AWProject.diameter           = 12m
+Csimulator.gridder.AWProject.blockage           = 2m
+Csimulator.gridder.AWProject.maxfeeds           = 36
+Csimulator.gridder.AWProject.maxsupport         = 256
+Csimulator.gridder.AWProject.frequencydependent = false

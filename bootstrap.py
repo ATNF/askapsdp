@@ -1,16 +1,17 @@
+#
+# ASKAPsoft bootstrap.py
+#
 import os
 import optparse
 import shutil
 import subprocess
 import sys
+import ConfigParser
 
 if (sys.version_info[0] < 3) and (sys.version_info[1] < 6):
-    if sys.version_info[1] < 5:
-        print ">>> Python versions less than 2.5 are unsupported. Exiting."
+        print ">>> The nominal supported version is 2.7."
+        print ">>> Python versions less than 2.6 are unsupported. Exiting."
         sys.exit(1)
-    else:
-        print ">>> Python version 2.5 is deprecated and will shortly become unsupported."
-        print ">>> The currently supported version is 2.6."
 
 ## execute an svn up command
 #
@@ -71,23 +72,37 @@ parser.add_option('-p', '--preserve', dest='preserve',
                   action="store_true", default=False,
                   help='Keep pre-existing bootstrap files (though they maybe overwritten). Default is to remove.')
 
+networkx_path   = "Tools/networkx"
 rbuild_path     = "Tools/Dev/rbuild"
+epicsdb_path     = "Tools/Dev/epicsdb"
 templates_path  = "Tools/Dev/templates"
+testutils_path  = "Tools/Dev/testutils"
 virtualenv_path = "Tools/virtualenv"
 
 invoked_path    = sys.argv[0]
 absolute_path   = os.path.abspath(invoked_path)
 python_exe      = sys.executable
 
+remote_archive = ""
 os.chdir(os.path.dirname(absolute_path))
 
 (opts, args) = parser.parse_args()
+
+cfg_parser = ConfigParser.ConfigParser()
+cfg_parser.read("bootstrap.ini")
+try:
+    remote_archive = cfg_parser.get("Environment", "remote_archive")
+except:
+    pass
+
+if remote_archive:
+    os.environ["RBUILD_REMOTE_ARCHIVE"] = remote_archive
 
 if opts.preserve:
     print ">>> No pre-clean up of existing bootstrap generated files."
 else:
     print ">>> Attempting removal prexisting bootstrap files (if they exist)."
-    remove_paths(["bin", "include", "lib", "share",
+    remove_paths(["bin", "include", "lib", "share", "doc",
                   "initaskap.sh", "initaskap.csh", ".Python"])
 
 if opts.no_update:
@@ -104,6 +119,14 @@ else:
     print ">>> %s does not exist." % os.path.abspath(virtualenv_path)
     sys.exit()
 
+if os.path.exists(networkx_path):
+    print ">>> Attempting to bootstrap networkx python module needed by rbuild."
+    os.system("cd %s && %s bootstrap.py" % (networkx_path, python_exe))
+else:
+    print ">>> %s does not exist." % os.path.abspath(networkx_path)
+    sys.exit()
+
+
 print ">>> Attempting to create initaskap.sh."
 os.system("%s initenv.py >/dev/null" % python_exe)
 print ">>> Attempting to create initaskap.csh."
@@ -111,17 +134,24 @@ os.system("%s initenv.py -s tcsh >/dev/null" % python_exe)
 
 if os.path.exists(rbuild_path):
     print ">>> Attempting to clean and build rbuild."
-    os.system(". initaskap.sh && cd %s && python setup.py -q clean"
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q clean"
                 % rbuild_path)
-    os.system(". initaskap.sh && cd %s && python setup.py -q install"
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q install"
                 % rbuild_path)
 else:
     print ">>> %s does not exist." % os.path.abspath(rbuild_path)
     sys.exit()
 
+if os.path.exists(epicsdb_path):
+    print ">>> Attempting to clean and build epicsdb."
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q clean"
+                % epicsdb_path)
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q install"
+                % epicsdb_path)
+
 if os.path.exists(templates_path):
     print ">>> Attempting to add templates."
-    os.system(". initaskap.sh && cd %s && python setup.py -q install"
+    os.system(". ./initaskap.sh && cd %s && python setup.py -q install"
                 % templates_path)
 else:
     print ">>> %s does not exist." % os.path.abspath(templates_path)
@@ -129,6 +159,16 @@ else:
 
 if not opts.preserve:
     print ">>> Attempting to clean all the Tools."
-    os.system(". initaskap.sh && cd Tools && python setup.py -q clean > /dev/null 2>& 1")
+    os.system(". ./initaskap.sh && rbuild -a -t clean Tools")
 print ">>> Attempting to build all the Tools."
-os.system(". initaskap.sh && cd Tools && python autobuild.py -q install")
+os.system(". ./initaskap.sh && rbuild -a Tools")
+
+# Needs scons built in Tools.
+if os.path.exists(testutils_path):
+    print ">>> Attempting to add testutils."
+    os.system(". ./initaskap.sh && cd %s && python build.py -q install"
+                % testutils_path)
+else:
+    print ">>> %s does not exist." % os.path.abspath(testutils_path)
+    sys.exit()
+

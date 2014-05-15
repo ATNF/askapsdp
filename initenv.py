@@ -1,24 +1,22 @@
 ## @file
-# Script which creates a shell script that sets CONRAD specific environment
-# variables. This is similar to AutoBuild bashrc, but intended for 
-# developer use.
+# Script which creates a shell script that sets ASKAPsoft specific environment
+# variables.  It is intended for developer use.
 #
-# copyright (c) 2007 CONRAD. All Rights Reserved.
+# copyright (c) 2007 CSIRO. All Rights Reserved.
 # @author Malte Marquarding <Malte.Marquarding@csiro.au>
 #
-import sys
 import os
-from distutils.sysconfig import get_python_inc
+import subprocess
+import sys
 
+from distutils.sysconfig import get_python_inc
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option("-s", "--shell",
-                  dest="shell",
-                  action="store", 
-                  type="choice",
-                  choices=["bash", "sh", "tcsh", "csh"],
-                  default="bash",
+parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
+                  default="false", help="quiet output")
+parser.add_option("-s", "--shell", dest="shell", action="store", type="choice",
+                  choices=["bash", "sh", "tcsh", "csh"], default="bash",
                   help="specify the type of shell to generate the script for")
 
 (opts, args) = parser.parse_args()
@@ -27,13 +25,30 @@ invoked_path = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
 
+java_home = ''
+if sys.platform == 'darwin':
+    j_h_exec = '/usr/libexec/java_home'
+    if os.path.exists(j_h_exec):
+        proc = subprocess.Popen([j_h_exec], shell=False,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        java_home = proc.communicate()[0]
+    else:
+        java_home = '/Library/Java/Home'
+
+
 bashinit = """\
 ASKAP_ROOT=%s
 export ASKAP_ROOT
 
+if [ ! "${RBUILD_REMOTE_ARCHIVE}" ]
+then
+    RBUILD_REMOTE_ARCHIVE="%s"
+    export RBUILD_REMOTE_ARCHIVE
+fi
+
 pypath="${ASKAP_ROOT}/share/scons_tools"
 
-if [ "${PYTHONPATH}" !=  "" ]
+if [ "${PYTHONPATH}" ]
 then
     PYTHONPATH=`echo $PYTHONPATH | sed "s#:*$pypath:*##"`
     PYTHONPATH="${pypath}:${PYTHONPATH}"
@@ -43,7 +58,7 @@ else
 fi
 export PYTHONPATH
 
-PATH=`echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
+PATH=`echo $PATH | sed "s#$ASKAP_ROOT/bin:##"`
 PATH="${ASKAP_ROOT}/bin:${PATH}"
 export PATH
 
@@ -54,7 +69,7 @@ then
    export PS1
 fi
 
-MANPATH=`echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
+MANPATH=`echo $MANPATH | sed "s#$ASKAP_ROOT/man:##"`
 MANPATH="${ASKAP_ROOT}/man:${MANPATH}"
 export MANPATH
 
@@ -63,11 +78,20 @@ export ARTISTIC_STYLE_OPTIONS
 
 PYLINTRC="${ASKAP_ROOT}/pylintrc"
 export PYLINTRC
-""" % os.getcwd()
+
+ANT_HOME="${ASKAP_ROOT}/share/ant"
+export ANT_HOME
+
+test -f /etc/askap/site/epicsenv.sh && . /etc/askap/site/epicsenv.sh || true
+""" % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
 set pypath="${ASKAP_ROOT}/share/scons_tools"
+
+if ( ! ($?RBUILD_REMOTE_ARCHIVE) ) then
+    setenv RBUILD_REMOTE_ARCHIVE "%s"
+endif
 
 if ($?PYTHONPATH) then
     setenv PYTHONPATH `echo ${PYTHONPATH} | sed "s#:*${pypath}:*##"`
@@ -77,7 +101,7 @@ else
     setenv PYTHONPATH "${pypath}"
 endif
 
-setenv PATH `echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
+setenv PATH `echo $PATH | sed "s#$ASKAP_ROOT/bin:##"`
 setenv PATH "${ASKAP_ROOT}/bin:${PATH}"
 
 
@@ -92,13 +116,23 @@ else
     set prompt="\(askap\) > "
 endif
 
-setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
+setenv MANPATH `echo $MANPATH | sed "s#$ASKAP_ROOT/man:##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
-setenv PYLINTRC "${ASKAP_ROOT}/Tools/Dev/rbuild/pylintrc"
+setenv PYLINTRC "${ASKAP_ROOT}/pylintrc"
+setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
-"""  % os.getcwd()
+test -f /etc/askap/site/epicsenv.sh && echo 'Warning: Ignoring system /etc/askap/site/epicsenv.sh as it is bash environment.' || true
+
+""" % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
+
+if java_home:
+   tcshinit += 'setenv JAVA_HOME %s\n' % java_home
+   bashinit += '''
+JAVA_HOME=%s
+export JAVA_HOME
+''' % java_home
 
 shmap = {
         "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
@@ -124,4 +158,5 @@ if not os.path.exists("include"):
 if not os.path.exists("include/%s" % pyvers):
     os.symlink(get_python_inc(), "include/%s" % pyvers)
 
-print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
+if not opts.quiet:
+    print "info: Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )

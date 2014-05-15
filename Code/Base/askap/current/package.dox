@@ -1,0 +1,67 @@
+/// @brief The global ASKAP namespace. 
+///
+/// Any ASKAP package needs to be in this namespace
+///
+namespace askap {};
+
+/// @defgroup askap Base includes and utilities
+/// @defgroup profile Utilities to profile the executable
+
+/// @mainpage The standard ASKAP package
+///
+/// @section Introduction
+/// This package provides essential c++ functionality, e.g. exception handling and
+/// operator<< extensions.
+/// @section Errors
+/// This package provides a base class for exceptions all othe packages should derive their specific exceptions from (askap::ConradError).
+///
+/// Three macros are provided for throwing exceptions:
+/// 
+///  - #ASKAPTHROW
+///  - #ASKAPCHECK
+///  - #ASKAPASSERT
+///
+/// @section Logging
+///
+/// The logging has to be initialised in the main implementation file via a call to
+/// #ASKAPLOG_INIT. 
+/// 
+/// Individual loggers have to be set up in the implementation files with a call to
+/// #ASKAP_LOGGER. Mulitple loggers are possible.
+///
+///  The following macros are avialable for logging. The _STR version logs a stream, 
+/// which is slower than direct logging. see ConradLogging.h for details.
+///
+/// - #ASKAPLOG_DEBUG
+/// - #ASKAPLOG_INFO
+/// - #ASKAPLOG_WARN
+/// - #ASKAPLOG_ERROR
+/// - #ASKAPLOG_FATAL
+///
+/// - #ASKAPLOG_DEBUG_STR
+/// - #ASKAPLOG_INFO_STR
+/// - #ASKAPLOG_WARN_STR
+/// - #ASKAPLOG_ERROR_STR
+/// - #ASKAPLOG_FATAL_STR
+///
+/// Example:
+/// @code
+/// // Initialise the logger from a config file. This set log level thresholds and 
+/// // log appenders
+/// ASKAPLOG_INIT("tLogging.log_cfg");
+/// int i = 1;
+/// // set up a local logger with handle 'locallog' as a sublogger of the current package
+/// ASKAP_LOGGER(locallog, ".test");
+/// ASKAPLOG_WARN(locallog,"Warning. This is a warning.");
+/// ASKAPLOG_INFO(locallog,"This is an automatic (subpackage) log");
+/// ASKAPLOG_INFO_STR(locallog,"This is " << i << " log stream test.");
+/// 
+/// @endcode
+///
+/// @section Utilities
+/// @section Profile
+///
+/// @todo Needs to be implemented on top of std::cout for platforms where log4cxx
+/// doesn't build 
+///
+/// @copyright 2007 CSIRO, All Rights Reserved.

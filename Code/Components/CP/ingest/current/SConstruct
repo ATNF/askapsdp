@@ -1,0 +1,34 @@
+# @file
+# SConstruct build script for this module.
+#
+
+import os
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("cpingest")
+
+pkg.AddSubPackage("configuration")
+pkg.AddSubPackage("monitoring")
+pkg.AddSubPackage("ingestpipeline")
+
+# Use MPI compiler wrapper (except on Cray where cc and c++ are wrappers)
+if not os.environ.has_key("CRAYOS_VERSION"):
+    env["CC"] = "mpicc"
+    env["CXX"] = "mpicxx"
+    env["LINK"] = "mpicxx"
+    env["SHLINK"] = "mpicxx"
+
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-O3'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+
+# Needed for Unit Tests
+if 'AIPSPATH' not in os.environ:
+   os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
+
+# run the build process
+pkg()

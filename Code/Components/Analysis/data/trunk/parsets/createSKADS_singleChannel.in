@@ -1,9 +1,0 @@
-createSKADS.catSource        = SKADS
-createSKADS.fieldAngSize     = 10.
-createSKADS.fluxLimit        = 1.e-6
-
-createSKADS.haveFreqInfo     = False
-createSKADS.numChannels      = 1
-
-createSKADS.queryDatabase    = False
-createSKADS.translateLoc     = False

@@ -1,0 +1,18 @@
+# @file SConstruct
+# SConstruct build script for this module.
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("cpdataservices")
+
+pkg.AddSubPackage("skymodelclient")
+pkg.AddSubPackage("calibrationclient")
+
+env.AppendUnique(CCFLAGS=['-Wall'])
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+
+# run the build process
+pkg()

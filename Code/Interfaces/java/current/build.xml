@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project name="askap-interfaces" basedir="." default="install">
+    <!-- Ice dependencies -->
+    <property name="slice.dir" value="${dep_interfaces}"/>
+    <fileset id="slice.files" dir="${dep_interfaces}">
+      <include name="**.ice" />
+    </fileset>
+
+    <!-- Read in the environment so $ASKAP_ROOT can be used -->
+    <property environment="env"/>
+
+    <!-- import common ASKAP definitions -->
+    <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
+
+    <target name="doc">
+        <echo message="warn: No docs to build."/>
+    </target>
+
+</project>

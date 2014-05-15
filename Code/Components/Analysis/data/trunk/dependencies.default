@@ -1,4 +1,0 @@
-#py-askap=Code/Base/py-askap/trunk
-py-parset=Code/Base/py-parset/trunk
-numpy=3rdParty/numpy/tags/numpy-1.3.0
-MySQLdb=3rdParty/MySQL-python/tags/MySQL-python-1.2.2

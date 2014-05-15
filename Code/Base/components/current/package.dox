@@ -1,0 +1,7 @@
+/// The channels package namespace.
+namespace askap::components{};
+
+/// @mainpage ASKAP Component framework and imager
+///
+
+/// @copyright 2011 CSIRO, All Rights Reserved.

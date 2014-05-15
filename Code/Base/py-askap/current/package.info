@@ -1,0 +1,4 @@
+pymodule=askap
+# pure python module
+libs=
+incdir=

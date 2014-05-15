@@ -1,0 +1,5 @@
+askap-java-askap-base (19384~tos0.20) unstable; urgency=low
+
+  * Initial packaging
+
+ -- Malte Marquarding <Malte.Marquarding@csiro.au>  Mon, 25 Feb 2013 14:06:19 +1100

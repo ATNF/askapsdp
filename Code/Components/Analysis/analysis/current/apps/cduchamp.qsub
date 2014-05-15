@@ -1,0 +1,10 @@
+#!/bin/bash -l
+#PBS -l nodes=7:ppn=2
+#PBS -N cduchamp
+#PBS -m ae
+#PBS -v ASKAP_ROOT
+cd $PBS_O_WORKDIR
+
+module load openmpi
+
+mpirun -np 13 $ASKAP_ROOT/Code/Components/Analysis/analysis/current/bin/cduchamp.sh -inputs $ASKAP_ROOT/Code/Components/Analysis/analysis/current/apps/cduchamp.in > cduchamp.out

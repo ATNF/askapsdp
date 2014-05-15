@@ -1,0 +1,8 @@
+ice.locator.host                = localhost
+ice.locator.port                = 4061
+
+calibrationdataservice.name     = CalibrationDataService
+
+test.nantenna                   = 36
+test.nbeam                      = 36
+test.nchannel                   = 304

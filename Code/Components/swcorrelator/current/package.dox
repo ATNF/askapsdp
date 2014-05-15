@@ -1,0 +1,14 @@
+/// @defgroup swcorelator Software correlator for BETA3 experiments
+/// @defgroup corrinterfaces Interfaces and code to run the software correlator as a library
+/// @defgroup dataformats Class to convert DiFX output into a measurement set
+
+/// The software correlator namespace
+namespace askap::swcorrelator {};
+
+/// @mainpage ASKAP Central Processor Data Services C++ Client Package
+///
+
+/// @section channels_subpackages Subpackages
+/// @li @ref swcorrelator
+
+/// @copyright 2011 CSIRO, All Rights Reserved.

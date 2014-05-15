@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project name="java-askap" basedir="." default="install">
+    <!-- Turn on the debug flag for the compiler -->
+    <property name="debug" value="true"/>
+
+    <!-- Read in the environment so $ASKAP_ROOT can be used -->
+    <property environment="env"/>
+
+    <!-- import common ASKAP definitions -->
+    <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
+
+    <!-- Set resources to include in the jar file -->
+    <resources id="resources.list">
+        <fileset file="resources/askaplogger.properties"/>
+        <fileset file="resources/askaplogger-log4j-file.properties"/>
+        <fileset file="resources/askaplogger-log4j-ice.properties"/>
+        <fileset file="resources/askaplogger-ice-locator-localhost-4061.properties"/>
+    </resources>
+</project>

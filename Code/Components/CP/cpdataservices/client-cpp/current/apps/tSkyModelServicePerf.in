@@ -1,0 +1,9 @@
+ice.locator.host        = localhost
+ice.locator.port        = 4061
+
+skymodelservice.name    = SkyModelService
+
+test.batchsize          = 10
+test.nbatches           = 2
+test.outfile.populate   = populate.csv
+test.outfile.conesearch   = conesearch.csv

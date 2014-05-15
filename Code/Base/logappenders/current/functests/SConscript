@@ -1,0 +1,5 @@
+# Build test binary fr us in nosetests
+Import("functestenv")
+myenv = functestenv.Clone()
+ftest = myenv.Program(source="tIceAppender.cc")
+myenv.Alias("functest", ftest)

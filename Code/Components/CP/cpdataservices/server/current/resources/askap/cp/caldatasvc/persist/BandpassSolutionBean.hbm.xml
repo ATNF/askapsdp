@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.cp.caldatasvc.persist">
+
+    <class name="BandpassSolutionBean" table="bandpass_solutions">
+        <id name="ID" type="long" column="id">
+            <generator class="native" />
+        </id>
+        <property name="timestamp" type="long" column="timestamp" />
+        <property name="nChan" type="integer" column="n_chan" />
+
+    </class>
+
+</hibernate-mapping>

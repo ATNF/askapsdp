@@ -1,0 +1,17 @@
+# @file SConstruct
+# SConstruct build script for this module.
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("vispublisher")
+
+pkg.AddSubPackage("publisher")
+
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-O2'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+
+# run the build process
+pkg()

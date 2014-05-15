@@ -1,0 +1,3 @@
+pymodule=askap.slice==current
+# pure python module
+libs=

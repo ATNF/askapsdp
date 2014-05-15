@@ -1,3 +1,0 @@
-pymodule=askap.parset==trunk
-# pure python module
-libs=

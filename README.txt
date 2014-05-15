@@ -1,11 +1,11 @@
-Building ASKAPsoft                                           17 June 2009
+Building ASKAPsoft                                           9 May 2014
 ==================
 
 These notes provide just a brief outline.
-More detailed information can be found on the ASKAPsoft Trac site
-https://svn.atnf.csiro.au/trac/askapsoft/wiki/
-and in particular
-https://svn.atnf.csiro.au/trac/askapsoft/wiki/AS05_BuildInfraStructure/AskapSoftwareDevelopmentEnvironment
+More detailed information can be found on the ASKAP project management site:
+https://pm.atnf.csiro.au/askap/wiki/cmpt
+and in particular:
+https://pm.atnf.csiro.au/askap/wiki/cmpt/IS_Software_Build_System
 
 Introduction
 ============
@@ -32,10 +32,10 @@ point for the repository is $ASKAP_ROOT.
 Quick Start
 ===========
 
-svn co https://svn.atnf.csiro.au/askapsoft/trunk ASKAPsoft
+svn co https://svn.atnf.csiro.au/askapsoft/Src/trunk ASKAPsoft
 cd ASKAPsoft
-python2.6 bootstrap.py  # only once
-. initaskap.sh           # execute everytime a new session is started
+/usr/bin/python2.7 bootstrap.py  # only once
+. initaskap.sh                   # execute everytime a new session is started
 
 The above steps make installs go to the ASKAPsoft hierarchy
 $ASKAP_ROOT/{bin, lib/python<version>} and thus do not require
@@ -52,36 +52,75 @@ To get help for 'rbuild' simply type
 
 ------------------------------------------------------------------------------
 %% rbuild -h
-Usage: rbuild [options] <package_path>
-
-The ASKAP build command for users/developers. It handles dependencies and
-performs updates from subversion. Note - the subversion update only applies to
-the following TARGETs [doc, extract, install, release].
-
+Usage: rbuild [options] [<package_path>]
+                                                                                                        
+This is the main ASKAPsoft build command for developers. It can handle                                  
+dependencies, subversion updates and changes to the build system. There are
+two types of build targets: recursive [depends, install, stage, release,
+signature] and non-recursive [bclean, clean, doc, format, pylint, functest,
+test, deploy]. The non-recursive targets only apply to the current package,                             
+while recursive targets are applies to all dependencies of the current                                  
+package.  The recursive behaviour may be overridden with appropriate flag. The                          
+default <package_path> is the current directory.                                                        
+                                                                                                        
 Options:
-  -h, --help            show this help message and exit
-  -n, --no-update       do not perform subversion update
+  -h, --help            show this help message and exit                                                                            
+  -a, --autobuild       mode where dependencies/packages are computed once.                                                        
+                        Additionally turns on no-update and no-recursion flags                                                     
+                        i.e. -n -R                                                                                                 
+  -f, --force           force building of packages ignoring NO_BUILD files                                                         
   -q, --quiet           do not show all builder output [default=True]
-  -v, --verbose         show all builder output
+  -v, --verbose         show all builder output                                                                                                      
+  -n, --no-update       no svn updates, rebuild of myself or Tools rebuild.                                                                          
+                        Equivalent to "-S -M -T"                                                                                                     
+  -N, --no-recursive-update                                                                                                                          
+                        no svn updates, rebuild of myself, Tools rebuild or                                                                          
+                        recursion. Equivalent to "-S -M -T -R -v" or                                                                                 
+                        "python build.py TARGET"                                                                                                     
   -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. 'mpich=1'
-  -t TARGET, --target=TARGET
-                        select TARGET from: clean, format, functest, pylint,
-                        test, doc, extract, install, release [default=install]
+                        pass on package specific build options, e.g. "mpi=1"                                                                         
+                        or specific functional tests e.g "-t functest -p                                                                             
+                        functests/mytest.py"                                                                                                         
+  -t TARGET, --target=TARGET                                                                                                                         
+                        select TARGET from: depends, install, stage, release,                                                                        
+                        signature, bclean, clean, doc, format, pylint,
+                        functest, test, deploy [default=install]
+  --release-name=RELEASE_NAME
+                        the name of the staging directory and the release
+                        tarball
+  --deploy-targets=DEPLOY_TARGETS
+                        the deployement targets to execute. Select any
+                        DEPLOY_TARGETS from:
+                        authenticate,deploy_local,deploy_remote,verify [defaul
+                        t=authenticate,deploy_local,deploy_remote,verify]
 
-  Internal Options:
-    Caution: The following options are for scripts internal use only.  Use
-    these options at your own risk.
+  Advanced Options:
+    Caution: Use these options at your own risk.
 
-    --update-myself     [default=True]
+    -D, --debug         do not run the actual package building command
+    -M, --no-build-myself
+                        do not rebuild myself (rbuild)
+    -P, --no-parallel   do not do parallel builds of packages
+    -R, --no-recursion  do not apply target recursively to dependencies
+    -S, --no-svn-update
+                        do not perform subversion update
+    -T, --no-tools      do not rebuild Tools
+    -U, --update-only   Ignore any target options and just do svn update
+    -V, --no-virtualenv
+                        do not include virtualenv in a release
+    -X, --no-exit-on-error
+                        continue building ignoring any individual package
+                        build failures
 
 ------------------------------------------------------------------------------
 
 rbuild system
 =============
 The rbuild system is the infrastructure underlying the rbuild command.
-At the package level it can be run via the command 
+At the package level it can be run via the rbuild script or calling the
+build.py files directly. In this case there is no recursive building.
 
+e.g.
 python build.py [-q|-x] <target>
 
 It provides the following command-line options
@@ -89,13 +128,7 @@ It provides the following command-line options
 -q        suppress messages to stdout and just print errors
 -x        exit recursivebuild when an error is encountered
 
-and targets
-
-install   install the packages
-clean     clean up the build directories (doesn't remove the installed eggs)
-doc       build documentation
-test      run unit tests
-pylint    run pylint on the module
+and targets  as for rbuild.
 
 
 Express install (for the very brave - takes a long time)
@@ -107,7 +140,7 @@ move to the next step.
 Note - The Tools subdirectory is built during the intial bootstrap
 but can be rebuilt if desired to incorporate latest updates.
 
-cd $ASKAP_ROOT; python autobuild.py -q install
+cd $ASKAP_ROOT; rbuild -a
 
 
 Installing the Sub-hierarchies
@@ -119,17 +152,18 @@ These command should build all packages and versions of the packages.
 Installing Tools
 ================
 cd $ASKAP_ROOT/Tools
-python autobuild.py -q install
+rbuild -a
 
 Installing 3rdParty
 ===================
 cd $ASKAP_ROOT/3rdParty
-python autobuild.py -q install
+rbuild -a
+
 
 Install Code
 ============
 cd $ASKAP_ROOT/Code
-python autobuild.py -q install
+rbuild -a
 
 Troubleshooting
 ===============

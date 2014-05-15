@@ -1,0 +1,20 @@
+#
+# Configure brokers
+#
+uvchannel.brokers = [broker1, broker2]
+uvchannel.broker.broker1.host = gijane
+uvchannel.broker.broker1.port = 61616
+
+uvchannel.broker.broker2.host = gijoe
+uvchannel.broker.broker2.port = 61616
+
+#
+# Configure channels and their mappings to brokers
+#
+uvchannel.channels = [avg304]
+
+# Averaged channel configuration
+uvchannel.channel.avg304.topic_prefix = avg304
+uvchannel.channel.avg304.nblocks = 2
+uvchannel.channel.avg304.block_1 = [1, 152, broker1]
+uvchannel.channel.avg304.block_2 = [153, 304, broker2]

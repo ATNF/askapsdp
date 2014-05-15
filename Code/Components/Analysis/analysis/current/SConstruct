@@ -1,0 +1,31 @@
+# @file
+# SConstruct build script for this module.
+#
+# @author Tim Cornwell tim.cornwell@csiro.au
+#
+
+# Always import this
+from askapenv import env
+import os
+
+if 'AIPSPATH' not in os.environ:
+   os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
+
+env.AppendUnique(CCFLAGS=['-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
+
+# create build object with library name
+pkg = env.AskapPackage("analysis")
+# add sub packages 
+pkg.AddSubPackage("parallelanalysis")
+pkg.AddSubPackage("analysisutilities")
+pkg.AddSubPackage("sourcefitting")
+pkg.AddSubPackage("extraction")
+pkg.AddSubPackage("parametrisation")
+pkg.AddSubPackage("preprocessing")
+pkg.AddSubPackage("patternmatching")
+pkg.AddSubPackage("outputs")
+
+# run the build process
+pkg()
+
