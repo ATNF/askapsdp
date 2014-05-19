@@ -21,18 +21,19 @@ fi
 #
 # Build Synthesis
 #
-nice rbuild -n Code/Components/Synthesis/synthesis/current
+RBUILD_OPTS="-n -p nompi=1"
+nice rbuild ${RBUILD_OPTS} Code/Components/Synthesis/synthesis/current
 if [ $? - ne 0 ]; then
-    echo "Error: rbuild -n Code/Components/Synthesis/synthesis/current failed "
+    echo "Error: rbuild ${RBUILD_OPTS} Code/Components/Synthesis/synthesis/current failed "
     exit 1
 fi
 
 #
 # Build testdata for the unit tests
 #
-nice rbuild -n Code/Components/Synthesis/testdata/current
+nice rbuild ${RBUILD_OPTS} Code/Components/Synthesis/testdata/current
 if [ $? -ne 0 ]; then
-    echo "rbuild -n Code/Components/Synthesis/testdata/current failed"
+    echo "rbuild ${RBUILD_OPTS} Code/Components/Synthesis/testdata/current failed"
     exit 1
 fi
 
@@ -82,7 +83,7 @@ fi
 # Run rbuild in the test directory
 if [ -d $TESTDIR ]; then
     cd $ASKAP_ROOT
-    rbuild -n $TESTDIR
+    rbuild ${RBUILD_OPTS} $TESTDIR
 else
     echo "Error: $TESTDIR does not exist"
     exit 1

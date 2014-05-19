@@ -15,30 +15,31 @@ source initaskap.sh
 #
 # Build Analysis
 #
-nice rbuild -n Code/Components/Analysis/analysisutilities/current
+RBUILD_OPTS="-n -p nompi=1"
+nice rbuild ${RBUILD_OPTS} Code/Components/Analysis/analysisutilities/current
 if [ $? -ne 0 ]; then
-    echo "rbuild -n Code/Components/Analysis/analysisutilities/current != 0"
+    echo "rbuild ${RBUILD_OPTS} Code/Components/Analysis/analysisutilities/current != 0"
     exit 1
 fi
 
-nice rbuild -n Code/Components/Analysis/analysis/current
+nice rbuild ${RBUILD_OPTS} Code/Components/Analysis/analysis/current
 if [ $? -ne 0 ]; then
-    echo "rbuild -n Code/Components/Analysis/analysis/current != 0"
+    echo "rbuild -${RBUILD_OPTS} Code/Components/Analysis/analysis/current != 0"
     exit 1
 fi
 
-nice rbuild -n Code/Components/Analysis/simulations/current
+nice rbuild ${RBUILD_OPTS} Code/Components/Analysis/simulations/current
 if [ $? -ne 0 ]; then
-    echo "rbuild -n Code/Components/Analysis/simulations/current != 0"
+    echo "rbuild ${RBUILD_OPTS} Code/Components/Analysis/simulations/current != 0"
     exit 1
 fi
 
 #
 # Build testdata 
 #
-nice rbuild -n Code/Base/accessors/current
+nice rbuild ${RBUILD_OPTS} Code/Base/accessors/current
 if [ $? -ne 0 ]; then
-    echo "rbuild -n Code/Base/accessors/current != 0"
+    echo "rbuild ${RBUILD_OPTS} Code/Base/accessors/current != 0"
     exit 1
 fi
 
@@ -64,9 +65,9 @@ if [  ! -f $TESTPACKAGE ]; then
 fi
 
 cd $WORKSPACE
-tar zxvf $TESTPACKAGE
+nice tar zxvf $TESTPACKAGE
 cd analysis-test
-./run.sh
+nice ./run.sh
 if [ $? -ne 0 ]; then
     echo "Test returned != 0"
     exit 1
