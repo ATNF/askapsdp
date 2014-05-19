@@ -2057,7 +2057,7 @@ namespace askap {
 
 	  casa::Array<Float> subarray(sub->shape());	  
 	  const casa::MaskedArray<Float> *msub = new casa::MaskedArray<Float>(sub->get(),sub->getMask());
-	  float minval = min(*msub)-1.;
+	  float minval = min(*msub)-10.;
 	  subarray = *msub;
 	  delete msub;
 	  if(sub->hasPixelMask()){
