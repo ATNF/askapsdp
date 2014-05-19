@@ -632,8 +632,7 @@ namespace askap {
 	    if(this->itsWeighter->isValid() ){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Preparing weights image");
 	      this->itsWeighter->initialise(this->itsCube);
-	      if(this->itsWeighter->doApplyCutoff())
-		this->itsWeighter->applyCutoff();
+	      this->itsWeighter->applyCutoff();
 	    }
 
 	    if(this->itsCube.pars().getFlagNegative()){
@@ -642,14 +641,11 @@ namespace askap {
 	    }
 	    
 	    if (this->itsFlagVariableThreshold) {
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Defining the variable threshold maps");
-		this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
-		if(this->itsWeighter->doApplyCutoff()) this->itsVarThresher->setWeighter(this->itsWeighter);
-		this->itsVarThresher->calculate();
-	    } // else if (this->itsFlagWeightImage){
-	    // 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Initialising the weight scaling");
-	    // 	this->itsWeighter->initialise(this->itsCube);
-	    // }
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Defining the variable threshold maps");
+	      this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
+	      this->itsVarThresher->setWeighter(this->itsWeighter);
+	      this->itsVarThresher->calculate();
+	    }
 	    else if( this->itsFlagWavelet2D1D ){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reconstructing with the 2D1D wavelet algorithm");
 	      Recon2D1D recon2d1d(this->itsParset.makeSubset("recon2D1D."));

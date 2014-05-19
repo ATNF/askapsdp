@@ -183,7 +183,7 @@ namespace askap {
 
     void Weighter::applyCutoff()
     {
-      if (this->itsWeightCutoff > 0.){
+      if (this->doApplyCutoff()){
 
 	ASKAPASSERT(this->itsCube->getSize() == this->itsWeights.size());
 	ASKAPASSERT(this->itsCube->getRecon() > 0);
