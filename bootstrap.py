@@ -8,9 +8,8 @@ import subprocess
 import sys
 import ConfigParser
 
-if (sys.version_info[0] < 3) and (sys.version_info[1] < 6):
-        print ">>> The nominal supported version is 2.7."
-        print ">>> Python versions less than 2.6 are unsupported. Exiting."
+if (sys.version_info[0] < 3) and (sys.version_info[1] < 7):
+        print ">>> Python versions less than 2.7 are unsupported. Exiting."
         sys.exit(1)
 
 ## execute an svn up command
