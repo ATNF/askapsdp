@@ -10,9 +10,8 @@ builder.remote_archive = "mpe2-mpich2-1.5.tar.gz"
 
 # Use MPI compiler wrapper (except on Cray where cc and c++ are wrappers)
 if not os.environ.has_key("CRAYOS_VERSION"):
-    openmpi = builder.dep.get_install_path("openmpi")
-    builder.add_option("MPI_CC=%s/bin/mpicc" % openmpi)
-    builder.add_option("MPI_F77=%s/bin/mpif77" % openmpi)
+    builder.add_option("MPI_CC=mpicc")
+    builder.add_option("MPI_F77=mpif77")
 
 # MacOSX MPI is not necessarily built with f77 support,
 # and on Linux we use gfortran

@@ -6,5 +6,3 @@ logfilters=Code/Base/logfilters/current
 accessors=Code/Base/accessors/current
 cpdataservices-client=Code/Components/CP/cpdataservices/client-cpp/current
 components=Code/Base/components/current
-# Put openmpi last, see ticket 3264
-openmpi=3rdParty/openmpi/current

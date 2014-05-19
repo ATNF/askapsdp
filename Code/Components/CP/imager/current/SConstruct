@@ -2,8 +2,6 @@
 # SConstruct build script for this module.
 #
 
-import os
-
 # Always import this
 from askapenv import env
 
@@ -16,13 +14,6 @@ pkg.AddSubPackage("messages")
 # Disable "shared" as MPE2 is not built with fPIC
 pkg.build_shared = False;
 pkg.build_static = True;
-
-# Use MPI compiler wrapper (except on Cray where cc and c++ are wrappers)
-if not os.environ.has_key("CRAYOS_VERSION"):
-    env["CC"] = "mpicc"
-    env["CXX"] = "mpicxx"
-    env["LINK"] = "mpicxx"
-    env["SHLINK"] = "mpicxx"
 
 env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O3'])

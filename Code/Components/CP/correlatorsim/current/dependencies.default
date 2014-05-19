@@ -6,4 +6,3 @@ casacore=3rdParty/casacore/casacore-1.6.0a;casa_ms casa_images casa_components c
 cppiceinterfaces=Code/Interfaces/cpp/current
 icewrapper=Code/Components/CP/icewrapper/current
 cpcommon=Code/Components/CP/common/current
-openmpi=3rdParty/openmpi/current

@@ -1,52 +1,80 @@
-Building ASKAPsoft                                           9 May 2014
-==================
-
-These notes provide just a brief outline.
-More detailed information can be found on the ASKAP project management site:
-https://pm.atnf.csiro.au/askap/wiki/cmpt
-and in particular:
-https://pm.atnf.csiro.au/askap/wiki/cmpt/IS_Software_Build_System
-
-Introduction
-============
-
-A core assumption of the build process is that many different baseline
-versions of the same libraries will exist. To accommodate this it has been 
-decided that python packages will be deployed using eggs. In order for this
-to work it is necessary to install the 'setuptools' package.
-
-Setting up the ASKAP environment
+ASKAPsoft Science Data Processor                                   19 May 2014
 ================================
 
-This procedure sets up the environment for development. The entry
-point for the repository is $ASKAP_ROOT.
+These notes provide just a brief outline for building the ASKAPsoft Science
+Data Processor codebase. More detailed instructions exist on the ASKAP
+Computing Redmine site.
 
- * create a initaskap.sh script which sets up the unix environment
-   variables. This should be executed every time a user logs in.
+Archive Repository
+==================
 
- * install the python tools necessary to build the system.  This is
-   using 'virtualenv' to provide a python environment independent of 
-   the system, 'setuptools' to install python packages and the ASKAP 
-   package 'rbuild', which handles the build process.
+ASKAPsoft depends on a number of 3rd party packages. Some of these must be
+supplied by the operating platform. For example a compiler such as GCC and an
+MPI implementation must be present.
 
-Quick Start
-===========
+Other software is downloaded during the ASKAPsoft build process, and as such
+HTTP access is required. If your build host relies on a HTTP proxy to access
+the internet then the http_proxy & https_proxy environment variables must be
+set in your environment. Here is an example, where "webproxy.myorg.com" is the
+hostname for the proxy server that is running on port 8080
 
-svn co https://svn.atnf.csiro.au/askapsoft/Src/trunk ASKAPsoft
-cd ASKAPsoft
-/usr/bin/python2.7 bootstrap.py  # only once
-. initaskap.sh                   # execute everytime a new session is started
+    export http_proxy=http://webproxy.myorg.com:8080
+    export https_proxy=$http_proxy
 
-The above steps make installs go to the ASKAPsoft hierarchy
-$ASKAP_ROOT/{bin, lib/python<version>} and thus do not require
-root permission.
+Alternatively, if access to download these files is not available at all on the
+build host a local repository can be set up. In this case the bootstrap.ini
+must be configured (prior to executing the bootstrap below) to refer to the
+local cache via a "file" URL. For example:
+
+    remote_archive = file:///home/joe/askapsoft_dependencies
+
+Checkout & Bootstrap
+====================
+
+The first step of building ASKAPsoft involved checking out a copy of the
+code from the Subversion repository and then running the bootstrap script.
+The boostrap script build and configures the developer tools necessary for
+building the rest of the ASKAPsoft codebase:
+
+    svn co https://svn.atnf.csiro.au/askapsdp/trunk ASKAPsoft
+    cd ASKAPsoft
+    /usr/bin/python2.7 bootstrap.py -n
+
+The "-n" option to bootstrap says not to use "svn update" to update the
+workspace prior to doing the bootstrap. It can be omited, however access to
+the above described archive repository is needed.
+
+Building
+========
+
+Before building ASKAPsoft, certain environment variable need to be set.
+This is accomplished by sourcing the initaskap.sh script, which will exist
+in $ASKAP_ROOT after the bootstrap procedure described above has been
+completed. Then the recursive builder (rbuild) can be used to build the
+entire ASKAPsoft tree:
+
+    cd ASKAPsoft
+    . initaskap.sh
+    rbuild -S -a
+
+The "-S" option to rbuild says not to do an "svn update" prior to building.
+
+To build a release tarball for a specific package, or set of packages the
+release target option must be set. For example to build the core data
+processing applications (assuming initaskap.sh has already been sourced):
+
+    cd $ASKAP_ROOT
+    cd Code/Systems/cpapps
+    rbuild -S -t release
+
+This will create a filenamed release-<svnrev>.tgz
 
 rbuild
 ======
 
-The 'rbuild' command is the main build command for developers.
-It has the ability of updating from the subversion repository and
-also recursively resolve, update and build dependencies.
+The 'rbuild' command is the main build command for developers.  It has the
+ability of updating from the subversion repository and also recursively
+resolve, update and build dependencies.
 
 To get help for 'rbuild' simply type 
 
@@ -78,7 +106,7 @@ Options:
                         recursion. Equivalent to "-S -M -T -R -v" or                                                                                 
                         "python build.py TARGET"                                                                                                     
   -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. "mpi=1"                                                                         
+                        pass on package specific build options, e.g. "nompi=1"                                                                         
                         or specific functional tests e.g "-t functest -p                                                                             
                         functests/mytest.py"                                                                                                         
   -t TARGET, --target=TARGET                                                                                                                         
@@ -120,53 +148,19 @@ The rbuild system is the infrastructure underlying the rbuild command.
 At the package level it can be run via the rbuild script or calling the
 build.py files directly. In this case there is no recursive building.
 
-e.g.
-python build.py [-q|-x] <target>
+For example:
+    python build.py [-q|-x] <target>
 
 It provides the following command-line options
 
 -q        suppress messages to stdout and just print errors
 -x        exit recursivebuild when an error is encountered
 
-and targets  as for rbuild.
+and targets as for rbuild.
 
-
-Express install (for the very brave - takes a long time)
-========================================================
-
-The following will (hopefully) automatically install Tools, 3rdParty 
-and Code. If you don't want to do it all at once then skip this and
-move to the next step.  
-Note - The Tools subdirectory is built during the intial bootstrap
-but can be rebuilt if desired to incorporate latest updates.
-
-cd $ASKAP_ROOT; rbuild -a
-
-
-Installing the Sub-hierarchies
-==============================
-The order is important.  Tools must be done before 3rdParty which must be
-done before Code.
-These command should build all packages and versions of the packages.
-
-Installing Tools
-================
-cd $ASKAP_ROOT/Tools
-rbuild -a
-
-Installing 3rdParty
-===================
-cd $ASKAP_ROOT/3rdParty
-rbuild -a
-
-
-Install Code
-============
-cd $ASKAP_ROOT/Code
-rbuild -a
 
 Troubleshooting
 ===============
 
-Make sure that you don't have a ~/.pydistutils.cfg because this
-can conflict with virtualenv.
+* Make sure that you don't have a ~/.pydistutils.cfg because this can
+  conflict with virtualenv.
