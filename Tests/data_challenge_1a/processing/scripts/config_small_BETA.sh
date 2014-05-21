@@ -69,9 +69,15 @@ else
 fi
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
-CONT_DIRTY_MPPWIDTH=305
-CONT_DIRTY_MPPNPPN=16
-CONT_DIRTY_FREQ=1.270e9
+if [ $doFullSpectrum == true ]; then
+    CONT_DIRTY_MPPWIDTH=305
+    CONT_DIRTY_MPPNPPN=16
+    CONT_DIRTY_FREQ=1.270e9
+else
+    CONT_DIRTY_MPPWIDTH=153
+    CONT_DIRTY_MPPNPPN=16
+    CONT_DIRTY_FREQ=0.9e9
+fi
 
 if [ $doFullSpectrum == true ]; then
 # base frequency for continuum cubes
