@@ -2,17 +2,20 @@
 
 
 inputTrimFlag=${doTrim}
+inputCalParams=${calParams}
 
 doTrim=true
 POINTING=0
 imdepend=""
 while [ $POINTING -lt 9 ]; do
+    calParams=caldata-${POINTING}.dat
     . ${scriptdir}/runImagingScienceField.sh
     imdepend="${imdepend}:${latestID}"
     POINTING=`expr $POINTING + 1`
 done
 
 doTrim=${inputTrimFlag}
+calParams=${inputCalParams}
 
 . ${scriptdir}/getTags.sh
 

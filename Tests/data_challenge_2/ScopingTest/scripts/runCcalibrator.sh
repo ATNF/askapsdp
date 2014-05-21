@@ -63,17 +63,17 @@ ${calModel}
 
 Ccalibrator.gridder.snapshotimaging                 = true
 Ccalibrator.gridder.snapshotimaging.wtolerance      = 800
-Ccalibrator.gridder                                 = AWProject
-Ccalibrator.gridder.AWProject.wmax                  = 800
-Ccalibrator.gridder.AWProject.nwplanes              = 129
-Ccalibrator.gridder.AWProject.oversample            = 4
-Ccalibrator.gridder.AWProject.diameter              = 12m
-Ccalibrator.gridder.AWProject.blockage              = 2m
-Ccalibrator.gridder.AWProject.maxfeeds              = 9
-Ccalibrator.gridder.AWProject.maxsupport            = 512
-Ccalibrator.gridder.AWProject.variablesupport       = true
-Ccalibrator.gridder.AWProject.offsetsupport         = true
-Ccalibrator.gridder.AWProject.frequencydependent    = true
+Ccalibrator.gridder                                 = ${calGridder}
+Ccalibrator.gridder.${calGridder}.wmax                  = 800
+Ccalibrator.gridder.${calGridder}.nwplanes              = 129
+Ccalibrator.gridder.${calGridder}.oversample            = 4
+Ccalibrator.gridder.${calGridder}.diameter              = 12m
+Ccalibrator.gridder.${calGridder}.blockage              = 2m
+Ccalibrator.gridder.${calGridder}.maxfeeds              = 9
+Ccalibrator.gridder.${calGridder}.maxsupport            = 512
+Ccalibrator.gridder.${calGridder}.variablesupport       = true
+Ccalibrator.gridder.${calGridder}.offsetsupport         = true
+Ccalibrator.gridder.${calGridder}.frequencydependent    = true
 
 Ccalibrator.ncycles                             = $ncycCal
 

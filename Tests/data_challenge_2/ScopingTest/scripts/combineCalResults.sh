@@ -1,6 +1,7 @@
 #!/bin/bash -l
 
 qsubfile=combineCaldata.qsub
+calParams=caldata-combined.dat
 cat > $qsubfile <<EOF
 #PBS -l walltime=01:00:00
 #PBS -l mppwidth=1
@@ -15,7 +16,7 @@ cd \$PBS_O_WORKDIR
 rm -f caldata-combined.dat
 N=0
 while [ \$N -le 9 ]; do
-    grep "\\.\${N} = " caldata-\${N}.dat >> caldata-combined.dat
+    grep "\\.\${N} = " caldata-\${N}.dat >> ${calParams}
     N=\`expr \$N + 1\`
 done
 

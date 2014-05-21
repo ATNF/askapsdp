@@ -37,17 +37,17 @@ Cimager.Images.${image}.direction          = ${direction}
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = 800
-Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 800
-Cimager.gridder.AWProject.nwplanes              = ${nw}
-Cimager.gridder.AWProject.oversample            = ${os}
-Cimager.gridder.AWProject.diameter              = 12m
-Cimager.gridder.AWProject.blockage              = 2m
-Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = 512
-Cimager.gridder.AWProject.variablesupport       = true
-Cimager.gridder.AWProject.offsetsupport         = true
-Cimager.gridder.AWProject.frequencydependent    = true
+Cimager.gridder                                 = ${imGridder}
+Cimager.gridder.${imGridder}.wmax                  = 800
+Cimager.gridder.${imGridder}.nwplanes              = ${nw}
+Cimager.gridder.${imGridder}.oversample            = ${os}
+Cimager.gridder.${imGridder}.diameter              = 12m
+Cimager.gridder.${imGridder}.blockage              = 2m
+Cimager.gridder.${imGridder}.maxfeeds              = 36
+Cimager.gridder.${imGridder}.maxsupport            = 512
+Cimager.gridder.${imGridder}.variablesupport       = true
+Cimager.gridder.${imGridder}.offsetsupport         = true
+Cimager.gridder.${imGridder}.frequencydependent    = true
 #
 Cimager.solver                                  = Dirty
 Cimager.solver.Dirty.tolerance                  = 0.1
@@ -66,7 +66,7 @@ Cimager.restore.beam                            = fit
 # Apply calibration
 Cimager.calibrate                               = ${doCal}
 Cimager.calibaccess                             = parset
-Cimager.calibaccess.parset                      = caldata-combined.dat
+Cimager.calibaccess.parset                      = ${calParams}
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER

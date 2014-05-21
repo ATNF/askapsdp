@@ -33,6 +33,8 @@ nurefMHz=`echo ${rfreq} ${CHAN} ${rchan} ${chanw} | awk '{printf "%13.8f",($1+($
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
 #Gridding parameters
+calGridder=WProject
+imGridder=AWProject
 nw=129
 os=8
 
