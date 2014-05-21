@@ -30,8 +30,8 @@ if [ $runIt == true ]; then
     # Get calibration parameters using the calibration MSs
     . ${imScripts}/calibrate.sh
 
-    # Combine calibration parameters
-    . ${imScripts}/combineCalResults.sh
+#    # Combine calibration parameters
+#    . ${imScripts}/combineCalResults.sh
 
     # Create a coarse-channel (1MHz-resolution) MS
     . ${imScripts}/create-coarse-ms.sh
