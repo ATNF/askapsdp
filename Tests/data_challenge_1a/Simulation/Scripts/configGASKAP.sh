@@ -34,7 +34,8 @@ logdirVis=${visdir}/Logs
 # Model
 doFlatSpectrum=false
 doCreateCR=false
-doSlice=true
+#doSlice=true
+doSlice=false
 if [ $doFlatSpectrum == "true" ]; then
     doSlice=false
 fi
@@ -75,12 +76,12 @@ decStringVis="-45.00.00"
 raCat=0.
 decCat=0.
 
-freqChanZeroMHz=1421.257614
+freqChanZeroMHz=1421.2576138180001
 nchan=646
 rchan=0
 #chanw=-18.5185185e3
 chanw=-3.908795325e3
-rfreq=`echo ${freqChanZeroMHz} | awk '{printf "%8.6e",$1*1.e6}'`
+rfreq=`echo ${freqChanZeroMHz} | awk '{printf "%13.11e",$1*1.e6}'`
 
 nstokes=1
 rstokes=0
@@ -144,7 +145,7 @@ fi
 NGROUPS_CSIM=17
 NWORKERS_CSIM=38
 NCPU_CSIM=`echo $NWORKERS_CSIM | awk '{print $1+1}'`
-NPPN_CSIM=20
+NPPN_CSIM=10
 chanPerMSchunk=1
 
 doSnapshot=true
@@ -152,12 +153,12 @@ wtol=1000
 gridder=AWProject
 if [ $doSnapshot == true ]; then
     wmax=1000
-    maxsup=2048
+    maxsup=512
 else
     wmax=15000
     maxsup=8192
 fi
-nw=129
+nw=27
 os=4
 pad=1.
 doFreqDep=false

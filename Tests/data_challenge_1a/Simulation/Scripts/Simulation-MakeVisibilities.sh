@@ -73,6 +73,7 @@ if [ $doCsim == true ]; then
 	echo "]" >> $spwsInput
 	I=0
 	while [ $I -lt ${NWORKERS_CSIM} ]; do 
+#            echo ${rfreq} ${GRP} ${NWORKERS_CSIM} ${I} ${chanPerMSchunk} ${rchan} ${chanw}
 	    nurefMHz=`echo ${rfreq} ${GRP} ${NWORKERS_CSIM} ${I} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",($1+(($2*$3+$4)*$5-$6)*$7)/1.e6}'`
 	    spw="[${chanPerMSchunk}, ${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 	    echo "spws.GRP${GRP}_${I}  =  ${spw}" >> $spwsInput
@@ -181,7 +182,7 @@ EOF
 	    if [ "$merge2dep" == "" ]; then
 		merge2dep="-Wdepend=afterok:${mkvisID}"
 	    else
-		merge2dep="${merge2Dep}:${mkvisID}"
+		merge2dep="${merge2dep}:${mkvisID}"
 	    fi
 	fi
 

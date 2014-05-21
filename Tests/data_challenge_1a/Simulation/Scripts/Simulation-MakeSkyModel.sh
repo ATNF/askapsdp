@@ -23,7 +23,57 @@ dependSM=${depend}
 if [ $doSmoothSM == true ]; then
 
     smoothQsub=${smdir}/${WORKDIR}/smoothModels.qsub
-    cat > $smoothQsub <<EOF
+
+    if [ $doFlatSpectrum == true ]; then
+
+	cat > $smoothQsub <<EOF
+#!/bin/bash -l
+#PBS -l walltime=1:00:00
+#PBS -l mppwidth=1
+#PBS -l mppnppn=1
+#PBS -M matthew.whiting@csiro.au
+#PBS -N smoothTaylor
+#PBS -m bea
+#PBS -j oe
+#PBS -r n
+
+####################
+# AUTOMATICALLY GENERATED - DO NOT EDIT
+####################
+
+cd \$PBS_O_WORKDIR
+
+smoothScript=${scriptdirSM}/smoothModels-\${PBS_JOBID}.py
+cat > \${smoothScript} <<EOF_INNER
+#!/bin/env python
+
+####################
+# AUTOMATICALLY GENERATED - DO NOT EDIT
+####################
+#
+# CASA script to create a full-size continuum model by combining the 455 subcubes
+
+modelInChunks = '${writeByNode}'
+baseimage = '${baseimage}'
+modelIm='${modelimage}'
+smoothIm='${baseimage}-smooth'
+
+ia.open(modelIm)
+ia.setbrightnessunit('Jy/pixel')
+ia.convolve2d(outfile=smoothIm,major='${smoothBmaj}arcsec',minor='${smoothBmin}arcsec',pa='${smoothBpa}deg')
+ia.close()
+
+EOF_INNER
+
+output=${logdirSM}/smoothModels-\${PBS_JOBID}.log
+echo Running casa script to smooth  Taylor term images  > \$output
+casapy --nologger --log2term -c \$smoothScript >> \$output
+exit \$?
+EOF
+
+    else 
+
+	cat > $smoothQsub <<EOF
 #!/bin/bash -l
 #PBS -l walltime=1:00:00
 #PBS -l mppwidth=1
@@ -103,6 +153,8 @@ echo Running casa script to smooth  Taylor term images  > \$output
 casapy --nologger --log2term -c \$smoothScript >> \$output
 exit \$?
 EOF
+
+    fi
     
     if [ $doSubmit == true ]; then
 
@@ -123,6 +175,12 @@ fi
 # Find & fit sources
 
 if [ $doSF_SM == true ]; then
+
+    if [ $doFlatSpectrum == true ]; then
+	smoothIm="${baseimage}-smooth"
+    else
+	smoothIm="${baseimage}-smooth.taylor.0"
+    fi
 
     selavyQsub=${smdir}/${WORKDIR}/selavy-smooth.qsub
     cat > $selavyQsub <<EOF
@@ -148,7 +206,7 @@ cat > \${selavyParset} <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
-Selavy.imageFile = ${baseimage}-smooth.taylor.0
+Selavy.imageFile = ${smoothIm}
 Selavy.threshold = ${SFthresh}
 Selavy.flagGrowth = ${SFflagGrowth}
 Selavy.growthThreshold = ${SFgrowthThresh}
@@ -190,6 +248,12 @@ if [ $doComparisonSM == true ]; then
 
     # make a comparison image - single channel only
     # then use imagecalc in casacore to find the difference between the two
+
+    if [ $doFlatSpectrum == true ]; then
+	smoothIm="${baseimage}-smooth"
+    else
+	smoothIm="${baseimage}-smooth.taylor.0"
+    fi
 
     modelcompImage=DCmodelcomp-singlechan
     modelcompDiff=DCmodelcomp-singlechan-residual
@@ -272,7 +336,7 @@ if [ \$err -ne 0 ]; then
 fi
 
 . \${CASACOREDIR}/init_package_env.sh
-\${imagecalc} in="'${baseimage}-smooth.taylor.0' - '${modelcompImage}'" out='${modelcompDiff}'
+\${imagecalc} in="'${smoothIm}' - '${modelcompImage}'" out='${modelcompDiff}'
 err=\$?
 exit \$err
 

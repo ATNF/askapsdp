@@ -152,8 +152,9 @@ SLICERNPPN=20
 csimSelect="#PBS -l select=1:ncpus=1:mem=6GB:mpiprocs=1"
 
 array=BETAXYZ.in
-feeds=ASKAP${nfeeds}feeds.in
-inttime=30s
+#feeds=ASKAP${nfeeds}feeds.in
+feeds=BETAtestfield_feeds.in
+inttime=5s
 dur=6
 
 pol="XX YY"

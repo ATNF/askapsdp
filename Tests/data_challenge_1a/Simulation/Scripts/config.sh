@@ -62,6 +62,7 @@ msbase=DCvis
 #. ${scriptdir}/configGASKAP.sh
 #. ${scriptdir}/configM31.sh
 #. ${scriptdir}/configBETAtestfield.sh
+#. ${scriptdir}/config_fullASKAP_coarseContinuum.sh
 
 ##############################
 # Cleaning up and verifying
