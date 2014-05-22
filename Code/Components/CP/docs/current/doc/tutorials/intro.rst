@@ -94,48 +94,38 @@ for cimager, lets call it **dirty.in**::
 Next create a file called **dirty.qsub**, this is a description of the batch job that
 the system will execute::
 
-    #!/bin/bash
-    #PBS -l mppwidth=305
-    #PBS -l mppnppn=20
-    #PBS -l walltime=02:00:00
-    #PBS -N cimager
-    #PBS -j oe
+    #!/usr/bin/env bash
+    #SBATCH --ntasks=305
+    #SBATCH --ntasks-per-node=20
+    #SBATCH --time=02:00:00
+    #SBATCH --job-name=cimager
+    #SBATCH --export=NONE
 
-    cd ${PBS_O_WORKDIR}
-
-    aprun -n 305 -N 20 -ss cimager -c dirty.in > dirty_${PBS_JOBID}.log
+    aprun -n 305 -N 20 -ss cimager -c dirty.in > dirty_${SLURM_JOB_ID}.log
 
 Before submitting the job for execution, lets dissect this file line by line. This line
 requests 305 MPI processes, which for the cimager results in one master process and 304
 worker processes. Each worker process will process a single spectral channel from the
 measurement set::
 
-    #PBS -l mppwidth=305
+    #SBATCH --ntasks=305
 
-Next *mppnppn=20* indicates 20 processes should be launched on each node. The nodes in
-the system each have 20 CPU cores, so this results in an optimal assignment of one process
+Next *--ntasks-per-node=20* indicates 20 processes should be launched on each node. The nodes
+in the system each have 20 CPU cores, so this results in an optimal assignment of one process
 per core. This job will then require 16 compute nodes. ::
 
-    #PBS -l mppnppn=20
+    #SBATCH --ntasks-per-node=20
 
-The walltime limit is set to 2 hours, meaning if the job has not finished in 2 hours it
+The time limit is set to 2 hours, meaning if the job has not finished in 2 hours it
 will be killed. It is useful to set such a reasonable limit to ensure your job doesn't run
 indefinitely (which can happen in the case of a bug or misconfiguration)::
 
-    #PBS -l walltime=02:00:00
+    #SBATCH --time=02:00:00
 
-The "-N" option sets the job name to *cimager*. This can be anything (there are some restrictions)
+The "--job-name" option sets the job name to *cimager*. This can be anything (there are some restrictions)
 and is used to identify your job in the list of all jobs running on the system::
 
-    #PBS -N cimager
-
-The line "-j oe" says to join stdout and stderr, resulting in one output file rather than two::
-
-    #PBS -j oe
-
-The "cd" command ensures the job executes in the same directory it was launched from::
-
-    cd ${PBS_O_WORKDIR}
+    #SBATCH --job-name=cimager
 
 This final line actually executes the program. The *aprun* wrapper is used to execute all jobs
 on the Cray compute nodes. Here "-n 305" and "-N 20" repeat those numbers already described earlier.
@@ -147,25 +137,22 @@ Without this redirection, the output will go to stdout and will only be written 
 job is complete. By redirecting the output to a file, the file can be inspected at run time to
 track progress::
 
-    aprun -n 305 -N 20 -ss cimager.sh -c dirty.in > dirty_${PBS_JOBID}.log
+    aprun -n 305 -N 20 -ss cimager.sh -c dirty.in > dirty_${SLURM_JOB_ID}.log
 
-Now this job can be submitted to the PBS scheduling system for execution with the
+Now this job can be submitted to the SLURM scheduling system for execution with the
 qsub command like so::
 
-    qsub dirty.qsub
+    sbatch dirty.qsub
 
-The qsub program returns the Job ID of the created job (e.g. 1234.rtc) which you can
+The qsub program returns the Job ID of the created job (e.g. 1234) which you can
 then use to monitor the status of your job::
 
-    $ qstat -a 1234.rtc
+    squeue -j 1234
 
-    rtc: 
-                                                                Req'd  Req'd   Elap
-    Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
-    --------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
-    1234.rtc        user123  workq    cimager     22811  16 320    --  02:00 R 00:01
+    JOBID     USER  ACCOUNT           NAME  ST REASON    START_TIME                TIME  TIME_LEFT NODES CPUS
+    1024   user123  astrono        cimager   R None      2014-05-21T10:00:27    2:00:00    2:00:00    16  320
 
-Alternatively, you can use the command *"qstat -u $USER"* to list all of your incomplete
+Alternatively, you can use the command *"squeue -u $USER"* to list all of your incomplete
 jobs.  You can also (once the job begins running)  *tail* the file dirty_1234.log (where
 1234 is your job id) to track its progress.
 

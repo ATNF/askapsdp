@@ -1,5 +1,5 @@
 cbpcalibrator Documentation
-=========================
+===========================
 
 The ccalibrator program performs calibration in a parallel/distributed environment
 or on a single computer system. The software leverages MPI, however can be run on
@@ -134,8 +134,8 @@ They are given in [:doc:`data_selection`] and should also have the **Cbpcalibrat
 |                       |                |              |antenna has zero phase for all beams and all     |
 |                       |                |              |channels                                         |
 +-----------------------+----------------+--------------+-------------------------------------------------+
-|sources.definition     |string          |None          |Optional parameter. If defined, sky model        |
-|                       |                |              |(i.e. source info given as **sources.something**)|
+|sources.definition     |string          |None          |Optional parameter. If defined, sky model (i.e.  |
+|                       |                |              |source info given as **sources.something**)      |
 |                       |                |              |is read from a separate parset file (name is     |
 |                       |                |              |given by this parameter). If this parameter is   |
 |                       |                |              |not defined, source description should be given  |

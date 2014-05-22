@@ -95,20 +95,18 @@ Submitting a job:
 -----------------
 
 This section describes the job execution environment on the ASKAP Central Processor. The
-system uses PBSPro for Job scheduling, however the below examples use a Cray specific
+system uses SLURM for Job scheduling, however the below examples use a Cray specific
 customisation to declare the resources required. An example qsub file is::
 
-    #!/bin/bash -l
-    #PBS -l walltime=01:00:00
-    #PBS -l mppwidth=80
-    #PBS -l mppnppn=20
-    #PBS -M my.email.address@csiro.au
-    #PBS -N myjobname
-    #PBS -m a
-    #PBS -j oe
-    #PBS -r n
-
-    cd $PBS_O_WORKDIR
+    #!/usr/bin/env bash
+    #SBATCH --time=01:00:00
+    #SBATCH --ntasks=80
+    #SBATCH --ntasks-per-node=20
+    #SBATCH --mail-user=my.email.address@csiro.au
+    #SBATCH --job-name=myjobname
+    #SBATCH --mail-type=FAIL
+    #SBATCH --no-requeue
+    #SBATCH --export=NONE
 
     aprun -B ./myprogram
 
@@ -116,56 +114,55 @@ Note the use of *aprun* instead of *mpirun*. The -B option to *aprun* tells ALPS
 Application Level Placement Scheduler) to reuse the width, depth, nppn and memory requests
 specified with the corresponding batch reservation.
 
-Specifically, the following part of the above file requests 80 processing elements (PE) to
-be created. A PE is just a process. The parameter *mppnppn* says to execute 20 PEs per node,
-so this job will require 4 nodes (80/20=4)::
+Specifically, the following part of the above file requests 80 processing
+elements (PE) to be created. A PE is just a process. The parameter *ntasks-per-node*
+says to execute 20 PEs per node, so this job will require 4 nodes (80/20=4)::
 
-    #PBS -l mppwidth=80
-    #PBS -l mppnppn=20
+    #SBATCH --ntasks=80
+    #SBATCH --ntasks-per-node=20
 
 Then to submit the job::
 
-    qsub myjob.qsub
+    sbatch myjob.qsub
 
 
 Other example resource specifications
 -------------------------------------
 
-The following example launches a job with a number of PEs that is not a multiple of *mppnppn*,
-in this case 22 PEs::
+The following example launches a job with a number of PEs that is not a multiple of
+*ntasks-per-node*, in this case 22 PEs::
 
-    #!/bin/bash -l
-    #PBS -l walltime=01:00:00
-    #PBS -l mppwidth=22
-    #PBS -l mppnppn=20
-    #PBS -M my.email.address@csiro.au
-    #PBS -N myjobname
-    #PBS -m a
-    #PBS -j oe
-    #PBS -r n
-
-    cd $PBS_O_WORKDIR
+    #!/usr/bin/env bash
+    #SBATCH --time=01:00:00
+    #SBATCH --ntasks=22
+    #SBATCH --ntasks-per-node=20
+    #SBATCH --mail-user=my.email.address@csiro.au
+    #SBATCH --job-name=myjobname
+    #SBATCH --mail-type=FAIL
+    #SBATCH --no-requeue
+    #SBATCH --export=NONE
 
     aprun -n 22 -N 20 ./myprogram
 
-Note that instead of passing "-B", which says use the numbers from *mppwidth* & *mppnppn*, you must pass
-"-n" and "-N" specifically. Using the "-B" option only works if *mppwidth* is divisible by *mppnppn*.
+Note that instead of passing "-B", which says use the numbers from *ntasks* & *ntasks-per-node*,
+you must pass "-n" and "-N" specifically. Using the "-B" option only works if *ntasks* is
+divisible by *ntasks-per-node*.
 
 **OpenMP Programs:**
 
 The following example launches a job with 20 OpenMP threads per process (although there is only
-one process). The *mppdepth* option declares the number of threads to be launched and also sets
-the OMP_NUM_THREADS environment variable to be equal to *mppdepth*. The below example starts a
-single PE with 20 threads::
+one process). The *cpus-per-task* option declares the number of threads to be allocated
+per process.  The below example starts a single PE with 20 threads::
 
-    #!/bin/bash -l
-    #PBS -l walltime=00:30:00
-    #PBS -l mppwidth=1
-    #PBS -l mppdepth=20
-    #PBS -N jobname
-    #PBS -j oe
+    #!/usr/bin/env bash
+    #SBATCH --time=00:30:00
+    #SBATCH --ntasks=1
+    #SBATCH --cpus-per-task=20
+    #SBATCH --job-name=myjobname
+    #SBATCH --export=NONE
 
-    cd $PBS_O_WORKDIR
+    # Instructs OpenMP to use 20 threads
+    export OMP_NUM_THREADS=20
 
     aprun -B ./my_openmp_program
 
@@ -175,22 +172,22 @@ Monitoring job status
 
 To see your incomplete jobs::
 
-    qstat -u $USER
-
-To see detail pertaining to one particular job, run the above command, then using the job ID ask
-for full information::
-
-    qstat -f <jobid>
+    squeue -u $USER
 
 Sometimes it is useful to see the entire queue, particularly when your job is queued and you wish
 to see how busy the system is. The following commands show running jobs::
 
-    qstat 
-    qstat -a
+    squeue 
     apstat
+
+And to display accounting information, that includes completed jobs, the following command
+can be used::
+
+    sacct
 
 Additional Information
 ----------------------
 
 * `Cray XC30 System Documentation <http://docs.cray.com/cgi-bin/craydoc.cgi?mode=SiteMap;f=xc_sitemap>`_
-* `PBS Professional 12.1 Users Guide (PDF) <http://resources.altair.com/pbs/documentation/support/PBSProUserGuide12.1.pdf>`_
+* `SLURM Homepage <http://computing.llnl.gov/linux/slurm>`_
+* `Migrating from PBS to SLURM <https://portal.ivec.org/docs/Supercomputers/Migrating_from_PBS_Pro_to_SLURM>`_

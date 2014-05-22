@@ -110,32 +110,19 @@ Running CASA on Compute Nodes
 .. note:: CASA has not been well tested on the Cray platform, and indeed CASA is not designed 
           to be run in a HPC environment.
 
-An interactive CASA session can be run on a compute node by submitting an *interactive*
-job. To lauch an interactive CASA session on a compute node first save this script to a
-file named *interactive.qsub*::
+An interactive CASA session can be run on a compute node using the **salloc** command to
+allocate a node for an interactive session::
 
-    #!/bin/bash -l
-    #PBS -l walltime=24:00:00
-    #PBS -l mppwidth=1
-    #PBS -l mppnppn=1
-    #PBS -N interactive
-    #PBS -I
+    salloc --nodes=1 --mem=64G
 
-Then execute is like you would a normal batch job::
+Upon invoking this command one of two things will happen:
 
-    qsub interactive.qsub
-
-However instead of simply queuing the job then returning, the command will print out a message
-indicating it is waiting for the job to start::
-
-    qsub: waiting for job 1234.rtc to start
-
-then it will block until a compute node is available. When a compute node is available (and one
-may well be immediately available) you will be presented with a shell prompt::
-
-    qsub: job 1234.rtc ready
-
-    joe123@nid00002:~>
+* **You will immediately be allocated a node if one is available** - In this case you will see
+  a message *"salloc: Granted job allocation 1234"* and be presented with a prompt on the
+  service node; or
+* **If no nodes are available your request will be enqueued** - In this case you will see a
+  message *"salloc: job 1234 queued and waiting for resources"*. When a node becomes available
+  you will be presented with a prompt on the service node
 
 From here you can load the module for CASA and execute CASAPY::
 
