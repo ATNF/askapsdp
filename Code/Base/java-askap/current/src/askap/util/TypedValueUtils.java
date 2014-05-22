@@ -18,7 +18,7 @@
  * 330, Boston, MA 02111-1307 USA
  */
 
-package askap.datapublisher;
+package askap.util;
 
 import java.util.HashMap;
 import java.util.Map;

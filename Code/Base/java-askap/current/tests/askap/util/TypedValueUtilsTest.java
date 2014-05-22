@@ -18,11 +18,11 @@
  * 330, Boston, MA 02111-1307 USA
  */
 
-package askap.datapublisher;
+package askap.util;
 
 import org.junit.*;
 import static org.junit.Assert.*;
-import askap.datapublisher.TypedValueUtils;
+import askap.util.TypedValueUtils;
 import askap.interfaces.*;
 import askap.util.Complex;
 import atnf.atoms.coord.lib.*;
