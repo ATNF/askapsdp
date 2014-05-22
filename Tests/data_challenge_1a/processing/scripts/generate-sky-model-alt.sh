@@ -5,21 +5,17 @@
 
 SKYMODEL_OUTPUT=skymodel.image
 
-cat > createFITS.qsub << EOF
+cat > createFITS.sbatch << EOF
 #!/bin/bash
-#PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=11
-#PBS -l walltime=00:15:00
-##PBS -M first.last@csiro.au
-#PBS -N cmodel
-#PBS -m a
-#PBS -j oe
-#PBS -r n
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --ntasks=11
+#SBATCH --time=00:15:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name cmodel
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
-cd \${PBS_O_WORKDIR}
-
-cat > ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in << EOF_INNER
+cat > ${CONFIGDIR}/createFITS-\${SLURM_JOB_ID}.in << EOF_INNER
 createFITS.filename    = !${SKYMODEL_OUTPUT}.fits
 createFITS.casaOutput = true
 createFITS.fitsOutput = false
@@ -51,15 +47,15 @@ createFITS.PAunits = deg
 createFITS.minMinorAxis = 0.0001
 EOF_INNER
 
-aprun -n 11 \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh -c ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in > ${LOGDIR}/createFITS-\${PBS_JOBID}.log
+aprun -n 11 \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh -c ${CONFIGDIR}/createFITS-\${SLURM_JOB_ID}.in > ${LOGDIR}/createFITS-\${SLURM_JOB_ID}.log
 EOF
 
 # Submit job
 if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
     echo "Sky Model Image: Submitting task"
-    QSUB_CMODEL=`qsubmit createFITS.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CMODEL}"
-    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CMODEL}"
+    SBATCH_CMODEL=`qsubmit createFITS.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CMODEL}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CMODEL}"
 else
     echo "Sky Model Image: Skipping task - Output already exists"
 fi

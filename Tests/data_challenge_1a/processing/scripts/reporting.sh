@@ -3,19 +3,15 @@
 # Reporting the results of the data challenge run
 ##############################################################################
 
-qsubfile=reporting.qsub
-cat > $qsubfile <<EOF
+sbatchfile=reporting.sbatch
+cat > $sbatchfile <<EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l walltime=00:30:00
-#PBS -l mppwidth=1
-##PBS -M first.last@csiro.au
-#PBS -N report
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=00:30:00
+#SBATCH --ntasks=1
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name report
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 # This is the overall SUCCESS/FAILURE indicator.
 overall=0
@@ -36,8 +32,8 @@ exitcodeSL2="-"
 exitcodeSLM="-"
 exitcodeAN="-"
 
-logfileSPL="\`echo split.o${QSUB_MSSPLIT}.* | sed -e 's/\[\].epic//g'\`"
-if [ ! -e \`echo split.o${QSUB_MSSPLIT}.0 | sed -e 's/\[\].epic//g'\` ]; then
+logfileSPL="\`echo split.o${SBATCH_MSSPLIT}.* | sed -e 's/\[\].epic//g'\`"
+if [ ! -e \`echo split.o${SBATCH_MSSPLIT}.0 | sed -e 's/\[\].epic//g'\` ]; then
     overall=1
 else
     exitcodeSPL=\`grep -h Exit \${logfileSPL} | sort | uniq | awk '{print \$3}'\`
@@ -47,7 +43,7 @@ else
 fi
 
 if [ ${DO_CALIBRATION} == true ]; then
-    logfileCMODEL="\`echo cmodel.o${QSUB_CMODEL} | sed -e 's/.epic//g'\`"
+    logfileCMODEL="\`echo cmodel.o${SBATCH_CMODEL} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCMODEL} ]; then
         overall=1
     else
@@ -56,7 +52,7 @@ if [ ${DO_CALIBRATION} == true ]; then
     	overall=1
         fi
     fi
-    logfileCAL="\`echo ccalibrator.o${QSUB_CAL} | sed -e 's/.epic//g'\`"
+    logfileCAL="\`echo ccalibrator.o${SBATCH_CAL} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCAL} ]; then
         overall=1
     else
@@ -68,7 +64,7 @@ if [ ${DO_CALIBRATION} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_DIRTY} == true ]; then
-    logfileCD="\`echo cont-dirty.o${QSUB_CONTDIRTY} | sed -e 's/.epic//g'\`"
+    logfileCD="\`echo cont-dirty.o${SBATCH_CONTDIRTY} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCD} ]; then
         overall=1
     else
@@ -80,7 +76,7 @@ if [ ${DO_CONTINUUM_DIRTY} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CLEAN} == true ]; then
-    logfileCC="\`echo cont-clean.o${QSUB_CONTCLEAN} | sed -e 's/.epic//g'\`"
+    logfileCC="\`echo cont-clean.o${SBATCH_CONTCLEAN} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCC} ]; then
         overall=1
     else
@@ -92,7 +88,7 @@ if [ ${DO_CONTINUUM_CLEAN} == true ]; then
 fi
 
 if [ ${DO_ANALYSIS} == true ]; then
-    logfileAN="\`echo analysis.o${QSUB_ANALYSIS} | sed -e 's/.epic//g'\`"
+    logfileAN="\`echo analysis.o${SBATCH_ANALYSIS} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileAN} ]; then
         overall=1
     else
@@ -104,8 +100,8 @@ if [ ${DO_ANALYSIS} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
-    logfileCCD="\`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.* | sed -e 's/\[\].epic//g'\`"
-    if [ ! -e \`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.0 | sed -e 's/\[\].epic//g'\` ]; then
+    logfileCCD="\`echo contcube-dirty.o${SBATCH_CONTCUBEDIRTY}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo contcube-dirty.o${SBATCH_CONTCUBEDIRTY}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeCCD=\`grep -h Exit \${logfileCCD} | sort | uniq | awk '{print \$3}'\`
@@ -121,8 +117,8 @@ if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
-    logfileCCC="\`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.* | sed -e 's/\[\].epic//g'\`"
-    if [ ! -e \`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.0 | sed -e 's/\[\].epic//g'\` ]; then
+    logfileCCC="\`echo contcube-clean.o${SBATCH_CONTCUBECLEAN}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo contcube-clean.o${SBATCH_CONTCUBECLEAN}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeCCC=\`grep -h Exit \${logfileCCC} | sort | uniq | awk '{print \$3}'\`
@@ -138,8 +134,8 @@ if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
 fi
 
 if [ ${DO_SPECTRAL_LINE} == true ]; then
-    logfileSL1="\`echo sl-img.o${QSUB_SPECTRAL1}.* | sed -e 's/\[\].epic//g'\`"
-    if [ ! -e \`echo sl-img.o${QSUB_SPECTRAL1}.0 | sed -e 's/\[\].epic//g'\` ]; then
+    logfileSL1="\`echo sl-img.o${SBATCH_SPECTRAL1}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo sl-img.o${SBATCH_SPECTRAL1}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeSL1=\`grep -h Exit \${logfileSL1} | sort | uniq | awk '{print \$3}'\`
@@ -148,8 +144,8 @@ if [ ${DO_SPECTRAL_LINE} == true ]; then
         fi
     fi
 
-    logfileSL2="\`echo sl-img.o${QSUB_SPECTRAL2}.* | sed -e 's/\[\].epic//g'\`"
-    if [ ! -e \`echo sl-img.o${QSUB_SPECTRAL2}.0 | sed -e 's/\[\].epic//g'\` ]; then
+    logfileSL2="\`echo sl-img.o${SBATCH_SPECTRAL2}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo sl-img.o${SBATCH_SPECTRAL2}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeSL2=\`grep -h Exit \${logfileSL2} | sort | uniq | awk '{print \$3}'\`
@@ -194,7 +190,7 @@ for JOB in ${GLOBAL_ALL_JOBS}; do
     fi
 done
 
-QEXEC_CMD="${QSUB_CMD} -W depend=${DEPENDS} ${qsubfile}"
+QEXEC_CMD="${SBATCH_CMD} --dependency=${DEPENDS} ${sbatchfile}"
 
 if [ "${DRYRUN}" == "false" ]; then
     JOBID=`${QEXEC_CMD}`

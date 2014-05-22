@@ -27,13 +27,13 @@ if [ $doFullSpectrum == true ]; then
     END_CHANNEL_CREATECOARSE=16416
 # number of workers used by create-coarse-ms.sh
     NUM_WORKERS_CREATECOARSE=304
-    QSUB_RANGE_CREATECOARSE="0-303"
+    SBATCH_RANGE_CREATECOARSE="0-303"
 else
 # final channel, used by create-coarse-ms.sh
     END_CHANNEL_CREATECOARSE=8208
 # number of workers used by create-coarse-ms.sh
     NUM_WORKERS_CREATECOARSE=152
-    QSUB_RANGE_CREATECOARSE="0-151"
+    SBATCH_RANGE_CREATECOARSE="0-151"
 fi
 
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
@@ -85,7 +85,7 @@ if [ $doFullSpectrum == true ]; then
     CONT_CUBE_FREQ_ZERO_CHAN=1.345e9
 # number of workers used for continuum cubes, and qsub range
     NUM_WORKERS_CONT_CUBE=152
-    QSUB_RANGE_CONT_CUBE="0-151"
+    SBATCH_RANGE_CONT_CUBE="0-151"
 # final channel used for the make-spectral-cube call for continuum cubes
     CONT_CUBE_FINALCH=151
 else
@@ -93,7 +93,7 @@ else
     CONT_CUBE_FREQ_ZERO_CHAN=1.421e9
 # number of workers used for continuum cubes, and qsub range
     NUM_WORKERS_CONT_CUBE=304
-    QSUB_RANGE_CONT_CUBE="0-303"
+    SBATCH_RANGE_CONT_CUBE="0-303"
 # final channel used for the make-spectral-cube call for continuum cubes
     CONT_CUBE_FINALCH=303
 fi
@@ -103,9 +103,9 @@ if [ $doFullSpectrum == true ]; then
     SPECTRAL_CUBE_FREQ_ZERO_CHAN=1.421e9
 # number of workers used for spectral-line cubes, and qsub range
     NUM_WORKERS_SPECTRAL_CUBE=16416
-    QSUB_RANGE_SPECTRAL_CUBE_1="0-8207"
-    QSUB_RANGE_SPECTRAL_CUBE_2="8208-16415"
-    QSUB_RANGE_SPECTRAL_CUBE_FULL="0-16415"
+    SBATCH_RANGE_SPECTRAL_CUBE_1="0-8207"
+    SBATCH_RANGE_SPECTRAL_CUBE_2="8208-16415"
+    SBATCH_RANGE_SPECTRAL_CUBE_FULL="0-16415"
 # final channel used for the make-spectral-cube call for continuum cubes
     SPECTRAL_CUBE_FINALCH=16415
 else
@@ -113,9 +113,9 @@ else
     SPECTRAL_CUBE_FREQ_ZERO_CHAN=1.345e9
 # number of workers used for spectral-line cubes, and qsub range
     NUM_WORKERS_SPECTRAL_CUBE=8208
-    QSUB_RANGE_SPECTRAL_CUBE_1="0-4103"
-    QSUB_RANGE_SPECTRAL_CUBE_2="4104-8207"
-    QSUB_RANGE_SPECTRAL_CUBE_FULL="0-8207"
+    SBATCH_RANGE_SPECTRAL_CUBE_1="0-4103"
+    SBATCH_RANGE_SPECTRAL_CUBE_2="4104-8207"
+    SBATCH_RANGE_SPECTRAL_CUBE_FULL="0-8207"
 # final channel used for the make-spectral-cube call for continuum cubes
     SPECTRAL_CUBE_FINALCH=8207
 fi

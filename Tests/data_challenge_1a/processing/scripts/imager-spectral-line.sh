@@ -6,16 +6,13 @@
 #
 # Create the qsub file to image each channel individually
 #
-cat > cimager-spectral-line.qsub << EOF
+cat > cimager-spectral-line.sbatch << EOF
 #!/bin/bash
-#PBS -l walltime=24:00:00
-#PBS -l mppwidth=5504
-#PBS -l mppnppn=16
-#PBS -N sl-img
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --time=24:00:00
+#SBATCH --ntasks=5504
+#SBATCH --ntasks-per-node=16
+#SBATCH --job-name sl-img
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > config/simager.in << EOF_INNER
 
@@ -59,7 +56,7 @@ Simager.calibrate.scalenoise                    = true
 Simager.calibrate.allowflag                     = true
 EOF_INNER
 
-LOGFILE=${LOGDIR}/simager-spectral-\${PBS_JOBID}.log
+LOGFILE=${LOGDIR}/simager-spectral-\${SLURM_JOB_ID}.log
 
 lfs setstripe -c 4 .
 
@@ -74,20 +71,20 @@ EOF
 
 # Build dependencies
 unset DEPENDS
-if [ "${QSUB_CAL}" ]; then
-    DEPENDS="afterok:${QSUB_CAL}"
+if [ "${SBATCH_CAL}" ]; then
+    DEPENDS="afterok:${SBATCH_CAL}"
 fi
 
 # Submit the jobs
 echo "Spectral Line Imaging: Submitting"
 
 unset DEPENDS
-if [ "${QSUB_CAL}" ]; then
-    DEPENDS="afterok:${QSUB_CAL}"
-    QSUB_SPECTRAL=`qsubmit cimager-spectral-line.qsub`
+if [ "${SBATCH_CAL}" ]; then
+    DEPENDS="afterok:${SBATCH_CAL}"
+    SBATCH_SPECTRAL=`qsubmit cimager-spectral-line.sbatch`
 else
-    QSUB_SPECTRAL=`qsubmit cimager-spectral-line.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL}"
+    SBATCH_SPECTRAL=`qsubmit cimager-spectral-line.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_SPECTRAL}"
 fi
 
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_SPECTRAL}"
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_SPECTRAL}"

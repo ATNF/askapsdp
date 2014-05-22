@@ -15,20 +15,16 @@ cp ${INPUT_SKYMODEL_TXT} ${skymodel}
 
 #########################
 
-qsubfile=analysis.qsub
-cat > ${qsubfile} <<EOF
+sbatchfile=analysis.sbatch
+cat > ${sbatchfile} <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=19
-#PBS -l mppnppn=19
-##PBS -M first.last@csiro.au
-#PBS -N analysis
-##PBS -q debugq
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=19
+#SBATCH --ntasks-per-node=19
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name analysis
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/selavy.sh
 cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/cimstat.sh
@@ -41,7 +37,7 @@ finderEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin
 . ${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/init_package_env.sh
 . ${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a/init_package_env.sh
 
-parset=analysis-\${PBS_JOBID}.in
+parset=analysis-\${SLURM_JOB_ID}.in
 cat > \$parset <<EOF_INNER
 Selavy.image = ${CONTINUUMIMAGE}
 Selavy.flagSubsection = true
@@ -88,13 +84,13 @@ Eval.image           = ${CONTINUUMIMAGE}.fits
 Eval.sourceSelection = threshold
 EOF_INNER
 
-statlog=log/cimstat-\${PBS_JOBID}.log
-sflog=log/selavy-\${PBS_JOBID}.log
-cmlog=log/crossmatch-\${PBS_JOBID}.log
-pelog=log/ploteval-\${PBS_JOBID}.log
-felog=log/fluxeval-\${PBS_JOBID}.log
-ielog=log/imageval-\${PBS_JOBID}.log
-filog=log/imageval-\${PBS_JOBID}.log
+statlog=log/cimstat-\${SLURM_JOB_ID}.log
+sflog=log/selavy-\${SLURM_JOB_ID}.log
+cmlog=log/crossmatch-\${SLURM_JOB_ID}.log
+pelog=log/ploteval-\${SLURM_JOB_ID}.log
+felog=log/fluxeval-\${SLURM_JOB_ID}.log
+ielog=log/imageval-\${SLURM_JOB_ID}.log
+filog=log/imageval-\${SLURM_JOB_ID}.log
 
 aprun -n 1 \$cimstat -c \$parset > \$statlog
 err=\$?
@@ -125,7 +121,7 @@ aprun -n 1 image2fits in=${THRESHIMAGE} out=${THRESHIMAGE}.fits
 aprun -n 1 image2fits in=${NOISEIMAGE} out=${NOISEIMAGE}.fits
 aprun -n 1 image2fits in=${SNRIMAGE} out=${SNRIMAGE}.fits
 
-evalparset=eval-parset-\${PBS_JOBID}.in
+evalparset=eval-parset-\${SLURM_JOB_ID}.in
 grep "Eval" \$parset > \$evalparset
 
 aprun -n 1 \$plotEval -c \$evalparset > \$pelog
@@ -156,7 +152,7 @@ fi
 # Analysis summary
 ##################
 
-summaryscript=analysis-summary-\${PBS_JOBID}.sh
+summaryscript=analysis-summary-\${SLURM_JOB_ID}.sh
 cat > \$summaryscript <<EOF_INNER
 #!/bin/bash -l
 
@@ -191,7 +187,7 @@ else
     yoffset=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$20}'\\\`
     yoffseterr=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$22}'\\\`
 fi
-imagerVersion=\\\`grep synthesis==current log/cimager-cont-clean-${QSUB_CONTCLEAN}.log | grep "(0, " | awk '{print \\\$12}'\\\`
+imagerVersion=\\\`grep synthesis==current log/cimager-cont-clean-${SBATCH_CONTCLEAN}.log | grep "(0, " | awk '{print \\\$12}'\\\`
 analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \\\$12}'\\\`
 
 summary="analysis_summary.txt"
@@ -208,8 +204,8 @@ EOF
 echo "Analysis script (${CONTINUUMIMAGE}): Submitting"
 
 # Submit the jobs
-QSUB_ANALYSIS=`qsubmit ${qsubfile}`
+SBATCH_ANALYSIS=`qsubmit ${sbatchfile}`
 if [ ! "${DEPENDS}" ]; then
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_ANALYSIS}"
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_ANALYSIS}"
 fi
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_ANALYSIS}"
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_ANALYSIS}"

@@ -3,16 +3,13 @@
 # Continuum Cube Imaging (Clean)
 ##############################################################################
 
-cat > simager-cont-cube-clean.qsub << EOF
+cat > simager-cont-cube-clean.sbatch << EOF
 #!/bin/bash
-#PBS -l walltime=12:00:00
-#PBS -l mppwidth=305
-#PBS -l mppnppn=10
-#PBS -N contcube-clean
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=305
+#SBATCH --ntasks-per-node=10
+#SBATCH --job-name contcube-clean
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > config/simager-cont-cube-clean.in << EOF_INNER
 
@@ -66,7 +63,7 @@ Simager.calibrate.scalenoise                    = true
 Simager.calibrate.allowflag                     = true
 EOF_INNER
 
-LOGFILE=${LOGDIR}/simager-cont-cube-clean-\${PBS_JOBID}.log
+LOGFILE=${LOGDIR}/simager-cont-cube-clean-\${SLURM_JOB_ID}.log
 
 lfs setstripe -c 4 .
 
@@ -83,15 +80,15 @@ EOF
 echo "Continuum Cube Imager (Clean): Submitting"
 
 unset DEPENDS
-if [ "${QSUB_CAL}" ]; then
-    DEPENDS="afterok:${QSUB_CAL}"
-    QSUB_CUBE_CLEAN=`qsubmit simager-cont-cube-clean.qsub`
-elif [ "${QSUB_MSSPLIT}" ]; then
-    DEPENDS="afterok:${QSUB_MSSPLIT}"
-    QSUB_CONTCLEAN=`qsubmit simager-cont-cube-clean.qsub`
+if [ "${SBATCH_CAL}" ]; then
+    DEPENDS="afterok:${SBATCH_CAL}"
+    SBATCH_CUBE_CLEAN=`qsubmit simager-cont-cube-clean.sbatch`
+elif [ "${SBATCH_MSSPLIT}" ]; then
+    DEPENDS="afterok:${SBATCH_MSSPLIT}"
+    SBATCH_CONTCLEAN=`qsubmit simager-cont-cube-clean.sbatch`
 else
-    QSUB_CUBE_CLEAN=`qsubmit imager-cont-cube-clean.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CUBE_CLEAN}"
+    SBATCH_CUBE_CLEAN=`qsubmit imager-cont-cube-clean.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CUBE_CLEAN}"
 fi
 
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CUBE_CLEAN}"
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CUBE_CLEAN}"

@@ -19,18 +19,14 @@ if [ ! -d ${AVGMSDIR} ]; then
 fi
 
 # Create the qsub file
-cat > split-coarse.qsub << EOF
+cat > split-coarse.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=1
-#PBS -l walltime=04:00:00
-##PBS -M first.last@csiro.au
-#PBS -N split-coarse
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --ntasks=1
+#SBATCH --time=04:00:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name split-coarse
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > ${CONFIGDIR}/mssplit-coarse.in << EOF_INNER
 # Input measurement set
@@ -57,9 +53,9 @@ EOF
 
 if [ ! -e MS/coarse_chan.ms ]; then
     echo "MS Averaging: Submitting"
-    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
-    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
+    SBATCH_MSSPLIT=`qsubmit split-coarse.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_MSSPLIT}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_MSSPLIT}"
 else
     echo "MS Averaging: Skipping - Output already exists"
 fi

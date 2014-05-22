@@ -5,19 +5,15 @@
 
 SKYMODEL_OUTPUT=skymodel.image.taylor
 
-cat > cmodel.qsub << EOF
+cat > cmodel.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=20
-#PBS -l walltime=00:15:00
-##PBS -M first.last@csiro.au
-#PBS -N cmodel
-#PBS -m a
-#PBS -j oe
-#PBS -r n
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --ntasks=20
+#SBATCH --time=00:15:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name cmodel
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > ${CONFIGDIR}/cmodel.in << EOF_INNER
 # The below specifies the GSM source is a votable
@@ -42,15 +38,15 @@ Cmodel.output             = casa
 Cmodel.filename           = ${SKYMODEL_OUTPUT}
 EOF_INNER
 
-aprun -B -ss \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
+aprun -B -ss \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${SLURM_JOB_ID}.log
 EOF
 
 # Submit job
 if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
     echo "Sky Model Image: Submitting task"
-    QSUB_CMODEL=`qsubmit cmodel.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CMODEL}"
-    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CMODEL}"
+    SBATCH_CMODEL=`qsubmit cmodel.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CMODEL}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CMODEL}"
 else
     echo "Sky Model Image: Skipping task - Output already exists"
 fi

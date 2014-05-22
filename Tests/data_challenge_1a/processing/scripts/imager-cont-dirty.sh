@@ -3,22 +3,18 @@
 # Continuum Imaging (Dirty)
 ##############################################################################
 
-cat > cimager-cont-dirty.qsub << EOF
+cat > cimager-cont-dirty.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=${CONT_DIRTY_MPPWIDTH}
-#PBS -l mppnppn=${CONT_DIRTY_MPPNPPN}
-#PBS -l walltime=02:00:00
-##PBS -M first.last@csiro.au
-#PBS -N cont-dirty
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --ntasks=${CONT_DIRTY_MPPWIDTH}
+#SBATCH --ntasks-per-node=${CONT_DIRTY_MPPNPPN}
+#SBATCH --time=02:00:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name cont-dirty
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
-cd \${PBS_O_WORKDIR}
-
-parset=${CONFIGDIR}/cimager-cont-dirty-\${PBS_JOBID}.in
-logfile=${LOGDIR}/cimager-cont-dirty-\${PBS_JOBID}.log
+parset=${CONFIGDIR}/cimager-cont-dirty-\${SLURM_JOB_ID}.in
+logfile=${LOGDIR}/cimager-cont-dirty-\${SLURM_JOB_ID}.log
 
 cat > \${parset} << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan.ms
@@ -78,15 +74,15 @@ EOF
 #echo "Continuum Imager (Dirty): Submitting"
 
 unset DEPENDS
-if [ "${QSUB_CAL}" ]; then
-    DEPENDS="afterok:${QSUB_CAL}"
-    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
-elif [ "${QSUB_MSSPLIT}" ]; then
-    DEPENDS="afterok:${QSUB_MSSPLIT}"
-    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
+if [ "${SBATCH_CAL}" ]; then
+    DEPENDS="afterok:${SBATCH_CAL}"
+    SBATCH_CONTDIRTY=`qsubmit cimager-cont-dirty.sbatch`
+elif [ "${SBATCH_MSSPLIT}" ]; then
+    DEPENDS="afterok:${SBATCH_MSSPLIT}"
+    SBATCH_CONTDIRTY=`qsubmit cimager-cont-dirty.sbatch`
 else
-    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTDIRTY}"
+    SBATCH_CONTDIRTY=`qsubmit cimager-cont-dirty.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CONTDIRTY}"
 fi
 
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTDIRTY}"
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CONTDIRTY}"

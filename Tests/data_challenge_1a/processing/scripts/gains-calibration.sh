@@ -5,19 +5,15 @@
 
 CALOUTPUT=calparameters.tab
 
-cat > ccalibrator.qsub << EOF
+cat > ccalibrator.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=${GAINS_CAL_MPPWIDTH}
-#PBS -l mppnppn=${GAINS_CAL_MPPNPPN}
-#PBS -l walltime=06:00:00
-##PBS -M first.last@csiro.au
-#PBS -N ccalibrator
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --ntasks=${GAINS_CAL_MPPWIDTH}
+#SBATCH --ntasks-per-node=${GAINS_CAL_MPPNPPN}
+#SBATCH --time=06:00:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name ccalibrator
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
 Ccalibrator.dataset                              = MS/coarse_chan.ms
@@ -60,27 +56,27 @@ Ccalibrator.ncycles                              = 5
 Ccalibrator.interval                             = 1800
 EOF_INNER
 
-aprun -n ${GAINS_CAL_MPPWIDTH} -N ${GAINS_CAL_MPPNPPN} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
+aprun -n ${GAINS_CAL_MPPWIDTH} -N ${GAINS_CAL_MPPNPPN} \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${SLURM_JOB_ID}.log
 EOF
 
 if [ ! -e ${CALOUTPUT} ]; then
     echo "Calibration: Submitting"
 
     unset DEPENDS
-    if [ "${QSUB_CMODEL}" ] && [ "${QSUB_MSSPLIT}" ]; then
-        DEPENDS="afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT}"
-        QSUB_CAL=`qsubmit ccalibrator.qsub`
-    elif [ "${QSUB_CMODEL}" ]; then
-        DEPENDS="afterok:${QSUB_CMODEL}"
-        QSUB_CAL=`qsubmit ccalibrator.qsub`
-    elif [ "${QSUB_MSSPLIT}" ]; then
-        DEPENDS="afterok:${QSUB_MSSPLIT}"
-        QSUB_CAL=`qsubmit ccalibrator.qsub`
+    if [ "${SBATCH_CMODEL}" ] && [ "${SBATCH_MSSPLIT}" ]; then
+        DEPENDS="afterok:${SBATCH_CMODEL},afterok:${SBATCH_MSSPLIT}"
+        SBATCH_CAL=`qsubmit ccalibrator.sbatch`
+    elif [ "${SBATCH_CMODEL}" ]; then
+        DEPENDS="afterok:${SBATCH_CMODEL}"
+        SBATCH_CAL=`qsubmit ccalibrator.sbatch`
+    elif [ "${SBATCH_MSSPLIT}" ]; then
+        DEPENDS="afterok:${SBATCH_MSSPLIT}"
+        SBATCH_CAL=`qsubmit ccalibrator.sbatch`
     else
-        QSUB_CAL=`qsubmit ccalibrator.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CAL}"
+        SBATCH_CAL=`qsubmit ccalibrator.sbatch`
+        SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CAL}"
     fi
-    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CAL}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CAL}"
 else
     echo "Calibration: Skipping - Output already exists"
 fi

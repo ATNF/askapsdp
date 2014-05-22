@@ -22,7 +22,7 @@ echo Running pipeline for ASKAP-12 Early Science simulation at dec of -30
 END_CHANNEL_CREATECOARSE=16416
 # number of workers used by create-coarse-ms.sh
 NUM_WORKERS_CREATECOARSE=304
-QSUB_RANGE_CREATECOARSE="0-303"
+SBATCH_RANGE_CREATECOARSE="0-303"
 
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
 GAINS_CAL_MPPWIDTH=305
@@ -53,7 +53,7 @@ CONT_DIRTY_FREQ=1.270e9
 CONT_CUBE_FREQ_ZERO_CHAN=1.421e9
 # number of workers used for continuum cubes, and qsub range
 NUM_WORKERS_CONT_CUBE=304
-QSUB_RANGE_CONT_CUBE="0-303"
+SBATCH_RANGE_CONT_CUBE="0-303"
 # final channel used for the make-spectral-cube call for continuum cubes
 CONT_CUBE_FINALCH=303
 
@@ -61,9 +61,9 @@ CONT_CUBE_FINALCH=303
 SPECTRAL_CUBE_FREQ_ZERO_CHAN=1.421e9
 # number of workers used for spectral-line cubes, and qsub range
 NUM_WORKERS_SPECTRAL_CUBE=16416
-QSUB_RANGE_SPECTRAL_CUBE_1="0-8207"
-QSUB_RANGE_SPECTRAL_CUBE_2="8208-16415"
-QSUB_RANGE_SPECTRAL_CUBE_FULL="0-16415"
+SBATCH_RANGE_SPECTRAL_CUBE_1="0-8207"
+SBATCH_RANGE_SPECTRAL_CUBE_2="8208-16415"
+SBATCH_RANGE_SPECTRAL_CUBE_FULL="0-16415"
 # final channel used for the make-spectral-cube call for continuum cubes
 SPECTRAL_CUBE_FINALCH=16415
 

@@ -3,7 +3,8 @@
 # General initial steps
 ##############################################################################
 
-SCRIPTDIR=`pwd`/scripts
+#SCRIPTDIR=`pwd`/scripts
+SCRIPTDIR=`pwd`/Scripts/processing/scripts
 
 # Source the configuration data
 . ${SCRIPTDIR}/config.sh
@@ -33,10 +34,11 @@ fi
 
 # Set the qsub alias based on the presense of the BATCH_QUEUE environment variable
 if [ ${BATCH_QUEUE} ]; then
-    QSUB_CMD="qsub -q ${BATCH_QUEUE}"
+    SBATCH_CMD="sbatch --partition=${BATCH_QUEUE}"
 else
-    QSUB_CMD="qsub"
+    SBATCH_CMD="sbatch"
 fi
+echo "sbatch_cmd = ${SBATCH_CMD}"
 
 # Verify the input measurement set exists
 if [ ! -e ${INPUT_MS} ]; then
@@ -51,7 +53,7 @@ if [ ! -e ${INPUT_SKYMODEL_XML} ]; then
 fi
 
 # Empty the list of job ids with no deps
-unset QSUB_NODEPS
+unset SBATCH_NODEPS
 
 # Make the log directory
 LOGDIR=log
@@ -132,7 +134,7 @@ echo ${GLOBAL_ALL_JOBS} > jobids.txt
 # created with a "hold" so as dependencies could be established without fear
 # of a dependency running and finishing before the dependency could be
 # established
-if [ "${DRYRUN}" == "false" ] && [ "${QSUB_NODEPS}" ]; then
-    echo "Releasing the following jobs (which have no dependencies): ${QSUB_NODEPS}"
-    qrls ${QSUB_NODEPS}
+if [ "${DRYRUN}" == "false" ] && [ "${SBATCH_NODEPS}" ]; then
+    echo "Releasing the following jobs (which have no dependencies): ${SBATCH_NODEPS}"
+    scontrol release ${SBATCH_NODEPS}
 fi
