@@ -64,7 +64,7 @@ EOF_INNER
 
 output=${logdirSM}/smoothModels-\${SLURM_JOB_ID}.log
 echo Running casa script to smooth  Taylor term images  > \$output
-casapy --nologger --log2term -c \$smoothScript >> \$output
+aprun -b casapy --nogui --nologger --log2term -c \$smoothScript >> \$output
 exit \$?
 EOF
 
@@ -144,7 +144,7 @@ EOF_INNER
 
 output=${logdirSM}/smoothModels-\${SLURM_JOB_ID}.log
 echo Running casa script to smooth  Taylor term images  > \$output
-casapy --nologger --log2term -c \$smoothScript >> \$output
+aprun -b casapy --nogui --nologger --log2term -c \$smoothScript >> \$output
 exit \$?
 EOF
 
