@@ -3,8 +3,7 @@
 # General initial steps
 ##############################################################################
 
-#SCRIPTDIR=`pwd`/scripts
-SCRIPTDIR=`pwd`/Scripts/processing/scripts
+SCRIPTDIR=`pwd`/scripts
 
 # Source the configuration data
 . ${SCRIPTDIR}/config.sh
