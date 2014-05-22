@@ -21,24 +21,20 @@ if [ $doAverageMS == true ]; then
     fi
     
     if [ "${calDepend}" == "" ]; then
-	imdepend="-Wdepend=afterok"
+	imdepend="--dependency=afterok"
     else
 	imdepend=${calDepend}
     fi
     
-# Create the qsub file
-    cat > split-coarse.qsub << EOF
+# Create the sbatch file
+    cat > split-coarse.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=1
-#PBS -l walltime=08:00:00
-##PBS -M first.last@csiro.au
-#PBS -N split-coarse
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \${PBS_O_WORKDIR}
+#SBATCH --ntasks=1
+#SBATCH --time=08:00:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name split-coarse
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 mssplit=${mssplit}
 
@@ -67,12 +63,12 @@ EOF
 
     if [ ! -e ${coarseMS} ]; then
 	echo "MS Averaging: Submitting"
-	coarseID=`qsub ${depend} split-coarse.qsub`
+	coarseID=`sbatch ${depend} split-coarse.sbatch | awk '{print $4}'`
 	calDepend="${calDepend}:${coarseID}"
 	imdepend="${imdepend}:${coarseID}"
-#    QSUB_MSSPLIT=`qsubmit split-coarse.qsub`
-#    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
-#    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
+#    SBATCH_MSSPLIT=`qsubmit split-coarse.sbatch`
+#    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_MSSPLIT}"
+#    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_MSSPLIT}"
     else
 	echo "MS Averaging: Skipping - Output already exists"
     fi

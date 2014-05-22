@@ -3,22 +3,18 @@
 # Continuum Imaging (Clean)
 ##############################################################################
 
-cat > cimager-cont-clean.qsub << EOF
+cat > cimager-cont-clean.sbatch << EOF
 #!/bin/bash
-##PBS -W group_list=${QUEUEGROUP}
-#PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
-#PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
-#PBS -l walltime=12:00:00
-##PBS -M first.last@csiro.au
-#PBS -N cont-clean
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --ntasks=${CONT_CLEAN_MPPWIDTH}
+#SBATCH --ntasks-per-node=${CONT_CLEAN_MPPNPPN}
+#SBATCH --time=12:00:00
+##SBATCH --mail-user first.last@csiro.au
+#SBATCH --job-name cont-clean
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
-cd \${PBS_O_WORKDIR}
-
-parset=${CONFIGDIR}/cimager-cont-clean-\${PBS_JOBID}.in
-logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
+parset=${CONFIGDIR}/cimager-cont-clean-\${SLURM_JOB_ID}.in
+logfile=${LOGDIR}/cimager-cont-clean-\${SLURM_JOB_ID}.log
 
 cat > \$parset << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan.ms
@@ -94,23 +90,23 @@ EOF
 echo "Continuum Imager (Clean): Submitting"
 
 unset DEPENDS
-if [ "${QSUB_CAL}" ]; then
-    DEPENDS="afterok:${QSUB_CAL}"
-    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
-elif [ "${QSUB_MSSPLIT}" ]; then
-    DEPENDS="afterok:${QSUB_MSSPLIT}"
-    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
+if [ "${SBATCH_CAL}" ]; then
+    DEPENDS="afterok:${SBATCH_CAL}"
+    SBATCH_CONTCLEAN=`qsubmit cimager-cont-clean.sbatch`
+elif [ "${SBATCH_MSSPLIT}" ]; then
+    DEPENDS="afterok:${SBATCH_MSSPLIT}"
+    SBATCH_CONTCLEAN=`qsubmit cimager-cont-clean.sbatch`
 else
-    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
+    SBATCH_CONTCLEAN=`qsubmit cimager-cont-clean.sbatch`
+    SBATCH_NODEPS="${SBATCH_NODEPS} ${SBATCH_CONTCLEAN}"
 fi
 
-GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTCLEAN}"
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${SBATCH_CONTCLEAN}"
 
 # Run the analysis script
 if [ $DO_ANALYSIS == true ]; then
     unset DEPENDS
-    DEPENDS="afterok:${QSUB_CONTCLEAN}"
+    DEPENDS="afterok:${SBATCH_CONTCLEAN}"
     CONTINUUMIMAGE=image.i.clean.taylor.0.restored
     . ${SCRIPTDIR}/analysis.sh
 fi

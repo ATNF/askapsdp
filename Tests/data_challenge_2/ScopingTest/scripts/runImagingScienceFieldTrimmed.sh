@@ -19,18 +19,15 @@ calParams=${inputCalParams}
 
 . ${scriptdir}/getTags.sh
 
-linmosqsub=linmos_${imtag}.qsub
-cat > $linmosqsub <<EOF
+linmossbatch=linmos_${imtag}.sbatch
+cat > $linmossbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N linmos${imtag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name linmos${imtag}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 linmos=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/linmos.sh
 
@@ -50,8 +47,8 @@ aprun \${linmos} -c \${parset} > \${log}
 
 EOF
 
-ID=`qsub -Wdepend=afterok${imdepend} ${linmosqsub}`
-echo "Have submitted a linmos job for type ${imtag} with ID=${ID}, via 'qsub -Wdepend=afterok${imdepend} ${linmosqsub}'"
+ID=`sbatch --dependency=afterok${imdepend} ${linmossbatch} | awk '{print $4}'`
+echo "Have submitted a linmos job for type ${imtag} with ID=${ID}, via 'sbatch --dependency=afterok${imdepend} ${linmossbatch}'"
 
 
 

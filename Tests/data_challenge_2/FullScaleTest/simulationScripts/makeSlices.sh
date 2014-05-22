@@ -6,7 +6,7 @@ mkdir -p ${slicedir}
 # Make slices
 ##############################
 
-slQsub=makeslices-GRP${GRP}.qsub
+slQsub=makeslices-GRP${GRP}.sbatch
 
 if [ ${writeByNode} == true ]; then
 
@@ -32,25 +32,23 @@ fi
 
 cat > $slQsub <<EOF
 #!/bin/bash -l
-#PBS -l walltime=12:00:00
-#PBS -l mppwidth=${width}
-#PBS -l mppnppn=${nppn}
-#PBS -M matthew.whiting@csiro.au
-#PBS -N sliceCont
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=${width}
+#SBATCH --ntasks-per-node=${nppn}
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name sliceCont
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \${PBS_O_WORKDIR}
 slicer=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeAllModelSlices.sh
 
-slParset=${parsetdir}/makeslices-GRP${GRP}-\${PBS_JOBID}.in
-slLog=${logdir}/makeslices-GRP${GRP}-\${PBS_JOBID}.log
+slParset=${parsetdir}/makeslices-GRP${GRP}-\${SLURM_JOB_ID}.in
+slLog=${logdir}/makeslices-GRP${GRP}-\${SLURM_JOB_ID}.log
 
 cat >> \${slParset} <<EOFINNER
 ####################
@@ -80,26 +78,23 @@ EOF
 ## 
 ## 	cat > $slQsub <<EOF
 ## #!/bin/bash -l
-## #PBS -l walltime=12:00:00
-## #PBS -l mppwidth=1
-## #PBS -l mppnppn=1
-## #PBS -M matthew.whiting@csiro.au
-## #PBS -N sliceCont
-## #PBS -m bea
-## #PBS -j oe
-## #PBS -r n
+## #SBATCH --time=12:00:00
+## #SBATCH --ntasks=1
+## #SBATCH --ntasks-per-node=1
+## #SBATCH --mail-user matthew.whiting@csiro.au
+## #SBATCH --job-name sliceCont
+## #SBATCH --mail-type=ALL
+## #SBATCH --no-requeue
 ## 
 ## ####################
 ## # AUTOMATICALLY GENERATED - DO NOT EDIT
 ## ####################
 ## 
-## cd \$PBS_O_WORKDIR
-## 
 ## export ASKAP_ROOT=${ASKAP_ROOT}
 ## export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 ## cubeslice=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubeslice.sh
 ## 
-## slLog=${logdirVis}/cubeslice-continuum-\${PBS_JOBID}.log
+## slLog=${logdirVis}/cubeslice-continuum-\${SLURM_JOB_ID}.log
 ## 
 ## # make the models for each of the workers that hold the right number of channels
 ## echo Extracting chunks from cube \`date\` >> \$slLog

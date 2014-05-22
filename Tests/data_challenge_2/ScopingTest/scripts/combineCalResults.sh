@@ -1,17 +1,14 @@
 #!/bin/bash -l
 
-qsubfile=combineCaldata.qsub
+sbatchfile=combineCaldata.sbatch
 calParams=caldata-combined.dat
-cat > $qsubfile <<EOF
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N combineCal
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+cat > $sbatchfile <<EOF
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name combineCal
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 rm -f caldata-combined.dat
 N=0
@@ -22,4 +19,4 @@ done
 
 EOF
 
-latestID=`qsub $depend $qsubfile`
+latestID=`sbatch $depend $sbatchfile | awk '{print $4}'`

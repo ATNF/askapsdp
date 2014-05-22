@@ -68,18 +68,15 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-    qsubfile=csimCalibrator_BEAM${POINTING}.qsub
-    cat > $qsubfile <<EOF
+    sbatchfile=csimCalibrator_BEAM${POINTING}.sbatch
+    cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N csimCal${POINTING}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name csimCal${POINTING}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 csim=${csim}
 
@@ -90,7 +87,7 @@ aprun \${csim} -c ${mkVisParset} > ${mkVisLog}
 EOF
 
     if [ $doSubmit == true ]; then
-	latestID=`qsub ${qsubfile}`
+	latestID=`qsub ${sbatchfile}`
 	echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}: ID=${latestID}"
     fi
 

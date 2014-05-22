@@ -62,24 +62,21 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-qsubfile=cim_${POINTING}_${tag}.qsub
-cat > $qsubfile <<EOF
+sbatchfile=cim_${POINTING}_${tag}.sbatch
+cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N cim${POINTING}${tag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name cim${POINTING}${tag}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 aprun ${cim} -c ${imParset} > ${imLogfile}
 
 EOF
 
-latestID=`qsub $depend $qsubfile`
+latestID=`sbatch $depend $sbatchfile | awk '{print $4}'`
 
 echo "Running cimager for pointing ${POINTING}, imaging ${ms} to create ${image}.restored: ID=${latestID}"
 

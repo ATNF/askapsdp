@@ -3,7 +3,7 @@
 if [ $doCal == true ]; then
 
     if [ "$depend" == "" ]; then
-        calDepend="-Wdepend=afterok"
+        calDepend="--dependency=afterok"
     else
         calDepend=${depend}
     fi
@@ -45,26 +45,23 @@ Ccalibrator.gridder                                 = ${calGridder}
 "
 	fi
 
-	qsubfile=ccal_BEAM${POINTING}.qsub
-	cat > $qsubfile <<EOF
+	sbatchfile=ccal_BEAM${POINTING}.sbatch
+	cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N ccal${POINTING}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name ccal${POINTING}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 mssplit=${mssplit}
 ccal=${ccal}
 
-mssplitParset=${parsetdir}/mssplit-BEAM${POINTING}-\${PBS_JOBID}.in
-mssplitLog=${logdir}/mssplit-BEAM${POINTING}-\${PBS_JOBID}.log
-ccalParset=${parsetdir}/ccal-BEAM${POINTING}-\${PBS_JOBID}.in
-ccalLog=${logdir}/ccal-BEAM${POINTING}-\${PBS_JOBID}.log
+mssplitParset=${parsetdir}/mssplit-BEAM${POINTING}-\${SLURM_JOB_ID}.in
+mssplitLog=${logdir}/mssplit-BEAM${POINTING}-\${SLURM_JOB_ID}.log
+ccalParset=${parsetdir}/ccal-BEAM${POINTING}-\${SLURM_JOB_ID}.in
+ccalLog=${logdir}/ccal-BEAM${POINTING}-\${SLURM_JOB_ID}.log
 
 rm -rf $newms
 
@@ -114,7 +111,7 @@ EOF
 
 	if [ $doSubmit == true ]; then
 
-	    latestID=`qsub $depend $qsubfile`
+	    latestID=`sbatch $depend $sbatchfile | awk '{print $4}'`
 	    calDepend="${calDepend}:${latestID}"
 
 	    echo "Running ccalibrator for pointing ${POINTING}, producing measurement set ${newms}: ID=${latestID}"

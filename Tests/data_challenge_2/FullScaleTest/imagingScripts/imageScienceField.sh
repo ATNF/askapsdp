@@ -56,22 +56,19 @@ linmos.feeds.BEAM8   = [1.23347, 0.0987957]
     fi
 fi
 
-linmosqsub=linmosFull.qsub
-cat > $linmosqsub <<EOF
+linmossbatch=linmosFull.sbatch
+cat > $linmossbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N linmos
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name linmos
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 linmos=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/linmos.sh
 
-parset=parsets/linmos_${type}_\${PBS_JOBID}.in
+parset=parsets/linmos_${type}_\${SLURM_JOB_ID}.in
 cat > \${parset} <<EOF_INNER
 linmos.names       = [${range}]
 linmos.findmosaics = true
@@ -79,7 +76,7 @@ linmos.psfref      = 4
 ${weightingPars}
 ${nterms}
 EOF_INNER
-log=logs/linmos_${type}_\${PBS_JOBID}.log
+log=logs/linmos_${type}_\${SLURM_JOB_ID}.log
 
 aprun \${linmos} -c \${parset} > \${log}
 
@@ -87,6 +84,6 @@ aprun \${linmos} -c \${parset} > \${log}
 EOF
 
 if [ $doSubmit == true ]; then 
-    ID=`qsub ${imdepend} ${linmosqsub}`
-    echo "Have submitted a linmos job with ID=${ID}, via 'qsub ${imdepend} ${linmosqsub}'"
+    ID=`sbatch ${imdepend} ${linmossbatch} | awk '{print $4}'`
+    echo "Have submitted a linmos job with ID=${ID}, via 'sbatch ${imdepend} ${linmossbatch}'"
 fi

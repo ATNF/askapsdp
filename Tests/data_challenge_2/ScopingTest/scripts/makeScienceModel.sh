@@ -47,23 +47,20 @@ createFITS.PAunits          = rad
 createFITS.minMinorAxis     = 0.000100
 EOF
 
-qsubfile=createScienceModel.qsub
-cat > $qsubfile <<EOF
+sbatchfile=createScienceModel.sbatch
+cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N crSci
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name crSci
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 aprun $createFITS -c $crParset > $crLog
 
 EOF
 
 
-latestID=`qsub $depend $qsubfile`
+latestID=`sbatch $depend $sbatchfile | awk '{print $4}'`
 

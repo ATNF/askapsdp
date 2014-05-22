@@ -34,7 +34,7 @@ if [ $runIt == true ]; then
 	$rndgains -f 9 -a 6 -p 2 $randomgainsparset
     fi
 
-    allIDs="-Wdepend=afterok"
+    allIDs="--dependency=afterok"
 
     while [ $POINTING -le $MAXPOINT ]; do
 
@@ -42,14 +42,14 @@ if [ $runIt == true ]; then
 	doCal=false
 	depend=""
 	. ${scriptdir}/runCsimulator.sh
-	depend="-Wdepend=afterok:${latestID}"
+	depend="--dependency=afterok:${latestID}"
 	allIDs="${allIDs}:${latestID}"
 	. ${scriptdir}/runImaging.sh
 	allIDs="${allIDs}:${latestID}"
 	doCorrupt=true
 	depend=""
 	. ${scriptdir}/runCsimulator.sh
-	depend="-Wdepend=afterok:${latestID}"
+	depend="--dependency=afterok:${latestID}"
 	allIDs="${allIDs}:${latestID}"
 	. ${scriptdir}/runImaging.sh
 	allIDs="${allIDs}:${latestID}"
@@ -78,14 +78,14 @@ if [ $runIt == true ]; then
 
 	doCorrupt=false
 	doCal=false
-	depend="-Wdepend=afterok:${modelID}"
+	depend="--dependency=afterok:${modelID}"
 	. ${scriptdir}/runCsimulatorScienceField.sh
 	depend="${allIDs}:${modelID}:${latestID}"
 	. ${scriptdir}/runImagingScienceField.sh
 	. ${scriptdir}/runImagingScienceFieldTrimmed.sh
 
 	doCorrupt=true
-	depend="-Wdepend=afterok:${modelID}"
+	depend="--dependency=afterok:${modelID}"
 	. ${scriptdir}/runCsimulatorScienceField.sh
 	depend="${allIDs}:${modelID}:${latestID}"
 	. ${scriptdir}/runImagingScienceField.sh

@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 if [ "$depend" == "" ]; then
-    merge2dep="-Wdepend=afterok"
+    merge2dep="--dependency=afterok"
 else
     merge2dep=${depend}
 fi
@@ -24,7 +24,7 @@ while [ $GRP -lt ${NGROUPS_CSIM} ]; do
 	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
 	    . ${simScripts}/makeSlices.sh
 	    if [ "$grpDepend" == "" ]; then
-		grpDepend="-Wdepend=afterok:${slID}"
+		grpDepend="--dependency=afterok:${slID}"
 	    else
 		grpDepend="${grpDepend}:${slID}"
 	    fi
@@ -104,19 +104,16 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-    pbstag="csimSci${GRP}"
-    qsubfile=csimScience_GRP${GRP}.qsub
-    cat > $qsubfile <<EOF
+    slurmtag="csimSci${GRP}"
+    sbatchfile=csimScience_GRP${GRP}.sbatch
+    cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=06:00:00
-#PBS -l mppwidth=${NCPU_CSIM}
-#PBS -l mppnppn=${NPPN_CSIM}
-#PBS -N ${pbstag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=06:00:00
+#SBATCH --ntasks=${NCPU_CSIM}
+#SBATCH --ntasks-per-node=${NPPN_CSIM}
+#SBATCH --job-name ${slurmtag}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 csim=${csim}
 
@@ -127,10 +124,10 @@ aprun -n ${NCPU_CSIM} -N ${NPPN_CSIM}  \${csim} -c ${mkVisParset} > ${mkVisLog}
 EOF
 
     if [ $doSubmit == true ]; then
-	csimID=`qsub ${grpDepend} ${qsubfile}`
+	csimID=`qsub ${grpDepend} ${sbatchfile}`
 	echo "Running csimulator for science field, group $GRP, producing measurement set ${ms}: ID=${csimID} and dependency $grpDepend"
 	if [ "$depend" == "" ]; then
-	    grpDepend="-Wdepend=afterok:${csimID}"
+	    grpDepend="--dependency=afterok:${csimID}"
 	else
 	    grpDepend="${grpDepend}:${csimID}"
 	fi
@@ -138,18 +135,17 @@ EOF
     fi
 
 
-    merge1qsub=mergeVisStage1_GRP${GRP}.qsub
+    merge1qsub=mergeVisStage1_GRP${GRP}.sbatch
     
     cat > $merge1qsub <<EOF
 #!/bin/bash
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -l walltime=12:00:00
-#PBS -M matthew.whiting@csiro.au
-#PBS -N visMerge1_${GRP}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name visMerge1_${GRP}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 #######
 # AUTOMATICALLY CREATED
@@ -159,8 +155,6 @@ ulimit -n 8192
 export APRUN_XFER_LIMITS=1
 
 msmerge=${msmerge}
-
-cd \$PBS_O_WORKDIR
 
 MSPERJOB=${NWORKERS_CSIM}
 
@@ -172,7 +166,7 @@ while [ \$IDX -lt \$MSPERJOB ]; do
 done
 
 mkdir -p ${logdir}
-logfile=${logdir}/merge_s1_output_GRP${GRP}_\${PBS_JOBID}.log
+logfile=${logdir}/merge_s1_output_GRP${GRP}_\${SLURM_JOB_ID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
 aprun -n 1 -N 1 \${msmerge} -o ${msdir}/${msbaseSci}_GRP${GRP}.ms \$FILES >> \${logfile}
@@ -191,25 +185,22 @@ done
 
 
 
-merge2qsub=mergeVisStage2.qsub
+merge2qsub=mergeVisStage2.sbatch
 	
 cat > $merge2qsub <<EOF
 #!/bin/bash
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -l walltime=12:00:00
-#PBS -M matthew.whiting@csiro.au
-#PBS -N visMerge2
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name visMerge2
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1
 
 msmerge=${msmerge}
-
-cd \$PBS_O_WORKDIR
 
 IDX=0
 unset FILES
@@ -218,7 +209,7 @@ while [ \$IDX -lt ${NGROUPS_CSIM} ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdir}/merge_s2_output_\${PBS_JOBID}.log
+logfile=${logdir}/merge_s2_output_\${SLURM_JOB_ID}.log
 echo "Processing files: \$FILES" > \${logfile}
 aprun -n 1 -N 1 \${msmerge} -o ${msdir}/${msbaseSci}.ms \$FILES >> \${logfile}
 EOF

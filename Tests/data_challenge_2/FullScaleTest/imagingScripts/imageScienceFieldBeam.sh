@@ -17,24 +17,21 @@ else
 
 fi
 
-pbstag="cimSci${POINTING}"
-qsubfile=cim_Science_BEAM${POINTING}.qsub
-cat > $qsubfile <<EOF
+slurmtag="cimSci${POINTING}"
+sbatchfile=cim_Science_BEAM${POINTING}.sbatch
+cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=03:00:00
-#PBS -l mppwidth=${CONT_CLEAN_MPPWIDTH}
-#PBS -l mppnppn=${CONT_CLEAN_MPPNPPN}
-#PBS -N ${pbstag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
+#SBATCH --time=03:00:00
+#SBATCH --ntasks=${CONT_CLEAN_MPPWIDTH}
+#SBATCH --ntasks-per-node=${CONT_CLEAN_MPPNPPN}
+#SBATCH --job-name ${slurmtag}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cim=${cim}
 
-cd \$PBS_O_WORKDIR
-
-imParset=${parsetdir}/cimScience-BEAM${POINTING}-\${PBS_JOBID}.in
-imLogfile=${logdir}/cim-Science-BEAM${POINTING}-\${PBS_JOBID}.log
+imParset=${parsetdir}/cimScience-BEAM${POINTING}-\${SLURM_JOB_ID}.in
+imLogfile=${logdir}/cim-Science-BEAM${POINTING}-\${SLURM_JOB_ID}.log
 
 cat > \${imParset} << EOF_INNER
 Cimager.dataset                                 = ${coarseMS}
@@ -106,10 +103,10 @@ EOF
 if [ $doSubmit == true ]; then
 
     if [ "${imdepend}" == "" ]; then
-	imdepend="-Wdepend=afterok"
+	imdepend="--dependency=afterok"
     fi
 
-    latestID=`qsub $calDepend $qsubfile`
+    latestID=`sbatch $calDepend $sbatchfile | awk '{print $4}'`
     echo "Running cimager for science field, imaging ${ms} to create ${image}.restored: ID=${latestID}"
 
 fi

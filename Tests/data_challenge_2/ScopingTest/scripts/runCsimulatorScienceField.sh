@@ -65,19 +65,16 @@ Csimulator.calibaccess                           =       parset
 Csimulator.calibaccess.parset                    =       $randomgainsparset
 EOF_INNER
 
-pbstag="csimSci${tag}"
-qsubfile=csim_Science_${tag}.qsub
-cat > $qsubfile <<EOF
+slurmtag="csimSci${tag}"
+sbatchfile=csim_Science_${tag}.sbatch
+cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=01:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -N ${pbstag}
-#PBS -m a
-#PBS -j oe
-#PBS -v ASKAP_ROOT,AIPSPATH
-
-cd \$PBS_O_WORKDIR
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name ${slurmtag}
+#SBATCH --mail-type=ALL
+#SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 rm -rf $ms
 
@@ -85,7 +82,7 @@ aprun ${csim} -c ${mkVisParset} > ${mkVisLog}
 
 EOF
 
-latestID=`qsub ${depend} ${qsubfile}`
+latestID=`sbatch ${depend} ${sbatchfile} | awk '{print $4}'`
 
 echo "Running csimulator for science field, producing measurement set ${ms}: ID=${latestID}"
 
