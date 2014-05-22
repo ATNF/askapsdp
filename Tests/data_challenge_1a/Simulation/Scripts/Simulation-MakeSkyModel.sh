@@ -22,28 +22,25 @@ dependSM=${depend}
 
 if [ $doSmoothSM == true ]; then
 
-    smoothQsub=${smdir}/${WORKDIR}/smoothModels.qsub
+    smoothSbatch=${smdir}/${WORKDIR}/smoothModels.sbatch
 
     if [ $doFlatSpectrum == true ]; then
 
-	cat > $smoothQsub <<EOF
+	cat > $smoothSbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=1:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -M matthew.whiting@csiro.au
-#PBS -N smoothTaylor
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name smoothTaylor
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \$PBS_O_WORKDIR
-
-smoothScript=${scriptdirSM}/smoothModels-\${PBS_JOBID}.py
+smoothScript=${scriptdirSM}/smoothModels-\${SLURM_JOB_ID}.py
 cat > \${smoothScript} <<EOF_INNER
 #!/bin/env python
 
@@ -65,7 +62,7 @@ ia.close()
 
 EOF_INNER
 
-output=${logdirSM}/smoothModels-\${PBS_JOBID}.log
+output=${logdirSM}/smoothModels-\${SLURM_JOB_ID}.log
 echo Running casa script to smooth  Taylor term images  > \$output
 casapy --nologger --log2term -c \$smoothScript >> \$output
 exit \$?
@@ -73,24 +70,21 @@ EOF
 
     else 
 
-	cat > $smoothQsub <<EOF
+	cat > $smoothSbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=1:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -M matthew.whiting@csiro.au
-#PBS -N smoothTaylor
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name smoothTaylor
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \$PBS_O_WORKDIR
-
-smoothScript=${scriptdirSM}/smoothModels-\${PBS_JOBID}.py
+smoothScript=${scriptdirSM}/smoothModels-\${SLURM_JOB_ID}.py
 cat > \${smoothScript} <<EOF_INNER
 #!/bin/env python
 
@@ -148,7 +142,7 @@ for t in range(3):
 
 EOF_INNER
 
-output=${logdirSM}/smoothModels-\${PBS_JOBID}.log
+output=${logdirSM}/smoothModels-\${SLURM_JOB_ID}.log
 echo Running casa script to smooth  Taylor term images  > \$output
 casapy --nologger --log2term -c \$smoothScript >> \$output
 exit \$?
@@ -158,10 +152,10 @@ EOF
     
     if [ $doSubmit == true ]; then
 
-	smoothID=`qsub ${dependSM} $smoothQsub`
+	smoothID=`sbatch ${dependSM} $smoothSbatch | awk '{print $4}'`
 	echo Submitted job $smoothID to smooth Taylor term images
 	if [ "$dependSM" == "" ]; then
-	    dependSM="-W depend=afterok:${smoothID}"
+	    dependSM="--dependency=afterok:${smoothID}"
 	else
 	    dependSM="${dependSM}:${smoothID}"
 	fi
@@ -182,26 +176,24 @@ if [ $doSF_SM == true ]; then
 	smoothIm="${baseimage}-smooth.taylor.0"
     fi
 
-    selavyQsub=${smdir}/${WORKDIR}/selavy-smooth.qsub
-    cat > $selavyQsub <<EOF
+    selavySbatch=${smdir}/${WORKDIR}/selavy-smooth.sbatch
+    cat > $selavySbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=1:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -M matthew.whiting@csiro.au
-#PBS -N selavyTaylor
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name selavyTaylor
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \$PBS_O_WORKDIR
 export AIPSPATH=${AIPSPATH}
 
-selavyParset=${parsetdirSM}/selavy-smooth-\${PBS_JOBID}.in
+selavyParset=${parsetdirSM}/selavy-smooth-\${SLURM_JOB_ID}.in
 cat > \${selavyParset} <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
@@ -220,7 +212,7 @@ Selavy.Fitter.numSubThresholds = 1000
 Selavy.findSpectralIndex = true
 EOF_INNER
 
-output=${logdirSM}/selavy-smooth-\${PBS_JOBID}.log
+output=${logdirSM}/selavy-smooth-\${SLURM_JOB_ID}.log
 aprun -B $selavy -c \${selavyParset} > \${output}
 
 exit \$?
@@ -229,10 +221,10 @@ EOF
 
     if [ $doSubmit == true ]; then
 
-	selavyID=`qsub ${dependSM} $selavyQsub`
+	selavyID=`sbatch ${dependSM} $selavySbatch | awk '{print $4}'`
 	echo Submitting Selavy job with ID $selavyID
 	if [ "$dependSM" == "" ]; then
-	    dependSM="-W depend=afterok:${selavyID}"
+	    dependSM="--dependency=afterok:${selavyID}"
 	else
 	    dependSM="${dependSM}:${selavyID}"
 	fi
@@ -269,30 +261,28 @@ if [ $doComparisonSM == true ]; then
     cellsize=9.1234
     delt=`echo $cellsize | awk '{print $1/3600.}'`
 
-    modelcompQsub=${smdir}/${WORKDIR}/modelComparison.qsub
-    cat > $modelcompQsub <<EOF
+    modelcompSbatch=${smdir}/${WORKDIR}/modelComparison.sbatch
+    cat > $modelcompSbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=1:00:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -M matthew.whiting@csiro.au
-#PBS -N modelComp
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name modelComp
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=${AIPSPATH}
 export CASACOREDIR=\${ASKAP_ROOT}/3rdParty/casacore/casacore-1.6.0a
 createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 imagecalc=\${CASACOREDIR}/install/bin/imagecalc
 
-modelcompParset=${parsetdirSM}/modelcomp-\${PBS_JOBID}.in
+modelcompParset=${parsetdirSM}/modelcomp-\${SLURM_JOB_ID}.in
 cat > \${modelcompParset} <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
@@ -328,7 +318,7 @@ createFITS.PAunits          = deg
 createFITS.minMinorAxis     = 0.000100
 EOF_INNER
 
-output=${logdirSM}/modelcomp-\${PBS_JOBID}.log
+output=${logdirSM}/modelcomp-\${SLURM_JOB_ID}.log
 aprun -B \$createFITS -c \${modelcompParset} > \${output}
 err=\$?
 if [ \$err -ne 0 ]; then
@@ -344,7 +334,7 @@ EOF
 
     if [ $doSubmit == true ]; then
 	
-	modelcompID=`qsub $dependSM $modelcompQsub`
+	modelcompID=`sbatch $dependSM $modelcompSbatch | awk '{print $4}'`
 	echo Submitting Model Comparison job with ID $modelcompID
 
     fi

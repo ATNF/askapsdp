@@ -16,10 +16,10 @@ cd ${BASEDIR}
 
 config=${scriptdir}/config.sh
 
-#doSubmit=true
-doSubmit=false
+doSubmit=true
+#doSubmit=false
 
-unset QSUB_JOBLIST
+unset SBATCH_JOBLIST
 unset depend
 
 if [ ! -e numRuns ]; then
@@ -31,9 +31,9 @@ $RUN_NUM
 EOF
 echo This will be run${RUN_NUM} of the simulation pipeline
 
-doModelCreation=true
+doModelCreation=false
 doVisibilities=true
-doSkyModel=true
+doSkyModel=false
 
 . ${config}
 
@@ -64,7 +64,7 @@ fi
 
 if [ $doSubmit == true ] && [ $QSUB_JOBLIST ]; then
     
-    qrls $QSUB_JOBLIST
+    scontrol release $SBATCH_JOBLIST
     
 fi
 

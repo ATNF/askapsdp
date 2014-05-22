@@ -17,29 +17,26 @@ touch ${now}
 
 if [ $doCreateCR == true ]; then
 
-    crQsub=${crdir}/${WORKDIR}/createModel.qsub
-    cat > $crQsub <<EOF
+    crSbatch=${crdir}/${WORKDIR}/createModel.sbatch
+    cat > $crSbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=12:00:00
-#PBS -l mppwidth=${CREATORWIDTH}
-#PBS -l mppnppn=${CREATORPPN}
-#PBS -M matthew.whiting@csiro.au
-#PBS -N DCmodelCF
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=${CREATORWIDTH}
+#SBATCH --ntasks-per-node=${CREATORPPN}
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name DCmodelCF
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \$PBS_O_WORKDIR
-
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/createFITS.sh
 
-parset=${parsetdirCR}/createModel-\${PBS_JOBID}.in
+parset=${parsetdirCR}/createModel-\${SLURM_JOB_ID}.in
 cat > \$parset <<EOF_INNER
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
@@ -83,17 +80,17 @@ createFITS.PAunits          = ${PAunits}
 createFITS.minMinorAxis     = 0.000100
 EOF_INNER
 
-crLog=${logdirCR}/createModel-\${PBS_JOBID}.log
+crLog=${logdirCR}/createModel-\${SLURM_JOB_ID}.log
 
 aprun -n ${CREATORWIDTH} -N ${CREATORPPN} \$createFITS -c \$parset > \$crLog
 
 EOF
 
     if [ $doSubmit == true ]; then
-	crID=`qsub -h $crQsub`
+	crID=`sbatch --hold $crSbatch | awk '{print $4}'`
 	echo Running create job with ID $crID
-	QSUB_JOBLIST="${QSUB_JOBLIST} ${crID}"
-	depend="-W depend=afterok:${crID}"
+	SBATCH_JOBLIST="${SBATCH_JOBLIST} ${crID}"
+	depend="--dependency=afterok:${crID}"
     fi
 
 fi

@@ -8,7 +8,7 @@ mkdir -p ${slicedir}
 
 if [ $doSlice == true ]; then 
 
-    slQsub=${visdir}/${WORKDIR}/makeslices.qsub
+    slSbatch=${visdir}/${WORKDIR}/makeslices.sbatch
 
     if [ ${writeByNode} == true ]; then
 
@@ -32,28 +32,26 @@ if [ $doSlice == true ]; then
 	# getting the appropriate slices of the chunks and stitching
 	# them together using makeAllModelSlices in Analysis.
 
-    cat > $slQsub <<EOF
+    cat > $slSbatch <<EOF
 #!/bin/bash -l
-#PBS -l walltime=12:00:00
-#PBS -l mppwidth=${width}
-#PBS -l mppnppn=${nppn}
-#PBS -M matthew.whiting@csiro.au
-#PBS -N sliceCont
-#PBS -m bea
-#PBS -j oe
-#PBS -r n
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=${width}
+#SBATCH --ntasks-per-node=${nppn}
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name sliceCont
+#SBATCH --mail-type=ALL
+#SBATCH --no-requeue
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
 ####################
 
-cd \${PBS_O_WORKDIR}
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 slicer=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeAllModelSlices.sh
 
-slParset=${parsetdirVis}/makeslices-\${PBS_JOBID}.in
-slLog=${logdirVis}/makeslices-\${PBS_JOBID}.log
+slParset=${parsetdirVis}/makeslices-\${SLURM_JOB_ID}.in
+slLog=${logdirVis}/makeslices-\${SLURM_JOB_ID}.log
 
 cat >> \${slParset} <<EOFINNER
 ####################
@@ -81,28 +79,25 @@ EOF
 ## 	# monolithic cube and uses cubeslice in Synthesis to carve off
 ## 	# slices.
 ## 
-## 	cat > $slQsub <<EOF
+## 	cat > $slSbatch <<EOF
 ## #!/bin/bash -l
-## #PBS -l walltime=12:00:00
-## #PBS -l mppwidth=1
-## #PBS -l mppnppn=1
-## #PBS -M matthew.whiting@csiro.au
-## #PBS -N sliceCont
-## #PBS -m bea
-## #PBS -j oe
-## #PBS -r n
+## #SBATCH --time=12:00:00
+## #SBATCH --ntasks=1
+## #SBATCH --ntasks-per-node=1
+## #SBATCH --mail-user matthew.whiting@csiro.au
+## #SBATCH --job-name sliceCont
+## #SBATCH --mail-type=ALL
+## #SBATCH --no-requeue
 ## 
 ## ####################
 ## # AUTOMATICALLY GENERATED - DO NOT EDIT
 ## ####################
 ## 
-## cd \$PBS_O_WORKDIR
-## 
 ## export ASKAP_ROOT=${ASKAP_ROOT}
 ## export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 ## cubeslice=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubeslice.sh
 ## 
-## slLog=${logdirVis}/cubeslice-continuum-\${PBS_JOBID}.log
+## slLog=${logdirVis}/cubeslice-continuum-\${SLURM_JOB_ID}.log
 ## 
 ## # make the models for each of the workers that hold the right number of channels
 ## echo Extracting chunks from cube \`date\` >> \$slLog
@@ -131,7 +126,7 @@ EOF
 
     if [ $doSubmit == true ]; then
 
-	export slID=`qsub ${depend} ${slQsub}`
+	export slID=`sbatch ${depend} ${slSbatch} | awk '{print $4}'`
 	echo Running cubeslice job with ID $slID
 
     fi

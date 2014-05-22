@@ -24,7 +24,7 @@ if [ $doCsim == true ]; then
 	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/randomgains.sh ${randomgainsArgs} ${calibparset}
     fi
 
-#    mergeDep="-Wdepend=afterok"
+#    mergeDep="--dependency=afterok"
     dependStart=$depend
     merge2dep=$depend
     GRP=0
@@ -33,7 +33,7 @@ if [ $doCsim == true ]; then
 	echo "Running group ${GRP} of ${NGROUPS_CSIM}"
 
 	if [ "$dependStart" == "" ]; then
-	    mergeDep="-Wdepend=afterok"
+	    mergeDep="--dependency=afterok"
 	else
 	    mergeDep=$dependStart
 	fi
@@ -52,10 +52,10 @@ if [ $doCsim == true ]; then
 	    nchanSlicer=`echo $NWORKERS_CSIM $chanPerMSchunk | awk '{print $1*$2}'`
 	    . ${scriptdir}/Simulation-MakeSlices.sh
 	    if [ $doSlice == true ]; then 
-		mv ${visdir}/${WORKDIR}/makeslices.qsub ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.qsub
+		mv ${visdir}/${WORKDIR}/makeslices.sbatch ${visdir}/${WORKDIR}/makeslices_GRP${GRP}.sbatch
 		mergeDep="${mergeDep}:${slID}"
 		if [ "$merge2dep" == "" ]; then
-		    merge2dep="-Wdepend=afterok:${slID}"
+		    merge2dep="--dependency=afterok:${slID}"
 		else
 		    merge2dep="${merge2dep}:${slID}"
 		fi
@@ -86,22 +86,20 @@ if [ $doCsim == true ]; then
 	    Tsys=`echo $nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if ($1>$4) printf "%4.1f",($1 * $2) + $3; else printf "50.0"}'`
 	fi
 
-	qsubfile=makeVis_GRP${GRP}.qsub
-	cat > $qsubfile <<EOF
+	sbatchfile=makeVis_GRP${GRP}.sbatch
+	cat > $sbatchfile <<EOF
 #!/bin/bash -l
-#PBS -l walltime=6:00:00
-#PBS -l mppwidth=${NCPU_CSIM}
-#PBS -l mppnppn=${NPPN_CSIM}
-#PBS -M matthew.whiting@csiro.au
-#PBS -N mkVis${GRP}
-#PBS -m bea
-#PBS -j oe
+#SBATCH --time=6:00:00
+#SBATCH --ntasks=${NCPU_CSIM}
+#SBATCH --ntasks-per-node=${NPPN_CSIM}
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name mkVis${GRP}
+#SBATCH --mail-type=ALL
 
 #####
 # AUTOMATICALLY CREATED!
 #####
 
-cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 makeModelSlice=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/apps/makeModelSlice.sh
@@ -110,8 +108,8 @@ askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation
 
 mkdir -p ${parsetdirVis}/${WORKDIR}
 mkdir -p ${logdirVis}/${WORKDIR}
-mkVisParset=${parsetdirVis}/${WORKDIR}/csim-\${PBS_JOBID}.in
-mkVisLog=${logdirVis}/${WORKDIR}/csim-\${PBS_JOBID}.log
+mkVisParset=${parsetdirVis}/${WORKDIR}/csim-\${SLURM_JOB_ID}.in
+mkVisLog=${logdirVis}/${WORKDIR}/csim-\${SLURM_JOB_ID}.log
 
 cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       $ms
@@ -173,14 +171,14 @@ EOF
 
 	if [ $doSubmit == true ]; then
 #	    if [ $doSlice == true ]; then
-#		mkvisID=`qsub -Wdepend=afterok:${slID} ${qsubfile}`
+#		mkvisID=`sbatch --dependency=afterok:${slID} ${sbatchfile} | awk '{print $4}'`
 #	    else
-#		mkvisID=`qsub ${qsubfile}`
+#		mkvisID=`sbatch ${sbatchfile} | awk '{print $4}'`
 #	    fi
-	    mkvisID=`qsub ${mergeDep} ${qsubfile}`
+	    mkvisID=`sbatch ${mergeDep} ${sbatchfile} | awk '{print $4}'`
 	    mergeDep="${mergeDep}:${mkvisID}"
 	    if [ "$merge2dep" == "" ]; then
-		merge2dep="-Wdepend=afterok:${mkvisID}"
+		merge2dep="--dependency=afterok:${mkvisID}"
 	    else
 		merge2dep="${merge2dep}:${mkvisID}"
 	    fi
@@ -189,17 +187,16 @@ EOF
 	
 	if [ $doMergeStage1 == true ]; then
 
-	    merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1_GRP${GRP}.qsub
+	    merge1sbatch=${visdir}/${WORKDIR}/mergeVisStage1_GRP${GRP}.sbatch
 	    
-	    cat > $merge1qsub <<EOF
+	    cat > $merge1sbatch <<EOF
 #!/bin/bash
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -l walltime=12:00:00
-#PBS -M matthew.whiting@csiro.au
-#PBS -N visMerge1_${GRP}
-#PBS -m a
-#PBS -j oe
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name visMerge1_${GRP}
+#SBATCH --mail-type=ALL
 
 #######
 # AUTOMATICALLY CREATED
@@ -207,8 +204,6 @@ EOF
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1
-
-cd \$PBS_O_WORKDIR
 
 MSPERJOB=${NWORKERS_CSIM}
 
@@ -220,7 +215,7 @@ while [ \$IDX -lt \$MSPERJOB ]; do
 done
 
 mkdir -p ${logdirVis}/${WORKDIR}
-logfile=${logdirVis}/${WORKDIR}/merge_s1_output_\${PBS_JOBID}.log
+logfile=${logdirVis}/${WORKDIR}/merge_s1_output_\${SLURM_JOB_ID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
 aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_${GRP}.ms \$FILES >> \${logfile}
@@ -228,7 +223,7 @@ aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o
 EOF
 
 	    if [ $doSubmit == true ]; then
-		merge1ID=`qsub ${mergeDep} $merge1qsub`
+		merge1ID=`sbatch ${mergeDep} $merge1sbatch | awk '{print $4}'`
 		merge2dep="${merge2dep}:${merge1ID}"
 	    fi
 
@@ -241,22 +236,19 @@ EOF
 
     if [ $doMergeStage2 == true ]; then
 
-	merge2qsub=${visdir}/${WORKDIR}/mergeVisStage2.qsub
+	merge2sbatch=${visdir}/${WORKDIR}/mergeVisStage2.sbatch
 	
-	cat > $merge2qsub <<EOF
+	cat > $merge2sbatch <<EOF
 #!/bin/bash
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
-#PBS -l walltime=12:00:00
-#PBS -M matthew.whiting@csiro.au
-#PBS -N visMerge2
-#PBS -m a
-#PBS -j oe
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-user matthew.whiting@csiro.au
+#SBATCH --job-name visMerge2
+#SBATCH --mail-type=ALL
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1
-
-cd \$PBS_O_WORKDIR
 
 IDX=0
 unset FILES
@@ -265,14 +257,14 @@ while [ \$IDX -lt ${NGROUPS_CSIM} ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${PBS_JOBID}.log
+logfile=${logdirVis}/${WORKDIR}/merge_s2_output_\${SLURM_JOB_ID}.log
 echo "Processing files: \$FILES" > \${logfile}
 aprun $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${finalMS} \$FILES >> \${logfile}
 EOF
 
 	if [ $doSubmit == true ]; then
 
-	    merge2ID=`qsub ${merge2dep} $merge2qsub`
+	    merge2ID=`sbatch ${merge2dep} $merge2sbatch | awk '{print $4}'`
 
 	fi
 
