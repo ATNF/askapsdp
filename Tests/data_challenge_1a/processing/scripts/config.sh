@@ -16,16 +16,7 @@ WORKDIR="run_`date +%Y%m%d_%H%M%S`"
 QUEUEGROUP=magnusea02
 
 # Location (relative to the workdir or absolute) of the input measurement set
-#INPUT_MS=../input/dc1a.ms
-#INPUT_MS="../input/DCvis_2pol_noise50.K_corrupt_feedbased.ms"
-#INPUT_MS="../input/DCvis_2pol_noise50.K_noCorrupt_halfBW.ms"
-#INPUT_MS="../input/DCvis_2pol_36feeds_noise50.K_corrupt_feedbased.ms"
-#INPUT_MS="../input/DCvis_2pol_noise50.K_corrupt_feedbased_halfBW.ms"
-#
-#INPUT_MS="../input/DCvis_dec45_cont_smallBETA_1050_2pol_9feeds_noise50.K_noCorrupt.ms"
-#INPUT_MS="../input/DCvis_cont_1050_2pol_9feeds_noise50.K_noCorrupt_smallBETA.ms"
-#
-INPUT_MS="../input/DCvis_dec79_flat_1050_2pol_9feeds_noise50.K_noCorrupt.ms"
+INPUT_MS=../input/dc1a.ms
 
 # Location (relative to workdir or absolute) of the input sky model (component list)
 INPUT_SKYMODEL_XML=../input/skymodel-duchamp.xml
@@ -59,10 +50,10 @@ DO_CONTINUUM_CLEAN=true
 DO_ANALYSIS=true
 
 # Do Continuum-cube Imaging - Dirty (true or false)
-DO_CONTINUUM_CUBE_DIRTY=true
+DO_CONTINUUM_CUBE_DIRTY=false
 
 # Do Continuum-cube Imaging - Clean (true or false)
-DO_CONTINUUM_CUBE_CLEAN=true
+DO_CONTINUUM_CUBE_CLEAN=false
 
 # Do Spectral Line Imaging (true or false)
 DO_SPECTRAL_LINE=false
