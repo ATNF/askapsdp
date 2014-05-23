@@ -16,7 +16,7 @@ function qsubmit()
     # Build the command and include dependencies if the DEPENDS environment
     # variable is set
     if [ "${DEPENDS}" ]; then
-        local QEXEC_CMD="${SBATCH_CMD} --dependency=afterok:${DEPENDS} $@"
+        local QEXEC_CMD="${SBATCH_CMD} --dependency=${DEPENDS} $@"
     else
         # All jobs with no dependencies are queued with a user hold. This ensures
         # these jobs are in the queue (and have not executed and completed) so 

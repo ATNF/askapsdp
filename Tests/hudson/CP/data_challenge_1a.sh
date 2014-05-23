@@ -116,7 +116,7 @@ while [ "${FINISHED}" == "false" ]; do
     FINISHED=true
     
     for JOB in ${JOBIDS}; do
-        qstat ${JOB}
+        squeue -j ${JOB}
         if [ $? -eq 0 ]; then
             FINISHED=false
         fi
