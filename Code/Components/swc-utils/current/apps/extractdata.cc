@@ -92,6 +92,22 @@ casa::Matrix<casa::Complex> flagOutliers(const casa::Matrix<casa::Complex> &in) 
   */
 }
 
+casa::Matrix<casa::Complex> replaceFlagsWithZeros(const casa::Matrix<casa::Complex> &in, const casa::Matrix<casa::Bool> &flag)
+{
+   ASKAPDEBUGASSERT(in.ncolumn()>0);
+   ASKAPDEBUGASSERT(in.nrow()>0);
+   ASKAPCHECK(in.shape() == flag.shape(), "Flag and visibility matrices should have the same shape");
+   casa::Matrix<casa::Complex> result = in.copy();
+   for (casa::uInt row=0;row<result.nrow(); ++row) {
+        for (casa::uInt col=0; col<result.ncolumn(); ++col) {
+             if (flag(row,col)) {
+                 result(row,col) = casa::Complex(0.,0.);
+             }
+        }
+   }
+   return result;
+}
+
 casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, const casa::uInt factor) {
    if (factor == 1) {
        return in;
@@ -130,6 +146,7 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
   if (stokesVector.nelements() != 1) {
       ASKAPTHROW(AskapError, "Exactly one stokes parameter should be defined, you have "<<stokesStr);
   }
+  const bool replaceFlags = parset.getBool("zeroflags",false);
   
   casa::uInt currentStep = 0;
   casa::Vector<casa::uInt> ant1IDs;
@@ -188,7 +205,11 @@ void process(const IConstDataSource &ds, const LOFAR::ParameterSet &parset) {
        ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPDEBUGASSERT(polIndex < it->nPol());
-       buf += flagOutliers(padSecond(it->visibility().xyPlane(polIndex),padding));
+       if (replaceFlags) {
+           buf += flagOutliers(padSecond(replaceFlagsWithZeros(it->visibility().xyPlane(polIndex), it->flag().xyPlane(polIndex)),padding));
+       } else {
+           buf += flagOutliers(padSecond(it->visibility().xyPlane(polIndex),padding));
+       }
        avgTime += it->time();
        if (++counter == nAvg) {
            buf /= float(nAvg);
