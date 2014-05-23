@@ -148,12 +148,16 @@ VisChunk::ShPtr MergedSource::next(void)
     }
 
     // Find data with matching timestamps
+    bool logCatchup = true;
     while (itsMetadata->time() != itsVis->timestamp) {
 
         // If the VisDatagram timestamps are in the past (with respect to the
         // TosMetadata) then read VisDatagrams until they catch up
         while (!itsVis || itsMetadata->time() > itsVis->timestamp) {
-            ASKAPLOG_DEBUG_STR(logger, "Reading an extra VisDatagram to catch up");
+            if (logCatchup) {
+                ASKAPLOG_DEBUG_STR(logger, "Reading extra VisDatagrams to catch up");
+                logCatchup = false;
+            }
             itsVis = itsVisSrc->next(ONE_SECOND);
 
             checkInterruptSignal();
@@ -162,7 +166,10 @@ VisChunk::ShPtr MergedSource::next(void)
         // But if the timestamp in the VisDatagram is in the future (with
         // respect to the TosMetadata) then it is time to fetch new TosMetadata
         if (!itsMetadata || itsMetadata->time() < itsVis->timestamp) {
-            ASKAPLOG_DEBUG_STR(logger, "Reading an extra TosMetadata to catch up");
+            if (logCatchup) {
+                ASKAPLOG_DEBUG_STR(logger, "Reading extra TosMetadata to catch up");
+                logCatchup = false;
+            }
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
         }
