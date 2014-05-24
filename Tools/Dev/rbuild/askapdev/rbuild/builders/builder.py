@@ -159,11 +159,13 @@ class Builder:
         if self.remote_archive is None:
             return
         uitem = urllib2.urlparse.urlsplit(self.remote_archive)
+        outfile = os.path.split(uitem.path)[-1]
+        if (os.path.isfile(outfile)):
+            return
         fullpath = self.remote_archive
         if not uitem.scheme:
             root = os.environ["RBUILD_REMOTE_ARCHIVE"]
             fullpath = os.path.sep.join((root, self.remote_archive))
-        outfile = os.path.split(uitem.path)[-1]
         remote = urllib2.urlopen(fullpath)
         utils.q_print("info: Fetching '{}'...".format(fullpath))
         with open(outfile, "wb") as of:
