@@ -94,6 +94,7 @@ public class ProcessIngestManager extends AbstractIngestManager {
 		}
 
 		if (!isRunning()) {
+			logger.error("Ingest pipeline failed to start");
 			throw new askap.interfaces.cp.PipelineStartException(
 					"Ingest pipeline failed to start");
 		}
