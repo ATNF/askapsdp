@@ -111,6 +111,11 @@ VisChunk::ShPtr MergedSource::next(void)
         do {
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
+            if (itsMetadata && itsMetadata->scanId() == -2) {
+                ASKAPLOG_WARN_STR(logger,
+                        "Observation has been aborted before first scan was started");
+                return VisChunk::ShPtr();
+            }
         } while (!itsMetadata || itsMetadata->scanId() < 0);
     } else {
         do {
@@ -161,6 +166,10 @@ VisChunk::ShPtr MergedSource::next(void)
             itsVis = itsVisSrc->next(ONE_SECOND);
 
             checkInterruptSignal();
+            if (itsMetadata && itsMetadata->scanId() == -2) {
+                // TOS commanded end-of-obs
+                return VisChunk::ShPtr();
+            }
         }
 
         // But if the timestamp in the VisDatagram is in the future (with
@@ -172,6 +181,10 @@ VisChunk::ShPtr MergedSource::next(void)
             }
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
+            if (itsMetadata && itsMetadata->scanId() == -2) {
+                // TOS commanded end-of-obs
+                return VisChunk::ShPtr();
+            }
         }
     }
 

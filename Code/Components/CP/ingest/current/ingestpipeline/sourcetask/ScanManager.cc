@@ -79,7 +79,7 @@ void ScanManager::update(const casa::Int scanId)
             ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << scanId);
             itsScanIndex = scanId;
         } else {
-            // Alternatively handle the case where a -1 has been received,
+            // Alternatively handle the case where a -1 or -2 has been received,
             // indicating end-of-observation
             itsObsComplete = true;
             const size_t nScans = itsConfig.nScans();
@@ -87,6 +87,13 @@ void ScanManager::update(const casa::Int scanId)
                 ASKAPLOG_WARN_STR(logger, "Observation ended before all specified scans were executed");
             }
         }
+    }
+
+    // 4: Handle the case where the observation never started (i.e. no non-negative
+    // scan id was received, but now a -2 (indicating end-of-observation) has been
+    // received
+    if (scanId == -2) {
+        itsObsComplete = true;
     }
     submitMonitoringPoints();
 }
