@@ -162,9 +162,9 @@ namespace askap {
 	/// consideration. Provided as a reference so we can change
 	/// its flux.
 
-	ASKAPLOG_DEBUG_STR(logger, "Converting source with flux " << src->fluxZero() << " using beam area " << this->itsBeam.area());
+//	ASKAPLOG_DEBUG_STR(logger, "Converting source with flux " << src->fluxZero() << " using beam area " << this->itsBeam.area());
 	src->setFluxZero( src->fluxZero() * this->itsBeam.area() );
-	ASKAPLOG_DEBUG_STR(logger, "Source's flux now " << src->fluxZero());
+//	ASKAPLOG_DEBUG_STR(logger, "Source's flux now " << src->fluxZero());
       }
 
       std::vector<float> BeamCorrector::beam()

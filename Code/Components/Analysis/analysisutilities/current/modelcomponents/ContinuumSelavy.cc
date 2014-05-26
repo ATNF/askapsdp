@@ -103,7 +103,7 @@ namespace askap {
 	    this->setFluxZero(this->itsFintFIT);
 	    this->itsFlagGuess = (flag==1);
 
-	    ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << this->itsID <<": " << this->itsRA << " " << this->itsDec << " " << this->itsFintFIT << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
+	    //ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << this->itsID <<": " << this->itsRA << " " << this->itsDec << " " << this->itsFintFIT << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
 
         }
 
