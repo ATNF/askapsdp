@@ -990,6 +990,9 @@ namespace askap {
 	    fittypelist.push_back("best");
 	    fittypelist.push_back("guess");
 
+	    // ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Offsets for master : " << this->itsCube.pars().getXOffset() 
+	    // 		       << " " << this->itsCube.pars().getYOffset() << " " << this->itsCube.pars().getZOffset());
+
 	    for (int i = 1; i < itsComms.nProcs(); i++) {
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "In loop #"<<i<<" of reading from workers");
 	      itsComms.receiveBlob(bs, i);
@@ -1002,6 +1005,7 @@ namespace askap {
 				<< numObj << " objects from worker #" << rank);
 	      int xstart, ystart, zstart;
 	      in >> xstart >> ystart >> zstart;
+	      // ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Offsets for worker #"<<rank<<": " << xstart << " " << ystart << " " << zstart);
 
 	      for (int obj = 0; obj < numObj; obj++) {
 		sourcefitting::RadioSource src;
@@ -1011,8 +1015,11 @@ namespace askap {
 		src.setXOffset(xstart - this->itsCube.pars().getXOffset());
 		src.setYOffset(ystart - this->itsCube.pars().getYOffset());
 		src.setZOffset(zstart - this->itsCube.pars().getZOffset());
+		// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Source " << src.getID() << " with edgeflag="<<src.isAtEdge()<<" has offsets on the master of " <<
+		// 		   src.getXOffset() << " " << src.getYOffset() << " " << src.getZOffset());
 		src.addOffsets();
 		src.calcParams();
+		src.calcWCSparams(this->itsCube.header());
 
 		// Correct the offsets for the fitted components
 		for (fittype = fittypelist.begin(); fittype < fittypelist.end(); fittype++) {
@@ -1421,7 +1428,8 @@ namespace askap {
 		    ASKAPLOG_DEBUG_STR(logger, "About to set params for object #"<<i<<" or ID=" << srclist[i].getID() << " with subsection " << objectSubsection);
 		    this->itsCube.pars().setSubsection(objectSubsection);
 		    this->itsBaseSubsection = objectSubsection;
-		    this->getCASA(IMAGE);
+		    //		    this->getCASA(IMAGE);
+		    this->readData();
 		    this->itsCube.clearDetectionList();
 		    srclist[i].addOffsets(-this->itsCube.pars().getXOffset(),-this->itsCube.pars().getYOffset(),-this->itsCube.pars().getZOffset());
 		    this->itsCube.addObject(srclist[i]);
@@ -1596,7 +1604,8 @@ namespace askap {
 	      
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
 	    this->itsCube.pars().setSubsection("");
-	    this->getCASA(METADATA,false);
+	    //	    this->getCASA(METADATA,false);
+	    this->getMetadata();
 	    LOFAR::BlobString bs;
 	      
 	    // now read individual sources
