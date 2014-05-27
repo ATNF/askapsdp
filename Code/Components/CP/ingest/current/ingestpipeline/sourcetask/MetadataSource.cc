@@ -36,6 +36,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/shared_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
 
@@ -62,7 +63,8 @@ MetadataSource::~MetadataSource()
 
 void MetadataSource::receive(const TosMetadata& msg)
 {
-    ASKAPLOG_DEBUG_STR(logger, "Received TOS metadata with timestamp " << msg.time()
+    ASKAPLOG_DEBUG_STR(logger, "Received TOS metadata with timestamp "
+            << bat2epoch(msg.time()).getValue()
             << " and scanid " << msg.scanId());
 
     // Make a copy of the message on the heap

@@ -186,6 +186,8 @@ VisChunk::ShPtr NoMetadataSource::next(void)
         packetsLostPercent.update((datagramsExpected - datagramCount)
                 / static_cast<float>(datagramsExpected) * 100.);
     }
+    MonitorPoint<float> startFreq("obs.StartFreq");
+    startFreq.update(chunk->frequency()(0) / 1000);
 
     return chunk;
 }

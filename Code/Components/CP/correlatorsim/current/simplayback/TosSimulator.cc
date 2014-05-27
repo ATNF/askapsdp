@@ -210,7 +210,7 @@ bool TosSimulator::sendNext(void)
     if (itsCurrentRow == nRow) {
         ASKAPLOG_INFO_STR(logger,
                 "Sending additional metadata message indicating end-of-observation");
-        metadata.scanId(-1);
+        metadata.scanId(-2);
 
         itsPort->send(metadata);
 
@@ -218,11 +218,4 @@ bool TosSimulator::sendNext(void)
     } else {
         return true;
     }
-}
-
-std::string TosSimulator::makeMapKey(const std::string &prefix, const std::string &suffix)
-{
-    std::ostringstream ss;
-    ss << prefix << "." << suffix;
-    return ss.str();
 }

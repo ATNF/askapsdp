@@ -68,6 +68,14 @@ class ScanManager {
         ///         started this will return -1.
         casa::Int scanIndex(void) const;
 
+        /// This constant is the scan id value when the TOS is not executing a
+        /// scan
+        static const casa::Int SCANID_IDLE = -1;
+
+        /// This constant is the scan id when the TOS wants to signal the current
+        /// scheduling block has completed execution
+        static const casa::Int SCANID_OBS_COMPLETE = -2;
+
     private:
 
         // Submit monitoring points to monitoring system. This is to be
@@ -89,7 +97,7 @@ class ScanManager {
         const Configuration itsConfig;
 
         // Current (zero based) scan index, if the first scan has not yet
-        // started this will be set to -1.
+        // started this will be set to SCANID_IDLE
         casa::Int itsScanIndex;
 
         // Flag used to indicate the observation is complete, that is the

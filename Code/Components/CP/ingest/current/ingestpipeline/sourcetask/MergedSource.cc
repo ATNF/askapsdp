@@ -106,12 +106,12 @@ VisChunk::ShPtr MergedSource::next(void)
 
     if (itsScanManager.scanIndex() < 0) {
         // If the TOS hasn't started the observation yet (i.e. scan id hasn't
-        // changed from -1), just eat metadata payloads until scan_id >= 0
+        // changed from SCANID_IDLE), just eat metadata payloads until scan_id >= 0
         ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
         do {
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == -2) {
+            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
                 ASKAPLOG_WARN_STR(logger,
                         "Observation has been aborted before first scan was started");
                 return VisChunk::ShPtr();
@@ -166,7 +166,7 @@ VisChunk::ShPtr MergedSource::next(void)
             itsVis = itsVisSrc->next(ONE_SECOND);
 
             checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == -2) {
+            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
                 // TOS commanded end-of-obs
                 return VisChunk::ShPtr();
             }
@@ -181,7 +181,7 @@ VisChunk::ShPtr MergedSource::next(void)
             }
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == -2) {
+            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
                 // TOS commanded end-of-obs
                 return VisChunk::ShPtr();
             }
@@ -243,6 +243,8 @@ VisChunk::ShPtr MergedSource::next(void)
         packetsLostPercent.update((datagramsExpected - datagramCount)
                / static_cast<float>(datagramsExpected) * 100.);
     }
+    MonitorPoint<float> startFreq("obs.StartFreq");
+    startFreq.update(chunk->frequency()(0) / 1000);
 
     itsMetadata.reset();
     return chunk;

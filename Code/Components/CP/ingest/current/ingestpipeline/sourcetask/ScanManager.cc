@@ -47,7 +47,7 @@ using namespace askap;
 using namespace askap::cp::ingest;
 
 ScanManager::ScanManager(const Configuration& config)
-    : itsConfig(config), itsScanIndex(-1), itsObsComplete(false)
+    : itsConfig(config), itsScanIndex(SCANID_IDLE), itsObsComplete(false)
 {
     const size_t nScans = itsConfig.nScans();
     if (nScans < 1) {
@@ -64,7 +64,7 @@ void ScanManager::update(const casa::Int scanId)
     }
 
     // 2: Handle the case where the first usable metadata of the observation is received.
-    if (itsScanIndex == -1 && scanId >= 0) {
+    if (itsScanIndex == SCANID_IDLE && scanId >= 0) {
         ASKAPLOG_DEBUG_STR(logger, "First scan has begun - Scan Id: " << scanId);
         itsScanIndex = scanId;
         submitMonitoringPoints();
@@ -79,8 +79,8 @@ void ScanManager::update(const casa::Int scanId)
             ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << scanId);
             itsScanIndex = scanId;
         } else {
-            // Alternatively handle the case where a -1 or -2 has been received,
-            // indicating end-of-observation
+            // Alternatively handle the case where a SCANID_IDLE or SCANID_OBS_COMPLETE
+            // has been received, indicating end-of-observation
             itsObsComplete = true;
             const size_t nScans = itsConfig.nScans();
             if (itsScanIndex < static_cast<casa::Int>(nScans) - 1) {
@@ -92,7 +92,7 @@ void ScanManager::update(const casa::Int scanId)
     // 4: Handle the case where the observation never started (i.e. no non-negative
     // scan id was received, but now a -2 (indicating end-of-observation) has been
     // received
-    if (scanId == -2) {
+    if (scanId == SCANID_OBS_COMPLETE) {
         itsObsComplete = true;
     }
     submitMonitoringPoints();
@@ -116,7 +116,7 @@ void ScanManager::submitMonitoringPoints(void) const
     const Target& target= itsConfig.getTargetForScan(itsScanIndex);
     const CorrelatorMode& corrMode = target.mode();
 
-    if (itsScanIndex > -1) {
+    if (itsScanIndex >= 0) {
         submitPoint<int32_t>("obs.nScans", itsConfig.nScans());
         submitPoint<string>("obs.FieldName", target.name());
         submitPoint<string>("obs.dir1", askap::printLat(target.direction()));

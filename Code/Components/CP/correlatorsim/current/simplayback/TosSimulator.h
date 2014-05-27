@@ -80,8 +80,6 @@ class TosSimulator : public ISimulator {
         bool sendNext(void);
 
     private:
-        // Utility function, used to build a string out of two
-        std::string makeMapKey(const std::string &prefix, const std::string &suffix);
 
         // The chance a VisChunk will not be sent
         const double itsMetadataSendFailChance;
