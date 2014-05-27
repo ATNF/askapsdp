@@ -244,7 +244,7 @@ VisChunk::ShPtr MergedSource::next(void)
                / static_cast<float>(datagramsExpected) * 100.);
     }
     MonitorPoint<float> startFreq("obs.StartFreq");
-    startFreq.update(chunk->frequency()(0) / 1000);
+    startFreq.update(chunk->frequency()(0) / 1000 / 1000);
 
     itsMetadata.reset();
     return chunk;
