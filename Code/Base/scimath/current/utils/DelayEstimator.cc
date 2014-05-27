@@ -60,7 +60,7 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    PhaseUnwrapper<float> phu(threshold);
    for (size_t chan=0; chan<phases.size(); ++chan) {
         const float curPhase = arg(vis[chan]);
-        if (isnan(curPhase)) {
+        if (std::isnan(curPhase)) {
             phases[chan] = curPhase;
         } else {
             phases[chan] = phu(arg(vis[chan]));
@@ -71,7 +71,7 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    double sx = 0., sy = 0., sx2 = 0., sxy = 0.;
    // could've combined two loops, but keep it easy for now
    for (size_t chan=0; chan < phases.size(); ++chan) {
-        if (isnan(phases[chan])) {
+        if (std::isnan(phases[chan])) {
             continue;
         }
         sx += double(chan);
