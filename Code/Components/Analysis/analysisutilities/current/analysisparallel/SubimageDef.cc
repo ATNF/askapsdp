@@ -307,9 +307,14 @@ namespace askap {
 		ASKAPLOG_WARN_STR(logger, "SubimageDef::defineAllSections : input subsection not defined! Setting to null subsection");
 		this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
 	      }
-	    ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection);
+	    std::stringstream dimss;
+	    for(size_t i=0;i<this->itsFullImageDim.size()-1;i++) dimss <<this->itsFullImageDim[i]<<"x";
+	    dimss << this->itsFullImageDim.back();
+	    ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection << " with dimensions " << dimss.str());
 	    duchamp::Section fullImageSubsection(this->itsInputSection);
 	    fullImageSubsection.parse(this->itsFullImageDim);
+	    // ASKAPLOG_DEBUG_STR(logger, "Subimagedef's full image subsection has starts ("<<fullImageSubsection.getStart(0) <<","<<fullImageSubsection.getStart(1)
+	    // 		       << ") and ends( " << fullImageSubsection.getEnd(0) << "," << fullImageSubsection.getEnd(1)<<")");
 
 	    duchamp::KarmaAnnotationWriter writer(filename);
 	    writer.openCatalogue();
@@ -327,6 +332,8 @@ namespace askap {
             for (int w = 0; w < comms.nProcs()-1; w++) {
 
 	      duchamp::Section workerSection = this->section(w);
+	      // ASKAPLOG_DEBUG_STR(logger, "Worker #"<<w<<" has section string " << workerSection.getSection());
+
                 pix[0] = pix[9] =  workerSection.getStart(0) - 0.5 - fullImageSubsection.getStart(0);  // x-start, in pixels relative to the image that has been read
                 pix[1] = pix[4] =  workerSection.getStart(1) - 0.5 - fullImageSubsection.getStart(1);  // y-start
                 pix[3] = pix[6] =  workerSection.getEnd(0)  + 0.5 - fullImageSubsection.getStart(0); // x-end

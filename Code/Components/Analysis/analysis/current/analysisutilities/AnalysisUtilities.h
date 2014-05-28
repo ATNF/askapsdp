@@ -56,7 +56,7 @@ namespace askap {
 	std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms);
       
         /// @brief Return an array of axis dimensions for a FITS file.
-        std::vector<long> getFITSdimensions(std::string filename);
+        std::vector<size_t> getFITSdimensions(std::string filename);
 
         /// @brief Return the probability of obtaining a chisq value by
         ///        chance, for a certain number of degrees of freedom.

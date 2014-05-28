@@ -124,6 +124,19 @@ using namespace duchamp;
 namespace askap {
     namespace analysis {
 
+      void reportDim(size_t *dim, size_t size)
+      {
+
+	std::stringstream ss;
+	for (size_t i = 0; i < size; i++) {
+	  ss << dim[i];
+	  if(i < size-1) ss << " x ";
+	}
+	
+	ASKAPLOG_INFO_STR(logger, "Dimensions of input image = " << ss.str());
+	
+      }
+
         //**************************************************************//
 
         bool DuchampParallel::is2D()
@@ -388,7 +401,9 @@ namespace askap {
 	    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
 	    this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
 	    this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
-	    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
+	    std::vector<size_t> dim = getFITSdimensions(this->itsCube.pars().getImageFile());
+	    reportDim(dim.data(),dim.size());
+	    this->itsSubimageDef.setImageDim(dim);
 
 	    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
 		this->itsCube.pars().setFlagSubsection(true);
@@ -430,9 +445,9 @@ namespace askap {
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions after correction are "
 					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
 
-		      this->itsCube.header().WCS().crpix[lng] -= this->itsCube.pars().section().getStart(lng);
-		      this->itsCube.header().WCS().crpix[lat] -= this->itsCube.pars().section().getStart(lat);
-		      this->itsCube.header().WCS().crpix[spec] -= this->itsCube.pars().section().getStart(spec);
+		      // this->itsCube.header().WCS().crpix[lng] -= this->itsCube.pars().section().getStart(lng);
+		      // this->itsCube.header().WCS().crpix[lat] -= this->itsCube.pars().section().getStart(lat);
+		      // this->itsCube.header().WCS().crpix[spec] -= this->itsCube.pars().section().getStart(spec);
 
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
 					<< this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
@@ -2012,19 +2027,6 @@ namespace askap {
       //**************************************************************//
 
  	
-      void reportDim(size_t *dim, size_t size)
-      {
-
-	std::stringstream ss;
-	for (size_t i = 0; i < size; i++) {
-	  ss << dim[i];
-	  if(i < size-1) ss << " x ";
-	}
-	
-	ASKAPLOG_INFO_STR(logger, "Dimensions of input image = " << ss.str());
-	
-      }
-
       duchamp::OUTCOME DuchampParallel::getCASA(DATATYPE typeOfData, bool useSubimageInfo)
       {
 

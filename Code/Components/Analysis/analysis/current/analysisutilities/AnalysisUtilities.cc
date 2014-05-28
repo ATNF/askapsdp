@@ -83,13 +83,13 @@ namespace askap {
 	return ss.str();
       }
 
-        std::vector<long> getFITSdimensions(std::string filename)
+        std::vector<size_t> getFITSdimensions(std::string filename)
         {
             /// @details A simple function to open a FITS file and read the
             /// axis dimensions, returning the array of values.
             int numAxes, status = 0;  /* MUST initialize status */
             fitsfile *fptr;
-            std::vector<long> dim;
+            std::vector<size_t> dim;
             // Open the FITS file
             status = 0;
 
@@ -122,7 +122,7 @@ namespace askap {
                     fits_report_error(stderr, status);
                 }
 
-                dim = std::vector<long>(numAxes);
+                dim = std::vector<size_t>(numAxes);
 
                 for (int i = 0; i < numAxes; i++) dim[i] = dimAxes[i];
 
