@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import pylab as plt
 import math
 import scipy.special
+from askap.analysis.evaluation.readData import *
 import askap.analysis.evaluation.modelcomponents as models
 from askap.analysis.evaluation.sourceSelection import *
 import pyfits
@@ -43,9 +44,11 @@ if __name__ == '__main__':
     noiseImageName=inputPars.get_value('noiseImage','noiseMap.i.clean.fits')
     snrImageName=inputPars.get_value('snrImage','snr.i.clean.fits')
     skymodelCatalogue=inputPars.get_value('refCatalogue','skyModel-catalogue.txt')
+    skymodelCatType = inputPars.get_value('refCatalogueType','Selavy')
     skymodelOrigCat=inputPars.get_value('origCatalogue','')
     skymodelOrigCatIsPrecessed=inputPars.get_value('origCatalogueIsPrecessed','false')
     sourceCatalogue=inputPars.get_value('sourceCatalogue','selavy-fitResults.txt')
+    sourceCatType = inputPars.get_value('sourceCatalogueType','Selavy')
     matchfile = inputPars.get_value('matchfile','matches.txt')
 
     
@@ -157,13 +160,16 @@ if __name__ == '__main__':
 #####################################
 #  source counts
 
-    fin=open(sourceCatalogue)
-    sourcelist=[]
-    for line in fin:
-        if line[0]!='#':
-            sourcelist.append(models.SelavyObject(line))
-    fin.close()
-    
+#    fin=open(sourceCatalogue)
+#    sourcelist=[]
+#    for line in fin:
+#        if line[0]!='#':
+#            sourcelist.append(models.SelavyObject(line))
+#    fin.close()
+
+    sourcecat = readCat(sourceCatalogue,sourceCatType)
+    sourcelist = sourcecat.values()
+   
     # list of log10(flux) points - the middle of the bins
     minFlux = inputPars.get_value('sourceCounts.minFlux',1.e-4)
     maxFlux = inputPars.get_value('sourceCounts.maxFlux',10.)
@@ -192,7 +198,7 @@ if __name__ == '__main__':
     matchedSources=np.array(matchedSources)
 
     for source in sourcelist:
-        flux=source.FintFIT
+        flux=source.flux()
         loc=int((math.log10(flux)+4+0.1)*5)
         counts[loc] = counts[loc]+1
         sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
@@ -204,18 +210,20 @@ if __name__ == '__main__':
 
     ##########
     # Sky model comparison
-    fin=open(skymodelCatalogue)
-    skymodellist=[]
-    for line in fin:
-        if line[0]!='#':
-            skymodellist.append(models.SelavyObject(line))
-    fin.close()
+#    fin=open(skymodelCatalogue)
+#    skymodellist=[]
+#    for line in fin:
+#        if line[0]!='#':
+#            skymodellist.append(models.SelavyObject(line))
+#    fin.close()
+    skymodelCat = readCat(skymodelCatalogue,skymodelCatType)
+    skymodellist = skymodelCat.values()
     countsSM=np.zeros(fluxpts.size)
     countsPerAreaSM = np.zeros(fluxpts.size)
     selector.setFluxType("peak")
     for source in skymodellist:
         if selector.isGood(source):
-            flux=source.FintFIT
+            flux=source.flux()
             loc=int((math.log10(flux)+4+0.1)*5)
             sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
             #sourceDetArea = fullFieldArea
