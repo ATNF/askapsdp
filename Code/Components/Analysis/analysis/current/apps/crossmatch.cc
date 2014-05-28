@@ -60,7 +60,10 @@ class CrossmatchApp : public askap::Application
                 LOFAR::ParameterSet subset(config().makeSubset("Crossmatch."));
                 CatalogueMatcher matcher(subset);
                 if(matcher.read()){
-                    matcher.findMatches();
+		    if(subset.getBool("zeroOffsetMatch",true))
+			matcher.zeroOffsetMatch();
+		    else
+			matcher.findMatches();
                     matcher.findOffsets();
                     matcher.addNewMatches();
                     matcher.findOffsets();

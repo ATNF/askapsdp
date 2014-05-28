@@ -79,6 +79,7 @@ namespace askap {
 	double itsRAref;
 	double itsDECref;
 	double itsRadius;
+	std::string itsReferenceImage;
       };
 
     }

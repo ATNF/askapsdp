@@ -56,6 +56,9 @@ namespace askap {
 	CatalogueMatcher& operator= (const CatalogueMatcher& other);
 	virtual ~CatalogueMatcher(){};
 	
+	/// @brief Change epsilon to pixel units
+	void convertEpsilon();
+
 	/// @brief Read in the lists of source and reference objects.
 	bool read();
 
@@ -64,6 +67,9 @@ namespace askap {
 
 	/// @brief Find the points in each list that match.
 	void findMatches();
+
+	/// @brief Find matching points assuming no significant net spatial offset
+	void zeroOffsetMatch();
 
 	/// @brief Find the linear offsets between the two lists of points.
 	void findOffsets();
@@ -91,6 +97,8 @@ namespace askap {
 	PointCatalogue itsSrcCatalogue;
 	/// @brief Hold lists for the reference catalogue
 	PointCatalogue itsRefCatalogue;
+	/// @brief Image to get world-pixel conversion from
+	std::string itsReferenceImage;
 	/// @brief The list of matching triangles
 	std::vector<std::pair<Triangle, Triangle> > itsMatchingTriList;
 	/// @brief The list of matching points

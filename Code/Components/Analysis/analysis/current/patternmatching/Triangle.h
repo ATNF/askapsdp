@@ -105,6 +105,8 @@ namespace askap {
                     /// @brief Less-than function, working on ratio values.
                     friend bool operator< (Triangle lhs, Triangle rhs) {return lhs.ratio() < rhs.ratio();};
 
+		    friend std::ostream &operator<< (std::ostream &stream, Triangle &tri){stream << tri.itsPts[0]<< "|"<<tri.itsPts[1]<<"|" << tri.itsPts[2]<<"||"<<tri.itsRatio<<"/"<<tri.itsRatioTolerance<<"|"<<tri.itsAngle<<"/"<<tri.itsAngleTolerance; return stream;};
+
                 protected:
 
 		    void initialise();

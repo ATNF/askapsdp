@@ -38,6 +38,13 @@
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
+#include <images/Images/ImageInterface.h>
+#include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
+#include <casa/Arrays/Vector.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <casa/Quanta.h>
 
 #include <vector>
@@ -56,10 +63,16 @@ namespace askap {
       
       CatalogueMatcher::CatalogueMatcher(const LOFAR::ParameterSet& parset)
       {
+	this->itsReferenceImage = parset.getString("referenceImage","");
+
 	LOFAR::ParameterSet subset=parset.makeSubset("source.");
+	subset.add("referenceImage",this->itsReferenceImage);
 	this->itsSrcCatalogue = PointCatalogue(subset);
+
 	subset=parset.makeSubset("reference.");
+	subset.add("referenceImage",this->itsReferenceImage);
 	this->itsRefCatalogue = PointCatalogue(subset);
+
 	this->itsMatchFile = parset.getString("matchFile", "matches.txt");
 	this->itsMissFile = parset.getString("missFile", "misses.txt");
 	this->itsPositionUnits = casa::Unit(parset.getString("positionUnits","deg"));
@@ -68,8 +81,9 @@ namespace askap {
 	casa::Quantity q;
 	casa::Quantity::read(q,epsilonString);
 	this->itsEpsilon = q.getValue(this->itsPositionUnits);
-	ASKAPLOG_DEBUG_STR(logger, "Requested epsilon value was " << epsilonString << ", which is " << this->itsEpsilon << " " << this->itsPositionUnits.getName());
 	this->itsEpsilonUnits = q.getUnit();
+	this->convertEpsilon();
+	ASKAPLOG_DEBUG_STR(logger, "Requested epsilon value was " << epsilonString << ", which is " << this->itsEpsilon << " " << this->itsPositionUnits.getName());
 	// this->itsEpsilon = parset.getDouble("epsilon");
 	if(this->itsEpsilon<0) ASKAPTHROW(AskapError, "The epsilon parameter must be positive.");
 	this->itsMeanDx = this->itsMeanDy = 0.;
@@ -100,8 +114,31 @@ namespace askap {
 	this->itsMissFile = other.itsMissFile;
 	this->itsSourceSummaryFile = other.itsSourceSummaryFile;
 	this->itsReferenceSummaryFile = other.itsReferenceSummaryFile;
+	this->itsReferenceImage = other.itsReferenceImage;
 	return *this;
       }
+
+	void CatalogueMatcher::convertEpsilon()
+	{
+	  if(this->itsReferenceImage!=""){
+	      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	      ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsReferenceImage);
+	      if (lattPtr == 0)
+		  ASKAPTHROW(AskapError, "Requested image \"" << this->itsReferenceImage << "\" does not exist or could not be opened.");
+	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	      casa::DirectionCoordinate dirCoo = imagePtr->coordinates().directionCoordinate(imagePtr->coordinates().findCoordinate(casa::Coordinate::DIRECTION));
+
+	      ASKAPLOG_DEBUG_STR(logger, "Converting epsilon from "<<this->itsEpsilon <<" " << this->itsPositionUnits.getName());
+	      ASKAPASSERT(dirCoo.worldAxisUnits()[0] == dirCoo.worldAxisUnits()[1]);
+	      casa::Quantity eps(this->itsEpsilon, this->itsPositionUnits);
+	      double epsInWorldUnits=eps.getValue(dirCoo.worldAxisUnits()[0]);
+	      this->itsEpsilon = sqrt( fabs(epsInWorldUnits/dirCoo.increment()[0] * epsInWorldUnits/dirCoo.increment()[1]) );
+	      this->itsEpsilonUnits.setValue(this->itsEpsilonUnits.getValue()/sqrt(fabs(dirCoo.increment()[0]*dirCoo.increment()[1])));
+	      ASKAPLOG_DEBUG_STR(logger, "Now have epsilon = " << this->itsEpsilon);
+	  }
+
+	}
 
 
       bool CatalogueMatcher::read()
@@ -127,12 +164,12 @@ namespace askap {
 	if(this->itsRefCatalogue.pointList().size()==0)
 	    ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsRefCatalogue.filename());
 	if(filesOK){
-	    ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size());
-	    ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size());
+	    ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size() << " and triangle list = " << this->itsSrcCatalogue.triangleList().size());
+	    ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size() << " and triangle list = " << this->itsRefCatalogue.triangleList().size());
 	}
 	
-	if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),this->itsEpsilon))
-	    ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
+	// if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(), this->itsEpsilon))
+	//      ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
 
 	return filesOK;
       }
@@ -163,6 +200,48 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "The two lists have the opposite sense.");
 	}
       }
+
+      //**************************************************************//
+
+	void CatalogueMatcher::zeroOffsetMatch()
+	{
+	    
+	    /// @details Matches the lists on the assumption that
+	    /// there is no spatial offset between them, and we can
+	    /// just do the "crude" matching of points within the
+	    /// epsilon radius. Works down the lists starting with the
+	    /// brightest and identifies matches.
+	    
+	    size_t srcSize=this->itsSrcCatalogue.pointList().size();
+	    size_t refSize=this->itsRefCatalogue.pointList().size();
+	    ASKAPLOG_DEBUG_STR(logger, "Performing zero-offset match of lists of size " << srcSize << " and " << refSize);
+
+	    std::vector<bool> srcMatched(srcSize,false);
+	    std::vector<bool> refMatched(refSize,false);
+	    int nmatch=0;
+
+	    std::sort(this->itsSrcCatalogue.pointList().begin(),this->itsSrcCatalogue.pointList().end());
+	    std::sort(this->itsRefCatalogue.pointList().begin(),this->itsRefCatalogue.pointList().end());
+
+	    for (size_t s=0;s<this->itsSrcCatalogue.pointList().size();s++) {
+
+		for(size_t r=0;r<this->itsRefCatalogue.pointList().size() && !srcMatched[s]; r++) {
+
+		    if(!refMatched[r]){
+			if(this->itsSrcCatalogue.pointList()[s].sep(this->itsRefCatalogue.pointList()[r]) < this->itsEpsilon){
+			    this->itsMatchingPixList.push_back( std::pair<Point, Point>(this->itsSrcCatalogue.pointList()[s],
+											this->itsRefCatalogue.pointList()[r]) );
+			    refMatched[r]=true;
+			    srcMatched[s]=true;
+			    nmatch++;
+			}
+		    }
+		}
+	    }
+
+	    ASKAPLOG_DEBUG_STR(logger, "Matched " << nmatch << " pairs of points");
+
+	}
 
       //**************************************************************//
 

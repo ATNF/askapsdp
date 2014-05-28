@@ -34,6 +34,15 @@
 #include <modelcomponents/Spectrum.h>
 #include <coordutils/PositionUtilities.h>
 
+#include <images/Images/ImageInterface.h>
+#include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
+#include <casa/Arrays/Vector.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <casa/Quanta.h>
+
 #include <Common/ParameterSet.h>
 
 #include <vector>
@@ -81,6 +90,7 @@ namespace askap {
 	    ASKAPLOG_WARN_STR(logger, "To offset positions, you need to provide both raRef and decRef parameters");
 	}
 	this->itsRadius = parset.getDouble("radius",-1.);
+	this->itsReferenceImage = parset.getString("referenceImage","");
       }
 
       PointCatalogue::PointCatalogue(const PointCatalogue& other)
@@ -102,6 +112,7 @@ namespace askap {
 	this->itsRAref = other.itsRAref;
 	this->itsDECref = other.itsDECref;
 	this->itsRadius = other.itsRadius;
+	this->itsReferenceImage = other.itsReferenceImage;
 	return *this;
       }
 
@@ -115,24 +126,49 @@ namespace askap {
 	}
 	else {
 	  std::string line;
+	  casa::DirectionCoordinate dirCoo;
+	  int ndim=0;
+	  if(this->itsReferenceImage!=""){
+	      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	      ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsReferenceImage);
+	      if (lattPtr == 0)
+		  ASKAPTHROW(AskapError, "Requested image \"" << this->itsReferenceImage << "\" does not exist or could not be opened.");
+	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	      dirCoo = imagePtr->coordinates().directionCoordinate(imagePtr->coordinates().findCoordinate(casa::Coordinate::DIRECTION));
+	      ndim=imagePtr->ndim();
+	      // ASKAPLOG_DEBUG_STR(logger, "Opened the "<<ndim<<"-dim image " << this->itsReferenceImage<<" and got the direction coordinates " << dirCoo.worldAxisNames() << " with reference value " << dirCoo.referenceValue());
+	  }
+	  ASKAPLOG_DEBUG_STR(logger, "Reading catalogue from file " << this->itsFilename);
 	  while (getline(fin, line),
 		 !fin.eof()) {
 	    if (line[0] != '#') {  // ignore commented lines
 	      analysisutilities::Spectrum *spec=this->itsFactory.read(line);
+	      size_t listSize=this->itsFullPointList.size();
 	      if(this->itsFlagOffsetPositions){
 		  double radius=analysisutilities::angularSeparation(this->itsRAref,this->itsDECref,spec->raD(),spec->decD());
 		  if(this->itsRadius < 0. || radius<this->itsRadius){
 		      this->itsFullPointList.push_back(spec);
-		      this->itsFullPointList.back().setX( analysisutilities::angularSeparation(this->itsRAref,0.5*(this->itsDECref+spec->decD()),
-											       spec->raD(), 0.5*(this->itsDECref+spec->decD())));
-		      this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
-		      ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
-					 <<"), and storing point with (x,y)=(" 
-					 << itsFullPointList.back().x() << "," <<itsFullPointList.back().y() << ")");
+		      // this->itsFullPointList.back().setX( analysisutilities::angularSeparation(this->itsRAref,0.5*(this->itsDECref+spec->decD()),
+		      // 									       spec->raD(), 0.5*(this->itsDECref+spec->decD())));
+		      // this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
+
+		      // ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
+		      // 			 <<"), and storing point with (x,y)=(" 
+		      // 			 << itsFullPointList.back().x() << "," <<itsFullPointList.back().y() << ")");
 		  }
 	      }
 	      else this->itsFullPointList.push_back(spec);
+	      if(this->itsFullPointList.size()>listSize && this->itsReferenceImage!=""){
+		  casa::Vector<double> pix(ndim,0), world(ndim,0);
+		  world[0]=casa::Quantity(spec->raD(),"deg").getValue(dirCoo.worldAxisUnits()[0]);
+		  world[1]=casa::Quantity(spec->decD(),"deg").getValue(dirCoo.worldAxisUnits()[1]);
+		  dirCoo.toPixel(pix,world);
+		  itsFullPointList.back().setX(pix[0]);
+		  itsFullPointList.back().setY(pix[1]);
+	      }
 	      delete spec;
+
 	    }
 	  }
 	}
@@ -149,6 +185,8 @@ namespace askap {
 	if(this->itsTrimSize>2) maxPoint = std::min(this->itsTrimSize, this->itsWorkingPointList.size());
 
 	ASKAPLOG_DEBUG_STR(logger, "Sorted the list of " << this->itsWorkingPointList.size() << " point and using the first " << maxPoint << " to generate triangles");
+	ASKAPLOG_DEBUG_STR(logger, "First of list has flux " << this->itsWorkingPointList[0].flux());
+	ASKAPLOG_DEBUG_STR(logger, "Second of list has flux " << this->itsWorkingPointList[1].flux());
 
 	this->itsTriangleList = std::vector<Triangle>(0);
 	for (size_t i = 0; i < maxPoint - 2; i++) {
@@ -176,6 +214,8 @@ namespace askap {
 	    
 	    if(theirs->sep(*mine) < maxSep){
 	      this->itsWorkingPointList.push_back(*mine);
+	      ASKAPLOG_DEBUG_STR(logger, "crude match: ("<<theirs->ID() <<": " <<theirs->x()<<","<<theirs->y()
+				 <<") <-> ("<<mine->ID()<<": " <<mine->x()<<","<<mine->y()<<")");
 	      stop=true;
 	    }
 	  }

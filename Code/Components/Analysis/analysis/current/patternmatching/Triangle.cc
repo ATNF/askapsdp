@@ -203,7 +203,10 @@ namespace askap {
 	/// @param epsilon The error parameter used to define the
 	/// tolerances. Defaults to posTolerance.
 	/// @return True if triangles match
-	defineTolerances(epsilon);
+	this->defineTolerances(epsilon);
+	comp.defineTolerances(epsilon);
+	// ASKAPLOG_DEBUG_STR(logger, "this: ratio="<<itsRatio<<", rTol="<<itsRatioTolerance<<", angle="<<itsAngle<<", aTol="<<itsAngleTolerance);
+	// ASKAPLOG_DEBUG_STR(logger, "comp: ratio="<<comp.ratio()<<", rTol="<<comp.ratioTol()<<", angle="<<comp.angle()<<", aTol="<<comp.angleTol());
 	double ratioSep = this->itsRatio - comp.ratio();
 	ratioSep *= ratioSep;
 	double ratioTol = this->itsRatioTolerance + comp.ratioTol();
@@ -262,47 +265,48 @@ namespace askap {
 	std::stable_sort(list1.begin(), list1.end());
 	std::stable_sort(list2.begin(), list2.end());
 	// find maximum ratio tolerances for each list
-	double maxTol1 = list1[0].ratioTol(), maxTol2 = list2[0].ratioTol();
+	double maxTol1,maxTol2;
 
-	for (size_t i = 1; i < size1; i++) {
+	for (size_t i = 0; i < size1; i++) {
 	  list1[i].defineTolerances(epsilon);
 
-	  if (list1[i].ratioTol() > maxTol1) maxTol1 = list1[i].ratioTol();
+	  if (i==0 || list1[i].ratioTol() > maxTol1) maxTol1 = list1[i].ratioTol();
 	}
 
-	for (size_t i = 1; i < size2; i++) {
+	for (size_t i = 0; i < size2; i++) {
 	  list2[i].defineTolerances(epsilon);
 
-	  if (list2[i].ratioTol() > maxTol2) maxTol2 = list2[i].ratioTol();
+	  if (i==0 || list2[i].ratioTol() > maxTol2) maxTol2 = list2[i].ratioTol();
 	}
 
-	std::vector<bool> matches(size1*size2, false);
+	// std::vector<bool> matches(size1*size2, false);
 	int nmatch = 0;
+	std::vector<std::pair<Triangle, Triangle> > matchList;
 
 	// loop over the lists, finding matches
 	for (size_t i = 0; i < size1; i++) {
 	  double maxRatioB = list1[i].ratio() + sqrt(maxTol1 + maxTol2);
 	  double minRatioB = list1[i].ratio() - sqrt(maxTol1 + maxTol2);
-
+//	  ASKAPLOG_DEBUG_STR(logger, "Finding matches for triangle " << list1[i] <<", using epsilon="<<epsilon);
+	  std::vector<Triangle> matches;
 	  for (size_t j = 0; j < size2 && list2[j].ratio() < maxRatioB; j++) {
-	    if (list2[j].ratio() > minRatioB)
-	      matches[i+j*size1] = list1[i].isMatch(list2[j], epsilon);
+	      // for (size_t j = 0; j < size2; j++) {
+	    // if (list2[j].ratio() > minRatioB)
+	    //   matches[i+j*size1] = list1[i].isMatch(list2[j], epsilon);
 
-	    if (matches[i+j*size1]) nmatch++;
+	    // if (matches[i+j*size1]){
+	      if(list2[j].ratio() > minRatioB && list1[i].isMatch(list2[j], epsilon) ){
+		  nmatch++;
+		  std::pair<Triangle, Triangle> match(list1[i], list2[j]);
+		  matchList.push_back(match);
+//		matches.push_back(list2[j]);
+		  
+	    }
 	  }
+	  
 	}
 
 	ASKAPLOG_INFO_STR(logger, "Number of matching triangles = " << nmatch);
-	std::vector<std::pair<Triangle, Triangle> > matchList;
-
-	for (size_t i = 0; i < size1; i++) {
-	  for (size_t j = 0; j < size2; j++) {
-	    if (matches[i+j*size1]) {
-	      std::pair<Triangle, Triangle> match(list1[i], list2[j]);
-	      matchList.push_back(match);
-	    }
-	  }
-	}
 
 	return matchList;
       }
@@ -333,32 +337,25 @@ namespace askap {
 	/// Finally, all matches should have the same sense, so if
 	/// n_same > n_opp, all opposite sense matches are discarded,
 	/// and vice versa.
-	double mean = 0., rms = 0., mag;
-	unsigned int nIter = 0, size;
+	unsigned int nIter = 0;
 	unsigned int nSame = 0, nOpp = 0;
 	const unsigned int maxIter = 5;
 
 	do {
-	  size = trilist.size();
+
+	    double mean = 0., rms = 0., mag,sumx=0.,sumxx=0.;
+	    size_t size = trilist.size();
 
 	  for (unsigned int i = 0; i < size; i++) {
 	    mag = trilist[i].first.perimeter() - trilist[i].second.perimeter();
-	    mean += mag;
-	  }
-
-	  mean /= double(size);
-
-	  for (unsigned int i = 0; i < size; i++) {
-	    mag = trilist[i].first.perimeter() - trilist[i].second.perimeter();
-	    rms += (mag - mean) * (mag - mean);
-	  }
-
-	  rms  = sqrt(rms / double(size - 1));
-
-	  for (unsigned int i = 0; i < size; i++) {
+	    sumx += mag;
+	    sumxx += (mag*mag);
 	    if (trilist[i].first.isClockwise() == trilist[i].second.isClockwise()) nSame++;
 	    else nOpp++;
 	  }
+
+	  mean = sumx/double(size);
+	  rms = sqrt(sumxx/double(size) - mean*mean);
 
 	  double trueOnFalse = abs(nSame - nOpp) / double(nSame + nOpp - abs(nSame - nOpp));
 	  double scale;
@@ -367,22 +364,20 @@ namespace askap {
 	  else if (trueOnFalse > 10.) scale = 3.;
 	  else scale = 2.;
 
-	  int ctr = 0;
+	  ASKAPLOG_DEBUG_STR(logger, "Iteration #"<<nIter << ": meanMag="<<mean<<", rmsMag="<<rms << ", scale="<<scale);
+	  
 	  std::vector<std::pair<Triangle, Triangle> > newlist;
-
-	  for (unsigned int i = 0; i < size; i++) {
+	  for(size_t i=0;i<trilist.size();i++){
 	    mag = trilist[i].first.perimeter() - trilist[i].second.perimeter();
-
-	    if (fabs((mag - mean) / rms) > scale) {
-	    } else {
-	      newlist.push_back(trilist[i]);
-	      ctr++;
+	    if (fabs((mag - mean) / rms) < scale) {
+		newlist.push_back(trilist[i]);
 	    }
 	  }
+	  trilist=newlist;
+	  ASKAPLOG_DEBUG_STR(logger, "List size now " << trilist.size());
 
-	  trilist = newlist;
 	  nIter++;
-	} while (nIter < maxIter && (trilist.size() < size) && trilist.size() > 0);
+	} while (nIter < maxIter && trilist.size() > 0);
 
 	unsigned int ctr = 0;
 
@@ -390,16 +385,15 @@ namespace askap {
 	  if (trilist[i].first.isClockwise() == trilist[i].second.isClockwise()) nSame++;
 	  else nOpp++;
 	}
-
-	while (ctr < trilist.size()) {
-	  if ((nSame > nOpp) &&
-	      (trilist[ctr].first.isClockwise() != trilist[ctr].second.isClockwise()))
-	    trilist.erase(trilist.begin() + ctr);
-	  else if ((nOpp > nSame) &&
-		   (trilist[ctr].first.isClockwise() == trilist[ctr].second.isClockwise()))
-	    trilist.erase(trilist.begin() + ctr);
-	  else ctr++;
+	
+	std::vector<std::pair<Triangle, Triangle> > newlist;
+	for(size_t i=0;i<trilist.size();i++){
+	    if ( ( (nSame <= nOpp) || (trilist[i].first.isClockwise() == trilist[i].second.isClockwise())) &&
+		   ( (nOpp <= nSame) || (trilist[i].first.isClockwise() != trilist[i].second.isClockwise())) )
+		newlist.push_back(trilist[i]);
 	}
+	trilist = newlist;
+
       }
 
       //**************************************************************//
@@ -415,7 +409,10 @@ namespace askap {
 	/// @li The vote drops by a factor of 2
 	/// @li We try to accept a point already accepted
 	/// @li The vote drops to zero.
+
 	std::multimap<int, std::pair<Point, Point> > voteList;
+	std::vector<std::pair<Point,Point> > pts;
+	std::vector<int> votes;
 	std::multimap<int, std::pair<Point, Point> >::iterator vote;
 	std::multimap<int, std::pair<Point, Point> >::reverse_iterator rvote;
 
@@ -425,28 +422,27 @@ namespace askap {
 
 	  for (int p = 0; p < 3; p++) { // for each of the three points:
 	    int thisVote = 1;
-	    bool finished = false;
+	    bool foundMatch=false;
+	    if (votes.size()>0){
 
-	    if (voteList.size() > 0) {
-	      vote = voteList.begin();
-
-	      while (!finished && vote != voteList.end()) {
-		if ((vote->second.first.ID() != ptlist1[p].ID()) ||
-		    (vote->second.second.ID() != ptlist2[p].ID())) {
-		  vote++;
-		} else {
-		  // if the IDs match
-		  thisVote = vote->first + 1;
-		  voteList.erase(vote);
-		  finished = true;
+		for(size_t i=0;i<votes.size() && !foundMatch; i++){
+		     if ((pts[i].first.ID() == ptlist1[p].ID()) && (pts[i].second.ID() == ptlist2[p].ID())){
+			votes[i]++;
+			foundMatch=true;
+		    }
 		}
-	      }
+
+	    }
+	  
+	    if(!foundMatch){
+		votes.push_back(1);
+		pts.push_back(std::pair<Point,Point>(ptlist1[p],ptlist2[p]));
 	    }
 
-	    std::pair<Point, Point> thisPt(ptlist1[p], ptlist2[p]);
-	    voteList.insert(std::pair<int, std::pair<Point, Point> >(thisVote, thisPt));
 	  }
 	}
+
+	for(size_t i=0;i<votes.size();i++) voteList.insert( std::pair<int, std::pair<Point, Point> >(votes[i],pts[i]));
 
 	std::vector<std::pair<Point, Point> > outlist;
 
@@ -457,8 +453,9 @@ namespace askap {
 	int prevVote = voteList.rbegin()->first;
 
 	for (rvote = voteList.rbegin(); rvote != voteList.rend() && !stop; rvote++) {
+
 	  for (unsigned int i = 0; i < outlist.size() && !stop; i++) {
-	    stop = (rvote->second.first.ID() == outlist[i].first.ID());
+	      stop = ( (rvote->second.first.ID() == outlist[i].first.ID()) );
 	  }
 
 	  if (rvote != voteList.rbegin()) stop = stop || (rvote->first < 0.5 * prevVote);

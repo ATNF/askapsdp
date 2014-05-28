@@ -92,6 +92,8 @@ namespace askap {
 	/// @brief Return the separation from another Point.
 	double sep(Point pt) {return hypot(itsX - pt.x(), itsY - pt.y());};
 
+	friend std::ostream &operator<<(std::ostream &stream, Point pt){stream << pt.itsID<<",["<<pt.itsX<<","<<pt.itsY<<"],"<<pt.itsFlux; return stream;};
+
       protected:
 	///@brief The X coordinate
 	double itsX;
