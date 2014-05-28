@@ -130,10 +130,10 @@ class SUMSSObject:
             self.id = cols[0]+":"+cols[1]+":"+cols[2]+"_"+cols[3]+":"+cols[4]+":"+cols[5]
             self.raErr = float(cols[6])
             self.decErr = float(cols[7])
-            self.Fpeak = float(cols[8])
-            self.FpeakErr = float(cols[9])
-            self.Fint = float(cols[10])
-            self.FintErr = float(cols[11])
+            self.Fpeak = float(cols[8])/1000.
+            self.FpeakErr = float(cols[9])/1000.
+            self.Fint = float(cols[10])/1000.
+            self.FintErr = float(cols[11])/1000.
             self.maj = float(cols[12])
             self.min = float(cols[13])
             self.pa = float(cols[14])
