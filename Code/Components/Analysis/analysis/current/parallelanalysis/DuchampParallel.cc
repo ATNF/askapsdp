@@ -433,25 +433,6 @@ namespace askap {
 		    if(returnCode == duchamp::FAILURE) {
 		      ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
 		    }
-		    else{
-
-		      size_t *dimarr=this->itsCube.getDimArray();
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions ("<<this->itsCube.getNumDim()<<" of them) before correction are "
-					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
-		      int lng=this->itsCube.header().WCS().lng, lat=this->itsCube.header().WCS().lat, spec=this->itsCube.header().WCS().spec;
-		      dimarr[0] = this->itsCube.pars().section().getDim(lng);
-		      dimarr[1] = this->itsCube.pars().section().getDim(lat);
-		      dimarr[2] = this->itsCube.pars().section().getDim(spec);
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions after correction are "
-					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
-
-		      // this->itsCube.header().WCS().crpix[lng] -= this->itsCube.pars().section().getStart(lng);
-		      // this->itsCube.header().WCS().crpix[lat] -= this->itsCube.pars().section().getStart(lat);
-		      // this->itsCube.header().WCS().crpix[spec] -= this->itsCube.pars().section().getStart(spec);
-
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
-					<< this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
-		    }
 		    
                     // check the true dimensionality and set the 2D flag in the cube header.
                     int numDim = 0;
