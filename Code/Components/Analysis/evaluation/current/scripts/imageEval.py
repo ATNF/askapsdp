@@ -200,13 +200,14 @@ if __name__ == '__main__':
     for source in sourcelist:
         flux=source.flux()
         loc=int((math.log10(flux)+4+0.1)*5)
-        counts[loc] = counts[loc]+1
-        sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
-        #sourceDetArea = fullFieldArea
-        countsPerArea[loc] = countsPerArea[loc] + 1./sourceDetArea
-        if (matchedSources==source.id).any():
-            countsMatch[loc] = countsMatch[loc] + 1
-            countsMatchPerArea[loc] = countsMatchPerArea[loc] + 1./sourceDetArea
+        if loc>=0 and loc<fluxpts.size:
+            counts[loc] = counts[loc]+1
+            sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+            #sourceDetArea = fullFieldArea
+            countsPerArea[loc] = countsPerArea[loc] + 1./sourceDetArea
+            if (matchedSources==source.id).any():
+                countsMatch[loc] = countsMatch[loc] + 1
+                countsMatchPerArea[loc] = countsMatchPerArea[loc] + 1./sourceDetArea
 
     ##########
     # Sky model comparison
@@ -287,7 +288,7 @@ if __name__ == '__main__':
         hopkins=10**hopkinsPoly(np.log10(fluxpts*1000.))
         plt.plot(fluxpts,hopkins,'k:',label='Hopkins et al (2003)')
     
-    plt.ylim(1.e-1,1.e4)
+    plt.ylim(1.e-1,1.e5)
     labelPlot('S [Jy]', r'$S^{5/2}n(S)$ [ Jy$^{3/2}$ sr$^{-1}$ ]','Differential source counts','medium')
     plt.legend(loc='best')
     
