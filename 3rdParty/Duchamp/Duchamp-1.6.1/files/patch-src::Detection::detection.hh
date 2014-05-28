@@ -1,5 +1,5 @@
 --- src/Detection/detection.hh.orig	2014-05-02 10:02:03.000000000 +1000
-+++ src/Detection/detection.hh	2014-05-28 13:48:33.817476903 +1000
++++ src/Detection/detection.hh	2014-05-28 14:23:53.000000000 +1000
 @@ -109,17 +109,15 @@
      /// @brief Set the values of the axis offsets from the cube. 
      void   setOffsets(Param &par); 
@@ -14,9 +14,8 @@
         xCentroid+=xoff; yCentroid+=yoff; zCentroid+=zoff;
      };
  
--      void   addOffsets(){ addOffsets(xSubOffset, ySubOffset, zSubOffset);};
+       void   addOffsets(){ addOffsets(xSubOffset, ySubOffset, zSubOffset);};
 -      void   removeOffsets(size_t xoff, size_t yoff, size_t zoff){ addOffsets(-xoff, -yoff, -zoff);};
-+      void   addOffsets(){ Detection::addOffsets(xSubOffset, ySubOffset, zSubOffset);};
 +      void   removeOffsets(long xoff, long yoff, long zoff){ addOffsets(-xoff, -yoff, -zoff);};
        void   removeOffsets(){ addOffsets(-xSubOffset, -ySubOffset, -zSubOffset);};
        void   addOffsets(Param &par){setOffsets(par); addOffsets();};
