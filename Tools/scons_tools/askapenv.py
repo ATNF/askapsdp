@@ -51,6 +51,12 @@ env.AppendUnique(CCFLAGS=['-Wall'])
 if has_environment_modules():
     env["ENV"] = os.environ
 
+# Support setting of "RBUILD_NOMPI" in the environment, because forgetting
+# to pass nompi=1 on the command line is a common error
+if os.environ.has_key('RBUILD_NOMPI') and os.environ['RBUILD_NOMPI'] == '1':
+    print "info: RBUILD_NOMPI=1 found in env, building without MPI support"
+    env['nompi'] = 1
+
 # Setup MPI support
 if has_implicit_mpi():
     if env['nompi']:
