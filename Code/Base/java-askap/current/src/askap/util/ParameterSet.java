@@ -28,10 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-//import sun.security.krb5.internal.PAData;
-
-//import com.sun.org.apache.xml.internal.utils.IntVector;
-
 /**
  * Java representation of a ParameterSet.
  * 

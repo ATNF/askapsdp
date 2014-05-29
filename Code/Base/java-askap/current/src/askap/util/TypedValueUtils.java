@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Iterator;
 import askap.interfaces.*;
 import askap.util.Complex;
-import atnf.atoms.coord.Direction;
 
 /**
  * Some utility methods for converting between Ice TypedValue types and native Java types.
@@ -56,6 +55,8 @@ public class TypedValueUtils {
     } else if (tv.type == TypedValueType.TypeBool) {
         return new Boolean(((TypedValueBool) tv).value);
     } else if (tv.type == TypedValueType.TypeDirection) {
+    	throw new RuntimeException("Direction type not implemented");
+    	/*
         askap.interfaces.Direction d = ((TypedValueDirection) tv).value;
         String temp;
         if (d.sys==askap.interfaces.CoordSys.AZEL) {
@@ -67,6 +68,7 @@ public class TypedValueUtils {
         }
         temp=temp+"(" + d.coord1 + ", " + d.coord2 + ")";
         return Direction.factory(temp);
+        */
     } else if (tv.type == TypedValueType.TypeDoubleComplex) {
       TypedValueDoubleComplex c = (TypedValueDoubleComplex)tv;
       return Complex.factory(c.value.real, c.value.imag);      
@@ -106,6 +108,8 @@ public class TypedValueUtils {
         val.imag = ((Complex) o).getImag();
       return new TypedValueDoubleComplex(TypedValueType.TypeDoubleComplex, val);
     } else if (o instanceof Direction) {
+    	throw new RuntimeException("Direction type not implemented");
+    	/*
         askap.interfaces.Direction d = new askap.interfaces.Direction();
         d.coord1 = ((Direction)o).getLongitude();
         d.coord2 = ((Direction)o).getLatitude();
@@ -118,6 +122,7 @@ public class TypedValueUtils {
             throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unsupported Direction class: " + o.getClass().getName());
         }        
         return new TypedValueDirection(TypedValueType.TypeDirection, d);
+        */
     } else {
       throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unhandled data type " + o.getClass());
     }
