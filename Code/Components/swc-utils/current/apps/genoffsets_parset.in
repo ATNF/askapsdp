@@ -1,0 +1,44 @@
+sources = [ref,src1]
+
+sources.ref = [15h56m58.871,-79.14.04.28]
+sources.src1 = [16h17m49.278,-77.17.18.46]
+
+# description of beams
+nbeams = 9
+
+# description of each beam (parset key name is 1-based beam number)
+
+# explicit offset in degrees
+beam1 = offset(0,0)
+
+# position along the line between any two sources defined in sources
+# leading 0 translates to the second source, 1 equates to the first source, 
+# 0.5 is half way, -1 the opposite way to +1 from the second source, away from the first one, etc.
+beam2 = 0.5(src1,ref)
+
+# no number given is equivalent to +1
+beam3 = (src1, ref)
+
+beam4 = -0.5(src1, ref)
+
+# the following options complement a triangle based on already defined beams
+# Note, can only refer to beams with lower numbers!
+
+# beam5 is at a  missing vertex of the equilateral triangle formed by beam1 and beam2
+# the option with higher ra is selected for this one (hence, left)
+beam5 = triangle(1,2,left)
+
+beam6 = triangle(2,3,left)
+
+# same as beam5, but flipped the opposite way
+beam7 = triangle(1,2,right)
+
+beam8 = triangle(2,3,right)
+
+beam9 = triangle(4,1,right)
+
+
+# reference direction to make offsets from
+# by default Sun's direction is used, but I wouldn't trust that code yet
+# it is better to put Sun's coordinates here explicitly for now
+refdir = [20h54m47.18,-17.24.01.5]
