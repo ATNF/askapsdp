@@ -67,6 +67,10 @@ int PublisherApp::run(int argc, char* argv[])
     const uint16_t inPort = subset.getUint16("in.port");
     const uint16_t outPort = subset.getUint16("out.port");
 
+    ASKAPLOG_INFO_STR(logger, "ASKAP Vis Publisher " << ASKAP_PACKAGE_VERSION);
+    ASKAPLOG_INFO_STR(logger, "Input Port: " << inPort);
+    ASKAPLOG_INFO_STR(logger, "Output Port: " << outPort);
+
     // Setup the ZeroMQ publisher object
     ZmqPublisher zmqpub(outPort);
 
@@ -103,6 +107,7 @@ int PublisherApp::run(int argc, char* argv[])
             }
         }
     }
+    ASKAPLOG_INFO_STR(logger, "Stopping ASKAP Vis Publisher");
 
     stats.logSummary();
     return 0;

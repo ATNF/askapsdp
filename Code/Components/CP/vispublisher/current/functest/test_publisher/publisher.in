@@ -1,16 +1,5 @@
-# This is the TCP server port that will accept connections from the ingest pipeline
+# The TCP server port that will accept connections from the ingest pipeline
 vispublisher.in.port        = 9001
 
-# Number of beams to expect
-vispublisher.nbeams         = 9
-
-# This is the start port for the output data. One output socket will be created
-# for each beam & polarisation (i.e. nBeams * nPols). This is 32 for BETA
-# Ports are then (assuming startport of 9002:
-# beam0 / XX = 9002
-# beam0 / XY = 9003
-# beam0 / YX = 9004
-# beam0 / YY = 9005
-# beam1 / XX = 9006
-# ..
-vispublisher.out.portstart = 9002
+# The TCP port ZeroMQ will publish data on
+vispublisher.out.port       = 9002
