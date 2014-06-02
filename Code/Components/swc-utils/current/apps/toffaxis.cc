@@ -283,6 +283,7 @@ void doTest() {
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
   std::cout<<"test direction: "<<printDirection(testDir)<<std::endl;
 
+
   double offset1 = 0., offset2 = 0.;
   const double factor = -1;
 

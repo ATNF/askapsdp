@@ -254,7 +254,8 @@ void makeOffsets(const LOFAR::ParameterSet &parset) {
   casa::Quantity q;
   ASKAPCHECK(casa::MVTime::read(q, "today"), "MVTime::read failed");
   std::cout<<"Current UT MJD: "<<q<<std::endl;
-  casa::MEpoch when(casa::MVEpoch(q), casa::MEpoch::Ref(casa::MEpoch::UTC));
+  const casa::MEpoch::Ref utcRef(casa::MEpoch::UTC);
+  casa::MEpoch when(casa::MVEpoch(q), utcRef);
   casa::MeasFrame frame(mroPos, when);
   casa::MVDirection refDir = casa::MDirection::Convert(casa::MDirection(casa::MDirection::SUN), casa::MDirection::Ref(casa::MDirection::J2000,frame))().getValue();
   if (parset.isDefined("refdir")) {

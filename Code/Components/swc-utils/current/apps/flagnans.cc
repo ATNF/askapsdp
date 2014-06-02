@@ -86,7 +86,7 @@ void process(const std::string &fname)
        casa::Matrix<casa::Bool> flag(flagBuf);
        for (casa::uInt ch=0; ch<vis.nrow(); ++ch) {
             for (casa::uInt pol=0; pol<vis.ncolumn(); ++pol) {
-                 if (isnan(real(vis(ch,pol))) || isnan(imag(vis(ch,pol)))) {
+                 if (std::isnan(real(vis(ch,pol))) || std::isnan(imag(vis(ch,pol)))) {
                      changed = true;
                      vis(ch,pol) = casa::Complex(0.,0.);
                      if (flag(ch,pol)) {
