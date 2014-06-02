@@ -55,6 +55,19 @@ ScanManager::ScanManager(const Configuration& config)
     }
 }
 
+ScanManager::~ScanManager()
+{
+    submitPointNull("obs.nScans");
+    submitPointNull("obs.FieldName");
+    submitPointNull("obs.dir1");
+    submitPointNull("obs.dir2");
+    submitPointNull("obs.CoordSys");
+    submitPointNull("obs.Interval");
+    submitPointNull("obs.StartFreq");
+    submitPointNull("obs.nChan");
+    submitPointNull("obs.ChanWidth");
+}
+
 void ScanManager::update(const casa::Int scanId)
 {
     // 1: If the observation is complete then the scan state should no longer
