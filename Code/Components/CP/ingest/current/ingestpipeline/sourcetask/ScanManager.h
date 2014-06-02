@@ -52,6 +52,9 @@ class ScanManager {
         ///                     of scans.
         ScanManager(const Configuration& config);
 
+        /// Destructor
+        ~ScanManager();
+
         /// This method is called for each metadata payload received from the
         /// telescope operating system. The scan_active and scan_id fields from
         /// the metadata payload are passed in as parameters.
