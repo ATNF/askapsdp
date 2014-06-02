@@ -57,6 +57,7 @@ ScanManager::ScanManager(const Configuration& config)
 
 ScanManager::~ScanManager()
 {
+    submitPointNull("obs.ScanId");
     submitPointNull("obs.nScans");
     submitPointNull("obs.FieldName");
     submitPointNull("obs.dir1");
@@ -123,20 +124,17 @@ casa::Int ScanManager::scanIndex(void) const
 
 void ScanManager::submitMonitoringPoints(void) const
 {
-    if (itsObsComplete) return;
-
     submitPoint<int32_t>("obs.ScanId", itsScanIndex);
-    const Target& target= itsConfig.getTargetForScan(itsScanIndex);
-    const CorrelatorMode& corrMode = target.mode();
 
-    if (itsScanIndex >= 0) {
+    if (!itsObsComplete && itsScanIndex >= 0) {
+        const Target& target= itsConfig.getTargetForScan(itsScanIndex);
+        const CorrelatorMode& corrMode = target.mode();
         submitPoint<int32_t>("obs.nScans", itsConfig.nScans());
         submitPoint<string>("obs.FieldName", target.name());
         submitPoint<string>("obs.dir1", askap::printLat(target.direction()));
         submitPoint<string>("obs.dir2", askap::printLon(target.direction()));
         submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.direction().type()));
         submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
-        //submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz")); // !!! TODO !!!
         submitPoint<int32_t>("obs.nChan", corrMode.nChan());
         submitPoint<float>("obs.ChanWidth", corrMode.chanWidth().getValue("kHz"));
     } else {

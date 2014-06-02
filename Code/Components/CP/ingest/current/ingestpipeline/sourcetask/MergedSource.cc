@@ -97,6 +97,15 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
 MergedSource::~MergedSource()
 {
     itsSignals.cancel();
+
+    // Send null monitoring points. Note this is temporary and will go away in
+    // when #6024 is implemented
+    MonitorPoint<int32_t> p1("PacketsLostCount");
+    p1.updateNull();
+    MonitorPoint<float> p2("PacketsLostPercent");
+    p2.updateNull();
+    MonitorPoint<float> p3("obs.StartFreq");
+    p3.updateNull();
 }
 
 VisChunk::ShPtr MergedSource::next(void)
