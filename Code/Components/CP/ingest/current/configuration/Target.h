@@ -47,21 +47,26 @@ class Target {
 
         /// @brief Constructor
         Target(const casa::String& name,
-             const casa::MDirection& dir,
+             const casa::MDirection& pointingCentre,
+             const casa::MDirection& phaseCentre,
              const CorrelatorMode& mode);
 
         /// @brief Returns the name of the target field being observed
         casa::String name(void) const;
 
-        /// @brief Returns the direction of the field being observed
-        casa::MDirection direction(void) const;
+        /// @brief Returns the antenna pointing centre
+        casa::MDirection pointingCentre(void) const;
+
+        /// @brief Returns the phase centre
+        casa::MDirection phaseCentre(void) const;
 
         /// @brief Correlator mode for this target
         const CorrelatorMode& mode(void) const;
 
     private:
         casa::String itsName;
-        casa::MDirection itsDirection;
+        casa::MDirection itsPointingCentre;
+        casa::MDirection itsPhaseCentre;
         CorrelatorMode itsMode;
 };
 

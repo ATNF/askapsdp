@@ -299,7 +299,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     // Add the scan index
     chunk->scan() = itsScanManager.scanIndex();
 
-    chunk->directionFrame() = target.direction().getRef(); 
+    chunk->directionFrame() = target.phaseCentre().getRef(); 
 
     // Determine and add the spectral channel width
     chunk->channelWidth() = corrMode.chanWidth().getValue("Hz");
@@ -324,10 +324,10 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                 chunk->beam2()(row) = beam;
                 chunk->beam1PA()(row) = 0;
                 chunk->beam2PA()(row) = 0;
-                chunk->pointingDir1()(row) = target.direction().getAngle();
-                chunk->pointingDir2()(row) = target.direction().getAngle();
-                chunk->dishPointing1()(row) = target.direction().getAngle();
-                chunk->dishPointing2()(row) = target.direction().getAngle();
+                chunk->pointingDir1()(row) = target.phaseCentre().getAngle();
+                chunk->pointingDir2()(row) = target.phaseCentre().getAngle();
+                chunk->dishPointing1()(row) = target.phaseCentre().getAngle();
+                chunk->dishPointing2()(row) = target.phaseCentre().getAngle();
                 chunk->uvw()(row) = 0.0;
 
                 row++;

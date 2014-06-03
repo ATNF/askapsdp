@@ -256,7 +256,7 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
                 // The handling of pointing directions below is not handled per beam.
                 // It just takes the field centre direction from the parset and uses
                 // that for all beam pointing directions.
-                chunk->directionFrame() = target.direction().getRef();
+                chunk->directionFrame() = target.phaseCentre().getRef();
 
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
@@ -264,10 +264,10 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
                 chunk->beam2()(row) = beam;
                 chunk->beam1PA()(row) = 0;
                 chunk->beam2PA()(row) = 0;
-                chunk->pointingDir1()(row) = target.direction().getAngle();
-                chunk->pointingDir2()(row) = target.direction().getAngle();
-                chunk->dishPointing1()(row) = target.direction().getAngle();
-                chunk->dishPointing2()(row) = target.direction().getAngle();
+                chunk->pointingDir1()(row) = target.phaseCentre().getAngle();
+                chunk->pointingDir2()(row) = target.phaseCentre().getAngle();
+                chunk->dishPointing1()(row) = target.phaseCentre().getAngle();
+                chunk->dishPointing2()(row) = target.phaseCentre().getAngle();
                 chunk->uvw()(row) = 0.0;
 
                 row++;
@@ -426,9 +426,9 @@ void NoMetadataSource::submitObsMonitorPoints() const
     const Target& target= itsConfig.getTargetForScan(0);
     const CorrelatorMode& corrMode = target.mode();
     submitPoint<string>("obs.FieldName", target.name());
-    submitPoint<string>("obs.dir1", askap::printLat(target.direction()));
-    submitPoint<string>("obs.dir2", askap::printLon(target.direction()));
-    submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.direction().type()));
+    submitPoint<string>("obs.dir1", askap::printLat(target.phaseCentre()));
+    submitPoint<string>("obs.dir2", askap::printLon(target.phaseCentre()));
+    submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.phaseCentre().type()));
     submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
     //submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz")); // TODO!!!!!!!!!!!!!
     submitPoint<int32_t>("obs.nChan", corrMode.nChan());
