@@ -28,6 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
+#include <limits>
 #include "Common/ParameterSet.h"
 #include "casa/BasicSL.h"
 
@@ -62,6 +63,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
 
             itsParset.add("sb.target.src2.field_name", "test-field2");
             itsParset.add("sb.target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
+            itsParset.add("sb.target.src2.phase_direction", "[0h00m00.000, -35d00m00.000, J2000]");
             itsParset.add("sb.target.src2.corrmode", "standard");
 
             // Array name
@@ -246,11 +248,20 @@ class ConfigurationTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(casa::String("test-field1"), t0.name());
             const CorrelatorMode& c0 = t0.mode();
             CPPUNIT_ASSERT_EQUAL(16416u, c0.nChan());
+            const double tolerance = std::numeric_limits<float>::epsilon();
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t0.pointingCentre().getAngle().getValue("deg")(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t0.pointingCentre().getAngle().getValue("deg")(1), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t0.phaseCentre().getAngle().getValue("deg")(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t0.phaseCentre().getAngle().getValue("deg")(1), tolerance);
 
             const Target& t1 = conf.getTargetForScan(1);
             CPPUNIT_ASSERT_EQUAL(casa::String("test-field2"), t1.name());
             const CorrelatorMode& c1 = t1.mode();
             CPPUNIT_ASSERT_EQUAL(16416u, c1.nChan());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t1.pointingCentre().getAngle().getValue("deg")(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t1.pointingCentre().getAngle().getValue("deg")(1), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, t1.phaseCentre().getAngle().getValue("deg")(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-35.0, t1.phaseCentre().getAngle().getValue("deg")(1), tolerance);
         }
 
         void testServiceConfig() {

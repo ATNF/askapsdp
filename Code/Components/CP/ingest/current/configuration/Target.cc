@@ -39,9 +39,11 @@ using namespace askap;
 using namespace askap::cp::ingest;
 
 Target::Target(const casa::String& name,
-        const casa::MDirection& dir,
+        const casa::MDirection& pointingCentre,
+        const casa::MDirection& phaseCentre,
         const CorrelatorMode& mode)
-: itsName(name), itsDirection(dir), itsMode(mode)
+: itsName(name), itsPointingCentre(pointingCentre),
+   itsPhaseCentre(phaseCentre), itsMode(mode)
 {
 }
 
@@ -50,9 +52,14 @@ casa::String Target::name(void) const
     return itsName;
 }
 
-casa::MDirection Target::direction(void) const
+casa::MDirection Target::pointingCentre(void) const
 {
-    return itsDirection;
+    return itsPointingCentre;
+}
+
+casa::MDirection Target::phaseCentre(void) const
+{
+    return itsPhaseCentre;
 }
 
 const CorrelatorMode& Target::mode(void) const

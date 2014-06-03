@@ -131,9 +131,9 @@ void ScanManager::submitMonitoringPoints(void) const
         const CorrelatorMode& corrMode = target.mode();
         submitPoint<int32_t>("obs.nScans", itsConfig.nScans());
         submitPoint<string>("obs.FieldName", target.name());
-        submitPoint<string>("obs.dir1", askap::printLat(target.direction()));
-        submitPoint<string>("obs.dir2", askap::printLon(target.direction()));
-        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.direction().type()));
+        submitPoint<string>("obs.dir1", askap::printLat(target.phaseCentre()));
+        submitPoint<string>("obs.dir2", askap::printLon(target.phaseCentre()));
+        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.phaseCentre().type()));
         submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
         submitPoint<int32_t>("obs.nChan", corrMode.nChan());
         submitPoint<float>("obs.ChanWidth", corrMode.chanWidth().getValue("kHz"));

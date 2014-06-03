@@ -255,7 +255,7 @@ void Configuration::buildCorrelatorModes(void)
 
 void Configuration::buildTargets(void)
 {
-    itsScans = itsParset.getStringVector("sb.targets");
+    itsScans = itsParset.getStringVector("sb.targets", true);
     vector<string>::const_iterator it;
     for (it = itsScans.begin(); it != itsScans.end(); ++it) {
         const string id = *it;
@@ -268,8 +268,12 @@ void Configuration::buildTargets(void)
         // First time we have seen this target
         const string keyBase = "sb.target." + id + ".";
         const string name = itsParset.getString(keyBase + "field_name");
-        const casa::MDirection dir = asMDirection(itsParset.getStringVector(
+        const casa::MDirection pointingCentre = asMDirection(itsParset.getStringVector(
                     keyBase + "field_direction"));
+        casa::MDirection phaseCentre = pointingCentre;
+        if (itsParset.isDefined(keyBase + "phase_direction")) {
+            phaseCentre = asMDirection(itsParset.getStringVector(keyBase + "phase_direction"));
+        }
 
         // Get a reference to the correlator mode
         const string modename = itsParset.getString(keyBase + "corrmode");
@@ -279,7 +283,8 @@ void Configuration::buildTargets(void)
             ASKAPTHROW(AskapError, "Unknown correlator mode: " << modename);
         }
 
-        itsTargets.insert(make_pair(id, Target(name, dir, modeIt->second)));
+        itsTargets.insert(make_pair(id, Target(name, pointingCentre,
+                        phaseCentre, modeIt->second)));
     }
 }
 

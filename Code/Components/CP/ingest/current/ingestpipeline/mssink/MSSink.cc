@@ -640,7 +640,7 @@ casa::Int MSSink::findOrAddField(const casa::Int scanId)
 {
     const Target& target= itsConfig.getTargetForScan(scanId);
     const casa::String fieldName = target.name();
-    const casa::MDirection fieldDirection = target.direction();
+    const casa::MDirection fieldDirection = target.phaseCentre();
     const casa::String& calCode = "";
 
     MSColumns msc(*itsMs);
