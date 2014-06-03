@@ -49,6 +49,8 @@ fi
 useGaussianComponents=true
 msbase=DCvis
 
+diameter=12m
+
 ##############################
 # Load the detailed parameters
 ##############################
@@ -62,7 +64,9 @@ msbase=DCvis
 #. ${scriptdir}/configGASKAP.sh
 #. ${scriptdir}/configM31.sh
 #. ${scriptdir}/configBETAtestfield.sh
+
 #. ${scriptdir}/config_fullASKAP_coarseContinuum.sh
+#. ${scriptdir}/config_SKA1Survey.sh
 
 ##############################
 # Cleaning up and verifying
