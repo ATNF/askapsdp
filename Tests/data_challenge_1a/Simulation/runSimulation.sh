@@ -62,7 +62,7 @@ if [ $doSkyModel == true ]; then
     
 fi
 
-if [ $doSubmit == true ] && [ $QSUB_JOBLIST ]; then
+if [ $doSubmit == true ] && [ $SBATCH_JOBLIST ]; then
     
     scontrol release $SBATCH_JOBLIST
     

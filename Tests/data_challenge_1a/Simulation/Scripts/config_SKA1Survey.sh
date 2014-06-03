@@ -61,7 +61,7 @@ doAntennaBased=false
 # Model creation definitions
 
 baseimage=SKA1Survey
-freqChanZeroMHz=1420.
+freqChanZeroMHz=1420
 msbase=SKA1SurveyVis
 
 npix=24576
