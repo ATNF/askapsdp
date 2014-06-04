@@ -1,4 +1,3 @@
-# @file
 # Object to simplify unpacking/building/cleaning of ASKAPsoft packages
 #
 # @copyright (c) 2007-2014 CSIRO

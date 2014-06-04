@@ -1,5 +1,4 @@
-## @file
-# builder to parse XML point definitions in adbe common library
+# Builder to parse XML point definitions in adbe common library
 # and generate epics database, asyn glue code and emulator update
 # utilities.
 #

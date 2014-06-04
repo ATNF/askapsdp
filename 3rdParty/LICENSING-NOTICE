@@ -1,0 +1,6 @@
+The software in this "3rdParty" directory is not part of ASKAPsoft, the scripts
+exist to fetch and build the 3rd party software as a convenience only.
+
+In some of the subdirectories there are patches that are applied to the packages
+prior to building. These patches are licensed under same license as the
+associated 3rd party software package.

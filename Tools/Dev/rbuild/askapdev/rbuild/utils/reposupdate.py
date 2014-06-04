@@ -1,6 +1,4 @@
-## @file
-#
-# @copyright (c) 2006-2012 CSIRO
+# Copyright (c) 2006-2012 CSIRO
 # Australia Telescope National Facility (ATNF)
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 # PO Box 76, Epping NSW 1710, Australia
