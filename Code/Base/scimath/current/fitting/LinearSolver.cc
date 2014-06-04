@@ -27,7 +27,6 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #include <fitting/LinearSolver.h>
-#include <fitting/GSLSVDReplacement.h>
 
 #include <askap/AskapError.h>
 #include <profile/AskapProfiler.h>
