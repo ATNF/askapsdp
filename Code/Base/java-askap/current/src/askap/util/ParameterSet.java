@@ -2,6 +2,9 @@
  * Copyright (c) 2009 CSIRO Australia Telescope National Facility (ATNF) Commonwealth
  * Scientific and Industrial Research Organisation (CSIRO) PO Box 76, Epping NSW 1710,
  * Australia atnf-enquiries@csiro.au
+ *
+ * Copyright (C) 2002-2003 ASTRON (Netherlands Foundation for Research in Astronomy)
+ * P.O.Box 2, 7990 AA Dwingeloo, The Netherlands, seg@astron.nl
  * 
  * This file is part of the ASKAP software distribution.
  * 
@@ -16,6 +19,9 @@
  * You should have received a copy of the GNU General Public License along with this
  * program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite
  * 330, Boston, MA 02111-1307 USA
+ *
+ * Parts of this class are copyright CSIRO and parts copyright ASTRON.  The parts copyright
+ * ASTRON are clearly marked below.
  */
 
 package askap.util;
@@ -31,7 +37,7 @@ import java.util.Properties;
 /**
  * Java representation of a ParameterSet.
  * 
- * @author David Brodrick, some code derived from ATOMS.java by David Loone.
+ * @author David Brodrick, some code derived from ATOMS.java by David Loone (CSIRO).
  */
 public class ParameterSet extends Properties {
 
