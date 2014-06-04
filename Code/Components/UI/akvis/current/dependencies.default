@@ -1,7 +1,0 @@
-py-askap=Code/Base/py-askap/current
-numpy=3rdParty/numpy/numpy-1.6.2
-scipy=3rdParty/scipy/scipy-0.11.0
-matplotlib=3rdParty/matplotlib/matplotlib-1.2.0
-pyzmq=3rdParty/pyzmq/pyzmq-14.0.1
-py-accessor=Code/Base/py-accessor/current
-
