@@ -86,7 +86,6 @@ using namespace LOFAR::TYPES;
 
 #include <casainterface/CasaInterface.h>
 #include <analysisparallel/SubimageDef.h>
-#include <mathsutils/NewArrayPartMath.h>
 
 #include <iostream>
 #include <fstream>

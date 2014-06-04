@@ -35,13 +35,13 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
-#include <mathsutils/NewArrayPartMath.h>
 
 #include <imageaccess/CasaImageAccess.h>
 
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
+#include <casa/Arrays/ArrayPartMath.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/FITSImage.h>

@@ -36,8 +36,8 @@
 #include <Common/ParameterSet.h>
 #include <string>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <outputs/ImageWriter.h>
-#include <mathsutils/NewArrayMath.h>
 #include <scimath/Mathematics/Convolver.h>
 #include <duchamp/Cubes/cubes.hh>
 

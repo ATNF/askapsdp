@@ -26,8 +26,6 @@
 #include <askap_analysis.h>
 
 #include <parallelanalysis/DuchampParallel.h>
-#include <mathsutils/NewArrayMath.h>
-#include <mathsutils/NewArrayPartMath.h>
 
 #include <casa/aipstype.h>
 #include <casa/Arrays/Array.h>
