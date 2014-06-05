@@ -81,7 +81,7 @@ namespace askap {
 
 	protected:
 	    void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread, casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum, casa::IPosition &loc, bool doCreate);
-	    void writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc);
+	    /* void writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc); */
 	    void defineChunk(casa::Array<Float> &inputChunkArr, casa::MaskedArray<Float> &outputChunk, size_t ctr);
 	    void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
 

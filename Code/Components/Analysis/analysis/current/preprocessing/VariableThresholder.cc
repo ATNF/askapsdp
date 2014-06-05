@@ -26,6 +26,7 @@
 #include <preprocessing/VariableThresholder.h>
 #include <preprocessing/VariableThresholdingHelpers.h>
 #include <outputs/ImageWriter.h>
+#include <outputs/DistributedImageWriter.h>
 #include <analysisparallel/SubimageDef.h>
 
 #include <askap/AskapLogging.h>
@@ -316,126 +317,50 @@ namespace askap {
 
 	void VariableThresholder::writeImages(casa::Array<Float> &middle, casa::Array<Float> &spread, casa::Array<Float> &snr, casa::Array<Float> &boxsum, casa::IPosition &loc, bool doCreate)
 	{
-	    /// @details Write all 
 
-	    ImageWriter noiseWriter(this->itsCube, this->itsNoiseImageName);
-	    ImageWriter averageWriter(this->itsCube, this->itsAverageImageName);
-	    ImageWriter threshWriter(this->itsCube, this->itsThresholdImageName);
-	    ImageWriter snrWriter(this->itsCube, this->itsSNRimageName);
-	    ImageWriter boxWriter(this->itsCube, this->itsBoxSumImageName);
+	  /// @details Writes the arrays as requested to images on disk. Where
+	  /// the appropriate image name is defined , the array (one of
+	  /// mean,noise,boxsum,snr or threshold) is written in distributed
+	  /// fashion to a CASA image on disk. The 'accumulate' method for
+	  /// DistributedImageWriter::write is used, taking into account any
+	  /// overlapping border regions.
 
+	  bool addToImage=true;
 
-	    if(!this->itsComms->isParallel() || this->itsComms->isMaster()){
-		// If serial mode, or we're on the master node, create the images as needed, but only when requested via doCreate.
-		if(doCreate){
-		    noiseWriter.create();
-		    averageWriter.create();
-		    threshWriter.create();
-		    snrWriter.create();
-		    boxWriter.create();
-		}
-	    }
+	  if(this->itsNoiseImageName != ""){
+	    DistributedImageWriter noiseWriter(*this->itsComms, this->itsCube, this->itsNoiseImageName);
+	    noiseWriter.create();
+	    noiseWriter.write(spread,loc,addToImage);
+	  }
 
-	    if(this->itsComms->isParallel()){
+	  if(this->itsAverageImageName != ""){
+	    DistributedImageWriter averageWriter(*this->itsComms, this->itsCube, this->itsAverageImageName);
+	    averageWriter.create();
+	    averageWriter.write(middle,loc,addToImage);
+	  }
+	  
+	  if(this->itsThresholdImageName != ""){
+	    DistributedImageWriter threshWriter(*this->itsComms, this->itsCube, this->itsThresholdImageName);
+	    threshWriter.create();
+	    casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
+	    threshWriter.write(thresh,loc,addToImage);
+	  }
 
-		bool OK;
-		LOFAR::BlobString bs;
+	  if(this->itsSNRimageName != ""){
+	    DistributedImageWriter snrWriter(*this->itsComms, this->itsCube, this->itsSNRimageName);
+	    snrWriter.create();
+	    snrWriter.write(snr,loc,addToImage);
+	  }
 
-		if(this->itsComms->isMaster()){
-		    for (int i = 1; i < this->itsComms->nProcs(); i++) {
-			// First send the node number
-			ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
-			bs.resize(0);
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			out.putStart("goWrite", 1);
-			out << i ;
-			out.putEnd();
-			this->itsComms->sendBlob(bs, i);
-			ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
-			// Then wait for the OK from that node
-			bs.resize(0);
-			ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
-			this->itsComms->receiveBlob(bs, i);
-			LOFAR::BlobIBufString bib(bs);
-			LOFAR::BlobIStream in(bib);
-			int version = in.getStart("writeDone");
-			ASKAPASSERT(version == 1);
-			in >> OK;
-			in.getEnd();			
-			ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
-			if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
-		    }
+	  if(this->itsBoxSumImageName != ""){
+	    DistributedImageWriter boxWriter(*this->itsComms, this->itsCube, this->itsBoxSumImageName);
+	    boxWriter.create();
+	    boxWriter.write(boxsum,loc,addToImage);
+	  }
 
-		} else if (this->itsComms->isWorker()) {
-		    
-		    OK = true;
-		    int rank;
-		    int version;
-
-		    if (this->itsComms->isParallel()) {
-			do {
-			    bs.resize(0);
-			    this->itsComms->receiveBlob(bs, 0);
-			    LOFAR::BlobIBufString bib(bs);
-			    LOFAR::BlobIStream in(bib);
-			    version = in.getStart("goWrite");
-			    ASKAPASSERT(version == 1);
-			    in >> rank;
-			    in.getEnd();
-			    OK = (rank == this->itsComms->rank());
-			} while (!OK);
-		    }
-
-		    if (OK) {
-			ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms->rank() << ": About to write data to image ");
-
-			this->writeArray(noiseWriter,spread,loc);
-			this->writeArray(averageWriter,middle,loc);
-			this->writeArray(snrWriter,snr,loc);
-			this->writeArray(boxWriter,boxsum,loc);
-			casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
-			this->writeArray(threshWriter,thresh,loc);
-
-			// Return the OK to the master to say that we've written to the image
-			if (this->itsComms->isParallel()) {
-			    bs.resize(0);
-			    LOFAR::BlobOBufString bob(bs);
-			    LOFAR::BlobOStream out(bob);
-			    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": Sending done message to Master.");
-			    out.putStart("writeDone", 1);
-			    out << OK;
-			    out.putEnd();
-			    this->itsComms->sendBlob(bs, 0);
-			    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms->rank() << ": All done.");
-
-			}
-		    }
-
-		}
-
-	    }
-	    else {
-		this->writeArray(noiseWriter,spread,loc);
-		this->writeArray(averageWriter,middle,loc);
-		this->writeArray(snrWriter,snr,loc);
-		this->writeArray(boxWriter,boxsum,loc);
-		casa::Array<Float> thresh = middle + this->itsSNRthreshold * spread;
-		this->writeArray(threshWriter,thresh,loc);
-		
-	    }
 
 	}
 
-	void VariableThresholder::writeArray(ImageWriter &writer, casa::Array<casa::Float> &array, casa::IPosition &loc)
-	{
-	    if(writer.imagename()!=""){
-		ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << array.shape() << " to " << writer.imagename() << " at location " << loc);
-		casa::Array<casa::Float> sumarray = writer.read(loc,array.shape()) + array;
-		
-		writer.write(sumarray,loc);
-	    }
-	}
 
 	void VariableThresholder::search()
 	{

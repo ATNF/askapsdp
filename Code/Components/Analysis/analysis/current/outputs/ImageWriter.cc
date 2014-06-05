@@ -123,7 +123,7 @@ namespace askap {
 	}
 
 
-	void ImageWriter::write(float *data, const casa::IPosition &shape)
+	void ImageWriter::write(float *data, const casa::IPosition &shape, bool accumulate)
 	{
 	    ASKAPASSERT(shape.size() == this->itsShape.size());
 	    casa::Array<Float> arr(shape,data,casa::SHARE);
@@ -131,7 +131,7 @@ namespace askap {
 	    this->write(arr,location);
 	}
 
-	void ImageWriter::write(float *data, const casa::IPosition &shape, const casa::IPosition &loc)
+	void ImageWriter::write(float *data, const casa::IPosition &shape, const casa::IPosition &loc, bool accumulate)
 	{
 	    ASKAPASSERT(shape.size() == this->itsShape.size());
 	    ASKAPASSERT(loc.size() == this->itsShape.size());
@@ -139,21 +139,25 @@ namespace askap {
 	    this->write(arr,loc);
 	}
 
-	void ImageWriter::write(const casa::Array<Float> &data)
+        void ImageWriter::write(const casa::Array<Float> &data, bool accumulate)
 	{
 	    ASKAPASSERT(data.ndim() == this->itsShape.size());
 	    casa::IPosition location(this->itsShape.size(),0);
 	    this->write(data,location);
 	}
 
-	void ImageWriter::write(const casa::Array<Float> &data, const casa::IPosition &loc)
+        void ImageWriter::write(const casa::Array<Float> &data, const casa::IPosition &loc, bool accumulate)
 	{
 	    ASKAPASSERT(data.ndim() == this->itsShape.size());
 	    ASKAPASSERT(loc.size() == this->itsShape.size());
 	    ASKAPLOG_DEBUG_STR(logger, "Opening image " << this->itsImageName << " for writing");
 	    casa::PagedImage<float> img(this->itsImageName);
 	    ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << data.shape() << " to image " << this->itsImageName << " at location " << loc);
-	    img.putSlice(data, loc);
+	    if(accumulate){
+	      casa::Array<casa::Float> newdata = data + this->read(loc,data.shape());
+	      img.putSlice(newdata,loc);
+	    }
+	    else img.putSlice(data, loc);
 
 	}
 

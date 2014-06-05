@@ -32,11 +32,11 @@
 
 #include <string>
 #include <duchamp/Cubes/cubes.hh>
+#include <casa/aipstype.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/IPosition.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/ImageInfo.h>
-#include <casa/aipstype.h>
 
 namespace askap {
 
@@ -62,12 +62,12 @@ namespace askap {
 	    
 	    void setTileshapeFromShape(casa::IPosition &shape);
 
-	    void create();
+	    virtual void create();
 	    
-	    void write(float *data, const casa::IPosition &shape);
-	    void write(float *data, const casa::IPosition &shape, const casa::IPosition &loc);
-	    void write(const casa::Array<casa::Float> &data);
-	    void write(const casa::Array<casa::Float> &data, const casa::IPosition &loc);
+	    void write(float *data, const casa::IPosition &shape, bool accumulate=false);
+	    void write(float *data, const casa::IPosition &shape, const casa::IPosition &loc, bool accumulate=false);
+	    void write(const casa::Array<casa::Float> &data, bool accumulate=false);
+	    virtual void write(const casa::Array<casa::Float> &data, const casa::IPosition &loc, bool accumulate=false);
 
 	    casa::Array<casa::Float> read(const casa::IPosition& loc, const casa::IPosition &shape);
 
