@@ -113,7 +113,6 @@ namespace askap {
 
 	void ImageWriter::create()
 	{
-	  //	    this->itsImageName = filename;
 	    if(this->itsImageName != ""){
 		ASKAPLOG_DEBUG_STR(logger, "Creating image named " << this->itsImageName << " with shape " << this->itsShape << " and tileshape " << this->itsTileshape);
 		casa::PagedImage<float> img(casa::TiledShape(this->itsShape,this->itsTileshape), this->itsCoordSys, this->itsImageName);

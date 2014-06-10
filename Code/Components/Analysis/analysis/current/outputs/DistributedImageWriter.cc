@@ -164,7 +164,7 @@ namespace askap {
 	    }
 	    else {
 
-		this->write(data,loc);
+		this->ImageWriter::write(data,loc);
 
 	    }
 
