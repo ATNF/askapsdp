@@ -620,6 +620,14 @@ namespace askap {
 	      if(this->itsWeighter->isValid() ){
 		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
 	      }
+	      // If we are doing fitting, and want to use the curvature map, need to define/calculate this here.
+	      if (this->itsFitParams.doFit() && this->itsFitParams.useCurvature()){
+		
+		CurvatureMapCreator curv(this->itsComms,this->itsParset.makeSubset("Fitter."));
+		curv.initialise(this->itsCube, this->itsSubimageDef);
+		ASKAPLOG_DEBUG_STR(logger, "Calling curv.write()");
+		curv.write();
+	      }
 	  }	      
 
 	  if(itsComms.isWorker()){
@@ -659,7 +667,8 @@ namespace askap {
 	    if (this->itsFitParams.doFit() && this->itsFitParams.useCurvature()){
 		
 		CurvatureMapCreator curv(this->itsComms,this->itsParset.makeSubset("Fitter."));
-		curv.calculate(this->itsCube);
+		curv.initialise(this->itsCube, this->itsSubimageDef);
+		curv.calculate();
 		this->itsFitParams.setSigmaCurv(curv.sigmaCurv());
 		ASKAPLOG_DEBUG_STR(logger, "Fitting parameters now think sigma_curv is " << this->itsFitParams.sigmaCurv());
 		curv.write();

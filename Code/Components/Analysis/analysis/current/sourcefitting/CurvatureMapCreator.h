@@ -32,7 +32,9 @@
 #include <Common/ParameterSet.h>
 #include <string>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/IPosition.h>
 #include <outputs/ImageWriter.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <duchamp/Cubes/cubes.hh>
 
@@ -49,7 +51,10 @@ namespace askap {
 	    CurvatureMapCreator& operator= (const CurvatureMapCreator& other);
 	    virtual ~CurvatureMapCreator(){};
 
-	    void calculate(duchamp::Cube &cube);
+	    void setCube(duchamp::Cube &cube){itsCube = &cube;};
+	    void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
+	    void calculate();
+	    void maskBorders();
 	    void write();
 
 	    float sigmaCurv(){return itsSigmaCurv;};
@@ -60,8 +65,11 @@ namespace askap {
 	    askap::askapparallel::AskapParallel *itsComms;
 	    LOFAR::ParameterSet itsParset;
 	    duchamp::Cube *itsCube;
+	    analysisutilities::SubimageDef *itsSubimageDef;
 	    std::string itsFilename;
 	    casa::Array<float> itsArray;
+	    casa::IPosition itsShape;
+	    casa::IPosition itsLocation;
 	    float itsSigmaCurv;
 	};
 

@@ -81,14 +81,11 @@ namespace askap {
 	    if (lattPtr == 0)
 		ASKAPTHROW(AskapError, "Requested image \"" << cube->pars().getImageFile() << "\" does not exist or could not be opened.");
 	    const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	    casa::Slicer slicer = analysisutilities::subsectionToSlicer(cube->pars().section());
-	    analysisutilities::fixSlicer(slicer, cube->header().getWCS());
 
-	    const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slicer);
-	    this->itsCoordSys = sub->coordinates();
-	    this->itsShape = sub->shape();
-	    this->itsBunit = sub->units();
-	    this->itsImageInfo = sub->imageInfo();
+	    this->itsCoordSys = imagePtr->coordinates();
+	    this->itsShape = imagePtr->shape();
+	    this->itsBunit = imagePtr->units();
+	    this->itsImageInfo = imagePtr->imageInfo();
 
 	    // set the default tileshape based on the overall image shape.
 	    // this can be changed later if preferred (for smaller subsection writing).

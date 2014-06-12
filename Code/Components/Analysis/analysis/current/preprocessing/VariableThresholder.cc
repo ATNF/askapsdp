@@ -166,13 +166,8 @@ namespace askap {
 	    duchamp::Section sec = this->itsSubimageDef->section(this->itsComms->rank()-1);
 	    ASKAPLOG_DEBUG_STR(logger, "It is " << sec.getSection());
 	    sec.parse(this->itsInputShape.asStdVector());
-	    ASKAPLOG_DEBUG_STR(logger, "About to get the section for the master ");
-	    duchamp::Section secMaster = this->itsSubimageDef->section(-1);
-	    ASKAPLOG_DEBUG_STR(logger, "It is  " << secMaster.getSection());
-	    secMaster.parse(this->itsInputShape.asStdVector());
-	    this->itsLocation = casa::IPosition(sec.getStartList()) - casa::IPosition(secMaster.getStartList());
+	    this->itsLocation = casa::IPosition(sec.getStartList());
 	    ASKAPLOG_DEBUG_STR(logger, "Reference location for rank " << this->itsComms->rank() << " is " << this->itsLocation << " since local subsection = " << sec.getSection() << " and input shape = " << this->itsInputShape);
-	    ASKAPLOG_DEBUG_STR(logger, "Rank " << this->itsComms->rank() << " has loc " << casa::IPosition(sec.getStartList()) << " while the master has loc " << casa::IPosition(secMaster.getStartList()));
 	    
 
 	}

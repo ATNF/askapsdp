@@ -37,7 +37,9 @@
 #include <string>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
-#include <outputs/ImageWriter.h>
+#include <outputs/DistributedImageWriter.h>
+#include <casainterface/CasaInterface.h>
+#include <analysisparallel/SubimageDef.h>
 #include <scimath/Mathematics/Convolver.h>
 #include <duchamp/Cubes/cubes.hh>
 
@@ -79,22 +81,56 @@ namespace askap {
 	    return *this;
 	}
 
-	void CurvatureMapCreator::calculate(duchamp::Cube &cube)
+	void CurvatureMapCreator::initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef)
 	{
+	    /// @details Initialise the class with information from
+	    /// the duchamp::Cube. This is done to avoid replicating
+	    /// parameters and preserving the parameter
+	    /// hierarchy. Once the input image is known, the output
+	    /// image names can be set with fixName() (if they have
+	    /// not been defined via the parset).
+
 	    this->itsCube = &cube;
+	    this->itsSubimageDef = &subdef;
+
 	    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-	    const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube->pars().getImageFile());
+	    const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
 	    if (lattPtr == 0)
-		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube->pars().getImageFile() << "\" does not exist or could not be opened.");
+		ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
 	    const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	    casa::Slicer slicer = analysisutilities::subsectionToSlicer(this->itsCube->pars().section());
-	    analysisutilities::fixSlicer(slicer, this->itsCube->header().getWCS());
+	    casa::Slicer slicer = analysisutilities::subsectionToSlicer(cube.pars().section());
+	    analysisutilities::fixSlicer(slicer, cube.header().getWCS());
 	    const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slicer);
-	    casa::IPosition inputShape = sub->shape();
+	    this->itsShape = sub->shape();
+
+	    duchamp::Section sec = this->itsSubimageDef->section(this->itsComms->rank()-1);
+	    sec.parse(this->itsShape.asStdVector());
+	    duchamp::Section secMaster = this->itsSubimageDef->section(-1);
+	    secMaster.parse(this->itsShape.asStdVector());
+	    this->itsLocation = casa::IPosition(sec.getStartList());// - casa::IPosition(secMaster.getStartList());
+
+	    ASKAPLOG_DEBUG_STR(logger, "Initialised CurvatureMapCreator with shape="<<this->itsShape<<" and location="<<this->itsLocation);
+
+	}
+
+
+	void CurvatureMapCreator::calculate()
+	{
+
+	    // ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    // ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+	    // const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube->pars().getImageFile());
+	    // if (lattPtr == 0)
+	    // 	ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube->pars().getImageFile() << "\" does not exist or could not be opened.");
+	    // const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	    // casa::Slicer slicer = analysisutilities::subsectionToSlicer(this->itsCube->pars().section());
+	    // analysisutilities::fixSlicer(slicer, this->itsCube->header().getWCS());
+	    // const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slicer);
+	    // casa::IPosition inputShape = sub->shape();
 
 	    //casa::IPosition inputShape(2,this->itsCube->getDimX(),this->itsCube->getDimY());
-	    casa::Array<float> inputArray(inputShape,this->itsCube->getArray(),casa::SHARE);
+	    casa::Array<float> inputArray(this->itsShape,this->itsCube->getArray(),casa::SHARE);
 
 	    casa::IPosition kernelShape(2,3,3);
 	    casa::Array<float> kernel(kernelShape,1.);
@@ -102,15 +138,18 @@ namespace askap {
 
 	    ASKAPLOG_DEBUG_STR(logger, "Defined a kernel for the curvature map calculations: " << kernel);
 
-	    casa::Convolver<float> convolver(kernel,inputShape);
+	    casa::Convolver<float> convolver(kernel,this->itsShape);
 	    ASKAPLOG_DEBUG_STR(logger, "Defined a convolver");
 
-	    this->itsArray = casa::Array<float>(inputShape);
+	    this->itsArray = casa::Array<float>(this->itsShape);
 	    ASKAPLOG_DEBUG_STR(logger, "About to convolve");
 	    convolver.linearConv(this->itsArray, inputArray);
 	    ASKAPLOG_DEBUG_STR(logger, "Convolving done.");
 
 	    this->findSigma();
+
+	    this->maskBorders();
+
 	}
 
 
@@ -122,15 +161,43 @@ namespace askap {
 
 	}
 
+	void CurvatureMapCreator::maskBorders()
+	{
+	    int nsubx=this->itsSubimageDef->nsubx(), nsuby=this->itsSubimageDef->nsuby();
+	    int overlapx=this->itsSubimageDef->overlapx()/2, overlapy=this->itsSubimageDef->overlapy()/2;
+	    int rank = this->itsComms->rank()-1;
+	    int xminOffset = (rank % nsubx == 0) ? 0 : overlapx;
+	    int xmaxOffset = (rank % nsubx == (nsubx-1)) ? 0 : overlapx;
+	    int yminOffset = (rank / nsubx == 0) ? 0 : overlapy;
+	    int ymaxOffset = (rank / nsubx == (nsuby-1)) ? 0 : overlapy;
+	    ASKAPLOG_DEBUG_STR(logger, "xminOffset="<<xminOffset << ", xmaxOffset="<<xmaxOffset <<", yminOffset="<<yminOffset <<", ymaxOffset="<<ymaxOffset);
+	    ASKAPLOG_DEBUG_STR(logger, "Starting with location="<<this->itsLocation<<" and shape="<<this->itsShape);
+	    casa::IPosition blc(this->itsLocation),trc(this->itsShape-1);
+	    blc[0]=xminOffset;
+	    blc[1]=yminOffset;
+	    trc[0]-=xmaxOffset;
+	    trc[1]-=ymaxOffset;
+	    casa::Slicer arrSlicer(blc,trc,Slicer::endIsLast);
+	    ASKAPLOG_DEBUG_STR(logger, "Defined a masking Slicer " << arrSlicer);
+	    casa::Array<float> newArr = this->itsArray(arrSlicer);
+	    ASKAPLOG_DEBUG_STR(logger, "Have extracted a subarray of shape " << newArr.shape());
+	    this->itsArray.assign(newArr);
+	    this->itsLocation += blc;
+	    this->itsShape = trc-blc+1;
+	    ASKAPLOG_DEBUG_STR(logger, "Now have location="<<this->itsLocation << " and shape="<<this->itsShape);
+	}
+
 
 	void CurvatureMapCreator::write()
 	{
 	    if(this->itsFilename!=""){
-		ImageWriter writer(this->itsCube, this->itsFilename);
+		ASKAPLOG_DEBUG_STR(logger, "In CurvatureMapCreator::write()");
+
+		DistributedImageWriter writer(*this->itsComms, this->itsCube, this->itsFilename);
 		ASKAPLOG_DEBUG_STR(logger, "Creating the output image " << this->itsFilename);
 		writer.create();
 		ASKAPLOG_DEBUG_STR(logger, "Writing curvature map of shape " << this->itsArray.shape() << " to " << this->itsFilename);
-		writer.write(this->itsArray);
+		writer.write(this->itsArray,this->itsLocation,true);
 		ASKAPLOG_DEBUG_STR(logger, "Curvature image written");
 	    }
 	    
