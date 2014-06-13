@@ -474,15 +474,22 @@ namespace askap {
 		    // 4. run lutz_detect to get list of objects
 		    // 5. for each object, define a subcomponent of zero size with correct peak & position
 
-		    casa::Array<float> curvArray = analysisutilities::getPixelsInBox(this->itsFitParams.curvatureImage(),this->itsBox,false);
+		    casa::IPosition globalOffset(this->itsBox.start().size(),0);
+		    globalOffset[0] = this->xSubOffset;
+		    globalOffset[1] = this->ySubOffset;
+		    //ASKAPLOG_DEBUG_STR(logger, "Defining slicer with offset " << globalOffset << " applied to box start " << this->itsBox.start() <<" (giving " << this->itsBox.start()+globalOffset << ") and length " << this->itsBox.length());
+		    casa::Slicer fullImageBox(this->itsBox.start()+globalOffset,this->itsBox.length(),Slicer::endIsLength);
+		    //ASKAPLOG_DEBUG_STR(logger, "Have slicer " << fullImageBox);
+
+		    casa::Array<float> curvArray = analysisutilities::getPixelsInBox(this->itsFitParams.curvatureImage(),fullImageBox,false);
 
 		    PixelInfo::Object2D spatMap = this->getSpatialMap();
-		    size_t *dim = new size_t[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
-		    float *fluxArray = new float[this->boxSize()];
+		    size_t *dim = new size_t[2]; dim[0]=fullImageBox.length()[0]; dim[1]=fullImageBox.length()[1];
+		    float *fluxArray = new float[fullImageBox.length().product()];
 		    for (size_t i = 0; i < this->boxSize(); i++) fluxArray[i] = 0.;
-		    std::vector<bool> summitMap(this->boxXsize()*this->boxYsize(),false);
+		    std::vector<bool> summitMap(fullImageBox.length().product(),false);
 
-		    // ASKAPLOG_DEBUG_STR(logger, "xmin="<< this->boxXmin() << " xsize=" << this->boxXsize() << " ymin=" << this->boxYmin() << " ysize=" << this->boxYsize() << " f.size="<<f.size());
+		    //ASKAPLOG_DEBUG_STR(logger, "xmin="<< fullImageBox.start()[0] << " xsize=" << fullImageBox.length()[0] << " ymin=" << fullImageBox.start()[1] << " ysize=" << fullImageBox.length()[1] << " f.size="<<f.size());
 		    for (size_t i = 0; i < f.size(); i++) {
 			int x = int(pos(i, 0));
 			int y = int(pos(i, 1));
@@ -490,8 +497,7 @@ namespace askap {
 			    int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
 			    fluxArray[loc] = float(f(i));
 			    summitMap[loc] = (curvArray.data()[loc] < -1.*this->itsFitParams.sigmaCurv());
-			    // ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << loc << " " << fluxArray[loc] << " " 
-			    // 		       << curvArray.data()[loc]<< " " << " " << this->itsFitParams.sigmaCurv()<< " " << summitMap[loc]);
+//			    ASKAPLOG_DEBUG_STR(logger, x << " " << y << " " << loc << " " << fluxArray[loc] << " "  << curvArray.data()[loc]<< " " << " " << this->itsFitParams.sigmaCurv()<< " " << summitMap[loc]);
 			}
 		    }
 
@@ -499,8 +505,8 @@ namespace askap {
 		    ASKAPLOG_DEBUG_STR(logger, "Found " << summitList.size() << " summits");
 
 		    duchamp::Param par;
-		    par.setXOffset(this->boxXmin());
-		    par.setYOffset(this->boxYmin());
+		    par.setXOffset(fullImageBox.start()[0]);
+		    par.setYOffset(fullImageBox.start()[1]);
 		    for(std::vector<Object2D>::iterator obj=summitList.begin();obj<summitList.end();obj++){
 			duchamp::Detection det;
 			det.addChannel(0,*obj);
@@ -509,8 +515,9 @@ namespace askap {
 			det.addOffsets();
 			SubComponent cmpnt;
 			cmpnt.setPeak(det.getPeakFlux());
-			cmpnt.setX(det.getXPeak());
-			cmpnt.setY(det.getYPeak());
+			// Need to correct the positions to put them in the current worker frame
+			cmpnt.setX(det.getXPeak()-globalOffset[0]);
+			cmpnt.setY(det.getYPeak()-globalOffset[1]);
 			cmpnt.setPA(0.);
 			cmpnt.setMajor(0.);
 			cmpnt.setMinor(0.);
