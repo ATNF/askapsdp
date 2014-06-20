@@ -32,9 +32,7 @@
 
 // System includes
 #include <string>
-#include <sstream>
 #include <iomanip>
-#include <vector>
 #include <cmath>
 #include <inttypes.h>
 
@@ -162,8 +160,7 @@ bool TosSimulator::sendNext(void)
     for (casa::uInt i = 0; i < nAntenna; ++i) {
         const std::string name = antc.name().getColumn()(i);
 
-        const casa::uInt id = metadata.addAntenna(name);
-        TosMetadataAntenna& antMetadata = metadata.antenna(id);
+        TosMetadataAntenna antMetadata(name);
 
         const casa::Int fieldId = msc.fieldId()(itsCurrentRow);
         const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
@@ -191,6 +188,8 @@ bool TosSimulator::sendNext(void)
         // TODO: Current no flagging, but it would be good to read this from the
         // actual measurement set
         antMetadata.flagged(false);
+
+        metadata.addAntenna(antMetadata);
     }
 
     // Find the end of the current integration (i.e. find the next timestamp)

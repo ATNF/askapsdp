@@ -29,7 +29,6 @@
 
 // System includes
 #include <string>
-#include <vector>
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"

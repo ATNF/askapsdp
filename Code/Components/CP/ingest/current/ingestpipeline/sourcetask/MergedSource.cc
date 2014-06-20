@@ -419,11 +419,13 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(chunk->beam2()(row) == static_cast<casa::uInt>(beamid), errorMsg);
 
     // 5) Does the TOS say this antenna should be flagged?
+    const string antName1 = itsConfig.antennas()[antenna1].name();
+    const string antName2 = itsConfig.antennas()[antenna2].name();
+    const TosMetadataAntenna mdant1 = metadata.antenna(antName1);
+    const TosMetadataAntenna mdant2 = metadata.antenna(antName2);
     const bool flagged = metadata.flagged()
-        || metadata.antenna(antenna1).flagged()
-        || !metadata.antenna(antenna1).onSource()
-        || metadata.antenna(antenna2).flagged()
-        || !metadata.antenna(antenna2).onSource();
+        || mdant1.flagged() || !mdant1.onSource()
+        || mdant2.flagged() || !mdant2.onSource();
 
     // 6) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.slice < 16, "Slice index is invalid");

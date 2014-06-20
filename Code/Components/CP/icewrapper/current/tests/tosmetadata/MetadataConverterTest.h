@@ -45,6 +45,7 @@
 #include "tosmetadata/MetadataConverter.h"
 
 // Using
+using namespace std;
 using namespace casa;
 using namespace askap::interfaces;
 
@@ -92,16 +93,16 @@ class MetadataConverterTest : public CppUnit::TestFixture {
 
             for (casa::uInt i = 0; i < nAntenna; ++i) {
                 std::stringstream ss;
-                ss << "ASKAP" << i;
-                casa::uInt id = itsSource->addAntenna(ss.str());
-                antennaNames.push_back(ss.str());
-                TosMetadataAntenna& ant = itsSource->antenna(id);
-
+                ss << "ak" << i;
+                TosMetadataAntenna ant(ss.str());
                 ant.actualRaDec(testDir);
                 ant.actualAzEl(testDir);
                 ant.actualPolAngle(polAngle);
                 ant.onSource(onSource);
                 ant.flagged(flagged);
+
+                itsSource->addAntenna(ant);
+                antennaNames.push_back(ss.str());
             }
 
 #ifndef __LP64__
@@ -148,17 +149,18 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             const unsigned int nAntenna = itsSource->nAntenna();
             CPPUNIT_ASSERT_EQUAL(nAntenna, itsResult->nAntenna());
 
-            for (unsigned int i = 0; i < nAntenna; ++i) {
-                verifyAntenna(i);
+            const vector<string> names = itsSource->antennaNames();
+            for (unsigned int i = 0; i < names.size(); ++i) {
+                verifyAntenna(names[i]);
             }
         }
 
     private:
 
-        void verifyAntenna(unsigned int id) {
+        void verifyAntenna(const std::string& name) {
             // Get the TosMetadataAntenna instance
-            TosMetadataAntenna& srcAnt = itsSource->antenna(id);
-            TosMetadataAntenna& resultAnt = itsResult->antenna(id);
+            const TosMetadataAntenna& srcAnt = itsSource->antenna(name);
+            const TosMetadataAntenna& resultAnt = itsResult->antenna(name);
 
             CPPUNIT_ASSERT_EQUAL(srcAnt.name(), resultAnt.name());
 

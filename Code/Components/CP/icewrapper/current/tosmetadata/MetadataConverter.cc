@@ -27,6 +27,10 @@
 // Include own header file first
 #include "MetadataConverter.h"
 
+// System includes
+#include <vector>
+#include <string>
+
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "boost/shared_ptr.hpp"
@@ -104,17 +108,18 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
     destMapper.setFloat("sky_frequency", static_cast<float>(source.centreFreq().getValue("MHz")));
 
     // antenna_names
+    std::vector<std::string> stdnames =  source.antennaNames();
     std::vector<casa::String> antennaNames;
-    for (size_t i = 0; i < source.nAntennas(); ++i) {
-        antennaNames.push_back(source.antenna(i).name());
+    for (size_t i = 0; i < stdnames.size(); ++i) {
+        antennaNames.push_back(stdnames[i]);
     }
     destMapper.setStringSeq("antennas", antennaNames);
 
     /////////////////////////
     // Metadata per antenna
     /////////////////////////
-    for (unsigned int i = 0; i < source.nAntennas(); ++i) {
-        convertAntenna(i, source, dest);
+    for (unsigned int i = 0; i < stdnames.size(); ++i) {
+        convertAntenna(stdnames[i], source, dest);
     }
 
     return dest;
@@ -122,14 +127,14 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
 
 // Convert antenna portion of the Tos Metadata from
 // askap::cp::TosMetadata to askap::interfaces::TimeTaggedTypedValueMap
-void MetadataConverter::convertAntenna(unsigned int antId, 
+void MetadataConverter::convertAntenna(const std::string& name,
         const askap::cp::TosMetadata& source, 
         askap::interfaces::TimeTaggedTypedValueMap& dest)
 {
     TypedValueMapMapper destMapper(dest.data);
 
     // Obtain the instance of TosMetadataAntenna to convert
-    const TosMetadataAntenna& antenna = source.antenna(antId);
+    const TosMetadataAntenna& antenna = source.antenna(name);
     const std::string antennaName = antenna.name();
 
     // <antenna name>.actual_radec
@@ -163,8 +168,7 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     // to native (or casa) types
     TypedValueMapConstMapper srcMapper(source.data);
 
-    const unsigned int id = dest.addAntenna(antennaName);
-    TosMetadataAntenna& ant = dest.antenna(id);
+    TosMetadataAntenna ant(antennaName);
 
     // hw_error
     ant.flagged(srcMapper.getBool(makeMapKey(antennaName,
@@ -186,6 +190,7 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
         ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
                         "on_source")));
     }
+    dest.addAntenna(ant);
 }
 
 std::string MetadataConverter::makeMapKey(const std::string& prefix,

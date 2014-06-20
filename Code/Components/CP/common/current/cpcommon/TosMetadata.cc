@@ -29,6 +29,8 @@
 
 // System includes
 #include <vector>
+#include <map>
+#include <utility>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -36,15 +38,11 @@
 #include "casa/Quanta.h"
 
 // Using
+using namespace std;
 using namespace askap::cp;
 
 TosMetadata::TosMetadata() : itsTime(0), itsScanId(-1), itsFlagged(false)
 {
-}
-
-casa::uInt TosMetadata::nAntenna(void) const
-{
-    return itsAntenna.size();
 }
 
 casa::uLong TosMetadata::time(void) const
@@ -87,42 +85,38 @@ void TosMetadata::centreFreq(const casa::Quantity& freq)
     itsCentreFreq = freq;
 }
 
-casa::uInt TosMetadata::addAntenna(const casa::String& name)
+void TosMetadata::addAntenna(const TosMetadataAntenna& ant)
 {
     // Ensure an antenna of this name does not already exist
-    std::vector<TosMetadataAntenna>::const_iterator it;
-    for (it = itsAntenna.begin(); it != itsAntenna.end(); ++it) {
-        if (it->name() == name) {
-            ASKAPTHROW(AskapError, "An antenna with this name already exists");
-        }
+    const map<string, TosMetadataAntenna>::const_iterator it = itsAntennas.find(ant.name());
+    if (it != itsAntennas.end()) {
+        ASKAPTHROW(AskapError, "An antenna with this name (" << ant.name()
+                << ") already exists");
     }
 
-    TosMetadataAntenna antenna(name);
-
-    itsAntenna.push_back(antenna);
-    return (itsAntenna.size() - 1);
+    itsAntennas.insert(make_pair(ant.name(), ant));
 }
 
-size_t TosMetadata::nAntennas() const
+casa::uInt TosMetadata::nAntenna() const
 {
-    return itsAntenna.size();
+    return static_cast<casa::uInt>(itsAntennas.size());
 }
 
-const TosMetadataAntenna& TosMetadata::antenna(const casa::uInt id) const
+std::vector<std::string> TosMetadata::antennaNames(void) const
 {
-    checkAntennaId(id);
-    return itsAntenna[id];
-}
-
-TosMetadataAntenna& TosMetadata::antenna(const casa::uInt id)
-{
-    checkAntennaId(id);
-    return itsAntenna[id];
-}
-
-void TosMetadata::checkAntennaId(const casa::uInt& id) const
-{
-    if ((id + 1) > (nAntenna())) {
-        ASKAPTHROW(AskapError, "Invalid antenna index");
+    vector<string> names;
+    for (map<string, TosMetadataAntenna>::const_iterator it = itsAntennas.begin();
+            it != itsAntennas.end(); ++it) {
+        names.push_back(it->first);
     }
+    return names;
+}
+
+const TosMetadataAntenna& TosMetadata::antenna(const std::string& name) const
+{
+    const map<string, TosMetadataAntenna>::const_iterator it = itsAntennas.find(name);
+    if (it == itsAntennas.end()) {
+        ASKAPTHROW(AskapError, "Antenna " << name << " not found in metadata");
+    }
+    return it->second;
 }

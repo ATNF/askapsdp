@@ -29,6 +29,8 @@
 
 // System includes
 #include <vector>
+#include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "casa/aips.h"
@@ -109,13 +111,10 @@ class TosMetadata {
         ///
         /// @throw AskapError if an antenna with this name already
         ///     exists.
-        /// @return the id of the antenna object created. The
-        ///     implementation will guarantee the first id is zero
-        ///     and additional id's will be incremented by one.
-        casa::uInt addAntenna(const casa::String& name);
+        void addAntenna(const TosMetadataAntenna& ant);
 
-        /// Returns the numbers of antennas
-        size_t nAntennas() const;
+        /// @brief Returns a vector of antenna names
+        std::vector<std::string> antennaNames(void) const;
 
         /// @brief Return a const reference to the specified antenna.
         ///
@@ -124,25 +123,9 @@ class TosMetadata {
         /// @throw AskapError if the antenna ID is not valid.
         /// @return a const reference to the antenna specified by the
         ///     id parameter.
-        const TosMetadataAntenna& antenna(const casa::uInt id) const;
-
-        /// @brief Return a non-const reference to the specified
-        /// antenna.
-        ///
-        /// @param[in] id the identity of the antenna to be returned.
-        ///
-        /// @throw AskapError if the antenna ID is not valid.
-        /// @return a non-const reference to the antenna specified by
-        ///     the id parameter.
-        TosMetadataAntenna& antenna(const casa::uInt id);
+        const TosMetadataAntenna& antenna(const std::string& name) const;
 
     private:
-        /// @brief Utility function to check the antenna ID passed
-        /// is valid, otherwise an exception is thrown.
-        ///
-        /// @param[in] id the antenna ID to check.
-        /// @throw AskapError if the antenna ID is not valid.
-        void checkAntennaId(const casa::uInt& id) const;
 
         // Integration cycle start time.
         casa::uLong itsTime;
@@ -157,8 +140,8 @@ class TosMetadata {
         // The centre frequency
         casa::Quantity itsCentreFreq;
 
-        // Vector an TosMetadataAntenna objects
-        std::vector<TosMetadataAntenna> itsAntenna;
+        // Map of antenna names to TosMetadataAntenna objects.
+        std::map<std::string, TosMetadataAntenna> itsAntennas;
 };
 
 }
