@@ -11,4 +11,5 @@ Processor platform and the calibration, imaging, and source finding software.
 
    intro.rst
    basiccontinuum.rst
+   selavy.rst
 
