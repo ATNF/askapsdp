@@ -72,7 +72,8 @@ class TosMetadataTest : public CppUnit::TestFixture {
                 CPPUNIT_ASSERT_EQUAL(i, instance->nAntenna());
                 std::stringstream ss;
                 ss << "ASKAP" << i;
-                instance->addAntenna(ss.str());
+                TosMetadataAntenna ant(ss.str());
+                instance->addAntenna(ant);
             }
 
             CPPUNIT_ASSERT_EQUAL(nAntenna, instance->nAntenna());
@@ -99,23 +100,28 @@ class TosMetadataTest : public CppUnit::TestFixture {
         }
 
         void testAntennaAccess() {
-            const casa::String ant1Name = "ASKAP01";
-            const casa::String ant2Name = "ASKAP02";
-            CPPUNIT_ASSERT_EQUAL(0ul, instance->nAntennas());
-            uInt id1 = instance->addAntenna(ant1Name);
-            CPPUNIT_ASSERT_EQUAL(1ul, instance->nAntennas());
-            uInt id2 = instance->addAntenna(ant2Name);
-            CPPUNIT_ASSERT_EQUAL(2ul, instance->nAntennas());
+            const casa::String ant1Name = "ak01";
+            const casa::String ant2Name = "ak02";
+            const TosMetadataAntenna a1(ant1Name);
+            const TosMetadataAntenna a2(ant2Name);
 
-            TosMetadataAntenna& ant1 = instance->antenna(id1);
+
+            CPPUNIT_ASSERT_EQUAL(0u, instance->nAntenna());
+            instance->addAntenna(a1);
+            CPPUNIT_ASSERT_EQUAL(1u, instance->nAntenna());
+            instance->addAntenna(a2);
+            CPPUNIT_ASSERT_EQUAL(2u, instance->nAntenna());
+
+            const TosMetadataAntenna& ant1 = instance->antenna(ant1Name);
             CPPUNIT_ASSERT_EQUAL(ant1Name, ant1.name());
-            TosMetadataAntenna& ant2 = instance->antenna(id2);
+            const TosMetadataAntenna& ant2 = instance->antenna(ant2Name);
             CPPUNIT_ASSERT_EQUAL(ant2Name, ant2.name());
         }
 
         void testAntennaInvalid() {
-            // Request an invalid antenna id (index out of bounds).
-            CPPUNIT_ASSERT_THROW(instance->antenna(0), askap::AskapError);
+            // Request an invalid antenna id (wrong name)
+            CPPUNIT_ASSERT_THROW(instance->antenna(""), askap::AskapError);
+            CPPUNIT_ASSERT_THROW(instance->antenna("ak"), askap::AskapError);
         }
 
     private:

@@ -61,7 +61,7 @@ class MetadataConverter {
 
     private:
         /// Utility class to convert an antenna given by antId.
-        void convertAntenna(unsigned int antId,
+        void convertAntenna(const std::string& name,
                             const askap::cp::TosMetadata& source,
                             askap::interfaces::TimeTaggedTypedValueMap& dest);
 

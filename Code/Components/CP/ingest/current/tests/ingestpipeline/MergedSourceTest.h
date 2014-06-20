@@ -99,7 +99,6 @@ class MergedSourceTest : public CppUnit::TestFixture {
             const Configuration config = ConfigurationHelper::createDummyConfig();
             const uint64_t starttime = 1000000; // One second after epoch
             const uint64_t period = 5 * 1000 * 1000;
-            const uint32_t nAntenna = 2;
             const uint32_t nCorr = 4;
 
             // Create a mock metadata object and program it, then
@@ -110,13 +109,11 @@ class MergedSourceTest : public CppUnit::TestFixture {
             metadata.flagged(false);
 
             // antenna_names
-            for (uint32_t i = 0; i < nAntenna; ++i) {
-                std::stringstream ss;
-                ss << "ASKAP" << i;
-                int32_t id = metadata.addAntenna(ss.str());
-                TosMetadataAntenna& ant = metadata.antenna(id);
+            for (uint32_t i = 0; i < config.antennas().size(); ++i) {
+                TosMetadataAntenna ant(config.antennas()[i].name());
                 ant.onSource(true);
                 ant.flagged(false);
+                metadata.addAntenna(ant);
             }
 
             // Make a copy of the metadata and add it to the mock
