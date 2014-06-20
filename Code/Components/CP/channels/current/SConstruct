@@ -12,8 +12,6 @@ pkg.AddSubPackage("mq")
 pkg.AddSubPackage("eventchannel")
 pkg.AddSubPackage("uvchannel")
 
-env.Append(CCFLAGS=['-Wall'])
-env.Append(CCFLAGS=['-g'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process

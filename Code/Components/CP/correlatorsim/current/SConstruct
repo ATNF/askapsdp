@@ -11,7 +11,6 @@ pkg = env.AskapPackage("correlatorsim")
 pkg.AddSubPackage("simplayback")
 
 env.AppendUnique(CCFLAGS=['-O2'])
-env.AppendUnique(CCFLAGS=['-g'])
 
 # run the build process
 pkg()

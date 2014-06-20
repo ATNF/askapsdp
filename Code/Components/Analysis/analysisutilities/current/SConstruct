@@ -7,8 +7,6 @@
 # Always import this
 from askapenv import env
 
-env.Append(CCFLAGS=['-Wall', '-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
-
 # create build object with library name
 pkg = env.AskapPackage("analysisutilities")
 # add sub packages 
@@ -18,6 +16,8 @@ pkg.AddSubPackage("coordutils")
 pkg.AddSubPackage("mathsutils")
 pkg.AddSubPackage("analysisparallel")
 pkg.AddSubPackage("cosmology")
+
+env.Append(CCFLAGS=['-DHAVE_LONG_LONG'])
 
 # run the build process
 pkg()

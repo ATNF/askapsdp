@@ -13,7 +13,6 @@ if 'AIPSPATH' not in os.environ:
    os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
-env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-g'])
 #env.Append(CCFLAGS=['-O3', '-fopenmp'])
 #env.Append(LINKFLAGS=['-fopenmp'])
 

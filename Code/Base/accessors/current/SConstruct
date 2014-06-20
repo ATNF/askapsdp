@@ -13,9 +13,7 @@ if 'AIPSPATH' not in os.environ:
    os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
-env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O3'])
-env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 env.Append(universal=0)
 
 # create build object with library name

@@ -10,8 +10,6 @@ pkg = env.AskapPackage("cpdataservices")
 pkg.AddSubPackage("skymodelclient")
 pkg.AddSubPackage("calibrationclient")
 
-env.AppendUnique(CCFLAGS=['-Wall'])
-env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process

@@ -12,8 +12,5 @@ pkg.AddSubPackage("iceutils")
 pkg.AddSubPackage("tosmetadata")
 pkg.AddSubPackage("frtmetadata")
 
-env.Append(CCFLAGS=['-Wall'])
-env.Append(CCFLAGS=['-g'])
-
 # run the build process
 pkg()

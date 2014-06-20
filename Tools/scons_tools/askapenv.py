@@ -66,7 +66,11 @@ opts.Add(BoolVariable("openmp", "Use OpenMP", False))
 opts.Add(BoolVariable("update", "svn update?", False))
 opts.Update(env)
 
+# Standard compiler flags
 env.AppendUnique(CCFLAGS=['-Wall'])
+env.AppendUnique(CCFLAGS=['-O2'])
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 
 # If the system has environment modules support we need to import
 # the whole environment

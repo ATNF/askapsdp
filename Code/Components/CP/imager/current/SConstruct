@@ -15,7 +15,6 @@ pkg.AddSubPackage("messages")
 pkg.build_shared = False;
 pkg.build_static = True;
 
-env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O3'])
 
 # run the build process

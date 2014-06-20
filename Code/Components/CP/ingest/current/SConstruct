@@ -14,7 +14,6 @@ pkg.AddSubPackage("configuration")
 pkg.AddSubPackage("monitoring")
 pkg.AddSubPackage("ingestpipeline")
 
-env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O3'])
 env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 
