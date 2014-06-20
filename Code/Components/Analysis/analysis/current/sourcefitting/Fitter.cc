@@ -454,7 +454,7 @@ namespace askap {
                 /// @li Fit must be acceptable according to its chisq value
                 /// @li The centre of each component must be inside the box
                 /// @li The separation between any pair of components must be more than 2 pixels.
-                /// @li [new one] The FWHM of each component must be >60% of the minimum FWHM of the beam
+                /// // @li [new one] The FWHM of each component must be >60% of the minimum FWHM of the beam
                 /// @li The flux of each component must be positive and more than half the detection threshold
                 /// @li No component's peak flux can exceed twice the highest pixel in the box
                 /// @li The sum of the integrated fluxes of all components
@@ -480,7 +480,7 @@ namespace askap {
 		  if(!passFlux) msg << (ct++>0?"| ":"") << "Flux ";
 		  if(!passLoc) msg << (ct++>0?"| ":"") << "Location ";
 		  if(!passSep) msg << (ct++>0?"| ":"") << "Separation ";
-		  if(!passSize) msg << (ct++>0?"| ":"") << "Size ";
+		  // REMOVE SIZE CHECK //if(!passSize) msg << (ct++>0?"| ":"") << "Size ";
 		  if(!passPeak) msg << (ct++>0?"| ":"") << "Peak ";
 		  if(!passIntFlux) msg << (ct++>0?"| ":"") << "Integ.Flux ";
 		}
