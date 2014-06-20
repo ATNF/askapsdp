@@ -278,10 +278,14 @@ cleaning. Here is an example parset:
     Cimager.Images.image.i.clean.sciencefield.BEAM0.nterms      = 2
     #
     # The following are needed for MFS clean
+    # This one assigns one worker for each of the 3 Taylor terms
     Cimager.nworkergroups                           = 3
+    # This tells the gridder to weight the visibilities appropriately
     Cimager.visweights                              = MFS
+    # This is the reference frequency - it should lie in your frequency range (ideally in the middle)
     Cimager.visweights.MFS.reffreq                  = 898.e6
     #
+    # This defines the parameters for the gridding.
     Cimager.gridder.snapshotimaging                 = true
     Cimager.gridder.snapshotimaging.wtolerance      = 2600
     Cimager.gridder                                 = WProject
@@ -327,7 +331,7 @@ cleaning. Here is an example parset:
     Cimager.calibrate.scalenoise                    = true
     Cimager.calibrate.allowflag                     = true
 
-Save the aove parameter set in a file named **calibrator-BEAM0.in**. Before running this,
+Save the above parameter set in a file named **calibrator-BEAM0.in**. Before running this,
 let's look at a few key features of this parset. First is this::
 
     Cimager.Feed                                    = 0
