@@ -292,11 +292,11 @@ algorithm.
 
 While this approach works well, I've recently incorporated the
 algorithm used in Aegean, which uses a curvature map to locate local
-maxima. See `Hancock et al. (2012) MNRAS 422, 1812`_ for details on
+maxima. See `Hancock et al. (2012), MNRAS 422, 1812`_ for details on
 the algorithm. I'm currently doing a detailed comparison of the two
 approaches, but this mode is available in CP-0.3.
 
- .. _Hancock et al. (2012) MNRAS 422, 1812: http://adsabs.harvard.edu/abs/2012MNRAS.422.1812H
+ .. _Hancock et al. (2012), MNRAS 422, 1812: http://adsabs.harvard.edu/abs/2012MNRAS.422.1812H
 
 To make use of this option, add the following to your parset:
 
@@ -305,7 +305,7 @@ To make use of this option, add the following to your parset:
     # Parameters to switch on curvature map analysis and output the
     #  curvature image
     Selavy.Fitter.useCurvature = true
-    Selavy.Fitter.curvatureMap = curvature.img
+    Selavy.Fitter.curvatureImage = curvature.img
 
 Forcing a PSF fit
 .................
