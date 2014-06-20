@@ -9,7 +9,7 @@ playback.period = 5
 playback.tossim.ice.locator_host            = localhost
 playback.tossim.ice.locator_port            = 4061
 playback.tossim.icestorm.topicmanager       = IceStorm/TopicManager@IceStorm.TopicManager
-playback.tossim.icestorm.topic              = tosmetadata
+playback.tossim.icestorm.topic              = metadata
 
 # Simulate random failures to send metadata message. A value of of 0.0
 # results in no failures, while 1.0 results in all sends failing.
