@@ -6,6 +6,7 @@ else
     TOPDIR=trunk
 fi
 
+
 #
 # Make a directory to contain the artifacts
 #
@@ -21,7 +22,12 @@ fi
 #
 unset ASKAP_ROOT
 
-cd $WORKSPACE/$TOPDIR
+cd $WORKSPACE/${TOPDIR}
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to chdir to  ${WORKSPACE}/${TOPDIR}"
+    exit 1
+fi
+
 nice python2.7 bootstrap.py -n
 if [ $? -ne 0 ]; then
     echo "Error: Bootstrapping failed"
