@@ -1,19 +1,30 @@
 Thresholds in Selavy
 --------------------
 
+Global thresholds
+~~~~~~~~~~~~~~~~~
 The Duchamp package uses a single detection threshold for the entire image being searched. This can be either specified as a flux threshold **Selavy.threshold**, or as a signal-to-noise threshold via **Selavy.snrCut**. In the latter case, the noise is calculated from the image statistics over either the entire dataset or a subsection given by **Selavy.StatSec**.
 
-However, if the sensitivity varies across the field, this will either mean some regions are not searched as deep as they could be and/or some are searched too deeply, resulting in too many spurious detections. Selavy deals with this in one of two ways.
+The way the statistics are calculated (for a signal-to-noise threshold) is determined by the **Selavy.flagRobustStats** parameter. If **true** (the default), the noise statistics are characterised by the median and MADFM (median absolute deviation from the median). This provides a robust estimate not strongly biased by the presence of bright pixels. It can take longer to process however. If this parameter is **false**, the noise statistics will be characterised by the mean and standard deviation.
 
-The first is to use a weights image, such as that produced by the ASKAPsoft imager (and included in most of the ASKAP simulations), to scale the image according to the sensitivity. In practice, this takes the square root of the normalised weights and divides this into the pixel values. This has the effect of scaling down the low-sensitivity regions of the image, making it less likely that they present many spurious detections. Set **Selavy.WeightScaling=true** to utilise this mode - the weights image is specified via **Selavy.WeightScaling.weightsimage**, which has no default. **Note that the parameter interface governing this operation has recently changed.** The detection thresholds are provided in the usual fashion. The pixel values are only affected for the detection phase - parameter calculations are *not* affected.
+When Selavy is run in distributed mode, using a flux threshold is still straightforward, but a signal-to-noise threshold requires extra work to get an appropriate global noise estimate. Each worker finds the mean (or median), sends it to the master process which averages them to find the global mean estimator. This is then distributed to the workers who then find their local standard deviation or MADFM. These are again averaged by the master to provide a global estimator of the standard deviation, and hence the threshold. A more complete description of this process can be found in `Whiting & Humphreys (2012), PASA 29, 371`_.
 
-The alternative is to impose a signal-to-noise threshold based on the *local* noise surrounding the pixel in question. This threshold then varies from pixel to pixel based on the change in the local noise. This mode is turned on using the **Selavy.VariableThreshold** parameter, which defaults to false. **Note that the parameter interface governing this operation has recently changed.**
+ .. _Whiting & Humphreys (2012), PASA 29, 371: http://www.publish.csiro.au/paper/AS12028.htm 
+
+However, if the sensitivity varies across the field, this will either mean some regions are not searched as deep as they could be and/or some are searched too deeply, resulting in too many spurious detections. Selavy deals with this in one of two ways, described in the following section.
+
+Varying the threshold
+~~~~~~~~~~~~~~~~~~~~~
+
+The first way to allow the threshold to vary is to use a weights image, such as that produced by the ASKAPsoft imager (and included in most of the ASKAP simulations), to scale the image according to the sensitivity. In practice, this takes the square root of the normalised weights and divides this into the pixel values. This has the effect of scaling down the low-sensitivity regions of the image, making it less likely that they present many spurious detections. Set **Selavy.WeightScaling=true** to utilise this mode - the weights image is specified via **Selavy.WeightScaling.weightsimage**, which has no default. The detection thresholds are provided in the usual fashion. The pixel values are only affected for the detection phase - parameter calculations are *not* affected.
+
+The alternative method, which provides a bit more flexibility, is to impose a signal-to-noise threshold based on the *local* noise surrounding the pixel in question. This threshold then varies from pixel to pixel based on the change in the local noise. This mode is turned on using the **Selavy.VariableThreshold** parameter, which defaults to false.
 
 This "local" level is estimated by measuring the noise properties of pixels within a box centred on the pixel in question. An array is thus built up containing the signal-to-local-noise values for each pixel in the image, and this array is then searched with a SNR threshold (**Selavy.snrCut**) and, if necessary, grown to a secondary SNR threshold (**Selavy.growthCut**). The way the noise properties are calculated is governed by the **Selavy.flagRobustStats** parameter. A value of *true* means robust statistics will be used, specifically the median and the median absolute deviation from the median (MADFM) -- the latter will be converted to the equivalent standard deviation for a Gaussian noise distribution for the purposes of calculating the signal-to-noise threshold. A value of *false* means we use the mean and the standard deviation. 
 
 The searching can be done either spatially or spectrally, and this affects how the SNR values are calculated. If spatially (the default), a 2D sliding box filter is used to find the local noise. If spectrally, only a 1D "box" is used. Note that the edges (ie. all pixels within the half box width of the edge) are set to zero, and so detections will not be made there. This probably won't affect the 2D case, as often the edges of the field have poor sensitivity (certainly the ASKAP simulations mostly have a padding region around the edge), but in the 1D case this will mean the loss of the first & last channels. The choice between 2D and 1D is made with the **Selavy.searchType** parameter (which actually comes out of the Duchamp package).
 
-When run on a distributed system as above, this processing is done at the worker level. Note that having an overlap between workers of at least the half box width will give continuous coverage (avoiding the aforementioned edge problems). The amount of processing needed increases quickly with the size of the box, due to the use of medians, particularly for the 2D case. 
+When run on a distributed system as above, this processing is done at the worker level. Note that having an overlap between workers of at least the half box width will give continuous coverage (avoiding the aforementioned edge problems). Selavy will increase the overlap to account for this if necessary. The amount of processing needed increases quickly with the size of the box, especially in the case of robust statistics due to the use of medians, and particularly for the 2D case.
 
 A final option for varying the threshold spatially is to use a different threshold for each worker. In this scenario, switched on by setting **thresholdPerWorker = true**, each worker finds its own threshold based on the noise within it, using the **snrCut** signal-to-noise ratio threshold. No variation of the threshold *within* a worker is done, so you get discrete jumps in the threshold at worker boundaries. Use of the overlap can mitigate this. This mode was implemented more as an experiment than out of any expectation it would be useful, and limited trials indicate it's probably not much use. For completeness we include the parameter here. 
 
@@ -58,9 +69,7 @@ Threshold-related parameters
 Saving threshold maps
 ~~~~~~~~~~~~~~~~~~~~~
 
-Selavy provides the option of writing out the various arrays created for the median box searching. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. If the name is not given, no image will be written.
-
-In a parallel case, the current behaviour is to write individual images for each worker, showing just their subsection of the full image. The name in this case will be modified to have a suffix like "_workerNum_numProcesses" (so that worker #6 of 8 will have the suffix "_6_8"). Due to the multiple outputs, these options are perhaps best used in serial mode (it is currently intended more for debugging and analysis purposes, and may be improved as we move towards actual operations). 
+Selavy provides the option of writing out the various arrays created for the VariableThreshold mode. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. If the name is not given, no image will be written. The images will be created with the same size as the full input image (any search subsection is ignored - pixels outside this are set to zero).
 
 The parameters controlling this behaviour are listed below.
 

@@ -213,22 +213,32 @@ Standard Duchamp output
 
 Standard Duchamp provides for flexibility in naming the output files it generates. For the ASKAP implementation, these are kept fixed. They are summarised here, listed by the parameter name with the default value in square brackets.:
 
-* **resultsFile** [selavy-results.txt] - the list of detected sources and their parameters. Also includes (if **flagSeparateHeader=false**, the default case) a summary of the input parameters.
-* **headerFile** [selavy-results.hdr] - if **flagSeparateHeader=true**, this contains just the input parameter summary from the results file.
-* **karmaFile** [selavy-results.ann] - a Karma annotation file, showing the location of detected sources. This is produced when **flagKarma=true**, which is the default (contrary to standard Duchamp behaviour)
-* **ds9File** [selavy-results.reg] - a DS9 region file, showing the location of detected sources. This is produced when **flagDS9=true**, which is the default (contrary to standard Duchamp behaviour)
-* **logFile** [selavy-Logfile.txt / selavy-Logfile-Master.txt / selavy-Logfile-?.txt] - the logfiles, showing lists of intermediate detections (before the final merging), as well as pixel-level details on the final detection list. The first default listed is the default when running serial processing. The other two come from the distributed-processing case. In this case, the parameter's value has either '-Master' or '-?' (where ? is replaced by the worker number, starting at 0) inserted before the suffix, or at the end if there is no suffix in the name provided. Only the master file (or the sole logfile in the serial case) has the pixel-level details of the final detections. 
-* **votFile** [selavy-results.xml] - a VOTable of the final list of detections. This is produced when **flagVOT=true** (*not* the default).
+* **resultsFile** [*selavy-results.txt*] - the list of detected sources and their parameters. Also includes (if **flagSeparateHeader=false**, the default case) a summary of the input parameters.
+* **headerFile** [*selavy-results.hdr*] - if **flagSeparateHeader=true**, this contains just the input parameter summary from the results file.
+* **karmaFile** [*selavy-results.ann*] - a Karma annotation file, showing the location of detected sources. This is produced when **flagKarma=true**, which is the default (contrary to standard Duchamp behaviour)
+* **ds9File** [*selavy-results.reg*] - a DS9 region file, showing the location of detected sources. This is produced when **flagDS9=true**, which is the default (contrary to standard Duchamp behaviour)
+* **casaFile** [*selavy-results.crf*] - a CASA region file, showing the location of detected sources. This is produced when **flagCASA=true**, which is the default (contrary to standard Duchamp behaviour)
+* **logFile** [*selavy-Logfile.txt* / selavy-Logfile-Master.txt / selavy-Logfile-?.txt] - the logfiles, showing lists of intermediate detections (before the final merging), as well as pixel-level details on the final detection list. The first default listed is the default when running serial processing. The other two come from the distributed-processing case. In this case, the parameter's value has either '-Master' or '-?' (where ? is replaced by the worker number, starting at 0) inserted before the suffix, or at the end if there is no suffix in the name provided. Only the master file (or the sole logfile in the serial case) has the pixel-level details of the final detections. 
+* **votFile** [*selavy-results.xml*] - a VOTable of the final list of detections. This is produced when **flagVOT=true** (the default, unlike standard Duchamp).
+* **binaryCatalogue** [*selavy-catalogue.dpc*] - a binary format catalogue of detected sources that can be re-used by Selavy or Duchamp.
 
 ASKAP-specific output
 ~~~~~~~~~~~~~~~~~~~~~
 
 The following files are produced as a result of the new features implemented in the ASKAP source finder:
 
-* **subimageAnnotationFile** [selavy-SubimageLocations.ann] - a Karma annotation file showing the locations of the subimages used (see "Distributed Processing" section above)
-* **fitResultsFile** [selavy-fitResults.txt] - the final set of results from the Gaussian fitting -- see Fitting_ for details. The format of the file is as follows below. *F_int* and *F_peak* are as calculated by the Duchamp code, and *F_int(fit)* and *F_pk(fit)* are from the fitted Gaussians. Alpha and Beta are the spectral index and spectral curvature terms - these are only provided when examining a Taylor term image. *Maj*, *Min* and *P.A.* are the major and minor FWHMs and the position angle of the fitted Gaussian, quoted for both the fit and the fit deconvolved by the beam. The goodness of fit is indicated by the chi-squared and RMS(fit) values, while RMS(image) gives the local noise surrounding the object. Nfree(fit) is the number of free parameters in the fit, and NDoF(fit) is the number of degrees of freedom. Npix(fit) is the number of pixels used in doing the fit, and Npix(obj) is the number of pixels in the object itself (ie. detected pixels). If no fit was made, all the *(fit)* values are set to zero. A VOTable version of the fit results is also produced, with a .xml suffix. This is always produced whenever selavy-fitResults.txt is produced.
-* **fitAnnotationFile** [selavy-fitResults.ann] - a Karma annotation file showing the fitting results (each Gaussian component is indicated by an ellipse given by the major & minor axes and position angle of the component).
-* **fitBoxAnnotationFile** [selavy-fitResults.boxes.ann] - a Karma annotation file showing the boxes used for the Gaussian fitting (if used). See Fitting_ for details.
+* **subimageAnnotationFile** [*selavy-SubimageLocations.ann*] - a Karma annotation file showing the locations of the subimages used (see "Distributed Processing" section above)
+* **fitResultsFile** [*selavy-fitResults.txt*] - the final set of results from the Gaussian fitting -- see Fitting_ for details. The format of the file is as follows:
+ - *F_int* and *F_peak* are as calculated by the Duchamp code, and *F_int(fit)* and *F_pk(fit)* are from the fitted Gaussians. 
+ - Alpha and Beta are the spectral index and spectral curvature terms - these are only calculated when examining a Taylor term image. 
+ - *Maj*, *Min* and *P.A.* are the major and minor FWHMs and the position angle of the fitted Gaussian, quoted for both the fit and the fit deconvolved by the beam. 
+ - The goodness of fit is indicated by the chi-squared and RMS(fit) values, while RMS(image) gives the local noise surrounding the object. 
+ - Nfree(fit) is the number of free parameters in the fit, and NDoF(fit) is the number of degrees of freedom. 
+ - Npix(fit) is the number of pixels used in doing the fit, and Npix(obj) is the number of pixels in the object itself (ie. detected pixels). 
+ - If no fit was made, all the *(fit)* values are set to zero. 
+ - A VOTable version of the fit results is also produced, with a .xml suffix. This is always produced whenever *selavy-fitResults.txt* is produced.
+* **fitAnnotationFile** [*selavy-fitResults.ann*] - a Karma annotation file showing the fitting results (each Gaussian component is indicated by an ellipse given by the major & minor axes and position angle of the component). Also produced are DS9 and CASA region files, with .reg and .crf suffixes respectively.
+* **fitBoxAnnotationFile** [*selavy-fitResults.boxes.ann*] - a Karma annotation file showing the boxes used for the Gaussian fitting (if used). See Fitting_ for details.
 
 .. _Fitting: postprocessing.html#source-fitting
 
