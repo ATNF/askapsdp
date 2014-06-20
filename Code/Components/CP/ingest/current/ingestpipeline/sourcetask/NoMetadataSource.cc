@@ -426,8 +426,8 @@ void NoMetadataSource::submitObsMonitorPoints() const
     const Target& target= itsConfig.getTargetForScan(0);
     const CorrelatorMode& corrMode = target.mode();
     submitPoint<string>("obs.FieldName", target.name());
-    submitPoint<string>("obs.dir1", askap::printLat(target.phaseCentre()));
-    submitPoint<string>("obs.dir2", askap::printLon(target.phaseCentre()));
+    submitPoint<string>("obs.dir1", askap::printLon(target.phaseCentre()));
+    submitPoint<string>("obs.dir2", askap::printLat(target.phaseCentre()));
     submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.phaseCentre().type()));
     submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
     //submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz")); // TODO!!!!!!!!!!!!!
