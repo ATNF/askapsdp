@@ -97,12 +97,10 @@ namespace askap {
                 this->itsUseNoise = parset.getBool("useNoise", true);
 		this->itsNoiseLevel = parset.getFloat("noiseLevel",1.);
 		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", true);
-		this->itsFlagOnlyUseGuess = parset.getBool("onlyUseGuess",true);
+		this->itsFlagNumGaussFromGuess = parset.getBool("numGaussFromGuess",true);
 		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", true);
-
-		if(this->itsFlagUseCurvature) this->itsFlagOnlyUseGuess = true;
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
@@ -160,7 +158,7 @@ namespace askap {
 		this->itsFlagUseCurvature = f.itsFlagUseCurvature;
 		this->itsSigmaCurv = f.itsSigmaCurv;
 		this->itsCurvatureImage = f.itsCurvatureImage;
-		this->itsFlagOnlyUseGuess = f.itsFlagOnlyUseGuess;
+		this->itsFlagNumGaussFromGuess = f.itsFlagNumGaussFromGuess;
                 this->itsBeamSize = f.itsBeamSize;
                 this->itsMaxRetries = f.itsMaxRetries;
                 this->itsCriterium = f.itsCriterium;

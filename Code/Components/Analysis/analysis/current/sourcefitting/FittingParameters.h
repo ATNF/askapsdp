@@ -167,7 +167,7 @@ namespace askap {
                     void setFlagFitThisParam(std::string type);
 		    void setStopAfterFirstGoodFit(bool b){itsStopAfterFirstGoodFit = b;};
 		    void setUseGuessIfBad(bool b){itsUseGuessIfBad = b;};
-		    void setFlagOnlyUseGuess(bool b){itsFlagOnlyUseGuess=b;};
+		    void setFlagNumGaussFromGuess(bool b){itsFlagNumGaussFromGuess=b;};
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
@@ -195,7 +195,7 @@ namespace askap {
 		    float  noiseLevel() {return itsNoiseLevel;};
 		    bool   stopAfterFirstGoodFit(){return itsStopAfterFirstGoodFit;};
 		    bool   useGuessIfBad(){return itsUseGuessIfBad;};
-		    bool   useOnlyGuess(){return itsFlagOnlyUseGuess;};
+		    bool   numGaussFromGuess(){return itsFlagNumGaussFromGuess;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
                     bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
@@ -273,7 +273,7 @@ namespace askap {
 		    std::string itsCurvatureImage;
 
 		    /// @brief Once the initial estimate of components is determined, only use that number of Gaussians.
-		    bool itsFlagOnlyUseGuess;
+		    bool itsFlagNumGaussFromGuess;
 
                     /// @brief The beam size in the image, using BMIN
                     float itsBeamSize;

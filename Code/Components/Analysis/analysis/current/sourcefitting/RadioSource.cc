@@ -1016,8 +1016,8 @@ namespace askap {
                         int bestFit = 0;
                         float bestRChisq = 9999.;
 
-			int minGauss = this->itsFitParams.useOnlyGuess() ? cmpntListCopy.size() : 1;
-                        int maxGauss = this->itsFitParams.useOnlyGuess() ? cmpntListCopy.size() : std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
+			int minGauss = this->itsFitParams.numGaussFromGuess() ? cmpntListCopy.size() : 1;
+                        int maxGauss = this->itsFitParams.numGaussFromGuess() ? cmpntListCopy.size() : std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
 			bool fitPossible=true;
 			bool stopNow=false;
