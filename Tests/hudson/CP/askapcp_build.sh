@@ -1,5 +1,11 @@
 #!/bin/bash -l
 
+if [ $# -gt 0 ]; then
+    TOPDIR=$1
+else
+    TOPDIR=trunk
+fi
+
 #
 # Make a directory to contain the artifacts
 #
@@ -14,7 +20,8 @@ fi
 # Bootstrap
 #
 unset ASKAP_ROOT
-cd $WORKSPACE/trunk
+
+cd $WORKSPACE/$TOPDIR
 nice python2.7 bootstrap.py -n
 if [ $? -ne 0 ]; then
     echo "Error: Bootstrapping failed"
@@ -55,7 +62,7 @@ mv cpapps-release.tgz $ARTIFACTS_DIR
 #
 # Build user documentation
 #
-cd $WORKSPACE/trunk/Code/Components/CP/docs/current
+cd $WORKSPACE/$TOPDIR/Code/Components/CP/docs/current
 nice rbuild -n -M -S -T -t doc
 if [ $? -ne 0 ]; then
     echo "Error: rbuild -n -M -S -T -t doc failed"
@@ -71,7 +78,7 @@ fi
 #
 # Build admin documentation
 #
-cd $WORKSPACE/trunk/Code/Components/CP/docs_admin/current
+cd $WORKSPACE/$TOPDIR/Code/Components/CP/docs_admin/current
 nice rbuild -n -M -S -T -t doc
 if [ $? -ne 0 ]; then
     echo "Error: rbuild -n -M -S -T -t doc failed"
