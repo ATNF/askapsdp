@@ -13,7 +13,7 @@ else:
 if platform['architecture'] == '64bit':
     builder.add_option('-fPIC')
 
-builder.remote_archive = "openssl-1.0.1c.tar.gz"
+builder.remote_archive = "openssl-1.0.1h.tar.gz"
 builder.add_option('no-shared')
 builder.parallel = False
 builder.nowarnings = True

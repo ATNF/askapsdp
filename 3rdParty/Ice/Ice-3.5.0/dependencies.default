@@ -2,4 +2,4 @@ db=3rdParty/Berkeley-DB/db-5.3.21.NC
 bzip2=3rdParty/bzip2/bzip2-1.0.5
 expat=3rdParty/expat/expat-2.0.1
 mcpp=3rdParty/mcpp/mcpp-2.7.2
-openssl=3rdParty/openssl/openssl-1.0.1c
+openssl=3rdParty/openssl/openssl-1.0.1h
