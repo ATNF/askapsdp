@@ -38,7 +38,7 @@ Threshold-related parameters
 |                                  |            |             |with the variable threshold parameters. If given, takes           |
 |                                  |            |             |precendence over **Selavy.snrcut**.                               |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
-|Selavy.snrCut                     |float       |5.           |The signal-to-noise threshold, in units of sigma above the mean.  |
+|Selavy.snrCut                     |float       |5.0          |The signal-to-noise threshold, in units of sigma above the mean.  |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.WeightScaling              |bool        |false        |Whether to scale the fluxes by the weights for the purposes of    |
 |                                  |            |             |source detection.                                                 |

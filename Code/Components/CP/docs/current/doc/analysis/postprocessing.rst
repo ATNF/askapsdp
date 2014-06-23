@@ -156,7 +156,8 @@ Output files
 ............
 
 Several files are produced to show the results of the Gaussian fitting. The first, named by **Selavy.fitResultsFile** (defaulting to selavy-fitResults.txt), shows the final set of results from the Gaussian fitting. An example header plus a first line for the file is as follows below. 
-::
+
+.. code-block:: bash
 
  #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  #      ID           Name         RA        DEC      X      Y       F_int     F_peak  F_int(fit)  F_pk(fit)  Maj(fit)  Min(fit) P.A.(fit) Maj(fit_deconv.)   Min(fit_deconv.) P.A.(fit_deconv.)      Alpha      Beta  Chisq(fit)  RMS(image)  RMS(fit) Nfree(fit) NDoF(fit) NPix(fit) NPix(obj) Guess?
@@ -252,7 +253,7 @@ Parameters for fitting
 +-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
 |Selavy.Fitter.maxReducedChisq        |float          |5.0                         |The maximum value for the reduced chi-squared for a fit to be acceptable.           |
 +-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+
-|Selavy.Fitter.chisqConfidence        |float          |-1.                         |A probability value, between 0 and 1, used as a confidence level for accepting the  |
+|Selavy.Fitter.chisqConfidence        |float          |-1.0                        |A probability value, between 0 and 1, used as a confidence level for accepting the  |
 |                                     |               |                            |chi-squared value. If outside this range of values (as is the default), the test is |
 |                                     |               |                            |done with the reduced chi-squared value, using the **maxReducedChisq** parameter.   |
 +-------------------------------------+---------------+----------------------------+------------------------------------------------------------------------------------+

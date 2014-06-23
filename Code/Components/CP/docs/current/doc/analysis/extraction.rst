@@ -14,7 +14,11 @@ This set of parameters allows, for each detected source, the extraction of spect
 
 *Note*: At this point the pixel coordinates are used to get the location in the spectral cube, so the detection image and the spectral cube should have the same WCS. This will be updated as needed in future releases.
 
-The initial use case follows the specification provided by POSSUM. The user provides a spectral cube, a list of polarisations to be extracted, and a box width. The spectrum is summed in each channel within this box, centred on the peak (or centroid or average) position of the detected object. This spectrum can optionally be scaled by the response of the beam over the same box, such that the resulting spectrum gives the flux of a point source at that location. The beam used defaults to the beam from the image header, although a 'beam log' (produced by the `makecube`_ utility) can be provided so that each channel is scaled by the appropriate restoring beam. The beam log should have columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]. Here is an example of the start of a beam log:
+The initial use case follows the specification provided by POSSUM. The user provides a spectral cube, a list of polarisations to be extracted, and a box width. The spectrum is summed in each channel within this box, centred on the peak (or centroid or average) position of the detected object. This spectrum can optionally be scaled by the response of the beam over the same box, such that the resulting spectrum gives the flux of a point source at that location. The beam used defaults to the beam from the image header, although a 'beam log' (produced by the `makecube`_ utility) can be provided so that each channel is scaled by the appropriate restoring beam. The beam log should have columns: index | image name | major axis [arcsec] | minor axis [arcsec] | position angle [deg]. 
+
+**We have changed the way spectral-line data is produced, so makecube may not be used. This area still requires some work, but one could construct the beam log following this format.**
+
+Here is an example of the start of a beam log:
 
 ::
 
@@ -116,7 +120,7 @@ Parameters for noise spectra extraction
 |extractNoiseSpectra.polarisation       |vector<string> |I           |As above. If more than one is provided, only the   |
 |                                       |               |            |first is used.                                     |
 +---------------------------------------+---------------+------------+---------------------------------------------------+
-|extractNoiseSpectra.noiseArea          |float          |50.         |The number of beam areas over which to measure the |
+|extractNoiseSpectra.noiseArea          |float          |50.0        |The number of beam areas over which to measure the |
 |                                       |               |            |noise.                                             |
 +---------------------------------------+---------------+------------+---------------------------------------------------+
 |extractNoiseSpectra.robust             |bool           |true        |Whether to use robust methods to estimate the      |

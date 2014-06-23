@@ -48,15 +48,15 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |searchType             |string        |spatial              |How the searches are done: in 2D channel maps ("spatial") or in 1D spectra ("spectral") |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|snrCut                 |float         |4.                   |Threshold value, in multiples of the rms above the mean noise level                     |
+|snrCut                 |float         |4.0                  |Threshold value, in multiples of the rms above the mean noise level                     |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |threshold              |float         |*no default*         |Threshold value in units of the image (default value means snrCut will be used instead) |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagGrowth             |bool          |false                |Whether to grow detections to a lower threshold                                         |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|growthCut              |float         |3.                   |Signal-to-noise ratio to grow detections down to                                        |
+|growthCut              |float         |3.0                  |Signal-to-noise ratio to grow detections down to                                        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|growthThreshold        |float         |0.                   |Threshold value to grow detections down to (takes precedence over **growthCut**)        |
+|growthThreshold        |float         |0.0                  |Threshold value to grow detections down to (takes precedence over **growthCut**)        |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagNegative           |bool          |false                |Whether to invert the cube and search for negative features                             |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
@@ -78,10 +78,10 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagAdjacent           |bool          |true                 |When merging sources, whether sources need to be adjacent to be merged                  |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|threshSpatial          |float         |3.                   |When flagAdjacent=false, this is the spatial threshold (in pixels) within which objects |
+|threshSpatial          |float         |3.0                  |When flagAdjacent=false, this is the spatial threshold (in pixels) within which objects |
 |                       |              |                     |are combined                                                                            |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|threshVelocity         |float         |7.                   |When flagAdjacent=false, this is the frequency threshold (in channels) within which     |
+|threshVelocity         |float         |7.0                  |When flagAdjacent=false, this is the frequency threshold (in channels) within which     |
 |                       |              |                     |objects are combined                                                                    |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 |flagRejectBeforeMerge  |bool          |false                |A flag indicating whether to reject sources that fail to meet the minimum size criteria |
@@ -105,10 +105,10 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 |                       |              |                     |should be ignored for the purposes of detecting objects. Replaces the old (for Duchamp  |
 |                       |              |                     |versions <1.5) flagMW/minMW/maxMW parameters.                                           |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|beamArea               |float         |10.                  |The area of the beam in *pixels*. This parameter is only used when the image does not   |
+|beamArea               |float         |10.0                 |The area of the beam in *pixels*. This parameter is only used when the image does not   |
 |                       |              |                     |provide beam information. When this is used, a circular beam is assumed.                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|beamFWHM               |float         |-1.                  |The FWHM of the beam in *pixels*. This parameter is only used when the image does not   |
+|beamFWHM               |float         |-1.0                 |The FWHM of the beam in *pixels*. This parameter is only used when the image does not   |
 |                       |              |                     |provide beam information. When this is used, a circular beam is assumed. This value     |
 |                       |              |                     |takes precedence over **beamArea** but is ignored if negative (the default).            |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
@@ -120,7 +120,7 @@ All parameters from Duchamp can be provided in an input parameter set, although 
 |                       |              |                     |the standards described in `Greisen et al (2006)`_, although it is possible to provide  |
 |                       |              |                     |just the first four letters (the 'S-type', e.g. 'VELO').                                |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|restFrequency          |float         |-1.                  |If provided, this will be used in preference to the rest frequency given in the image   |
+|restFrequency          |float         |-1.0                 |If provided, this will be used in preference to the rest frequency given in the image   |
 |                       |              |                     |header. If not provided, the image header value will be used if required.               |
 +-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
 
@@ -184,24 +184,24 @@ Processing is performed under a master-worker framework, where a single master p
 Distributed processing parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|*Parameter*            |*Type*        |*Default*            |*Description*                                                                           |
-+=======================+==============+=====================+========================================================================================+
-|nsubx                  |int           |1                    |The number of subdivisions in the x-direction when making the subimages.                |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|nsuby                  |int           |1                    |The number of subdivisions in the y-direction when making the subimages.                |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|nsubz                  |int           |1                    |The number of subdivisions in the z-direction when making the subimages.                |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|overlapx               |int           |0                    |The number of pixels of overlap between neighbouring subimages in the x-direction       |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|overlapy               |int           |0                    |The number of pixels of overlap between neighbouring subimages in the y-direction       |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|overlapz               |int           |0                    |The number of pixels of overlap between neighbouring subimages in the z-direction       |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
-|subimageAnnotationFile |string        |""                   |The filename of a Karma annotation file that is created to show the boundaries of the   |
-|                       |              |                     |subimages (see description below). If empty, no such file is created.                   |
-+-----------------------+--------------+---------------------+----------------------------------------------------------------------------------------+
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|*Parameter*            |*Type*        |*Default*                            |*Description*                                                                           |
++=======================+==============+=====================================+========================================================================================+
+|nsubx                  |int           |1                                    |The number of subdivisions in the x-direction when making the subimages.                |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|nsuby                  |int           |1                                    |The number of subdivisions in the y-direction when making the subimages.                |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|nsubz                  |int           |1                                    |The number of subdivisions in the z-direction when making the subimages.                |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|overlapx               |int           |0                                    |The number of pixels of overlap between neighbouring subimages in the x-direction       |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|overlapy               |int           |0                                    |The number of pixels of overlap between neighbouring subimages in the y-direction       |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|overlapz               |int           |0                                    |The number of pixels of overlap between neighbouring subimages in the z-direction       |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
+|subimageAnnotationFile |string        |selavy-SubimageLocations.ann         |The filename of a Karma annotation file that is created to show the boundaries of the   |
+|                       |              |                                     |subimages (see description below). If empty, no such file is created.                   |
++-----------------------+--------------+-------------------------------------+----------------------------------------------------------------------------------------+
 
 
 
@@ -227,40 +227,11 @@ ASKAP-specific output
 
 The following files are produced as a result of the new features implemented in the ASKAP source finder:
 
-* **subimageAnnotationFile** [*selavy-SubimageLocations.ann*] - a Karma annotation file showing the locations of the subimages used (see "Distributed Processing" section above)
-* **fitResultsFile** [*selavy-fitResults.txt*] - the final set of results from the Gaussian fitting -- see Fitting_ for details. The format of the file is as follows:
- - *F_int* and *F_peak* are as calculated by the Duchamp code, and *F_int(fit)* and *F_pk(fit)* are from the fitted Gaussians. 
- - Alpha and Beta are the spectral index and spectral curvature terms - these are only calculated when examining a Taylor term image. 
- - *Maj*, *Min* and *P.A.* are the major and minor FWHMs and the position angle of the fitted Gaussian, quoted for both the fit and the fit deconvolved by the beam. 
- - The goodness of fit is indicated by the chi-squared and RMS(fit) values, while RMS(image) gives the local noise surrounding the object. 
- - Nfree(fit) is the number of free parameters in the fit, and NDoF(fit) is the number of degrees of freedom. 
- - Npix(fit) is the number of pixels used in doing the fit, and Npix(obj) is the number of pixels in the object itself (ie. detected pixels). 
- - If no fit was made, all the *(fit)* values are set to zero. 
- - A VOTable version of the fit results is also produced, with a .xml suffix. This is always produced whenever *selavy-fitResults.txt* is produced.
-* **fitAnnotationFile** [*selavy-fitResults.ann*] - a Karma annotation file showing the fitting results (each Gaussian component is indicated by an ellipse given by the major & minor axes and position angle of the component). Also produced are DS9 and CASA region files, with .reg and .crf suffixes respectively.
-* **fitBoxAnnotationFile** [*selavy-fitResults.boxes.ann*] - a Karma annotation file showing the boxes used for the Gaussian fitting (if used). See Fitting_ for details.
-
-.. _Fitting: postprocessing.html#source-fitting
-
-Logging
-~~~~~~~
-
-The final output file is the log (not to be confused with the selavy-Logfile-* files described above). This is the set of log messages (information, warning, errors) that describe the progress of the program. Each log message is tagged by the level of the message, its origin & machine/host, and date/time. These can be very large, particularly in the distributed case when Gaussian fitting is done. The main use for this file is to ensure that all steps of the algorithm proceed correctly, to identify problems, or to keep track of the time taken by various parts. 
-
-A typical line from the log might look like this:
-::
-
- INFO  analysis.parallelanalysis (5, minicp04) [2011-03-02 12:57:58,438] - Worker #5: Setting threshold to be 0.0153364
-
-The different parts of the message are:
-
-* INFO - the level of the message: DEBUG, INFO, WARN, ERROR or FATAL
-* analysis.parallelanalysis - from which software module does the log message originate
-* (5, minicp04) - the process number (0=master process, >0 = worker) and the machine it is running on.
-* [2011-03-02 12:57:58,438] - date & time of log message
-* and the rest is the actual message
-
-Note that if you want to see all messages for a given worker, you could do something like ``grep "(3, " logfile.log``. This is often necessary to disentangle the log streams of the different nodes. Note also that the log file may also include information not in this form, that has just been written to stdout by some part of the code.
+* **subimageAnnotationFile** [*selavy-SubimageLocations.ann*] - a Karma annotation file showing the locations of the subimages used (see "Distributed Processing" section above). Lines are drawn showing the outer borders of each worker's subimage, and each subimage is labelled with the worker number (starting at 1).
+* Fitting results - when Gaussian fitting is done for the continuum sources, several files are produced: a catalogue in ASCII & VOTable format, and annotation files showing the location of fitted components. See :doc:`postprocessing` for details of the content of these files.
+* Images: when the variable-threshold option is used, the user can opt to write out relevant maps to CASA images. These include the noise map, detection threshold, and signal-to-noise ratio. These are described in more detail in :doc:`preprocessing`. Additionally, when the curvature-map option in the Gaussian fitting is used, the curvature map can be written to a CASA image - consult :doc:`postprocessing` for information.
+* Extracted spectra and images: :doc:`extraction` describes various ways to extract data from the input image relating to individual detections. These can include integrated spectra, moment maps, cutout images or cubelets. All are saved to CASA-format images.
+* There will also be a log file produced by Selavy that contains the stdout logging information - this is described in :doc:`../general/logging` (note the difference with the Duchamp log file described in the previous section).
 
 
 Output-related parameters
