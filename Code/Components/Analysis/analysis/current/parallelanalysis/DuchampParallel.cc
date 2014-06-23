@@ -245,11 +245,11 @@ namespace askap {
 		else ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << this->itsParset.getString("extractNoiseSpectra.spectralCube",""));
 	    }
 
-	    this->itsFitSummaryFile = this->itsParset.getString("fitResultsFile","duchamp-fitResults.txt");
-	    this->itsFitAnnotationFile = this->itsParset.getString("fitAnnotationFile","duchamp-fitResults.ann");
-	    this->itsFitBoxAnnotationFile = this->itsParset.getString("fitBoxAnnotationFile","duchamp-fitResults.boxes.ann");
+	    this->itsFitSummaryFile = this->itsParset.getString("fitResultsFile","selavy-fitResults.txt");
+	    this->itsFitAnnotationFile = this->itsParset.getString("fitAnnotationFile","selavy-fitResults.ann");
+	    this->itsFitBoxAnnotationFile = this->itsParset.getString("fitBoxAnnotationFile","selavy-fitResults.boxes.ann");
 
-	    this->itsSubimageAnnotationFile = this->itsParset.getString("subimageAnnotationFile", "duchamp-SubimageLocations.ann");
+	    this->itsSubimageAnnotationFile = this->itsParset.getString("subimageAnnotationFile", "selavy-SubimageLocations.ann");
 
             if (itsComms.isParallel()) {
 		this->itsSubimageDef = SubimageDef(this->itsParset);
