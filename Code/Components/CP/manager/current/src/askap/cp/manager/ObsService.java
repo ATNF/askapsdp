@@ -33,11 +33,8 @@ import askap.util.ParameterSet;
 import askap.cp.manager.ingest.AbstractIngestManager;
 import askap.cp.manager.ingest.DummyIngestManager;
 import askap.cp.manager.ingest.ProcessIngestManager;
-import askap.cp.manager.svcclients.IDataServiceClient;
 import askap.cp.manager.svcclients.IFCMClient;
-import askap.cp.manager.svcclients.IceDataServiceClient;
 import askap.cp.manager.svcclients.IceFCMClient;
-import askap.cp.manager.svcclients.MockDataServiceClient;
 import askap.cp.manager.svcclients.MockFCMClient;
 
 public class ObsService extends _ICPObsServiceDisp {
@@ -57,7 +54,7 @@ public class ObsService extends _ICPObsServiceDisp {
 	/**
 	 * TOS Data Service client wrapper instance
 	 */
-	IDataServiceClient itsDataService;
+	//IDataServiceClient itsDataService;
 
 	/**
 	 * Ingest Pipeline Controller
@@ -84,16 +81,18 @@ public class ObsService extends _ICPObsServiceDisp {
 		}
 
 		// Instantiate real or mock data service interface
+		/*
 		boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
 		if (mockdatasvc) {
 			itsDataService = new MockDataServiceClient(parset.getString("dataservice.mock.filename"));
 		} else {
 			String identity = parset.getString("dataservice.ice.identity");
 			if (identity == null) {
-				throw new RuntimeException("Parameter 'fcm.ice.identity' not found");
+				throw new RuntimeException("Parameter 'dataservice.ice.identity' not found");
 			}
 			itsDataService = new IceDataServiceClient(ic, identity);
 		}
+		*/
 
 		// Create Ingest Manager
 		String managertype = parset.getString("ingest.managertype", "process");
@@ -121,6 +120,7 @@ public class ObsService extends _ICPObsServiceDisp {
 		logger.debug("Obtaining FCM parameters");
 		ParameterSet fc = itsFCM.get();
 
+		/*
 		logger.debug("Obtaining observation parameters");
 		ParameterSet obsParams;
 
@@ -130,10 +130,11 @@ public class ObsService extends _ICPObsServiceDisp {
 			String msg = "Scheduling block " + sbid + " does not exist";
 			throw new askap.interfaces.cp.NoSuchSchedulingBlockException(msg);
 		}
+		*/
 
 		// BLOCKING: Will block until the ingest pipeline starts, or
 		// an error occurs
-		itsIngestManager.startIngest(fc, obsParams, sbid);
+		itsIngestManager.startIngest(fc, sbid);
 	}
 
 	@Override

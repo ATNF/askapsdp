@@ -71,7 +71,7 @@ public abstract class AbstractIngestManager {
 	 * @throws askap.interfaces.cp.AlreadyRunningException
 	 */
 	public synchronized void startIngest(ParameterSet facilityConfig,
-			ParameterSet obsParams, long sbid)
+			long sbid)
 			throws askap.interfaces.cp.AlreadyRunningException,
 			askap.interfaces.cp.PipelineStartException {
 
@@ -84,8 +84,7 @@ public abstract class AbstractIngestManager {
 		}
 
 		// 2: Build the configuration for cpingest
-		ParameterSet parset = ConfigBuilder.build(facilityConfig, obsParams,
-				sbid);
+		ParameterSet parset = ConfigBuilder.build(facilityConfig, sbid);
 
 		// 3: Create the directory for the scheduling block and create
 		// the config parset file

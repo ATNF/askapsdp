@@ -21,10 +21,6 @@ ice.adaptername                 = CentralProcessorAdapter
 fcm.mock                        = true
 fcm.mock.filename               = mock_fcm.txt
 
-# Use a mock data service
-dataservice.mock                = true
-dataservice.mock.filename       = mock_sb.txt
-
 # Use the dummy ingest pipeline manager (it does nothing when commanded)
 ingest.managertype              = dummy
 

@@ -1,5 +1,0 @@
-common.targets                     = [src1]
-
-common.target.src1.field_direction = [08h35m20.6,-45d10m35.0, J2000]
-common.target.src1.field_name      = Vela Pulsar
-common.target.src1.corrmode        = standard
