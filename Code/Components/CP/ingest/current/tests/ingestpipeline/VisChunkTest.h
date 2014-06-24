@@ -58,7 +58,7 @@ class VisChunkTest : public CppUnit::TestFixture {
         }
 
         void testConstructor() {
-            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols, nAntennas));
             CPPUNIT_ASSERT_EQUAL(nRows, chunk->nRow());
             CPPUNIT_ASSERT_EQUAL(nChans, chunk->nChannel());
             CPPUNIT_ASSERT_EQUAL(nPols, chunk->nPol());
@@ -104,7 +104,7 @@ class VisChunkTest : public CppUnit::TestFixture {
                           const unsigned int newRows,
                           const unsigned int newChans,
                           const unsigned int newPols) {
-            VisChunk::ShPtr chunk(new VisChunk(initialRows, initialChans, initialPols));
+            VisChunk::ShPtr chunk(new VisChunk(initialRows, initialChans, initialPols, nAntennas));
 
             // Create and assign the containers
             casa::Cube<casa::Complex> vis(newRows, newChans, newPols);
@@ -135,6 +135,8 @@ class VisChunkTest : public CppUnit::TestFixture {
         //
         // Test values
         //
+
+        static const unsigned int nAntennas = 6;
 
         // This is the size of a BETA VisChunk, 21 baselines (including
         // auto correlations) * 36 beams (maximum number of beams)

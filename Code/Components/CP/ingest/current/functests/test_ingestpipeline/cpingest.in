@@ -5,16 +5,7 @@
 #
 #  Scheduling Block Parameters
 #
-sb.id                          = 0
-sb.targets                     = [src1, src2]
-
-sb.target.src1.field_name      = test-field1
-sb.target.src1.field_direction = [12h30m00.000, -45d00m00.000, J2000]
-sb.target.src1.corrmode        = standard
-
-sb.target.src2.field_name      = test-field1
-sb.target.src2.field_direction = [12h30m00.000, -45d00m00.000, J2000]
-sb.target.src2.corrmode        = standard
+sbid                          = 0
 
 # Array Name
 array.name                  = ASKAP

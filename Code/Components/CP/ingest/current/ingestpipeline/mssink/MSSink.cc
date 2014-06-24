@@ -103,7 +103,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
 
     // Handle the details for when a new scan starts
     if (itsPreviousScanIndex != static_cast<casa::Int>(chunk->scan())) {
-        itsFieldRow = findOrAddField(chunk->scan());
+        itsFieldRow = findOrAddField(chunk);
         itsDataDescRow = findOrAddDataDesc(chunk);
         itsPreviousScanIndex = chunk->scan();
     }
@@ -636,11 +636,10 @@ casa::Int MSSink::addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>&
     return row;
 }
 
-casa::Int MSSink::findOrAddField(const casa::Int scanId)
+casa::Int MSSink::findOrAddField(const askap::cp::common::VisChunk::ShPtr chunk)
 {
-    const Target& target= itsConfig.getTargetForScan(scanId);
-    const casa::String fieldName = target.name();
-    const casa::MDirection fieldDirection = target.phaseCentre();
+    const casa::String fieldName = chunk->targetName();
+    const casa::MDirection fieldDirection = chunk->phaseCentre1()[0];
     const casa::String& calCode = "";
 
     MSColumns msc(*itsMs);

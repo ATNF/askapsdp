@@ -41,7 +41,6 @@
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
 #include "configuration/BaselineMap.h"
-#include "configuration/Target.h"
 #include "configuration/FeedConfig.h"
 #include "configuration/CorrelatorMode.h"
 #include "configuration/ServiceConfig.h"
@@ -87,6 +86,10 @@ class Configuration {
         ///  and the actual antenna pair and correlation product.
         const BaselineMap& bmap(void) const;
 
+        /// @brief Returns the correlator configuration for a
+        /// given correlator mode name
+        const CorrelatorMode& lookupCorrelatorMode(const std::string& modename) const;
+
         // Returns the scheduling block id for this observation
         casa::uInt schedulingBlockID(void) const;
 
@@ -98,13 +101,6 @@ class Configuration {
 
         /// @brief Ice configuration for the monitoring archiver (MoniCA).
         ServiceConfig monitoringArchiverService(void) const;
-
-        /// @brief Number of scans
-        uint32_t nScans(void) const;
-
-        /// @brief Maps a scan id (zero based indexing) to a reference to
-        /// a Target.
-        const Target& getTargetForScan(uint32_t scanId) const;
 
     private:
 
@@ -118,8 +114,6 @@ class Configuration {
 
         void buildCorrelatorModes(void);
 
-        void buildTargets(void);
-
         // The input configuration parameter set that this "Configuration" encapsulates.
         const LOFAR::ParameterSet itsParset;
 
@@ -128,13 +122,6 @@ class Configuration {
 
         /// The total number of processes
         const int itsNProcs;
-
-        // Maps scans to targets
-        // The index is the scan id, and the element is the target index (i.e. the index into
-        // the targets vector)
-        std::vector<std::string> itsScans;
-
-        std::map<std::string, Target> itsTargets;
 
         boost::shared_ptr<FeedConfig> itsFeedConfig;
 

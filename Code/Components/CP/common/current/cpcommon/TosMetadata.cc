@@ -85,6 +85,46 @@ void TosMetadata::centreFreq(const casa::Quantity& freq)
     itsCentreFreq = freq;
 }
 
+std::string TosMetadata::targetName(void) const
+{
+    return itsTargetName;
+}
+
+void TosMetadata::targetName(const std::string& name)
+{
+    itsTargetName = name;
+}
+
+casa::MDirection TosMetadata::targetDirection(void) const
+{
+    return itsTargetDirection;
+}
+
+void TosMetadata::targetDirection(const casa::MDirection& dir)
+{
+    itsTargetDirection = dir;
+}
+
+casa::MDirection TosMetadata::phaseDirection(void) const
+{
+    return itsPhaseDirection;
+}
+
+void TosMetadata::phaseDirection(const casa::MDirection& dir)
+{
+    itsPhaseDirection = dir;
+}
+
+void TosMetadata::corrMode(const std::string& mode)
+{
+    itsCorrMode = mode;
+}
+
+std::string TosMetadata::corrMode(void) const
+{
+    return itsCorrMode;
+}
+
 void TosMetadata::addAntenna(const TosMetadataAntenna& ant)
 {
     // Ensure an antenna of this name does not already exist

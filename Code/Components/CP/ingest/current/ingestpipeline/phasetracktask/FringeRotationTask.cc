@@ -83,24 +83,6 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
     }
 }
 
-/// @brief helper method to find dish pointing for a given antenna index
-/// @param[in] chunk the instance of VisChunk to search through
-/// @param[in] ant antenna index
-/// @return dish pointing
-casa::MVDirection FringeRotationTask::dishPointing(const askap::cp::common::VisChunk::ShPtr &chunk,
-                                                   const casa::uInt ant) const
-{
-  // this may not be the tidiest way of getting pointing per antenna
-  for (casa::uInt testRow = 0; testRow < chunk->nRow(); ++testRow) {
-       if (chunk->antenna2()(testRow) == ant) {
-           return chunk->dishPointing2()(testRow);
-       } else if (chunk->antenna1()(testRow) == ant) {
-           return chunk->dishPointing1()(testRow);
-       }
-  }
-  ASKAPTHROW(AskapError, "Antenna "<<ant<<" not found in the VisChunk (FringeRotationTask::dishPointing)");
-}
-
 /// @brief process one VisChunk 
 /// @details Perform fringe tracking, correct residual effects on visibilities in the
 /// specified VisChunk.
@@ -125,7 +107,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
     const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
 
     for (casa::uInt ant = 0; ant < nAntennas(); ++ant) {
-         const casa::MVDirection dishPnt = dishPointing(chunk, ant);
+         const casa::MDirection dishPnt = chunk->targetPointingCentre()[ant];
          // fixed delay in seconds
          const double fixedDelay = ant < itsFixedDelays.size() ? itsFixedDelays[ant]*1e-9 : 0.;
          for (casa::uInt beam = 0; beam < nBeams(); ++beam) {

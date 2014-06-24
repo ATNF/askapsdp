@@ -1,6 +1,6 @@
 /// @file VisChunk.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2010-2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -40,22 +40,18 @@
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
 #include "measures/Measures/MDirection.h"
-#include "Blob/BlobOStream.h"
-#include "Blob/BlobIStream.h"
-#include "Blob/BlobArray.h"
-#include "Blob/BlobSTL.h"
-
-// Local includes
-#include "CasaBlobUtils.h"
 
 // Using
 using namespace askap::cp::common;
 
 VisChunk::VisChunk(const casa::uInt nRow,
                    const casa::uInt nChannel,
-                   const casa::uInt nPol)
-        : itsNumberOfRows(nRow), itsNumberOfChannels(nChannel),
+                   const casa::uInt nPol,
+                   const casa::uInt nAntenna)
+        : itsNumberOfRows(nRow),
+        itsNumberOfChannels(nChannel),
         itsNumberOfPolarisations(nPol),
+        itsNumberOfAntennas(nAntenna),
         itsTime(-1),
         itsInterval(-1),
         itsAntenna1(nRow),
@@ -64,10 +60,11 @@ VisChunk::VisChunk(const casa::uInt nRow,
         itsBeam2(nRow),
         itsBeam1PA(nRow),
         itsBeam2PA(nRow),
-        itsPointingDir1(nRow),
-        itsPointingDir2(nRow),
-        itsDishPointing1(nRow),
-        itsDishPointing2(nRow),
+        itsPhaseCentre1(nRow),
+        itsPhaseCentre2(nRow),
+        itsTargetPointingCentre(nAntenna),
+        itsActualPointingCentre(nAntenna),
+        itsActualPolAngle(nAntenna),
         itsVisibility(nRow, nChannel, nPol),
         itsFlag(nRow, nChannel, nPol),
         itsUVW(nRow),
@@ -95,6 +92,11 @@ casa::uInt VisChunk::nChannel() const
 casa::uInt VisChunk::nPol() const
 {
     return itsNumberOfPolarisations;
+}
+
+casa::uInt VisChunk::nAntenna() const
+{
+    return itsNumberOfAntennas;
 }
 
 casa::uInt& VisChunk::scan()
@@ -167,44 +169,54 @@ const casa::Vector<casa::Float>& VisChunk::beam2PA() const
     return itsBeam2PA;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::pointingDir1()
+casa::Vector<casa::MVDirection>& VisChunk::phaseCentre1()
 {
-    return itsPointingDir1;
+    return itsPhaseCentre1;
 }
 
-const casa::Vector<casa::MVDirection>& VisChunk::pointingDir1() const
+const casa::Vector<casa::MVDirection>& VisChunk::phaseCentre1() const
 {
-    return itsPointingDir1;
+    return itsPhaseCentre1;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::pointingDir2()
+casa::Vector<casa::MVDirection>& VisChunk::phaseCentre2()
 {
-    return itsPointingDir2;
+    return itsPhaseCentre2;
 }
 
-const casa::Vector<casa::MVDirection>& VisChunk::pointingDir2() const
+const casa::Vector<casa::MVDirection>& VisChunk::phaseCentre2() const
 {
-    return itsPointingDir2;
+    return itsPhaseCentre2;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::dishPointing1()
+casa::Vector<casa::MDirection>& VisChunk::targetPointingCentre()
 {
-    return itsDishPointing1;
+    return itsTargetPointingCentre;
 }
 
-const casa::Vector<casa::MVDirection>& VisChunk::dishPointing1() const
+const casa::Vector<casa::MDirection>& VisChunk::targetPointingCentre() const
 {
-    return itsDishPointing1;
+    return itsTargetPointingCentre;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::dishPointing2()
+casa::Vector<casa::MDirection>& VisChunk::actualPointingCentre()
 {
-    return itsDishPointing2;
+    return itsActualPointingCentre;
 }
 
-const casa::Vector<casa::MVDirection>& VisChunk::dishPointing2() const
+const casa::Vector<casa::MDirection>& VisChunk::actualPointingCentre() const
 {
-    return itsDishPointing2;
+    return itsActualPointingCentre;
+}
+
+casa::Vector<casa::Quantity>& VisChunk::actualPolAngle()
+{
+    return itsActualPolAngle;
+}
+
+const casa::Vector<casa::Quantity>& VisChunk::actualPolAngle() const
+{
+    return itsActualPolAngle;
 }
 
 casa::Cube<casa::Complex>& VisChunk::visibility()
@@ -245,6 +257,16 @@ casa::MVEpoch& VisChunk::time()
 const casa::MVEpoch& VisChunk::time() const
 {
     return itsTime;
+}
+
+std::string& VisChunk::targetName()
+{
+    return itsTargetName;
+}
+
+const std::string& VisChunk::targetName() const
+{
+    return itsTargetName;
 }
 
 casa::Double& VisChunk::interval()
@@ -321,61 +343,4 @@ void VisChunk::resize(const casa::Cube<casa::Complex>& visibility,
     itsFrequency.assign(frequency);
 
     itsNumberOfChannels = newNChan;
-}
-
-/////////////////////////////////////////////////////////////////////
-// Serializers
-/////////////////////////////////////////////////////////////////////
-void VisChunk::writeToBlob(LOFAR::BlobOStream& os) const
-{
-    os << itsNumberOfRows;
-    os << itsNumberOfChannels;
-    os << itsNumberOfPolarisations;
-    os << itsTime;
-    os << itsInterval;
-    os << itsScan;
-    os << itsAntenna1;
-    os << itsAntenna2;
-    os << itsBeam1;
-    os << itsBeam2;
-    os << itsBeam1PA;
-    os << itsBeam2PA;
-    os << itsPointingDir1;
-    os << itsPointingDir2;
-    os << itsDishPointing1;
-    os << itsDishPointing2;
-    os << itsVisibility;
-    os << itsFlag;
-    os << itsUVW;
-    os << itsFrequency;
-    os << itsChannelWidth;
-    os << itsStokes;
-    os << itsDirectionFrame;
-}
-
-void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
-{
-    is >> itsNumberOfRows;
-    is >> itsNumberOfChannels;
-    is >> itsNumberOfPolarisations;
-    is >> itsTime;
-    is >> itsInterval;
-    is >> itsScan;
-    is >> itsAntenna1;
-    is >> itsAntenna2;
-    is >> itsBeam1;
-    is >> itsBeam2;
-    is >> itsBeam1PA;
-    is >> itsBeam2PA;
-    is >> itsPointingDir1;
-    is >> itsPointingDir2;
-    is >> itsDishPointing1;
-    is >> itsDishPointing2;
-    is >> itsVisibility;
-    is >> itsFlag;
-    is >> itsUVW;
-    is >> itsFrequency;
-    is >> itsChannelWidth;
-    is >> itsStokes;
-    is >> itsDirectionFrame;
 }

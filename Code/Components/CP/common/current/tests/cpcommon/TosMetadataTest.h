@@ -47,6 +47,10 @@ class TosMetadataTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testTime);
         CPPUNIT_TEST(testScanId);
         CPPUNIT_TEST(testFlagged);
+        CPPUNIT_TEST(testTargetName);
+        CPPUNIT_TEST(testTargetDirection);
+        CPPUNIT_TEST(testPhaseDirection);
+        CPPUNIT_TEST(testCorrMode);
         CPPUNIT_TEST(testAntennaAccess);
         CPPUNIT_TEST(testAntennaInvalid);
         CPPUNIT_TEST_SUITE_END();
@@ -86,7 +90,7 @@ class TosMetadataTest : public CppUnit::TestFixture {
         }
 
         void testScanId() {
-            for (casa::Int i = -1; i < 10; ++i) {
+            for (casa::Int i = -2; i < 10; ++i) {
                 instance->scanId(i);
                 CPPUNIT_ASSERT_EQUAL(i, instance->scanId());
             }
@@ -97,6 +101,30 @@ class TosMetadataTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(true, instance->flagged());
             instance->flagged(false);
             CPPUNIT_ASSERT_EQUAL(false, instance->flagged());
+        }
+
+        void testTargetName() {
+            CPPUNIT_ASSERT(instance->targetName() == "");
+            instance->targetName("1934-638");
+            CPPUNIT_ASSERT(instance->targetName() == "1934-638");
+        }
+
+        void testTargetDirection() {
+            const MDirection dir(Quantity(187.5, "deg"),
+                    MDirection::Ref(MDirection::J2000));
+            instance->targetDirection(dir);
+        }
+
+        void testPhaseDirection() {
+            const MDirection dir(Quantity(187.5, "deg"),
+                    MDirection::Ref(MDirection::J2000));
+            instance->phaseDirection(dir);
+        }
+
+        void testCorrMode() {
+            CPPUNIT_ASSERT(instance->corrMode() == "");
+            instance->corrMode("Standard");
+            CPPUNIT_ASSERT(instance->corrMode() == "Standard");
         }
 
         void testAntennaAccess() {

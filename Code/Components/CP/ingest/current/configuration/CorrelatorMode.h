@@ -44,6 +44,8 @@ namespace ingest {
 /// @brief This class encapsulates a "scan", a part of a larger observation.
 class CorrelatorMode {
     public:
+        /// @brief Constructor
+        CorrelatorMode();
 
         /// @brief Constructor
         CorrelatorMode(const std::string& modeName,

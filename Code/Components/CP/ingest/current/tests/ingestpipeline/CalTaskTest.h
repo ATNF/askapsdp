@@ -69,8 +69,9 @@ class CalTaskTest : public CppUnit::TestFixture {
             const int nRows = 1;
             const int nChans = 1;
             const int nPols = 1;
+            const int nAntennas = 6;
 
-            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols, nAntennas));
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX");
 
@@ -93,8 +94,9 @@ class CalTaskTest : public CppUnit::TestFixture {
             const int nRows = 1;
             const int nChans = 1;
             const int nPols = 2;
+            const int nAntennas = 6;
 
-            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols, nAntennas));
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX,YY");
 
@@ -118,8 +120,9 @@ class CalTaskTest : public CppUnit::TestFixture {
             const int nRows = 1;
             const int nChans = 1;
             const int nPols = 4;
+            const int nAntennas = 6;
 
-            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+            VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols, nAntennas));
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX,XY,YX,YY");
 

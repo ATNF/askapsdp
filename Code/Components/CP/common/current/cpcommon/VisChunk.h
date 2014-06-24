@@ -27,6 +27,9 @@
 #ifndef ASKAP_CP_INGEST_VISCHUNK_H
 #define ASKAP_CP_INGEST_VISCHUNK_H
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
@@ -38,15 +41,12 @@
 #include "measures/Measures/Stokes.h"
 #include "measures/Measures/MDirection.h"
 #include "boost/shared_ptr.hpp"
-#include "Blob/BlobOStream.h"
-#include "Blob/BlobIStream.h"
-#include "fitting/ISerializable.h"
 
 namespace askap {
 namespace cp {
 namespace common {
 
-class VisChunk : public ISerializable {
+class VisChunk {
     public:
         /// @brief Constructor.
         /// Construct a VisChunk where its containers are created with
@@ -60,7 +60,8 @@ class VisChunk : public ISerializable {
         ///                 with this size for that dimension.
         VisChunk(const casa::uInt nRow,
                  const casa::uInt nChannel,
-                 const casa::uInt nPol);
+                 const casa::uInt nPol,
+                 const casa::uInt nAntenna);
 
         /// Destructor
         ~VisChunk();
@@ -79,6 +80,10 @@ class VisChunk : public ISerializable {
         /// @return the number of polarization products (can be 1,2 or 4)
         casa::uInt nPol() const;
 
+        /// The number of antennas
+        /// @return the number antennas.
+        casa::uInt nAntenna() const;
+
         /// Timestamp for this correlator integration
         /// @return a timestamp for this buffer. Absolute time expressed as
         /// seconds since MJD=0 UTC.
@@ -86,6 +91,12 @@ class VisChunk : public ISerializable {
 
         /// @copydoc VisChunk::time()
         const casa::MVEpoch& time() const;
+
+        /// Target (field/source) name
+        std::string& targetName();
+
+        /// @copydoc VisChunk::targetName()
+        const std::string& targetName() const;
 
         /// Data sampling interval.
         /// Units: Seconds
@@ -162,40 +173,52 @@ class VisChunk : public ISerializable {
         /// @copydoc VisChunk::beamsPA()
         const casa::Vector<casa::Float>& beam2PA() const;
 
-        /// Return pointing centre directions of the first antenna/beam
+        /// Return phase centre directions of the first antenna/beam
         /// @return a vector with direction measures (coordinate system
         /// is set via IDataConverter), one direction for each
         /// visibility/row
-        casa::Vector<casa::MVDirection>& pointingDir1();
+        casa::Vector<casa::MVDirection>& phaseCentre1();
 
-        /// @copydoc VisChunk::pointingDir1()
-        const casa::Vector<casa::MVDirection>& pointingDir1() const;
+        /// @copydoc VisChunk::phaseCentre1()
+        const casa::Vector<casa::MVDirection>& phaseCentre1() const;
 
-        /// Pointing centre directions of the second antenna/beam
+        /// Pointing phase centre directions of the second antenna/beam
         /// @return a vector with direction measures
         ///  one direction for each visibility/row
-        casa::Vector<casa::MVDirection>& pointingDir2();
+        casa::Vector<casa::MVDirection>& phaseCentre2();
 
-        /// @copydoc VisChunk::pointingDir2()
-        const casa::Vector<casa::MVDirection>& pointingDir2() const;
+        /// @copydoc VisChunk::phaseCentre2()
+        const casa::Vector<casa::MVDirection>& phaseCentre2() const;
 
-        /// pointing direction for the centre of the first antenna
-        /// @details The same as pointingDir1, if the beam offsets are zero
-        /// @return a vector with direction measures,
-        /// one direction for each visibility/row
-        casa::Vector<casa::MVDirection>& dishPointing1();
+        /// Returns the TARGET dish pointing centre for each antenna.
+        /// The length of the vector will be of length nAntennas, and the 
+        /// vector indexing matches the index returned from either the
+        /// antenna1() or antenna2() methods.
+        /// @return a vector of direction measures, one for each antenna
+        casa::Vector<casa::MDirection>& targetPointingCentre();
 
-        /// @copydoc VisChunk::dishPointing1
-        const casa::Vector<casa::MVDirection>& dishPointing1() const;
+        /// @copydoc VisChunk::targetPointingCentre()
+        const casa::Vector<casa::MDirection>& targetPointingCentre() const;
 
-        /// pointing direction for the centre of the first antenna
-        /// @details The same as pointingDir2, if the beam offsets are zero
-        /// @return a vector with direction measures one direction for each
-        /// visibility/row
-        casa::Vector<casa::MVDirection>& dishPointing2();
+        /// Returns the ACTUAL dish pointing centre for each antenna.
+        /// The length of the vector will be of length nAntennas, and the 
+        /// vector indexing matches the index returned from either the
+        /// antenna1() or antenna2() methods.
+        /// @return a vector of direction measures, one for each antenna
+        casa::Vector<casa::MDirection>& actualPointingCentre();
 
-        /// @copydoc VisChunk::dishPointing2()
-        const casa::Vector<casa::MVDirection>& dishPointing2() const;
+        /// Returns the ACTUAL polarisation axis position  for each antenna.
+        /// The length of the vector will be of length nAntennas, and the 
+        /// vector indexing matches the index returned from either the
+        /// antenna1() or antenna2() methods.
+        /// @return a vector of quantities, one for each antenna
+        const casa::Vector<casa::MDirection>& actualPointingCentre() const;
+
+        /// Actual polarisation axis offset for each antenna
+        casa::Vector<casa::Quantity>& actualPolAngle();
+
+        /// @copydoc VisChunk::actualPolAngle()
+        const casa::Vector<casa::Quantity>& actualPolAngle() const;
 
         /// VisChunk (a cube is nRow x nChannel x nPol; each element is
         /// a complex visibility)
@@ -284,16 +307,6 @@ class VisChunk : public ISerializable {
                     const casa::Cube<casa::Bool>& flag,
                     const casa::Vector<casa::Double>& frequency);
 
-        // Serializer functions
-
-        /// @brief write the object to a blob stream
-        /// @param[in] os the output stream
-        virtual void writeToBlob(LOFAR::BlobOStream& os) const;
-
-        /// @brief read the object from a blob stream
-        /// @param[in] is the input stream
-        virtual void readFromBlob(LOFAR::BlobIStream& is);
-
         /// @brief Shared pointer typedef
         typedef boost::shared_ptr<VisChunk> ShPtr;
 
@@ -308,8 +321,14 @@ class VisChunk : public ISerializable {
         /// Number of polarisations
         casa::uInt itsNumberOfPolarisations;
 
+        /// Number of antennas
+        casa::uInt itsNumberOfAntennas;
+
         /// Time
         casa::MVEpoch itsTime;
+
+        /// Target Name
+        std::string itsTargetName;
 
         /// Interval
         casa::Double itsInterval;
@@ -335,17 +354,20 @@ class VisChunk : public ISerializable {
         /// Beam2 position angle
         casa::Vector<casa::Float> itsBeam2PA;
 
-        /// Pointing direction of the first antenna/beam
-        casa::Vector<casa::MVDirection> itsPointingDir1;
+        /// Phase centre of the first antenna/beam
+        casa::Vector<casa::MVDirection> itsPhaseCentre1;
 
-        /// Pointing direction of the second antenna/beam
-        casa::Vector<casa::MVDirection> itsPointingDir2;
+        /// Phase centre of the second antenna/beam
+        casa::Vector<casa::MVDirection> itsPhaseCentre2;
 
-        /// Pointing direction of the centre of the first antenna
-        casa::Vector<casa::MVDirection> itsDishPointing1;
+        /// Target dish pointing direction for each antenna
+        casa::Vector<casa::MDirection> itsTargetPointingCentre;
 
-        /// Pointing direction of the centre of the second antenna
-        casa::Vector<casa::MVDirection> itsDishPointing2;
+        /// Actual dish pointing direction for each antenna
+        casa::Vector<casa::MDirection> itsActualPointingCentre;
+
+        /// Actual polarisation axis offset for each antenna
+        casa::Vector<casa::Quantity> itsActualPolAngle;
 
         /// Visibility
         casa::Cube<casa::Complex> itsVisibility;

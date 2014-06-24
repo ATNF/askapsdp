@@ -57,25 +57,7 @@ class ConfigurationHelper {
             parset.add("metadata.topic", "metadata");
 
             // Observation specific
-            parset.add("sb.id", "0");
-
-            // Targets
-            parset.add("sb.targets", "[src1, src2, src3]");
-
-            // Scan1
-            parset.add("sb.target.src1.field_name", "test-field1");
-            parset.add("sb.target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            parset.add("sb.target.src1.corrmode", "standard");
-            
-            // Scan2
-            parset.add("sb.target.src2.field_name", "test-field2");
-            parset.add("sb.target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            parset.add("sb.target.src2.corrmode", "standard");
-
-            // Scan3
-            parset.add("sb.target.src3.field_name", "test-field3");
-            parset.add("sb.target.src3.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            parset.add("sb.target.src3.corrmode", "standard");
+            parset.add("sbid", "0");
 
             // Correlator mode(s)
             parset.add("correlator.modes", "[standard]");

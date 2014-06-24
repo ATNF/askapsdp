@@ -76,6 +76,9 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             const casa::Quantity polAngle(1.234567, "rad");
             const casa::Bool onSource = true;
             const casa::Bool flagged = false;
+            const casa::Quantity centreFreq(1400.0, "MHz");
+            const std::string targetName("1934-638");
+            const std::string corrMode("Standard");
 
             //////////////////////////////////////
             // Setup the source TosMetadata object
@@ -87,6 +90,21 @@ class MetadataConverterTest : public CppUnit::TestFixture {
 
             // ScanId
             itsSource->scanId(scanId);
+
+            // Centre Frequency
+            itsSource->centreFreq(centreFreq);
+        
+            // Target name
+            itsSource->targetName(targetName);
+
+            // Targt Direction
+            itsSource->targetDirection(testDir);
+
+            // Phase Centre
+            itsSource->phaseDirection(testDir);
+
+            // Correlator mode
+            itsSource->corrMode(corrMode);
 
             // Antennas
             std::vector<std::string> antennaNames;
@@ -143,6 +161,11 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(itsSource->time(), itsResult->time());
             CPPUNIT_ASSERT_EQUAL(itsSource->scanId(), itsResult->scanId());
             CPPUNIT_ASSERT_EQUAL(itsSource->flagged(), itsResult->flagged());
+            CPPUNIT_ASSERT_EQUAL(itsSource->targetName(), itsResult->targetName());
+            CPPUNIT_ASSERT_EQUAL(itsSource->centreFreq(), itsResult->centreFreq());
+            verifyDir(itsSource->targetDirection(), itsResult->targetDirection());
+            verifyDir(itsSource->phaseDirection(), itsResult->phaseDirection());
+            CPPUNIT_ASSERT_EQUAL(itsSource->corrMode(), itsResult->corrMode());
         }
 
         void testConverterAntenna() {

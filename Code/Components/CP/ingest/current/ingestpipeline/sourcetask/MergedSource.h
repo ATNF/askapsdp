@@ -48,6 +48,7 @@
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
+#include "ingestpipeline/sourcetask/MonitoringPointManager.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
 
@@ -138,6 +139,9 @@ class MergedSource : public ISource {
 
         // Scan Manager
         ScanManager itsScanManager;
+
+        // Monitor point Manager
+        const MonitoringPointManager itsMonitoringPointManager;
 
         // Channel Manager
         ChannelManager itsChannelManager;

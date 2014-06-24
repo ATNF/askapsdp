@@ -39,7 +39,6 @@
 #include "casa/Quanta/MVDirection.h"
 #include "casa/Quanta/MVAngle.h"
 #include "configuration/Configuration.h"
-#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".ScanManager");
 
@@ -49,24 +48,10 @@ using namespace askap::cp::ingest;
 ScanManager::ScanManager(const Configuration& config)
     : itsConfig(config), itsScanIndex(SCANID_IDLE), itsObsComplete(false)
 {
-    const size_t nScans = itsConfig.nScans();
-    if (nScans < 1) {
-        ASKAPTHROW(AskapError, "Configuration contains no scans");
-    }
 }
 
 ScanManager::~ScanManager()
 {
-    submitPointNull("obs.ScanId");
-    submitPointNull("obs.nScans");
-    submitPointNull("obs.FieldName");
-    submitPointNull("obs.dir1");
-    submitPointNull("obs.dir2");
-    submitPointNull("obs.CoordSys");
-    submitPointNull("obs.Interval");
-    submitPointNull("obs.StartFreq");
-    submitPointNull("obs.nChan");
-    submitPointNull("obs.ChanWidth");
 }
 
 void ScanManager::update(const casa::Int scanId)
@@ -81,7 +66,6 @@ void ScanManager::update(const casa::Int scanId)
     if (itsScanIndex == SCANID_IDLE && scanId >= 0) {
         ASKAPLOG_DEBUG_STR(logger, "First scan has begun - Scan Id: " << scanId);
         itsScanIndex = scanId;
-        submitMonitoringPoints();
         return;
     }
 
@@ -96,10 +80,6 @@ void ScanManager::update(const casa::Int scanId)
             // Alternatively handle the case where a SCANID_IDLE or SCANID_OBS_COMPLETE
             // has been received, indicating end-of-observation
             itsObsComplete = true;
-            const size_t nScans = itsConfig.nScans();
-            if (itsScanIndex < static_cast<casa::Int>(nScans) - 1) {
-                ASKAPLOG_WARN_STR(logger, "Observation ended before all specified scans were executed");
-            }
         }
     }
 
@@ -109,7 +89,6 @@ void ScanManager::update(const casa::Int scanId)
     if (scanId == SCANID_OBS_COMPLETE) {
         itsObsComplete = true;
     }
-    submitMonitoringPoints();
 }
 
 casa::Bool ScanManager::observationComplete(void) const
@@ -120,38 +99,4 @@ casa::Bool ScanManager::observationComplete(void) const
 casa::Int ScanManager::scanIndex(void) const
 {
     return itsScanIndex;
-}
-
-void ScanManager::submitMonitoringPoints(void) const
-{
-    submitPoint<int32_t>("obs.ScanId", itsScanIndex);
-
-    if (!itsObsComplete && itsScanIndex >= 0) {
-        const Target& target= itsConfig.getTargetForScan(itsScanIndex);
-        const CorrelatorMode& corrMode = target.mode();
-        submitPoint<int32_t>("obs.nScans", itsConfig.nScans());
-        submitPoint<string>("obs.FieldName", target.name());
-        submitPoint<string>("obs.dir1", askap::printLon(target.phaseCentre()));
-        submitPoint<string>("obs.dir2", askap::printLat(target.phaseCentre()));
-        submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.phaseCentre().type()));
-        submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
-        submitPoint<int32_t>("obs.nChan", corrMode.nChan());
-        submitPoint<float>("obs.ChanWidth", corrMode.chanWidth().getValue("kHz"));
-    } else {
-        submitPointNull("obs.nScans");
-        submitPointNull("obs.FieldName");
-        submitPointNull("obs.dir1");
-        submitPointNull("obs.dir2");
-        submitPointNull("obs.CoordSys");
-        submitPointNull("obs.Interval");
-        submitPointNull("obs.StartFreq");
-        submitPointNull("obs.nChan");
-        submitPointNull("obs.ChanWidth");
-    }
-}
-
-void ScanManager::submitPointNull(const std::string& key) const
-{
-    MonitorPoint<int32_t> point(key);
-    point.updateNull();
 }

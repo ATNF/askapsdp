@@ -3,14 +3,14 @@
 #
 
 #
-#  Scheduling Block Parameters
+#  Scheduling Block ID
 #
-sb.id                          = 0
-sb.targets                     = [src1]
+sbid                          = 0
 
-sb.target.src1.field_name      = test-field1
-sb.target.src1.field_direction = [12h30m49.43, +12.23.28.01, J2000]
-sb.target.src1.corrmode        = standard
+tasks.NoMetadataSource.params.target_name               = test-field1
+tasks.NoMetadataSource.params.target_direction          = [12h30m49.43, +12.23.28.01, J2000]
+tasks.NoMetadataSource.params.correlator_mode           = standard
+tasks.NoMetadataSource.params.centre_freq               = 850MHz
 
 # Virgo
 #observation.scan0.field_direction   = [12h30m49.43, +12.23.28.01, J2000]
@@ -51,6 +51,15 @@ sb.target.src1.corrmode        = standard
 #observation.scan0.field_direction   = [00h47m33.0, -25.17.18, J2000]
 # 1830-210
 #observation.scan0.field_direction   = [18h33m39.9150, -21.03.40.050, J2000]
+
+
+# NOTE!!! The below are start_freq, the above is centre_freq
+# For LO=5872MHz
+#observation.scan0.start_freq        = 1.0155GHz
+# For LO=6416MHz
+#observation.scan0.start_freq        = 1.5595GHz
+# For LO=6432MHz
+#observation.scan0.start_freq        = 1.5755GHz
 
 # Array Name
 array.name                  = ASKAP
@@ -259,15 +268,6 @@ tasks.NoMetadataSource.params.n_channels.0              = 16416
 tasks.NoMetadataSource.params.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
 tasks.NoMetadataSource.params.maxbeams                  = 9
 tasks.NoMetadataSource.params.beams2receive             = 9
-tasks.NoMetadataSource.params.centre_freq               = 850MHz
-
-# NOTE!!! The below are start_freq, the above is centre_freq
-# For LO=5872MHz
-observation.scan0.start_freq        = 1.0155GHz
-# For LO=6416MHz
-#observation.scan0.start_freq        = 1.5595GHz
-# For LO=6432MHz
-#observation.scan0.start_freq        = 1.5755GHz
 
 #
 # CalcUVWTask

@@ -128,7 +128,7 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     const double gmst = calcGMST(chunk->time()); 
 
     // phase center for a given beam
-    const casa::MDirection fpc = phaseCentre(chunk->pointingDir1()(row),chunk->beam1()(row));
+    const casa::MDirection fpc = phaseCentre(chunk->phaseCentre1()(row),chunk->beam1()(row));
     const double ra = fpc.getAngle().getValue()(0);
     const double dec = fpc.getAngle().getValue()(1);
 

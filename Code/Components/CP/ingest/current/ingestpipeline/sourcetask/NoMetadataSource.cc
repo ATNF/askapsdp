@@ -61,7 +61,6 @@
 #include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
-#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".NoMetadataSource");
 
@@ -83,6 +82,8 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
         itsMaxNBeams(params.getUint32("maxbeams",0)),
         itsBeamsToReceive(params.getUint32("beams2receive",0)),
         itsCentreFreq(asQuantity(params.getString("centre_freq"))),
+        itsTargetName(params.getString("target_name")),
+        itsTargetDirection(asMDirection(params.getStringVector("target_direction"))),
         itsLastTimestamp(-1)
 {
     // Trigger a dummy frame conversion with casa measures to ensure all caches are setup
@@ -90,13 +91,10 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
 
     casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
                           casa::MEpoch::Ref(casa::MEpoch::UTC))();
-    ASKAPCHECK(itsConfig.nScans() == 1,
-               "NoMetadataSource supports only a single scan");
 
     parseBeamMap(params);
 
-    // Send "obs" monitoring data for scan0
-    submitObsMonitorPoints();
+    itsCorrelatorMode = config.lookupCorrelatorMode(params.getString("correlator_mode"));
 
     // Setup a signal handler to catch SIGINT, SIGTERM and SIGUSR1
     itsSignals.async_wait(boost::bind(&NoMetadataSource::signalHandler, this, _1, _2));
@@ -105,9 +103,6 @@ NoMetadataSource::NoMetadataSource(const LOFAR::ParameterSet& params,
 NoMetadataSource::~NoMetadataSource()
 {
     itsSignals.cancel();
-
-    // Invalidate the monitoring data points - by sending null to MoniCA
-    submitNullMonitorPoints();
 }
 
 VisChunk::ShPtr NoMetadataSource::next(void)
@@ -137,7 +132,7 @@ VisChunk::ShPtr NoMetadataSource::next(void)
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
                "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
     const casa::uInt datagramsExpected = itsBaselineMap.size() * itsMaxNBeams * (nChannels / N_CHANNELS_PER_SLICE);
-    const casa::uInt interval = itsConfig.getTargetForScan(0).mode().interval();
+    const casa::uInt interval = itsCorrelatorMode.interval();
     const casa::uInt timeout = interval * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -179,15 +174,13 @@ VisChunk::ShPtr NoMetadataSource::next(void)
             << " successfully received datagrams");
 
     // Submit monitoring data
-    MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
-    packetsLostCount.update(datagramsExpected - datagramCount);
+    itsMonitoringPointManager.submitPoint<int32_t>("PacketsLostCount",
+            datagramsExpected - datagramCount);
     if (datagramsExpected != 0) {
-        MonitorPoint<float> packetsLostPercent("PacketsLostPercent");
-        packetsLostPercent.update((datagramsExpected - datagramCount)
-                / static_cast<float>(datagramsExpected) * 100.);
+        itsMonitoringPointManager.submitPoint<float>("PacketsLostPercent",
+            (datagramsExpected - datagramCount) / static_cast<float>(datagramsExpected) * 100.);
     }
-    MonitorPoint<float> startFreq("obs.StartFreq");
-    startFreq.update(chunk->frequency()(0) / 1000 / 1000);
+    itsMonitoringPointManager.submitMonitoringPoints(*chunk);
 
     return chunk;
 }
@@ -198,17 +191,15 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     ASKAPLOG_DEBUG_STR(logger, "received chunk at bat="<<timestamp<<" == 0x"<<std::hex<<timestamp);
     ASKAPLOG_DEBUG_STR(logger, "diff: "<<std::setprecision(9)<<double(timestamp-0x11662f89a887f0)/4976640.<<" cycles ");
     */
-    const Target& target= itsConfig.getTargetForScan(0);
-    const CorrelatorMode& corrMode = target.mode();
     const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(nAntenna > 0, "Must have at least one antenna defined");
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
-    const casa::uInt nPol = corrMode.stokes().size();
+    const casa::uInt nPol = itsCorrelatorMode.stokes().size();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt nRow = nBaselines * itsMaxNBeams;
-    const casa::uInt period = corrMode.interval(); // in microseconds
+    const casa::uInt period = itsCorrelatorMode.interval(); // in microseconds
 
-    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
+    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol, nAntenna));
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
@@ -236,14 +227,18 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
     // Add the scan index
     chunk->scan() = 0;
 
+    chunk->targetName() = itsTargetName;
+
     // Determine and add the spectral channel width
-    chunk->channelWidth() = corrMode.chanWidth().getValue("Hz");
+    chunk->channelWidth() = itsCorrelatorMode.chanWidth().getValue("Hz");
 
     // Frequency vector is not of length nRows, but instead nChannels
     chunk->frequency() = itsChannelManager.localFrequencies(itsId,
             itsCentreFreq.getValue("Hz"),
-            corrMode.chanWidth().getValue("Hz"),
-            corrMode.nChan());
+            itsCorrelatorMode.chanWidth().getValue("Hz"),
+            itsCorrelatorMode.nChan());
+
+    chunk->directionFrame() = itsTargetDirection.getRef();
 
     casa::uInt row = 0;
     for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
@@ -256,23 +251,26 @@ VisChunk::ShPtr NoMetadataSource::createVisChunk(const casa::uLong timestamp)
                 // The handling of pointing directions below is not handled per beam.
                 // It just takes the field centre direction from the parset and uses
                 // that for all beam pointing directions.
-                chunk->directionFrame() = target.phaseCentre().getRef();
-
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;
                 chunk->beam2()(row) = beam;
                 chunk->beam1PA()(row) = 0;
                 chunk->beam2PA()(row) = 0;
-                chunk->pointingDir1()(row) = target.phaseCentre().getAngle();
-                chunk->pointingDir2()(row) = target.phaseCentre().getAngle();
-                chunk->dishPointing1()(row) = target.phaseCentre().getAngle();
-                chunk->dishPointing2()(row) = target.phaseCentre().getAngle();
+                chunk->phaseCentre1()(row) = itsTargetDirection.getAngle();
+                chunk->phaseCentre2()(row) = itsTargetDirection.getAngle();
                 chunk->uvw()(row) = 0.0;
 
                 row++;
             }
         }
+    }
+
+    // Populate the per-antenna vectors
+    for (casa::uInt i = 0; i < nAntenna; ++i) {
+        chunk->targetPointingCentre()[i] = itsTargetDirection;
+        chunk->actualPointingCentre()[i] = itsTargetDirection;
+        chunk->actualPolAngle()[i] = 0.0;
     }
 
     return chunk;
@@ -417,43 +415,4 @@ void NoMetadataSource::parseBeamMap(const LOFAR::ParameterSet& params)
             << itsBeamsToReceive << " (to be received), " << itsMaxNBeams << " (to be written into MS)");
     ASKAPDEBUGASSERT(itsMaxNBeams > 0);
     ASKAPDEBUGASSERT(itsBeamsToReceive > 0);
-}
-
-void NoMetadataSource::submitObsMonitorPoints() const
-{
-    submitPoint<int32_t>("obs.nScans", 1);
-    submitPoint<int32_t>("obs.ScanId", 0);
-    const Target& target= itsConfig.getTargetForScan(0);
-    const CorrelatorMode& corrMode = target.mode();
-    submitPoint<string>("obs.FieldName", target.name());
-    submitPoint<string>("obs.dir1", askap::printLon(target.phaseCentre()));
-    submitPoint<string>("obs.dir2", askap::printLat(target.phaseCentre()));
-    submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.phaseCentre().type()));
-    submitPoint<int32_t>("obs.Interval", corrMode.interval() / 1000);
-    //submitPoint<float>("obs.StartFreq", s.startFreq().getValue("MHz")); // TODO!!!!!!!!!!!!!
-    submitPoint<int32_t>("obs.nChan", corrMode.nChan());
-    submitPoint<float>("obs.ChanWidth", corrMode.chanWidth().getValue("kHz"));
-}
-
-void NoMetadataSource::submitNullMonitorPoints() const
-{
-    submitPointNull("obs.nScans");
-    submitPointNull("obs.ScanId");
-    submitPointNull("obs.FieldName");
-    submitPointNull("obs.dir1");
-    submitPointNull("obs.dir2");
-    submitPointNull("obs.CoordSys");
-    submitPointNull("obs.Interval");
-    submitPointNull("obs.StartFreq");
-    submitPointNull("obs.nChan");
-    submitPointNull("obs.ChanWidth");
-
-    submitPointNull("PacketsLostCount");
-    submitPointNull("PacketsLostPercent");
-}
-
-void NoMetadataSource::submitPointNull(const std::string& key) const
-{
-    MonitorPoint<int32_t> point(key);
-    point.updateNull();
 }

@@ -106,7 +106,8 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
                                    MDirection::Ref(MDirection::J2000));
 
             // Create a simple chunk with 1 row, 1 channel and 1 pol
-            VisChunk::ShPtr chunk(new VisChunk(1, 1, 1));
+            const unsigned int nAntenna = 6;
+            VisChunk::ShPtr chunk(new VisChunk(1, 1, 1, nAntenna));
             chunk->time() = starttime.getValue();
             chunk->antenna1()(row) = antenna1;
             chunk->antenna2()(row) = antenna2;
@@ -114,11 +115,13 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
             chunk->beam2()(row) = beam;
             chunk->beam1PA()(row) = 0.0;
             chunk->beam2PA()(row) = 0.0;
-            chunk->pointingDir1()(row) = fieldCenter.getAngle();
-            chunk->pointingDir2()(row) = fieldCenter.getAngle();
-            chunk->dishPointing1()(row) = fieldCenter.getAngle();
-            chunk->dishPointing2()(row) = fieldCenter.getAngle();
+            chunk->phaseCentre1()(row) = fieldCenter.getAngle();
+            chunk->phaseCentre2()(row) = fieldCenter.getAngle();
             chunk->frequency()(0) = 1400000;
+
+            chunk->targetPointingCentre() = fieldCenter;
+            chunk->actualPointingCentre() = fieldCenter;
+            chunk->actualPolAngle() = 0.0;
 
             // Instantiate the class under test and call process() to
             // add UVW coordinates to the VisChunk

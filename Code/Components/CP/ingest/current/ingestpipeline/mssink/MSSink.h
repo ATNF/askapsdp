@@ -144,8 +144,8 @@ class MSSink : public askap::cp::ingest::ITask {
         // Add polarisation table row
         casa::Int addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>& stokesTypes);
 
-        // Find or add a FIELD table entry for the provided scan index number.
-        casa::Int findOrAddField(const casa::Int scanId);
+        // Find or add a FIELD table entry
+        casa::Int findOrAddField(const askap::cp::common::VisChunk::ShPtr chunk);
 
         // Find or add a DATA DESCRIPTION (including SPECTRAL INDEX and POLARIZATION)
         // table entry for the provided scan index number.

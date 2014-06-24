@@ -77,6 +77,18 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     const float centreFreqInMHz = srcMapper.getFloat("sky_frequency");
     dest.centreFreq(casa::Quantity(centreFreqInMHz, "MHz"));
 
+    // Target name
+    dest.targetName(srcMapper.getString("target_name"));
+
+    // Target direction
+    dest.targetDirection(srcMapper.getDirection("target_direction"));
+
+    // Phase centre
+    dest.phaseDirection(srcMapper.getDirection("phase_direction"));
+
+    // Correlator mode
+    dest.corrMode(srcMapper.getString("corrmode"));
+
     // antenna_names
     const std::vector<casa::String> antennaNames = srcMapper.getStringSeq("antennas");
 
@@ -106,6 +118,18 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
 
     // Centre frequency
     destMapper.setFloat("sky_frequency", static_cast<float>(source.centreFreq().getValue("MHz")));
+
+    // Target name
+    destMapper.setString("target_name", source.targetName());
+
+    // Target direction
+    destMapper.setDirection("target_direction", source.targetDirection());
+
+    // Phase centre
+    destMapper.setDirection("phase_direction", source.targetDirection());
+
+    // Correlator mode
+    destMapper.setString("corrmode", source.corrMode());
 
     // antenna_names
     std::vector<std::string> stdnames =  source.antennaNames();

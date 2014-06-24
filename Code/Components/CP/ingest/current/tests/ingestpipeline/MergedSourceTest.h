@@ -107,6 +107,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
             metadata.time(starttime);
             metadata.scanId(0);
             metadata.flagged(false);
+            metadata.corrMode("standard");
 
             // antenna_names
             for (uint32_t i = 0; i < config.antennas().size(); ++i) {

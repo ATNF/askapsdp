@@ -154,6 +154,21 @@ bool TosSimulator::sendNext(void)
     }
     metadata.centreFreq(casa::Quantity(centreFreq, "Hz"));
 
+    // Target Name
+    const casa::Int fieldId = msc.fieldId()(itsCurrentRow);
+    metadata.targetName(fieldc.name()(fieldId));
+
+    // Target Direction
+    const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
+    const casa::MDirection direction = dirVec(0);
+    metadata.targetDirection(direction);
+
+    // Phase Centre
+    metadata.phaseDirection(direction);
+
+    // Correlator Mode
+    metadata.corrMode("standard");
+
     ////////////////////////////////////////
     // Metadata - per antenna
     ////////////////////////////////////////
@@ -161,10 +176,6 @@ bool TosSimulator::sendNext(void)
         const std::string name = antc.name().getColumn()(i);
 
         TosMetadataAntenna antMetadata(name);
-
-        const casa::Int fieldId = msc.fieldId()(itsCurrentRow);
-        const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
-        const casa::MDirection direction = dirVec(0);
 
         // <antenna name>.actual_radec
         antMetadata.actualRaDec(direction);

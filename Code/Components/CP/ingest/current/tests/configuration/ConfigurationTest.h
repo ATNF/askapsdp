@@ -46,8 +46,6 @@ class ConfigurationTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testTasks);
         CPPUNIT_TEST(testAntennas);
         CPPUNIT_TEST(testFeed);
-        CPPUNIT_TEST(testNScans);
-        CPPUNIT_TEST(testGetTargetForScan);
         CPPUNIT_TEST(testServiceConfig);
         CPPUNIT_TEST_SUITE_END();
 
@@ -55,16 +53,6 @@ class ConfigurationTest : public CppUnit::TestFixture {
         void setUp() {
             // Observation (from Scheduling block)
             itsParset.add("sb.id", "0");
-            itsParset.add("sb.targets", "[src1, src2]");
-
-            itsParset.add("sb.target.src1.field_name", "test-field1");
-            itsParset.add("sb.target.src1.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            itsParset.add("sb.target.src1.corrmode", "standard");
-
-            itsParset.add("sb.target.src2.field_name", "test-field2");
-            itsParset.add("sb.target.src2.field_direction", "[12h30m00.000, -45d00m00.000, J2000]");
-            itsParset.add("sb.target.src2.phase_direction", "[0h00m00.000, -35d00m00.000, J2000]");
-            itsParset.add("sb.target.src2.corrmode", "standard");
 
             // Array name
             itsParset.add("array.name", "ASKAP");
@@ -234,34 +222,6 @@ class ConfigurationTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"), feed.offsetY(3));
 
             CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), feed.pol(0));
-        }
-
-        void testNScans() {
-            Configuration conf(itsParset);
-            CPPUNIT_ASSERT_EQUAL(2u, conf.nScans());
-        }
-
-        void testGetTargetForScan() {
-            Configuration conf(itsParset);
-
-            const Target& t0 = conf.getTargetForScan(0);
-            CPPUNIT_ASSERT_EQUAL(casa::String("test-field1"), t0.name());
-            const CorrelatorMode& c0 = t0.mode();
-            CPPUNIT_ASSERT_EQUAL(16416u, c0.nChan());
-            const double tolerance = std::numeric_limits<float>::epsilon();
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t0.pointingCentre().getAngle().getValue("deg")(0), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t0.pointingCentre().getAngle().getValue("deg")(1), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t0.phaseCentre().getAngle().getValue("deg")(0), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t0.phaseCentre().getAngle().getValue("deg")(1), tolerance);
-
-            const Target& t1 = conf.getTargetForScan(1);
-            CPPUNIT_ASSERT_EQUAL(casa::String("test-field2"), t1.name());
-            const CorrelatorMode& c1 = t1.mode();
-            CPPUNIT_ASSERT_EQUAL(16416u, c1.nChan());
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, t1.pointingCentre().getAngle().getValue("deg")(0), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, t1.pointingCentre().getAngle().getValue("deg")(1), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, t1.phaseCentre().getAngle().getValue("deg")(0), tolerance);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(-35.0, t1.phaseCentre().getAngle().getValue("deg")(1), tolerance);
         }
 
         void testServiceConfig() {

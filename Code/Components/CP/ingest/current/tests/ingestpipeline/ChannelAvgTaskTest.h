@@ -128,7 +128,8 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
                                    MDirection::Ref(MDirection::J2000));
 
             // Create a simple chunk with 1 row,  nChan channels and 1 pol
-            VisChunk::ShPtr chunk(new VisChunk(1, nChan, 1));
+            const unsigned int nAntenna = 6;
+            VisChunk::ShPtr chunk(new VisChunk(1, nChan, 1, nAntenna));
             chunk->time() = starttime.getValue();
             chunk->antenna1()(row) = 0;
             chunk->antenna2()(row) = 1;
@@ -136,11 +137,13 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             chunk->beam2()(row) = 0;
             chunk->beam1PA()(row) = 0.0;
             chunk->beam2PA()(row) = 0.0;
-            chunk->pointingDir1()(row) = fieldCenter.getAngle();
-            chunk->pointingDir2()(row) = fieldCenter.getAngle();
-            chunk->dishPointing1()(row) = fieldCenter.getAngle();
-            chunk->dishPointing2()(row) = fieldCenter.getAngle();
+            chunk->phaseCentre1()(row) = fieldCenter.getAngle();
+            chunk->phaseCentre2()(row) = fieldCenter.getAngle();
             chunk->channelWidth() = freqInc;
+
+            chunk->targetPointingCentre() = fieldCenter;
+            chunk->actualPointingCentre() = fieldCenter;
+            chunk->actualPolAngle() = 0.0;
 
             // Determine how many channels will exist after averaging
             casa::uInt nChanNew = nChan / channelAveraging;

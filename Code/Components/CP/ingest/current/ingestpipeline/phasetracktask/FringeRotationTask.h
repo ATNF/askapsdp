@@ -80,12 +80,6 @@ class FringeRotationTask : public askap::cp::ingest::CalcUVWTask {
         static IFrtApproach::ShPtr fringeRotationMethod(const LOFAR::ParameterSet& parset,
                 const Configuration &config);
 
-        /// @brief helper method to find dish pointing for a given antenna index
-        /// @param[in] chunk the instance of VisChunk to search through
-        /// @param[in] ant antenna index
-        /// @return dish pointing
-        casa::MVDirection dishPointing(const askap::cp::common::VisChunk::ShPtr &chunk, const casa::uInt ant) const;
-
     private:
         /// @brief configuration (need scan information)
         Configuration itsConfig;

@@ -59,10 +59,10 @@
 #include "ingestpipeline/sourcetask/InterruptedException.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
-#include "monitoring/MonitorPoint.h"
 
 ASKAP_LOGGER(logger, ".MergedSource");
 
+using namespace std;
 using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
@@ -97,15 +97,6 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
 MergedSource::~MergedSource()
 {
     itsSignals.cancel();
-
-    // Send null monitoring points. Note this is temporary and will go away in
-    // when #6024 is implemented
-    MonitorPoint<int32_t> p1("PacketsLostCount");
-    p1.updateNull();
-    MonitorPoint<float> p2("PacketsLostPercent");
-    p2.updateNull();
-    MonitorPoint<float> p3("obs.StartFreq");
-    p3.updateNull();
 }
 
 VisChunk::ShPtr MergedSource::next(void)
@@ -131,14 +122,6 @@ VisChunk::ShPtr MergedSource::next(void)
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
             checkInterruptSignal();
         } while (!itsMetadata);
-    }
-
-    // Exit gracefully if this scan id is not defined in the parset
-    const size_t nScans = itsConfig.nScans();
-    if (itsMetadata->scanId() >= static_cast<casa::Int>(nScans)) {
-        ASKAPLOG_WARN_STR(logger, "Scan ID " << itsMetadata->scanId()
-                << " is not defined in the parset, stopping ingest");
-        return VisChunk::ShPtr();
     }
 
     // Update the Scan Manager
@@ -205,7 +188,8 @@ VisChunk::ShPtr MergedSource::next(void)
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
     const casa::uInt datagramsExpected = itsBaselineMap.size() * itsNBeams * (nChannels / N_CHANNELS_PER_SLICE);
-    const casa::uInt interval = itsConfig.getTargetForScan(itsScanManager.scanIndex()).mode().interval();
+    const CorrelatorMode& mode = itsConfig.lookupCorrelatorMode(itsMetadata->corrMode());
+    const casa::uInt interval = mode.interval();
     const casa::uInt timeout = interval * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -245,15 +229,13 @@ VisChunk::ShPtr MergedSource::next(void)
         << " successfully received datagrams");
 
     // Submit monitoring data
-    MonitorPoint<int32_t> packetsLostCount("PacketsLostCount");
-    packetsLostCount.update(datagramsExpected - datagramCount);
+    itsMonitoringPointManager.submitPoint<int32_t>("PacketsLostCount",
+            datagramsExpected - datagramCount);
     if (datagramsExpected != 0) {
-        MonitorPoint<float> packetsLostPercent("PacketsLostPercent");
-        packetsLostPercent.update((datagramsExpected - datagramCount)
-               / static_cast<float>(datagramsExpected) * 100.);
+        itsMonitoringPointManager.submitPoint<float>("PacketsLostPercent",
+            (datagramsExpected - datagramCount) / static_cast<float>(datagramsExpected) * 100.);
     }
-    MonitorPoint<float> startFreq("obs.StartFreq");
-    startFreq.update(chunk->frequency()(0) / 1000 / 1000);
+    itsMonitoringPointManager.submitMonitoringPoints(*chunk);
 
     itsMetadata.reset();
     return chunk;
@@ -261,8 +243,7 @@ VisChunk::ShPtr MergedSource::next(void)
 
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
-    const Target& target= itsConfig.getTargetForScan(itsScanManager.scanIndex());
-    const CorrelatorMode& corrMode = target.mode();
+    const CorrelatorMode& corrMode = itsConfig.lookupCorrelatorMode(metadata.corrMode());
     const casa::uInt nAntenna = itsConfig.antennas().size();
     ASKAPCHECK(nAntenna > 0, "Must have at least one antenna defined");
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
@@ -271,7 +252,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     const casa::uInt nRow = nBaselines * itsNBeams;
     const casa::uInt period = corrMode.interval(); // in microseconds
 
-    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
+    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol, nAntenna));
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
@@ -299,7 +280,8 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     // Add the scan index
     chunk->scan() = itsScanManager.scanIndex();
 
-    chunk->directionFrame() = target.phaseCentre().getRef(); 
+    chunk->targetName() = metadata.targetName();
+    chunk->directionFrame() = metadata.phaseDirection().getRef();
 
     // Determine and add the spectral channel width
     chunk->channelWidth() = corrMode.chanWidth().getValue("Hz");
@@ -312,6 +294,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
             corrMode.nChan());
 
     casa::uInt row = 0;
+    const casa::MDirection phaseDir = metadata.phaseDirection();
     for (casa::uInt beam = 0; beam < itsNBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
@@ -324,15 +307,22 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                 chunk->beam2()(row) = beam;
                 chunk->beam1PA()(row) = 0;
                 chunk->beam2PA()(row) = 0;
-                chunk->pointingDir1()(row) = target.phaseCentre().getAngle();
-                chunk->pointingDir2()(row) = target.phaseCentre().getAngle();
-                chunk->dishPointing1()(row) = target.phaseCentre().getAngle();
-                chunk->dishPointing2()(row) = target.phaseCentre().getAngle();
+                chunk->phaseCentre1()(row) = phaseDir.getAngle();
+                chunk->phaseCentre2()(row) = phaseDir.getAngle();
                 chunk->uvw()(row) = 0.0;
 
                 row++;
             }
         }
+    }
+
+    // Populate the per-antenna vectors
+    for (casa::uInt i = 0; i < nAntenna; ++i) {
+        const string antName = itsConfig.antennas()[i].name();
+        const TosMetadataAntenna mdant = metadata.antenna(antName);
+        chunk->targetPointingCentre()[i] = metadata.targetDirection();
+        chunk->actualPointingCentre()[i] = mdant.actualAzEl();
+        chunk->actualPolAngle()[i] = mdant.actualPolAngle();
     }
 
     return chunk;

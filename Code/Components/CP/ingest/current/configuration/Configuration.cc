@@ -54,7 +54,6 @@
 // Local package includes
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/Target.h"
 #include "configuration/CorrelatorMode.h"
 #include "configuration/ServiceConfig.h"
 #include "configuration/TopicConfig.h"
@@ -71,7 +70,6 @@ Configuration::Configuration(const LOFAR::ParameterSet& parset, int rank, int np
     buildAntennas();
     buildBaselineMap();
     buildCorrelatorModes();
-    buildTargets();
 }
 
 int Configuration::rank(void) const
@@ -115,9 +113,18 @@ const BaselineMap& Configuration::bmap(void) const
     return *itsBaselineMap;
 }
 
+const CorrelatorMode& Configuration::lookupCorrelatorMode(const std::string& modename) const
+{
+    const std::map<std::string, CorrelatorMode>::const_iterator it = itsCorrelatorModes.find(modename);
+    if (it == itsCorrelatorModes.end()) {
+        ASKAPTHROW(AskapError, "Correlator mode " << modename << " not found");
+    }
+    return it->second;
+}
+
 casa::uInt Configuration::schedulingBlockID(void) const
 {
-    return itsParset.getUint32("sb.id");
+    return itsParset.getUint32("sbid", 0);
 }
 
 ServiceConfig Configuration::calibrationDataService(void) const
@@ -147,25 +154,6 @@ TopicConfig Configuration::metadataTopic(void) const
     const string topicManager = itsParset.getString("metadata_source.icestorm.topicmanager");
     const string topic = itsParset.getString("metadata.topic");
     return TopicConfig(registryHost, registryPort, topicManager, topic);
-}
-
-uint32_t Configuration::nScans(void) const
-{
-    return static_cast<uint32_t>(itsScans.size());
-}
-
-const Target& Configuration::getTargetForScan(uint32_t scanId) const
-{
-    if (scanId >= itsScans.size()) {
-        ASKAPTHROW(AskapError, "Scan index " << scanId << " is out of range");
-    }
-
-    const string targetId = itsScans[scanId];
-    map<string, Target>::const_iterator targetIter = itsTargets.find(targetId);
-    if (targetIter == itsTargets.end()) {
-        ASKAPTHROW(AskapError, "Target " << targetId << " not found");
-    }
-    return targetIter->second;
 }
 
 void Configuration::buildTasks(void)
@@ -250,41 +238,6 @@ void Configuration::buildCorrelatorModes(void)
 
         const CorrelatorMode mode(name, chanWidth, nChan, stokes, interval);
         itsCorrelatorModes.insert(make_pair(name, mode));
-    }
-}
-
-void Configuration::buildTargets(void)
-{
-    itsScans = itsParset.getStringVector("sb.targets", true);
-    vector<string>::const_iterator it;
-    for (it = itsScans.begin(); it != itsScans.end(); ++it) {
-        const string id = *it;
-
-        // Check if this target has already been processed
-        if (itsTargets.find(id) != itsTargets.end()) {
-            continue;
-        }
-
-        // First time we have seen this target
-        const string keyBase = "sb.target." + id + ".";
-        const string name = itsParset.getString(keyBase + "field_name");
-        const casa::MDirection pointingCentre = asMDirection(itsParset.getStringVector(
-                    keyBase + "field_direction"));
-        casa::MDirection phaseCentre = pointingCentre;
-        if (itsParset.isDefined(keyBase + "phase_direction")) {
-            phaseCentre = asMDirection(itsParset.getStringVector(keyBase + "phase_direction"));
-        }
-
-        // Get a reference to the correlator mode
-        const string modename = itsParset.getString(keyBase + "corrmode");
-
-        map<string, CorrelatorMode>::const_iterator modeIt = itsCorrelatorModes.find(modename);
-        if (modeIt == itsCorrelatorModes.end()) {
-            ASKAPTHROW(AskapError, "Unknown correlator mode: " << modename);
-        }
-
-        itsTargets.insert(make_pair(id, Target(name, pointingCentre,
-                        phaseCentre, modeIt->second)));
     }
 }
 

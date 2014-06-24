@@ -2,15 +2,8 @@
 # Central Processor Ingest Pipeline Configuration
 #
 
-#
-#  Scheduling Block Parameters
-#
-sb.id                          = 0
-sb.targets                     = [src1]
-
-sb.target.src1.field_name      = test-field1
-sb.target.src1.field_direction = [12h30m00.000, -45d00m00.000, J2000]
-sb.target.src1.corrmode        = standard
+#  Scheduling Block ID
+sbid                          = 0
 
 # Array Name
 array.name                  = ASKAP
@@ -213,7 +206,12 @@ tasks.NoMetadataSource.params.vis_source.buffer_size    = 89856
 tasks.NoMetadataSource.params.beammap                   = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
 tasks.NoMetadataSource.params.maxbeams                  = 9
 tasks.NoMetadataSource.params.beams2receive             = 9
+
+# Observation specific
 tasks.NoMetadataSource.params.centre_freq               = 1.4GHz
+tasks.NoMetadataSource.params.target_name               = test-field1
+tasks.NoMetadataSource.params.target_direction          = [12h30m00.000, -45d00m00.000, J2000]
+tasks.NoMetadataSource.params.correlator_mode           = standard
 
 # Number of channels a given ingest process is meant to receive/process
 tasks.NoMetadataSource.params.n_channels.0              = 16416

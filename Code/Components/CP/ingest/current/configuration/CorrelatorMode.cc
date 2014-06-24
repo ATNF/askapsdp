@@ -40,6 +40,10 @@
 using namespace askap;
 using namespace askap::cp::ingest;
 
+CorrelatorMode::CorrelatorMode()
+{
+}
+
 CorrelatorMode::CorrelatorMode(const std::string& modeName,
         const casa::Quantity& chanWidth,
         const casa::uInt nChan,

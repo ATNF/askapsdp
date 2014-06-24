@@ -35,6 +35,7 @@
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Quanta.h"
+#include "measures/Measures/MDirection.h"
 
 // Local package includes
 #include "cpcommon/TosMetadataAntenna.h"
@@ -78,6 +79,18 @@ class TosMetadata {
         /// @return the centre frequency
         casa::Quantity centreFreq(void) const;
 
+        /// @return a string describing the target
+        std::string targetName(void) const;
+
+        /// @return the target dish pointing direction
+        casa::MDirection targetDirection(void) const;
+
+        /// @return the phase centre
+        casa::MDirection phaseDirection(void) const;
+
+        /// @return the correlator mode
+        std::string corrMode(void) const;
+
         /////////////////////
         // Setters
         /////////////////////
@@ -98,6 +111,18 @@ class TosMetadata {
 
         /// @brief Set the centre frequency
         void centreFreq(const casa::Quantity& freq);
+
+        /// @brief Set the target name. (i.e. a string describing the target)
+        void targetName(const std::string& name);
+
+        /// @brief Set the target dish pointing direction
+        void targetDirection(const casa::MDirection& dir);
+
+        /// @brief Set the phase centre
+        void phaseDirection(const casa::MDirection& dir);
+
+        /// @brief Set the correlator mode
+        void corrMode(const std::string& mode);
 
         /////////////////////////
         // Antenna access methods
@@ -139,6 +164,18 @@ class TosMetadata {
 
         // The centre frequency
         casa::Quantity itsCentreFreq;
+
+        // Target name
+        std::string itsTargetName;
+
+        // The target dish pointing direction
+        casa::MDirection itsTargetDirection;
+
+        // The phase centre
+        casa::MDirection itsPhaseDirection;
+
+        // The correlator mode
+        std::string itsCorrMode;
 
         // Map of antenna names to TosMetadataAntenna objects.
         std::map<std::string, TosMetadataAntenna> itsAntennas;
