@@ -50,9 +50,7 @@ env = Environment(ENV =  { 'PATH' : os.environ[ 'PATH' ],
                            'HOME' : os.environ[ 'HOME' ] },
                   toolpath = [askaptoolpath],
                   tools = ['default', 'askap_package', 'doxybuilder',
-                           'functestbuilder', 'icebuilder', 'cloptions',
-                           'casa',
-                           ]
+                           'functestbuilder', 'icebuilder', 'cloptions' ]
                   )
 
 # Importing TERM allows programs (such as clang) to produce colour output
@@ -127,5 +125,3 @@ for e in envfiles:
             if line and not line.startswith("#"):
                 (k, v) = line.split('=')
                 env[k] = v
-#if os.path.exists("functests"):
-#    env.SConscript("functests/SConscript", exports='env')

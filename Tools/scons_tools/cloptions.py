@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-import sys, os
+import os
 from  SCons.Variables import Variables
 from SCons.Script import AddOption, GetOption
 
@@ -136,7 +136,6 @@ def generate(env):
         for opt in options:
             env.CLOptions.add_comp_option(*opt)
 
-
         PREFIX = "prefix"
         EPREFIX = "eprefix"
         BINDIR = "bindir"
@@ -164,11 +163,6 @@ def generate(env):
                   type="string", default=None, 
                   help="The installation share directory (default: %s/share)" % defdir)
         
-        opt = ("universal", None, 
-               "Create universal build using any of: ppc,i386,ppc64,x86_64")
-        if sys.platform == 'darwin':
-            env.CLOptions.add_str_option(*opt) # ppc i386 ppc64 x86_64
-
         env.CLOptions.update('options.cache')
 
     AddCommandLineOptions()
