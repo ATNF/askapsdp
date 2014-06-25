@@ -9,7 +9,6 @@
 from askapenv import env
 
 env.AppendUnique(CCFLAGS=['-O3'])
-env.Append(universal=0)
 
 # create build object with library name
 pkg = env.AskapPackage("scimath")
