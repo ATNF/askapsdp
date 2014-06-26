@@ -331,7 +331,7 @@ cleaning. Here is an example parset:
     Cimager.calibrate.scalenoise                    = true
     Cimager.calibrate.allowflag                     = true
 
-Save the above parameter set in a file named **calibrator-BEAM0.in**. Before running this,
+Save the above parameter set in a file named **clean-BEAM0.in**. Before running this,
 let's look at a few key features of this parset. First is this::
 
     Cimager.Feed                                    = 0
