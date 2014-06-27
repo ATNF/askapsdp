@@ -35,7 +35,7 @@
 #include "measures/Measures/MEpoch.h"
 #include "measures/Measures/MDirection.h"
 #include "casa/Quanta/MVEpoch.h"
-#include "casa/Arrays/Vector.h"
+#include "scimath/Mathematics/RigidVector.h"
 #include "configuration/Configuration.h"
 #include "ConfigurationHelper.h"
 

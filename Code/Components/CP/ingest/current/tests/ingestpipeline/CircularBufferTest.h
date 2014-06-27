@@ -77,11 +77,14 @@ class CircularBufferTest : public CppUnit::TestFixture {
         // Test the addition of more pointers than the buffer has capacity
         // to handle
         void testOverflow() {
-            const int count = 1024;
-            CircularBuffer<int> instance(10);
+            const size_t count = 1024;
+            const size_t maxcapacity = 10;
+            CircularBuffer<size_t> instance(maxcapacity);
 
-            for (int i = 0; i < count; ++i) {
-                boost::shared_ptr<int> inPtr(new int);
+            for (size_t i = 0; i < count; ++i) {
+                CPPUNIT_ASSERT_EQUAL((i < maxcapacity) ? i : maxcapacity,
+                        instance.size());
+                boost::shared_ptr<size_t> inPtr(new size_t);
                 *inPtr = count;
                 instance.add(inPtr);
             }
@@ -96,8 +99,6 @@ class CircularBufferTest : public CppUnit::TestFixture {
             boost::shared_ptr<int> outPtr(instance.next(timeout));
             CPPUNIT_ASSERT(outPtr.get() == 0);
         };
-
-
 };
 
 }   // End namespace ingest

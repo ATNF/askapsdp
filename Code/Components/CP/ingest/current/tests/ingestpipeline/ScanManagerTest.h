@@ -44,7 +44,6 @@ namespace ingest {
 class ScanManagerTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(ScanManagerTest);
         CPPUNIT_TEST(testUpdate);
-        CPPUNIT_TEST(testUpdateInsertInactiveMetadata);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -55,51 +54,42 @@ class ScanManagerTest : public CppUnit::TestFixture {
         };
 
         void testUpdate() {
-            testDriver(false);
-        };
-
-        void testUpdateInsertInactiveMetadata() {
-            // Not currently supporting "-1" scanid between scans
-            //testDriver(true);
-        };
-
-    private:
-
-        /// @param[in] insertInactiveMetadata   if true then between each update
-        ///     indicating scan is active, an inactive update will be sent.
-        void testDriver(bool insertInactiveMetadata) {
             ScanManager sm(ConfigurationHelper::createDummyConfig());
             CPPUNIT_ASSERT(!sm.observationComplete());
             CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
 
-            if (insertInactiveMetadata) {
+            for (int i = 0; i < 10; ++i) {
                 sm.update(-1);
+                CPPUNIT_ASSERT(!sm.observationComplete());
+                CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
             }
 
-            sm.update(0);
-            CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(0, sm.scanIndex());
-
-            if (insertInactiveMetadata) {
-                sm.update(-1);
+            for (int i = 0; i < 10; ++i) {
+                sm.update(0);
+                CPPUNIT_ASSERT(!sm.observationComplete());
+                CPPUNIT_ASSERT_EQUAL(0, sm.scanIndex());
             }
 
-            sm.update(1);
-            CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(1, sm.scanIndex());
-
-            if (insertInactiveMetadata) {
-                sm.update(-1);
+            for (int i = 0; i < 10; ++i) {
+                sm.update(1);
+                CPPUNIT_ASSERT(!sm.observationComplete());
+                CPPUNIT_ASSERT_EQUAL(1, sm.scanIndex());
             }
 
-            sm.update(2);
-            CPPUNIT_ASSERT(!sm.observationComplete());
-            CPPUNIT_ASSERT_EQUAL(2, sm.scanIndex());
+            // Skip scanid 2
 
-            sm.update(-1);
+            sm.update(3);
+            CPPUNIT_ASSERT(!sm.observationComplete());
+            CPPUNIT_ASSERT_EQUAL(3, sm.scanIndex());
+
+            sm.update(-2);
             CPPUNIT_ASSERT(sm.observationComplete());
-        }
 
+            for (int i = 0; i < 10; ++i) {
+                sm.update(-1);
+                CPPUNIT_ASSERT(sm.observationComplete());
+            }
+        };
 };
 
 }   // End namespace ingest

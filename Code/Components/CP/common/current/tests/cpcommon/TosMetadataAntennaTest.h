@@ -45,7 +45,7 @@ namespace cp {
 
 class TosMetadataAntennaTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(TosMetadataAntennaTest);
-        CPPUNIT_TEST(testConstructor);
+        CPPUNIT_TEST(testName);
         CPPUNIT_TEST(testActualRaDec);
         CPPUNIT_TEST(testActualAzEl);
         CPPUNIT_TEST(testPolAngle);
@@ -55,16 +55,15 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
 
     public:
         void setUp() {
-            instance.reset(new TosMetadataAntenna("AK01"));
+            instance.reset(new TosMetadataAntenna("ak01"));
         }
 
         void tearDown() {
             instance.reset();
         }
 
-        void testConstructor() {
-            const casa::String antennaName("AK01");
-            // Check the parameters have been passed through
+        void testName() {
+            const casa::String antennaName("ak01");
             CPPUNIT_ASSERT_EQUAL(antennaName, instance->name());
         };
 

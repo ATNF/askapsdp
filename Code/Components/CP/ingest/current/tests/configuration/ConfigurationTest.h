@@ -28,9 +28,10 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
-#include <limits>
+#include <string>
 #include "Common/ParameterSet.h"
 #include "casa/BasicSL.h"
+#include "casa/Quanta.h"
 
 // Classes to test
 #include "configuration/Configuration.h"
@@ -52,7 +53,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
     public:
         void setUp() {
             // Observation (from Scheduling block)
-            itsParset.add("sb.id", "0");
+            itsParset.add("sbid", "1");
 
             // Array name
             itsParset.add("array.name", "ASKAP");
@@ -147,7 +148,7 @@ class ConfigurationTest : public CppUnit::TestFixture {
 
         void testSchedulingBlockID() {
             Configuration conf(itsParset);
-            CPPUNIT_ASSERT_EQUAL(0u, conf.schedulingBlockID());
+            CPPUNIT_ASSERT_EQUAL(1u, conf.schedulingBlockID());
         }
 
 

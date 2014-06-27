@@ -1,6 +1,6 @@
 /// @file MetadataConverterTest.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2010,2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -29,12 +29,12 @@
 
 // System includes
 #include <string>
-#include <sstream>
 #include <vector>
 #include <limits>
 
 // Support classes
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/scoped_ptr.hpp"
 #include "TypedValues.h"
 #include "cpcommon/TosMetadata.h"
@@ -107,12 +107,9 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             itsSource->corrMode(corrMode);
 
             // Antennas
-            std::vector<std::string> antennaNames;
-
             for (casa::uInt i = 0; i < nAntenna; ++i) {
-                std::stringstream ss;
-                ss << "ak" << i;
-                TosMetadataAntenna ant(ss.str());
+                const std::string name = "ak" + utility::toString(i);
+                TosMetadataAntenna ant(name);
                 ant.actualRaDec(testDir);
                 ant.actualAzEl(testDir);
                 ant.actualPolAngle(polAngle);
@@ -120,7 +117,6 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 ant.flagged(flagged);
 
                 itsSource->addAntenna(ant);
-                antennaNames.push_back(ss.str());
             }
 
 #ifndef __LP64__
@@ -173,6 +169,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(nAntenna, itsResult->nAntenna());
 
             const vector<string> names = itsSource->antennaNames();
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nAntenna), names.size());
             for (unsigned int i = 0; i < names.size(); ++i) {
                 verifyAntenna(names[i]);
             }

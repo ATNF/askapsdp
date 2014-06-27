@@ -158,10 +158,6 @@ VisChunk::ShPtr MergedSource::next(void)
             itsVis = itsVisSrc->next(ONE_SECOND);
 
             checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
-                // TOS commanded end-of-obs
-                return VisChunk::ShPtr();
-            }
         }
 
         // But if the timestamp in the VisDatagram is in the future (with
@@ -172,9 +168,10 @@ VisChunk::ShPtr MergedSource::next(void)
                 logCatchup = false;
             }
             itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+            itsScanManager.update(itsMetadata->scanId());
             checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
-                // TOS commanded end-of-obs
+            if (itsScanManager.observationComplete()) {
+                ASKAPLOG_INFO_STR(logger, "End-of-observation condition met");
                 return VisChunk::ShPtr();
             }
         }

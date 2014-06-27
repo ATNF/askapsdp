@@ -106,12 +106,19 @@ class CircularBuffer {
             return obj;
         };
 
+        /// @brief Returns the number of items in the circular buffer
+        size_t size(void) const {
+            boost::mutex::scoped_lock lock(itsMutex);
+            return itsBuffer.size();
+        }
+
     private:
         /// The circular buffer this class wraps
         boost::circular_buffer< boost::shared_ptr<T> > itsBuffer;
 
         // Mutex used for synchronisation between threads
-        boost::mutex itsMutex;
+        // This is mutable so the "size() const" method can use it
+        mutable boost::mutex itsMutex;
 
         // Condition variable user for synchronisation between threads
         boost::condition itsCondVar;

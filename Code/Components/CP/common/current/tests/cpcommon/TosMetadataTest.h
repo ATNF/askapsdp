@@ -30,6 +30,7 @@
 // Support classes
 #include "boost/scoped_ptr.hpp"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 
 // Classes to test
 #include "cpcommon/TosMetadata.h"
@@ -44,6 +45,7 @@ class TosMetadataTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(TosMetadataTest);
         CPPUNIT_TEST(testConstructor);
         CPPUNIT_TEST(testAddAntenna);
+        CPPUNIT_TEST(testAddAntennaDuplicate);
         CPPUNIT_TEST(testTime);
         CPPUNIT_TEST(testScanId);
         CPPUNIT_TEST(testFlagged);
@@ -74,14 +76,24 @@ class TosMetadataTest : public CppUnit::TestFixture {
 
             for (casa::uInt i = 0; i < nAntenna; ++i) {
                 CPPUNIT_ASSERT_EQUAL(i, instance->nAntenna());
-                std::stringstream ss;
-                ss << "ASKAP" << i;
-                TosMetadataAntenna ant(ss.str());
+                TosMetadataAntenna ant("ak" + utility::toString(i));
                 instance->addAntenna(ant);
             }
 
             CPPUNIT_ASSERT_EQUAL(nAntenna, instance->nAntenna());
         };
+
+        void testAddAntennaDuplicate() {
+            TosMetadataAntenna ant1("ak01");
+            instance->addAntenna(ant1);
+            CPPUNIT_ASSERT_EQUAL(1u, instance->nAntenna());
+            CPPUNIT_ASSERT_THROW(instance->addAntenna(ant1), askap::AskapError);
+            CPPUNIT_ASSERT_EQUAL(1u, instance->nAntenna());
+
+            TosMetadataAntenna ant2("ak01"); // Different instance, same name
+            CPPUNIT_ASSERT_THROW(instance->addAntenna(ant2), askap::AskapError);
+            CPPUNIT_ASSERT_EQUAL(1u, instance->nAntenna());
+        }
 
         void testTime() {
             const uLong testVal = 1234;
@@ -123,8 +135,8 @@ class TosMetadataTest : public CppUnit::TestFixture {
 
         void testCorrMode() {
             CPPUNIT_ASSERT(instance->corrMode() == "");
-            instance->corrMode("Standard");
-            CPPUNIT_ASSERT(instance->corrMode() == "Standard");
+            instance->corrMode("standard");
+            CPPUNIT_ASSERT(instance->corrMode() == "standard");
         }
 
         void testAntennaAccess() {
@@ -132,7 +144,6 @@ class TosMetadataTest : public CppUnit::TestFixture {
             const casa::String ant2Name = "ak02";
             const TosMetadataAntenna a1(ant1Name);
             const TosMetadataAntenna a2(ant2Name);
-
 
             CPPUNIT_ASSERT_EQUAL(0u, instance->nAntenna());
             instance->addAntenna(a1);
@@ -147,9 +158,12 @@ class TosMetadataTest : public CppUnit::TestFixture {
         }
 
         void testAntennaInvalid() {
+            TosMetadataAntenna ant("ak01");
+            instance->addAntenna(ant);
+
             // Request an invalid antenna id (wrong name)
             CPPUNIT_ASSERT_THROW(instance->antenna(""), askap::AskapError);
-            CPPUNIT_ASSERT_THROW(instance->antenna("ak"), askap::AskapError);
+            CPPUNIT_ASSERT_THROW(instance->antenna("ak2"), askap::AskapError);
         }
 
     private:
