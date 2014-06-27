@@ -84,7 +84,7 @@ void MonitoringPointManager::submitMonitoringPoints(const askap::cp::common::Vis
     submitPoint<string>("obs.dir1", askap::printLon(target));
     submitPoint<string>("obs.dir2", askap::printLat(target));
     submitPoint<string>("obs.CoordSys", casa::MDirection::showType(target.type()));
-    submitPoint<int32_t>("obs.Interval", chunk.interval() / 1000);
+    submitPoint<int32_t>("obs.Interval", chunk.interval() * 1000);
     submitPoint<float>("obs.StartFreq", chunk.frequency()[0]/ 1000 / 1000);
     submitPoint<int32_t>("obs.nChan", chunk.nChannel());
     submitPoint<float>("obs.ChanWidth", chunk.channelWidth() / 1000);
