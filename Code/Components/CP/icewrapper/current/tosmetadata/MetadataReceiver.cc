@@ -105,6 +105,10 @@ void MetadataReceiver::publish(
         const askap::interfaces::TimeTaggedTypedValueMap& msg,
         const Ice::Current& /* c */)
 {
-    MetadataConverter converter;
-    receive(converter.convert(msg));
+    try {
+        MetadataConverter converter;
+        receive(converter.convert(msg));
+    } catch (std::exception& e) {
+        ASKAPLOG_ERROR_STR(logger, "Exception while converting telescope metadata: " << e.what());
+    }
 }

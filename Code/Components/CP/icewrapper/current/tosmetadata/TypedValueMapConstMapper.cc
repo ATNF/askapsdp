@@ -210,7 +210,7 @@ T TypedValueMapConstMapper::get(const std::string& key) const
     }
     const TypedValuePtr tv = itsConstMap.find(key)->second;
     if (tv->type != TVType) {
-        ASKAPTHROW(AskapError, "Specified key (" << key << ") not of type Int");
+        ASKAPTHROW(AskapError, "Specified key (" << key << ") not of the requested type");
     }
 
     return TVPtr::dynamicCast(tv)->value;
