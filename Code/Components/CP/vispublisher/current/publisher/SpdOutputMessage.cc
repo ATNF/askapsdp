@@ -1,4 +1,4 @@
-/// @file OutputMessage.cc
+/// @file SpdOutputMessage.cc
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,29 +25,27 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "publisher/OutputMessage.h"
+#include "publisher/SpdOutputMessage.h"
 
 // Include package level header file
 #include "askap_vispublisher.h"
 
 // System includes
+#include <vector>
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 
 // Using
 using namespace askap::cp::vispublisher;
 
-ASKAP_LOGGER(logger, ".OutputMessage");
-
-OutputMessage::OutputMessage()
+SpdOutputMessage::SpdOutputMessage()
     : itsTimestamp(0), itsBeamId(0), itsPolarisationId(0), itsNChannels(0),
     itsChanWidth(0.0), itsNBaselines(0)
 {
 }
 
-void OutputMessage::encode(zmq::message_t& msg) const
+void SpdOutputMessage::encode(zmq::message_t& msg) const
 {
     // Preconditions
     ASKAPASSERT(itsFrequency.size() == itsNChannels);
@@ -75,7 +73,7 @@ void OutputMessage::encode(zmq::message_t& msg) const
     ASKAPASSERT(ptr == static_cast<uint8_t*>(msg.data()) + sz);
 }
 
-size_t OutputMessage::sizeInBytes(void) const
+size_t SpdOutputMessage::sizeInBytes(void) const
 {
     return sizeof (uint64_t)        // time
         + (4 * sizeof (uint32_t))   // beamid, polid, nchannels, nbaselines
@@ -88,7 +86,7 @@ size_t OutputMessage::sizeInBytes(void) const
 }
 
 template <typename T>
-uint8_t* OutputMessage::pushBack(const T src, uint8_t* ptr)
+uint8_t* SpdOutputMessage::pushBack(const T src, uint8_t* ptr)
 {
     const size_t sz = sizeof (T);
     memcpy(ptr, &src, sz);
@@ -96,7 +94,7 @@ uint8_t* OutputMessage::pushBack(const T src, uint8_t* ptr)
 }
 
 template <typename T>
-uint8_t* OutputMessage::pushBackVector(const std::vector<T>& src, uint8_t* ptr)
+uint8_t* SpdOutputMessage::pushBackVector(const std::vector<T>& src, uint8_t* ptr)
 {
     const size_t sz = src.size() * sizeof (T);
     memcpy(ptr, &src[0], sz);

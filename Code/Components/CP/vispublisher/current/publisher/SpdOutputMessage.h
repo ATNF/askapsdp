@@ -1,4 +1,4 @@
-/// @file OutputMessage.h
+/// @file SpdOutputMessage.h
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISPUBLISHER_OUTPUTMESSAGE_T
-#define ASKAP_CP_VISPUBLISHER_OUTPUTMESSAGE_T
+#ifndef ASKAP_CP_VISPUBLISHER_SPDOUTPUTMESSAGE_T
+#define ASKAP_CP_VISPUBLISHER_SPDOUTPUTMESSAGE_T
 
 // System includes
 #include <complex>
@@ -43,12 +43,12 @@ namespace vispublisher {
 /// The accessor methods return references to the member variables
 /// for reasons of performance. This allows the message to be populated
 /// without any copying.
-class OutputMessage {
+class SpdOutputMessage {
     public:
         /// @brief Constructor.
-        OutputMessage();
+        SpdOutputMessage();
 
-        /// Encodes this instance of OutputMessage to the zmq::message passed.
+        /// Encodes this instance of SpdOutputMessage to the zmq::message passed.
         ///
         /// @param[out] msg     the message object to populate. This message
         ///                     will be rebuilt (resized) and then its contents

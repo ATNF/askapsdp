@@ -32,7 +32,7 @@
 #include <stdint.h>
 
 // Local package includes
-#include "publisher/OutputMessage.h"
+#include "publisher/SpdOutputMessage.h"
 #include "publisher/InputMessage.h"
 
 namespace askap {
@@ -49,9 +49,9 @@ class SubsetExtractor {
         /// @param[in] in   the input message from which the subset will be extracted.
         /// @param[in] beam the only extract data for this beam.
         /// @param[in] pol  the only extract data for this polarisation product.
-        /// @return An OutputMessage instance which corresponds to the data for a
+        /// @return An SpdOutputMessage instance which corresponds to the data for a
         ///         specific beam and polarisation of the InputMessage.
-        static OutputMessage subset(const InputMessage& in, uint32_t beam,
+        static SpdOutputMessage subset(const InputMessage& in, uint32_t beam,
                                     uint32_t pol);
 
     private:
@@ -83,12 +83,6 @@ class SubsetExtractor {
         static uint32_t makeAntennaVectors(const InputMessage& in, uint32_t beam,
                                            std::vector<uint32_t>& ant1out,
                                            std::vector<uint32_t>& ant2out);
-
-        /// Index into the InputMessage, converting a 3D index into a 1D index.
-        /// Given a 3D index, that is: row, channel, and polarisation (plus the dimensions),
-        /// return a 1D index.
-        static size_t inIndex(size_t row, size_t chan, size_t pol,
-                              size_t nChannels, size_t nPol);
 
         /// Returns the element index of the first instance of "val" in the
         /// vector "v".

@@ -1,5 +1,8 @@
 # The TCP server port that will accept connections from the ingest pipeline
 vispublisher.in.port        = 9001
 
-# The TCP port ZeroMQ will publish data on
-vispublisher.out.port       = 9002
+# The TCP port ZeroMQ will publish SPD data on
+vispublisher.spd.port       = 9002
+
+# The TCP port ZeroMQ will publish VIS data on
+vispublisher.vis.port       = 9003

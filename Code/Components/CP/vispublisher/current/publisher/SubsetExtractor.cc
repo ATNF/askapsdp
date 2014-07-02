@@ -37,7 +37,7 @@
 #include "askap/AskapError.h"
 
 // Local package includes
-#include "publisher/OutputMessage.h"
+#include "publisher/SpdOutputMessage.h"
 #include "publisher/InputMessage.h"
 
 ASKAP_LOGGER(logger, ".SubsetExtractor");
@@ -46,13 +46,13 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::vispublisher;
 
-OutputMessage SubsetExtractor::subset(const InputMessage& in, uint32_t beam, uint32_t pol)
+SpdOutputMessage SubsetExtractor::subset(const InputMessage& in, uint32_t beam, uint32_t pol)
 {
     const uint32_t nRow = in.nRow();
     const uint32_t nChannels = in.nChannels();
     const uint32_t nPols = in.nPol();
 
-    OutputMessage out;
+    SpdOutputMessage out;
     out.timestamp() = in.timestamp();
     out.beamId() = beam;
     out.polId() = pol;
@@ -87,7 +87,7 @@ OutputMessage SubsetExtractor::subset(const InputMessage& in, uint32_t beam, uin
     for (size_t row = 0; row < nRow; ++row) {
         if (beams[row] != beam) continue;
         for (size_t chan = 0; chan < nChannels; ++chan) {
-            const size_t idx = inIndex(row, chan, polidx, nChannels, nRow);
+            const size_t idx = in.index(row, chan, polidx);
             ASKAPDEBUGASSERT(idx < (nRow * nChannels * nPols));
             outvis.push_back(invis[idx]);
             outflag.push_back(inflag[idx]);
@@ -126,11 +126,6 @@ uint32_t SubsetExtractor::makeAntennaVectors(const InputMessage& in, uint32_t be
     ASKAPCHECK(ant1out.size() == ant2out.size(), "Output vectors not of equal size");
 
     return ant1out.size();
-}
-
-size_t SubsetExtractor::inIndex(size_t row, size_t chan, size_t pol, size_t nChannels, size_t nRow)
-{
-    return row + (chan * nRow) + (nChannels * nRow * pol);
 }
 
 size_t SubsetExtractor::indexOfFirst(const std::vector<uint32_t>& v, uint32_t val)

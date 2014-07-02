@@ -35,13 +35,14 @@
 #include <zmq.hpp>
 
 // Local package includes
-#include "publisher/OutputMessage.h"
+#include "publisher/SpdOutputMessage.h"
+#include "publisher/VisOutputMessage.h"
 
 namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief Encapsulates the code needed to send instance of OutputMessage
+/// @brief Encapsulates the code needed to send instance of SpdOutputMessage
 /// to subscribers via ZeroMQ.
 class ZmqPublisher {
     public:
@@ -49,13 +50,20 @@ class ZmqPublisher {
         /// @brief Constructor
         ZmqPublisher(uint16_t port);
 
-        /// @brief Publish the output message.
-        /// @param[in] outmsg   the OutputMessage to publish. The outmsg is actually
+        /// @brief Publish the SPD output message.
+        /// @param[in] outmsg   the SpdOutputMessage to publish. The outmsg is actually
         ///                     not modified (despite the reference being non-const),
         ///                     it is just non-const as the message is not fully
         ///                     encapsulated for reasons of performance.
-        void publish(OutputMessage& outmsg);
-        
+        void publish(SpdOutputMessage& outmsg);
+
+        /// @brief Publish the Vis output message.
+        /// @param[in] outmsg   the VisOutputMessage to publish. The outmsg is actually
+        ///                     not modified (despite the reference being non-const),
+        ///                     it is just non-const as the message is not fully
+        ///                     encapsulated for reasons of performance.
+        void publish(VisOutputMessage& outmsg);
+
     private:
         /// Converts a polarisation index to a string.
         /// 0="XX", 1="XY", 2="YX", 3="YY"

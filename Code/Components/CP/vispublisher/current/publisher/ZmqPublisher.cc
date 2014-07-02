@@ -61,7 +61,7 @@ ZmqPublisher::ZmqPublisher(uint16_t port)
     itsSocket.bind(ss.str().c_str());
 }
 
-void ZmqPublisher::publish(OutputMessage& outmsg)
+void ZmqPublisher::publish(SpdOutputMessage& outmsg)
 {
     // Encode and send the identity (e.g. "0XX")
     stringstream ss;
@@ -73,6 +73,14 @@ void ZmqPublisher::publish(OutputMessage& outmsg)
     contents[sz] = 0; // NULL terminate the string
     itsSocket.send(identity, ZMQ_SNDMORE);
 
+    // Encode and send message
+    zmq::message_t msg(1);
+    outmsg.encode(msg);
+    itsSocket.send(msg);
+}
+
+void ZmqPublisher::publish(VisOutputMessage& outmsg)
+{
     // Encode and send message
     zmq::message_t msg(1);
     outmsg.encode(msg);

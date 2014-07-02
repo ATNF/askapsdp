@@ -1,6 +1,7 @@
 boost=3rdParty/boost/boost-1.55.0
 common=3rdParty/LOFAR/Common/Common-3.3
 askap=Code/Base/askap/current
+scimath=Code/Base/scimath/current
 logfilters=Code/Base/logfilters/current
 zeromq=3rdParty/zeromq/zeromq-4.0.4
 logappenders=Code/Base/logappenders/current

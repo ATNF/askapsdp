@@ -92,6 +92,16 @@ class InputMessage {
         std::vector<uint8_t>& flag(void);
         const std::vector<uint8_t>& flag(void) const;
 
+        /// Index into the InputMessage visibilities or flag vectors,
+        /// converting a 3D index into a 1D index.
+        ///
+        /// @param[in] row
+        /// @param[in] chan
+        /// @param[in] pol
+        /// @return array index valid for either the visibilities or
+        ///         flag vectors
+        size_t index(size_t row, size_t chan, size_t pol) const;
+
     private:
 
         /// Constructs an object of type T from bytes read from the network socket.

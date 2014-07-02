@@ -46,9 +46,10 @@
 #include <boost/asio.hpp>
 
 // Local package includes
-#include "publisher/OutputMessage.h"
+#include "publisher/SpdOutputMessage.h"
 #include "publisher/InputMessage.h"
 #include "publisher/SubsetExtractor.h"
+#include "publisher/VisMessageBuilder.h"
 #include "publisher/ZmqPublisher.h"
 
 // Using
@@ -65,14 +66,17 @@ int PublisherApp::run(int argc, char* argv[])
     StatReporter stats;
     const LOFAR::ParameterSet subset = config().makeSubset("vispublisher.");
     const uint16_t inPort = subset.getUint16("in.port");
-    const uint16_t outPort = subset.getUint16("out.port");
+    const uint16_t spdPort = subset.getUint16("spd.port");
+    const uint16_t visPort = subset.getUint16("vis.port");
 
     ASKAPLOG_INFO_STR(logger, "ASKAP Vis Publisher " << ASKAP_PACKAGE_VERSION);
     ASKAPLOG_INFO_STR(logger, "Input Port: " << inPort);
-    ASKAPLOG_INFO_STR(logger, "Output Port: " << outPort);
+    ASKAPLOG_INFO_STR(logger, "Spd Output Port: " << spdPort);
+    ASKAPLOG_INFO_STR(logger, "Vis Output Port: " << visPort);
 
-    // Setup the ZeroMQ publisher object
-    ZmqPublisher zmqpub(outPort);
+    // Setup the ZeroMQ publisher objects
+    ZmqPublisher spdpub(spdPort);
+    ZmqPublisher vispub(visPort);
 
     // Setup the TCP socket to receive data from the ingest pipeline
     boost::asio::io_service io_service;
@@ -88,17 +92,27 @@ int PublisherApp::run(int argc, char* argv[])
                 InputMessage inMsg = InputMessage::build(socket);
                 ASKAPLOG_DEBUG_STR(logger, "Received a message");
 
+                // Publish SPD data
                 const vector<uint32_t> beamvector(inMsg.beam());
                 const set<uint32_t> beamset(beamvector.begin(), beamvector.end());
                 for (set<uint32_t>::const_iterator beamit = beamset.begin();
                         beamit != beamset.end(); ++beamit) {
                     for (uint32_t pol = 0; pol < N_POLS; ++pol) {
-                        OutputMessage outmsg = SubsetExtractor::subset(inMsg, *beamit, pol);
+                        SpdOutputMessage outmsg = SubsetExtractor::subset(inMsg, *beamit, pol);
                         ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << *beamit
                                 << " pol " << pol);
-                        zmqpub.publish(outmsg);
+                        spdpub.publish(outmsg);
                     }
                 }
+
+                // Publish VIS data
+                uint32_t tvChanBegin = 0;
+                uint32_t tvChanEnd = inMsg.nChannels() - 1;
+                VisOutputMessage outmsg = VisMessageBuilder::build(inMsg,
+                        tvChanBegin, tvChanEnd);
+                ASKAPLOG_DEBUG_STR(logger, "Publishing Vis message - tvchan: "
+                        << tvChanBegin << " - " << tvChanEnd);
+                vispub.publish(outmsg);
 
             } catch (AskapError& e) {
                 ASKAPLOG_DEBUG_STR(logger, "Error reading input message: " << e.what()

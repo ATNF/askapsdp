@@ -1,4 +1,4 @@
-/// @file PublisherApp.h
+/// @file VisMessageBuilder.h
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,32 +24,39 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
-#define ASKAP_CP_VISPUBLISHER_PUBLISHERAPP_H
-
-// System includes
-#include <stdint.h>
+#ifndef ASKAP_CP_ASKAP_VISMESSAGEBUILDER_H
+#define ASKAP_CP_ASKAP_VISMESSAGEBUILDER_H
 
 // ASKAPsoft includes
-#include "askap/Application.h"
+#include <vector>
+#include <utility>
+#include <complex>
+#include <stdint.h>
 
 // Local package includes
+#include "publisher/VisOutputMessage.h"
 #include "publisher/InputMessage.h"
-#include "publisher/SpdOutputMessage.h"
 
 namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief Implementation of the VisPublisher application.
-class PublisherApp : public askap::Application {
+/// @brief Pure utility class that provides functionality to extract subsets of
+/// the input message for sending on the ZeroMQ socket.
+class VisMessageBuilder {
     public:
-        /// Run the application
-        virtual int run(int argc, char* argv[]);
+
+        static VisOutputMessage build(const InputMessage& in,
+                                      uint32_t tvChanBegin,
+                                      uint32_t tvChanEnd);
 
     private:
-        static SpdOutputMessage buildSpdOutputMessage(const InputMessage& in,
-                                                uint32_t beam, uint32_t pol);
+
+        static std::pair<float, float> ampAndPhase(const std::vector< std::complex<float> >& vis,
+                                                   const std::vector<bool>& flag);
+
+        static float calcDelay(const std::vector< std::complex<float> >& vis,
+                               double chanWidth);
 };
 
 }

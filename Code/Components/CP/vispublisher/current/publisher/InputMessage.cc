@@ -186,6 +186,12 @@ const std::vector<uint8_t>& InputMessage::flag(void) const
     return itsFlag;
 }
 
+
+size_t InputMessage::index(size_t row, size_t chan, size_t pol) const
+{
+    return row + (chan * itsNRow) + (itsNChannel * itsNRow * pol);
+}
+
 template <typename T>
 T InputMessage::read(boost::asio::ip::tcp::socket& socket)
 {
