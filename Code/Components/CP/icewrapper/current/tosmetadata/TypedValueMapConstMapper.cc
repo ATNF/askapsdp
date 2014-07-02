@@ -220,13 +220,13 @@ casa::MDirection TypedValueMapConstMapper::convertDirection(const askap::interfa
 {
     switch (dir.sys) {
         case J2000 :
-            return casa::MDirection(casa::Quantity(dir.coord1, "rad"),
-                    casa::Quantity(dir.coord2, "rad"),
+            return casa::MDirection(casa::Quantity(dir.coord1, "deg"),
+                    casa::Quantity(dir.coord2, "deg"),
                     casa::MDirection::Ref(casa::MDirection::J2000));
             break;
         case AZEL :
-            return casa::MDirection(casa::Quantity(dir.coord1, "rad"),
-                    casa::Quantity(dir.coord2, "rad"),
+            return casa::MDirection(casa::Quantity(dir.coord1, "deg"),
+                    casa::Quantity(dir.coord2, "deg"),
                     casa::MDirection::Ref(casa::MDirection::AZEL));
             break;
     }

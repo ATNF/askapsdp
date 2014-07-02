@@ -126,7 +126,7 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
     destMapper.setDirection("target_direction", source.targetDirection());
 
     // Phase centre
-    destMapper.setDirection("phase_direction", source.targetDirection());
+    destMapper.setDirection("phase_direction", source.phaseDirection());
 
     // Correlator mode
     destMapper.setString("corrmode", source.corrMode());

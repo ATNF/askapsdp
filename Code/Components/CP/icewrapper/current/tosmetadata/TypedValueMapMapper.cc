@@ -196,8 +196,8 @@ void TypedValueMapMapper::set(const std::string& key, const T& val)
 askap::interfaces::Direction TypedValueMapMapper::convertDirection(const casa::MDirection& dir) const
 {
     askap::interfaces::Direction obj;
-    obj.coord1 = dir.getAngle().getValue()(0);
-    obj.coord2 = dir.getAngle().getValue()(1);
+    obj.coord1 = dir.getAngle().getValue("deg")(0);
+    obj.coord2 = dir.getAngle().getValue("deg")(1);
 
     switch (dir.getRef().getType()) {
         case casa::MDirection::J2000 :
