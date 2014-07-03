@@ -24,6 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_TESTHELPERFUNCTIONS_H
+#define ASKAP_CP_TESTHELPERFUNCTIONS_H
+
 // Support classes
 #include <stdint.h>
 #include <limits>
@@ -143,3 +146,5 @@ const uint32_t TestHelperFunctions::N_BASELINE = 3;
 }   // End namespace vispublisher
 }   // End namespace cp
 }   // End namespace askap
+
+#endif

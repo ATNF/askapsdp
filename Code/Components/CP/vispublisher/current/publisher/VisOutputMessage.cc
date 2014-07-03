@@ -40,34 +40,20 @@
 using namespace askap::cp::vispublisher;
 
 VisOutputMessage::VisOutputMessage()
-    : itsTimestamp(0), itsNBaselines(0), itsNBeams(0), itsNPols(0),
-    itsChanBegin(0), itsChanEnd(0)
+    : itsTimestamp(0), itsChanBegin(0), itsChanEnd(0)
 {
 }
 
 void VisOutputMessage::encode(zmq::message_t& msg) const
 {
-    // Preconditions
-    ASKAPASSERT(itsAntenna1.size() == itsNBaselines);
-    ASKAPASSERT(itsAntenna2.size() == itsNBaselines);
-    ASKAPASSERT(itsAmplitudes.size() == itsNBaselines * itsNBeams * itsNPols);
-    ASKAPASSERT(itsPhases.size() == itsNBaselines * itsNBeams * itsNPols);
-    ASKAPASSERT(itsDelays.size() == itsNBaselines * itsNBeams * itsNPols);
-
     const size_t sz = sizeInBytes();
     msg.rebuild(sz);
     uint8_t* ptr = static_cast<uint8_t*>(msg.data());
     ptr = pushBack<uint64_t>(itsTimestamp, ptr);
-    ptr = pushBack<uint32_t>(itsNBaselines, ptr);
-    ptr = pushBack<uint32_t>(itsNBeams, ptr);
-    ptr = pushBack<uint32_t>(itsNPols, ptr);
     ptr = pushBack<uint32_t>(itsChanBegin, ptr);
     ptr = pushBack<uint32_t>(itsChanEnd, ptr);
-    ptr = pushBackVector<uint32_t>(itsAntenna1, ptr);
-    ptr = pushBackVector<uint32_t>(itsAntenna2, ptr);
-    ptr = pushBackVector<float>(itsAmplitudes, ptr);
-    ptr = pushBackVector<float>(itsPhases, ptr);
-    ptr = pushBackVector<float>(itsDelays, ptr);
+    ptr = pushBack<uint32_t>(itsData.size(), ptr);
+    ptr = pushBackVisElements(itsData, ptr);
 
     // Post-conditions
     ASKAPASSERT(ptr == static_cast<uint8_t*>(msg.data()) + sz);
@@ -75,13 +61,12 @@ void VisOutputMessage::encode(zmq::message_t& msg) const
 
 size_t VisOutputMessage::sizeInBytes(void) const
 {
+    const size_t dataSize = itsData.size() * ((4 * sizeof(uint32_t))
+            + (3 * sizeof(double)));
+
     return sizeof (uint64_t)        // time
-        + (5 * sizeof (uint32_t))   // nBaselines, nBeams, nPols, chanBegin, chanEnd
-        + (itsAntenna1.size() * sizeof (uint32_t))
-        + (itsAntenna2.size() * sizeof (uint32_t))
-        + (itsAmplitudes.size() * sizeof (float))
-        + (itsPhases.size() * sizeof (float))
-        + (itsDelays.size() * sizeof (float));
+        + (3 * sizeof (uint32_t))   // chanBegin, chanEnd, nElements
+        + dataSize;
 }
 
 template <typename T>
@@ -92,10 +77,17 @@ uint8_t* VisOutputMessage::pushBack(const T src, uint8_t* ptr)
     return ptr + sz;
 }
 
-template <typename T>
-uint8_t* VisOutputMessage::pushBackVector(const std::vector<T>& src, uint8_t* ptr)
+uint8_t* VisOutputMessage::pushBackVisElements(const std::vector<VisElement>& src, uint8_t* ptr)
 {
-    const size_t sz = src.size() * sizeof (T);
-    memcpy(ptr, &src[0], sz);
-    return ptr + sz;
+    uint8_t* p = ptr;
+    for (size_t i = 0; i < src.size(); ++i) {
+        p = pushBack<uint32_t>(src[i].beam, p);
+        p = pushBack<uint32_t>(src[i].antenna1, p);
+        p = pushBack<uint32_t>(src[i].antenna2, p);
+        p = pushBack<uint32_t>(src[i].pol, p);
+        p = pushBack<double>(src[i].amplitude, p);
+        p = pushBack<double>(src[i].phase, p);
+        p = pushBack<double>(src[i].delay, p);
+    }
+    return p;
 }

@@ -41,21 +41,33 @@ namespace askap {
 namespace cp {
 namespace vispublisher {
 
-/// @brief Pure utility class that provides functionality to extract subsets of
-/// the input message for sending on the ZeroMQ socket.
+/// @brief Pure utility class used for transforming input visibilities into
+/// Vis summary data (amplitude, phase, delay).
 class VisMessageBuilder {
     public:
 
+        /// Build a vis output message from a given input message.
+        ///
+        /// @param[in] in   the input message.
+        /// @param[in] tvChanBegin  the first channel of the channel range to
+        ///                         be used to calculate statistics. The range
+        ///                         is inclusive of this channel.
+        /// @param[in] tvChanEnd    the last channel of the channel range to
+        ///                         be used to calculate statistics. The range
+        ///                         is inclusive of this channel.
         static VisOutputMessage build(const InputMessage& in,
                                       uint32_t tvChanBegin,
                                       uint32_t tvChanEnd);
 
     private:
 
-        static std::pair<float, float> ampAndPhase(const std::vector< std::complex<float> >& vis,
-                                                   const std::vector<bool>& flag);
+        /// Calculate amplitude and phase
+        static std::pair<double, double> ampAndPhase(
+                const std::vector< std::complex<float> >& vis,
+                const std::vector<bool>& flag);
 
-        static float calcDelay(const std::vector< std::complex<float> >& vis,
+        /// Estimate delays
+        static double calcDelay(const std::vector< std::complex<float> >& vis,
                                double chanWidth);
 };
 

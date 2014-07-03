@@ -1,4 +1,4 @@
-/// @file SubsetExtractorTest.cc
+/// @file SubsetExtractorTest.h
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,6 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_SUBSETEXTRACTORTEST_H
+#define ASKAP_CP_SUBSETEXTRACTORTEST_H
+
 // CPPUnit includes
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -31,10 +34,8 @@
 #include <stdint.h>
 #include <limits>
 #include <complex>
-#include <algorithm>
 #include <vector>
 #include <cstring>
-#include "casa/Arrays/Cube.h"
 #include "askap/AskapError.h"
 #include "publisher/InputMessage.h"
 #include "publisher/SpdOutputMessage.h"
@@ -178,3 +179,5 @@ class SubsetExtractorTest : public CppUnit::TestFixture {
 }   // End namespace vispublisher
 }   // End namespace cp
 }   // End namespace askap
+
+#endif

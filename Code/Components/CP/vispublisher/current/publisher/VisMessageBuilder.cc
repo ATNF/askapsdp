@@ -54,37 +54,78 @@ using namespace askap::cp::vispublisher;
 VisOutputMessage VisMessageBuilder::build(const InputMessage& in,
         uint32_t tvChanBegin, uint32_t tvChanEnd)
 {
-    VisOutputMessage outmsg;
-    outmsg.timestamp() = in.timestamp();
+    ASKAPCHECK(tvChanEnd >= tvChanBegin, "End chan must be >= start chan");
+    const uint32_t nChannel = tvChanEnd - tvChanBegin + 1;
+    ASKAPCHECK(nChannel <= in.nChannels(),
+            "Number of channels selected exceeds number of channels available");
+    const uint32_t nRow = in.nRow();
+    const uint32_t nPol = in.nPol();
+    const double chanWidth = in.chanWidth();
+    const vector< complex<float> >& invis = in.visibilities();
+    const vector<uint8_t>& inflag = in.flag();
 
-    return outmsg;
-}
+    VisOutputMessage out;
+    out.timestamp() = in.timestamp();
+    out.chanBegin() = tvChanBegin;
+    out.chanEnd() = tvChanEnd;
+    out.data().reserve(nRow * nPol);
 
-std::pair<float, float> VisMessageBuilder::ampAndPhase(const std::vector< std::complex<float> >& vis,
-                                                       const std::vector<bool>& flag)
-{
-    std::complex<float> avg(0,0);
-    ASKAPCHECK(vis.size() == flag.size(), "Vis and Flag vectors not equal size");
+    // Process each row, creating nPol VisElements for each row
+    vector< complex<float> > vis(nChannel);
+    vector<bool> flag(nChannel);
+    for (uint32_t row = 0; row < nRow; ++row) {
+        for (uint32_t pol = 0; pol < nPol; ++pol) {
+            VisElement ve;
+            ve.pol = pol;
+            ve.beam = in.beam()[row];
+            ve.antenna1 = in.antenna1()[row];
+            ve.antenna2 = in.antenna2()[row];
 
-    if (!vis.empty()) {
-        size_t count = 0;
-        for (size_t i = 0; i < vis.size(); ++i) {
-            if (!flag[i]) {
-                avg += vis[i];
-                ++count;
+            // Build the flag and visibility vectors
+            for (uint32_t chan = tvChanBegin; chan <= tvChanEnd; ++chan) {
+                const size_t idx = in.index(row, chan, pol);
+                vis[chan] = invis[idx];
+                flag[chan] = inflag[idx];
             }
-        }
-        if (count > 0) {
-            avg /= static_cast<float>(count);
+
+            // Calculate the summary statistics
+            const std::pair<double, double> ap = ampAndPhase(vis, flag);
+            ve.amplitude = ap.first;
+            ve.phase = ap.second;
+            ve.delay = calcDelay(vis, chanWidth);
+
+            out.data().push_back(ve);
         }
     }
 
-    return make_pair(abs(avg),  arg(avg) * 180.0 / M_PI);
+    return out;
 }
 
-float VisMessageBuilder::calcDelay(const std::vector< std::complex<float> >& vis,
-                                   const double chanWidth)
+std::pair<double, double> VisMessageBuilder::ampAndPhase(const std::vector< std::complex<float> >& vis,
+                                                       const std::vector<bool>& flag)
 {
+    ASKAPCHECK(vis.size() == flag.size(), "Vis and Flag vectors not equal size");
+
+    std::complex<double> avg(0,0);
+    size_t count = 0;
+    for (size_t i = 0; i < vis.size(); ++i) {
+        if (!flag[i]) {
+            avg += vis[i];
+            ++count;
+        }
+    }
+    if (count > 0) {
+        avg /= static_cast<double>(count);
+    }
+
+    return make_pair(abs(avg), arg(avg) * 180.0 / M_PI);
+}
+
+double VisMessageBuilder::calcDelay(const std::vector< std::complex<float> >& vis,
+                                    const double chanWidth)
+{
+    if (vis.size() < 2) return 0.0;
+
     askap::scimath::DelayEstimator de(chanWidth);
     return de.getDelay(vis);
 }

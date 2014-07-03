@@ -1,4 +1,4 @@
-/// @file vissubscriber.cc
+/// @file spdsubscriber.cc
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,64 +29,32 @@
 #include <cassert>
 #include <string>
 #include <sstream>
-#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapUtil.h"
 #include <zmq.hpp>
 
-// Local package includes
-#include "publisher/VisElement.h"
-
 using namespace std;
-using askap::cp::vispublisher::VisElement;
 using askap::utility::fromString;
 using askap::utility::toString;
 
-struct __attribute__ ((__packed__)) header_t
+struct header_t
 {
     uint64_t timestamp;
-    uint32_t chanBegin;
-    uint32_t chanEnd;
-    uint32_t nElements;
+    uint32_t beam;  // Zero based
+    uint32_t pol;   // Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
+    uint32_t nChan;
+    //.. we ignore the rest because we don't want to print it
 };
 
 static void printmsg(std::ostream& os, const zmq::message_t& msg)
 {
     assert(msg.size() >= sizeof (header_t));
-    const header_t* hp = reinterpret_cast<const header_t*>(msg.data());
-    os << "Received Message - Time: " << hp->timestamp
-        << ", tvChanBegin: " << hp->chanBegin
-        << ", tvChanEnd: " << hp->chanEnd
-        << ", nElements: " << hp->nElements
+    const header_t* p = static_cast<const header_t*>(msg.data());
+    os << "Received Message - Beam: " << p->beam
+        << " Pol: " << p->pol
+        << " Time: " << p->timestamp
         << endl;
-
-    uint32_t nElements = hp->nElements;
-    const uint8_t* p = reinterpret_cast<const uint8_t*>(hp + 1);
-    for (uint32_t i = 0; i < nElements; ++i) {
-        const uint32_t* beam = reinterpret_cast<const uint32_t*>(p);
-        p += sizeof (uint32_t);
-        const uint32_t* ant1 = reinterpret_cast<const uint32_t*>(p);
-        p += sizeof (uint32_t);
-        const uint32_t* ant2 = reinterpret_cast<const uint32_t*>(p);
-        p += sizeof (uint32_t);
-        const uint32_t* pol = reinterpret_cast<const uint32_t*>(p);
-        p += sizeof (uint32_t);
-        const double* amp = reinterpret_cast<const double*>(p);
-        p += sizeof (double);
-        const double* phase = reinterpret_cast<const double*>(p);
-        p += sizeof (double);
-        const double* delay = reinterpret_cast<const double*>(p);
-        p += sizeof (double);
-        os << "    Beam: " << *beam
-            << ", Ant1: " << *ant1
-            << ", Ant2: " << *ant2
-            << ", Pol: " << *pol
-            << ", Amp: " << *amp
-            << ", Phase: " << *phase << " deg"
-            << ", Delay: "<<  (*delay) * 10.0e9 << " ns "
-            << endl;
-    }
 }
 
 static std::string makeConnectString(const std::string& hostname, int port)
@@ -98,8 +66,8 @@ static std::string makeConnectString(const std::string& hostname, int port)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
-        cerr << "usage: " << argv[0] << " <hostname> <port>" << endl;
+    if (argc < 4) {
+        cerr << "usage: " << argv[0] << " <hostname> <port> <filter1> [filter2]..." << endl;
         return 1;
     }
     const string hostname(argv[1]);
@@ -107,10 +75,22 @@ int main(int argc, char *argv[])
 
     zmq::context_t context;
     zmq::socket_t socket (context, ZMQ_SUB);
+    const int RECV_HIGH_WATER_MARK = 1; // Only buffer one msg, drop messages if full
+    socket.setsockopt(ZMQ_RCVHWM, &RECV_HIGH_WATER_MARK, sizeof (int));
     socket.connect(makeConnectString(hostname, port).c_str());
-    socket.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
+
+    // Subscribe to each of the filters passed in
+    for (int i = 3; i < argc; ++i) {
+        cout << "Subscribing to: " << argv[i] << endl;
+        socket.setsockopt(ZMQ_SUBSCRIBE, argv[i], strlen(argv[i]));
+    }
 
     while (true) {
+        // Read the identity message
+        zmq::message_t identity;
+        socket.recv(&identity);
+
+        // Read the payload
         zmq::message_t msg;
         socket.recv(&msg);
         printmsg(cout, msg);

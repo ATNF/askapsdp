@@ -44,6 +44,7 @@
 #include "askap/StatReporter.h"
 #include <zmq.hpp>
 #include <boost/asio.hpp>
+#include <casa/OS/Timer.h>
 
 // Local package includes
 #include "publisher/SpdOutputMessage.h"
@@ -51,6 +52,7 @@
 #include "publisher/SubsetExtractor.h"
 #include "publisher/VisMessageBuilder.h"
 #include "publisher/ZmqPublisher.h"
+#include "publisher/ZmqVisControlPort.h"
 
 // Using
 using namespace std;
@@ -68,20 +70,24 @@ int PublisherApp::run(int argc, char* argv[])
     const uint16_t inPort = subset.getUint16("in.port");
     const uint16_t spdPort = subset.getUint16("spd.port");
     const uint16_t visPort = subset.getUint16("vis.port");
+    const uint16_t visControlPort = subset.getUint16("viscontrol.port");
 
     ASKAPLOG_INFO_STR(logger, "ASKAP Vis Publisher " << ASKAP_PACKAGE_VERSION);
     ASKAPLOG_INFO_STR(logger, "Input Port: " << inPort);
     ASKAPLOG_INFO_STR(logger, "Spd Output Port: " << spdPort);
     ASKAPLOG_INFO_STR(logger, "Vis Output Port: " << visPort);
+    ASKAPLOG_INFO_STR(logger, "Vis Control Port: " << visControlPort);
 
-    // Setup the ZeroMQ publisher objects
+    // Setup the ZeroMQ publisher and control objects
     ZmqPublisher spdpub(spdPort);
     ZmqPublisher vispub(visPort);
+    ZmqVisControlPort visControl(visControlPort);
 
     // Setup the TCP socket to receive data from the ingest pipeline
     boost::asio::io_service io_service;
     tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), inPort));
     tcp::socket socket(io_service);
+    casa::Timer timer;
     while (true) {
         acceptor.accept(socket);
         ASKAPLOG_DEBUG_STR(logger, "Accepted incoming connection from: "
@@ -90,29 +96,51 @@ int PublisherApp::run(int argc, char* argv[])
         while (socket.is_open()) {
             try {
                 InputMessage inMsg = InputMessage::build(socket);
+                timer.mark();
                 ASKAPLOG_DEBUG_STR(logger, "Received a message");
 
+                ///////////////////
                 // Publish SPD data
+                ///////////////////
                 const vector<uint32_t> beamvector(inMsg.beam());
                 const set<uint32_t> beamset(beamvector.begin(), beamvector.end());
                 for (set<uint32_t>::const_iterator beamit = beamset.begin();
                         beamit != beamset.end(); ++beamit) {
                     for (uint32_t pol = 0; pol < N_POLS; ++pol) {
                         SpdOutputMessage outmsg = SubsetExtractor::subset(inMsg, *beamit, pol);
-                        ASKAPLOG_DEBUG_STR(logger, "Publishing message for beam " << *beamit
+                        ASKAPLOG_DEBUG_STR(logger, "Publishing Spd message for beam " << *beamit
                                 << " pol " << pol);
                         spdpub.publish(outmsg);
                     }
                 }
 
+                ///////////////////
                 // Publish VIS data
+                ///////////////////
+
+                // Get and check the tvchan setting
                 uint32_t tvChanBegin = 0;
                 uint32_t tvChanEnd = inMsg.nChannels() - 1;
+                if (visControl.isTVChanSet()) {
+                    const pair<uint32_t, uint32_t> tvchan = visControl.tvChan();
+                    tvChanBegin = tvchan.first;
+                    tvChanEnd = tvchan.second;
+                }
+
+                if (tvChanEnd < tvChanBegin
+                        || (tvChanEnd - tvChanBegin + 1) > inMsg.nChannels()) {
+                    ASKAPLOG_WARN_STR(logger, "Invalid TV Chan range: "
+                            << tvChanBegin << "-" << tvChanEnd);
+                    continue;
+                }
+
+                // Create and send the output message
                 VisOutputMessage outmsg = VisMessageBuilder::build(inMsg,
                         tvChanBegin, tvChanEnd);
                 ASKAPLOG_DEBUG_STR(logger, "Publishing Vis message - tvchan: "
                         << tvChanBegin << " - " << tvChanEnd);
                 vispub.publish(outmsg);
+                ASKAPLOG_DEBUG_STR(logger, "Time to handle " << timer.real() << "s");
 
             } catch (AskapError& e) {
                 ASKAPLOG_DEBUG_STR(logger, "Error reading input message: " << e.what()

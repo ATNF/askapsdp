@@ -33,11 +33,11 @@
 // System includes
 #include <stdint.h>
 #include <string>
-#include <sstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 
 // Local package includes
 
@@ -47,8 +47,7 @@ using namespace std;
 using namespace askap;
 using namespace askap::cp::vispublisher;
 
-ZmqPublisher::ZmqPublisher(uint16_t port)
-    :itsSocket(itsContext, 1)
+ZmqPublisher::ZmqPublisher(uint16_t port) :itsSocket(itsContext, ZMQ_PUB)
 {
     // Limit the number of buffered messages as we don't want to have the
     // consumer read stale data, rather drop messages if the buffer is full.
@@ -56,9 +55,8 @@ ZmqPublisher::ZmqPublisher(uint16_t port)
     const int SEND_HIGH_WATER_MARK = 9 * 4;
     itsSocket.setsockopt(ZMQ_SNDHWM, &SEND_HIGH_WATER_MARK, sizeof (int));
 
-    stringstream ss;
-    ss << "tcp://*:" << port;
-    itsSocket.bind(ss.str().c_str());
+    const string endpoint = "tcp://*:" + utility::toString(port);
+    itsSocket.bind(endpoint.c_str());
 }
 
 void ZmqPublisher::publish(SpdOutputMessage& outmsg)
@@ -74,7 +72,7 @@ void ZmqPublisher::publish(SpdOutputMessage& outmsg)
     itsSocket.send(identity, ZMQ_SNDMORE);
 
     // Encode and send message
-    zmq::message_t msg(1);
+    zmq::message_t msg;
     outmsg.encode(msg);
     itsSocket.send(msg);
 }
@@ -82,7 +80,7 @@ void ZmqPublisher::publish(SpdOutputMessage& outmsg)
 void ZmqPublisher::publish(VisOutputMessage& outmsg)
 {
     // Encode and send message
-    zmq::message_t msg(1);
+    zmq::message_t msg;
     outmsg.encode(msg);
     itsSocket.send(msg);
 }

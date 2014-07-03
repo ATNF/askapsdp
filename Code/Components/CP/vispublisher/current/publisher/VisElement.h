@@ -1,4 +1,4 @@
-/// @file tpublisher.cc
+/// @file VisElement.h
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,19 +24,47 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#ifndef ASKAP_CP_VISPUBLISHER_VISELEMENT_T
+#define ASKAP_CP_VISPUBLISHER_VISELEMENT_T
 
-// Test includes
-#include "SubsetExtractorTest.h"
-#include "VisMessageBuilderTest.h"
+// System includes
+#include <stdint.h>
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::vispublisher::SubsetExtractorTest::suite());
-    runner.addTest(askap::cp::vispublisher::VisMessageBuilderTest::suite());
-    const bool wasSucessful = runner.run();
+namespace askap {
+namespace cp {
+namespace vispublisher {
 
-    return wasSucessful ? 0 : 1;
+/// @brief Contains the Vis summary data (amp, phase, delay) for a given
+/// baseline, beam and polarisation.
+struct VisElement {
+    // Beam ID (zero based)
+    uint32_t beam;
+
+    // Antenna 1 index (zero based)
+    uint32_t antenna1;
+
+    // Antenna 2 index (zero based)
+    uint32_t antenna2;
+
+    // Polarisation
+    // 0=XX, 1=XY, 2=YX, 3=YY
+    uint32_t pol;
+
+    // Average amplitude
+    // Unit: Pseudo Jy
+    double amplitude;
+
+    // Average Phase Angle
+    // Unit: Degrees
+    double phase;
+
+    // Delays
+    // Unit: Seconds
+    double delay;
+};
+
 }
+}
+}
+
+#endif

@@ -48,8 +48,11 @@ class PublisherApp : public askap::Application {
         virtual int run(int argc, char* argv[]);
 
     private:
+
+        /// Build an Spd message for a givn beam and polarisation
         static SpdOutputMessage buildSpdOutputMessage(const InputMessage& in,
-                                                uint32_t beam, uint32_t pol);
+                                                      uint32_t beam,
+                                                      uint32_t pol);
 };
 
 }

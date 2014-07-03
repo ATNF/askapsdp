@@ -34,6 +34,9 @@
 // ASKAPsoft includes
 #include <zmq.hpp>
 
+// Local package includes
+#include "VisElement.h"
+
 namespace askap {
 namespace cp {
 namespace vispublisher {
@@ -59,15 +62,6 @@ class VisOutputMessage {
         /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t& timestamp(void) { return itsTimestamp; };
 
-        /// Number of baselines
-        uint32_t& nBaselines(void) { return itsNBaselines; };
-        
-        /// Number of beams
-        uint32_t& nBeams(void) { return itsNBeams; };
-
-        /// Number of polarisations
-        uint32_t& nPols(void) { return itsNPols; };
-
         /// The first (inclusive) channel number (one based) of the range of
         /// channels used to form the products (i.e. tvchan)
         uint32_t& chanBegin(void) { return itsChanBegin; };
@@ -76,23 +70,7 @@ class VisOutputMessage {
         /// channels used to form the products (i.e. tvchan)
         uint32_t& chanEnd(void) { return itsChanEnd; };
 
-        /// Antenna 1 - Maps for baseline index to antenna index
-        std::vector<uint32_t>& antenna1(void) { return itsAntenna1; };
-
-        /// Antenna 2 - Maps for baseline index to antenna index
-        std::vector<uint32_t>& antenna2(void) { return itsAntenna2; };
-
-        /// Average amplitudes
-        /// Units: Pseudo Jy
-        std::vector<float>& amplitudes(void) { return itsAmplitudes; };
-
-        /// Average phase angle
-        /// Units: Degrees
-        std::vector<float>& phases(void) { return itsPhases; };
-
-        /// Delays
-        /// Units: Seconds
-        std::vector<float>& delays(void) { return itsDelays; };
+        std::vector<VisElement>& data() { return itsData; };
 
     private:
 
@@ -103,21 +81,11 @@ class VisOutputMessage {
         template <typename T>
         static uint8_t* pushBack(const T src, uint8_t* ptr);
 
-        template <typename T>
-        static uint8_t* pushBackVector(const std::vector<T>& src, uint8_t* ptr);
+        static uint8_t* pushBackVisElements(const std::vector<VisElement>& src, uint8_t* ptr);
 
         /// Binary Atomic Time (BAT) of the correlator integration midpoint.
         /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t itsTimestamp;
-
-        /// Number of baselines
-        uint32_t itsNBaselines;
-        
-        /// Number of beams
-        uint32_t itsNBeams;
-
-        /// Number of polarisations
-        uint32_t itsNPols;
 
         /// Chan Begin
         uint32_t itsChanBegin;
@@ -125,20 +93,8 @@ class VisOutputMessage {
         /// Chan End
         uint32_t itsChanEnd;
 
-        /// Antenna 1 - Maps for baseline index to antenna index
-        std::vector<uint32_t> itsAntenna1;
-
-        /// Antenna 2 - Maps for baseline index to antenna index
-        std::vector<uint32_t> itsAntenna2;
-
-        /// Amplitudes
-        std::vector<float> itsAmplitudes;
-
-        /// Phases
-        std::vector<float> itsPhases;
-
-        /// Delays
-        std::vector<float> itsDelays;
+        /// VisElement vector
+        std::vector<VisElement> itsData;
 };
 
 }
