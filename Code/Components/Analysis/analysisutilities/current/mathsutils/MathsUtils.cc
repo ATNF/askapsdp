@@ -285,33 +285,35 @@ namespace askap {
       /// axes, and the position angle (in radians).
       double a2=beam.maj(),b2=beam.min(),pa2=beam.pa()*M_PI/180.;
       double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
-      // ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
-      double d0=a0*a0-b0*b0,d2=a2*a2-b2*b2;
+      double twopa0=2.0*pa0, twopa2=2.0*pa2;
+      double a0sq=a0*a0;
+      double b0sq=b0*b0;
+      double a2sq=a2*a2;
+      double b2sq=b2*b2;
+      //cerr.setf(std::ios::fixed);
+      //cerr << std::setprecision(10) << a0 << " " << b0 << " " << a2 << " " << b2 << " " << a0sq << " " << b0sq << " " << a2sq << " " << b2sq <<"\n";
+      //ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
+      double d0=a0sq-b0sq;
+      double d2=a2sq-b2sq;
 
-      double d1 = sqrt( d0*d0 + d2*d2 - 2*d0*d2*cos(2.*(pa0-pa2)) );
-      double a1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2+d1), b1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2-d1);
+      double d1 = sqrt( d0*d0 + d2*d2 - 2.0*d0*d2*cos(twopa0-twopa2) );
+      //ASKAPLOG_DEBUG_STR(logger, "d1="<<d1<<", d1-12.="<<d1-12.0);
+      double absum0=a0sq+b0sq;
+      double absum2=a2sq+b2sq;
+      //ASKAPLOG_DEBUG_STR(logger, "absum0="<<absum0<<", absum2="<<absum2<<", diff="<<absum0-absum2 << ", diff-12="<<absum0-absum2-12.0);
+      double a1sq = 0.5*(absum0-absum2+d1);
+      double b1sq = 0.5*(absum0-absum2-d1);
       double a1=0.,b1=0.;
       if(a1sq>0.) a1=sqrt(a1sq);
       if(b1sq>0.) b1=sqrt(b1sq);
-      // ASKAPLOG_DEBUG_STR(logger, "Deconvolving: d0="<<d0<<", d2="<<d2<<", d1="<<d1<<", a1sq="<<a1sq<<", b1sq="<<b1sq<<", a1="<<a1<<", b1="<<b1);
+      //ASKAPLOG_DEBUG_STR(logger, "Deconvolving: d0="<<d0<<", d2="<<d2<<", d1="<<d1<<", a1sq="<<a1sq<<", b1sq="<<b1sq<<", a1="<<a1<<", b1="<<b1);
       double pa1;
-      if((d0*cos(2.*pa0)-d2*cos(2.*pa2))==0.) pa1=0.;
+      if((d0*cos(twopa0)-d2*cos(twopa2))==0.) pa1=0.;
       else{
-	double sin2pa1 = (d0 * sin(2.*pa0) + d2 * sin(2.*pa2));
-	double cos2pa1 = (d0 * cos(2.*pa0) + d2 * cos(2.*pa2));
-	pa1 = atanCircular(sin2pa1, cos2pa1);
-	//   pa1 = atan(fabs(sin2pa1 / cos2pa1));
-
-	//   // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
-	//   // Need to correct the value of pa according to the correct quandrant it is in.
-	//   // This is worked out using the signs of sin and cos
-	//   if (sin2pa1 > 0) {
-	//     if (cos2pa1 > 0) pa1 = pa1;
-	//     else             pa1 = M_PI - pa1;
-	//   } else {
-	//     if (cos2pa1 > 0) pa1 = 2.*M_PI - pa1;
-	//     else             pa1 = M_PI + pa1;
-	//   }
+	double sin2pa1 = (d0 * sin(twopa0) - d2 * sin(twopa2));
+	double cos2pa1 = (d0 * cos(twopa0) - d2 * cos(twopa2));
+	//pa1 = atanCircular(sin2pa1, cos2pa1)/2.;
+	pa1 = atan2(sin2pa1, cos2pa1)/2.;
       }
 
       std::vector<Double> deconv(3);
