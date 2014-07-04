@@ -35,6 +35,7 @@
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 #include <sourcefitting/FittingParameters.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -72,7 +73,14 @@ namespace askap {
       const float gaussYFWHM=2.;
       const float gaussX0=5.;
       const float gaussY0=5.;
+	const float gaussPA=M_PI/2.;
       const float SIGMAtoFWHM=2. * M_SQRT2 * sqrt(M_LN2);
+	const float BMAJ=2;
+	const float BMIN=2;
+	const float BPA=0.;
+	const float gaussDeconvXFWHM=sqrt(12.);
+	const float gaussDeconvYFWHM=0.;
+	const float gaussDeconvPA=M_PI/2.;
 
       class RadioSourceTest : public CppUnit::TestFixture {
 	CPPUNIT_TEST_SUITE(RadioSourceTest);
@@ -281,9 +289,17 @@ namespace askap {
 	  CPPUNIT_ASSERT(fabs(fits[0].height()-gaussNorm)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].majorAxis()-gaussXFWHM)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].minorAxis()-gaussYFWHM)<1.e-6);
-	  CPPUNIT_ASSERT(fabs(fits[0].PA()-M_PI/2.)<1.e-6);
+	  CPPUNIT_ASSERT(fabs(fits[0].PA()-gaussPA)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].xCenter()-gaussX0)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].yCenter()-gaussY0)<1.e-6);
+
+	  duchamp::DuchampBeam beam(BMAJ,BMIN,BPA);
+	  std::vector<double> deconvShape = analysisutilities::deconvolveGaussian(fits[0],beam);
+	  ASKAPLOG_DEBUG_STR(logger, "Deconvolved gaussian to get shape " << deconvShape);
+	  CPPUNIT_ASSERT(fabs(deconvShape[0]-gaussDeconvXFWHM)<1.e-6);
+	  CPPUNIT_ASSERT(fabs(deconvShape[1]-gaussDeconvYFWHM)<1.e-6);
+	  CPPUNIT_ASSERT(fabs(deconvShape[2]-gaussDeconvPA)<1.e-6);
+
 	}
 
 
