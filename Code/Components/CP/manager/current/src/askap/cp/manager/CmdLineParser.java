@@ -39,7 +39,7 @@ public class CmdLineParser {
 	/**
 	 * Internal structure used to represent an expected or optional command line option.
 	 */
-	private class ProgramOption {
+	private static class ProgramOption {
 		String keyLong;
 		String keyShort;
 		String desc;

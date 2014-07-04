@@ -30,9 +30,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
-
 
 
 // ASKAPsoft imports
@@ -55,18 +53,16 @@ public class FSUtils {
 	 * @param parset	the parameter set which will used to populate the file.
 	 * @throws IOException	if the file creating or writing to the file fails.
 	 */
-	@SuppressWarnings("rawtypes")
 	public static void create(File filename, ParameterSet parset) throws IOException {
 		FileWriter fstream = new FileWriter(filename);
 		BufferedWriter out = new BufferedWriter(fstream);
 
 		List<String> lst = new ArrayList<String>();
-
+		
 		// Add each key/value to a list for sorting
-		for (Enumeration e = parset.keys(); e.hasMoreElements(); /**/) {
-			String key = (String) e.nextElement();
-			String value = parset.getProperty(key);
-			lst.add(key + " = " + value + '\n');
+		for (String key : parset.keys()) {
+		    String value = parset.getString(key);
+		    lst.add(key + " = " + value + '\n');
 		}
 		
 		Collections.sort(lst);

@@ -106,10 +106,6 @@ public class ObsService extends _ICPObsServiceDisp {
 		}
 	}
 
-	public void finalize() {
-		logger.debug("Destroying ObsService");
-	}
-
 	@Override
 	public void startObs(long sbid, Current curr)
 			throws askap.interfaces.cp.NoSuchSchedulingBlockException,

@@ -32,122 +32,124 @@ import askap.util.Complex;
  * @author David Brodrick
  */
 public class TypedValueUtilsTest {
-  @Test
-  public void test_null() {
-    TypedValue tv = TypedValueUtils.object2TypedValue(null);
-    assertTrue(tv.type == TypedValueType.TypeNull);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o == null);
-  }
+    private static final float FLOAT_DELTA = 1.0e-15f;
 
-  @Test
-  public void test_float() {
-    float val = 3.141f;
-    TypedValue tv = TypedValueUtils.object2TypedValue(new Float(val));
-    assertTrue(tv.type == TypedValueType.TypeFloat);
-    assertTrue(((TypedValueFloat) tv).value == val);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Float);
-    assertTrue(((Float) o).floatValue() == val);
-  }
+    @Test
+    public void test_null() {
+        TypedValue tv = TypedValueUtils.object2TypedValue(null);
+        assertTrue(tv.type == TypedValueType.TypeNull);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertNull(o);
+    }
 
-  @Test
-  public void test_double() {
-    double val = 3.141d;
-    TypedValue tv = TypedValueUtils.object2TypedValue(new Double(val));
-    assertTrue(tv.type == TypedValueType.TypeDouble);
-    assertTrue(((TypedValueDouble) tv).value == val);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Double);
-    assertTrue(((Double) o).doubleValue() == val);
-  }
+    @Test
+    public void test_float() {
+        float val = 3.141f;
+        TypedValue tv = TypedValueUtils.object2TypedValue(new Float(val));
+        assertTrue(tv.type == TypedValueType.TypeFloat);
+        assertEquals(val, ((TypedValueFloat) tv).value, FLOAT_DELTA);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Float);
+        assertEquals(val, ((Float) o).floatValue(), FLOAT_DELTA);
+    }
 
-  @Test
-  public void test_int() {
-    int val = 20090721;
-    TypedValue tv = TypedValueUtils.object2TypedValue(new Integer(val));
-    assertTrue(tv.type == TypedValueType.TypeInt);
-    assertTrue(((TypedValueInt) tv).value == val);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Integer);
-    assertTrue(((Integer) o).intValue() == val);
-  }
+    @Test
+    public void test_double() {
+        double val = 3.141d;
+        TypedValue tv = TypedValueUtils.object2TypedValue(new Double(val));
+        assertTrue(tv.type == TypedValueType.TypeDouble);
+        assertEquals(val, ((TypedValueDouble) tv).value, FLOAT_DELTA);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Double);
+        assertEquals(val, ((Double) o).doubleValue(), FLOAT_DELTA);
+    }
 
-  @Test
-  public void test_long() {
-    long val = 20090721l;
-    TypedValue tv = TypedValueUtils.object2TypedValue(new Long(val));
-    assertTrue(tv.type == TypedValueType.TypeLong);
-    assertTrue(((TypedValueLong) tv).value == val);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Long);
-    assertTrue(((Long) o).longValue() == val);
-  }
+    @Test
+    public void test_int() {
+        int val = 20090721;
+        TypedValue tv = TypedValueUtils.object2TypedValue(new Integer(val));
+        assertTrue(tv.type == TypedValueType.TypeInt);
+        assertEquals(val, ((TypedValueInt) tv).value);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Integer);
+        assertEquals(val, ((Integer) o).intValue());
+    }
 
-  @Test
-  public void test_string() {
-    String val = "let the test begin";
-    TypedValue tv = TypedValueUtils.object2TypedValue(val);
-    assertTrue(tv.type == TypedValueType.TypeString);
-    assertTrue(((TypedValueString) tv).value.equals(val));
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof String);
-    assertTrue(((String) o).equals(val));
-  }
+    @Test
+    public void test_long() {
+        long val = 20090721l;
+        TypedValue tv = TypedValueUtils.object2TypedValue(new Long(val));
+        assertTrue(tv.type == TypedValueType.TypeLong);
+        assertEquals(val, ((TypedValueLong) tv).value);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Long);
+        assertEquals(val, ((Long) o).longValue());
+    }
 
-  @Test
-  public void test_boolean() {
-    boolean val = true;
-    TypedValue tv = TypedValueUtils.object2TypedValue(new Boolean(val));
-    assertTrue(tv.type == TypedValueType.TypeBool);
-    assertTrue(((TypedValueBool) tv).value == val);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Boolean);
-    assertTrue(((Boolean) o).booleanValue() == val);
-  }
-  
-  @Test
-  public void test_complex() {
-    double real = 3.141d;
-    double imag = 2.718d;
-    TypedValue tv = TypedValueUtils.object2TypedValue(Complex.factory(real, imag));
-    assertTrue(tv.type == TypedValueType.TypeDoubleComplex);
-    assertTrue(((TypedValueDoubleComplex) tv).value.real == real);
-    assertTrue(((TypedValueDoubleComplex) tv).value.imag == imag);
-    Object o = TypedValueUtils.typedValue2Object(tv);
-    assertTrue(o instanceof Complex);
-    assertTrue(((Complex) o).getReal() == real);
-    assertTrue(((Complex) o).getImag() == imag);
-  }   
-  /*
-  @Test
-  public void test_azel_direction() {
-      double c1 = 3.141d;
-      double c2 = 2.718d;
-      AzElApp d = new AzElApp(c1, c2);
-      TypedValue tv = TypedValueUtils.object2TypedValue(d);
-      assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.AZEL);
-      assertTrue(((TypedValueDirection)tv).value.coord1==c1);
-      assertTrue(((TypedValueDirection)tv).value.coord2==c2);
-      Object o = TypedValueUtils.typedValue2Object(tv);
-      assertTrue(o instanceof AzElApp);
-      assertTrue(((AzElApp)o).getAz()==c1);
-      assertTrue(((AzElApp)o).getEl()==c2);
-  }
+    @Test
+    public void test_string() {
+        String val = "let the test begin";
+        TypedValue tv = TypedValueUtils.object2TypedValue(val);
+        assertTrue(tv.type == TypedValueType.TypeString);
+        assertEquals(val, ((TypedValueString) tv).value);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof String);
+        assertEquals(val, ((String) o));
+    }
 
-  @Test
-  public void test_j2000_direction() {
-      double c1 = 3.141d;
-      double c2 = 2.718d;
-      J2000Mean d = new J2000Mean(c1, c2);
-      TypedValue tv = TypedValueUtils.object2TypedValue(d);
-      assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.J2000);
-      assertTrue(((TypedValueDirection)tv).value.coord1==c1);
-      assertTrue(((TypedValueDirection)tv).value.coord2==c2);
-      Object o = TypedValueUtils.typedValue2Object(tv);
-      assertTrue(o instanceof J2000Mean);
-      assertTrue(((J2000Mean)o).getRA()==c1);
-      assertTrue(((J2000Mean)o).getDec()==c2);
-  }
-  */
+    @Test
+    public void test_boolean() {
+        boolean val = true;
+        TypedValue tv = TypedValueUtils.object2TypedValue(val);
+        assertTrue(tv.type == TypedValueType.TypeBool);
+        assertEquals(val, ((TypedValueBool) tv).value);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Boolean);
+        assertEquals(val, ((Boolean) o));
+    }
+
+    @Test
+    public void test_complex() {
+        double real = 3.141d;
+        double imag = 2.718d;
+        TypedValue tv = TypedValueUtils.object2TypedValue(Complex.factory(real, imag));
+        assertTrue(tv.type == TypedValueType.TypeDoubleComplex);
+        assertEquals(real, ((TypedValueDoubleComplex) tv).value.real, FLOAT_DELTA);
+        assertEquals(imag, ((TypedValueDoubleComplex) tv).value.imag, FLOAT_DELTA);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof Complex);
+        assertEquals(real, ((Complex) o).getReal(), FLOAT_DELTA);
+        assertEquals(imag, ((Complex) o).getImag(), FLOAT_DELTA);
+    }   
+   /*
+    @Test
+    public void test_azel_direction() {
+        double c1 = 3.141d;
+        double c2 = 2.718d;
+        AzElApp d = new AzElApp(c1, c2);
+        TypedValue tv = TypedValueUtils.object2TypedValue(d);
+        assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.AZEL);
+        assertTrue(((TypedValueDirection)tv).value.coord1==c1);
+        assertTrue(((TypedValueDirection)tv).value.coord2==c2);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof AzElApp);
+        assertTrue(((AzElApp)o).getAz()==c1);
+        assertTrue(((AzElApp)o).getEl()==c2);
+    }
+
+    @Test
+    public void test_j2000_direction() {
+        double c1 = 3.141d;
+        double c2 = 2.718d;
+        J2000Mean d = new J2000Mean(c1, c2);
+        TypedValue tv = TypedValueUtils.object2TypedValue(d);
+        assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.J2000);
+        assertTrue(((TypedValueDirection)tv).value.coord1==c1);
+        assertTrue(((TypedValueDirection)tv).value.coord2==c2);
+        Object o = TypedValueUtils.typedValue2Object(tv);
+        assertTrue(o instanceof J2000Mean);
+        assertTrue(((J2000Mean)o).getRA()==c1);
+        assertTrue(((J2000Mean)o).getDec()==c2);
+    }
+    */
 }

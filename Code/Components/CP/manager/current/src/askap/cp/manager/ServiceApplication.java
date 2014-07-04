@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 import java.util.Map;
 
 import org.apache.log4j.ConsoleAppender;
@@ -39,6 +38,7 @@ import org.apache.log4j.MDC;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.DOMConfigurator;
+
 
 // Local package includes
 import askap.util.ParameterSet;
@@ -284,15 +284,12 @@ public abstract class ServiceApplication {
 	 * Initialise Ice communicator based on ice properties in the Parameter Set
 	 * (itsParset)
 	 */
-	@SuppressWarnings("rawtypes")
 	private void initIce() {
 		// Create IceProperties
 		Ice.Properties props = Ice.Util.createProperties();
 		ParameterSet subset = config().subset("ice_properties.");
-		for (Enumeration e = subset.keys(); e.hasMoreElements(); /**/) {
-			String key = (String) e.nextElement();
-			String value = subset.getProperty(key);
-			props.setProperty(key, value);
+		for (String key : subset.keys()) {;
+            props.setProperty(key, subset.getString(key));
 		}
 
 		// Create initialisation data

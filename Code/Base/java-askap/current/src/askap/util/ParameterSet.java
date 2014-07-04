@@ -30,7 +30,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.util.Iterator;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -39,13 +40,16 @@ import java.util.Properties;
  * 
  * @author David Brodrick, some code derived from ATOMS.java by David Loone (CSIRO).
  */
-public class ParameterSet extends Properties {
-
-    private static final long serialVersionUID = 1L;
+/**
+ * @author benh
+ *
+ */
+public class ParameterSet {
+    
+    private Map<String, String> itsMap = new HashMap<String, String>();
 
     /** Create an empty ParameterSet. */
 	public ParameterSet() {
-		super();
 	}
 
 	/**
@@ -53,8 +57,7 @@ public class ParameterSet extends Properties {
 	 * Map.
 	 */
 	public ParameterSet(Map<String, String> map) {
-		super();
-		putAll(map);
+	    itsMap.putAll(map);
 	}
 
 	/**
@@ -62,8 +65,7 @@ public class ParameterSet extends Properties {
 	 * InputStream.
 	 */
 	public ParameterSet(InputStream is) throws IOException {
-		super();
-		load(is);
+	    itsMap = load(is);
 	}
 
 	/**
@@ -71,9 +73,15 @@ public class ParameterSet extends Properties {
 	 * file.
 	 */
 	public ParameterSet(String filename) throws IOException {
-		super();
 		InputStream is = new FileInputStream(filename);
 		load(is);
+	}
+	
+	/**
+	 * @return the keys for all parameters in the ParameterSet
+	 */
+	public Iterable<String> keys() {
+	    return itsMap.keySet();
 	}
 
 	/**
@@ -90,12 +98,12 @@ public class ParameterSet extends Properties {
 	 */
 	public boolean getBoolean(String key) throws NumberFormatException {
 		try {
-			String strval = getProperty(key);
+			String strval = getString(key);
 			if (strval == null) {
 				throw new NumberFormatException("Error parsing key \"" + key
 						+ "\" as boolean: key does not exist");
 			}
-			return (new Boolean(strval)).booleanValue();
+			return Boolean.valueOf(strval);
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
 					+ "\" as boolean: " + e.getMessage());
@@ -123,12 +131,12 @@ public class ParameterSet extends Properties {
 
 		try {
 			// The parameter value.
-			String value = getProperty(key);
+			String value = getString(key);
 
 			if (value == null) {
 				result = defaultValue;
 			} else {
-				result = (new Boolean(getProperty(key))).booleanValue();
+				result = Boolean.valueOf(getString(key));
 			}
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
@@ -152,7 +160,7 @@ public class ParameterSet extends Properties {
 	 */
 	public int getInteger(String key) throws NumberFormatException {
 		try {
-			return (new Integer(getProperty(key))).intValue();
+			return Integer.parseInt(getString(key));
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
 					+ "\" as integer: " + e.getMessage());
@@ -183,12 +191,12 @@ public class ParameterSet extends Properties {
 
 		try {
 			// The property value.
-			String value = getProperty(key);
+			String value = getString(key);
 
 			if (value == null) {
 				result = defaultValue;
 			} else {
-				result = (new Integer(getProperty(key))).intValue();
+				result = Integer.parseInt(getString(key));
 			}
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
@@ -212,7 +220,7 @@ public class ParameterSet extends Properties {
 	 */
 	public long getLong(String key) throws NumberFormatException {
 		try {
-			return (new Long(getProperty(key))).longValue();
+			return Long.parseLong(getString(key));
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
 					+ "\" as long: " + e.getMessage());
@@ -243,12 +251,12 @@ public class ParameterSet extends Properties {
 
 		try {
 			// The property value.
-			String value = getProperty(key);
+			String value = getString(key);
 
 			if (value == null) {
 				result = defaultValue;
 			} else {
-				result = (new Long(getProperty(key))).longValue();
+				result = Long.parseLong(getString(key));
 			}
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
@@ -272,7 +280,7 @@ public class ParameterSet extends Properties {
 	 */
 	public float getFloat(String key) throws NumberFormatException {
 		try {
-			return (new Float(getProperty(key))).floatValue();
+			return Float.parseFloat(getString(key));
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
 					+ "\" as float: " + e.getMessage());
@@ -303,12 +311,12 @@ public class ParameterSet extends Properties {
 
 		try {
 			// The property value.
-			String value = getProperty(key);
+			String value = getString(key);
 
 			if (value == null) {
 				result = defaultValue;
 			} else {
-				result = (new Float(getProperty(key))).floatValue();
+				result = Float.parseFloat(getString(key));
 			}
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
@@ -332,7 +340,7 @@ public class ParameterSet extends Properties {
 	 */
 	public double getDouble(String key) throws NumberFormatException {
 		try {
-			return (new Double(getProperty(key))).doubleValue();
+			return Double.parseDouble(getString(key));
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
 					+ "\" as double: " + e.getMessage());
@@ -363,12 +371,12 @@ public class ParameterSet extends Properties {
 
 		try {
 			// The property value.
-			String value = getProperty(key);
+			String value = getString(key);
 
 			if (value == null) {
 				result = defaultValue;
 			} else {
-				result = (new Double(getProperty(key))).doubleValue();
+				result = Double.parseDouble(getString(key));
 			}
 		} catch (NumberFormatException e) {
 			throw new NumberFormatException("Error parsing key \"" + key
@@ -381,27 +389,42 @@ public class ParameterSet extends Properties {
 	/**
 	 * Get a parameter as a string.
 	 * 
-	 * @param key
-	 *            The name of the parameter to get.
+	 * @param key  The name of the parameter to get.
 	 * 
-	 * @return The value of the parameter.
+	 * @return The value of the parameter, or null if the value
+	 *         was not found.
 	 */
 	public String getString(String key) {
-		return stripQuotes(getProperty(key));
-		
+	    return stripQuotes(itsMap.get(key));
 	}
-
-	private static String stripQuotes(String str) {
-		String val = str;
-		
-		if (val!=null && val.length()>0) {
-			if (val.startsWith("\"") && val.endsWith("\""))
-				val = val.substring(1, val.length()-1);
-			else if (val.startsWith("'") && val.endsWith("'"))
-				val = val.substring(1, val.length()-1);
-		}
-		return val;
-
+	
+	/**
+	 * Add the given pair to the collection
+	 * @param key      the key to add.
+	 * @param value    the value to add.
+	 */
+	public void add(String key, String value) {
+	    itsMap.put(key, value);
+	}
+	
+	public void add(ParameterSet parset) {
+	    for (String key : parset.keys()) {
+            add(key, parset.getString(key));
+	    }
+	}
+	
+	/**
+	 * @return true if the parameter set is empty, otherwise false.
+	 */
+	public boolean isEmpty() {
+	    return itsMap.isEmpty();
+	}
+	
+	/**
+	 * @return the number of parameters in the set.
+	 */
+	public int size() {
+	    return itsMap.size();
 	}
 
 	/**
@@ -415,39 +438,42 @@ public class ParameterSet extends Properties {
 	 * @return The value of the parameter.
 	 */
 	public String getString(String key, String defaultValue) {
-		return stripQuotes(getProperty(key, defaultValue));
+	    if (itsMap.containsKey(key)) {
+	        return stripQuotes(itsMap.get(key));
+	    } else {
+	        return stripQuotes(defaultValue);
+	    }
 	}
 
 	/**
 	 * Create a new ParameterSet which only contains keys which start with the
-	 * specified prefix. The prefix string will be removed from the key names in
+	 * specified keyBase. The keyBase string will be removed from the key names in
 	 * the returned set. The caller is expected to provide the delimiting "." if
 	 * the delimiter is not desired in the key names of the returned subset.
 	 * 
-	 * @param prefix
-	 *            The string that keys must start with.
-	 * @return ParameterSet containing matching keys and values, with prefix
+	 * @param keyBase The string that keys must start with.
+	 * @return ParameterSet containing matching keys and values, with keyBase
 	 *         removed from key names. Will have a zero size if no keys matched.
 	 */
-	public ParameterSet subset(String prefix) {
+	public ParameterSet subset(String keyBase) {
 		ParameterSet res = new ParameterSet();
-		int prefixlen = prefix.length();
-		Iterator<Object> i = keySet().iterator();
-		while (i.hasNext()) {
-			String thiskey = (String) i.next();
-			if (thiskey.startsWith(prefix)) {
-				// Key matches, remove prefix and insert into result
-				res.put(thiskey.substring(prefixlen), getProperty(thiskey));
-			}
+		int prefixlen = keyBase.length();
+		
+		for (Map.Entry<String, String> entry : itsMap.entrySet()) {
+		    String key = entry.getKey();
+		    if (key.startsWith(keyBase)) {
+		        // Key matches, remove prefix and insert into result
+		        res.add(key.substring(prefixlen), entry.getValue());
+		    }
 		}
 		return res;
 	}
-	
 
 	public String remove(String key) {
-		String val = (String) super.remove(key);
+		String val = (String) itsMap.remove(key);
 		return stripQuotes(val);
 	}
+	
 	/**
 	 * Given a key and type, convert the value for the key typed object
 	 * 
@@ -459,7 +485,7 @@ public class ParameterSet extends Properties {
 	 */
 	public Object getObject(String key, String type)
 			throws NumberFormatException {
-		String value = getProperty(key);
+		String value = getString(key);
 		return getTypedValue(value, type);
 	}
 
@@ -493,7 +519,7 @@ public class ParameterSet extends Properties {
 	 */
 	public Object[] getVectorValue(String key, String type)
 			throws NumberFormatException {
-		String value = getProperty(key);
+		String value = getString(key);
 		if (value == null || value.length() == 0)
 			return null;
 
@@ -536,33 +562,6 @@ public class ParameterSet extends Properties {
 		return objValues;
 	}
 
-	private static Object getSimpleObject(String val, String type)
-			throws NumberFormatException {
-		Object o = null;
-		String value = stripQuotes(val);
-		
-		if (type == null || type.length() == 0)
-			return value;
-
-		if (value == null || value.length() == 0)
-			return null;
-
-		Class<?> c;
-		try {
-			c = Class.forName(type);
-			Class<String> strArgsClass = String.class;
-			Constructor<?> constructor = c.getConstructor(strArgsClass);
-			o = constructor.newInstance(value);
-		} catch (Exception e) {
-			String msg = "Could not convert " + value + " to " + type;
-			if (e.getMessage() != null)
-				msg = msg + ": " + e.getMessage();
-			throw new NumberFormatException(msg);
-		}
-
-		return o;
-	}
-
 	/**
 	 * print object out in proper ParameterSet format For simple type simply get
 	 * string value For vectors, format is eg: [val1, vale2]
@@ -590,6 +589,59 @@ public class ParameterSet extends Properties {
 		} else {
 			return o.toString();
 		}
+	}
+	
+	private static Object getSimpleObject(String val, String type)
+	        throws NumberFormatException {
+	    Object o = null;
+	    String value = stripQuotes(val);
+
+	    if (type == null || type.length() == 0)
+	        return value;
+
+	    if (value == null || value.length() == 0)
+	        return null;
+
+	    Class<?> c;
+	    try {
+	        c = Class.forName(type);
+	        Class<String> strArgsClass = String.class;
+	        Constructor<?> constructor = c.getConstructor(strArgsClass);
+	        o = constructor.newInstance(value);
+	    } catch (Exception e) {
+	        String msg = "Could not convert " + value + " to " + type;
+	        if (e.getMessage() != null)
+	            msg = msg + ": " + e.getMessage();
+	        throw new NumberFormatException(msg);
+	    }
+
+	    return o;
+	}
+	   
+	private static String stripQuotes(String str) {
+	    String val = str;
+
+	    if (val!=null && val.length()>0) {
+	        if (val.startsWith("\"") && val.endsWith("\""))
+	            val = val.substring(1, val.length()-1);
+	        else if (val.startsWith("'") && val.endsWith("'"))
+	            val = val.substring(1, val.length()-1);
+	    }
+	    return val;
+
+	}
+	
+	private static Map<String,String> load(InputStream is) throws IOException {
+	    Map<String,String> m = new HashMap<String, String>();
+	    Properties props = new Properties();
+	    props.load(is);
+	    
+	    for (Enumeration<Object> keys = props.keys(); keys.hasMoreElements();) {
+	        String key = (String)keys.nextElement();
+	        m.put(key, props.getProperty(key));
+	    }
+	    
+	    return m;
 	}
 
 	//
@@ -926,5 +978,4 @@ public class ParameterSet extends Properties {
 		}
 		return str;
 	}
-
 };

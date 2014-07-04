@@ -31,12 +31,12 @@ public class ConfigBuilder {
 		ParameterSet config = new ParameterSet();
 		
 		// Adds scheduling block id
-		config.put("sbid", Long.toString(sbid));
+		config.add("sbid", Long.toString(sbid));
 		
 		// Use "cp.ingest" and "common" part of FCM, but those prefixes
 		// get removed
-		config.putAll(facilityConfig.subset("cp.ingest."));
-		config.putAll(facilityConfig.subset("common."));
+		config.add(facilityConfig.subset("cp.ingest."));
+		config.add(facilityConfig.subset("common."));
 		
 		return config;
 	}
