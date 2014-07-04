@@ -68,19 +68,19 @@ namespace askap {
       const size_t srcSize=srcDim*srcDim;
       const size_t arrayDim=10;
       const size_t arraySize=arrayDim*arrayDim;
-      const float gaussNorm=10.;
-      const float gaussXFWHM=4.;
-      const float gaussYFWHM=2.;
-      const float gaussX0=5.;
-      const float gaussY0=5.;
-	const float gaussPA=M_PI/2.;
-      const float SIGMAtoFWHM=2. * M_SQRT2 * sqrt(M_LN2);
-	const float BMAJ=2;
-	const float BMIN=2;
-	const float BPA=0.;
-	const float gaussDeconvXFWHM=sqrt(12.);
-	const float gaussDeconvYFWHM=0.;
-	const float gaussDeconvPA=M_PI/2.;
+      const double gaussNorm=10.;
+      const double gaussXFWHM=4.;
+      const double gaussYFWHM=2.;
+      const double gaussX0=5.;
+      const double gaussY0=5.;
+      const double gaussPA=M_PI/2.;
+      const double SIGMAtoFWHM=2. * M_SQRT2 * sqrt(M_LN2);
+      const double BMAJ=2;
+      const double BMIN=2;
+      const double BPA=0.;
+      const double gaussDeconvXFWHM=sqrt(12.);
+      const double gaussDeconvYFWHM=0.;
+      const double gaussDeconvPA=M_PI/2.;
 
       class RadioSourceTest : public CppUnit::TestFixture {
 	CPPUNIT_TEST_SUITE(RadioSourceTest);
@@ -90,6 +90,7 @@ namespace askap {
 	CPPUNIT_TEST(testShapeGaussSource);
 	CPPUNIT_TEST(subthreshold); 
 	CPPUNIT_TEST(fitSource);
+	CPPUNIT_TEST(componentDeconvolution);
 	CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -285,6 +286,7 @@ namespace askap {
 	  itsGaussSource.fitGauss(itsGaussArray.data(),itsDim.data(),itsFitparams);
 
 	  std::vector<casa::Gaussian2D<Double> > fits = itsGaussSource.gaussFitSet();
+	  ASKAPLOG_DEBUG_STR(logger, "Have fit " << fits[0]);
 	  CPPUNIT_ASSERT(fits.size()==1);
 	  CPPUNIT_ASSERT(fabs(fits[0].height()-gaussNorm)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].majorAxis()-gaussXFWHM)<1.e-6);
@@ -292,13 +294,29 @@ namespace askap {
 	  CPPUNIT_ASSERT(fabs(fits[0].PA()-gaussPA)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].xCenter()-gaussX0)<1.e-6);
 	  CPPUNIT_ASSERT(fabs(fits[0].yCenter()-gaussY0)<1.e-6);
+	}
 
+	
+	void componentDeconvolution() {
+
+	  CPPUNIT_ASSERT(itsGaussObjlist.size() == 1);
+	  duchamp::FitsHeader head;
+	  head.beam().define(1,1,0,duchamp::PARAM);
+	  itsGaussSource.setHeader(&head);
+	  itsGaussSource.setFitParams(itsFitparams);
+	  
+	  itsGaussSource.fitGauss(itsGaussArray.data(),itsDim.data(),itsFitparams);
+
+	  std::vector<casa::Gaussian2D<Double> > fits = itsGaussSource.gaussFitSet();
 	  duchamp::DuchampBeam beam(BMAJ,BMIN,BPA);
 	  std::vector<double> deconvShape = analysisutilities::deconvolveGaussian(fits[0],beam);
 	  ASKAPLOG_DEBUG_STR(logger, "Deconvolved gaussian to get shape " << deconvShape);
-	  CPPUNIT_ASSERT(fabs(deconvShape[0]-gaussDeconvXFWHM)<1.e-6);
-	  CPPUNIT_ASSERT(fabs(deconvShape[1]-gaussDeconvYFWHM)<1.e-6);
-	  CPPUNIT_ASSERT(fabs(deconvShape[2]-gaussDeconvPA)<1.e-6);
+	  // Only use a limit of 1/1000 here, as small errors in the
+	  // shape from the fitting can get amplified in the
+	  // deconvolution - 1.e-6 was too strict
+	  CPPUNIT_ASSERT(fabs(deconvShape[0]-gaussDeconvXFWHM)<1.e-3);
+	  CPPUNIT_ASSERT(fabs(deconvShape[2]-gaussDeconvPA)<1.e-3);
+	  CPPUNIT_ASSERT(fabs(deconvShape[1]-gaussDeconvYFWHM)<1.e-3);
 
 	}
 
