@@ -20,6 +20,13 @@
 
 package askap.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -50,6 +57,30 @@ public class ParameterSetTest {
     @After
     public void tearDown() throws Exception {
         itsInstance = null;
+    }
+    
+    @Test 
+    public void test_MapCtor() {
+    	Map<String, String> m = new HashMap<String, String>();
+    	m.put("prefix.suffix", "bar");
+    	m.put("integer", "1234");
+    	
+    	ParameterSet parset = new ParameterSet(m);
+    	assertEquals("bar", parset.getString("prefix.suffix"));
+    	assertEquals(1234, parset.getInteger("integer"));
+    }
+    
+    @Test 
+    public void test_InputStreamCtor() {
+    	String s = "prefix.suffix = bar";
+    	InputStream is = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
+    	
+    	try {
+			ParameterSet parset = new ParameterSet(is);
+			assertEquals("bar", parset.getString("prefix.suffix"));
+		} catch (IOException e) {
+			fail("Unexpected IOException");
+		}
     }
 
     @Test

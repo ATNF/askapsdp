@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 CSIRO Australia Telescope National Facility (ATNF) Commonwealth
+ * Copyright (c) 2009,2014 CSIRO Australia Telescope National Facility (ATNF) Commonwealth
  * Scientific and Industrial Research Organisation (CSIRO) PO Box 76, Epping NSW 1710,
  * Australia atnf-enquiries@csiro.au
  *
@@ -40,10 +40,6 @@ import java.util.Properties;
  * 
  * @author David Brodrick, some code derived from ATOMS.java by David Loone (CSIRO).
  */
-/**
- * @author benh
- *
- */
 public class ParameterSet {
     
     private Map<String, String> itsMap = new HashMap<String, String>();
@@ -73,8 +69,7 @@ public class ParameterSet {
 	 * file.
 	 */
 	public ParameterSet(String filename) throws IOException {
-		InputStream is = new FileInputStream(filename);
-		load(is);
+		this(new FileInputStream(filename));
 	}
 	
 	/**
