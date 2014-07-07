@@ -128,7 +128,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
     msc.processorId().put(baseRow, 0);
     msc.exposure().put(baseRow, chunk->interval());
     msc.interval().put(baseRow, chunk->interval());
-    msc.observationId().put(baseRow, itsConfig.schedulingBlockID());
+    msc.observationId().put(baseRow, 0);
     msc.stateId().put(baseRow, -1);
 
     for (casa::uInt i = 0; i < newRows; ++i) {
