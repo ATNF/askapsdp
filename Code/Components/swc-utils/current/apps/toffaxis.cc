@@ -229,15 +229,17 @@ void add3rdOffset(std::vector<double> &xOffsets, std::vector<double> &yOffsets, 
 
 void makeRaster() {
   // Virgo
-  //casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
+  casa::MVDirection tangent(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
   // 0407-658
-  casa::MVDirection tangent(convertQuantity("04h08m20.38","rad"),convertQuantity("-65.45.09.1","rad"));
+  //casa::MVDirection tangent(convertQuantity("04h08m20.38","rad"),convertQuantity("-65.45.09.1","rad"));
 
   //const double size = 4.9; // in degrees
-  const double size = 8.4; // in degrees
+  //const double size = 8.4; // in degrees
+  const double size = 10.4; // in degrees
 
   std::cout<<"Making a raster file for "<<size<<" by "<<size<<" deg about tangent: "<<printDirection(tangent)<<std::endl;
-  const double resolution = 0.5; // in degrees
+  //const double resolution = 0.5; // in degrees
+  const double resolution = 1.0; // in degrees
   // we always include 0 offset, so the number of points each side will always be odd
   const int halfNOffsets = int(size/2./resolution);
   const int nOffsets = 2*halfNOffsets+1;
@@ -256,7 +258,15 @@ void makeRaster() {
             casa::MVDirection testDir(tangent);
             testDir.shift(xOffset,yOffset, casa::True);
             ++counter; // effectively a 1-based counter
-            os<<testDir.getLong()/casa::C::pi*180.<<" "<<testDir.getLat()/casa::C::pi*180.<<" "<<counter<<" "<<x<<" "<<y * dir<<std::endl;
+            std::string dirStr = printDirection(testDir);
+            size_t pos1 = dirStr.find(" ");
+            ASKAPCHECK(pos1 != std::string::npos, "Unable to parse "<<dirStr);
+            for (size_t i=0; i<2; ++i) {
+                 pos1 = dirStr.find(".",pos1);
+                 ASKAPCHECK(pos1 != std::string::npos, "Unable to parse "<<dirStr);
+                 dirStr[pos1] = ':';
+            }
+            os<<testDir.getLong()/casa::C::pi*180.<<" "<<testDir.getLat()/casa::C::pi*180.<<" "<<counter<<" "<<x<<" "<<y * dir<<" "<<dirStr<<std::endl;
        }
   }
 }

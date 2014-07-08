@@ -28,6 +28,7 @@ pkg = env.AskapPackage("swcutils")
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 # add sub packages 
+pkg.AddSubPackage("delaysolver")
 #pkg.AddSubPackage("swcutils")
 
 # run the build process
