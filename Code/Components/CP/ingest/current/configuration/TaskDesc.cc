@@ -95,8 +95,11 @@ TaskDesc::Type TaskDesc::toType(const std::string& type)
     if (type == "SimpleMonitorTask") {
         return TaskDesc::SimpleMonitorTask;
     }
-    if (type == "ChannelFlagTask") {
-        return TaskDesc::ChannelFlagTask;
+    if (type == "FlagTask") {
+        return TaskDesc::FlagTask;
+    }
+    if (type == "FlagFlagTask") {
+        return TaskDesc::FileFlagTask;
     }
     if (type == "DerippleTask") {
         return TaskDesc::DerippleTask;

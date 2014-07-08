@@ -1,4 +1,4 @@
-/// @file ChannelFlagTask.h
+/// @file FileFlagTask.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_CHANNELFLAGTASK_H
-#define ASKAP_CP_INGEST_CHANNELFLAGTASK_H
+#ifndef ASKAP_CP_INGEST_FILEFLAGTASK_H
+#define ASKAP_CP_INGEST_FILEFLAGTASK_H
 
 // System includes
 #include <vector>
@@ -53,17 +53,17 @@ namespace ingest {
 /// This class is not intended to survive in its current form in the long term.
 /// It will probably have some logic hard coded (to suit the early commissioning
 /// tests). It is not intended to be used in the MPI case
-class ChannelFlagTask : public askap::cp::ingest::ITask {
+class FileFlagTask : public askap::cp::ingest::ITask {
     public:
 
         /// @brief Constructor
         /// @param[in] parset the configuration parameter set.
         /// @param[in] config configuration
-        ChannelFlagTask(const LOFAR::ParameterSet& parset,
+        FileFlagTask(const LOFAR::ParameterSet& parset,
                         const Configuration& config);
 
         /// @brief destructor
-        ~ChannelFlagTask();
+        ~FileFlagTask();
 
         /// @brief Flag seleted channels in the specified VisChunk.
         /// @details This method applies static flags to excise the spikes like
@@ -100,7 +100,7 @@ class ChannelFlagTask : public askap::cp::ingest::ITask {
         ///
         BaselineMap itsBaselineMap;
 
-}; // ChannelFlagTask class
+}; // FileFlagTask class
 
 } // ingest
 

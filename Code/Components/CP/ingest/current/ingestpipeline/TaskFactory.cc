@@ -46,7 +46,8 @@
 #include "ingestpipeline/chanseltask/ChannelSelTask.h"
 #include "ingestpipeline/phasetracktask/PhaseTrackTask.h"
 #include "ingestpipeline/simplemonitortask/SimpleMonitorTask.h"
-#include "ingestpipeline/chanflag/ChannelFlagTask.h"
+#include "ingestpipeline/flagtask/FlagTask.h"
+#include "ingestpipeline/fileflagtask/FileFlagTask.h"
 #include "ingestpipeline/mssink/MSSink.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
@@ -101,8 +102,11 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
         case TaskDesc::SimpleMonitorTask :
             task.reset(new SimpleMonitorTask(params, itsConfig));
             break;
-        case TaskDesc::ChannelFlagTask :
-            task.reset(new ChannelFlagTask(params, itsConfig));
+        case TaskDesc::FlagTask :
+            task.reset(new FlagTask(params, itsConfig));
+            break;
+        case TaskDesc::FileFlagTask :
+            task.reset(new FileFlagTask(params, itsConfig));
             break;
         case TaskDesc::DerippleTask:
             task.reset(new DerippleTask(params, itsConfig));

@@ -57,7 +57,8 @@ class TaskDesc {
             PhaseTrackTask,
             FringeRotationTask,
             SimpleMonitorTask,
-            ChannelFlagTask,
+            FlagTask,
+            FileFlagTask,
             DerippleTask,
             TCPSink
         };

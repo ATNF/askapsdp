@@ -1,4 +1,4 @@
-/// @file ChannelFlagTaskcc
+/// @file FileFlagTask.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -39,10 +39,10 @@
 #include <casa/Arrays/Matrix.h>
 
 // Local package includes
-#include "ingestpipeline/chanflag/ChannelFlagTask.h"
+#include "ingestpipeline/fileflagtask/FileFlagTask.h"
 #include "configuration/BaselineMap.h"
 
-ASKAP_LOGGER(logger, ".ChannelFlagTask");
+ASKAP_LOGGER(logger, ".FileFlagTask");
 
 using namespace askap;
 using namespace askap::cp::common;
@@ -51,7 +51,7 @@ using namespace askap::cp::ingest;
 /// @brief Constructor
 /// @param[in] parset the configuration parameter set.
 /// @param[in] config configuration
-ChannelFlagTask::ChannelFlagTask(const LOFAR::ParameterSet& parset, const Configuration& config) :
+FileFlagTask::FileFlagTask(const LOFAR::ParameterSet& parset, const Configuration& config) :
     itsBaselineMap(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
@@ -86,7 +86,7 @@ ChannelFlagTask::ChannelFlagTask(const LOFAR::ParameterSet& parset, const Config
 }
 
 /// @brief destructor
-ChannelFlagTask::~ChannelFlagTask()
+FileFlagTask::~FileFlagTask()
 {
 }
 
@@ -98,7 +98,7 @@ ChannelFlagTask::~ChannelFlagTask()
 ///
 /// @param[in,out] chunk  the instance of VisChunk for which the
 ///                       flags will be applied.
-void ChannelFlagTask::process(askap::cp::common::VisChunk::ShPtr chunk)
+void FileFlagTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 {
     ASKAPDEBUGASSERT(chunk);
     //
@@ -147,7 +147,7 @@ void ChannelFlagTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 /// @param[in,out] flag flag spectrum for the given baseline/pol index to work with
 /// @param[in] baseline baseline ID
 /// For future use: param[in] beam beam ID
-void ChannelFlagTask::processRow(casa::Vector<casa::Complex> &vis, casa::Vector<casa::Bool> &flag,
+void FileFlagTask::processRow(casa::Vector<casa::Complex> &vis, casa::Vector<casa::Bool> &flag,
                                  const casa::uInt baseline, const casa::uInt)
 {
     ASKAPDEBUGASSERT(baseline < itsChannelsToFlag.size());
@@ -159,12 +159,5 @@ void ChannelFlagTask::processRow(casa::Vector<casa::Complex> &vis, casa::Vector<
                    << vis.nelements());
         vis[*ci] = 0.;
         flag[*ci] = casa::True;
-    }
-    // additional hardcoded flagging of extreme outliers (probably spurious memory read outs)
-    for (casa::uInt ch = 0; ch < vis.nelements(); ++ch) {
-        if (casa::abs(vis[ch]) > 1e5) {
-            vis[ch] = 0.;
-            flag[ch] = casa::True;
-        }
     }
 }
