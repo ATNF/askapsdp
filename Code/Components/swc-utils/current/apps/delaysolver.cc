@@ -32,9 +32,11 @@
 ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
+#include <askap/Application.h>
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/TableManager.h>
 #include <dataaccess/IDataConverterImpl.h>
+#include <utils/PolConverter.h>
 
 
 #include <measures/Measures/MFrequency.h>
@@ -46,47 +48,70 @@ ASKAP_LOGGER(logger, "");
 using namespace askap;
 using namespace askap::accessors;
 
-void process(const IConstDataSource &ds, const int ctrl = -1) {
+class DelaySolverApp : public askap::Application {
+public:
+   /// @brief process a single file
+   /// @param[in] ds data source
+   void process(const IConstDataSource &ds);
+   
+   /// @brief run application
+   /// @param[in] argc number of parameters
+   /// @param[in] argv parameter vector
+   /// @return exit code
+   virtual int run(int argc, char *argv[]);
+};
+
+void DelaySolverApp::process(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   sel->chooseFeed(0);
   sel->chooseCrossCorrelations();
   //sel->chooseAutoCorrelations();
-  if (ctrl >=0 ) {
-      sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
-  }
   IDataConverterPtr conv=ds.createConverter();  
-  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
+  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));                    
  
-  utils::DelaySolverImpl solver(1e6);
+  const double targetRes = config().getDouble("resolution",1e6);
+  const std::string stokesStr = config().getString("stokes","XX");
+  const casa::Vector<casa::Stokes::StokesTypes> stokesVector = scimath::PolConverter::fromString(stokesStr);
+  ASKAPCHECK(stokesVector.nelements() == 1, "Exactly one stokes parameter should be defined, you have "<<stokesStr);
+  const double ampCutoff = config().getDouble("cutoff",-1.);
+  const casa::uInt refAnt = config().getUint("refant",1);
+  const bool exclude13 = config().getBool("exclude13", false);
+  utils::DelaySolverImpl solver(targetRes, stokesVector[0], ampCutoff, refAnt);
+  if (exclude13) {
+      solver.excludeBaselines(casa::Vector<std::pair<casa::uInt,casa::uInt> >(1,std::pair<casa::uInt,
+             casa::uInt>(1,2)));
+  }
   
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {
        solver.process(*it);  
   }
-  casa::Vector<double> delays = solver.solve();
-  std::cout<<delays<<std::endl;
+  casa::Vector<double> delays = solver.solve() * 1e9;
+  ASKAPLOG_INFO_STR(logger, "Corrections (ns): "<<delays);
+  const std::vector<double> currentDelays = config().getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays", std::vector<double>());
+  if (currentDelays.size() > 0) {
+      ASKAPCHECK(currentDelays.size() == delays.nelements(), "Number of antennas differ in fixeddelays parameter and in the dataset");
+      for (casa::uInt ant = 0; ant < delays.nelements(); ++ant) {
+           delays[ant] += currentDelays[ant];
+      }
+      ASKAPLOG_INFO_STR(logger, "New delays (ns): "<< delays);
+  }
 }
 
-int main(int argc, char **argv) {
+int DelaySolverApp::run(int, char **) {
   try {
-     if ((argc!=2) && (argc!=3)) {
-         std::cerr<<"Usage: "<<argv[0]<<" [ctrl] measurement_set"<<std::endl;
-	 return -2;
-     }
 
      casa::Timer timer;
-     const std::string msName = argv[argc - 1];
-     const int ctrl = argc == 2 ? -1 : utility::fromString<int>(argv[1]);
+     const std::string msName = parameter("ms");
 
      timer.mark();
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds,ctrl);
+     process(ds);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
-     
   }
   catch(const AskapError &ce) {
      std::cerr<<"AskapError has been caught. "<<ce.what()<<std::endl;
@@ -102,3 +127,10 @@ int main(int argc, char **argv) {
   }
   return 0;
 }
+
+int main(int argc, char *argv[]) {
+  DelaySolverApp app;
+  app.addParameter("ms","f", "Measurement set name (no default)");
+  return app.main(argc,argv);
+}
+

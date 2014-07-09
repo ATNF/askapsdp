@@ -197,7 +197,7 @@ casa::Vector<double> DelaySolverImpl::solve() const
   
   ASKAPDEBUGASSERT(itsAnt1IDs.nelements() == itsSpcBuffer.nrow());
   casa::Vector<double> delays(itsSpcBuffer.nrow()+1,0.);
-  casa::Matrix<double> dm(delays.nelements(),nAnt);
+  casa::Matrix<double> dm(delays.nelements(),nAnt,0.);
   for (casa::uInt bsln = 0; bsln < itsSpcBuffer.nrow(); ++bsln) {
        if (rows2exclude.find(bsln) == rows2exclude.end()) {
            casa::Vector<casa::Complex> buf = itsSpcBuffer.row(bsln).copy();
@@ -230,13 +230,15 @@ casa::Vector<double> DelaySolverImpl::solve() const
            }              
        }
   }
-  // condition for the reference antenna (ref. delay is set in the last element of delays)
+  // condition for the reference antenna (zero ref. delay is set in the last element of delays)
+  ASKAPCHECK(itsRefAnt < nAnt, "Reference antenna is not present");
   dm(itsSpcBuffer.nrow(),itsRefAnt) = 1.;
   
   // just do an explicit LSQ fit. We could've used SVD invert here.
-  casa::Matrix<double> nm = transpose(dm) * dm;
+  const casa::Matrix<double> dmt = transpose(dm);
+  const casa::Matrix<double> nm = product(dmt,dm);
   
-  casa::Vector<double> result = invert(nm) * (dm * delays);
+  casa::Vector<double> result = product(invert(nm), product(dmt,delays));
   
   return result;  
 }

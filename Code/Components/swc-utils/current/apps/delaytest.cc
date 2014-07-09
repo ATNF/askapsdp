@@ -82,6 +82,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
   casa::uInt nRow = 0;
   double startTime = 0;
   double stopTime = 0;
+  double timeIntervalInMin = 0.;
   
   casa::Vector<casa::uInt> ant1ids, ant2ids;
     
@@ -146,7 +147,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             
             
             // flagging based on the amplitude (to remove extreme outliers)
-            casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
+            //casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
             
             /*
             if ((casa::abs(currentAvgVis) > 0.5) && (row % 3 == 2)) {
@@ -171,7 +172,8 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
 
             
             // to disable flagging
-            flagged = false; //allFlagged; //false;
+            //flagged = false; 
+            flagged = allFlagged; 
             
 
             if (flagged) {
@@ -186,7 +188,8 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                 }
                 ++nGoodRows;
                 // uncomment to store averaged time-series
-                if ((counter>1) && (row % 3 == 2) && (it->feed1()[row] == 0)) {
+                if ((counter>1) && (row % 15 == 0) && (it->feed1()[row] == 0)) {
+                    timeIntervalInMin += 1./12.;
                     const casa::Vector<casa::Complex> currentSpectrum = thisRow.copy() / float(counter);                    
                     const casa::Complex avgVis = casa::sum(currentSpectrum) / float(currentSpectrum.nelements());
                     casa::Complex avgSqr(0.,0.);
@@ -198,7 +201,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                     const float varImag = casa::imag(avgSqr) - casa::square(casa::imag(avgVis)); 
                      
                     const double intervalInMin = (it->time() - startTime)/60.;
-                    os2<<counter<<" "<<intervalInMin<<" "<<1/sqrt(intervalInMin)<<" "<<casa::real(avgVis)<<" "<<
+                    os2<<counter<<" "<<intervalInMin<<" "<<1/sqrt(timeIntervalInMin)<<" "<<casa::real(avgVis)<<" "<<
                          sqrt(varReal)<<" "<<casa::imag(avgVis)<<" "<<sqrt(varImag)<<std::endl;
                 }               
             }
