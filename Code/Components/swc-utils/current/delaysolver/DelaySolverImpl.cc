@@ -33,6 +33,10 @@
 ASKAP_LOGGER(logger, ".delaysolver.DelaySolverImpl");
 
 #include <askap/AskapError.h>
+#include <casa/Arrays/MatrixMath.h>
+
+// std
+#include <set>
 
 using namespace askap;
 using namespace askap::utils;
@@ -153,8 +157,11 @@ void DelaySolverImpl::process(const accessors::IConstDataAccessor &acc)
              for (casa::uInt ch2 = 0; ch2 < itsChanToAverage; ++ch2,++index) {
                   ASKAPDEBUGASSERT(index < thisRowFlags.nelements());
                   if (!thisRowFlags[index]) {
-                      thisBufRowVis[chan] += thisRowVis[index];
-                      ++thisRowCounts[chan];
+                      const casa::Complex curVis = thisRowVis[index];
+                      if ((itsAmpCutoff < 0) || (abs(curVis) < itsAmpCutoff)) {
+                          thisBufRowVis[chan] += curVis;
+                          ++thisRowCounts[chan];
+                      }
                   }
              }   
         }
@@ -174,7 +181,62 @@ casa::Vector<double> DelaySolverImpl::solve() const
   const casa::uInt nAnt = casa::max(casa::max(itsAnt1IDs), casa::max(itsAnt2IDs)) + 1;
   
   ASKAPLOG_INFO_STR(logger, "Using "<<itsNAvg<<" cycles to estimate delays for "<<nAnt<<" antennas; reference = "<<itsRefAnt);
-  casa::Vector<double> result(nAnt,0.);
+  // build a set of baselines (rows) to exclude
+  std::set<casa::uInt> rows2exclude;
+  ASKAPDEBUGASSERT(itsAnt1IDs.nelements() == itsAnt2IDs.nelements());
+  for (casa::uInt row=0; row<itsAnt1IDs.nelements(); ++row) {
+       for (casa::uInt bsln = 0; bsln < itsExcludedBaselines.nelements(); ++bsln) {
+            if ((itsExcludedBaselines[bsln].first == itsAnt1IDs[row]) && 
+                (itsExcludedBaselines[bsln].second == itsAnt2IDs[row])) {
+                 rows2exclude.insert(row);
+            }
+       }
+  }
+  ASKAPLOG_INFO_STR(logger, "Using "<<itsAnt1IDs.nelements() - rows2exclude.size()<<" rows(baselines) out of "<<
+                             itsAnt1IDs.nelements()<<" available in the dataset");
+  
+  ASKAPDEBUGASSERT(itsAnt1IDs.nelements() == itsSpcBuffer.nrow());
+  casa::Vector<double> delays(itsSpcBuffer.nrow()+1,0.);
+  casa::Matrix<double> dm(delays.nelements(),nAnt);
+  for (casa::uInt bsln = 0; bsln < itsSpcBuffer.nrow(); ++bsln) {
+       if (rows2exclude.find(bsln) == rows2exclude.end()) {
+           casa::Vector<casa::Complex> buf = itsSpcBuffer.row(bsln).copy();
+           const casa::Vector<casa::uInt> thisRowCounts = itsAvgCounts.row(bsln);
+           ASKAPDEBUGASSERT(buf.nelements() == thisRowCounts.nelements());           
+           for (casa::uInt chan=0; chan < buf.nelements(); ++chan) {
+                if (thisRowCounts[chan] > 0) {
+                    buf[chan] /= float(thisRowCounts[chan]);
+                } else {
+                    if (chan > 0) {
+                        // don't really have much better way to guess the phase of the flagged channel
+                        // We could've interpolate, but unwrapping phase may be difficult, especially if
+                        // more than one channel is flagged
+                        buf[chan] = buf[chan - 1];
+                    }
+                }
+           }
+           delays[bsln] = itsDelayEstimator.getDelay(buf);
+           // now fill the design matrix
+           const casa::uInt ant1 = itsAnt1IDs[bsln];
+           ASKAPDEBUGASSERT(ant1 < dm.ncolumn()); 
+           const casa::uInt ant2 = itsAnt2IDs[bsln];
+           ASKAPDEBUGASSERT(ant2 < dm.ncolumn());
+           ASKAPDEBUGASSERT(bsln < dm.nrow()); 
+           if (ant1 != itsRefAnt) {               
+               dm(bsln,ant1) = 1.;
+           }
+           if (ant2 != itsRefAnt) {
+               dm(bsln,ant2) = -1.;
+           }              
+       }
+  }
+  // condition for the reference antenna (ref. delay is set in the last element of delays)
+  dm(itsSpcBuffer.nrow(),itsRefAnt) = 1.;
+  
+  // just do an explicit LSQ fit. We could've used SVD invert here.
+  casa::Matrix<double> nm = transpose(dm) * dm;
+  
+  casa::Vector<double> result = invert(nm) * (dm * delays);
   
   return result;  
 }
