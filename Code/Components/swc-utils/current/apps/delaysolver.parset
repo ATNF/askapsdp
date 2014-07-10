@@ -4,9 +4,10 @@ stokes = XX
 
 resolution = 1e6
 
-cutoff = 10
+#cutoff = 10
+cutoff = 0.23
 
 exclude13 = true
 
 # current fixed delay parameters
-cp.ingest.tasks.FringeRotationTask.params.fixeddelays = [-233.732942, 0.0, -363.0, -234.07457, 230.0, -639.514864]
+cp.ingest.tasks.FringeRotationTask.params.fixeddelays = [-235.15394, 0, -367.101819, -233.903375, 227.404404, -639.975888]

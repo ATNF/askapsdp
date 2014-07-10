@@ -45,6 +45,8 @@ ASKAP_LOGGER(logger, "");
 
 #include <delaysolver/DelaySolverImpl.h>
 
+#include <iomanip>
+
 using namespace askap;
 using namespace askap::accessors;
 
@@ -88,15 +90,17 @@ void DelaySolverApp::process(const IConstDataSource &ds) {
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {
        solver.process(*it);  
   }
-  casa::Vector<double> delays = solver.solve() * 1e9;
-  ASKAPLOG_INFO_STR(logger, "Corrections (ns): "<<delays);
+  // corrections have the opposite sign from determined delays, hence the minus
+  // the units in the fcm are in ns
+  casa::Vector<double> delays = -solver.solve() * 1e9;
+  ASKAPLOG_INFO_STR(logger, "Corrections (ns): "<<std::setprecision(9)<<delays);
   const std::vector<double> currentDelays = config().getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays", std::vector<double>());
   if (currentDelays.size() > 0) {
       ASKAPCHECK(currentDelays.size() == delays.nelements(), "Number of antennas differ in fixeddelays parameter and in the dataset");
       for (casa::uInt ant = 0; ant < delays.nelements(); ++ant) {
            delays[ant] += currentDelays[ant];
       }
-      ASKAPLOG_INFO_STR(logger, "New delays (ns): "<< delays);
+      ASKAPLOG_INFO_STR(logger, "New delays (ns): "<< std::setprecision(9)<<delays);
   }
 }
 

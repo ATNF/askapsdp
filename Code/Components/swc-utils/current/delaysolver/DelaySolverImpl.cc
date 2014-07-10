@@ -37,6 +37,8 @@ ASKAP_LOGGER(logger, ".delaysolver.DelaySolverImpl");
 
 // std
 #include <set>
+#include <fstream>
+#include <iomanip>
 
 using namespace askap;
 using namespace askap::utils;
@@ -198,6 +200,7 @@ casa::Vector<double> DelaySolverImpl::solve() const
   ASKAPDEBUGASSERT(itsAnt1IDs.nelements() == itsSpcBuffer.nrow());
   casa::Vector<double> delays(itsSpcBuffer.nrow()+1,0.);
   casa::Matrix<double> dm(delays.nelements(),nAnt,0.);
+  std::ofstream os("avgspectrum.dat");
   for (casa::uInt bsln = 0; bsln < itsSpcBuffer.nrow(); ++bsln) {
        if (rows2exclude.find(bsln) == rows2exclude.end()) {
            casa::Vector<casa::Complex> buf = itsSpcBuffer.row(bsln).copy();
@@ -214,6 +217,7 @@ casa::Vector<double> DelaySolverImpl::solve() const
                         buf[chan] = buf[chan - 1];
                     }
                 }
+                os<<itsAnt1IDs[bsln]<<" "<<itsAnt2IDs[bsln]<<" "<<chan<<" "<<arg(buf[chan])/casa::C::pi*180.<<std::endl;
            }
            delays[bsln] = itsDelayEstimator.getDelay(buf);
            // now fill the design matrix
@@ -230,6 +234,8 @@ casa::Vector<double> DelaySolverImpl::solve() const
            }              
        }
   }
+  ASKAPLOG_INFO_STR(logger, "Delays (ns) per baseline: "<<std::setprecision(9)<<delays*1e9);
+
   // condition for the reference antenna (zero ref. delay is set in the last element of delays)
   ASKAPCHECK(itsRefAnt < nAnt, "Reference antenna is not present");
   dm(itsSpcBuffer.nrow(),itsRefAnt) = 1.;
