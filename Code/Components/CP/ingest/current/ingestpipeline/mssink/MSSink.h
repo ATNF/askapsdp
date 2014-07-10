@@ -132,6 +132,9 @@ class MSSink : public askap::cp::ingest::ITask {
                 const casa::String& mount,
                 const casa::Double& dishDiameter);
 
+        // Add entries from the VisChunk to the pointint table
+        void addPointingRows(const askap::cp::common::VisChunk& chunk);
+
         // Add data description table row
         casa::Int addDataDesc(const casa::Int spwId, const casa::Int polId);
 
@@ -173,6 +176,9 @@ class MSSink : public askap::cp::ingest::ITask {
 
         // Configuration object
         const Configuration itsConfig;
+
+        // True if the POINTING table should be written
+        bool itsPointingTableEnabled;
 
         // The index number of the scan for the previous VisChunk. Some things
         // (such as spectral window or field) are allowed to change from scan

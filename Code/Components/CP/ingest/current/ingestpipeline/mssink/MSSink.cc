@@ -56,6 +56,7 @@
 #include "tables/Tables/TiledShapeStMan.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
+#include "tables/Tables/ScaColDesc.h"
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
@@ -83,6 +84,7 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset,
     itsFieldRow(-1), itsDataDescRow(-1)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
+    itsPointingTableEnabled = parset.getBool("pointingtable.enable", false);
     create();
     initAntennas(); // Includes FEED table
     initObs();
@@ -167,6 +169,11 @@ void MSSink::process(VisChunk::ShPtr chunk)
     const casa::Double Tend = Tmid + (Tint / 2);
     timeRange(1) = Tend;
     obsc.timeRange().put(0, timeRange);
+
+    //
+    // Update the pointing table
+    //
+    addPointingRows(*chunk);
 
     itsMs->flush();
 }
@@ -339,6 +346,13 @@ void MSSink::create(void)
     itsMs->createDefaultSubtables(Table::New);
     itsMs->flush();
 
+    // Add an POLANGLE column to the pointing table if the pointing table is written
+    if (itsPointingTableEnabled) {
+        MSPointing& pointing = itsMs->pointing();
+        pointing.addColumn(casa::ScalarColumnDesc<casa::Float>("POLANGLE",
+                    "Actual polarisation angle (in degrees) of the third-axis"));
+    }
+
     // Set the TableInfo
     {
         TableInfo& info(itsMs->tableInfo());
@@ -346,6 +360,10 @@ void MSSink::create(void)
         info.setSubType(String(""));
         info.readmeAddLine("This is a MeasurementSet Table holding simulated astronomical observations");
     }
+
+    // Set Epoch Reference to UTC
+    MSColumns msc(*itsMs);
+    msc.setEpochRef(casa::MEpoch::UTC);
 }
 
 void MSSink::initAntennas(void)
@@ -408,6 +426,52 @@ casa::Int MSSink::addObs(const casa::String& telescope,
     ASKAPCHECK(obsc.nrow() == (row + 1), "Unexpected observation row count");
 
     return row;
+}
+
+void MSSink::addPointingRows(const VisChunk& chunk)
+{
+    if (!itsPointingTableEnabled) return;
+
+    MSColumns msc(*itsMs);
+    MSPointingColumns& pointingc = msc.pointing();
+    casa::ScalarColumn<casa::Float> polAngleCol(itsMs->pointing(), "POLANGLE");
+
+    uInt row = pointingc.nrow();
+
+    // Initialise if this is the first cycle
+    if (row == 0) {
+        pointingc.setDirectionRef(casa::MDirection::J2000);
+    }
+
+    const casa::uInt nAntenna = chunk.nAntenna();
+    itsMs->pointing().addRow(nAntenna);
+
+    const double t = chunk.time().getTime().getValue("s");
+    const double interval = chunk.interval();
+
+    for (casa::uInt i = 0; i < nAntenna; ++i) {
+        pointingc.antennaId().put(row, i);
+        pointingc.time().put(row, t);
+        pointingc.interval().put(row, interval);
+
+        pointingc.name().put(row, "");
+        pointingc.numPoly().put(row, 0);
+        pointingc.timeOrigin().put(row, 0);
+
+        const Vector<MDirection> actual(1, chunk.actualPointingCentre()(i));
+        pointingc.directionMeasCol().put(row, actual);
+
+        const Vector<MDirection> target(1, chunk.targetPointingCentre()(i));
+        pointingc.targetMeasCol().put(row, target);
+
+        pointingc.tracking().put(row, true);
+
+        // Non-standard-columns
+        polAngleCol.put(row,
+                static_cast<float>(chunk.actualPolAngle()(i).getValue("deg")));
+
+        ++row;
+    }
 }
 
 casa::Int MSSink::addField(const casa::String& fieldName,

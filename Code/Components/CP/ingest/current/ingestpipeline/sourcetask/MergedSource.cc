@@ -318,7 +318,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
         const string antName = itsConfig.antennas()[i].name();
         const TosMetadataAntenna mdant = metadata.antenna(antName);
         chunk->targetPointingCentre()[i] = metadata.targetDirection();
-        chunk->actualPointingCentre()[i] = mdant.actualAzEl();
+        chunk->actualPointingCentre()[i] = mdant.actualRaDec();
         chunk->actualPolAngle()[i] = mdant.actualPolAngle();
     }
 
