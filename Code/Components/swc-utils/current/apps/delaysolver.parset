@@ -9,5 +9,14 @@ cutoff = 0.23
 
 exclude13 = true
 
-# current fixed delay parameters
-cp.ingest.tasks.FringeRotationTask.params.fixeddelays = [-235.15394, 0, -367.101819, -233.903375, 227.404404, -639.975888]
+# path to scheduling blocks
+sbpath = /scratch/askap/askapops/archive/askap-scheduling-blocks
+
+# the following parameters are allowed only if the scheduling block ID is not given as a command line parameter
+
+# measurement set name
+#ms = /scratch/askap/askapops/archive/askap-scheduling-blocks/199/2014-07-10_100857.ms
+
+# current fixed delay parameters 
+#cp.ingest.tasks.FringeRotationTask.params.fixeddelays = [-235.15394, 0, -367.101819, -233.903375, 227.404404, -639.975888]
+

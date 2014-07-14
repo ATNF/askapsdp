@@ -42,8 +42,11 @@ ASKAP_LOGGER(logger, "");
 #include <measures/Measures/MFrequency.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/OS/Timer.h>
+#include <casa/OS/Directory.h>
 
 #include <delaysolver/DelaySolverImpl.h>
+
+#include <Common/ParameterSet.h>
 
 #include <iomanip>
 
@@ -54,7 +57,8 @@ class DelaySolverApp : public askap::Application {
 public:
    /// @brief process a single file
    /// @param[in] ds data source
-   void process(const IConstDataSource &ds);
+   /// @param[in] currentDelays a vector with fixed delays (per antenna) used for observations
+   void process(const IConstDataSource &ds, const std::vector<double>& currentDelays);
    
    /// @brief run application
    /// @param[in] argc number of parameters
@@ -63,11 +67,11 @@ public:
    virtual int run(int argc, char *argv[]);
 };
 
-void DelaySolverApp::process(const IConstDataSource &ds) {
+void DelaySolverApp::process(const IConstDataSource &ds, const std::vector<double>& currentDelays) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(0);
+  casa::uInt beam = config().getUint("beam",0);
+  sel->chooseFeed(beam);
   sel->chooseCrossCorrelations();
-  //sel->chooseAutoCorrelations();
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -94,13 +98,21 @@ void DelaySolverApp::process(const IConstDataSource &ds) {
   // the units in the fcm are in ns
   casa::Vector<double> delays = -solver.solve() * 1e9;
   ASKAPLOG_INFO_STR(logger, "Corrections (ns): "<<std::setprecision(9)<<delays);
-  const std::vector<double> currentDelays = config().getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays", std::vector<double>());
   if (currentDelays.size() > 0) {
+      ASKAPLOG_INFO_STR(logger, "Old delays (ns): "<< std::setprecision(9) << currentDelays);
       ASKAPCHECK(currentDelays.size() == delays.nelements(), "Number of antennas differ in fixeddelays parameter and in the dataset");
       for (casa::uInt ant = 0; ant < delays.nelements(); ++ant) {
            delays[ant] += currentDelays[ant];
       }
       ASKAPLOG_INFO_STR(logger, "New delays (ns): "<< std::setprecision(9)<<delays);
+      const std::string outParset = "corrected_fixeddelay.parset"; 
+      {
+          std::ofstream os(outParset.c_str());
+          os << "cp.ingest.tasks.FringeRotationTask.params.fixeddelays = " << std::setprecision(9)<<delays << std::endl;
+      }
+      ASKAPLOG_INFO_STR(logger, "The new delays are now stored in "<<outParset);       
+  } else {
+      ASKAPLOG_WARN_STR(logger, "No fixed delays specified in the parset -> no update");
   }
 }
 
@@ -108,13 +120,44 @@ int DelaySolverApp::run(int, char **) {
   try {
 
      casa::Timer timer;
-     const std::string msName = parameter("ms");
+     std::string msName = parameter("ms");
+     const std::string sbID = parameter("sb");
 
+     // get current delays from the application's parset, this is only intended to be used if no scheduling block ID is given
+     std::vector<double> currentDelays = config().getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays", 
+                                               std::vector<double>());
+     if (config().isDefined("ms")) {
+         ASKAPCHECK(msName == "", "Use either ms parset parameter or the command line argument, not both");
+         msName = config().getString("ms");
+     }
+     
+     if (sbID != "") {
+         // scheduling block ID is specified, the file name will be taken from SB
+         ASKAPCHECK(msName == "", "When the scheduling block ID is specified, the file name is taken from that SB. "
+                    "Remove the -f command line parameter or ms keyword in the parset to continue.");
+         casa::Path path2sb(config().getString("sbpath","./"));
+         path2sb.append(sbID);
+         const casa::Directory sbDir(path2sb);
+         // do not follow symlinks, non-recursive
+         const casa::Vector<casa::String> dirContent = sbDir.find(casa::Regex::fromPattern("*.ms"),casa::False, casa::False);
+         ASKAPCHECK(dirContent.nelements() > 0, "Unable to find a measurement set file in "<<sbDir.path().absoluteName());
+         ASKAPCHECK(dirContent.nelements() == 1, "Multiple measurement sets are present in "<<sbDir.path().absoluteName());
+         msName = dirContent[0];
+         // fixed delays will be taken from cpingest.in in the SB directory
+         casa::Path path2cpingest(path2sb);
+         path2cpingest.append("cpingest.in");
+         const LOFAR::ParameterSet ingestParset(path2cpingest.absoluteName());
+         ASKAPCHECK(currentDelays.size() == 0, "When the scheduling block ID is specified, the current fixed delays are taken "
+                    "from the ingest pipeline parset stored with that SB. Remove it from the application's parset to continue.");
+         
+         currentDelays = ingestParset.getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays");                                
+     }
      timer.mark();
+     ASKAPLOG_INFO_STR(logger, "Processing measurement set "<<msName);
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds);
+     process(ds, currentDelays);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
   }
   catch(const AskapError &ce) {
@@ -134,7 +177,8 @@ int DelaySolverApp::run(int, char **) {
 
 int main(int argc, char *argv[]) {
   DelaySolverApp app;
-  app.addParameter("ms","f", "Measurement set name (no default)");
+  app.addParameter("ms","f", "Measurement set name (optional)","");
+  app.addParameter("sb","s", "Scheduling block number (optional)","");  
   return app.main(argc,argv);
 }
 
