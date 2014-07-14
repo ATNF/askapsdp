@@ -16,3 +16,4 @@ tools, tools under development, etc.
    correlatorsim/index.rst
    calim/index.rst
    analysis/index.rst
+   utils/index.rst
