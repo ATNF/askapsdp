@@ -108,6 +108,7 @@ void DelaySolverApp::process(const IConstDataSource &ds, const std::vector<doubl
       const std::string outParset = "corrected_fixeddelay.parset"; 
       {
           std::ofstream os(outParset.c_str());
+          // write the file in the format directly understood by fcm put to simplify operations
           os << "cp.ingest.tasks.FringeRotationTask.params.fixeddelays = " << std::setprecision(9)<<delays << std::endl;
       }
       ASKAPLOG_INFO_STR(logger, "The new delays are now stored in "<<outParset);       
@@ -120,8 +121,8 @@ int DelaySolverApp::run(int, char **) {
   try {
 
      casa::Timer timer;
-     std::string msName = parameter("ms");
-     const std::string sbID = parameter("sb");
+     std::string msName = parameterExists("ms") ? parameter("ms") : "";
+     const std::string sbID = parameterExists("sb") ? parameter("sb") : "";
 
      // get current delays from the application's parset, this is only intended to be used if no scheduling block ID is given
      std::vector<double> currentDelays = config().getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays", 
@@ -142,17 +143,22 @@ int DelaySolverApp::run(int, char **) {
          const casa::Vector<casa::String> dirContent = sbDir.find(casa::Regex::fromPattern("*.ms"),casa::False, casa::False);
          ASKAPCHECK(dirContent.nelements() > 0, "Unable to find a measurement set file in "<<sbDir.path().absoluteName());
          ASKAPCHECK(dirContent.nelements() == 1, "Multiple measurement sets are present in "<<sbDir.path().absoluteName());
-         msName = dirContent[0];
+         casa::Path path2ms(path2sb);
+         path2ms.append(dirContent[0]);
+         msName = path2ms.absoluteName();
          // fixed delays will be taken from cpingest.in in the SB directory
          casa::Path path2cpingest(path2sb);
          path2cpingest.append("cpingest.in");
+         ASKAPLOG_INFO_STR(logger, "Ingest parset: "<<path2cpingest.absoluteName());
          const LOFAR::ParameterSet ingestParset(path2cpingest.absoluteName());
          ASKAPCHECK(currentDelays.size() == 0, "When the scheduling block ID is specified, the current fixed delays are taken "
                     "from the ingest pipeline parset stored with that SB. Remove it from the application's parset to continue.");
          
-         currentDelays = ingestParset.getDoubleVector("cp.ingest.tasks.FringeRotationTask.params.fixeddelays");                                
+         // here we look at the actual ingest pipeline parset not the fcm, so there is no cp.ingest prefix
+         currentDelays = ingestParset.getDoubleVector("tasks.FringeRotationTask.params.fixeddelays");                                
      }
      timer.mark();
+     ASKAPCHECK(msName != "", "Measurement set should be specified explicitly or the scheduling block should be given");
      ASKAPLOG_INFO_STR(logger, "Processing measurement set "<<msName);
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;

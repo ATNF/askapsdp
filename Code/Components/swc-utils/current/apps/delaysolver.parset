@@ -1,15 +1,23 @@
 # delay solver parameters
 
+# polarisation product to use
 stokes = XX
 
+# data are averaged down to the given resolution (in Hz), no change if the current 
+# resolution is already coarser than this value
 resolution = 1e6
 
-#cutoff = 10
+# beam to work with
+beam = 0
+
+# spectral channels with the amplitude greater than this value in the original unsmoothed 
+# dataset are flagged
 cutoff = 0.23
 
+# if true AK01-AK03 baseline is excluded from the solution
 exclude13 = true
 
-# path to scheduling blocks
+# path to scheduling blocks archive
 sbpath = /scratch/askap/askapops/archive/askap-scheduling-blocks
 
 # the following parameters are allowed only if the scheduling block ID is not given as a command line parameter
