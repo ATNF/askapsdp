@@ -60,6 +60,7 @@ Application::Application() : itsOptionsDesc("Program Options")
     // These are added first so they appear first in the usage message
     itsOptionsDesc.add_options()
     ("help,h", "produce help message")
+    ("version", "report version number")
     ("config,c", po::value<string>(), "configuration parameter set file")
     ("log-config,l", po::value<string>(), "logger configuration file")
     ;
@@ -140,6 +141,11 @@ void Application::processCmdLineArgs(int argc, char *argv[])
 
     if (parameterExists("help")) {
         usage();
+        return;
+    }
+    if (parameterExists("version")) {
+        version();
+        return;
     }
 }
 
@@ -207,6 +213,12 @@ void Application::usage()
 {
     std::cerr << itsOptionsDesc << std::endl;
     exit(EXIT_FAILURE);
+}
+
+void Application::version()
+{
+    std::cerr << ASKAP_PACKAGE_VERSION << std::endl;
+    exit(EXIT_SUCCESS);
 }
 
 std::string Application::buildKey(const std::string& keyLong,

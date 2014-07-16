@@ -177,6 +177,9 @@ namespace askap {
             /// Prints the usage message to stderr then calls exit()
             void usage();
 
+            /// Print the version string to stderr then calls exit()
+            void version();
+
             /// Builds a key to be passed to the boost program options from a
             /// long form and a short form parameter.
             static std::string buildKey(const std::string& keyLong,
