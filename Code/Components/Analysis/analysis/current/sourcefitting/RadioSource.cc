@@ -1083,6 +1083,9 @@ namespace askap {
 		      guess.saveGuess(cmpntList);
 		      this->itsBestFitMap["guess"] = guess;
 		      this->itsBestFitMap["best"] = guess;
+		      for (type = typelist.begin(); type < typelist.end(); type++) {
+			  if (this->itsFitParams.hasType(*type)) this->itsBestFitMap[*type] = guess;
+		      }
 		      ASKAPLOG_INFO_STR(logger, "No good fit found, so saving initial guess as the fit result");
 		      this->itsBestFitMap["best"].logIt("INFO");
 		    }
