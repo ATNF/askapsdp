@@ -1,0 +1,13 @@
+/// @defgroup swcutils Utilities to analyse the output of the software correlator
+/// @defgroup utils Misc operations utilities
+
+/// Utilities namespace
+namespace askap::utils {};
+
+/// @mainpage ASKAP Central Processor Data Services C++ Client Package
+///
+
+/// @section channels_subpackages Subpackages
+/// @li @ref utils Operations utilities
+
+/// @copyright 2011 CSIRO, All Rights Reserved.

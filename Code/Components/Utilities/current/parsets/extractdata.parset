@@ -1,0 +1,23 @@
+# to choose only one beam (otherwise all are extracted)
+Feed = 7
+# to choose only auto or only cross-correlations (otherwise everything is extracted)
+CorrelationType = cross
+# to choose only one baseline (otherwise all are extracted). Note, it should be present in the measurement set, i.e. 0-1 is not the same as 1-0
+#Baseline=[0,1]
+# to inspect lag spectrum instead of raw visibilities (i.e. fringe plot)
+dofft = false
+# average given number of consecutive cycles
+nAvg = 1
+# maximum number of cycles (used to create buffers up front), should be greater than obs. time / 5s
+maxcycles = 12000
+# what to export (amplitude or phase)
+datatype = amplitude
+#datatype = real
+#datatype = phase
+# choose which stokes to export
+stokes=XX
+# if true, each two adjacent integrations are subtracted (as complex numbers)
+#makediff = true
+
+# optionally the dataset can be given in the parset, alternatively, it can be specified in the command line
+#dataset=/data/AKSCOR01_2/scratch/vor010/MS/2013-11-04_032155.ms

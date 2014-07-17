@@ -1,0 +1,35 @@
+# @file
+# SConstruct build script for this module.
+# This is currently a test case, please edit this comment when deemed stable
+#
+# @author Malte Marquarding <Malte.Marquarding@csiro.au>
+#
+
+# Always import this
+from askapenv import env
+import os
+import sys
+
+if 'AIPSPATH' not in os.environ:
+   os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
+
+#env.Append(CCFLAGS=['-O3', '-fopenmp'])
+#env.Append(LINKFLAGS=['-fopenmp'])
+
+# Optimization for complex arithmetic. The functionality this flag enables
+# was default behaviour prior to GCC 4.3. However this option is not supported
+# by clang, so don't use it on Mac
+if sys.platform != 'darwin':
+    env.AppendUnique(CCFLAGS=['-fcx-limited-range'])
+
+# create build object with library name
+pkg = env.AskapPackage("utilities")
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
+
+# add sub packages 
+pkg.AddSubPackage("delaysolver")
+
+# run the build process
+pkg()
+
