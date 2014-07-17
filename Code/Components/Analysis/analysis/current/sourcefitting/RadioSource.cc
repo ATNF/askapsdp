@@ -1245,12 +1245,18 @@ namespace askap {
 
 	    duchamp::Catalogues::CatalogueSpecification newSpec;
 	    newSpec.addColumn(inputSpec.column("NUM"));
+	    newSpec.column("NUM").setName("ID");
+	    newSpec.column("NUM").setUnits("--");
+	    newSpec.column("NUM").setDatatype("char");
 	    newSpec.addColumn(inputSpec.column("NAME"));
+	    newSpec.column("NAME").setUnits("--");
 	    newSpec.addColumn(inputSpec.column("RAJD"));
 	    newSpec.addColumn(inputSpec.column("DECJD"));
 	    // newSpec.addColumn(inputSpec.column("VEL"));
 	    newSpec.addColumn(inputSpec.column("X"));
+	    newSpec.column("X").setUnits("[pix]");
 	    newSpec.addColumn(inputSpec.column("Y"));
+	    newSpec.column("Y").setUnits("[pix]");
 	    // newSpec.addColumn(inputSpec.column("Z"));
 	    newSpec.addColumn(inputSpec.column("FINT"));
 	    newSpec.addColumn(inputSpec.column("FPEAK"));
@@ -1259,8 +1265,6 @@ namespace askap {
 	    // newSpec.column("FINT").changePrec(fluxPrec);
 	    newSpec.column("FPEAK").setUCD("phot.flux.density.peak");
 	    // newSpec.column("FPEAK").changePrec(fluxPrec);
-	    newSpec.column("NUM").setName("ID");
-	    newSpec.column("NUM").setDatatype("char");
 	    // new columns
 	    newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", "["+header.getIntFluxUnits()+"]",10,3,"phot.flux.density.integrated;stat.fit","float","col_fint_fit","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", "["+header.getFluxUnits()+"]", 10, 3,"phot.flux.density.peak;stat.fit","float","col_fpeak_fit","") );
@@ -1270,16 +1274,16 @@ namespace askap {
 	    newSpec.addColumn( duchamp::Catalogues::Column("MAJDECONV","Maj(fit_deconv.)", "[arcsec]", 17, 3,"phys.angSize.smajAxis;meta.deconvolved","float","col_maj_deconv","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("MINDECONV","Min(fit_deconv.)", "[arcsec]", 17, 3,"phys.angSize.sminAxis;meta.deconvolved","float","col_min_deconv","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("PADECONV","P.A.(fit_deconv.)", "[deg]", 18, 2,"phys.angSize;pos.posAng;meta.deconvolved","float","col_pa_deconv","") ); 
-	    newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "", 8, 3,"spect.index","float","col_alpha","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "", 8, 3,"spect.curvature","float","col_beta","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("CHISQFIT","Chisq(fit)", "", 10,3,"stat.fit.chi2","float","col_chisqfit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "--", 8, 3,"spect.index","float","col_alpha","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "--", 8, 3,"spect.curvature","float","col_beta","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("CHISQFIT","Chisq(fit)", "--", 10,3,"stat.fit.chi2","float","col_chisqfit","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("RMSIMAGE","RMS(image)", "["+header.getFluxUnits()+"]", 10,3,"stat.stdev;phot.flux.density","float","col_rmsimage","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("RMSFIT","RMS(fit)", "", 10, 3,"stat.stdev;stat.fit","float","col_rmsfit","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("NFREEFIT","Nfree(fit)", "", 11, 0,"meta.number;stat.fit.param;stat.fit","int","col_nfreefit","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("NDOFFIT","NDoF(fit)", "", 10, 0,"stat.fit.dof","int","col_ndoffit","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXFIT","NPix(fit)", "", 10, 0,"meta.number;instr.pixel","int","col_npixfit","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXOBJ","NPix(obj)", "", 10, 0,"meta.number;instr.pixel;stat.fit","int","col_npixobj","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("GUESS","Guess?","",7,0,"meta.flag","int","col_guess","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("RMSFIT","RMS(fit)", "["+header.getFluxUnits()+"]", 10, 3,"stat.stdev;stat.fit","float","col_rmsfit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NFREEFIT","Nfree(fit)", "--", 11, 0,"meta.number;stat.fit.param;stat.fit","int","col_nfreefit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NDOFFIT","NDoF(fit)", "--", 10, 0,"stat.fit.dof","int","col_ndoffit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXFIT","NPix(fit)", "--", 10, 0,"meta.number;instr.pixel","int","col_npixfit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXOBJ","NPix(obj)", "--", 10, 0,"meta.number;instr.pixel;stat.fit","int","col_npixobj","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("GUESS","Guess?","--",7,0,"meta.flag","int","col_guess","") );
     
 	    return newSpec;
 	  }

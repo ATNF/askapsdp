@@ -106,17 +106,17 @@ namespace askap {
     {
       if(this->itsOpenFlag){
 	*this->itsStream << "#";
-	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
-	  this->itsColumnSpecification->column(i).printDash(*this->itsStream);
-	*this->itsStream << "\n#";
+	// for(size_t i=0;i<this->itsColumnSpecification->size();i++)
+	//   this->itsColumnSpecification->column(i).printDash(*this->itsStream);
+	// *this->itsStream << "\n#";
 	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
 	  this->itsColumnSpecification->column(i).printTitle(*this->itsStream);
 	*this->itsStream << "\n#";
 	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
 	  this->itsColumnSpecification->column(i).printUnits(*this->itsStream);
-	*this->itsStream << "\n#";
-	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
-	  this->itsColumnSpecification->column(i).printDash(*this->itsStream);
+	// *this->itsStream << "\n#";
+	// for(size_t i=0;i<this->itsColumnSpecification->size();i++)
+	//   this->itsColumnSpecification->column(i).printDash(*this->itsStream);
 	*this->itsStream << "\n";
       }
     }
