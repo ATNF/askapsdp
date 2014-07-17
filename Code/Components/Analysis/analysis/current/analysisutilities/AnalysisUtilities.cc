@@ -190,7 +190,7 @@ namespace askap {
 	    par.setFlagUsePrevious(parset.getBool("usePrevious",par.getFlagUsePrevious()));
 	    par.setObjectList(parset.getString("objectList",par.getObjectList()));
 
-            par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
+            par.setFlagLog(parset.getBool("flagLog",par.getFlagLog()));
 	    par.setLogFile(parset.getString("logFile",par.getLogFile()));
 	    if(parset.isDefined("resultsFile"))
 		par.setOutFile(parset.getString("resultsFile",par.getOutFile()));
