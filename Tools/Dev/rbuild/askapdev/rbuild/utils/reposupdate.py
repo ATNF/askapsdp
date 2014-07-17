@@ -25,6 +25,7 @@
 import os
 
 from runcmd import runcmd
+from get_vcs_type import is_svn
 from q_print import q_print
 from ..exceptions import BuildError
 
@@ -95,6 +96,9 @@ def update_tree(dirpath, quiet=False):
     :param dirpath: The repository dirpath to update.
     :param quiet: suppress stdout output
     '''
+    if not is_svn():
+        return
+
     rpath = None
     if not quiet:
         if dirpath.find(ASKAP_ROOT) == 0: # start of string

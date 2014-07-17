@@ -1,7 +1,7 @@
-# @file get_svn_revision.py
-# Fetch the subversion revision number from the repository
+# @file get_vcs_type.py
+# Determine the version control system
 #
-# @copyright (c) 2006,2014 CSIRO
+# @copyright (c) 2014 CSIRO
 # Australia Telescope National Facility (ATNF)
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 # PO Box 76, Epping NSW 1710, Australia
@@ -23,26 +23,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
-# @author Robert Crida <robert.crida@ska.ac.za>
+# @author Ben Humphreys <ben.humphreys@csiro.au>
 #
 
 from runcmd import runcmd
-from get_vcs_type import is_git
-import os
 
-def get_svn_revision():
-    if is_git():
-        return get_git_revision()
+def is_git():
+    (stdout, stderr, returncode) = runcmd('git status -s', shell=False)
+    return True if (returncode == 0) else False
 
-    (stdout, stderr, returncode) = runcmd('svnversion', shell=True)
-    if returncode == 0 and stdout and stdout[0].isdigit():
-        return stdout.rstrip()
-    else:
-        return "nonsvn"
-
-def get_git_revision():
-    (stdout, stderr, returncode) = runcmd('git describe --tags --always', shell=True)
-    if returncode == 0:
-        return stdout.rstrip()
-    else:
-        return "nongit"
+def is_svn():
+    (stdout, stderr, returncode) = runcmd('svn info', shell=False)
+    return True if (returncode == 0) else False
