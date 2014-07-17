@@ -1,3 +1,4 @@
 synthesis=Code/Components/Synthesis/synthesis/current
 analysis=Code/Components/Analysis/analysis/current
 pipelinetasks=Code/Components/CP/pipelinetasks/current
+utilities=Code/Components/Utilities/current
