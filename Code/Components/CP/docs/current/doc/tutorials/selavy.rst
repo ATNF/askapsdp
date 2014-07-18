@@ -423,4 +423,18 @@ This will then just fit to the location and flux of the component,
 keeping the size fixed to that of the beam (as specified in the image
 header). 
 
+You can specify more than one fitting mode, by doing something like: 
 
+.. code-block:: bash
+
+    # This does both a full-parameter fit and a PSF-sized fit
+    Selavy.Fitter.fitTypes = [full,psf]
+
+This way, point sources will typically be fit by a PSF-sized
+component, but extended sources will still be fit by a larger
+Gaussian. 
+
+The best fit of the two is chosen on the basis of the reduced
+chi-squared value from the fit. [Note the discussion
+in :doc:`../analysis/postprocessing` about the suitability of the
+chi-squared value in the case of correlated pixels.]
