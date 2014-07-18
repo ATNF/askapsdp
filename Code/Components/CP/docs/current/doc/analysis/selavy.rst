@@ -237,85 +237,85 @@ The following files are produced as a result of the new features implemented in 
 Output-related parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|*Parameter*              |*Type*        |*Default*                   |*Description*                                                                           |
-+=========================+==============+============================+========================================================================================+
-|verbose                  |bool          |false                       |Controls the verbosity for the Duchamp-specific code. **verbose=true** means more       |
-|                         |              |                            |information about the Duchamp functions                                                 |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|pixelCentre              |string        |centroid                    |How the central pixel value is defined in the output catalogues (can take values of     |
-|                         |              |                            |'centroid', 'average' or 'peak').                                                       |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|resultsFile              |string        |selavy-results.txt          |The text file holding the catalogue of results. Can also use **outFile** for            |
-|                         |              |                            |compatbility with Duchamp.                                                              |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagSeparateHeader       |bool          |false                       |Whether the "header" containing the summary of input parameters should be written to a  |
-|                         |              |                            |separate file from the table of results. If produced, it will be called                 |
-|                         |              |                            |selavy-results.hdr.                                                                     |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|subimageAnnotationFile   |string        |""                          |The filename of a Karma annotation file that is created to show the boundaries of the   |
-|                         |              |                            |subimages (see description below). If empty, no such file is created.                   |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagLog                  |bool          |true                        |Produce a Duchamp-style log file, recording intermediate detections (see below). *Note  |
-|                         |              |                            |the different default from standard Duchamp.* The workers will produce                  |
-|                         |              |                            |selavy-Logfile.%w.txt, (where %w is the worker number, in the usual fashion) and the    |
-|                         |              |                            |master will produce selavy-Logfile.Master.txt.                                          |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagVOT                  |bool          |true                        |Produce a VOTable of the results.                                                       |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|votFile                  |string        |selavy-results.txt          |The VOTable containing the catalogue of detections.                                     |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagWriteBinaryCatalogue |bool          |true                        |Produce a binary catalogue compatible with Duchamp (that can be loaded into Duchamp     |
-|                         |              |                            |along with the image to produce plots of the detections).                               |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|binaryCatalogue          |string        |selavy-catalogue.dpc        |The binary catalogue.                                                                   |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagTextSpectra          |bool          |false                       |Produce a file with text-based values of the spectra of each detection.                 |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|spectraTextFile          |string        |selavy-spectra.txt          |The file containing ascii spectra of each detection.                                    |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|objectList               |string        |*no default*                |A comma-separated list of objects that will be used for the post-processing. This is    |
-|                         |              |                            |inherited from Duchamp, where it can be used to only plot a selection of sources. This  |
-|                         |              |                            |is most useful for re-running with a previously-obtained catalogue.  In Selavy, this    |
-|                         |              |                            |will only be applied to the spectraTextFile and spectral extraction options (see the    |
-|                         |              |                            |`Extraction`_ page for details on the latter).                                          |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagKarma                |bool          |true                        |Produce a Karma annotation plot. *Note the different default from standard Duchamp.*    |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|karmaFile                |string        |selavy-results.ann          |The Karma annoation file showing the location of detected objects.                      |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagDS9                  |bool          |true                        |Produce a DS9 region file.  *Note the different default from standard Duchamp.*         |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|ds9File                  |string        |selavy-results.reg          |The DS9 region file showing the location of detected objects.                           |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|flagCasa                 |bool          |true                        |Produce a CASA region file.  *Note the different default from standard Duchamp.*        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|casaFile                 |string        |selavy-results.crf          |The CASA region format file showing the location of detected objects.                   |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|drawBorders              |bool          |true                        |Whether to draw the object borders in the annotation file. If false, only a circle is   |
-|                         |              |                            |drawn with radius proportional to the object's size.                                    |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|fitResultsFile           |string        |selavy-fitResults.txt       |The ASCII file containing the results of the Guassian fitting                           |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|fitAnnotationFile        |string        |selavy-fitResults.ann       |A Karma annotation file showing the location, size & shape of fitted components.        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|fitBoxAnnotationFile     |string        |selavy-fitResults.boxes.ann |A Karma annoation file showing the location and size of boxes used in the Gaussian      |
-|                         |              |                            |fitting (only produced if Fitter.fitJustDetection = false).                             |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|precFlux                 |int           |3                           |Precision for the flux values in the output files                                       |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|precVel                  |int           |3                           |Precision for the velocity values in the output files                                   |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|precSNR                  |int           |2                           |Precision for the SNR values in the output files                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
-|sortingParam             |string        |vel                         |Which parameter to sort the output list by: x-value, y-value, z-value, ra, dec, vel,    |
-|                         |              |                            |w50, iflux, pflux, snr. A - prepended to the parameter reverses the order of the sort.  |
-|                         |              |                            |                                                                                        |
-+-------------------------+--------------+----------------------------+----------------------------------------------------------------------------------------+
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|*Parameter*              |*Type*        |*Default*                   |*Description*                                                                                   |
++=========================+==============+============================+================================================================================================+
+|verbose                  |bool          |false                       |Controls the verbosity for the Duchamp-specific code. **verbose=true** means more information   |
+|                         |              |                            |about the Duchamp functions                                                                     |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|pixelCentre              |string        |centroid                    |How the central pixel value is defined in the output catalogues (can take values of 'centroid', |
+|                         |              |                            |'average' or 'peak').                                                                           |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|resultsFile              |string        |selavy-results.txt          |The text file holding the catalogue of results. Can also use **outFile** for compatbility with  |
+|                         |              |                            |Duchamp.                                                                                        |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagSeparateHeader       |bool          |false                       |Whether the "header" containing the summary of input parameters should be written to a separate |
+|                         |              |                            |file from the table of results. If produced, it will be called selavy-results.hdr.              |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|subimageAnnotationFile   |string        |""                          |The filename of a Karma annotation file that is created to show the boundaries of the subimages |
+|                         |              |                            |(see description below). If empty, no such file is created.                                     |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagLog                  |bool          |                            |Produce a Duchamp-style log file, recording intermediate detections (see above). The workers    |
+|                         |              |                            |will produce selavy-Logfile.%w.txt, (where %w is the worker number, in the usual fashion) and   |
+|                         |              |                            |the master will produce selavy-Logfile.Master.txt.                                              |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagVOT                  |bool          |true                        |Produce a VOTable of the results.                                                               |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|votFile                  |string        |selavy-results.txt          |The VOTable containing the catalogue of detections.                                             |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagWriteBinaryCatalogue |bool          |true                        |Produce a binary catalogue compatible with Duchamp (that can be loaded into Duchamp along with  |
+|                         |              |                            |the image to produce plots of the detections).                                                  |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|binaryCatalogue          |string        |selavy-catalogue.dpc        |The binary catalogue.                                                                           |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagTextSpectra          |bool          |false                       |Produce a file with text-based values of the spectra of each detection.                         |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|spectraTextFile          |string        |selavy-spectra.txt          |The file containing ascii spectra of each detection.                                            |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|objectList               |string        |*no default*                |A comma-separated list of objects that will be used for the post-processing. This is inherited  |
+|                         |              |                            |from Duchamp, where it can be used to only plot a selection of sources. This is most useful for |
+|                         |              |                            |re-running with a previously-obtained catalogue.  In Selavy, this will only be applied to the   |
+|                         |              |                            |spectraTextFile and spectral extraction options (see the :doc:`extraction` page for details on  |
+|                         |              |                            |the latter).                                                                                    |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagKarma                |bool          |true                        |Produce a Karma annotation plot. *Note the different default from standard Duchamp.*            |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|karmaFile                |string        |selavy-results.ann          |The Karma annoation file showing the location of detected objects.                              |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagDS9                  |bool          |true                        |Produce a DS9 region file.  *Note the different default from standard Duchamp.*                 |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|ds9File                  |string        |selavy-results.reg          |The DS9 region file showing the location of detected objects.                                   |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|flagCasa                 |bool          |true                        |Produce a CASA region file.  *Note the different default from standard Duchamp.*                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|casaFile                 |string        |selavy-results.crf          |The CASA region format file showing the location of detected objects.                           |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|drawBorders              |bool          |true                        |Whether to draw the object borders in the annotation file. If false, only a circle is drawn with|
+|                         |              |                            |radius proportional to the object's size.                                                       |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|fitResultsFile           |string        |selavy-fitResults.txt       |The ASCII file containing the results of the Guassian fitting                                   |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|fitAnnotationFile        |string        |selavy-fitResults.ann       |A Karma annotation file showing the location, size & shape of fitted components.                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|fitBoxAnnotationFile     |string        |selavy-fitResults.boxes.ann |A Karma annoation file showing the location and size of boxes used in the Gaussian fitting (only|
+|                         |              |                            |produced if Fitter.fitJustDetection = false).                                                   |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|precFlux                 |int           |3                           |Precision for the flux values in the output files                                               |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|precVel                  |int           |3                           |Precision for the velocity values in the output files                                           |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|precSNR                  |int           |2                           |Precision for the SNR values in the output files                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
+|sortingParam             |string        |vel                         |The parameter with which to sort the output list: x-value, y-value, z-value, ra, dec, vel, w50, |
+|                         |              |                            |iflux, pflux, snr. A - prepended to the parameter reverses the order of the sort.               |
+|                         |              |                            |                                                                                                |
++-------------------------+--------------+----------------------------+------------------------------------------------------------------------------------------------+
 
 .. _`Extraction`: extraction.html

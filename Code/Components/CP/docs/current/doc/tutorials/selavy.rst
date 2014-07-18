@@ -246,12 +246,24 @@ The components catalogue *selavy-fitResults.txt*, looks like this:
 
 .. code-block:: bash
 
-  #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   #      ID           Name         RA        DEC      X      Y     F_int    F_peak F_int(fit) F_pk(fit)  Maj(fit)  Min(fit) P.A.(fit) Maj(fit_deconv.)   Min(fit_deconv.) P.A.(fit_deconv.)   Alpha    Beta Chisq(fit)  RMS(image)  RMS(fit) Nfree(fit) NDoF(fit) NPix(fit) NPix(obj) Guess?
-  #                             [deg]      [deg]                    [Jy] [Jy/beam]       [Jy] [Jy/beam]  [arcsec]  [arcsec]     [deg]         [arcsec]           [arcsec]             [deg]                              [Jy/beam]
-  #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  #      --             --      [deg]      [deg]  [pix]  [pix]      [Jy] [Jy/beam]       [Jy] [Jy/beam]  [arcsec]  [arcsec]     [deg]         [arcsec]           [arcsec]             [deg]      --      --         --   [Jy/beam] [Jy/beam]         --        --        --        --     --
          1a J121503-455738 183.765701 -45.960550 1957.9  656.7     0.332     0.277      0.407     0.275    67.246    56.746     22.81           48.391            5.05654            344.13  -6.721   0.000     30.265     0.00664     0.644          6        66        73        73      0
          2a J121529-464245 183.871722 -46.712437 1919.0  387.6     0.106     0.129      0.175     0.129    68.654    50.859    169.99           41.442           14.41590            321.44  -4.951   0.000      1.704     0.00516     0.215          6        30        37        37      0
+
+Note the simpler structure with just the column names and units at the top. This file should be able to be easily read in python using the astropy.table module. Here is some example code that allows you to interact with it:
+
+.. code-block:: python
+  
+  #!/usr/bin/env python
+  import astropy.table as table
+
+  # read the catalogue
+  cat = table.Table.read('selavy-fitResults.txt',format='ascii')
+  # show the column names
+  cat.colnames
+  # access the integrated fluxes of the components directly, storing as a numpy array
+  fint = cat.columns['F_int(fit)'].data
 
 
 Simple Signal-to-noise thresholding
