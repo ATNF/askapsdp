@@ -85,13 +85,12 @@ The parset parameters are described in the following table:
 Rules to define beams
 ---------------------
 
-.. code-block:: bash
+..code-block::
     beamN = offset(X,Y) 
 
 defines beam N at explicit offset (X,Y) degrees from the boresight
 
-
-.. code-block:: bash
+..code-block::
     beamN = F(name1,name2) 
 
 defines beam N on the line corresponding to the offset between directions name1 and name2 
@@ -104,7 +103,7 @@ that the factor F could be negative. In particular, if F=-1, the beam defined by
 will point to a direction located on the opposite side of name2, away from name1 but at
 the same angular separation as name1 is offset from name2.
 
-.. code-block:: bash
+..code-block::
     beamN = triangle(beam1,beam2,which) 
 
 defines beam N by complementing two existing beams, beam1 and beam2 given by their 
@@ -123,7 +122,7 @@ This is the parset which generates a beam arrangement used in the early 9-beam e
 circumpolar "Cluster" field. It has two beams (1 and 3) pointing on two bright sources in the field
 and the rest are build around them.
 
-.. code-block:: bash
+..code-block:: bash
 
     # define two positions on the sky
     sources = [ref,src1]

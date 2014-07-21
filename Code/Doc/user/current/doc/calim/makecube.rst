@@ -1,5 +1,5 @@
-makecube Documentation
-======================
+makecube
+========
 
 Introduction
 ------------

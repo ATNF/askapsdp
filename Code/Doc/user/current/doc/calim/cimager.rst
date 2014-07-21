@@ -1,5 +1,5 @@
-cimager Documentation
-=====================
+cimager
+=======
 
 This page provides some details about the cimager program. The purpose of this
 software is to perform imaging in a parallel/distributed environment or on a single

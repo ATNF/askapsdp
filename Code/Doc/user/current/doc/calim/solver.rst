@@ -1,5 +1,5 @@
-Solver Documentation
-====================
+Solvers
+=======
 
 .. image:: figures/solver_diagram.png
 

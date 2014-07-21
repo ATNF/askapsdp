@@ -1,5 +1,5 @@
-ccalibrator Documentation
-=========================
+ccalibrator
+===========
 
 The ccalibrator program performs calibration in a parallel/distributed environment
 or on a single computer system. The software leverages MPI, however can be run on

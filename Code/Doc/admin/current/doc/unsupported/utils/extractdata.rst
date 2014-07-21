@@ -30,7 +30,7 @@ resulting cube and its size.
 |stokes                        |string       |"XX"                |Polarisation product to use. The code    |
 |                              |             |                    |does no conversion, so the parameter     |
 |                              |             |                    |should correspond to a product which     |
-|                              |             |                    |actually has been observed.
+|                              |             |                    |actually has been observed.              |
 +------------------------------+-------------+--------------------+-----------------------------------------+
 |dataset                       |string       |""                  |A path to the measurement set to use     |
 |                              |             |                    |(required if ms is not given in the      |

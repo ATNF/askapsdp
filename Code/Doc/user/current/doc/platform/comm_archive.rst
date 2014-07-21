@@ -1,6 +1,8 @@
 Commissioning Archive Platform
 ==============================
 
+.. warning:: This information is no longer valid. Cortex is being decommissioned.
+
 Within the Pawsey Centre iVEC's legacy tape archive system exists. This will be used
 for the commissioning archive until such times as the newly procured Spectralogic tape archive
 is available. The system itself can be accessed by ssh::

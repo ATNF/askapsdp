@@ -1,5 +1,5 @@
-linmos (Linear Mosaic Applicator) Documentation
-===============================================
+linmos (Linear Mosaic Applicator)
+=================================
 
 This page provides instruction for using the linmos program. The purpose of
 this software is to perform a linear mosaic of a set of images.

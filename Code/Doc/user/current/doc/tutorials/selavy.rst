@@ -1,4 +1,4 @@
-Selavy source-finding tutorial
+Selavy Source-Finding Tutorial
 ==============================
 
 This tutorial demonstrates the use of the Selavy sourcefinder to find

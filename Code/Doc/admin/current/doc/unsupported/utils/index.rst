@@ -6,6 +6,5 @@ Operations utilities
 .. toctree::
    :maxdepth: 1
 
-   delaysolver.rst
    extractdata.rst
    genoffsets.rst

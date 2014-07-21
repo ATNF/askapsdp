@@ -1,5 +1,5 @@
-Logging Documentation
-=====================
+Logging
+=======
 
 The ASKAPsoft HPC applications are written in C/C++ and use the `Apache log4cxx`_ logging
 framework. This allows flexible logging to stdout, file, or other sinks.

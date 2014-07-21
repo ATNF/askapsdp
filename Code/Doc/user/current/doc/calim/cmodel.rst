@@ -1,5 +1,5 @@
-cmodel (Model Image Generator) Documentation
-============================================
+cmodel (Model Image Generator)
+==============================
 
 The *cmodel* pipeline task is responsible for extracting a local sky model (LSM)
 from the global sky model (GSM) and building an image from the components and/or

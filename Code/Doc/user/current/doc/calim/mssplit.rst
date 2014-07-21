@@ -1,5 +1,5 @@
-mssplit (Measurement Splitting/Averaging Utility) Documentation
-===============================================================
+mssplit (Measurement Splitting/Averaging Utility)
+=================================================
 
 The *mssplit* utility is used to extract a subset of a measurement set. This
 subset may be a channel, beam id or scan id selection. It also has the ability

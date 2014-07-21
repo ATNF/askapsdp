@@ -1,5 +1,5 @@
-ccalapply (Calibration Applicator) Documentation
-================================================
+ccalapply (Calibration Applicator)
+==================================
 
 This page provides instruction for using the ccalapply program. The purpose of
 this software is to apply calibration parameters to Measurement Sets.

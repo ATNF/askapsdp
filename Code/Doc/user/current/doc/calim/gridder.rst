@@ -1,5 +1,5 @@
-Gridder Documentation
-=====================
+Gridders
+========
 
 Overview
 --------

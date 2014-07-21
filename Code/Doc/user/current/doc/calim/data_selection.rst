@@ -1,5 +1,5 @@
-Data Selection Documentation
-=======================================
+Data Selection
+==============
 
 Data accessor layer provides a capability to pre-select the data based on some criteria. As all synthesis applications see 
 only data returned by the accessor, it can be used to restrict **Cimager** (see :doc:`cimager`) and **Ccalibrator** 

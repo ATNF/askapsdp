@@ -1,5 +1,5 @@
-cflag (Flagging Utility) Documentation
-=======================================
+cflag (Flagging Utility)
+========================
 
 The cflag pipeline task is responsible for both selection based and dynamic flagging
 of visibilities. It takes as input a configuration file which specifies both the

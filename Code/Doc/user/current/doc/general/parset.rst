@@ -1,5 +1,5 @@
-Parameter Set Documentation
-===========================
+Parameter Set
+=============
 
 The ParameterSet is the format in which parameters for programs and scripts are specified.
 A so-called parset file is a text file holding the ParameterSet definitions. Its syntax
