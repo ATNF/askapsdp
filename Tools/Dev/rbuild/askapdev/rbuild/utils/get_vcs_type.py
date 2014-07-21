@@ -26,12 +26,28 @@
 # @author Ben Humphreys <ben.humphreys@csiro.au>
 #
 
+import os
 from runcmd import runcmd
 
 def is_git():
-    (stdout, stderr, returncode) = runcmd('git status -s', shell=False)
-    return True if (returncode == 0) else False
+    return is_vcs_check('.git', 'git status -s')
 
 def is_svn():
-    (stdout, stderr, returncode) = runcmd('svn info', shell=False)
-    return True if (returncode == 0) else False
+    return is_vcs_check('.svn', 'svn info')
+
+# Helper function. Checks if "testdir" is present in $ASKAP_ROOT, and if not
+# will probe the VCS by exectuing a command. If the "testdir" exists or the
+# "probecmd" returns a code of 0, true is returned, otherwise false.
+def is_vcs_check(testdir, probecmd):
+    try:
+        # Fast path
+        ASKAP_ROOT = os.environ["ASKAP_ROOT"]
+        if os.path.isdir(ASKAP_ROOT + '/' + testdir):
+            return True
+
+        # Fallback to slower check. ASKAP_ROOT might not be the repository root
+        (stdout, stderr, returncode) = runcmd(probecmd, shell=False)
+        return True if (returncode == 0) else False
+    except:
+        return False
+

@@ -31,18 +31,23 @@ from get_vcs_type import is_git
 import os
 
 def get_svn_revision():
-    if is_git():
-        return get_git_revision()
-
-    (stdout, stderr, returncode) = runcmd('svnversion', shell=True)
-    if returncode == 0 and stdout and stdout[0].isdigit():
-        return stdout.rstrip()
-    else:
-        return "nonsvn"
+    try:
+        (stdout, stderr, returncode) = runcmd('svnversion', shell=True)
+        if returncode == 0 and stdout and stdout[0].isdigit():
+            return stdout.rstrip()
+        else:
+            if is_git():
+                return get_git_revision()
+            return "unknown"
+    except:
+        return "unknown"
 
 def get_git_revision():
-    (stdout, stderr, returncode) = runcmd('git describe --tags --always', shell=True)
-    if returncode == 0:
-        return stdout.rstrip()
-    else:
-        return "nongit"
+    try:
+        (stdout, stderr, returncode) = runcmd('git describe --tags --always', shell=True)
+        if returncode == 0:
+            return stdout.rstrip()
+        else:
+            return "unknown"
+    except:
+        return "unknown"
