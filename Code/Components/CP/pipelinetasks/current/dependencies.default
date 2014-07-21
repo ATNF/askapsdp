@@ -4,5 +4,5 @@ casacore=3rdParty/casacore/casacore-1.6.0a;casa_ms casa_images casa_components c
 askap=Code/Base/askap/current
 logfilters=Code/Base/logfilters/current
 accessors=Code/Base/accessors/current
-cpdataservices-client=Code/Components/CP/cpdataservices/client-cpp/current
+cpdataservices-client=Code/Components/Services/cpdataservices/client-cpp/current
 components=Code/Base/components/current

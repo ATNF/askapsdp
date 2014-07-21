@@ -1,4 +1,4 @@
-manager=Code/Components/CP/manager/current
-#cpdataservices=Code/Components/CP/cpdataservices/server/current
-ingest=Code/Components/CP/ingest/current
-vispublisher=Code/Components/CP/vispublisher/current
+manager=Code/Components/Services/manager/current
+#cpdataservices=Code/Components/Services/cpdataservices/server/current
+ingest=Code/Components/Services/ingest/current
+vispublisher=Code/Components/Services/vispublisher/current

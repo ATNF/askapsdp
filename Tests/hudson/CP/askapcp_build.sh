@@ -68,7 +68,7 @@ mv cpapps-release.tgz $ARTIFACTS_DIR
 #
 # Build user documentation
 #
-cd $WORKSPACE/$TOPDIR/Code/Components/CP/docs/current
+cd $WORKSPACE/$TOPDIR/Code/Doc/user/current
 nice rbuild -n -M -S -T -t doc
 if [ $? -ne 0 ]; then
     echo "Error: rbuild -n -M -S -T -t doc failed"
@@ -84,7 +84,7 @@ fi
 #
 # Build admin documentation
 #
-cd $WORKSPACE/$TOPDIR/Code/Components/CP/docs_admin/current
+cd $WORKSPACE/$TOPDIR/Code/Doc/admin/current
 nice rbuild -n -M -S -T -t doc
 if [ $? -ne 0 ]; then
     echo "Error: rbuild -n -M -S -T -t doc failed"
