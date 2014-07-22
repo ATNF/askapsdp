@@ -124,8 +124,30 @@ std::pair<double, double> VisMessageBuilder::ampAndPhase(const std::vector< std:
 double VisMessageBuilder::calcDelay(const std::vector< std::complex<float> >& vis,
                                     const double chanWidth)
 {
-    if (vis.size() < 2) return 0.0;
+    const uint32_t NCHAN_TO_AVG = 54;
 
-    askap::scimath::DelayEstimator de(chanWidth);
-    return de.getDelay(vis);
+    if (vis.size() / NCHAN_TO_AVG < 2) return 0.0;
+    ASKAPCHECK(vis.size() % NCHAN_TO_AVG == 0, "Channels to average must divide nChannels");
+
+    askap::scimath::DelayEstimator de(chanWidth * NCHAN_TO_AVG);
+    const std::vector< std::complex<float> > avg = averageChannels(vis, NCHAN_TO_AVG);
+    return de.getDelay(avg);
+}
+
+std::vector< std::complex<float> > VisMessageBuilder::averageChannels(
+        const std::vector< std::complex<float> >& vis,
+        uint32_t numberToAverage)
+{
+    ASKAPASSERT(numberToAverage > 0);
+    std::vector< std::complex<float> > avg;
+    const size_t outputVectorSize = vis.size() / numberToAverage;
+    avg.reserve(outputVectorSize);
+    for (size_t i = 0; i < outputVectorSize; i += numberToAverage) {
+        std::complex<float> a(0.0, 0.0);
+        for (size_t j = 0; j < numberToAverage; ++j) {
+            a += vis[i + j];
+        }
+        avg.push_back(a /= numberToAverage);
+    }
+    return avg;
 }

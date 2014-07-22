@@ -69,6 +69,15 @@ class VisMessageBuilder {
         /// Estimate delays
         static double calcDelay(const std::vector< std::complex<float> >& vis,
                                double chanWidth);
+
+        /// Average channels in vis
+        /// @param[in] vis              input visibilities
+        /// @param[in] numberToAverage  number of visibilities to average
+        ///                             together to form one.
+        /// @return a vector of length (vis.size() / numberToAverage)
+        static std::vector< std::complex<float> > averageChannels(
+            const std::vector< std::complex<float> >& vis,
+            uint32_t numberToAverage);
 };
 
 }
