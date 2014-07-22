@@ -91,8 +91,14 @@ class FrtHWAndDrx : virtual public IFrtApproach {
         /// @brief index of an antenna used as a reference
         casa::uInt itsRefAntIndex;
 
+        /// @brief buffer for times, used for debugging only
         std::vector<double> itsTm;
+
+        /// @brief phase accumulator to get phases per antenna accumulated since the last FR update
         std::vector<double> itsPhases;
+
+        /// @brief time offset fudge factor to account for the fact that FR is updated at a different time w.r.t. correlator data stream (see #5736)
+        int32_t itsUpdateTimeOffset;
 };
 
 } // namespace ingest

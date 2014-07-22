@@ -53,7 +53,8 @@ FrtHWAndDrx::FrtHWAndDrx(const LOFAR::ParameterSet& parset, const Configuration&
        itsFrtComm(parset, config), 
        itsDRxDelayTolerance(static_cast<int>(parset.getUint32("drxdelaystep",0u))), 
        itsTm(config.antennas().size(),0.),
-       itsPhases(config.antennas().size(),0.)
+       itsPhases(config.antennas().size(),0.),
+       itsUpdateTimeOffset(static_cast<int32_t>(parset.getInt32("updatetimeoffset")))
 {
    if (itsDRxDelayTolerance == 0) {
        ASKAPLOG_INFO_STR(logger, "DRx delays will be updated every time the delay changes by 1.3 ns");
@@ -61,6 +62,13 @@ FrtHWAndDrx::FrtHWAndDrx(const LOFAR::ParameterSet& parset, const Configuration&
        ASKAPLOG_INFO_STR(logger, "DRx delays will be updated when the required delay diverges more than "
                << itsDRxDelayTolerance << " 1.3ns steps");
    } 
+
+   if (itsUpdateTimeOffset == 0) {
+      ASKAPLOG_INFO_STR(logger, "The reported BAT of the fringe rotator parameter update will be used as is without any adjustment");
+   } else {
+      ASKAPLOG_INFO_STR(logger, "The reported BAT of the fringe rotator parameter update will be shifted by "<<itsUpdateTimeOffset<<" microseconds");
+   }
+
    const std::vector<Antenna> antennas = config.antennas();
    const size_t nAnt = antennas.size();
    const casa::String refName = casa::downcase(parset.getString("refant"));
@@ -171,24 +179,23 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            itsPhases[ant] += (chunk->time().getTime("s").getValue() - itsTm[ant]) * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
        }
        */
-       // we determined this offset from the measured data (see #5736)
-       const uint64_t fudgeOffset = 14500000;
        // 25000 microseconds is the offset before event trigger and the application of phase rates/accumulator reset (specified in the osl script)
-       const uint64_t triggerOffset = 25000 + fudgeOffset;
-       const uint64_t lastFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant) + triggerOffset;
-       if (lastFRUpdateBAT > triggerOffset) {
-           const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
-           if (currentBAT > lastFRUpdateBAT) {
-               const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT; // + 1000000;
-               const double etInCycles = double(elapsedTime + fudgeOffset) / integrationTime / 1e6;
-               
-               ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
+       // on top of this we have a user defined fudge offset (see #5736)
+       const int32_t triggerOffset = 25000 + itsUpdateTimeOffset;
+       const uint64_t lastReportedFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant);
+       ASKAPCHECK(static_cast<int64_t>(lastReportedFRUpdateBAT) > static_cast<int64_t>(triggerOffset), "The FR trigger offset "<<triggerOffset<<
+                  " microseconds is supposed to be small compared to BAT="<<lastReportedFRUpdateBAT<<", ant="<<ant);
+       const uint64_t lastFRUpdateBAT = lastReportedFRUpdateBAT + triggerOffset;
+       const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
+       if (currentBAT > lastFRUpdateBAT) {
+           const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT; 
+           const double etInCycles = double(elapsedTime + itsUpdateTimeOffset) / integrationTime / 1e6;
            
-               //const casa::MVEpoch lastFRUpdateEpoch = bat2epoch(lastFRUpdateBAT).getValue();
-               itsPhases[ant] = double(elapsedTime) * 1e-6 * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
-           } else {
-              ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
-           }
+           ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
+       
+           itsPhases[ant] = double(elapsedTime) * 1e-6 * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
+       } else {
+          ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
        }
   }
   //
