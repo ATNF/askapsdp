@@ -47,6 +47,7 @@
 
 // std includes
 #include <string>
+#include <map>
 
 namespace askap {
 
@@ -126,7 +127,7 @@ public:
   /// @return true, if there is no bandpass solution, false otherwise
   virtual bool noBandpass() const;  
 
-protected:
+private:
 
   /// @brief find first defined cube searching backwards
   /// @details This assumes that the table rows are given in the time order. If the cell at the reference row
@@ -145,7 +146,6 @@ protected:
   /// @return true if the given column exists
   bool columnExists(const std::string &name) const;
   
-private:
   /// @brief number of antennas (used when new solutions are created)
   casa::uInt itsNAnt;
   /// @brief number of beams (used when new solutions are created)
@@ -164,7 +164,11 @@ private:
   mutable long itsLeakagesRow;
   
   /// @brief row for bandpasses
-  mutable long itsBandpassesRow;   
+  mutable long itsBandpassesRow;
+
+  /// @brief Caches the existance of columns as the implementation
+  /// for columnExists() is quite expensive
+  mutable std::map<std::string, bool> itsColumnExistsCache;
   
   /// @brief true if a new row is to be created
   bool itsCreateNew; 

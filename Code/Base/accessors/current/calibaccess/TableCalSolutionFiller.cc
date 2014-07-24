@@ -35,6 +35,7 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
+#include <map>
 #include <calibaccess/TableCalSolutionFiller.h>
 
 namespace askap {
@@ -95,7 +96,14 @@ TableCalSolutionFiller::TableCalSolutionFiller(const casa::Table& tab, const lon
 /// @return true if the given column exists
 bool TableCalSolutionFiller::columnExists(const std::string &name) const
 {
-  return table().actualTableDesc().isColumn(name);
+  const std::map<std::string, bool>::const_iterator it = itsColumnExistsCache.find(name);
+  if (it != itsColumnExistsCache.end()) {
+      return it->second;
+  } else {
+      const bool exists = table().actualTableDesc().isColumn(name);
+      itsColumnExistsCache[name] = exists;
+      return exists;
+  }
 }
 
 /// @brief check for gain solution
