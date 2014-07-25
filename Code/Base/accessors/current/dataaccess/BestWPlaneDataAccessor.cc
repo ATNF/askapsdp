@@ -59,6 +59,32 @@ BestWPlaneDataAccessor::BestWPlaneDataAccessor(const double tolerance, const boo
 {
 }
 
+/// @brief copy constructor
+/// @details We need it because we have data members of non-trivial types
+/// @param[in] other another instance of adapter to copy from
+BestWPlaneDataAccessor::BestWPlaneDataAccessor(const BestWPlaneDataAccessor &other) : 
+    itsCheckResidual(other.itsCheckResidual), itsWTolerance(other.itsWTolerance), itsCoeffA(other.itsCoeffA),
+    itsCoeffB(other.itsCoeffB), itsUVWChangeMonitor(changeMonitor()), itsPlaneChangeMonitor(changeMonitor()),
+    itsRotatedUVW(other.itsRotatedUVW.copy()), itsLastTangentPoint(other.itsLastTangentPoint) {}
+
+/// @brief assignment operator
+/// @details We need it because we have data members of non-trivial types
+/// @param[in] other another instance of adapter to copy from
+BestWPlaneDataAccessor& BestWPlaneDataAccessor::operator=(const BestWPlaneDataAccessor &other) 
+{
+  if (&other != this) {
+      itsCheckResidual = other.itsCheckResidual;
+      itsWTolerance = other.itsWTolerance;
+      itsCoeffA = other.itsCoeffA;
+      itsCoeffB = other.itsCoeffB;
+      itsUVWChangeMonitor.notifyOfChanges();
+      itsPlaneChangeMonitor.notifyOfChanges();
+      itsRotatedUVW.assign(other.itsRotatedUVW.copy());
+      itsLastTangentPoint = other.itsLastTangentPoint;
+  }
+  return *this;
+}
+
 /// @brief uvw after rotation
 /// @details This method subtracts the best plane out of the w coordinates
 /// (after uvw-rotation) and return the resulting vectors.

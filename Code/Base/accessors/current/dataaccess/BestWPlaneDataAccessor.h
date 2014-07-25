@@ -72,6 +72,16 @@ public:
    /// in the constructor call itself.
    explicit BestWPlaneDataAccessor(const double tolerance, const bool checkResidual = true);
    
+   /// @brief copy constructor
+   /// @details We need it because we have data members of non-trivial types
+   /// @param[in] other another instance of adapter to copy from
+   BestWPlaneDataAccessor(const BestWPlaneDataAccessor &other);
+
+   /// @brief assignment operator
+   /// @details We need it because we have data members of non-trivial types
+   /// @param[in] other another instance of adapter to copy from
+   BestWPlaneDataAccessor& operator=(const BestWPlaneDataAccessor &other);
+
    /// @brief uvw after rotation
    /// @details This method subtracts the best plane out of the w coordinates
    /// (after uvw-rotation) and return the resulting vectors.
