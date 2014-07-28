@@ -36,6 +36,7 @@ contains multiple pointings (either physical pointings of the dish or multiple o
 output image is not corrected for primary beam, if non-mosaicing gridder is used. The weights image
 is constant across the whole field of view in this case. 
 
+
 Available gridders
 ------------------
 
@@ -64,7 +65,6 @@ The following gridders are available in ASKAPsoft:
 |AProjectWStack  |Yes (stacking)|Yes           |autocorrelation of antenna  |In addition to WStack, takes into   |
 |                |              |              |illumination                |account primary beam                |
 +----------------+--------------+--------------+----------------------------+------------------------------------+
-
 
 
 Parset parameters of the gridders
@@ -182,10 +182,26 @@ Oversampling factor which is a configurable parameter for some other gridders is
 128 for the SphFunc gridder and 1 for the Box gridder.
 
 
+Parameters related to gridders that take the w-term into account
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++--------------+--------------+------------------------------+------------------------------------------------------+
+|*Parameter*   |*Type*        |*Default*                     |*Description*                                         |
++==============+==============+==============================+======================================================+
+|wmax          |double        |largest w value relative to   |Largest allowed absolute value of the w term in       |
+|              |              |the tangent of the first      |wavelengths.  An exception will be thrown if the      |
+|              |              |image (or the largest residual|dataset contains w-term exceeding this value (*W      |
+|              |              |w when using snapshots)       |scaling error: recommend allowing larger range of w*).|
++--------------+--------------+------------------------------+------------------------------------------------------+
+
+
+Note, the previous default for wmax was 35000 for WProject and WStack and 10000 for AWProject and AProjectWStack.
+
+
 Parameters related to w-term (specific to WProject and WStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following parameters are applicable to gridders taking w-term into account. The table below is
+The following parameters are applicable to gridders that take the w-term into account. The table below is
 specific to WProject and WStack. The same two parameters understood by AProjectWStack and AWProject
 gridders, but defaults are different. Therefore, their description is repeated in the discussion of
 the mosaicing gridders.
@@ -193,11 +209,6 @@ the mosaicing gridders.
 +--------------+--------------+--------------+------------------------------------------------------+
 |*Parameter*   |*Type*        |*Default*     |*Description*                                         |
 +==============+==============+==============+======================================================+
-|wmax          |double        |35000.0       |Largest allowed absolute value of the w term in       |
-|              |              |              |wavelengths.  An exception will be thrown if the      |
-|              |              |              |dataset contains w-term exceeding this value (*W      |
-|              |              |              |scaling error: recommend allowing larger range of w*).|
-+--------------+--------------+--------------+------------------------------------------------------+
 |nwplanes      |int           |65            |Number of w-planes. Number of w planes must be an odd |
 |              |              |              |positive number. For the WProject gridder this scales |
 |              |              |              |up the number of convolution functions calculated. For|
@@ -219,14 +230,15 @@ non-trivial convolution functions which have w-term applied and requires some ad
 to find, e.g. how the support of the convolution function is searched. These parameters are given in
 the following section.
 
+
 Non-linear sampling in w-space (specific to WProject,WStack, AWProject and AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These parameters apply to all gridders which take w-term into account. By default w-planes (either
 stacking grids or projection planes) are spaced linearly (or equidistantly) in w. The following
-parameters allow to enable and control non-linear sampling. Regardless of the parameters, the first
-and last w-planes always correspond to -wmax and +wmax, respectively, and the (nwplanes-1)/2 plane
-corresponds to w=0. 
+parameters allow the user to enable and control non-linear sampling. Regardless of the parameters,
+the first and last w-planes always correspond to -wmax and +wmax, respectively, and the
+(nwplanes-1)/2 plane corresponds to w=0. 
 
 +--------------------+--------------+--------------+-------------------------------------------------+
 |*Parameter*         |*Type*        |*Default*     |*Description*                                    |
@@ -280,6 +292,7 @@ corresponds to w=0.
 An example of the power-law distribution of the w-planes with exponent=0.5 is given below
 
 .. image:: figures/wpowerlaw.png
+
 
 Additional parameters for gridders with non-trivial convolution functions (WProject. AWProject, AProjectWStack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -389,8 +402,6 @@ here.
 +-------------------------+--------------+--------------+--------------------------------------------------+
 |*Parameter*              |*Type*        |*Default*     |*Description*                                     |
 +=========================+==============+==============+==================================================+
-|wmax                     |double        |10000.0       |Largest allowed w term in wavelengths.  See above |
-+-------------------------+--------------+--------------+--------------------------------------------------+
 |nwplanes                 |int           |65            |Number of w-planes. Number of w planes must be    |
 |                         |              |              |odd. See above                                    |
 +-------------------------+--------------+--------------+--------------------------------------------------+

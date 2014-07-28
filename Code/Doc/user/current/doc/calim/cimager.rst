@@ -219,8 +219,8 @@ They are given in a separate table (see :doc:`data_selection`) and should also h
 |                          |                  |              |ensure that the dataset given by the *dataset*      |
 |                          |                  |              |keyword is always opened for read-only              |
 +--------------------------+------------------+--------------+----------------------------------------------------+
-|nUVWMachines              |int32             |1             |Size of uvw-machines cache. uvw-machines are used to|
-|                          |                  |              |convert uvw from a given phase centre to a common   |
+|nUVWMachines              |int32             |number of     |Size of uvw-machines cache. uvw-machines are used to|
+|                          |                  |beams         |convert uvw from a given phase centre to a common   |
 |                          |                  |              |tangent point. To reduce the cost to set the machine|
 |                          |                  |              |up (calculation of the transformation matrix), a    |
 |                          |                  |              |number of these machines is cached. The key to the  |
@@ -301,6 +301,10 @@ Parameters of images
 This section describes parameters used to define images, i.e. what area of the sky one wants to image and how.
 All parameters given in the following table have **Cimager.Images* prefix**, e.g. Cimager.Images.reuse = false
 
+  const double pbFWHM = 1.2 * longestWavelength / 12; // in radians
+  // the guard band (both sides together) is 1.7*FWHM (roughly to the first null)  
+  const double sizeInRad =  2. * casa::max(offsets.first, offsets.second) + 1.7 * pbFWHM;
+
 +--------------------------+----------------+-----------------------+----------------------------------------------+
 |**Parameter**             |**Type**        |**Default**            |**Description**                               |
 +==========================+================+=======================+==============================================+
@@ -320,16 +324,16 @@ All parameters given in the following table have **Cimager.Images* prefix**, e.g
 |                          |                |                       |responsible to ensure that the projection,    |
 |                          |                |                       |shape, etc matches.                           |
 +--------------------------+----------------+-----------------------+----------------------------------------------+
-|shape                     |vector<int>     |None                   |Optional parameter to define the default shape|
-|                          |                |                       |for all images. If an individual *shape*      |
-|                          |                |                       |parameter is specified separately for one of  |
+|shape                     |vector<int>     |1.7 * pb FWHM (~1st    |Optional parameter to define the default shape|
+|                          |                |null) + 2 * max(pb     |for all images. If an individual *shape*      |
+|                          |                |offset)                |parameter is specified separately for one of  |
 |                          |                |                       |the images, this default value of the shape is|
-|                          |                |                       |overridden. Individual *shape* parameters (see|
+|                          |                |pb FWHM = 1.2*lambda/12|overridden. Individual *shape* parameters (see|
 |                          |                |                       |below) must be given for all images if this   |
 |                          |                |                       |parameter is not defined. Must be a           |
 |                          |                |                       |two-element vector.                           |
 +--------------------------+----------------+-----------------------+----------------------------------------------+
-|cellsize                  |vector<string>  |None                   |Optional parameter to define the default pixel|
+|cellsize                  |vector<string>  |1/max(u,v) / 6 rad     |Optional parameter to define the default pixel|
 |                          |                |                       |(or cell) size for all images. If an          |
 |                          |                |                       |individual *cellsize* parameter is specified  |
 |                          |                |                       |separately for one of the images, this default|
@@ -362,16 +366,16 @@ All parameters given in the following table have **Cimager.Images* prefix**, e.g
 |                          |                |                       |exception is thrown. Example of valid names   |
 |                          |                |                       |are: *image.10uJy*, *image*, *imagecena*      |
 +--------------------------+----------------+-----------------------+----------------------------------------------+
-|*ImageName*.nchan         |int32           |None                   |Number of spectral planes in the image cube to|
+|*ImageName*.nchan         |int32           |1                      |Number of spectral planes in the image cube to|
 |                          |                |                       |produce. Set it to 1 if just a 2D image is    |
 |                          |                |                       |required                                      |
 +--------------------------+----------------+-----------------------+----------------------------------------------+
-|*ImageName*.frequency     |vector<double>  |None                   |Frequencies in Hz of the first and the last   |
-|                          |                |                       |spectral channels to produce in the cube. The |
-|                          |                |                       |range is binned into *nchan* channels and the |
-|                          |                |                       |data are gridded (with MFS) into a nearest    |
+|*ImageName*.frequency     |vector<double>  |[min freq,max freq] if |Frequencies in Hz of the first and the last   |
+|                          |                |nchan>1,               |spectral channels to produce in the cube. The |
+|                          |                |[ave freq,ave freq] if |range is binned into *nchan* channels and the |
+|                          |                |nchan=1                |data are gridded (with MFS) into a nearest    |
 |                          |                |                       |image channel (therefore, the number of image |
-|                          |                |                       |channels given by the *nchan* keyword may be  |
+|                          |                |ave freq = (min+max)/2 |channels given by the *nchan* keyword may be  |
 |                          |                |                       |less than the number of spectral channels in  |
 |                          |                |                       |the data. If *nchan* is 1 all data are MFS'ed |
 |                          |                |                       |into a single image (however the image will   |
@@ -383,8 +387,8 @@ All parameters given in the following table have **Cimager.Images* prefix**, e.g
 |                          |                |                       |2 elements at all times, otherwise an         |
 |                          |                |                       |exception is thrown                           |
 +--------------------------+----------------+-----------------------+----------------------------------------------+
-|*ImageName*.direction     |vector<string>  |None                   |Direction to the centre of the required image |
-|                          |                |                       |(or tangent point for facets). This vector    |
+|*ImageName*.direction     |vector<string>  |phase centre of the    |Direction to the centre of the required image |
+|                          |                |visibilities           |(or tangent point for facets). This vector    |
 |                          |                |                       |should contain a 3-element direction quantity |
 |                          |                |                       |containing right ascension, declination and   |
 |                          |                |                       |epoch, e.g. [12h30m00.00, -45.00.00.00,       |
