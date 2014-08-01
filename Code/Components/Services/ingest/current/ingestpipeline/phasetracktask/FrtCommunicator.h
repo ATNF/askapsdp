@@ -114,6 +114,16 @@ class FrtCommunicator : public boost::noncopyable {
         /// @return BAT when the last update was implemented
         uint64_t lastFRUpdateBAT(const casa::uInt ant) const;
 
+        /// @brief test whether FR parameters have ever been updated
+        /// @details This method allows to test the validity of the BAT
+        /// returned by lastFRUpdateBAT. If this method returns true for
+        /// the given antenna, the user can trust the time returned by 
+        /// lastFRUpdateBAT
+        /// @param[in] ant antenna index
+        /// @return true, if FR parameters have ever been updated or
+        /// false otherwise
+        bool hadFRUpdate(const casa::uInt ant) const;
+
         /// @brief test if antenna produces valid data
         /// @param[in] ant antenna index
         /// @return true, if the given antenna produces valid data
