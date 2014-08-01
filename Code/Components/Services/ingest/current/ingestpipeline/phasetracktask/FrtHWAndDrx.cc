@@ -179,25 +179,27 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
            itsPhases[ant] += (chunk->time().getTime("s").getValue() - itsTm[ant]) * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
        }
        */
-       // 25000 microseconds is the offset before event trigger and the application of phase rates/accumulator reset (specified in the osl script)
-       // on top of this we have a user defined fudge offset (see #5736)
-       const int32_t triggerOffset = 25000 + itsUpdateTimeOffset;
-       const uint64_t lastReportedFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant);
-       ASKAPCHECK(static_cast<int64_t>(lastReportedFRUpdateBAT) > static_cast<int64_t>(triggerOffset), "The FR trigger offset "<<triggerOffset<<
+       if (itsFrtComm.hadFRUpdate(ant)) {
+           // 25000 microseconds is the offset before event trigger and the application of phase rates/accumulator reset (specified in the osl script)
+           // on top of this we have a user defined fudge offset (see #5736)
+           const int32_t triggerOffset = 25000 + itsUpdateTimeOffset;
+           const uint64_t lastReportedFRUpdateBAT = itsFrtComm.lastFRUpdateBAT(ant);
+           ASKAPCHECK(static_cast<int64_t>(lastReportedFRUpdateBAT) > static_cast<int64_t>(triggerOffset), "The FR trigger offset "<<triggerOffset<<
                   " microseconds is supposed to be small compared to BAT="<<lastReportedFRUpdateBAT<<", ant="<<ant);
-       const uint64_t lastFRUpdateBAT = lastReportedFRUpdateBAT + triggerOffset;
-       const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
-       if (currentBAT > lastFRUpdateBAT) {
-           const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT; 
-           const double etInCycles = double(elapsedTime + itsUpdateTimeOffset) / integrationTime / 1e6;
+           const uint64_t lastFRUpdateBAT = lastReportedFRUpdateBAT + triggerOffset;
+           const uint64_t currentBAT = epoch2bat(casa::MEpoch(chunk->time(),casa::MEpoch::UTC));
+           if (currentBAT > lastFRUpdateBAT) {
+               const uint64_t elapsedTime = currentBAT - lastFRUpdateBAT; 
+               const double etInCycles = double(elapsedTime + itsUpdateTimeOffset) / integrationTime / 1e6;
            
-           ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
+               ASKAPLOG_DEBUG_STR(logger, "Antenna "<<ant<<": elapsed time since last FR update "<<double(elapsedTime)/1e6<<" s ("<<etInCycles<<" cycles)");
        
-           itsPhases[ant] = double(elapsedTime) * 1e-6 * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
-       } else {
-          ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
-       }
-  }
+               itsPhases[ant] = double(elapsedTime) * 1e-6 * phaseRateUnit * itsFrtComm.requestedFRPhaseRate(ant);
+           } else {
+              ASKAPLOG_DEBUG_STR(logger, "Still processing old data before FR update event trigger for antenna "<<ant);
+           }
+       } // if FR had an update for a given antenna
+  } // loop over antennas
   //
   for (casa::uInt row = 0; row < chunk->nRow(); ++row) {
        // slice to get this row of data

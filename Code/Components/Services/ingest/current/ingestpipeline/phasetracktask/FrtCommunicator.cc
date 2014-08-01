@@ -133,6 +133,20 @@ uint64_t FrtCommunicator::lastFRUpdateBAT(const casa::uInt ant) const
   return itsFRUpdateBATs[ant];
 }
 
+/// @brief test whether FR parameters have ever been updated
+/// @details This method allows to test the validity of the BAT
+/// returned by lastFRUpdateBAT. If this method returns true for
+/// the given antenna, the user can trust the time returned by 
+/// lastFRUpdateBAT
+/// @param[in] ant antenna index
+/// @return true, if FR parameters have ever been updated or
+/// false otherwise
+bool FrtCommunicator::hadFRUpdate(const casa::uInt ant) const
+{
+  ASKAPASSERT(ant < itsFRUpdateBATs.size());
+  return itsFRUpdateBATs[ant] != 0u;
+}
+
 /// @brief test if antenna produces valid data
 /// @param[in] ant antenna index
 /// @return true, if the given antenna produces valid data
@@ -166,12 +180,15 @@ void FrtCommunicator::newTimeStamp(const casa::MVEpoch &epoch)
 {
   // first check any requests waiting for completion
   const double timeOut = 5.* itsCyclesToWait;
-  const uint64_t currentBAT = epoch2bat(casa::MEpoch(epoch, casa::MEpoch::UTC));
+  //const uint64_t currentBAT = epoch2bat(casa::MEpoch(epoch, casa::MEpoch::UTC));
   for (size_t ant = 0; ant < itsAntennaStatuses.size(); ++ant) {
        if (itsAntennaStatuses[ant] == ANT_BEING_UPDATED) {
            const casa::MVEpoch timeSince = epoch - itsRequestCompletedTimes[ant];
+           // remove test related to the fudge factor as it is now a configurable parameter. timeOut should be
+           // adjusted appropriately if longer flagging period is necessary
            // look at issue #5736 for the 14.5s fudge factor
-           if ((timeSince.getTime("s").getValue() >= timeOut) && (itsFRUpdateBATs[ant] + 14500000 < currentBAT)) {
+           //if ((timeSince.getTime("s").getValue() >= timeOut) && (itsFRUpdateBATs[ant] + 14500000 < currentBAT)) {
+           if (timeSince.getTime("s").getValue() >= timeOut) {
                ASKAPLOG_INFO_STR(logger, "Requested changes to FR parameters are now expected to be in place for "
                        << itsAntennaNames[ant] << ", unflagging the antenna");
                itsAntennaStatuses[ant] = ANT_VALID;
