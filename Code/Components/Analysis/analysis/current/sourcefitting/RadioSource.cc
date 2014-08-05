@@ -1067,6 +1067,9 @@ namespace askap {
                 } else {
                     this->hasFit = false;
 		    if(this->itsFitParams.useGuessIfBad()){
+			if (!this->itsFitParams.numGaussFromGuess()){
+			    cmpntList.resize( std::min(this->itsFitParams.maxNumGauss(), int(f.size())) );
+			}
 		      this->itsBestFitType = "guess";
 		      // set the components to be at least as big as the beam
 		      for (size_t i = 0; i < cmpntList.size(); i++) {
