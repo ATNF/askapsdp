@@ -113,14 +113,17 @@ class AmplitudeFlagger : public IFlagger {
         bool itsAutoThresholds;
         bool itsIntegrateSpectra;
         bool itsAveAll;
+        bool itsAveAllButPol;
+        bool itsAveAllButBeam;
         bool itsAveragesAreNormalised;
         casa::Float itsThresholdFactor;
         casa::Float itsSpectraFactor;
 
         // 
         rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row, const casa::uInt corr);
-        // return the median, the interquartile range, the min and the max of a masked array
-        casa::Vector<casa::Float> getRobustStats(casa::MaskedArray<casa::Float> maskedAmplitudes);
+        // calc the median, the interquartile range, the min and the max of a masked array
+        casa::Vector<casa::Float>
+            getRobustStats(casa::MaskedArray<casa::Float> maskedAmplitudes);
 
         void finaliseAverages(
             std::map<rowKey, casa::Vector<casa::Complex> > &aveSpectra,

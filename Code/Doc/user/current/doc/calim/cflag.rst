@@ -206,9 +206,14 @@ Cflag.amplitude_flagger.aveAll                     |false       |true        |Do
 |                                                  |            |            |etc., when integrating spectra. Average      |
 |                                                  |            |            |everything together.                         |
 +--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.aveAll.noPol               |false       |true        |Do separate spectra for different            |
+|                                                  |            |            |polarisations.                               |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.aveAll.noBeam              |false       |true        |Do separate spectra for different beams.     |
++--------------------------------------------------+------------+------------+---------------------------------------------+
 
 To avoid additional passes over data containing RFI spikes, the median and interquartile range are used in
-place of the mean andstandard deviation used in many thresholding algorithms. These are more robust to a
+place of the mean and standard deviation used in many thresholding algorithms. These are more robust to a
 modest number of outliers. If Gaussian noise dominates most of the frequency channels, then ~50% of the
 amplitudes will lie within 0.674 sigma of the mean, such that sigma ~ 1.349*IQL (IQL = the interquartile
 range). Samples outside [median - thresholdFactor*sigma, median + thresholdFactor*sigma] are flagged.

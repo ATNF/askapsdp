@@ -82,7 +82,8 @@ AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
         : itsStats("AmplitudeFlagger"), itsHasHighLimit(false),
           itsHasLowLimit(false), itsAutoThresholds(false),
           itsIntegrateSpectra(false),
-          itsAveAll(false), itsAveragesAreNormalised(true),
+          itsAveAll(false), itsAveAllButPol(false),
+          itsAveAllButBeam(false), itsAveragesAreNormalised(true),
           itsThresholdFactor(5.0), itsSpectraFactor(5.0)
 {
     if (parset.isDefined("high")) {
@@ -101,12 +102,18 @@ AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
     }
     if (parset.isDefined("integrateSpectra")) {
         itsIntegrateSpectra = parset.getBool("integrateSpectra");
-    }
-    if (parset.isDefined("integrateSpectra.threshold")) {
-        itsSpectraFactor = parset.getFloat("integrateSpectra.threshold");
+        if (parset.isDefined("integrateSpectra.threshold")) {
+            itsSpectraFactor = parset.getFloat("integrateSpectra.threshold");
+        }
     }
     if (parset.isDefined("aveAll")) {
         itsAveAll = parset.getBool("aveAll");
+        if (parset.isDefined("aveAll.noPol")) {
+            itsAveAllButPol = parset.getFloat("aveAll.noPol");
+        }
+        if (parset.isDefined("aveAll.noBeam")) {
+            itsAveAllButBeam = parset.getFloat("aveAll.noBeam");
+        }
     }
 
     if (!itsHasHighLimit && !itsHasLowLimit && !itsAutoThresholds) {
@@ -322,16 +329,30 @@ rowKey AmplitudeFlagger::getRowKey(
 
     // specify which fields to keep separate and which to average over
     // any set to zero will be averaged over
+    casa::Int field = 0;
+    casa::Int feed1 = 0;
+    casa::Int feed2 = 0;
+    casa::Int ant1  = 0;
+    casa::Int ant2  = 0;
+    casa::Int pol   = 0;
     if (itsAveAll) {
-        return boost::make_tuple(0,0,0,0,0,0);
+        if (itsAveAllButPol) {
+            pol = corr;
+        }
+        if (itsAveAllButBeam) {
+            feed1 = msc.feed1()(row);
+            feed2 = msc.feed2()(row);
+        }
     } else {
-        return boost::make_tuple(msc.fieldId()(row),
-                                 msc.feed1()(row),
-                                 msc.feed2()(row),
-                                 msc.antenna1()(row),
-                                 msc.antenna2()(row),
-                                 corr);
+        field = msc.fieldId()(row);
+        feed1 = msc.feed1()(row);
+        feed2 = msc.feed2()(row);
+        ant1  = msc.antenna1()(row);
+        ant2  = msc.antenna2()(row);
+        pol   = corr;
     }
+
+    return boost::make_tuple(field,feed1,feed2,ant1,ant2,pol);
 
 }
 
