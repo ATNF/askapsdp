@@ -91,17 +91,30 @@ int CflagApp::run(int argc, char* argv[])
     const casa::uInt nRows = msc.nrow();
     std::vector< boost::shared_ptr<IFlagger> >::iterator it;
     unsigned long rowsAlreadyFlagged = 0;
-    for (casa::uInt i = 0; i < nRows; ++i) {
-        if (!msc.flagRow()(i)) {
-            // Invoke each flagger for this row, but only while the row isn't flagged
-            for (it = flaggers.begin(); it != flaggers.end(); ++it) {
-                if (msc.flagRow()(i)) {
-                    break;
+    casa::Bool passRequired = casa::True;
+    casa::uInt pass = 0;
+    while (passRequired) {
+        for (casa::uInt i = 0; i < nRows; ++i) {
+            if (!msc.flagRow()(i)) {
+                // Invoke each flagger for this row, but only while the row isn't flagged
+                for (it = flaggers.begin(); it != flaggers.end(); ++it) {
+                    if (msc.flagRow()(i)) {
+                        break;
+                    }
+                    if ((*it)->processingRequired(pass)) {
+                        (*it)->processRow(msc, pass, i, dryRun);
+                    }
                 }
-                (*it)->processRow(msc, i, dryRun);
+            } else {
+                rowsAlreadyFlagged++;
             }
-        } else {
-            rowsAlreadyFlagged++;
+        }
+        pass++;
+        passRequired = casa::False;
+        for (it = flaggers.begin(); it != flaggers.end(); ++it) {
+            if ((*it)->processingRequired(pass)) {
+                passRequired = casa::True;
+            }
         }
     }
 

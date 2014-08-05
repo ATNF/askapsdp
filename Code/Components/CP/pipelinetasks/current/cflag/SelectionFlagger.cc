@@ -145,8 +145,13 @@ FlaggingStats SelectionFlagger::stats(void) const
     return itsStats;
 }
 
-void SelectionFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
-                                   const bool dryRun)
+casa::Bool SelectionFlagger::processingRequired(const casa::uInt pass)
+{
+    return (pass==0);
+}
+
+void SelectionFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                  const casa::uInt row, const bool dryRun)
 {
     const bool rowCriteriaMatches = dispatch(itsRowCriteria, msc, row);
 

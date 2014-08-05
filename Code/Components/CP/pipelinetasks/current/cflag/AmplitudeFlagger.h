@@ -40,6 +40,9 @@
 #include "measures/Measures/Stokes.h"
 #include "casa/Arrays/Vector.h"
 
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
+
 // Local package includes
 #include "cflag/IFlagger.h"
 #include "cflag/FlaggingStats.h"
@@ -47,6 +50,9 @@
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
+
+//                   fieldID    feed1      feed2      antenna1   antenna2   polarisation
+typedef boost::tuple<casa::Int, casa::Int, casa::Int, casa::Int, casa::Int, casa::Int> rowKey;
 
 /// @brief Applies flagging based on amplitude thresholding.
 class AmplitudeFlagger : public IFlagger {
@@ -68,11 +74,14 @@ class AmplitudeFlagger : public IFlagger {
         AmplitudeFlagger(const LOFAR::ParameterSet& parset);
 
         /// @see IFlagger::processRow()
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
-                                const bool dryRun);
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                const casa::uInt row, const bool dryRun);
 
         /// @see IFlagger::stats()
         virtual FlaggingStats stats(void) const;
+
+        /// @see IFlagger::stats()
+        virtual casa::Bool processingRequired(const casa::uInt pass);
 
     private:
         /// Returns a vector of stokes types for a given row in the main table
@@ -99,6 +108,25 @@ class AmplitudeFlagger : public IFlagger {
         // The set of correlation products for which these flagging rules should
         // be applied. An empty list means apply to all correlation products.
         std::set<casa::Stokes::StokesTypes> itsStokes;
+
+        // need parameters to enable these.
+        bool itsAutoThresholds;
+        bool itsIntegrateSpectra;
+        bool itsAveAll;
+        bool itsAveragesAreNormalised;
+        casa::Float itsThresholdFactor;
+        casa::Float itsSpectraFactor;
+
+        // 
+        rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row, const casa::uInt corr);
+        // return the median, the interquartile range, the min and the max of a masked array
+        casa::Vector<casa::Float> getRobustStats(casa::MaskedArray<casa::Float> maskedAmplitudes);
+
+        void finaliseAverages(
+            std::map<rowKey, casa::Vector<casa::Complex> > &aveSpectra,
+            std::map<rowKey, casa::Vector<casa::Int> > &countSpectra, 
+            std::map<rowKey, casa::Vector<casa::Bool> > &maskSpectra);
+
 };
 
 }

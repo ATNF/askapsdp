@@ -86,6 +86,11 @@ FlaggingStats StokesVFlagger::stats(void) const
     return itsStats;
 }
 
+casa::Bool StokesVFlagger::processingRequired(const casa::uInt pass)
+{
+    return (pass==0);
+}
+
 casa::StokesConverter& StokesVFlagger::getStokesConverter(
     const casa::ROMSPolarizationColumns& polc, const casa::Int polId)
 {
@@ -101,8 +106,8 @@ casa::StokesConverter& StokesVFlagger::getStokesConverter(
     return itsConverterCache[polId];
 }
 
-void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
-                                 const bool dryRun)
+void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                const casa::uInt row, const bool dryRun)
 {
     // Get a description of what correlation products are in the data table.
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();

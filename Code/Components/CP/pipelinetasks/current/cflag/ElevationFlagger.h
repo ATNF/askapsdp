@@ -63,11 +63,14 @@ class ElevationFlagger : public IFlagger {
         ElevationFlagger(const LOFAR::ParameterSet& parset);
 
         /// @see IFlagger::processRow()
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
-                                const bool dryRun);
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                const casa::uInt row, const bool dryRun);
 
         /// @see IFlagger::stats()
         virtual FlaggingStats stats(void) const;
+
+        /// @see IFlagger::stats()
+        virtual casa::Bool processingRequired(const casa::uInt pass);
 
     private:
 

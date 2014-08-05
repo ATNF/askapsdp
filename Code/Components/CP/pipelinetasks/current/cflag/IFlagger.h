@@ -47,18 +47,22 @@ class IFlagger {
 
         /// Perform flagging (if necessary) for the row with index "row".
         ///
-        /// @param[in,out] msc   the masurement set columns that contain the data
+        /// @param[in,out] msc  the masurement set columns that contain the data
         ///                     and flagging arrays
         /// @param[in] row      the (zero-based) index number for the row in
         ///                     msc to be processed.
         /// @param[in] dryRun   if true the measurement set will not be modified,
         ///                     however statistics will be calculated indicating
         ///                     what flagging would have been done.
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
-                                const bool dryRun) = 0;
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                const casa::uInt row, const bool dryRun) = 0;
 
         /// Returns flagging statistics
         virtual FlaggingStats stats(void) const = 0;
+
+        /// Functions associated with multiple passees
+        /// @param[in] pass     number of passes over the data already performed
+        virtual casa::Bool processingRequired(const casa::uInt pass) = 0;
 
 };
 

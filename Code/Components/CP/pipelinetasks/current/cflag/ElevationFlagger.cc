@@ -81,6 +81,11 @@ FlaggingStats ElevationFlagger::stats(void) const
     return itsStats;
 }
 
+casa::Bool ElevationFlagger::processingRequired(const casa::uInt pass)
+{
+    return (pass==0);
+}
+
 void ElevationFlagger::updateElevations(casa::MSColumns& msc,
                                          const casa::uInt row)
 {
@@ -112,8 +117,8 @@ void ElevationFlagger::updateElevations(casa::MSColumns& msc,
     itsTimeElevCalculated = msc.time()(row);
 }
 
-void ElevationFlagger::processRow(casa::MSColumns& msc, const casa::uInt row,
-                                   const bool dryRun)
+void ElevationFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
+                                  const casa::uInt row, const bool dryRun)
 {
     // 1: If new timestamp then update the antenna elevations
     const casa::Double epsilon = std::numeric_limits<casa::Double>::epsilon();
