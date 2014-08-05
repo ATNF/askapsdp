@@ -156,33 +156,62 @@ The "amplitude thresholding" flagger is a very basic flagger used to flag visibi
 which fall outside some amplitude bounds. This was designed for ASKAP commissioning to
 potentially work around some correlator problems.
 
-+----------------------------------+------------+------------+---------------------------------------------+
-|*Parameter*                       |*Default*   |*Example*   |*Description*                                |
-+==================================+============+============+=============================================+
-|Cflag.amplitude_flagger.enable    |false       |true        |Enable amplitude threshold flagging          |
-+----------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.low       |*None*      |1e-17       |The lower bound for valid visibilities. Any  |
-|                                  |            |            |visibility with a lower amplitude will be    |
-|                                  |            |            |flagged. If this parameter is not present in |
-|                                  |            |            |the parset, then no lower bound will be      |
-|                                  |            |            |enforced.                                    |
-+----------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.high      |*None*      |12345.0     |The upper bound for valid visibilities. Any  |
-|                                  |            |            |visibility with a higher amplitude will be   |
-|                                  |            |            |flagged. If this parameter is not present in |
-|                                  |            |            |the parset, then no upper bound will be      |
-|                                  |            |            |enforced.                                    |
-+----------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.stokes    |*None*      |[XX, YY]    |Specifies which correlation products are to  |
-|                                  |            |            |be subject to flagging. If this parameter is |
-|                                  |            |            |not specified then **all** products will be  |
-|                                  |            |            |subject to flagging. To just flag XX, then   |
-|                                  |            |            |specify "[XX]". For XX & YY, "[XX, YY]", and |
-|                                  |            |            |so on. No stokes conversion is done, so only |
-|                                  |            |            |the products contained in the measurement set|
-|                                  |            |            |should be specified.                         |
-+----------------------------------+------------+------------+---------------------------------------------+
++--------------------------------------------------+------------+------------+---------------------------------------------+
+|*Parameter*                                       |*Default*   |*Example*   |*Description*                                |
++==================================================+============+============+=============================================+
+|Cflag.amplitude_flagger.enable                    |false       |true        |Enable amplitude threshold flagging          |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.low                       |*None*      |1e-17       |The lower bound for valid visibilities. Any  |
+|                                                  |            |            |visibility with a lower amplitude will be    |
+|                                                  |            |            |flagged. If this parameter is not present in |
+|                                                  |            |            |the parset, then no lower bound will be      |
+|                                                  |            |            |enforced.                                    |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.high                      |*None*      |12345.0     |The upper bound for valid visibilities. Any  |
+|                                                  |            |            |visibility with a higher amplitude will be   |
+|                                                  |            |            |flagged. If this parameter is not present in |
+|                                                  |            |            |the parset, then no upper bound will be      |
+|                                                  |            |            |enforced.                                    |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.stokes                    |*None*      |[XX, YY]    |Specifies which correlation products are to  |
+|                                                  |            |            |be subject to flagging. If this parameter is |
+|                                                  |            |            |not specified then **all** products will be  |
+|                                                  |            |            |subject to flagging. To just flag XX, then   |
+|                                                  |            |            |specify "[XX]". For XX & YY, "[XX, YY]", and |
+|                                                  |            |            |so on. No stokes conversion is done, so only |
+|                                                  |            |            |the products contained in the measurement set|
+|                                                  |            |            |should be specified.                         |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.amplitude_flagger.autoThresholds            |false       |true        |If true, automatically generate low and high |
+|                                                  |            |            |amplitude thresholds for each spectrum using |
+|                                                  |            |            |the statistics described below. Both         |
+|                                                  |            |            |Cflag.amplitude_flagger.low and              |
+|                                                  |            |            |Cflag.amplitude_flagger.high have preference |
+|                                                  |            |            |over the autoThresholds.                     |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.threshold                  |5.0         |4.0         |The threshold factor used in the statistics  |
+|                                                  |            |            |described below.                             |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.integrateSpectra           |false       |true        |Integrate the spectra in time and flag any   |
+|                                                  |            |            |channels outside thresholds, also set using  |
+|                                                  |            |            |the statistics described below. Spectra for  |
+|                                                  |            |            |different baselines, beams, fields and       |
+|                                                  |            |            |polarisation are kept separate. Requires a   |
+|                                                  |            |            |second pass over the data.                   |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.integrateSpectra.threshold |5.0         |4.0         |The threshold factor used to threshold       |
+|                                                  |            |            |integrated spectra.                          |
++--------------------------------------------------+------------+------------+---------------------------------------------+
+Cflag.amplitude_flagger.aveAll                     |false       |true        |Do not separate spectra based on baseline,   |
+|                                                  |            |            |etc., when integrating spectra. Average      |
+|                                                  |            |            |everything together.                         |
++--------------------------------------------------+------------+------------+---------------------------------------------+
 
+To avoid additional passes over data containing RFI spikes, the median and interquartile range are used in
+place of the mean andstandard deviation used in many thresholding algorithms. These are more robust to a
+modest number of outliers. If Gaussian noise dominates most of the frequency channels, then ~50% of the
+amplitudes will lie within 0.674 sigma of the mean, such that sigma ~ 1.349*IQL (IQL = the interquartile
+range). Samples outside [median - thresholdFactor*sigma, median + thresholdFactor*sigma] are flagged.
 
 Configuration Example
 ---------------------
@@ -231,3 +260,21 @@ flagger with both a low and high threshold:
     Cflag.amplitude_flagger.enable          = true
     Cflag.amplitude_flagger.high            = 10.25
     Cflag.amplitude_flagger.low             = 1e-3
+
+**Example 3**
+
+This example demonstrates configuration of the amplitude based
+flagger with dynamic thresholding:
+
+.. code-block:: bash
+
+    # The path/filename for the measurement set
+    Cflag.dataset                                      = target.ms
+    # Amplitude based flagging
+    Cflag.amplitude_flagger.enable                     = true
+    # Threshold using the median and IQR of each spectrum
+    Cflag.amplitude_flagger.autoThresholds             = true
+    # Threshold again after averaging spectra in time
+    Cflag.amplitude_flagger.integrateSpectra           = true
+    Cflag.amplitude_flagger.integrateSpectra.threshold = 4.0
+

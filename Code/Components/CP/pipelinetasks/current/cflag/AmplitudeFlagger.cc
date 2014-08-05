@@ -96,14 +96,14 @@ AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
     if (parset.isDefined("autoThresholds")) {
         itsAutoThresholds = parset.getBool("autoThresholds");
     }
-    if (parset.isDefined("thresholdFactor")) {
-        itsThresholdFactor = parset.getFloat("thresholdFactor");
+    if (parset.isDefined("threshold")) {
+        itsThresholdFactor = parset.getFloat("threshold");
     }
     if (parset.isDefined("integrateSpectra")) {
         itsIntegrateSpectra = parset.getBool("integrateSpectra");
     }
-    if (parset.isDefined("integrateSpectra.thresholdFactor")) {
-        itsSpectraFactor = parset.getFloat("integrateSpectra.thresholdFactor");
+    if (parset.isDefined("integrateSpectra.threshold")) {
+        itsSpectraFactor = parset.getFloat("integrateSpectra.threshold");
     }
     if (parset.isDefined("aveAll")) {
         itsAveAll = parset.getBool("aveAll");
