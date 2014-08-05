@@ -171,7 +171,7 @@ namespace askap {
         {
             /// @details The constructor reads parameters from the parameter
             /// set parset. This set can include Duchamp parameters, as well
-            /// as particular cduchamp parameters such as masterImage and
+            /// as particular Selavy parameters such as masterImage and
             /// sectionInfo.
 
 	    ASKAPLOG_INFO_STR(logger, "Initialising parallel finder, based on Duchamp v" << duchamp::VERSION);
@@ -589,7 +589,7 @@ namespace askap {
 		}
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile());
                 std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
-                logfile << "New run of the CDuchamp sourcefinder: ";
+                logfile << "New run of the Selavy sourcefinder: ";
                 time_t now = time(NULL);
                 logfile << asctime(localtime(&now));
                 // Write out the command-line statement
