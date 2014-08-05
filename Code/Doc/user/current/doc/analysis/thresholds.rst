@@ -26,6 +26,8 @@ The searching can be done either spatially or spectrally, and this affects how t
 
 When run on a distributed system as above, this processing is done at the worker level. Note that having an overlap between workers of at least the half box width will give continuous coverage (avoiding the aforementioned edge problems). Selavy will increase the overlap to account for this if necessary. The amount of processing needed increases quickly with the size of the box, especially in the case of robust statistics due to the use of medians, and particularly for the 2D case.
 
+The various maps created can be written out to disk -- see section below. If you have run this once and written out the images, specifically the SNR map, then you can re-run the searching with a different threshold without having to re-do the calculations. Simply give **Selavy.VariableThreshold.reuse=true** (this defaults to **false**).
+
 A final option for varying the threshold spatially is to use a different threshold for each worker. In this scenario, switched on by setting **thresholdPerWorker = true**, each worker finds its own threshold based on the noise within it, using the **snrCut** signal-to-noise ratio threshold. No variation of the threshold *within* a worker is done, so you get discrete jumps in the threshold at worker boundaries. Use of the overlap can mitigate this. This mode was implemented more as an experiment than out of any expectation it would be useful, and limited trials indicate it's probably not much use. For completeness we include the parameter here. 
 
 Threshold-related parameters
@@ -53,6 +55,11 @@ Threshold-related parameters
 |Selavy.VariableThreshold.boxSize  |int         |50           |The half-width of the box used in the SNR map calculation. The    |
 |                                  |            |             |full width of the box is 2*boxSize+1.                             |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
+|Selavy.VaraibleThreshold.reuse    |bool        |false        |If true, Selavy will load the signal-to-noise ratio map from the  |
+|                                  |            |             |image named by the *SNRimageName* parameter (see table below). If |
+|                                  |            |             |this image does not exist, the calculations will proceed as       |
+|                                  |            |             |normal.                                                           |
++----------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.searchType                 |string      |spatial      |In which sense to do the searching: spatial=2D searches, one      |
 |                                  |            |             |channel map at a time; spectral=1D searches, one spectrum at a    |
 |                                  |            |             |time. The variable searches are affected by this, in that the     |
@@ -69,7 +76,7 @@ Threshold-related parameters
 Saving threshold maps
 ~~~~~~~~~~~~~~~~~~~~~
 
-Selavy provides the option of writing out the various arrays created for the VariableThreshold mode. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. If the name is not given, no image will be written. The images will be created with the same size as the full input image (any search subsection is ignored - pixels outside this are set to zero).
+Selavy provides the option of writing out the various arrays created for the VariableThreshold mode. These include the signal-to-noise map, the noise map and the threshold map. These will be written to a CASA image. If the name is not given, no image will be written. The images will be created with the same size as the full input image (any search subsection is ignored - pixels outside this are set to zero). These maps are able to be reused when **Selavy.VariableThreshold.reuse=true**.
 
 The parameters controlling this behaviour are listed below.
 

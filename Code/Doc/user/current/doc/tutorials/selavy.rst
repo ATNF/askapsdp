@@ -438,3 +438,44 @@ The best fit of the two is chosen on the basis of the reduced
 chi-squared value from the fit. [Note the discussion
 in :doc:`../analysis/postprocessing` about the suitability of the
 chi-squared value in the case of correlated pixels.]
+
+Dealing with bright sidelobes
+.............................
+
+It may be that you want to extract a component fitting a source with
+bright sidelobes, for instance from a poorly-cleaned BETA
+image. Here’s a good procedure for Selavy: 
+
+.. code-block:: bash
+
+  # Fitting parameters, as before
+  Selavy.Fitter.doFit = true
+  Selavy.Fitter.fitTypes = [full]
+  # Limit the number of Gaussians to 1
+  Selavy.Fitter.maxNumGauss = 1
+  # Do not use the number of initial estimates to determine how many
+  #  Gaussians to fit
+  Selavy.Fitter.numGaussFromGuess = false
+  # The fit may be a bit poor, so increase the reduced-chisq threshold 
+  Selavy.Fitter.maxReducedChisq = 10.
+  #
+  # Allow islands that are slightly separated to be considered a
+  # single 'source'
+  Selavy.flagAdjacent = false 
+  # The separation in pixels for islands to be considered 'joined' 
+  Selavy.threshSpatial = 7
+  
+
+This forces a fit of a single Gaussian only (ignoring the full set of
+initial estimates), and (as of change set 6455) returns the first
+estimate if the fit fails. Note that the max reduced chisq has been
+upped to 10 to capture poor fits (often a good idea for bright
+targets, as the PSF is slightly different to a Gaussian).
+
+Here’s an example, where all the red contours are a single Duchamp
+source and the blue ellipse represents the fitted component. Some
+tweaking of the *threshSpatial* parameter might be needed.
+
+.. image:: figures/sidelobeSource.png
+   :align: center
+
