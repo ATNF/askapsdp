@@ -15,6 +15,7 @@ class SelavyObject:
         self.line = line
         if(line[0]!='#'):
             cols = line.split()
+            self.type = 'Selavy'
             self.id = cols[0]
             self.name = cols[1]
             self.ra = float(cols[2])
@@ -45,11 +46,15 @@ class SelavyObject:
     def flux(self):
         return self.FintFIT
 
+    def peak(self):
+        return self.Fpeak
+
 class FullStokesS3SEXObject:
     def __init__(self,line):
         self.line = line
         if line[0]!='#' :
             cols=line.split()
+            self.type = 'FullStokesS3SEX'
             self.componentNum = int(cols[0])
             self.clusterID = int(cols[1])
             self.galaxyNum = int(cols[2])
@@ -80,12 +85,15 @@ class FullStokesS3SEXObject:
     def flux(self):
         return self.Iref
 
+    def peak(self):
+        return self.flux()* pi * self.maj * self.min / (4.*log(2))
 
 class ContinuumObject:
     def __init__(self,line):
         self.line = line
         if(line[0]!='#'):
             cols=line.split()
+            self.type = 'Continuum'
             self.ra = posToDec(cols[0])
             self.dec = posToDec(cols[1])
             self.flux0 = float(cols[2])
@@ -99,11 +107,15 @@ class ContinuumObject:
     def flux(self):
         return self.flux0
 
+    def peak(self):
+        return self.flux()* pi * self.maj * self.min / (4.*log(2))
+
 class ContinuumIDObject:
     def __init__(self,line):
         self.line = line
         if(line[0]!='#'):
             cols=line.split()
+            self.type = 'ContinuumID'
             self.id = cols[0]
             self.ra = posToDec(cols[1])
             self.dec = posToDec(cols[2])
@@ -117,12 +129,16 @@ class ContinuumIDObject:
     def flux(self):
         return self.flux0
 
+    def peak(self):
+        return self.flux()* pi * self.maj * self.min / (4.*log(2))
+
 
 class SUMSSObject:
     def __init__(self,line):
         self.line = line
         if(line[0]!='#'):
             cols=line.split()
+            self.type = 'SUMSS'
             self.ra=15.*(float(cols[0])+float(cols[1])/60.+float(cols[2])/3600.)
             self.dec=abs(float(cols[3]))+float(cols[4])/60.+float(cols[5])/3600.
             if cols[3][0]=='-':
@@ -150,6 +166,9 @@ class SUMSSObject:
 
     def flux(self):
         return self.Fint
+
+    def peak(self):
+        return self.Fpeak
     
 class Match:
     def __init__(self,line,srcCat,refCat):

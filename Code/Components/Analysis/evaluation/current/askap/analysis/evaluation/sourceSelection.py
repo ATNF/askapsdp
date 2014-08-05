@@ -74,7 +74,7 @@ class sourceSelector:
             skycrd[0][0]=source.ra
             skycrd[0][1]=source.dec
             if self.fluxType == "peak":
-                flux = source.Fpeak
+                flux = source.peak()
             else:
                 flux = source.flux()
             useRef=False

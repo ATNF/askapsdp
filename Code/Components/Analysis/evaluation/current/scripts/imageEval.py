@@ -202,7 +202,7 @@ if __name__ == '__main__':
         loc=int((math.log10(flux)+4+0.1)*5)
         if loc>=0 and loc<fluxpts.size:
             counts[loc] = counts[loc]+1
-            sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+            sourceDetArea = pixelarea * threshmap[threshmap<source.peak()].size
             #sourceDetArea = fullFieldArea
             countsPerArea[loc] = countsPerArea[loc] + 1./sourceDetArea
             if (matchedSources==source.id).any():
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         if selector.isGood(source):
             flux=source.flux()
             loc=int((math.log10(flux)+4+0.1)*5)
-            sourceDetArea = pixelarea * threshmap[threshmap<source.Fpeak].size
+            sourceDetArea = pixelarea * threshmap[threshmap<source.peak()].size
             #sourceDetArea = fullFieldArea
             if loc >= 0 and loc < countsSM.size and sourceDetArea > 0.:
                 countsSM[loc] = countsSM[loc]+1
