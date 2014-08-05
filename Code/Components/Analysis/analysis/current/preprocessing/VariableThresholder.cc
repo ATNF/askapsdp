@@ -82,6 +82,11 @@ namespace askap {
 	    this->itsSearchType = "spatial";
 	    this->itsCube = 0;
 	    this->itsFlagRobustStats = true;
+	    this->itsFlagReuse = parset.getBool("reuse",false);
+	    if(this->itsSNRimageName == ""){
+		ASKAPLOG_WARN_STR(logger, "Variable Thresholder: reuse=true, but no SNR image name given. Turning reuse off.");
+		this->itsFlagReuse = false;
+	    }
 	}
 
 	void VariableThresholder::setFilenames(askap::askapparallel::AskapParallel& comms)
@@ -191,75 +196,94 @@ namespace askap {
 	    /// made.	    
 
 
-	    ASKAPLOG_INFO_STR(logger, "Will calculate the pixel-by-pixel signal-to-noise map");
-	    if(this->itsSNRimageName!="") ASKAPLOG_INFO_STR(logger, "Will write the SNR map to " << this->itsSNRimageName);
-	    if(this->itsBoxSumImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the box sum map to " << this->itsBoxSumImageName);
-	    if(this->itsNoiseImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the noise map to " << this->itsNoiseImageName);
-	    if(this->itsAverageImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the average background map to " << this->itsAverageImageName);
-	    if(this->itsThresholdImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the flux threshold map to " << this->itsThresholdImageName);
+	    if (this->itsFlagReuse) {
 
-	    int specAxis=this->itsInputCoordSys.spectralAxisNumber();
-	    int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
-	    int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
-	    size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
-	    size_t specsize=(specAxis>=0) ? this->itsInputShape(specAxis) : 1;
-	    if(specsize<1) specsize=1;
-	    casa::IPosition chunkshape=this->itsInputShape;
-	    casa::IPosition box;
-	    size_t maxCtr;
-	    if(this->itsSearchType == "spatial"){
-		if(specAxis>=0) chunkshape(specAxis)=1;
-		box=casa::IPosition(2, this->itsBoxSize, this->itsBoxSize);
-		maxCtr=specsize;
+		ASKAPLOG_INFO_STR(logger, "Reusing SNR map from file " << this->itsSNRimageName);
+		
+		casa::Array<Float> snr = analysisutilities::getPixelsInBox(this->itsSNRimageName, this->itsSlicer);
+		if(this->itsCube->getRecon()==0)
+		    ASKAPLOG_ERROR_STR(logger, "The Cube's recon array not defined - cannot save SNR map");
+		else{
+		    for(size_t i=0;i<this->itsCube->getSize();i++)
+			this->itsCube->getRecon()[i] = snr.data()[i];
+		}
+
+
 	    }
-	    else{
-		if(lngAxis>=0) chunkshape(lngAxis) = 1;
-		if(latAxis>=0) chunkshape(latAxis) = 1;
-		box=casa::IPosition(1, this->itsBoxSize);
-		maxCtr=spatsize;
-	    }
+	    else { 
 
-	    ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in image of shape " << this->itsInputShape << " using  '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
 
-	    for(size_t ctr=0;ctr<maxCtr;ctr++){
-		if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
-		bool isStart=(ctr==0);
-		casa::Array<Float> inputChunk(chunkshape,0.);
-		casa::MaskedArray<Float> inputMaskedChunk(inputChunk,casa::LogicalArray(chunkshape,true));
-		casa::Array<Float> middle(chunkshape,0.);
-		casa::Array<Float> spread(chunkshape,0.);
-		casa::Array<Float> snr(chunkshape,0.);
-		casa::Array<Float> boxsum(chunkshape,0.);
+		ASKAPLOG_INFO_STR(logger, "Will calculate the pixel-by-pixel signal-to-noise map");
+		if(this->itsSNRimageName!="") ASKAPLOG_INFO_STR(logger, "Will write the SNR map to " << this->itsSNRimageName);
+		if(this->itsBoxSumImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the box sum map to " << this->itsBoxSumImageName);
+		if(this->itsNoiseImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the noise map to " << this->itsNoiseImageName);
+		if(this->itsAverageImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the average background map to " << this->itsAverageImageName);
+		if(this->itsThresholdImageName!="") ASKAPLOG_INFO_STR(logger, "Will write the flux threshold map to " << this->itsThresholdImageName);
 
-		casa::IPosition loc(this->itsLocation.size(),0);
+		int specAxis=this->itsInputCoordSys.spectralAxisNumber();
+		int lngAxis=this->itsInputCoordSys.directionAxesNumbers()[0];
+		int latAxis=this->itsInputCoordSys.directionAxesNumbers()[1];
+		size_t spatsize=this->itsInputShape(lngAxis) * this->itsInputShape(latAxis);
+		size_t specsize=(specAxis>=0) ? this->itsInputShape(specAxis) : 1;
+		if(specsize<1) specsize=1;
+		casa::IPosition chunkshape=this->itsInputShape;
+		casa::IPosition box;
+		size_t maxCtr;
 		if(this->itsSearchType == "spatial"){
-		    if(specAxis>=0) loc(specAxis) = ctr;
+		    if(specAxis>=0) chunkshape(specAxis)=1;
+		    box=casa::IPosition(2, this->itsBoxSize, this->itsBoxSize);
+		    maxCtr=specsize;
 		}
 		else{
-		    if(lngAxis>=0) loc(lngAxis) = ctr%this->itsCube->getDimX();
-		    if(latAxis>=0) loc(latAxis) = ctr/this->itsCube->getDimX();
+		    if(lngAxis>=0) chunkshape(lngAxis) = 1;
+		    if(latAxis>=0) chunkshape(latAxis) = 1;
+		    box=casa::IPosition(1, this->itsBoxSize);
+		    maxCtr=spatsize;
 		}
-		// loc = loc + this->itsSlicer.start();
-		loc = loc + this->itsLocation;
+
+		ASKAPLOG_INFO_STR(logger, "Will calculate box-wise signal-to-noise in image of shape " << this->itsInputShape << " using  '"<<this->itsSearchType<<"' mode with chunks of shape " << chunkshape << " and a box of shape " << box);
+
+		for(size_t ctr=0;ctr<maxCtr;ctr++){
+		    if(maxCtr>1) ASKAPLOG_DEBUG_STR(logger, "Iteration " << ctr << " of " << maxCtr);
+		    bool isStart=(ctr==0);
+		    casa::Array<Float> inputChunk(chunkshape,0.);
+		    casa::MaskedArray<Float> inputMaskedChunk(inputChunk,casa::LogicalArray(chunkshape,true));
+		    casa::Array<Float> middle(chunkshape,0.);
+		    casa::Array<Float> spread(chunkshape,0.);
+		    casa::Array<Float> snr(chunkshape,0.);
+		    casa::Array<Float> boxsum(chunkshape,0.);
+
+		    casa::IPosition loc(this->itsLocation.size(),0);
+		    if(this->itsSearchType == "spatial"){
+			if(specAxis>=0) loc(specAxis) = ctr;
+		    }
+		    else{
+			if(lngAxis>=0) loc(lngAxis) = ctr%this->itsCube->getDimX();
+			if(latAxis>=0) loc(latAxis) = ctr/this->itsCube->getDimX();
+		    }
+		    // loc = loc + this->itsSlicer.start();
+		    loc = loc + this->itsLocation;
 		
-		if(this->itsComms->isWorker()){
-		  this->defineChunk(inputChunk,inputMaskedChunk,ctr);
-		  //		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
-		  slidingBoxMaskedStats(inputMaskedChunk, middle, spread, box, this->itsFlagRobustStats);
-		    // snr = calcSNR(inputChunk,middle,spread);
-		    snr = calcMaskedSNR(inputMaskedChunk,middle,spread);
-		    if(this->itsBoxSumImageName!=""){
-			// boxsum = slidingArrayMath(inputChunk, box, SumFunc<Float>());
-		      boxsum = slidingArrayMath(inputMaskedChunk, box, MaskedSumFunc<Float>());
+		    if(this->itsComms->isWorker()){
+			this->defineChunk(inputChunk,inputMaskedChunk,ctr);
+			//		    slidingBoxStats(inputChunk, middle, spread, box, this->itsFlagRobustStats);
+			slidingBoxMaskedStats(inputMaskedChunk, middle, spread, box, this->itsFlagRobustStats);
+			// snr = calcSNR(inputChunk,middle,spread);
+			snr = calcMaskedSNR(inputMaskedChunk,middle,spread);
+			if(this->itsBoxSumImageName!=""){
+			    // boxsum = slidingArrayMath(inputChunk, box, SumFunc<Float>());
+			    boxsum = slidingArrayMath(inputMaskedChunk, box, MaskedSumFunc<Float>());
+			}
+		    }
+
+		    if(this->doWriteImages) this->writeImages(middle,spread,snr,boxsum,loc,isStart);
+
+		    if(this->itsComms->isWorker()){
+			ASKAPLOG_DEBUG_STR(logger, "About to store the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
+			this->saveSNRtoCube(snr,ctr);
 		    }
 		}
 
-		if(this->doWriteImages) this->writeImages(middle,spread,snr,boxsum,loc,isStart);
-
-		if(this->itsComms->isWorker()){
-		  ASKAPLOG_DEBUG_STR(logger, "About to store the SNR map to the cube for iteration " << ctr << " of " << maxCtr);
-		  this->saveSNRtoCube(snr,ctr);
-		}
 	    }
 
 	    this->itsCube->setReconFlag(true);
@@ -382,7 +406,7 @@ namespace askap {
 		}
 	
 		ASKAPLOG_DEBUG_STR(logger, "Searching SNR map");
-		this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
+		this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(), this->itsCube->getArray(), this->itsCube->getRecon(), this->itsCube->pars(), this->itsCube->stats());
 		ASKAPLOG_DEBUG_STR(logger, "Number of sources found = " << this->itsCube->getNumObj());
 		this->itsCube->updateDetectMap();
 		if(this->itsCube->pars().getFlagLog()) 

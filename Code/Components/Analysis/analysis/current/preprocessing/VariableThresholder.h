@@ -112,6 +112,8 @@ namespace askap {
 	    std::string itsBoxSumImageName;
 	    /// Do we need to write any images?
 	    bool doWriteImages;
+	    /// Are we re-using exising images?
+	    bool itsFlagReuse;
 	    
 	    /// @brief The subimage definition
 	    analysisutilities::SubimageDef *itsSubimageDef;
