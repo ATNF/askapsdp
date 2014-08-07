@@ -105,19 +105,49 @@ class AmplitudeFlagger : public IFlagger {
         // The lower amplitude limit
         casa::Float itsLowLimit;
 
+        // 
+        bool itsAutoThresholds;
+
+        // 
+        bool itsIntegrateSpectra;
+
+        // 
+        bool itsIntegrateTimes;
+
+        // 
+        bool itsAveAll;
+
+        // 
+        bool itsAveAllButPol;
+
+        // 
+        bool itsAveAllButBeam;
+
+        // 
+        bool itsAverageFlagsAreReady;
+
+        // 
+        casa::Float itsThresholdFactor;
+
+        // 
+        casa::Float itsSpectraFactor;
+
+        // 
+        casa::Float itsTimesFactor;
+
         // The set of correlation products for which these flagging rules should
         // be applied. An empty list means apply to all correlation products.
         std::set<casa::Stokes::StokesTypes> itsStokes;
 
-        // need parameters to enable these.
-        bool itsAutoThresholds;
-        bool itsIntegrateSpectra;
-        bool itsAveAll;
-        bool itsAveAllButPol;
-        bool itsAveAllButBeam;
-        bool itsAveragesAreNormalised;
-        casa::Float itsThresholdFactor;
-        casa::Float itsSpectraFactor;
+        // 
+        std::map<rowKey, casa::Vector<casa::Complex> > itsAveSpectra;
+        std::map<rowKey, casa::Vector<casa::Bool> > itsMaskSpectra;
+        std::map<rowKey, casa::Vector<casa::Int> > itsCountSpectra;
+
+        // 
+        std::map<rowKey, casa::Vector<casa::Complex> > itsAveTimes;
+        std::map<rowKey, casa::Vector<casa::Bool> > itsMaskTimes;
+        std::map<rowKey, casa::Int> itsCountTimes;
 
         // 
         rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row, const casa::uInt corr);
@@ -129,6 +159,10 @@ class AmplitudeFlagger : public IFlagger {
             std::map<rowKey, casa::Vector<casa::Complex> > &aveSpectra,
             std::map<rowKey, casa::Vector<casa::Int> > &countSpectra, 
             std::map<rowKey, casa::Vector<casa::Bool> > &maskSpectra);
+
+        void finaliseAverages(
+            std::map<rowKey, casa::Vector<casa::Complex> > &aveTimes,
+            std::map<rowKey, casa::Vector<casa::Bool> > &maskTimes);
 
 };
 

@@ -61,10 +61,6 @@ using namespace askap;
 using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
-std::map<rowKey, casa::Vector<casa::Complex> > aveSpectra;
-std::map<rowKey, casa::Vector<casa::Int> > countSpectra;
-std::map<rowKey, casa::Vector<casa::Bool> > maskSpectra;
-
 vector< boost::shared_ptr<IFlagger> > AmplitudeFlagger::build(
         const LOFAR::ParameterSet& parset,
         const casa::MeasurementSet& /*ms*/)
@@ -81,10 +77,10 @@ vector< boost::shared_ptr<IFlagger> > AmplitudeFlagger::build(
 AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
         : itsStats("AmplitudeFlagger"), itsHasHighLimit(false),
           itsHasLowLimit(false), itsAutoThresholds(false),
-          itsIntegrateSpectra(false),
+          itsIntegrateSpectra(false), itsIntegrateTimes(false),
           itsAveAll(false), itsAveAllButPol(false),
-          itsAveAllButBeam(false), itsAveragesAreNormalised(true),
-          itsThresholdFactor(5.0), itsSpectraFactor(5.0)
+          itsAveAllButBeam(false), itsAverageFlagsAreReady(true),
+          itsThresholdFactor(5.0), itsSpectraFactor(5.0), itsTimesFactor(5.0)
 {
     if (parset.isDefined("high")) {
         itsHasHighLimit = true;
@@ -106,6 +102,12 @@ AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
             itsSpectraFactor = parset.getFloat("integrateSpectra.threshold");
         }
     }
+    if (parset.isDefined("integrateTimes")) {
+        itsIntegrateTimes = parset.getBool("integrateTimes");
+        if (parset.isDefined("integrateTimes.threshold")) {
+            itsTimesFactor = parset.getFloat("integrateTimes.threshold");
+        }
+    }
     if (parset.isDefined("aveAll")) {
         itsAveAll = parset.getBool("aveAll");
         if (parset.isDefined("aveAll.noPol")) {
@@ -116,8 +118,9 @@ AmplitudeFlagger::AmplitudeFlagger(const LOFAR::ParameterSet& parset)
         }
     }
 
-    if (!itsHasHighLimit && !itsHasLowLimit && !itsAutoThresholds) {
-        ASKAPTHROW(AskapError, "No amplitude thresholds have been defined");
+    if (!itsHasHighLimit && !itsHasLowLimit && !itsAutoThresholds &&
+        !itsIntegrateSpectra && !itsIntegrateTimes) {
+        ASKAPTHROW(AskapError, "No amplitude flagging has been defined");
     }
     if (itsHasHighLimit && itsHasLowLimit && itsAutoThresholds) {
         ASKAPLOG_WARN_STR(logger, "Amplitude thresholds defined. No autoThresholds");
@@ -140,7 +143,7 @@ FlaggingStats AmplitudeFlagger::stats(void) const
 
 casa::Bool AmplitudeFlagger::processingRequired(const casa::uInt pass)
 {
-    if (itsIntegrateSpectra) {
+    if (itsIntegrateSpectra || itsIntegrateTimes) {
         return (pass<2);
     } else {
         return (pass<1);
@@ -165,14 +168,22 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
 
     // Only need to write out the flag matrix if it was updated
     bool wasUpdated = false;
+    // Only set flagRow if all corr are flagged
+    // Only looking for row flags in "itsAveTimes" data. Could generalise.
+    bool leaveRowFlag = false;
 
     const casa::Vector<casa::Int> stokesTypesInt = getStokesType(msc, row);
 
     // normalise averages if needed
-    if ( itsIntegrateSpectra && !itsAveragesAreNormalised && (pass==1) ) {
-        ASKAPLOG_INFO_STR(logger, "At the start of the second pass");
-        ASKAPLOG_INFO_STR(logger, " - normalising averages");
-        finaliseAverages(aveSpectra, countSpectra, maskSpectra);
+    if ( !itsAverageFlagsAreReady && (pass==1) ) {
+      if ( itsIntegrateSpectra ) {
+          ASKAPLOG_INFO_STR(logger, "Finalising averaged spectra. Pass "<<pass+1);
+          finaliseAverages(itsAveSpectra, itsCountSpectra, itsMaskSpectra);
+      }
+      if ( itsIntegrateTimes ) {
+          ASKAPLOG_INFO_STR(logger, "Finalising averaged times. Pass "<<pass+1);
+          finaliseAverages(itsAveTimes, itsMaskTimes);
+      }
     }
 
     // Iterate over rows (one row is one correlation product)
@@ -183,21 +194,38 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         if (!itsStokes.empty() &&
             (itsStokes.find(Stokes::type(stokesTypesInt(corr))) ==
                 itsStokes.end())) {
+            leaveRowFlag = true;
             continue;
         }
- 
+
         // return a tuple that indicate which average this row is in
         rowKey key = getRowKey(msc, row, corr);
 
+        // set a counter for this row that will be the same regardless of pass
+        if ( itsIntegrateTimes ) {
+            if (itsCountTimes.find(key) == itsCountTimes.end()) {
+                itsCountTimes[key] = 0; // init counter for this key
+            }
+            else {
+                itsCountTimes[key]++;
+            }
+            // Is resize the right function? Should copyValues=False?
+            if ( pass==0 ) {
+                itsAveTimes[key].resize(itsCountTimes[key]+1,casa::True);
+                itsMaskTimes[key].resize(itsCountTimes[key]+1,casa::True);
+                itsMaskTimes[key][itsCountTimes[key]] = casa::True;
+            }
+        }
+
         // if this is the first instance of this type of spectrum, initialise it.
         if ( itsIntegrateSpectra && (pass==0) &&
-               (aveSpectra.find(key) == aveSpectra.end()) ) {
-            aveSpectra[key].resize(data.row(0).shape());
-            aveSpectra[key].set(0.0);
-            countSpectra[key].resize(data.row(0).shape());
-            countSpectra[key].set(0);
-            maskSpectra[key].resize(data.row(0).shape());
-            maskSpectra[key].set(casa::True);
+               (itsAveSpectra.find(key) == itsAveSpectra.end()) ) {
+            itsAveSpectra[key].resize(data.row(0).shape());
+            itsAveSpectra[key].set(0.0);
+            itsCountSpectra[key].resize(data.row(0).shape());
+            itsCountSpectra[key].set(0);
+            itsMaskSpectra[key].resize(data.row(0).shape());
+            itsMaskSpectra[key].set(casa::True);
         }
 
         // need temporary indicators that can be updated if necessary
@@ -209,17 +237,21 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
             spectrumAmplitudes = casa::amplitude(data.row(corr));
         casa::Vector<casa::Bool>
             unflaggedMask = (flags.row(corr)==casa::False);
- 
-        if ( itsAutoThresholds && (pass==0) ) {
 
+        if ( itsAutoThresholds ) {
             // check that there is something to flag and return if there isn't
-            casa::Bool hasUnflaggedData;
-            hasUnflaggedData = (std::find(unflaggedMask.begin(),
-                unflaggedMask.end(), casa::True) != unflaggedMask.end());
-            if ( !hasUnflaggedData ) {
+            if (std::find(unflaggedMask.begin(),
+                     unflaggedMask.end(), casa::True) == unflaggedMask.end()) {
                 itsStats.visAlreadyFlagged += data.ncolumn();
+                if ( itsIntegrateTimes ) {
+                   itsMaskTimes[key][itsCountTimes[key]] = casa::False;
+                }
                 continue;
             }
+        }
+
+        // should the individual stats be checked again for pass>0?
+        if ( itsAutoThresholds && (pass==0) ) {
 
             casa::MaskedArray<casa::Float>
                 maskedAmplitudes(spectrumAmplitudes, unflaggedMask);
@@ -236,18 +268,23 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
                 itsHighLimit = median+itsThresholdFactor*sigma_IQR;
                 hasHighLimit = casa::True;
             }
-   
+
             // check min and max relative to thresholds, and do not loop over
-            // data again if they are good if indicies were also sorted, could
+            // data again if they are good. If indicies were also sorted, could
             // just test where the sorted amplitudes break the threshold...
-            if ((statsVector[2] >= itsLowLimit) &&
-                (statsVector[3] <= itsHighLimit)) {
+            // ** cannot do this when averages are needed, or they'd be skipped **
+            if (!itsIntegrateSpectra && !itsIntegrateTimes &&
+                    (statsVector[2] >= itsLowLimit) &&
+                    (statsVector[3] <= itsHighLimit)) {
                 continue;
             }
    
         }
 
         if ( pass==0 ) {
+            // may be integrating these
+            casa::Double aveTime = 0.0;
+            casa::uInt countTime = 0;
             for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
                 if (flags(corr, chan)) {
                     itsStats.visAlreadyFlagged++;
@@ -262,28 +299,69 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
                     wasUpdated = true;
                     itsStats.visFlagged++;
                 }
-                else if ( itsIntegrateSpectra ) {
-                    aveSpectra[key][chan] += amp;
-                    countSpectra[key][chan]++;
-                    itsAveragesAreNormalised = casa::False;
+                else if ( itsIntegrateSpectra || itsIntegrateTimes ) {
+                    if ( itsIntegrateSpectra ) {
+                        itsAveSpectra[key][chan] += amp;
+                        itsCountSpectra[key][chan]++;
+                        itsAverageFlagsAreReady = casa::False;
+                    }
+                    if ( itsIntegrateTimes ) {
+                        aveTime += amp;
+                        countTime++;
+                    }
                 }
 
             }
+            if ( itsIntegrateTimes ) {
+                if ( countTime>0 ) {
+                    itsAveTimes[key][itsCountTimes[key]] =
+                        aveTime/casa::Complex(countTime);
+                    itsMaskTimes[key][itsCountTimes[key]] = casa::True;
+                    itsAverageFlagsAreReady = casa::False;
+                }
+                else {
+                    itsMaskTimes[key][itsCountTimes[key]] = casa::False;
+                }
+            }
         }
-        else if ( pass==1 ) {
-            // apply any new flags in maskSpectrum
-            for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
-                // flags is true for flags, maskSpectrum is false for flags
-                if (!flags(corr, chan) && !maskSpectra[key][chan]) {
-                    flags(corr, chan) = true;
-                    wasUpdated = true;
-                    itsStats.visFlagged++;
+        else if ( (pass==1) &&  ( itsIntegrateSpectra || itsIntegrateTimes ) ) {
+            // only flag unflagged data, so new flags can be counted
+            // "flags" is true for flags, "mask*" are false for flags
+            if ( itsIntegrateTimes ) {
+                // apply itsMaskTimes flags. Could just flag row, but being careful
+                if ( !itsMaskTimes[key][itsCountTimes[key]] ) {
+                    for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
+                        if (!flags(corr, chan)) {
+                            flags(corr, chan) = true;
+                            wasUpdated = true;
+                            itsStats.visFlagged++;
+                        }
+                    }
+                    // everything is flagged, so move to the next corr
+                    continue;
+                }
+                else leaveRowFlag = true;
+            }
+            // apply itsIntegrateSpectra flags, if not time flagged
+            if ( itsIntegrateSpectra ) {
+                for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
+                    if ( !flags(corr, chan) && !itsMaskSpectra[key][chan] ) {
+                        flags(corr, chan) = true;
+                        wasUpdated = true;
+                        itsStats.visFlagged++;
+                    }
                 }
             }
         }
 
     }
 
+    if (wasUpdated && itsIntegrateTimes && !leaveRowFlag && (pass==1)) {
+        itsStats.rowsFlagged++;
+        if (!dryRun) {
+            msc.flagRow().put(row, true);
+        }
+    }
     if (wasUpdated && !dryRun) {
         msc.flag().put(row, flags);
     }
@@ -357,21 +435,21 @@ rowKey AmplitudeFlagger::getRowKey(
 }
 
 void AmplitudeFlagger::finaliseAverages(
-    std::map<rowKey, casa::Vector<casa::Complex> > &aveSpectra,
-    std::map<rowKey, casa::Vector<casa::Int> > &countSpectra, 
-    std::map<rowKey, casa::Vector<casa::Bool> > &maskSpectra)
+    std::map<rowKey, casa::Vector<casa::Complex> > &itsAveSpectra,
+    std::map<rowKey, casa::Vector<casa::Int> > &itsCountSpectra, 
+    std::map<rowKey, casa::Vector<casa::Bool> > &itsMaskSpectra)
 {
 
-    for (std::map<rowKey, casa::Vector<casa::Int> >::iterator
-             it=countSpectra.begin(); it!=countSpectra.end(); ++it) {
+    for (std::map<rowKey, casa::Vector<casa::Complex> >::iterator
+             it=itsAveSpectra.begin(); it!=itsAveSpectra.end(); ++it) {
 
         // get the spectra
-        casa::Vector<casa::Complex> aveSpectrum = aveSpectra[it->first];
-        casa::Vector<casa::Int> countSpectrum = countSpectra[it->first];
-        casa::Vector<casa::Bool> maskSpectrum = maskSpectra[it->first];
+        casa::Vector<casa::Complex> aveSpectrum = it->second;
+        casa::Vector<casa::Int> countSpectrum = itsCountSpectra[it->first];
+        casa::Vector<casa::Bool> maskSpectrum = itsMaskSpectra[it->first];
 
         for (size_t chan = 0; chan < aveSpectrum.size(); ++chan) {
-            if (it->second[chan]>0) {
+            if (countSpectrum[chan]>0) {
                 aveSpectrum[chan] /= casa::Complex(countSpectrum[chan]);
                 countSpectrum[chan] = 1;
                 maskSpectrum[chan] = casa::True;
@@ -380,8 +458,6 @@ void AmplitudeFlagger::finaliseAverages(
                 maskSpectrum[chan] = casa::False;
             }
         }
-
-        itsAveragesAreNormalised = casa::True;
 
         // generate the flagging stats
         // could fill the un-flagged spectrum directly in the preceding loop.
@@ -393,7 +469,7 @@ void AmplitudeFlagger::finaliseAverages(
         casa::Float sigma_IQR = statsVector[1];
 
         // check min and max relative to thresholds.
-        // do not loop over data again if they are good
+        // do not loop over data again if all unflagged channels are good
         if ((statsVector[2] < median-itsSpectraFactor*sigma_IQR) ||
             (statsVector[3] > median+itsSpectraFactor*sigma_IQR)) {
 
@@ -408,6 +484,52 @@ void AmplitudeFlagger::finaliseAverages(
         }
 
     }
+
+    itsAverageFlagsAreReady = casa::True;
+
+}
+
+void AmplitudeFlagger::finaliseAverages(
+    std::map<rowKey, casa::Vector<casa::Complex> > &itsAveTimes,
+    std::map<rowKey, casa::Vector<casa::Bool> > &itsMaskTimes)
+{
+
+    for (std::map<rowKey, casa::Vector<casa::Complex> >::iterator
+             it=itsAveTimes.begin(); it!=itsAveTimes.end(); ++it) {
+
+        // reset the counter for this key
+        itsCountTimes[it->first] = -1;
+
+        // get the spectra
+        casa::Vector<casa::Complex> aveTime = it->second;
+        casa::Vector<casa::Bool> maskTime = itsMaskTimes[it->first];
+
+        // generate the flagging stats
+        casa::MaskedArray<casa::Float>
+            maskedAmplitudes(casa::amplitude(aveTime), maskTime);
+        casa::Vector<casa::Float>
+            statsVector = AmplitudeFlagger::getRobustStats(maskedAmplitudes);
+        casa::Float median = statsVector[0];
+        casa::Float sigma_IQR = statsVector[1];
+
+        // check min and max relative to thresholds.
+        // do not loop over data again if all unflagged times are good
+        if ((statsVector[2] < median-itsTimesFactor*sigma_IQR) ||
+            (statsVector[3] > median+itsTimesFactor*sigma_IQR)) {
+
+            for (size_t t = 0; t < aveTime.size(); ++t) {
+                if (maskTime[t] == casa::False) continue;
+                if ((aveTime[t] < median-itsTimesFactor*sigma_IQR) ||
+                    (aveTime[t] > median+itsTimesFactor*sigma_IQR)) {
+                    maskTime[t] = casa::False;
+                }
+            }
+
+        }
+
+    }
+
+    itsAverageFlagsAreReady = casa::True;
 
 }
 
