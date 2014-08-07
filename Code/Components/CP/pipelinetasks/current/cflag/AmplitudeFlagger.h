@@ -1,6 +1,6 @@
 /// @file AmplitudeFlagger.h
 ///
-/// @copyright (c) 2013 CSIRO
+/// @copyright (c) 2013,2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -84,6 +84,11 @@ class AmplitudeFlagger : public IFlagger {
         virtual casa::Bool processingRequired(const casa::uInt pass);
 
     private:
+
+        // load and log relevant parset parameters
+        void loadParset(const LOFAR::ParameterSet& parset);
+        void logParsetSummary(const LOFAR::ParameterSet& parset);
+
         /// Returns a vector of stokes types for a given row in the main table
         /// of the measurement set. This will have the same dimension and
         /// ordering as the data/flag matrices.
@@ -95,74 +100,64 @@ class AmplitudeFlagger : public IFlagger {
 
         // True if an upper amplitude limit has been set, otherwise false
         bool itsHasHighLimit;
-
         // True if lower amplitude limit has been set, otherwise false
         bool itsHasLowLimit;
-
         // The upper amplitude limit
         casa::Float itsHighLimit;
-
         // The lower amplitude limit
         casa::Float itsLowLimit;
 
-        // 
+        // Automatically set either of these limits that are unset
         bool itsAutoThresholds;
-
-        // 
-        bool itsIntegrateSpectra;
-
-        // 
-        bool itsIntegrateTimes;
-
-        // 
-        bool itsAveAll;
-
-        // 
-        bool itsAveAllButPol;
-
-        // 
-        bool itsAveAllButBeam;
-
-        // 
-        bool itsAverageFlagsAreReady;
-
-        // 
+        // sigma multiplier used to set cutoffs
         casa::Float itsThresholdFactor;
 
-        // 
+        // Generate averaged spectra and search these for peaks to flag
+        bool itsIntegrateSpectra;
+        // sigma multiplier used to set cutoffs
         casa::Float itsSpectraFactor;
 
-        // 
+        // Generate averaged time series and search these for peaks to flag
+        bool itsIntegrateTimes;
+        // sigma multiplier used to set cutoffs
         casa::Float itsTimesFactor;
+
+        // When integrating, do not separate spectra based on baseline, etc.
+        bool itsAveAll;
+        // When integrating, do separate spectra for different polarisations
+        bool itsAveAllButPol;
+        // When integrating, do separate spectra for different beams
+        bool itsAveAllButBeam;
+
+        // When integrating, used to limit flag generation to a single call to
+        // "processRow"
+        bool itsAverageFlagsAreReady;
 
         // The set of correlation products for which these flagging rules should
         // be applied. An empty list means apply to all correlation products.
         std::set<casa::Stokes::StokesTypes> itsStokes;
 
-        // 
-        std::map<rowKey, casa::Vector<casa::Complex> > itsAveSpectra;
+        // Maps of storage vectors for averaging spectra and generating flags
+        std::map<rowKey, casa::Vector<casa::Double> > itsAveSpectra;
         std::map<rowKey, casa::Vector<casa::Bool> > itsMaskSpectra;
         std::map<rowKey, casa::Vector<casa::Int> > itsCountSpectra;
 
-        // 
-        std::map<rowKey, casa::Vector<casa::Complex> > itsAveTimes;
+        // Maps of storage vectors for averaging time series and generating flags
+        std::map<rowKey, casa::Vector<casa::Float> > itsAveTimes;
         std::map<rowKey, casa::Vector<casa::Bool> > itsMaskTimes;
         std::map<rowKey, casa::Int> itsCountTimes;
 
-        // 
-        rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row, const casa::uInt corr);
-        // calc the median, the interquartile range, the min and the max of a masked array
+        // Generate a tuple for a given row and polarisation
+        rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row,
+            const casa::uInt corr);
+
+        // Calculate the median, the interquartile range, the min and the max
+        // of a masked array
         casa::Vector<casa::Float>
             getRobustStats(casa::MaskedArray<casa::Float> maskedAmplitudes);
 
-        void finaliseAverages(
-            std::map<rowKey, casa::Vector<casa::Complex> > &aveSpectra,
-            std::map<rowKey, casa::Vector<casa::Int> > &countSpectra, 
-            std::map<rowKey, casa::Vector<casa::Bool> > &maskSpectra);
-
-        void finaliseAverages(
-            std::map<rowKey, casa::Vector<casa::Complex> > &aveTimes,
-            std::map<rowKey, casa::Vector<casa::Bool> > &maskTimes);
+        // Set flags based on integrated quantities
+        void setFlagsFromIntegrations(void);
 
 };
 

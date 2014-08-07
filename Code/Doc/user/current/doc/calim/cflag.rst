@@ -195,7 +195,8 @@ estimate flagging thresholds and to look for interference peaks in averaged data
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.integrateSpectra           |false       |true        |Integrate the spectra in time and flag any   |
 |                                                   |            |            |channels outside thresholds, also set using  |
-|                                                   |            |            |the statistics described below. Spectra for  |
+|                                                   |            |            |the statistics described below. Uses scalar  |
+|                                                   |            |            |averaging. Spectra for                       |
 |                                                   |            |            |different baselines, beams, fields and       |
 |                                                   |            |            |polarisation are kept separate. Requires a   |
 |                                                   |            |            |second pass over the data.                   |
@@ -205,7 +206,8 @@ estimate flagging thresholds and to look for interference peaks in averaged data
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.integrateTimes             |false       |true        |Integrate across spectra and flag any time   |
 |                                                   |            |            |samples outside thresholds, also set using   |
-|                                                   |            |            |the statistics described below. Series for   |
+|                                                   |            |            |the statistics described below. Uses scalar  |
+|                                                   |            |            |averaging. Series for                        |
 |                                                   |            |            |different baselines, beams, fields and       |
 |                                                   |            |            |polarisation are kept separate. Requires a   |
 |                                                   |            |            |second pass over the data.                   |
@@ -214,8 +216,8 @@ estimate flagging thresholds and to look for interference peaks in averaged data
 |                                                   |            |            |integrated spectra.                          |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.aveAll                     |false       |true        |Do not separate spectra based on baseline,   |
-|                                                   |            |            |etc., when integrating spectra. Average      |
-|                                                   |            |            |everything together.                         |
+|                                                   |            |            |etc., when integrating spectra or time       |
+|                                                   |            |            |series. Average everything together.         |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.aveAll.noPol               |false       |true        |Do separate spectra for different            |
 |                                                   |            |            |polarisations.                               |
@@ -285,12 +287,13 @@ flagger with dynamic thresholding:
 .. code-block:: bash
 
     # The path/filename for the measurement set
-    Cflag.dataset                                      = target.ms
+    Cflag.dataset                                         = target.ms
     # Amplitude based flagging
-    Cflag.amplitude_flagger.enable                     = true
+    Cflag.amplitude_flagger.enable                        = true
     # Threshold using the median and IQR of each spectrum
-    Cflag.amplitude_flagger.autoThresholds             = true
+    Cflag.amplitude_flagger.autoThresholds                = true
     # Threshold again after averaging spectra in time
-    Cflag.amplitude_flagger.integrateSpectra           = true
-    Cflag.amplitude_flagger.integrateSpectra.threshold = 4.0
+    Cflag.amplitude_flagger.integrateSpectra              = true
+    Cflag.amplitude_flagger.integrateSpectra.threshold    = 4.0
+    Cflag.amplitude_flagger.integrateTimes                = true
 
