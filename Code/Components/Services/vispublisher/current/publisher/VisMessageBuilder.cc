@@ -92,7 +92,7 @@ VisOutputMessage VisMessageBuilder::build(const InputMessage& in,
             const std::pair<double, double> ap = ampAndPhase(vis, flag);
             ve.amplitude = ap.first;
             ve.phase = ap.second;
-            ve.delay = calcDelay(vis, chanWidth);
+            ve.delay = calcDelay(vis, flag, chanWidth);
 
             out.data().push_back(ve);
         }
@@ -122,6 +122,7 @@ std::pair<double, double> VisMessageBuilder::ampAndPhase(const std::vector< std:
 }
 
 double VisMessageBuilder::calcDelay(const std::vector< std::complex<float> >& vis,
+                                    const std::vector<bool>& flag,
                                     const double chanWidth)
 {
     const uint32_t NCHAN_TO_AVG = 54;
@@ -130,12 +131,13 @@ double VisMessageBuilder::calcDelay(const std::vector< std::complex<float> >& vi
     ASKAPCHECK(vis.size() % NCHAN_TO_AVG == 0, "Channels to average must divide nChannels");
 
     askap::scimath::DelayEstimator de(chanWidth * NCHAN_TO_AVG);
-    const std::vector< std::complex<float> > avg = averageChannels(vis, NCHAN_TO_AVG);
+    const std::vector< std::complex<float> > avg = averageChannels(vis, flag, NCHAN_TO_AVG);
     return de.getDelay(avg);
 }
 
 std::vector< std::complex<float> > VisMessageBuilder::averageChannels(
         const std::vector< std::complex<float> >& vis,
+        const std::vector<bool>& flag,
         uint32_t numberToAverage)
 {
     ASKAPASSERT(numberToAverage > 0);
@@ -144,10 +146,25 @@ std::vector< std::complex<float> > VisMessageBuilder::averageChannels(
     avg.reserve(outputVectorSize);
     for (size_t i = 0; i < outputVectorSize; i += numberToAverage) {
         std::complex<float> a(0.0, 0.0);
+        size_t count = 0;
         for (size_t j = 0; j < numberToAverage; ++j) {
-            a += vis[i + j];
+            if (!flag[i + j]) {
+                a += vis[i + j];
+                ++count;
+            }
         }
-        avg.push_back(a /= numberToAverage);
+        if (count > 0) {
+            avg.push_back(a /= count);
+        } else {
+            // If the whole block of NCHAN_TO_AVG channels is flagged we try to
+            // use the value from the neighbouring channel, or zero if this is the
+            // first
+            if (avg.empty()) {
+                avg.push_back(0.0);
+            } else {
+                avg.push_back(avg.back());
+            }
+        }
     }
     return avg;
 }
