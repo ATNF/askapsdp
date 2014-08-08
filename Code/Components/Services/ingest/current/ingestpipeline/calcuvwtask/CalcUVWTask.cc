@@ -45,9 +45,12 @@
 #include "measures/Measures/MCEpoch.h"
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/MEpoch.h"
+#include "measures/Measures/MeasFrame.h"
+#include "measures/Measures/MCDirection.h"
 #include "casa/Quanta/MVAngle.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "cpcommon/VisChunk.h"
+#include "measures/Measures/UVWMachine.h"
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
@@ -106,12 +109,20 @@ casa::MDirection CalcUVWTask::phaseCentre(const casa::MDirection &dishPointing,
 /// @return gmst in radians modulo 2pi
 double CalcUVWTask::calcGMST(const casa::MVEpoch &epoch)
 {
+    /*
     // Determine Greenwich Mean Sidereal Time
     MEpoch epUT1(epoch, MEpoch::UTC);
     MEpoch::Ref refGMST1(MEpoch::GMST1);
     MEpoch::Convert epGMST1(epUT1, refGMST1);
     const double gmst = epGMST1().get("d").getValue("d");
     return (gmst - Int(gmst)) * C::_2pi; // Into Radians
+    */
+    // get GAST instead of GMST
+    MEpoch epUT1(epoch, MEpoch::UTC);
+    MEpoch::Ref refGAST(MEpoch::GAST);
+    MEpoch::Convert epGAST(epUT1, refGAST);
+    const double gast = epGAST().get("d").getValue("d");
+    return (gast - Int(gast)) * C::_2pi; // Into Radians
 }
 
 void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
@@ -126,9 +137,12 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // Determine Greenwich Mean Sidereal Time
     const double gmst = calcGMST(chunk->time()); 
+    casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
 
     // phase center for a given beam
-    const casa::MDirection fpc = phaseCentre(chunk->phaseCentre1()(row),chunk->beam1()(row));
+    //const casa::MDirection fpc = phaseCentre(chunk->phaseCentre1()(row),chunk->beam1()(row));
+    const casa::MDirection fpc = casa::MDirection::Convert(phaseCentre(chunk->phaseCentre1()(row),chunk->beam1()(row)),
+                                    casa::MDirection::Ref(casa::MDirection::TOPO, frame))();
     const double ra = fpc.getAngle().getValue()(0);
     const double dec = fpc.getAngle().getValue()(1);
 
@@ -167,6 +181,12 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     const Vector<double> baseline = antXYZ(ant2) - antXYZ(ant1);
     ASKAPDEBUGASSERT(baseline.nelements() == 3);
     Vector<double> uvwvec = casa::product(trans,baseline);
+    ASKAPDEBUGASSERT(uvwvec.nelements() == 3);
+    // do the conversion to J2000 in a quick and dirty way for now
+    // some optimisation and caching of rotation matrix are definitely possible here
+    // but cache class in accessors needs to be adapted first.
+    casa::UVWMachine uvm(casa::MDirection::Ref(casa::MDirection::J2000), fpc);
+    uvm.convertUVW(uvwvec);
     ASKAPDEBUGASSERT(uvwvec.nelements() == 3);
 
     // Finally set the uvwvec in the VisChunk

@@ -64,6 +64,7 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
       itsFrtMethod(fringeRotationMethod(parset,config)) 
 {
     ASKAPLOG_DEBUG_STR(logger, "constructor of the generalised fringe rotation task");
+    ASKAPLOG_INFO_STR(logger, "This is a specialised version of fringe rotation tasks used for debugging; use data on your own risk");
 
     if (itsFixedDelays.size() != 0) {
         ASKAPLOG_INFO_STR(logger, "The phase tracking task will apply fixed delays in addition to phase rotation");
@@ -102,6 +103,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 
     // Determine Greenwich Mean Sidereal Time
     const double gmst = calcGMST(chunk->time());
+    //casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
     casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
     const double effLOFreq = getEffectiveLOFreq(*chunk);
     const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
@@ -114,7 +116,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
          for (casa::uInt beam = 0; beam < nBeams(); ++beam) {
               // Current JTRUE phase center
               const casa::MDirection fpc = casa::MDirection::Convert(phaseCentre(dishPnt, beam),
-                                    casa::MDirection::Ref(casa::MDirection::JTRUE, frame))();
+                                    casa::MDirection::Ref(casa::MDirection::TOPO, frame))();
               const double ra = fpc.getAngle().getValue()(0);
               const double dec = fpc.getAngle().getValue()(1);
 
