@@ -505,8 +505,8 @@ void AmplitudeFlagger::loadParset(const LOFAR::ParameterSet& parset)
         itsHasLowLimit = true;
         itsLowLimit = parset.getFloat("low");
     }
-    if (parset.isDefined("autoThresholds")) {
-        itsAutoThresholds = parset.getBool("autoThresholds");
+    if (parset.isDefined("dynamicBounds")) {
+        itsAutoThresholds = parset.getBool("dynamicBounds");
     }
     if (parset.isDefined("threshold")) {
         itsThresholdFactor = parset.getFloat("threshold");
