@@ -68,15 +68,22 @@ vector< boost::shared_ptr<IFlagger> > StokesVFlagger::build(
     const string key = "stokesv_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
         const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
-        const float threshold = parset.getFloat("threshold", 5.0);
-        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(threshold)));
+// DAM: stokesv_flagger.threshold or threshold? Surely the latter.
+        const float threshold = subset.getFloat("threshold", 5.0);
+        bool robustStatistics = subset.getBool("useRobustStatistics", false);
+        ASKAPLOG_INFO_STR(logger, "Parameter Summary:");
+        ASKAPLOG_INFO_STR(logger, "Searching for outliers with a "<<threshold<<"-sigma cutoff");
+        if (robustStatistics) {
+            ASKAPLOG_INFO_STR(logger, "Using robust statistics");
+        }
+        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(threshold,robustStatistics)));
     }
     return flaggers;
 }
 
-StokesVFlagger:: StokesVFlagger(float threshold)
+StokesVFlagger:: StokesVFlagger(float threshold, bool robustStatistics)
     : itsStats("StokesVFlagger"),
-      itsThreshold(threshold)
+      itsThreshold(threshold), itsRobustStatistics(robustStatistics)
 {
     ASKAPCHECK(itsThreshold > 0.0, "Threshold must be greater than zero");
 }
@@ -142,8 +149,16 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
 
     // Flag all correlations where the Stokes V product
     // is greater than the threshold
-    const casa::Float sigma = stddev(amps);
-    const casa::Float avg = mean(amps);
+    casa::Float sigma, avg;
+    if (itsRobustStatistics) {
+        casa::Vector<casa::Float> statsVector = getRobustStats(amps);
+        avg = statsVector[0];
+        sigma = statsVector[1];
+    }
+    else {
+        sigma = stddev(amps);
+        avg = mean(amps);
+    }
 
     // If stokes-v can't be formed due to lack of the necessary input products
     // then vdata will contain all zeros. In this case, no flagging can be done.
@@ -168,3 +183,31 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         msc.flag().put(row, flags);
     }
 }
+
+
+// return the median, the interquartile range, and the min/max of a masked array
+casa::Vector<casa::Float>StokesVFlagger::getRobustStats(
+    casa::Vector<casa::Float> amplitudes)
+{
+    casa::Vector<casa::Float> statsVector(4);
+   
+    // From casacore comments:
+    // "use HeapSort as it's performance is guaranteed, quicksort is often
+    // extremely slow (O(n*n)) for inputs with many successive duplicates".
+
+    // sort the unflagged amplitudes
+    casa::Int num=GenSort<casa::Float>::sort(amplitudes,
+        Sort::Ascending, Sort::HeapSort);
+   
+    // estimate stats, assuming Gaussian noise dominates the frequency channels.
+    // (50% of a Gaussian dist. is within 0.67448 sigma of the mean...)
+    statsVector[0] = amplitudes.data()[num/2]; // median
+    statsVector[1] = (amplitudes.data()[3*num/4] - 
+                      amplitudes.data()[num/4]) / 1.34896; // sigma from IQR
+    statsVector[2] = amplitudes.data()[0]; // min
+    statsVector[3] = amplitudes.data()[num-1]; // max
+
+    return(statsVector);   
+
+}
+

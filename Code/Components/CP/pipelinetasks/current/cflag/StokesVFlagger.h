@@ -67,7 +67,7 @@ class StokesVFlagger : public IFlagger {
                 const casa::MeasurementSet& ms);
 
         /// @brief Constructor
-        StokesVFlagger(float threshold);
+        StokesVFlagger(float threshold, bool robustStatistics);
 
         /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt pass,
@@ -104,6 +104,11 @@ class StokesVFlagger : public IFlagger {
 
         // StokesConverter cache
         std::map<casa::Int, casa::StokesConverter> itsConverterCache;
+
+        // 
+        bool itsRobustStatistics;
+        casa::Vector<casa::Float> getRobustStats(casa::Vector<casa::Float> amplitudes);
+
 };
 
 }

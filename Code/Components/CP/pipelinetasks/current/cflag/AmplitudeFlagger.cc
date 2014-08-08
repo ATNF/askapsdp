@@ -210,7 +210,7 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
                 casa::MaskedArray<casa::Float>
                     maskedAmplitudes(spectrumAmplitudes, unflaggedMask);
                 casa::Vector<casa::Float>
-                    statsVector = AmplitudeFlagger::getRobustStats(maskedAmplitudes);
+                    statsVector = getRobustStats(maskedAmplitudes);
                 casa::Float median = statsVector[0];
                 casa::Float sigma_IQR = statsVector[1];
          
@@ -428,7 +428,7 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
             casa::MaskedArray<casa::Float>
                 maskedAmplitudes(aveSpectrum, maskSpectrum);
             casa::Vector<casa::Float>
-                statsVector=AmplitudeFlagger::getRobustStats(maskedAmplitudes);
+                statsVector = getRobustStats(maskedAmplitudes);
             casa::Float median = statsVector[0];
             casa::Float sigma_IQR = statsVector[1];
          
@@ -466,7 +466,7 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
             // generate the flagging stats
             casa::MaskedArray<casa::Float> maskedAmplitudes(aveTime, maskTime);
             casa::Vector<casa::Float>
-                statsVector = AmplitudeFlagger::getRobustStats(maskedAmplitudes);
+                statsVector = getRobustStats(maskedAmplitudes);
             casa::Float median = statsVector[0];
             casa::Float sigma_IQR = statsVector[1];
          
@@ -549,8 +549,6 @@ void AmplitudeFlagger::logParsetSummary(const LOFAR::ParameterSet& parset)
 {
 
     ASKAPLOG_INFO_STR(logger, "Parameter Summary:");
-    ASKAPLOG_INFO_STR(logger,
-        "------------------------------------------------------------------------");
 
     if (!itsHasHighLimit && !itsHasLowLimit && !itsAutoThresholds &&
         !itsIntegrateSpectra && !itsIntegrateTimes) {
@@ -604,9 +602,6 @@ void AmplitudeFlagger::logParsetSummary(const LOFAR::ParameterSet& parset)
                 " - ignoring visibility properites when integrating");
         }
     }
-
-    ASKAPLOG_INFO_STR(logger,
-        "------------------------------------------------------------------------");
 
 }
 
