@@ -38,6 +38,8 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "measures/Measures/MDirection.h"
@@ -46,11 +48,7 @@
 #include "measures/Measures/Stokes.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Vector.h"
-
-#include <casa/Utilities/GenSort.h>
-
-#include "boost/tuple/tuple.hpp"
-#include "boost/tuple/tuple_comparison.hpp"
+#include "casa/Utilities/GenSort.h"
 
 // Local package includes
 #include "cflag/FlaggingStats.h"
@@ -152,28 +150,13 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         // update a counter for this row and the storage vectors
         // do it before any processing that is dependent on "pass"
         if ( itsIntegrateTimes ) {
-            if (itsCountTimes.find(key) == itsCountTimes.end()) {
-                itsCountTimes[key] = 0; // init counter for this key
-            }
-            else {
-                itsCountTimes[key]++;
-            }
-            if ( pass==0 ) {
-                itsAveTimes[key].resize(itsCountTimes[key]+1,casa::True);
-                itsMaskTimes[key].resize(itsCountTimes[key]+1,casa::True);
-                itsMaskTimes[key][itsCountTimes[key]] = casa::True;
-            }
+            updateTimeVectors(key, pass);
         }
 
         // if this is the first instance of this key, initialise storage vectors
         if ( itsIntegrateSpectra && (pass==0) &&
                (itsAveSpectra.find(key) == itsAveSpectra.end()) ) {
-            itsAveSpectra[key].resize(data.row(0).shape());
-            itsAveSpectra[key].set(0.0);
-            itsCountSpectra[key].resize(data.row(0).shape());
-            itsCountSpectra[key].set(0);
-            itsMaskSpectra[key].resize(data.row(0).shape());
-            itsMaskSpectra[key].set(casa::True);
+            initSpectrumVectors(key, data.row(0).shape());
         }
 
         // need temporary indicators that can be updated if necessary
@@ -271,7 +254,7 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
 
             }
             if ( itsIntegrateTimes ) {
-                // normalise integration for this average
+                // normalise this average
                 if ( countTime>0 ) {
                     itsAveTimes[key][itsCountTimes[key]] =
                         aveTime/casa::Double(countTime);
@@ -397,6 +380,31 @@ rowKey AmplitudeFlagger::getRowKey(
 
 }
 
+void AmplitudeFlagger::updateTimeVectors(const rowKey &key, const casa::uInt pass)
+{
+    if (itsCountTimes.find(key) == itsCountTimes.end()) {
+        itsCountTimes[key] = 0; // init counter for this key
+    }
+    else {
+        itsCountTimes[key]++;
+    }
+    if ( pass==0 ) {
+        itsAveTimes[key].resize(itsCountTimes[key]+1,casa::True);
+        itsMaskTimes[key].resize(itsCountTimes[key]+1,casa::True);
+        itsMaskTimes[key][itsCountTimes[key]] = casa::True;
+    }
+}
+
+void AmplitudeFlagger::initSpectrumVectors(const rowKey &key, const casa::IPosition &shape)
+{
+    itsAveSpectra[key].resize(shape);
+    itsAveSpectra[key].set(0.0);
+    itsCountSpectra[key].resize(shape);
+    itsCountSpectra[key].set(0);
+    itsMaskSpectra[key].resize(shape);
+    itsMaskSpectra[key].set(casa::True);
+}
+
 // Set flags based on integrated quantities
 void AmplitudeFlagger::setFlagsFromIntegrations(void)
 {
@@ -423,8 +431,8 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
                 }
             }
          
-            // generate the flagging stats
-            // could fill the unflagged spectrum directly in the preceding loop.
+            // generate the flagging stats. could fill the unflagged spectrum
+            // directly in the preceding loop, but the full vector is needed below
             casa::MaskedArray<casa::Float>
                 maskedAmplitudes(aveSpectrum, maskSpectrum);
             casa::Vector<casa::Float>

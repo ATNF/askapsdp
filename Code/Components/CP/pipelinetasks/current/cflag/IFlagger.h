@@ -30,6 +30,8 @@
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MSColumns.h"
 #include "casa/aipstype.h"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 
 // Local package includes
 #include "cflag/FlaggingStats.h"
@@ -37,6 +39,9 @@
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
+
+//                   fieldID    feed1      feed2      antenna1   antenna2   polarisation
+typedef boost::tuple<casa::Int, casa::Int, casa::Int, casa::Int, casa::Int, casa::Int> rowKey;
 
 /// @brief An interface for classes that perform flagging on a per row basis.
 class IFlagger {

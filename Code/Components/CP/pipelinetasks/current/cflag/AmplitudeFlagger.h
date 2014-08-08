@@ -34,14 +34,13 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 #include "measures/Measures/Stokes.h"
 #include "casa/Arrays/Vector.h"
-
-#include "boost/tuple/tuple.hpp"
-#include "boost/tuple/tuple_comparison.hpp"
 
 // Local package includes
 #include "cflag/IFlagger.h"
@@ -51,11 +50,9 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-//                   fieldID    feed1      feed2      antenna1   antenna2   polarisation
-typedef boost::tuple<casa::Int, casa::Int, casa::Int, casa::Int, casa::Int, casa::Int> rowKey;
-
 /// @brief Applies flagging based on amplitude thresholding.
 class AmplitudeFlagger : public IFlagger {
+
     public:
 
         /// @brief Constructs zero or more instances of the AmplitudeFlagger.
@@ -84,7 +81,6 @@ class AmplitudeFlagger : public IFlagger {
         virtual casa::Bool processingRequired(const casa::uInt pass);
 
     private:
-
         // load and log relevant parset parameters
         void loadParset(const LOFAR::ParameterSet& parset);
         void logParsetSummary(const LOFAR::ParameterSet& parset);
@@ -137,12 +133,12 @@ class AmplitudeFlagger : public IFlagger {
         // be applied. An empty list means apply to all correlation products.
         std::set<casa::Stokes::StokesTypes> itsStokes;
 
-        // Maps of storage vectors for averaging spectra and generating flags
+        // Maps of accumulation vectors for averaging spectra and generating flags
         std::map<rowKey, casa::Vector<casa::Double> > itsAveSpectra;
         std::map<rowKey, casa::Vector<casa::Bool> > itsMaskSpectra;
         std::map<rowKey, casa::Vector<casa::Int> > itsCountSpectra;
 
-        // Maps of storage vectors for averaging time series and generating flags
+        // Maps of accumulation vectors for averaging time series and generating flags
         std::map<rowKey, casa::Vector<casa::Float> > itsAveTimes;
         std::map<rowKey, casa::Vector<casa::Bool> > itsMaskTimes;
         std::map<rowKey, casa::Int> itsCountTimes;
@@ -150,6 +146,10 @@ class AmplitudeFlagger : public IFlagger {
         // Generate a tuple for a given row and polarisation
         rowKey getRowKey(casa::MSColumns& msc, const casa::uInt row,
             const casa::uInt corr);
+
+        // Functions to handle accumulation vectors and indices
+        void updateTimeVectors(const rowKey &key, const casa::uInt pass);
+        void initSpectrumVectors(const rowKey &key, const casa::IPosition &shape);
 
         // Calculate the median, the interquartile range, the min and the max
         // of a masked array

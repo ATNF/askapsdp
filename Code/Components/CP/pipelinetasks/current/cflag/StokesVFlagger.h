@@ -34,6 +34,8 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
@@ -57,6 +59,7 @@ namespace pipelinetasks {
 /// The one parameter that is read from the parset passed to the constructor is
 /// "threshold". To flag at the five-sigma point specify a valud of "5.0".
 class StokesVFlagger : public IFlagger {
+
     public:
 
         /// @brief Constructs zero or more instances of the AmplitudeFlagger.
@@ -67,7 +70,9 @@ class StokesVFlagger : public IFlagger {
                 const casa::MeasurementSet& ms);
 
         /// @brief Constructor
-        StokesVFlagger(float threshold, bool robustStatistics);
+        StokesVFlagger(float threshold, bool robustStatistics,
+                       bool integrateSpectra, float spectraThreshold,
+                       bool integrateTimes, float timesThreshold);
 
         /// @see IFlagger::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt pass,
@@ -80,6 +85,7 @@ class StokesVFlagger : public IFlagger {
         virtual casa::Bool processingRequired(const casa::uInt pass);
 
     private:
+
         /// Returns an instance of a stokes converter that will convert to Stokes-V.
         /// The converter is cached, and as such a reference to the
         /// appropriate converter in the cache is returned. The reference is valid
@@ -102,12 +108,49 @@ class StokesVFlagger : public IFlagger {
         // Flagging threshold (in standard deviations)
         float itsThreshold;
 
+        // Use the median and interquartile range to estimate the mean and stddev
+        bool itsRobustStatistics;
+
+        // Generate averaged spectra and search these for peaks to flag
+        bool itsIntegrateSpectra;
+        // Flagging threshold
+        casa::Float itsSpectraThreshold;
+
+        // Generate averaged time series and search these for peaks to flag
+        bool itsIntegrateTimes;
+        // Flagging threshold
+        casa::Float itsTimesThreshold;
+
+        // When integrating, used to limit flag generation to a single call to
+        // "processRow"
+        bool itsAverageFlagsAreReady;
+
         // StokesConverter cache
         std::map<casa::Int, casa::StokesConverter> itsConverterCache;
 
-        // 
-        bool itsRobustStatistics;
+        // Calculate the median, the interquartile range, the min and the max
+        // of a masked array
         casa::Vector<casa::Float> getRobustStats(casa::Vector<casa::Float> amplitudes);
+
+        // Generate a tuple for a given row and polarisation
+        rowKey getRowKey(const casa::MSColumns& msc, const casa::uInt row);
+
+        // Maps of accumulation vectors for averaging spectra and generating flags
+        std::map<rowKey, casa::Vector<casa::Double> > itsAveSpectra;
+        std::map<rowKey, casa::Vector<casa::Bool> > itsMaskSpectra;
+        std::map<rowKey, casa::Vector<casa::Int> > itsCountSpectra;
+
+        // Maps of accumulation vectors for averaging time series and generating flags
+        std::map<rowKey, casa::Vector<casa::Float> > itsAveTimes;
+        std::map<rowKey, casa::Vector<casa::Bool> > itsMaskTimes;
+        std::map<rowKey, casa::Int> itsCountTimes;
+
+        // Functions to handle accumulation vectors and indices
+        void updateTimeVectors(const rowKey &key, const casa::uInt pass);
+        void initSpectrumVectors(const rowKey &key, const casa::IPosition &shape);
+
+        // Set flags based on integrated quantities
+        void setFlagsFromIntegrations(void);
 
 };
 

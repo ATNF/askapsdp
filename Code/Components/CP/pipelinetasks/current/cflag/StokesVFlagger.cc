@@ -39,6 +39,8 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/tuple/tuple.hpp"
+#include "boost/tuple/tuple_comparison.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "casa/Arrays/ArrayMath.h"
@@ -68,22 +70,45 @@ vector< boost::shared_ptr<IFlagger> > StokesVFlagger::build(
     const string key = "stokesv_flagger.enable";
     if (parset.isDefined(key) && parset.getBool(key)) {
         const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_flagger.");
-// DAM: stokesv_flagger.threshold or threshold? Surely the latter.
+
         const float threshold = subset.getFloat("threshold", 5.0);
-        bool robustStatistics = subset.getBool("useRobustStatistics", false);
+        const bool robustStatistics = subset.getBool("useRobustStatistics", false);
+        const bool integrateSpectra = subset.getBool("integrateSpectra", false);
+        const float spectraThreshold = subset.getFloat("integrateSpectra.threshold", 5.0);
+        const bool integrateTimes = subset.getBool("integrateTimes", false);
+        const float timesThreshold = subset.getFloat("integrateTimes.threshold", 5.0);
+
         ASKAPLOG_INFO_STR(logger, "Parameter Summary:");
         ASKAPLOG_INFO_STR(logger, "Searching for outliers with a "<<threshold<<"-sigma cutoff");
         if (robustStatistics) {
             ASKAPLOG_INFO_STR(logger, "Using robust statistics");
         }
-        flaggers.push_back(boost::shared_ptr<IFlagger>(new StokesVFlagger(threshold,robustStatistics)));
+        if (integrateSpectra) {
+            ASKAPLOG_INFO_STR(logger,
+                "Searching for outliers in integrated spectra with a "
+                <<spectraThreshold<<"-sigma cutoff");
+        }
+        if (integrateTimes) {
+            ASKAPLOG_INFO_STR(logger,
+                "Searching for outliers in integrated time series with a "
+                <<timesThreshold<<"-sigma cutoff");
+        }
+
+        flaggers.push_back(boost::shared_ptr<IFlagger>
+            (new StokesVFlagger(threshold,robustStatistics,integrateSpectra,
+                                spectraThreshold,integrateTimes,timesThreshold)));
     }
     return flaggers;
 }
 
-StokesVFlagger:: StokesVFlagger(float threshold, bool robustStatistics)
+StokesVFlagger:: StokesVFlagger(float threshold, bool robustStatistics,
+                                bool integrateSpectra, float spectraThreshold,
+                                bool integrateTimes, float timesThreshold)
     : itsStats("StokesVFlagger"),
-      itsThreshold(threshold), itsRobustStatistics(robustStatistics)
+      itsThreshold(threshold), itsRobustStatistics(robustStatistics),
+      itsIntegrateSpectra(integrateSpectra), itsSpectraThreshold(spectraThreshold),
+      itsIntegrateTimes(integrateTimes), itsTimesThreshold(timesThreshold),
+      itsAverageFlagsAreReady(true)
 {
     ASKAPCHECK(itsThreshold > 0.0, "Threshold must be greater than zero");
 }
@@ -140,6 +165,28 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         }
     }
 
+    // normalise averages and search them for peaks to flag
+    if ( !itsAverageFlagsAreReady && (pass==1) ) {
+        ASKAPLOG_INFO_STR(logger, "Finalising averages at the start of pass "
+            <<pass+1);
+        setFlagsFromIntegrations();
+    }
+
+    // return a tuple that indicate which integration this row is in
+    rowKey key = getRowKey(msc, row);
+
+    // update a counter for this row and the storage vectors
+    // do it before any processing that is dependent on "pass"
+    if ( itsIntegrateTimes ) {
+        updateTimeVectors(key, pass);
+    }
+
+    // if this is the first instance of this key, initialise storage vectors
+    if ( itsIntegrateSpectra && (pass==0) &&
+           (itsAveSpectra.find(key) == itsAveSpectra.end()) ) {
+        initSpectrumVectors(key, data.row(0).shape());
+    }
+
     // If all visibilities are flagged, nothing to do
     if (tmpamps.empty()) return;
 
@@ -154,10 +201,17 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         casa::Vector<casa::Float> statsVector = getRobustStats(amps);
         avg = statsVector[0];
         sigma = statsVector[1];
+        // if min and max are bounded, they all are.
+        // so skip if there is not other reason to loop over frequencies
+        if ((statsVector[2] >= (avg - (sigma * itsThreshold))) &&
+            (statsVector[3] <= (avg + (sigma * itsThreshold))) &&
+            !itsIntegrateSpectra && !itsIntegrateTimes) {
+            return;
+        }
     }
     else {
-        sigma = stddev(amps);
         avg = mean(amps);
+        sigma = stddev(amps);
     }
 
     // If stokes-v can't be formed due to lack of the necessary input products
@@ -167,15 +221,46 @@ void StokesVFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
         return;
     }
 
-    // Apply threshold based flagging
+    // Apply threshold based flagging and accumulate any averages
     bool wasUpdated = false;
-    for (size_t i = 0; i < amps.size(); ++i) {
+    // only need these if itsIntegrateTimes
+    casa::Double aveTime = 0.0;
+    casa::uInt countTime = 0;
+    for (size_t i = 0; i < vdata.size(); ++i) {
+        const casa::Float amp = abs(vdata(i));
+        // Apply threshold based flagging
         if (abs(vdata(i)) > (avg + (sigma * itsThreshold))) {
             for (casa::uInt pol = 0; pol < flags.nrow(); ++pol) {
                 flags(pol, i) = true;
                 wasUpdated = true;
             }
             itsStats.visFlagged += flags.nrow();
+        }
+        // Accumulate any averages
+        else if ( itsIntegrateSpectra || itsIntegrateTimes ) {
+            if ( itsIntegrateSpectra ) {
+                // do spectra integration
+                itsAveSpectra[key][i] += amp;
+                itsCountSpectra[key][i]++;
+                itsAverageFlagsAreReady = casa::False;
+            }
+            if ( itsIntegrateTimes ) {
+                // do time-series integration
+                aveTime += amp;
+                countTime++;
+            }
+        }
+    }
+    if ( itsIntegrateTimes ) {
+        // normalise this average
+        if ( countTime>0 ) {
+            itsAveTimes[key][itsCountTimes[key]] =
+                aveTime/casa::Double(countTime);
+            itsMaskTimes[key][itsCountTimes[key]] = casa::True;
+            itsAverageFlagsAreReady = casa::False;
+        }
+        else {
+            itsMaskTimes[key][itsCountTimes[key]] = casa::False;
         }
     }
 
@@ -208,6 +293,145 @@ casa::Vector<casa::Float>StokesVFlagger::getRobustStats(
     statsVector[3] = amplitudes.data()[num-1]; // max
 
     return(statsVector);   
+
+}
+
+// Generate a tuple for a given row and polarisation
+rowKey StokesVFlagger::getRowKey(
+    const casa::MSColumns& msc,
+    const casa::uInt row)
+{
+
+    // looking for outliers in a single polarisation, so set the corr key to zero
+    return boost::make_tuple(msc.fieldId()(row),
+                             msc.feed1()(row),
+                             msc.feed2()(row),
+                             msc.antenna1()(row),
+                             msc.antenna2()(row),
+                             0); // corr
+
+}
+
+void StokesVFlagger::updateTimeVectors(const rowKey &key, const casa::uInt pass)
+{
+    if (itsCountTimes.find(key) == itsCountTimes.end()) {
+        itsCountTimes[key] = 0; // init counter for this key
+    }
+    else {
+        itsCountTimes[key]++;
+    }
+    if ( pass==0 ) {
+        itsAveTimes[key].resize(itsCountTimes[key]+1,casa::True);
+        itsMaskTimes[key].resize(itsCountTimes[key]+1,casa::True);
+        itsMaskTimes[key][itsCountTimes[key]] = casa::True;
+    }
+}
+
+void StokesVFlagger::initSpectrumVectors(const rowKey &key, const casa::IPosition &shape)
+{
+    itsAveSpectra[key].resize(shape);
+    itsAveSpectra[key].set(0.0);
+    itsCountSpectra[key].resize(shape);
+    itsCountSpectra[key].set(0);
+    itsMaskSpectra[key].resize(shape);
+    itsMaskSpectra[key].set(casa::True);
+}
+
+// Set flags based on integrated quantities
+void StokesVFlagger::setFlagsFromIntegrations(void)
+{
+
+    if ( itsIntegrateSpectra ) {
+
+        for (std::map<rowKey, casa::Vector<casa::Double> >::iterator
+             it=itsAveSpectra.begin(); it!=itsAveSpectra.end(); ++it) {
+
+            // get the spectra
+            casa::Vector<casa::Float> aveSpectrum(it->second.shape());
+            casa::Vector<casa::Int> countSpectrum = itsCountSpectra[it->first];
+            casa::Vector<casa::Bool> maskSpectrum = itsMaskSpectra[it->first];
+            //std::vector<casa::Float> tmpamps; // use instead of MaskedArray?
+
+            for (size_t chan = 0; chan < aveSpectrum.size(); ++chan) {
+                if (countSpectrum[chan]>0) {
+                    aveSpectrum[chan] = it->second[chan] /
+                                        casa::Double(countSpectrum[chan]);
+                    //tmpamps.push_back(aveSpectrum[chan]);
+                    countSpectrum[chan] = 1;
+                    maskSpectrum[chan] = casa::True;
+                }
+                else {
+                    maskSpectrum[chan] = casa::False;
+                }
+            }
+         
+            // generate the flagging stats. could fill the unflagged spectrum
+            // directly in the preceding loop, but the full vector is needed below
+            casa::MaskedArray<casa::Float>
+                maskedAmplitudes(aveSpectrum, maskSpectrum);
+            casa::Vector<casa::Float>
+                statsVector = getRobustStats(maskedAmplitudes.getCompressedArray());
+            casa::Float median = statsVector[0];
+            casa::Float sigma_IQR = statsVector[1];
+         
+            // check min and max relative to thresholds.
+            // do not loop over data again if all unflagged channels are good
+            if ((statsVector[2] < median-itsSpectraThreshold*sigma_IQR) ||
+                (statsVector[3] > median+itsSpectraThreshold*sigma_IQR)) {
+         
+                for (size_t chan = 0; chan < aveSpectrum.size(); ++chan) {
+                    if (maskSpectrum[chan]==casa::False) continue;
+                    if ((aveSpectrum[chan]<median-itsSpectraThreshold*sigma_IQR) ||
+                        (aveSpectrum[chan]>median+itsSpectraThreshold*sigma_IQR)) {
+                        maskSpectrum[chan]=casa::False;
+                    }
+                }
+         
+            }
+         
+        }
+
+    }
+
+    if ( itsIntegrateTimes ) {
+
+        for (std::map<rowKey, casa::Vector<casa::Float> >::iterator
+             it=itsAveTimes.begin(); it!=itsAveTimes.end(); ++it) {
+
+            // reset the counter for this key
+            itsCountTimes[it->first] = -1;
+         
+            // get the spectra
+            casa::Vector<casa::Float> aveTime = it->second;
+            casa::Vector<casa::Bool> maskTime = itsMaskTimes[it->first];
+         
+            // generate the flagging stats
+            casa::MaskedArray<casa::Float> maskedAmplitudes(aveTime, maskTime);
+            casa::Vector<casa::Float>
+                statsVector = getRobustStats(maskedAmplitudes.getCompressedArray());
+            casa::Float median = statsVector[0];
+            casa::Float sigma_IQR = statsVector[1];
+         
+            // check min and max relative to thresholds.
+            // do not loop over data again if all unflagged times are good
+            if ((statsVector[2] < median-itsTimesThreshold*sigma_IQR) ||
+                (statsVector[3] > median+itsTimesThreshold*sigma_IQR)) {
+         
+                for (size_t t = 0; t < aveTime.size(); ++t) {
+                    if (maskTime[t] == casa::False) continue;
+                    if ((aveTime[t] < median-itsTimesThreshold*sigma_IQR) ||
+                        (aveTime[t] > median+itsTimesThreshold*sigma_IQR)) {
+                        maskTime[t] = casa::False;
+                    }
+                }
+         
+            }
+
+        }
+
+    }
+
+    itsAverageFlagsAreReady = casa::True;
 
 }
 
