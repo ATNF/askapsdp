@@ -106,8 +106,6 @@ class TCPSink : public askap::cp::ingest::ITask {
         template <typename T>
         static void pushBackVector(const std::vector<T>& src, std::vector<uint8_t>& dest);
 
-        static uint64_t convertToBAT(const casa::MVEpoch& time);
-
         static uint32_t mapStokes(casa::Stokes::StokesTypes type);
 
         /// Parameter set

@@ -133,7 +133,7 @@ void TCPSink::serialiseVisChunk(const askap::cp::common::VisChunk& chunk, std::v
     pushBack<uint32_t>(chunk.nRow(), v);
     pushBack<uint32_t>(chunk.nChannel(), v);
     pushBack<uint32_t>(chunk.nPol(), v);
-    pushBack<uint64_t>(convertToBAT(chunk.time()), v);
+    pushBack<uint64_t>(askap::epoch2bat(MEpoch(chunk.time(), MEpoch::UTC)), v);
 
     pushBack<double>(chunk.channelWidth(), v);
     pushBackArray<double>(chunk.frequency(), v);
@@ -161,13 +161,6 @@ void TCPSink::serialiseVisChunk(const askap::cp::common::VisChunk& chunk, std::v
         if (data[i]) flagvec[i] = 1;
     }
     pushBackVector<uint8_t>(flagvec, v);
-}
-
-uint64_t TCPSink::convertToBAT(const casa::MVEpoch& time)
-{
-    const uint64_t microsecondsPerDay = 86400000000ull;
-    const uint64_t startOfDayBAT = uint64_t(time.getDay() * microsecondsPerDay);
-    return startOfDayBAT + (time.getDayFraction() * microsecondsPerDay);
 }
 
 void TCPSink::runSender()
