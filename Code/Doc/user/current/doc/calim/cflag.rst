@@ -137,17 +137,43 @@ within a given row) are calculated. Then, where the Stokes-V correlation
 exceeds the average plus (stddev * threshold) all correlations for that
 channel in that row will be flagged.
 
-+----------------------------------+------------+------------+---------------------------------------------+
-|*Parameter*                       |*Default*   |*Example*   |*Description*                                |
-+==================================+============+============+=============================================+
-|Cflag.stokesv_flagger.enable      |false       |true        |Enable the Stokes-V dynamic flagging         |
-+----------------------------------+------------+------------+---------------------------------------------+
-|Cflag.stokesv_flagger.threshold   |5.0         |5.0         |The threshold at which visibilities will be  |
-|                                  |            |            |flagged. Where the amplitude of a correlation|
-|                                  |            |            |exceeds the (average + (stddev * threshold)) |
-|                                  |            |            |all correlations for that spectral channel in|
-|                                  |            |            |the row will be flagged.                     |
-+----------------------------------+------------+------------+---------------------------------------------+
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|*Parameter*                                      |*Default*   |*Example*   |*Description*                                |
++=================================================+============+============+=============================================+
+|Cflag.stokesv_flagger.enable                     |false       |true        |Enable the Stokes-V dynamic flagging         |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.threshold                  |5.0         |5.0         |The threshold at which visibilities will be  |
+|                                                 |            |            |flagged. Where the amplitude of a correlation|
+|                                                 |            |            |exceeds the (average + (stddev * threshold)) |
+|                                                 |            |            |all correlations for that spectral channel in|
+|                                                 |            |            |the row will be flagged.                     |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.useRobustStatistics        |false       |true        |Use the median and interquartile range to    |
+|                                                 |            |            |estimate average and stddev (see below).     |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.integrateSpectra           |false       |true        |Integrate the spectra in time and flag any   |
+|                                                 |            |            |channels outside bounds, set using           |
+|                                                 |            |            |the robust statistics described below. Uses  |
+|                                                 |            |            |scalar averaging. Spectra for                |
+|                                                 |            |            |different baselines, beams, fields and       |
+|                                                 |            |            |polarisation are kept separate. Requires a   |
+|                                                 |            |            |second pass over the data.                   |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.integrateSpectra.threshold |5.0         |4.0         |The threshold factor used to bound           |
+|                                                 |            |            |integrated spectra.                          |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.integrateTimes             |false       |true        |Integrate across spectra and flag any time   |
+|                                                 |            |            |samples outside bounds, set using            |
+|                                                 |            |            |the robust statistics described below. Uses  |
+|                                                 |            |            |scalar averaging. Series for                 |
+|                                                 |            |            |different baselines, beams, fields and       |
+|                                                 |            |            |polarisation are kept separate. Requires a   |
+|                                                 |            |            |second pass over the data.                   |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+|Cflag.stokesv_flagger.integrateTimes.threshold   |5.0         |4.0         |The threshold factor used to bound           |
+|                                                 |            |            |integrated spectra.                          |
++-------------------------------------------------+------------+------------+---------------------------------------------+
+
 
 Amplitude Thresholding 
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -183,36 +209,36 @@ estimate flagging thresholds and to look for interference peaks in averaged data
 |                                                   |            |            |the products contained in the measurement set|
 |                                                   |            |            |should be specified.                         |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.autoThresholds             |false       |true        |If true, automatically generate low and high |
-|                                                   |            |            |amplitude thresholds for each spectrum using |
+|Cflag.amplitude_flagger.dynamicBounds              |false       |true        |If true, automatically generate low and high |
+|                                                   |            |            |amplitude bounds for each spectrum using     |
 |                                                   |            |            |the statistics described below. Both         |
 |                                                   |            |            |Cflag.amplitude_flagger.low and              |
 |                                                   |            |            |Cflag.amplitude_flagger.high have preference |
-|                                                   |            |            |over the autoThresholds.                     |
+|                                                   |            |            |over the dynamic bounds.                     |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.threshold                  |5.0         |4.0         |The threshold factor used in the statistics  |
 |                                                   |            |            |described below.                             |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.integrateSpectra           |false       |true        |Integrate the spectra in time and flag any   |
-|                                                   |            |            |channels outside thresholds, also set using  |
-|                                                   |            |            |the statistics described below. Uses scalar  |
-|                                                   |            |            |averaging. Spectra for                       |
+|                                                   |            |            |channels outside bounds, also set using      |
+|                                                   |            |            |the robust statistics described below. Uses  |
+|                                                   |            |            |scalar averaging. Spectra for                |
 |                                                   |            |            |different baselines, beams, fields and       |
 |                                                   |            |            |polarisation are kept separate. Requires a   |
 |                                                   |            |            |second pass over the data.                   |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.integrateSpectra.threshold |5.0         |4.0         |The threshold factor used to threshold       |
+|Cflag.amplitude_flagger.integrateSpectra.threshold |5.0         |4.0         |The threshold factor used to bound           |
 |                                                   |            |            |integrated spectra.                          |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.integrateTimes             |false       |true        |Integrate across spectra and flag any time   |
-|                                                   |            |            |samples outside thresholds, also set using   |
-|                                                   |            |            |the statistics described below. Uses scalar  |
-|                                                   |            |            |averaging. Series for                        |
+|                                                   |            |            |samples outside bounds, also set using       |
+|                                                   |            |            |the robust statistics described below. Uses  |
+|                                                   |            |            |scalar averaging. Series for                 |
 |                                                   |            |            |different baselines, beams, fields and       |
 |                                                   |            |            |polarisation are kept separate. Requires a   |
 |                                                   |            |            |second pass over the data.                   |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
-|Cflag.amplitude_flagger.integrateTimes.threshold   |5.0         |4.0         |The threshold factor used to threshold       |
+|Cflag.amplitude_flagger.integrateTimes.threshold   |5.0         |4.0         |The threshold factor used to bound           |
 |                                                   |            |            |integrated spectra.                          |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 |Cflag.amplitude_flagger.aveAll                     |false       |true        |Do not separate spectra based on baseline,   |
@@ -225,11 +251,18 @@ estimate flagging thresholds and to look for interference peaks in averaged data
 |Cflag.amplitude_flagger.aveAll.noBeam              |false       |true        |Do separate spectra for different beams.     |
 +---------------------------------------------------+------------+------------+---------------------------------------------+
 
-To avoid additional passes over data containing RFI spikes, the median and interquartile range are used in
-place of the mean and standard deviation used in many thresholding algorithms. These are more robust to a
-modest number of outliers. If Gaussian noise dominates most of the frequency channels, then ~50% of the
-amplitudes will lie within 0.674 sigma of the mean, such that sigma ~ 1.349*IQL (IQL = the interquartile
-range). Samples outside [median - thresholdFactor*sigma, median + thresholdFactor*sigma] are flagged.
+
+Robust Statistics
+~~~~~~~~~~~~~~~~~
+
+To avoid additional passes over data containing RFI spikes when generating
+statistics, the median and interquartile range are used in place of the mean and
+standard deviation used in many thresholding algorithms. These are more robust
+to a modest number of outliers. If Gaussian noise dominates most of the
+frequency channels, then ~50% of the samples will lie within 0.674 sigma of the
+mean, such that sigma ~ 1.349*IQL (IQL = the interquartile range). Samples
+outside [median - threshold*sigma, median + threshold*sigma] are flagged.
+
 
 Configuration Example
 ---------------------
@@ -291,7 +324,7 @@ flagger with dynamic thresholding:
     # Amplitude based flagging
     Cflag.amplitude_flagger.enable                        = true
     # Threshold using the median and IQR of each spectrum
-    Cflag.amplitude_flagger.autoThresholds                = true
+    Cflag.amplitude_flagger.dynamicBounds                 = true
     # Threshold again after averaging spectra in time
     Cflag.amplitude_flagger.integrateSpectra              = true
     Cflag.amplitude_flagger.integrateSpectra.threshold    = 4.0

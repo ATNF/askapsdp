@@ -275,11 +275,10 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
                 // but not sure that all applications support flagRow
                 if ( !itsMaskTimes[key][itsCountTimes[key]] ) {
                     for (size_t chan = 0; chan < data.ncolumn(); ++chan) {
-                        if (!flags(corr, chan)) {
+                        if (flags(corr, chan)) continue;
                             flags(corr, chan) = true;
                             wasUpdated = true;
                             itsStats.visFlagged++;
-                        }
                     }
                     // everything is flagged, so move to the next "corr"
                     continue;
