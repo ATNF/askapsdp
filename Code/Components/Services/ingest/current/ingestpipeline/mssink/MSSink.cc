@@ -438,9 +438,12 @@ void MSSink::addPointingRows(const VisChunk& chunk)
 
     uInt row = pointingc.nrow();
 
-    // Initialise if this is the first cycle
+    // Initialise if this is the first cycle. Just take the reference frame for
+    // the first antenna. If the others don't have the same frame an exception
+    // will be thrown in the directionMeasCol().put() call.
     if (row == 0) {
-        pointingc.setDirectionRef(casa::MDirection::J2000);
+        pointingc.setDirectionRef(casa::MDirection::castType(
+                    chunk.actualPointingCentre()(0).getRef().getType()));
     }
 
     const casa::uInt nAntenna = chunk.nAntenna();

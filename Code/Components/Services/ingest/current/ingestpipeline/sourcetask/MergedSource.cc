@@ -314,11 +314,21 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     }
 
     // Populate the per-antenna vectors
+    const casa::MDirection::Ref targetDirRef = metadata.targetDirection().getRef();
     for (casa::uInt i = 0; i < nAntenna; ++i) {
         const string antName = itsConfig.antennas()[i].name();
         const TosMetadataAntenna mdant = metadata.antenna(antName);
         chunk->targetPointingCentre()[i] = metadata.targetDirection();
-        chunk->actualPointingCentre()[i] = mdant.actualRaDec();
+
+        // Actual pointing directions should in the same frame as
+        // the target direction
+        if (targetDirRef.getType() == casa::MDirection::J2000) {
+            chunk->actualPointingCentre()[i] = mdant.actualRaDec();
+        } else if (targetDirRef.getType() == casa::MDirection::AZEL) {
+            chunk->actualPointingCentre()[i] = mdant.actualAzEl();
+        } else {
+            ASKAPTHROW(AskapError, "Target dir has unsupported direction frame");
+        }
         chunk->actualPolAngle()[i] = mdant.actualPolAngle();
     }
 
