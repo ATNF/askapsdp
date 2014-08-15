@@ -92,7 +92,11 @@ public abstract class AbstractIngestManager {
 				+ sbid);
 		File configFile = new File(workdir, "cpingest.in");
 
-		workdir.mkdir();
+		boolean status = workdir.mkdir();
+		if (!status) {
+			logger.error("Failed to create directory " + workdir.getAbsolutePath());
+			// Don't fail, it may be the directory exists already
+		}
 		try {
 			FSUtils.create(configFile, parset);
 		} catch (IOException e) {

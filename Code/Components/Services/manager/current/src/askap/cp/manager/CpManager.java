@@ -40,24 +40,29 @@ public class CpManager extends ServiceApplication {
 	 */
 	@Override
 	public int run(String[] args) {
-		logger.info("ASKAP Central Processor Manager");
-		
-		final String serviceName = config().getString("ice.servicename");
-		if (serviceName == null) {
-			logger.error("Parameter 'ice.servicename' not found");
-			return 1;
-		}
-		final String adapterName = config().getString("ice.adaptername");
-		if (adapterName == null) {
-			logger.error("Parameter 'ice.adaptername' not found");
-			return 1;
-		}
+		try {
+			logger.info("ASKAP Central Processor Manager");
 
-		// Create and register the ObsService object
-		ObsService svc = new ObsService(communicator(), config());
+			final String serviceName = config().getString("ice.servicename");
+			if (serviceName == null) {
+				logger.error("Parameter 'ice.servicename' not found");
+				return 1;
+			}
+			final String adapterName = config().getString("ice.adaptername");
+			if (adapterName == null) {
+				logger.error("Parameter 'ice.adaptername' not found");
+				return 1;
+			}
 
-		// Blocks until shutdown
-		ServiceManager.runService(communicator(), svc, serviceName, adapterName);
+			// Create and register the ObsService object
+			ObsService svc = new ObsService(communicator(), config());
+
+			// Blocks until shutdown
+			ServiceManager.runService(communicator(), svc, serviceName, adapterName);
+		} catch (Exception e) {
+			logger.error("Unexpected exception: " + e.getMessage());
+			logger.error(e.getStackTrace());
+		}
 
 		return 0;
 	}

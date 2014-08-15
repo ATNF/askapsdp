@@ -54,7 +54,7 @@ public class ObsService extends _ICPObsServiceDisp {
 	/**
 	 * TOS Data Service client wrapper instance
 	 */
-	//IDataServiceClient itsDataService;
+	// IDataServiceClient itsDataService;
 
 	/**
 	 * Ingest Pipeline Controller
@@ -75,24 +75,23 @@ public class ObsService extends _ICPObsServiceDisp {
 		} else {
 			String identity = parset.getString("fcm.ice.identity");
 			if (identity == null) {
-				throw new RuntimeException("Parameter 'fcm.ice.identity' not found");
+				throw new RuntimeException(
+						"Parameter 'fcm.ice.identity' not found");
 			}
 			itsFCM = new IceFCMClient(ic, identity);
 		}
 
 		// Instantiate real or mock data service interface
 		/*
-		boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
-		if (mockdatasvc) {
-			itsDataService = new MockDataServiceClient(parset.getString("dataservice.mock.filename"));
-		} else {
-			String identity = parset.getString("dataservice.ice.identity");
-			if (identity == null) {
-				throw new RuntimeException("Parameter 'dataservice.ice.identity' not found");
-			}
-			itsDataService = new IceDataServiceClient(ic, identity);
-		}
-		*/
+		 * boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
+		 * if (mockdatasvc) { itsDataService = new
+		 * MockDataServiceClient(parset.getString("dataservice.mock.filename"));
+		 * } else { String identity =
+		 * parset.getString("dataservice.ice.identity"); if (identity == null) {
+		 * throw new
+		 * RuntimeException("Parameter 'dataservice.ice.identity' not found"); }
+		 * itsDataService = new IceDataServiceClient(ic, identity); }
+		 */
 
 		// Create Ingest Manager
 		String managertype = parset.getString("ingest.managertype", "process");
@@ -111,42 +110,76 @@ public class ObsService extends _ICPObsServiceDisp {
 			throws askap.interfaces.cp.NoSuchSchedulingBlockException,
 			askap.interfaces.cp.AlreadyRunningException,
 			askap.interfaces.cp.PipelineStartException {
-		logger.info("Executing scheduling block " + sbid);
-
-		logger.debug("Obtaining FCM parameters");
-		ParameterSet fc = itsFCM.get();
-
-		/*
-		logger.debug("Obtaining observation parameters");
-		ParameterSet obsParams;
-
 		try {
-			obsParams = itsDataService.getObsParameters(sbid);
-		} catch (askap.interfaces.schedblock.NoSuchSchedulingBlockException e) {
-			String msg = "Scheduling block " + sbid + " does not exist";
-			throw new askap.interfaces.cp.NoSuchSchedulingBlockException(msg);
+			logger.info("Executing scheduling block " + sbid);
+
+			logger.debug("Obtaining FCM parameters");
+			ParameterSet fc = itsFCM.get();
+			if (fc == null || fc.isEmpty()) {
+				logger.error("Error fetching FCM data");
+				throw new askap.interfaces.cp.PipelineStartException(
+						"Error fetching FCM data");
+			}
+
+			/*
+			 * logger.debug("Obtaining observation parameters"); ParameterSet
+			 * obsParams;
+			 * 
+			 * try { obsParams = itsDataService.getObsParameters(sbid); } catch
+			 * (askap.interfaces.schedblock.NoSuchSchedulingBlockException e) {
+			 * String msg = "Scheduling block " + sbid + " does not exist";
+			 * throw new
+			 * askap.interfaces.cp.NoSuchSchedulingBlockException(msg); }
+			 */
+
+			// BLOCKING: Will block until the ingest pipeline starts, or
+			// an error occurs
+			itsIngestManager.startIngest(fc, sbid);
+		} catch (askap.interfaces.cp.AlreadyRunningException e) {
+			logger.debug("startObs() - AlreadyRunningException: " + e.getMessage());
+			throw e;
+		}  catch (askap.interfaces.cp.PipelineStartException e) {
+			logger.debug("startObs() - PipelineStartException: " + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("startObs() - Unexpected exception: " + e.getMessage());
+			logger.error(e.getStackTrace());
+			throw new askap.interfaces.cp.PipelineStartException(e.getMessage());
 		}
-		*/
-
-		// BLOCKING: Will block until the ingest pipeline starts, or
-		// an error occurs
-		itsIngestManager.startIngest(fc, sbid);
 	}
 
 	@Override
-	public void abortObs(Current curr) {
-		// Blocking (until aborted)
-		itsIngestManager.abortIngest();
+	public void abortObs(Current curr) throws Ice.UnknownException {
+		try {
+			// Blocking (until aborted)
+			itsIngestManager.abortIngest();
+		} catch (Exception e) {
+			logger.error("abortObs() - Unexpected exception: " + e.getMessage());
+			logger.error(e.getStackTrace());
+			throw new Ice.UnknownException(e.getMessage());
+		}
 	}
 
 	@Override
-	public boolean waitObs(long timeout, Current curr) {
-		return itsIngestManager.waitIngest(timeout);
+	public boolean waitObs(long timeout, Current curr) throws Ice.UnknownException {
+		try {
+			return itsIngestManager.waitIngest(timeout);
+		} catch (Exception e) {
+			logger.error("waitObs() - Unexpected exception: " + e.getMessage());
+			logger.error(e.getStackTrace());
+			throw new Ice.UnknownException(e.getMessage());
+		}
 	}
 
 	@Override
-	public String getServiceVersion(Current curr) {
-		Package p = this.getClass().getPackage();
-		return p.getImplementationVersion();
+	public String getServiceVersion(Current curr) throws Ice.UnknownException {
+		try {
+			Package p = this.getClass().getPackage();
+			return p.getImplementationVersion();
+		} catch (Exception e) {
+			logger.error("waitObs() - Unexpected exception: " + e.getMessage());
+			logger.error(e.getStackTrace());
+			throw new Ice.UnknownException(e.getMessage());
+		}
 	}
 }
