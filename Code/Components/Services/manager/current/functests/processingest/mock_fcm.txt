@@ -190,7 +190,7 @@ cp.ingest.metadata_source.icestorm.topic          = tosmetadata
 #
 # Monitoring Data Publisher Configuration
 #
-cp.ingest.monitoring.enabled                      = true
+cp.ingest.monitoring.enabled                      = false
 cp.ingest.monitoring.ice.locator_host             = localhost
 cp.ingest.monitoring.ice.locator_port             = 4061
 cp.ingest.monitoring.servicename                  = MoniCAService@MoniCAAdminAdapter
@@ -198,7 +198,7 @@ cp.ingest.monitoring.servicename                  = MoniCAService@MoniCAAdminAda
 #
 # Task List
 #
-cp.ingest.tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, TCPSink, MSSink]
+cp.ingest.tasks.tasklist                          = [NoMetadataSource, CalcUVWTask, MSSink]
 
 #
 # NoMetadataSource
@@ -211,6 +211,12 @@ cp.ingest.tasks.NoMetadataSource.params.maxbeams                  = 9
 cp.ingest.tasks.NoMetadataSource.params.beams2receive             = 9
 cp.ingest.tasks.NoMetadataSource.params.centre_freq               = 1.4GHz
 
+# Observation specific
+cp.ingest.tasks.NoMetadataSource.params.centre_freq               = 1.4GHz
+cp.ingest.tasks.NoMetadataSource.params.target_name               = test-field1
+cp.ingest.tasks.NoMetadataSource.params.target_direction          = [12h30m00.000, -45d00m00.000, J2000]
+cp.ingest.tasks.NoMetadataSource.params.correlator_mode           = standard
+
 # Number of channels a given ingest process is meant to receive/process
 cp.ingest.tasks.NoMetadataSource.params.n_channels.0    = 16416
 
@@ -218,19 +224,6 @@ cp.ingest.tasks.NoMetadataSource.params.n_channels.0    = 16416
 # CalcUVWTask
 #
 cp.ingest.tasks.CalcUVWTask.type                    = CalcUVWTask
-
-#
-# ChannelAvgTask
-#
-cp.ingest.tasks.ChannelAvgTask.type                 = ChannelAvgTask
-cp.ingest.tasks.ChannelAvgTask.params.averaging     = 54
-
-#
-# TCPSink
-#
-cp.ingest.tasks.TCPSink.type                        = TCPSink
-cp.ingest.tasks.TCPSink.params.dest.hostname        = localhost
-cp.ingest.tasks.TCPSink.params.dest.port            = 9001
 
 #
 # MSSink

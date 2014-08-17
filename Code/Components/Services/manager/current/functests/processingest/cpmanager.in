@@ -26,5 +26,5 @@ fcm.mock.filename               = mock_fcm.txt
 ingest.workdir                  = /tmp
 
 # Ingest pipeline command and arguments
-ingest.command                  = /Users/hum092/ASKAPsoft/Code/Components/CP/ingest/current/apps/cpingest.sh
-ingest.args                     = -s -c cpingest.in -l /Users/hum092/ASKAPsoft/Code/Components/CP/manager/current/functests/processingest/cpingest.log_cfg
+ingest.command                  = /Users/hum092/ASKAPsoft/Code/Components/Services/ingest/current/apps/cpingest.sh
+ingest.args                     = -s -c cpingest.in -l /Users/hum092/ASKAPsoft/Code/Components/Services/manager/current/functests/processingest/cpingest.log_cfg

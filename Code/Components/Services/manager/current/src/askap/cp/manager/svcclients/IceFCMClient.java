@@ -54,7 +54,7 @@ public class IceFCMClient implements IFCMClient {
 		try {
 			return new ParameterSet(itsProxy.get(-1, ""));
 		} catch (NoSuchKeyException e) {
-			// Shouldn't get this because we are not specifing a key.
+			// Shouldn't get this because we are not specifying a key.
 			return new ParameterSet();
 		}
 	}
