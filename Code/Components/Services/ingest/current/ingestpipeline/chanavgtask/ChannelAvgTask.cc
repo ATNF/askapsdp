@@ -62,7 +62,6 @@ ChannelAvgTask::~ChannelAvgTask()
 
 void ChannelAvgTask::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
     if (itsAveraging < 2) {
         // No averaging required for 0 or 1
         return;

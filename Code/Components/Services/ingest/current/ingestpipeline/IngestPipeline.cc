@@ -38,6 +38,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "casa/OS/Timer.h"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
 
@@ -110,9 +111,13 @@ void IngestPipeline::ingest(void)
     }
 
     // 6) Process correlator integrations, one at a time
+    casa::Timer timer;
     while (itsRunning)  {
         try {
+            timer.mark();
             bool endOfStream = ingestOne();
+            ASKAPLOG_DEBUG_STR(logger, "Total cycle execution time "
+                    << timer.real() << "s");
             itsRunning = !endOfStream;
         } catch (InterruptedException&) {
             break;
@@ -128,18 +133,23 @@ void IngestPipeline::ingest(void)
 
 bool IngestPipeline::ingestOne(void)
 {
+    casa::Timer timer;
     ASKAPLOG_DEBUG_STR(logger, "Waiting for data");
+    timer.mark();
     VisChunk::ShPtr chunk(itsSource->next());
+    ASKAPLOG_DEBUG_STR(logger, "Source task execution time " << timer.real() << "s");
     if (chunk.get() == 0) {
-        return true;
+        return true; // Finished
     }
 
-    ASKAPLOG_INFO_STR(logger, "Received one VisChunk. Timestamp: "
-            << chunk->time());
+    ASKAPLOG_INFO_STR(logger, "Received one VisChunk. Timestamp: " << chunk->time());
 
     // For each task call process on the VisChunk
     for (unsigned int i = 0; i < itsTasks.size(); ++i) {
+        timer.mark();
         itsTasks[i]->process(chunk);
+        ASKAPLOG_DEBUG_STR(logger, itsTasks[i]->getName() << " execution time "
+                << timer.real() << "s");
     }
 
     return false; // Not finished

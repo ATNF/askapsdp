@@ -105,7 +105,6 @@ CalTask::~CalTask()
 /// @param[in] chunk shared pointer to visibility chunk
 void CalTask::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
     ASKAPDEBUGASSERT(chunk);
     const casa::Vector<casa::Stokes::StokesTypes> &stokes = chunk->stokes();
     ASKAPCHECK(scimath::PolConverter::isLinear(stokes), "Calibration task requires Linear polarisation!");

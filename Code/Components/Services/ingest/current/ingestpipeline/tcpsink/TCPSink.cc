@@ -81,8 +81,6 @@ TCPSink::~TCPSink()
 
 void TCPSink::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
-
     // 1: Try to acquire the mutex protecting the buffer. Don't wait because we
     // don't want to block the main thread
     boost::mutex::scoped_lock lock(itsMutex, boost::try_to_lock);

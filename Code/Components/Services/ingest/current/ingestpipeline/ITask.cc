@@ -30,3 +30,13 @@
 askap::cp::ingest::ITask::~ITask()
 {
 }
+
+std::string askap::cp::ingest::ITask::getName(void) const
+{
+    return itsName;
+}
+
+void askap::cp::ingest::ITask::setName(const std::string& name)
+{
+    itsName = name;
+}

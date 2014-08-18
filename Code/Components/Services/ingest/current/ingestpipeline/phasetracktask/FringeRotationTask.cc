@@ -92,7 +92,6 @@ FringeRotationTask::FringeRotationTask(const LOFAR::ParameterSet& parset,
 ///                       phase factors will be applied.
 void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
     ASKAPDEBUGASSERT(itsFrtMethod);
     ASKAPDEBUGASSERT(chunk);
 

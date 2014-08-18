@@ -119,6 +119,8 @@ ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
             break;
     }
 
+    task->setName(taskDescription.name());
+
     return task;
 }
 

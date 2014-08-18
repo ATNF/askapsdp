@@ -78,8 +78,6 @@ CalcUVWTask::~CalcUVWTask()
 
 void CalcUVWTask::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
-
     for (casa::uInt row = 0; row < chunk->nRow(); ++row) {
         calcForRow(chunk, row);
     }
