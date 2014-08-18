@@ -27,6 +27,9 @@
 #ifndef ASKAP_CP_INGEST_ITASK_H
 #define ASKAP_CP_INGEST_ITASK_H
 
+// Std Includes
+#include <string>
+
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "cpcommon/VisChunk.h"
@@ -54,9 +57,24 @@ class ITask {
         ///             the pointer to point to a new object.
         virtual void process(askap::cp::common::VisChunk::ShPtr chunk) = 0;
 
+        /// Gets the name/alias of this task.
+        ///
+        /// @return the name/alias of this task.
+        virtual std::string getName(void) const;
+
+        /// Sets a name/alias for this task.
+        /// This is used for logging purposes.
+        ///
+        /// @param[in] the name/alias for this task.
+        virtual void setName(const std::string& name);
+
         /// Shared pointer definition
         typedef boost::shared_ptr<ITask> ShPtr;
 
+    private:
+
+        /// The name/alias of this task
+        std::string itsName;
 };
 
 }

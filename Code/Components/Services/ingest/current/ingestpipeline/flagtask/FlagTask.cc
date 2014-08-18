@@ -93,16 +93,13 @@ void FlagTask::process(askap::cp::common::VisChunk::ShPtr chunk)
     const casa::Vector<casa::uInt>& ant1 = chunk->antenna1();
     const casa::Vector<casa::uInt>& ant2 = chunk->antenna2();
 
-    for (casa::uInt row = 0; row < nRow; ++row) {
-        const bool isAuto = ant1(row) == ant2(row);
-        if (isAuto && !itsAutoCorrThresholdSet) continue;
-        if (!isAuto && !itsCrossCorrThresholdSet) continue;
-
-        // At this point, it is assured that a threshold is set for the
-        // correlation type (auto or cross) of the current row. So there
-        // is no need to check inside the inner loops below.
+    for (casa::uInt pol = 0; pol < nPol; ++pol) {
         for (casa::uInt chan = 0; chan < nChannel; ++chan) {
-            for (casa::uInt pol = 0; pol < nPol; ++pol) {
+            for (casa::uInt row = 0; row < nRow; ++row) {
+                const bool isAuto = ant1(row) == ant2(row);
+                if (isAuto && !itsAutoCorrThresholdSet) continue;
+                if (!isAuto && !itsCrossCorrThresholdSet) continue;
+
                 if (flag(row, chan, pol)) continue;
                 const float amp = abs(vis(row, chan, pol));
 

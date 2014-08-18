@@ -129,8 +129,6 @@ PhaseTrackTask::PhaseTrackTask(const LOFAR::ParameterSet& parset,
 ///                       phase factors will be applied.
 void PhaseTrackTask::process(askap::cp::common::VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
-
     // it may be practical to cache delay per antenna, beam
     // for now calculate it from scratch (although it is not very efficient)
     for (casa::uInt row = 0; row < chunk->nRow(); ++row) {

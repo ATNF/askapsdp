@@ -98,8 +98,6 @@ MSSink::~MSSink()
 
 void MSSink::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
-
     // Calculate monitoring points and submit them
     submitMonitoringPoints(chunk);
 

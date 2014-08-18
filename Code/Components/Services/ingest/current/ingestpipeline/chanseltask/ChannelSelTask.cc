@@ -67,7 +67,6 @@ ChannelSelTask::~ChannelSelTask()
 
 void ChannelSelTask::process(VisChunk::ShPtr chunk)
 {
-    ASKAPLOG_DEBUG_STR(logger, "process()");
     ASKAPDEBUGASSERT(chunk);
     const casa::uInt nChanOriginal = chunk->nChannel();
 
