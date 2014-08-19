@@ -136,10 +136,10 @@ public class ObsService extends _ICPObsServiceDisp {
 			// an error occurs
 			itsIngestManager.startIngest(fc, sbid);
 		} catch (askap.interfaces.cp.AlreadyRunningException e) {
-			logger.debug("startObs() - AlreadyRunningException: " + e.getMessage());
+			logger.debug("startObs() - AlreadyRunningException: " + e.reason);
 			throw e;
 		}  catch (askap.interfaces.cp.PipelineStartException e) {
-			logger.debug("startObs() - PipelineStartException: " + e.getMessage());
+			logger.debug("startObs() - PipelineStartException: " + e.reason);
 			throw e;
 		} catch (Exception e) {
 			logger.error("startObs() - Unexpected exception: " + e.getMessage());

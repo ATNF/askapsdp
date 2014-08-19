@@ -72,12 +72,13 @@ public abstract class AbstractIngestManager {
 	 */
 	public synchronized void startIngest(ParameterSet facilityConfig,
 			long sbid)
-			throws askap.interfaces.cp.AlreadyRunningException,
-			askap.interfaces.cp.PipelineStartException {
+				throws askap.interfaces.cp.AlreadyRunningException,
+				askap.interfaces.cp.PipelineStartException {
 
 		// 1: Check the pipeline is not already running
 		if (isRunning()) {
 			String msg = "Ingest Pipeline already running";
+			logger.error(msg);
 			throw new AlreadyRunningException(msg);
 		}
 
@@ -86,20 +87,21 @@ public abstract class AbstractIngestManager {
 
 		// 3: Create the directory for the scheduling block and create
 		// the config parset file
-		File workdir = new File(parset().getString("ingest.workdir") + "/"
-				+ sbid);
+		File workdir = new File(parset().getString("ingest.workdir") + "/" + sbid);
 		File configFile = new File(workdir, "cpingest.in");
 
-		boolean status = workdir.mkdir();
-		if (!status) {
-			logger.error("Failed to create directory " + workdir.getAbsolutePath());
-			// Don't fail, it may be the directory exists already
+		if (!workdir.exists() && !workdir.mkdir()) {
+			String msg = "Failed to create directory " + workdir.getAbsolutePath();
+			logger.error(msg);
+			throw new askap.interfaces.cp.PipelineStartException(msg);
 		}
+		
 		try {
 			FSUtils.create(configFile, parset);
 		} catch (IOException e) {
-			logger.error("Could not create parset in workdir: " + e);
-			return;
+			String msg = "Could not create parset in workdir: " + e;
+			logger.error(msg);
+			throw new askap.interfaces.cp.PipelineStartException(msg);
 		}
 
 		// 4: Execute the job (blocks until pipeline is running)
