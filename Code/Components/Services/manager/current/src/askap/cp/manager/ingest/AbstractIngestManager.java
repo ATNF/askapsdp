@@ -75,8 +75,6 @@ public abstract class AbstractIngestManager {
 			throws askap.interfaces.cp.AlreadyRunningException,
 			askap.interfaces.cp.PipelineStartException {
 
-		logger.info("Starting Ingest Pipeline");
-
 		// 1: Check the pipeline is not already running
 		if (isRunning()) {
 			String msg = "Ingest Pipeline already running";
@@ -105,6 +103,7 @@ public abstract class AbstractIngestManager {
 		}
 
 		// 4: Execute the job (blocks until pipeline is running)
+		logger.info("Starting Ingest Pipeline");
 		executeIngestPipeline(workdir);
 	}
 
