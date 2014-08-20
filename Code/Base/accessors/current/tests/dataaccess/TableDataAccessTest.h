@@ -48,6 +48,7 @@
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/IConstDataSource.h>
+#include <dataaccess/TableConstDataIterator.h>
 #include "TableTestRunner.h"
 
 namespace askap {
@@ -162,7 +163,13 @@ void TableDataAccessTest::readOnlyTest()
        CPPUNIT_ASSERT(it->stokes().nelements() == it->nPol());
        CPPUNIT_ASSERT(it->nPol() == 2);
        CPPUNIT_ASSERT(it->stokes()[0] == casa::Stokes::XX);       
-       CPPUNIT_ASSERT(it->stokes()[1] == casa::Stokes::YY);       
+       CPPUNIT_ASSERT(it->stokes()[1] == casa::Stokes::YY);
+       
+       // checks specific to table-based implementation
+       boost::shared_ptr<TableConstDataIterator> actualIt = it.dynamicCast<TableConstDataIterator>();
+       CPPUNIT_ASSERT(actualIt);
+       CPPUNIT_ASSERT_EQUAL(0u, actualIt->currentFieldID());
+       CPPUNIT_ASSERT_EQUAL(0u, actualIt->currentScanID());              
   }
 }
 

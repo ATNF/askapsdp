@@ -1116,3 +1116,38 @@ const std::string& TableConstDataIterator::getDataColumnName() const throw()
   ASKAPDEBUGASSERT(itsSelector);
   return itsSelector->getDataColumnName();
 }
+
+/// @brief obtain a current field ID
+/// @details This method obtains a field ID corresponding to the
+/// current iteration, if field ID column is present (and used). Otherwise
+/// zero is always returned
+/// @return current field ID
+casa::uInt TableConstDataIterator::currentFieldID() const
+{
+  return itsUseFieldID ? itsCurrentFieldID : 0u;
+}  
+
+/// @brief obtain a current scan ID
+/// @details This method obtains a scan number corresponding to the
+/// current iteration. At this stage, this funcionality is not exposed via the
+/// generic interface and is for use in test code only. In addition, there are 
+/// no measures taken to ensure that all rows of the iteration correspond to the 
+/// same scan ID (although realistically it should be the case because all
+/// chunk corresponds to the same time stamp), although the MS standard allows it. 
+/// This method does the checks and throws an exception if scan number varies across
+/// the chunk.
+/// @return current scan ID
+casa::uInt TableConstDataIterator::currentScanID() const
+{
+  casa::Vector<casa::uInt> ids;
+  fillVectorOfIDs(ids,"SCAN_NUMBER");
+  ASKAPCHECK(ids.nelements()>0, "An attempt to extract scan ID for empty iteration");
+  const casa::uInt scanID = ids[0];
+  // do cross-check
+  for (casa::uInt row=1; row<ids.nelements(); ++row) {
+       ASKAPCHECK(scanID == ids[row], "Scan ID seem to differ for row="<<row<<" of the current iteration; was "<<scanID<<
+                  " now "<<ids[row]);
+  }
+  return scanID;
+}  
+

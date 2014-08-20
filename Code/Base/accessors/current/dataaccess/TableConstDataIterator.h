@@ -209,6 +209,25 @@ public:
   /// @brief direction tolerance used for UVW machine cache
   /// @return direction tolerance used for UVW machine cache (in radians)
   inline double uvwMachineCacheTolerance() const {return itsUVWCacheTolerance;}   
+
+  /// @brief obtain a current field ID
+  /// @details This method obtains a field ID corresponding to the
+  /// current iteration, if field ID column is present (and used). Otherwise
+  /// zero is always returned
+  /// @return current field ID
+  casa::uInt currentFieldID() const;  
+
+  /// @brief obtain a current scan ID
+  /// @details This method obtains a scan number corresponding to the
+  /// current iteration. At this stage, this funcionality is not exposed via the
+  /// generic interface and is for use in test code only. In addition, there are 
+  /// no measures taken to ensure that all rows of the iteration correspond to the 
+  /// same scan ID (although realistically it should be the case because all
+  /// chunk corresponds to the same time stamp), although the MS standard allows it. 
+  /// This method does the checks and throws an exception if scan number varies across
+  /// the chunk.
+  /// @return current scan ID
+  casa::uInt currentScanID() const;  
   
 protected:
   /// @brief obtain selected range of channels
