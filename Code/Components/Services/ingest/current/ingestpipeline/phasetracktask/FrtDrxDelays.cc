@@ -151,13 +151,16 @@ void FrtDrxDelays::process(const askap::cp::common::VisChunk::ShPtr& chunk,
                const casa::Vector<casa::Double>& freq = chunk->frequency();
                ASKAPDEBUGASSERT(freq.nelements() == thisRow.nrow());
                for (casa::uInt chan = 0; chan < thisRow.nrow(); ++chan) {
-                    casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
+                    //casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
                     const float phase = static_cast<float>(phaseDueToAppliedDelay + 
                                  2. * casa::C::pi * freq[chan] * residualDelay);
                     const casa::Complex phasor(cos(phase), sin(phase));
 
                     // actual rotation (same for all polarisations)
-                    thisChan *= phasor;
+                    for (casa::uInt pol = 0; pol < thisRow.ncolumn(); ++pol) {
+                         thisRow(chan,pol) *= phasor;
+                    }
+                    //thisChan *= phasor;
                }
                
            } else {
