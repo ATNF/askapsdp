@@ -273,8 +273,8 @@ void makeOffsets(const LOFAR::ParameterSet &parset) {
   }
   // reference position
   // default - Sun at MRO
-  casa::MPosition mroPos(casa::MVPosition(casa::Quantity(370.81, "m"), casa::Quantity(-26.6991531922, "deg"), 
-           casa::Quantity(116.6310372795, "deg")),casa::MPosition::Ref(casa::MPosition::WGS84));
+  casa::MPosition mroPos(casa::MVPosition(casa::Quantity(370.81, "m"), casa::Quantity(116.6310372795, "deg"), 
+                          casa::Quantity(-26.6991531922, "deg")), casa::MPosition::Ref(casa::MPosition::WGS84));
   casa::Quantity q;
   ASKAPCHECK(casa::MVTime::read(q, "today"), "MVTime::read failed");
   std::cout<<"Current UT MJD: "<<q<<std::endl;
