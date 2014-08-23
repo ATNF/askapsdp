@@ -112,7 +112,6 @@ EOF_INNER
 #SBATCH --ntasks=${NCPU_CSIM}
 #SBATCH --ntasks-per-node=${NPPN_CSIM}
 #SBATCH --job-name ${slurmtag}
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 csim=${csim}
@@ -142,9 +141,7 @@ EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=12:00:00
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name visMerge1_${GRP}
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 #######
@@ -192,9 +189,7 @@ cat > $merge2qsub <<EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=12:00:00
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name visMerge2
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 ulimit -n 8192

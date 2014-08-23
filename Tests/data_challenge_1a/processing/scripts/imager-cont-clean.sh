@@ -8,9 +8,7 @@ cat > cimager-cont-clean.sbatch << EOF
 #SBATCH --ntasks=${CONT_CLEAN_MPPWIDTH}
 #SBATCH --ntasks-per-node=${CONT_CLEAN_MPPNPPN}
 #SBATCH --time=12:00:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name cont-clean
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 parset=${CONFIGDIR}/cimager-cont-clean-\${SLURM_JOB_ID}.in

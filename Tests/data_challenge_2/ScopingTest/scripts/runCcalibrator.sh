@@ -86,7 +86,6 @@ EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --job-name ccal${POINTING}${tag}
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 rm -rf $newms

@@ -54,7 +54,6 @@ cat > $sbatchfile <<EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --job-name crSci
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 aprun $createFITS -c $crParset > $crLog

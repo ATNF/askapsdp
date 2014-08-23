@@ -31,9 +31,7 @@ if [ $doSmoothSM == true ]; then
 #SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name smoothTaylor
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################
@@ -75,9 +73,7 @@ EOF
 #SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name smoothTaylor
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################
@@ -182,9 +178,7 @@ if [ $doSF_SM == true ]; then
 #SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name selavyTaylor
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################
@@ -267,9 +261,7 @@ if [ $doComparisonSM == true ]; then
 #SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name modelComp
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################

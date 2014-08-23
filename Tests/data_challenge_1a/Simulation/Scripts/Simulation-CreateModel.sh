@@ -23,9 +23,7 @@ if [ $doCreateCR == true ]; then
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=${CREATORWIDTH}
 #SBATCH --ntasks-per-node=${CREATORPPN}
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name DCmodelCF
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################

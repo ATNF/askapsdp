@@ -92,9 +92,7 @@ if [ $doCsim == true ]; then
 #SBATCH --time=6:00:00
 #SBATCH --ntasks=${NCPU_CSIM}
 #SBATCH --ntasks-per-node=${NPPN_CSIM}
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name mkVis${GRP}
-#SBATCH --mail-type=ALL
 
 #####
 # AUTOMATICALLY CREATED!
@@ -194,9 +192,7 @@ EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=12:00:00
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name visMerge1_${GRP}
-#SBATCH --mail-type=ALL
 
 #######
 # AUTOMATICALLY CREATED
@@ -243,9 +239,7 @@ EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=12:00:00
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name visMerge2
-#SBATCH --mail-type=ALL
 
 ulimit -n 8192
 export APRUN_XFER_LIMITS=1

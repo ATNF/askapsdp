@@ -21,9 +21,7 @@ cat > ${sbatchfile} <<EOF
 #SBATCH --time=01:00:00
 #SBATCH --ntasks=19
 #SBATCH --ntasks-per-node=19
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name analysis
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 selavy=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/apps/selavy.sh

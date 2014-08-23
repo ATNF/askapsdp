@@ -8,9 +8,7 @@ cat > cimager-cont-dirty.sbatch << EOF
 #SBATCH --ntasks=${CONT_DIRTY_MPPWIDTH}
 #SBATCH --ntasks-per-node=${CONT_DIRTY_MPPNPPN}
 #SBATCH --time=02:00:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name cont-dirty
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 parset=${CONFIGDIR}/cimager-cont-dirty-\${SLURM_JOB_ID}.in

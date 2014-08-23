@@ -81,7 +81,6 @@ cat > $sbatchfile <<EOF
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --job-name csim${POINTING}${tag}
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 rm -rf $ms

@@ -25,7 +25,6 @@ cat > $sbatchfile <<EOF
 #SBATCH --ntasks=${CONT_CLEAN_MPPWIDTH}
 #SBATCH --ntasks-per-node=${CONT_CLEAN_MPPNPPN}
 #SBATCH --job-name ${slurmtag}
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cim=${cim}

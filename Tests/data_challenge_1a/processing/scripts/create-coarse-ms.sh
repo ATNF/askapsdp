@@ -23,9 +23,7 @@ cat > split-coarse.sbatch << EOF
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --time=04:00:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name split-coarse
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > ${CONFIGDIR}/mssplit-coarse.in << EOF_INNER

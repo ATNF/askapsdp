@@ -9,9 +9,7 @@ cat > cmodel.sbatch << EOF
 #!/bin/bash
 #SBATCH --ntasks=20
 #SBATCH --time=00:15:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name cmodel
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 

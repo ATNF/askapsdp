@@ -10,9 +10,7 @@ cat > ccalibrator.sbatch << EOF
 #SBATCH --ntasks=${GAINS_CAL_MPPWIDTH}
 #SBATCH --ntasks-per-node=${GAINS_CAL_MPPNPPN}
 #SBATCH --time=06:00:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name ccalibrator
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER

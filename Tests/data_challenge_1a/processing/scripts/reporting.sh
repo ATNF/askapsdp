@@ -8,9 +8,7 @@ cat > $sbatchfile <<EOF
 #!/bin/bash
 #SBATCH --time=00:30:00
 #SBATCH --ntasks=1
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name report
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 # This is the overall SUCCESS/FAILURE indicator.

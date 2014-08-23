@@ -37,9 +37,7 @@ if [ $doSlice == true ]; then
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=${width}
 #SBATCH --ntasks-per-node=${nppn}
-#SBATCH --mail-user matthew.whiting@csiro.au
 #SBATCH --job-name sliceCont
-#SBATCH --mail-type=ALL
 #SBATCH --no-requeue
 
 ####################
@@ -84,9 +82,7 @@ EOF
 ## #SBATCH --time=12:00:00
 ## #SBATCH --ntasks=1
 ## #SBATCH --ntasks-per-node=1
-## #SBATCH --mail-user matthew.whiting@csiro.au
 ## #SBATCH --job-name sliceCont
-## #SBATCH --mail-type=ALL
 ## #SBATCH --no-requeue
 ## 
 ## ####################

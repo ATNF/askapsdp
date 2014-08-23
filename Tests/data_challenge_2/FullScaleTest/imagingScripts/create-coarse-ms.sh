@@ -31,9 +31,7 @@ if [ $doAverageMS == true ]; then
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --time=08:00:00
-##SBATCH --mail-user first.last@csiro.au
 #SBATCH --job-name split-coarse
-#SBATCH --mail-type=ALL
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
 mssplit=${mssplit}
