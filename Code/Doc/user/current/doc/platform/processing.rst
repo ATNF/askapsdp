@@ -102,9 +102,7 @@ customisation to declare the resources required. An example qsub file is::
     #SBATCH --time=01:00:00
     #SBATCH --ntasks=80
     #SBATCH --ntasks-per-node=20
-    #SBATCH --mail-user=my.email.address@csiro.au
     #SBATCH --job-name=myjobname
-    #SBATCH --mail-type=FAIL
     #SBATCH --no-requeue
     #SBATCH --export=NONE
 
@@ -136,9 +134,7 @@ The following example launches a job with a number of PEs that is not a multiple
     #SBATCH --time=01:00:00
     #SBATCH --ntasks=22
     #SBATCH --ntasks-per-node=20
-    #SBATCH --mail-user=my.email.address@csiro.au
     #SBATCH --job-name=myjobname
-    #SBATCH --mail-type=FAIL
     #SBATCH --no-requeue
     #SBATCH --export=NONE
 
