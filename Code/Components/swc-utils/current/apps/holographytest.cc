@@ -64,9 +64,9 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
-const casa::uInt refAnt = 0; // the one which doesn't move
-const casa::uInt maxMappedAnt = 2;
-const casa::uInt maxMappedBeam = 4;
+const casa::uInt refAnt = 1; // the one which doesn't move
+const casa::uInt maxMappedAnt = 5;
+const casa::uInt maxMappedBeam = 9;
 
 // converts antenna index into plane index (i.e. bypasses the reference antenna
 casa::uInt getAntPlaneIndex(const casa::uInt &in) {
@@ -80,8 +80,11 @@ casa::uInt getAntPlaneIndex(const casa::uInt &in) {
 casa::Matrix<casa::Complex> processOnePoint(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
   if (ctrl >=0 ) {
-      sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
+      //sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
+      sel->chooseUserDefinedIndex("SCAN_NUMBER",casa::uInt(ctrl));
   }
+  sel->chooseCrossCorrelations();
+  //sel->chooseFeed(0);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -117,15 +120,33 @@ casa::Matrix<casa::Complex> processOnePoint(const IConstDataSource &ds, const in
        for (casa::uInt row=0; row<nRow; ++row) {
             casa::Vector<casa::Bool> flags = it->flag().xyPlane(0).row(row);
             bool flagged = false;
+            bool allFlagged = true;
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
-                 flagged |= flags[ch];
+                 //flagged |= flags[ch];
+                 allFlagged &= flags[ch];
+            }
+            if (allFlagged) {
+                flagged = true;
             }
             
             casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
             
             
-            // flagging based on the amplitude (to remove extreme outliers)
-            casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
+            //casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
+            ASKAPDEBUGASSERT(measuredRow.nelements() == flags.nelements());
+            casa::Complex currentAvgVis(0.,0.);
+            casa::uInt currentNChan = 0;
+            for (casa::uInt ch = 0;  ch < flags.nelements(); ++ch) {
+                 if (!flags[ch]) {
+                     currentAvgVis += measuredRow[ch];
+                     ++currentNChan;
+                 }
+            }
+            if (currentNChan > 0) {
+                currentAvgVis /= float(currentNChan);
+            } else {
+                ASKAPASSERT(flagged);
+            }
 
             /*
             if ((casa::abs(currentAvgVis) > 0.05) && (row % 3 == 2)) {
@@ -206,16 +227,17 @@ void process(const IConstDataSource &ds, const casa::uInt size) {
 
    int counter = 0;
    for (int x = -halfSize; x <= halfSize; ++x) {
-       const int dir = (x + halfSize) % 2 == 0 ? 1 : -1; // the first scan is in the increasing order
+       //const int dir = (x + halfSize) % 2 == 0 ? 1 : -1; // the first scan is in the increasing order
+       const int dir = 1.; // always the same direction
        for (int y = -halfSize; y <= halfSize; ++y) {
 
             ++counter; // effectively a 1-based counter
 
             int planeCounter = 0;
-            casa::Matrix<casa::Complex> result = processOnePoint(ds,counter);
+            casa::Matrix<casa::Complex> result = processOnePoint(ds,counter-1);
             for (casa::uInt ant = 0; ant < result.nrow(); ++ant) {
                  for (casa::uInt beam = 0; beam < result.ncolumn(); ++beam,++planeCounter) {
-                      //const casa::IPosition curPos(4, x + halfSize, halfSize - y * dir,int(beam),int(ant));
+                      //const casa::IPosition curPos(4, x + halfSize, halfSize - y * dir,int(ant),int(beam));
                       ASKAPDEBUGASSERT(planeCounter < targetShape(2));
                       const casa::IPosition curPos(3, x + halfSize, halfSize - y * dir,planeCounter);
                       buf(curPos) = casa::abs(result(ant,beam));
@@ -270,7 +292,7 @@ int main(int argc, char **argv) {
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds,17);
+     process(ds,5);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
