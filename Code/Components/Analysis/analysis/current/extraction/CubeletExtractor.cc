@@ -207,8 +207,7 @@ namespace askap {
 		
 		casa::LogicalArray mask(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer).reform(outshape));
 		casa::PagedImage<float> img(this->itsOutputFilename);
-		std::string maskname("mask");
-		img.makeMask(maskname);
+		img.makeMask("mask");
 		img.pixelMask().put(mask);
 
 		this->closeInput();
