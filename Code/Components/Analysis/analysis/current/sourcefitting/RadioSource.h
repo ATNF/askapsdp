@@ -70,6 +70,9 @@ namespace askap {
 
         namespace sourcefitting {
 
+	    std::string getSuffix(unsigned int num);
+
+
             /// @brief Class to store all information on a detected source.
             ///
             /// @details This class is designed to hold all appropriate

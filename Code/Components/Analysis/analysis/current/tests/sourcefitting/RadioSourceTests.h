@@ -91,6 +91,7 @@ namespace askap {
 	CPPUNIT_TEST(subthreshold); 
 	CPPUNIT_TEST(fitSource);
 	CPPUNIT_TEST(componentDeconvolution);
+	CPPUNIT_TEST(suffixGeneration);
 	CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -317,6 +318,17 @@ namespace askap {
 	  CPPUNIT_ASSERT(fabs(deconvShape[0]-gaussDeconvXFWHM)<1.e-3);
 	  CPPUNIT_ASSERT(fabs(deconvShape[2]-gaussDeconvPA)<1.e-3);
 	  CPPUNIT_ASSERT(fabs(deconvShape[1]-gaussDeconvYFWHM)<1.e-3);
+
+	}
+
+	void suffixGeneration() {
+	    // A simple test to make sure we get the correct suffix for various component numbers.
+	    unsigned int number[16]={0,1,2,3,25,26,27,51,52,53,701,702,703,18277,18278,18279};
+	    std::string suffix[16]={"a","b","c","d","z","aa","ab","az","ba","bb","zz","aaa","aab","zzz","aaaa","aaab"};
+	    for(int i=0;i<16;i++){
+		std::string newsuff=getSuffix(number[i]);
+		CPPUNIT_ASSERT(newsuff==suffix[i]);
+	    }
 
 	}
 

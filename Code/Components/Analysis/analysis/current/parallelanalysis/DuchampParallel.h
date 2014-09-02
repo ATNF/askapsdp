@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Provides generic methods for parallel algorithms
+/// Provides a distributed interface to source finding with the duchamp Cube structure.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Tim Cornwell <tim.cornwell@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #ifndef ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
 #define ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_

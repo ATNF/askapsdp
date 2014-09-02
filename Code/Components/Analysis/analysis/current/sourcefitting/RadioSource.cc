@@ -68,6 +68,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <string>
 #include <algorithm>
 #include <utility>
 #include <math.h>
@@ -1366,6 +1367,28 @@ namespace askap {
 	    
 	  }
 
+	    std::string getSuffix(unsigned int num)
+	    {
+		/// @details Returns a string to uniquely identify a
+		/// fit that is part of an island. The first 26
+		/// numbers (zero-based), get a single letter
+		/// a-z. After that, it becomes
+		/// aa,ab,ac,...az,ba,bb,bc,...bz,ca,... If there are
+		/// more than 702 (=26^2+26), we move to three
+		/// characters: zy,zz,aaa,aab,aac,... And so on.
+
+		char initialLetter='a';
+		std::stringstream id;
+		for(int c=0,count=0,factor=1; count <= num; factor*=26,c++,count+=factor){
+		    int n = ((num-count)/factor)%26;
+		    id << char(initialLetter+n);
+		}
+		std::string suff=id.str();
+		std::reverse(suff.begin(),suff.end());
+		    
+		return suff;
+	    }
+
 	  void RadioSource::printTableEntry(std::ostream &stream, duchamp::Catalogues::Column column, size_t fitNum, std::string fitType)
 	  {
 	    /// @details
@@ -1379,9 +1402,8 @@ namespace askap {
 		       this->getID()<<" only has "<<this->itsBestFitMap[fitType].numFits()<<" fits for type " << fitType);
 	    FitResults results = this->itsBestFitMap[fitType];
 	    casa::Gaussian2D<Double> gauss = this->itsBestFitMap[fitType].gaussian(fitNum);
-	    char firstSuffix = 'a';
 	    std::stringstream id;
-	    id << this->getID() << char(firstSuffix + fitNum);
+	    id << this->getID() << getSuffix(fitNum);
 	    std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHeader->getBeam());
 	    double thisRA,thisDec,zworld;
 	    this->itsHeader->pixToWCS(gauss.xCenter(),gauss.yCenter(),this->getZcentre(),thisRA,thisDec,zworld);
