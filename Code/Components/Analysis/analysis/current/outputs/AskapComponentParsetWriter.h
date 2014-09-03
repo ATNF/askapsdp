@@ -59,21 +59,22 @@ namespace askap {
 	void setRefDec(float f){itsRefDec=f;};
 	bool flagReportSize(){return itsFlagReportSize;};
 	void setFlagReportSize(bool b){itsFlagReportSize=b;};
+	int maxNumComponents(){return itsMaxNumComponents;};
+	void setMaxNumComponents(int i){itsMaxNumComponents = i;};
 
 	void setup(DuchampParallel *finder);
- 	/// @brief Front-end to writing the catalogue. Defines base position etc
+     	void writeTableHeader();
+ 	/// @brief Front-end to writing the catalogue. 
 	void writeEntries();
-	using duchamp::ASCIICatalogueWriter::writeEntry;
-	void writeEntry(sourcefitting::RadioSource *source);
-     
+	void writeFooter();
+
+	// The following functions now do nothing.
 	void writeHeader(){};
 	void writeCommandLineEntry(int argc, char *argv[]){};
-
 	void writeParameters(){};
 	void writeStats(){};
-	void writeTableHeader();
+	void writeEntry(duchamp::Detection *object){};///< redefine this so that it does nothing.
 	void writeCubeSummary(){};
-	void writeFooter();
 
     protected:
 
@@ -83,6 +84,7 @@ namespace askap {
 	float itsRefDec;
 	bool itsFlagReportSize; ///< If true, show the fitted size, else give as point source.
 	std::string itsSourceIDlist;  ///< List of all components added to parset
+	int itsMaxNumComponents;
     };
 
   }

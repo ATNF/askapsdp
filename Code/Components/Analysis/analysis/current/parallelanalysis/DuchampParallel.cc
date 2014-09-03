@@ -1756,6 +1756,7 @@ namespace askap {
 			pwriter.setFitType("best");
 			pwriter.setSourceList(&this->itsSourceList);
 			pwriter.setFlagReportSize(this->itsParset.getBool("outputComponentParset.reportSize",true));
+			pwriter.setMaxNumComponents(this->itsParset.getInt("outputComponentParset.maxNumComponents",-1));
 			pwriter.openCatalogue();
 			pwriter.writeTableHeader();
 			pwriter.writeEntries();

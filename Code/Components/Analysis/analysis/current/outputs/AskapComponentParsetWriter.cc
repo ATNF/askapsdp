@@ -28,9 +28,11 @@
 ///
 #include <outputs/AskapComponentParsetWriter.h>
 #include <askap_analysis.h>
+
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
+#include <outputs/ParsetComponent.h>
 #include <sourcefitting/RadioSource.h>
 #include <analysisutilities/Analysisutilities.h>
 
@@ -86,6 +88,7 @@ namespace askap {
 	    this->itsRefDec = other.itsRefDec;
 	    this->itsFlagReportSize = other.itsFlagReportSize;
 	    this->itsSourceIDlist = other.itsSourceIDlist;
+	    this->itsMaxNumComponents = other.itsMaxNumComponents;
 	    return *this;
 	}
 
@@ -113,55 +116,50 @@ namespace askap {
 
 	void AskapComponentParsetWriter::writeEntries()
 	{
-	    if(this->itsOpenFlag){
-		for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList->begin(); 
-		    src<this->itsSourceList->end(); src++)
-		    this->writeEntry(&*src);
-	    }
-	    
-	}
+	    /// @details Write out the compoennt list to the
+	    /// parset. We may only want to write out a certain number
+	    /// of components, starting with the brightest, so we need
+	    /// to make a first pass over the source list. We sort the
+	    /// components by their total flux, and then work our way
+	    /// down, printing out their parset details.
 
-	void AskapComponentParsetWriter::writeEntry(sourcefitting::RadioSource *source)
-	{
 	    if(this->itsOpenFlag){
-		std::vector<casa::Gaussian2D<Double> > fitset=source->gaussFitSet(this->itsFitType);
-		std::vector<casa::Gaussian2D<Double> >::iterator fit;
-		double cosdec=cos(this->itsRefDec*M_PI/180.);
+
+		std::multimap <float, ParsetComponent> componentList;
+		std::multimap <float, ParsetComponent>::reverse_iterator cmpntIter;
+		ParsetComponent cmpnt;
+		cmpnt.setHeader(this->itsHead);
+		cmpnt.setReference(this->itsRefRA,this->itsRefDec);
+		cmpnt.setSizeFlag(this->itsFlagReportSize);
+
+		// First iterate over all components, storing them in a multimap indexed by their flux.
+		for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList->begin(); src<this->itsSourceList->end(); src++){
+		    std::vector<casa::Gaussian2D<Double> > fitset=src->gaussFitSet(this->itsFitType);
+		    for(size_t i=0;i<fitset.size();i++){
+			cmpnt.defineComponent(&*src,i,this->itsFitType);
+			componentList.insert(std::pair<float,ParsetComponent>(cmpnt.flux(),cmpnt));
+		    }
+		}
+
+		int count=0;
+		// only do this many components. If negative, do them all.
+		int maxCount = (this->itsMaxNumComponents>0) ? this->itsMaxNumComponents : componentList.size();
 		std::stringstream idlist;
 		idlist << itsSourceIDlist;
-		for(size_t i=0;i<fitset.size();i++){
-		    double thisRA,thisDec,zworld;
-		    this->itsHead->pixToWCS(fitset[i].xCenter(),fitset[i].yCenter(),source->getZcentre(),thisRA,thisDec,zworld);
-		    float decOffset = (thisDec-this->itsRefDec)*M_PI/180.;
-		    float raOffset = (thisRA-this->itsRefRA)*M_PI/180. * cosdec;
-		    float intfluxfit = fitset[i].flux();
-		    if (this->itsHead->needBeamSize())
-			intfluxfit /= this->itsHead->beam().area(); // Convert from Jy/beam to Jy
-		    std::stringstream prefix,ID;
-		    ID << source->getID() << sourcefitting::getSuffix(i);
-		    prefix << "sources.src"<< ID.str();
-		    *this->itsStream << prefix.str() << ".flux.i        = " << intfluxfit <<"\n";
-		    *this->itsStream << prefix.str() << ".direction.ra  = " << raOffset << "\n";
-		    *this->itsStream << prefix.str() << ".direction.dec = " << decOffset << "\n";
-		    if(this->itsFlagReportSize){
-			*this->itsStream << prefix.str() << ".shape.bmaj  = " << fitset[i].majorAxis()*this->itsHead->getAvPixScale()*3600. << "\n";
-			*this->itsStream << prefix.str() << ".shape.bmin  = " << fitset[i].minorAxis()*this->itsHead->getAvPixScale()*3600. << "\n";
-			*this->itsStream << prefix.str() << ".shape.bpa   = " << fitset[i].PA()*180. / M_PI << "\n";
-		    }
-		    else{
-			*this->itsStream << prefix.str() << ".shape.bmaj  = 0.\n";
-			*this->itsStream << prefix.str() << ".shape.bmin  = 0.\n";
-			*this->itsStream << prefix.str() << ".shape.bpa   = 0.\n";
-		    }
-		    
+
+		// Work down the list, starting at the brightest
+		// component, writing out the parset details to the
+		// file and keeping track of the list of source IDs
+		for(cmpntIter=componentList.rbegin(); cmpntIter!=componentList.rend() && count<maxCount;cmpntIter++,count++) {
+		    *this->itsStream << cmpntIter->second;
 		    // update source ID list
 		    if(itsSourceIDlist.size()>0) idlist<<",";
-		    idlist<<"src"<<ID.str();
-		    
+		    idlist<<"src"<<cmpntIter->second.ID();
+		    this->itsSourceIDlist = idlist.str();
 		}
-		this->itsSourceIDlist = idlist.str();
 
 	    }
+	    
 	}
 
  	void AskapComponentParsetWriter::writeFooter()
