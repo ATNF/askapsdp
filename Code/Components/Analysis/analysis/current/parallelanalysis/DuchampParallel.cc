@@ -81,6 +81,7 @@ using namespace LOFAR::TYPES;
 #include <parametrisation/OptimisedGrower.h>
 #include <preprocessing/Wavelet2D1D.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
+#include <outputs/AskapComponentParsetWriter.h>
 #include <outputs/AskapVOTableCatalogueWriter.h>
 #include <outputs/ImageWriter.h>
 
@@ -1745,7 +1746,24 @@ namespace askap {
 		    vowriter.writeEntries();
 		    vowriter.writeFooter();
 		    vowriter.closeCatalogue();
+		  
 		    
+		    filename = this->itsParset.getString("outputComponentParset","");
+		    if(filename!=""){
+			AskapComponentParsetWriter pwriter(filename);
+			ASKAPLOG_INFO_STR(logger, "Writing Fit results to parset named " << filename);
+			pwriter.setup(this);
+			pwriter.setFitType("best");
+			pwriter.setSourceList(&this->itsSourceList);
+			pwriter.setFlagReportSize(this->itsParset.getBool("outputComponentParset.reportSize",true));
+			pwriter.openCatalogue();
+			pwriter.writeTableHeader();
+			pwriter.writeEntries();
+			pwriter.writeFooter();
+			pwriter.closeCatalogue();
+		    }
+
+  
 		  }
 		  
 

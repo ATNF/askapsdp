@@ -24,12 +24,17 @@
 
 #include <outputs/AskapAsciiCatalogueWriter.h>
 #include <askap_analysis.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FitResults.h>
 
 #include <duchamp/Outputs/ASCIICatalogueWriter.hh>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".askapasciicatwriter");
 
 namespace askap { 
 
