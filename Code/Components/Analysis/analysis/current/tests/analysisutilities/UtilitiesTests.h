@@ -38,13 +38,14 @@ namespace askap {
         class UtilityTest : public CppUnit::TestFixture {
                 CPPUNIT_TEST_SUITE(UtilityTest);
                 CPPUNIT_TEST(testDegToDMS);
+                CPPUNIT_TEST(testDegToDMSparset);
                 CPPUNIT_TEST(testDMStoDeg);
                 CPPUNIT_TEST(circular);
                 CPPUNIT_TEST_SUITE_END();
 
             private:
                 double deg1, deg2, deg3, deg4;
-                std::string dms1, dms2, dms3, dms4;
+                std::string dms1, dms2, dms3, dms4,dms1Parset,dms2Parset;
 
             public:
 
@@ -58,6 +59,8 @@ namespace askap {
                     dms2 = "-45:23:27.00";
                     dms3 = "12:34:56.70";
                     dms4 = "12:31:17.5436";
+		    dms1Parset = "12h30m00.00";
+		    dms2Parset = "-45.23.27.00";
                 }
 
                 void tearDown() {};
@@ -68,6 +71,11 @@ namespace askap {
                     CPPUNIT_ASSERT(decToDMS(deg3, "RA") == dms3);
                     CPPUNIT_ASSERT(decToDMS(deg4, "RA", 4) == dms4);
                 }
+		
+		void testDegToDMSparset(){
+		    CPPUNIT_ASSERT(decToDMS(deg1, "RA",2,"parset") == dms1Parset);
+                    CPPUNIT_ASSERT(decToDMS(deg2, "DEC", 2, "parset") == dms2Parset);
+		}
 
                 void testDMStoDeg() {
                     CPPUNIT_ASSERT(fabs(dmsToDec(dms1)*15. - deg1) < 1.e-7);

@@ -482,11 +482,20 @@ namespace askap {
             /// @param type Axis type to be used
             /// @param secondPrecision How many decimal places to quote the seconds to.
             /// @param separator The character (or string) to use as a
-            /// separator between hh and mm, and mm and ss.sss.
+            /// separator between hh and mm, and mm and ss.sss. A
+            /// special value of 'parset' for separator will output RA
+            /// in the format 19h39m25.03 and Dec as -63.42.45.63
             ///
             double normalisedInput = input;
             int degSize = 2; // number of figures in the degrees part of the output.
             std::string sign = "";
+
+	    bool convertToParset=false;
+	    if(separator=="parset"){
+		convertToParset=true;
+		separator=":";
+	    }
+		
 
             if ((type == "RA") || (type == "GLON")) {
                 if (type == "GLON")  degSize = 3; // longitude has three figures in degrees.
@@ -549,7 +558,22 @@ namespace askap {
                 << min  << separator ;
             output << std::setw(secondWidth) << std::setfill('0')
                 << std::setprecision(secondPrecision) << sec;
-            return output.str();
+
+	    std::string outstring=output.str();
+	    if(convertToParset){
+		size_t pos;
+		if(type=="DEC") {
+		    while(pos=outstring.find(":"), pos!=std::string::npos) outstring.replace(pos,1,".");
+		}
+		if(type=="RA"){
+		    pos=outstring.find(":");
+		    if(pos!=std::string::npos) outstring.replace(pos,1,"h");
+		    pos=outstring.find(":");
+		    if(pos!=std::string::npos) outstring.replace(pos,1,"m");
+		}
+	    }
+
+            return outstring;
         }
 
 
