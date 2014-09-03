@@ -161,10 +161,11 @@ The key output files are as follows:
 There are two catalogues written: *selavy-results.txt* is the
 Duchamp-style catalogue showing the detected islands and their
 parameters; and *selavy-fitResults.txt* is the catalogue of fitted
-components. The ID of the fitted components has a number and a
-letter - the number refers to the ID of the island in
-*selavy-results.txt*, while the letter gives the order of the
-component (ordered by flux) within that island.
+components. The ID of the fitted components has a number and one or more
+letters - the number refers to the ID of the island in
+*selavy-results.txt*, while the letters give the order of the
+component (ordered by flux) within that island. The first 26 will have
+a single letter a-z, then aa-zz, then aaa-zzz and so forth.
 
 The *.txt* files are simple formatted ASCII tables. They have
 XML/VOTable equivalents  written as well - these are standard VOTable
@@ -467,14 +468,15 @@ image. Here’s a good procedure for Selavy:
   
 
 This forces a fit of a single Gaussian only (ignoring the full set of
-initial estimates), and (as of change set 6455) returns the first
-estimate if the fit fails. Note that the max reduced chisq has been
-upped to 10 to capture poor fits (often a good idea for bright
-targets, as the PSF is slightly different to a Gaussian).
+initial estimates), and (as of change set 6455, or release CP-0.3)
+returns the first estimate if the fit fails. Note that the max reduced
+chisq has been upped to 10 to capture poor fits (often a good idea for
+bright targets, as the PSF is slightly different to a Gaussian).
 
 Here’s an example, where all the red contours are a single Duchamp
 source and the blue ellipse represents the fitted component. Some
-tweaking of the *threshSpatial* parameter might be needed.
+tweaking of the *threshSpatial* parameter might be needed, depending
+on the typical separation of the sidelobes
 
 .. image:: figures/sidelobeSource.png
    :align: center

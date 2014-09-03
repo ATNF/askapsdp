@@ -167,7 +167,7 @@ Several files are produced to show the results of the Gaussian fitting. The firs
 
 To summarise the columns:
 
-* *ID* is a unique ID for the component. It comprises the ID number of the island, plus a letter indicating the order of components for that island.
+* *ID* is a unique ID for the component. It comprises the ID number of the island, plus one or more characters indicating the order of components for that island. These will be a-z for the first 26, then aa-zz, then aaa-zzz and so forth.
 * *Name* is the name taken from the island.
 * *RA*, *Dec*, *X* and *Y* are the world and pixel locations of the *component*.
 * *F_int* and *F_peak* are values for the island as calculated by the Duchamp code, and reported in the Duchamp results file given by **Selavy.outFile**. These are the same for each comonent of that island.
