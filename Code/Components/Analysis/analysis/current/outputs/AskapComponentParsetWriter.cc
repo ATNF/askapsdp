@@ -34,7 +34,7 @@
 
 #include <outputs/ParsetComponent.h>
 #include <sourcefitting/RadioSource.h>
-#include <analysisutilities/Analysisutilities.h>
+#include <analysisutilities/AnalysisUtilities.h>
 
 #include <duchamp/Outputs/ASCIICatalogueWriter.hh>
 

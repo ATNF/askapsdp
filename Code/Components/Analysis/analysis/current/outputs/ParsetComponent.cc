@@ -30,7 +30,7 @@
 #include <askap_analysis.h>
 
 #include <sourcefitting/RadioSource.h>
-#include <analysisutilities/Analysisutilities.h>
+#include <analysisutilities/AnalysisUtilities.h>
 
 #include <scimath/Functionals/Gaussian2D.h>
 
