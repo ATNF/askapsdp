@@ -1,5 +1,5 @@
-csimulator Documentation
-========================
+csimulator
+==========
 
 The csimulator program is used to generate a measurement set from a model sky.
 
