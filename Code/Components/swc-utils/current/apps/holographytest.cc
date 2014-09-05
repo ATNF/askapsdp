@@ -253,7 +253,7 @@ void process(const IConstDataSource &ds, const casa::uInt size) {
    casa::Matrix<double> xform(2,2,0.);
    xform.diagonal() = 1.;
    casa::DirectionCoordinate dc(casa::MDirection::AZEL, casa::Projection(casa::Projection::SIN),0.,0.,
-         resolutionInRad, resolutionInRad, xform, double(halfSize), double(halfSize));
+         -resolutionInRad, resolutionInRad, xform, double(halfSize), double(halfSize));
          
    casa::CoordinateSystem coords;
    coords.addCoordinate(dc);
@@ -292,7 +292,7 @@ int main(int argc, char **argv) {
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds,5);
+     process(ds,9);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
