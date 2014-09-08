@@ -302,10 +302,6 @@ Parameters of images
 This section describes parameters used to define images, i.e. what area of the sky one wants to image and how.
 All parameters given in the following table have **Cimager.Images* prefix**, e.g. Cimager.Images.reuse = false
 
-  const double pbFWHM = 1.2 * longestWavelength / 12; // in radians
-  // the guard band (both sides together) is 1.7*FWHM (roughly to the first null)  
-  const double sizeInRad =  2. * casa::max(offsets.first, offsets.second) + 1.7 * pbFWHM;
-
 +--------------------------+----------------+-----------------------+----------------------------------------------+
 |**Parameter**             |**Type**        |**Default**            |**Description**                               |
 +==========================+================+=======================+==============================================+
