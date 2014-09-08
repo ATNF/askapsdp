@@ -86,7 +86,7 @@ aprun \${csim} -c ${mkVisParset} > ${mkVisLog}
 EOF
 
     if [ $doSubmit == true ]; then
-	latestID=`qsub ${sbatchfile}`
+	latestID=`sbatch ${sbatchfile}`
 	echo "Running csimulator for pointing ${POINTING} with 1934-638 component, producing measurement set ${ms}: ID=${latestID}"
     fi
 
