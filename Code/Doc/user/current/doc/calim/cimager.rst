@@ -258,16 +258,17 @@ They are given in a separate table (see :doc:`data_selection`) and should also h
 |                          |                  |              |:doc:`gridder`) This option is ignored in the serial|
 |                          |                  |              |mode.                                               |
 +--------------------------+------------------+--------------+----------------------------------------------------+
-|visweights                |string            |""            |If this parameter is set to "MFS" gridders are setup|
-|                          |                  |              |to grid/degrid with the weight required for         |
-|                          |                  |              |multi-frequency synthesis. At the moment, this      |
+|visweights                |string            |"MFS" if any  |If this parameter is set to "MFS" gridders are setup|
+|                          |                  |*nterms>1*,   |to grid/degrid with the weight required for         |
+|                          |                  |"" otherwise  |multi-frequency synthesis. At the moment, this      |
 |                          |                  |              |parameter is decoupled from the image setup, which  |
 |                          |                  |              |has to be done separately in a consistent way to use|
 |                          |                  |              |MSMFS (*nterms* should be set to something greater  |
 |                          |                  |              |than 1).                                            |
 +--------------------------+------------------+--------------+----------------------------------------------------+
-|visweights.MFS.reffreq    |double            |1.405e9       |Reference frequency in Hz for MFS processing (see   |
-|                          |                  |              |above)                                              |
+|visweights.MFS.reffreq    |double            |ave freq (see |Reference frequency in Hz for MFS processing (see   |
+|                          |                  |*frequency*   |above)                                              |
+|                          |                  |above)        |                                                    |
 +--------------------------+------------------+--------------+----------------------------------------------------+
 |solver                    |string            |None          |Name of the solver, further parameters are given by |
 |                          |                  |              |*solver.something*. See :doc:`solver` for details   |
@@ -377,12 +378,12 @@ All parameters given in the following table have **Cimager.Images* prefix**, e.g
 |                          |                |                       |image channel (therefore, the number of image |
 |                          |                |ave freq = (min+max)/2 |channels given by the *nchan* keyword may be  |
 |                          |                |                       |less than the number of spectral channels in  |
-|                          |                |                       |the data. If *nchan* is 1 all data are MFS'ed |
-|                          |                |                       |into a single image (however the image will   |
-|                          |                |                       |have a degenerate spectral axis with the      |
-|                          |                |                       |frequency defined by the average of the first |
-|                          |                |                       |and the last element of this vector; it is    |
-|                          |                |                       |practical to make both elements identical,    |
+|                          |                |Note: these are the    |the data. If *nchan* is 1 all data are MFS'ed |
+|                          |                |min and max            |into a single image (however the image will   |
+|                          |                |frequencies being      |have a degenerate spectral axis with the      |
+|                          |                |processed, which may   |frequency defined by the average of the first |
+|                          |                |be a subset of the     |and the last element of this vector; it is    |
+|                          |                |full frequency range.  |practical to make both elements identical,    |
 |                          |                |                       |when *nchan* is 1). The vector should contain |
 |                          |                |                       |2 elements at all times, otherwise an         |
 |                          |                |                       |exception is thrown                           |
