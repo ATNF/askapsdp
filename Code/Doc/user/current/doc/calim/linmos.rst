@@ -61,8 +61,8 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |                  |                  |              |- **Weighted**: Full primary-beam-squared weighting.        |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |psfref            |uint              |0             |Which of the input images to extract restoring-beam         |
-|                  |                  |              |information from. The default is behaviour is to use the    |
-|                  |                  |              |first image specified.                                      |
+|                  |                  |              |information from. The default behaviour is to use the       |
+|                  |                  |              |first image specified (indices start at 0).                 |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |nterms            |uint              |-1            |Process multiple taylor-term images. The string "taylor.0"  |
 |                  |                  |              |must be present in both input and output image names        |
@@ -102,8 +102,9 @@ Definition of beam centres
 
 If weights are generated from primary-beam models (*weighttype=FromPrimaryBeamModel*), it is possible to set the
 beam centres from within the parset. Since this is most likely useful when each input image comes from a different
-multi-beam feed, *feeds* offset parameters from other applications are used for this. If beam centres are not
-specified, the reference pixel of each input image is used.
+multi-beam feed, *feeds* offset parameters from other applications are used for this. If the origin of the *beams*
+offset system is not specified, using either *feeds.centre* or *feeds.centreref*, any offsets are ignored and the
+reference pixel of each input image is used as the primary-beam centre.
 
 The *feeds* parameters can be given either in the main linmos parset or a separate offsets parset file set by the
 *feeds.offsetsfile* parameter. 
@@ -111,9 +112,16 @@ The *feeds* parameters can be given either in the main linmos parset or a separa
 +------------------+------------------+--------------+------------------------------------------------------------+
 |**Parameter**     |**Type**          |**Default**   |**Description**                                             |
 +==================+==================+==============+============================================================+
-|feeds.centre      |vector<string>    |*none*        |Optional parameter (required when specifying beam offsets). |
+|feeds.centre      |vector<string>    |*none*        |Optional parameter (it or *feeds.centreref* required when   |
+|                  |                  |              |specifying beam offsets).                                   |
 |                  |                  |              |Two-element vector containing the right ascension and       |
 |                  |                  |              |declination that all of the offsets are relative to.        |
++------------------+------------------+--------------+------------------------------------------------------------+
+|feeds.centreref   |int               |*none*        |Optional parameter (it or *feeds.centre* required when      |
+|                  |                  |              |specifying beam offsets). Which of the input images to use  |
+|                  |                  |              |to automatically set *feeds.centre*. Indices start at 0.    |
+|                  |                  |              |If neither of these parameters are set, the reference pixel |
+|                  |                  |              |of each input image is used as the primary-beam centre.     |
 +------------------+------------------+--------------+------------------------------------------------------------+
 |feeds.spacing     |string            |*none*        |Optional parameter (required when specifying beam offsets   |
 |                  |                  |              |in the main linmos parset). Beam/feed spacing when giving   |
