@@ -3,4 +3,4 @@
 common=3rdParty/LOFAR/Common/Common-3.3
 casacore=3rdParty/casacore/casacore-1.6.0a; casa_casa
 #already in Common
-#boost=3rdParty/boost/boost-1.55.0
+#boost=3rdParty/boost/boost-1.56.0

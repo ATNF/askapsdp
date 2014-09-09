@@ -1,5 +1,5 @@
 # This file lists the external dependencies
 # use pkgname=askap_relative_path
 lofar_autoconf=3rdParty/LOFAR/autoconf_share
-boost=3rdParty/boost/boost-1.55.0
+boost=3rdParty/boost/boost-1.56.0
 log4cxx=3rdParty/log4cxx/log4cxx-0.10.0

@@ -1,4 +1,4 @@
 blob=3rdParty/LOFAR/Blob/Blob-1.2
-boost=3rdParty/boost/boost-1.55.0
+boost=3rdParty/boost/boost-1.56.0
 askap=Code/Base/askap/current
 logfilters=Code/Base/logfilters/current
