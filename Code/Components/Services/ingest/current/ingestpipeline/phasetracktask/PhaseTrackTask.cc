@@ -152,8 +152,8 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
     ASKAPCHECK(ant1 < nAnt, "Antenna index (" << ant1 << ") is invalid");
     ASKAPCHECK(ant2 < nAnt, "Antenna index (" << ant2 << ") is invalid");
 
-    // Determine Greenwich Mean Sidereal Time
-    const double gmst = calcGMST(chunk->time());
+    // Determine Greenwich Apparent Sidereal Time
+    const double gast = calcGAST(chunk->time());
 
     // Current JTRUE phase center
     casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
@@ -163,7 +163,7 @@ void PhaseTrackTask::phaseRotateRow(askap::cp::common::VisChunk::ShPtr chunk,
     const double dec = fpc.getAngle().getValue()(1);
 
     // Transformation from antenna position difference (ant2-ant1) to uvw
-    const double H0 = gmst - ra;
+    const double H0 = gast - ra;
     const double sH0 = sin(H0);
     const double cH0 = cos(H0);
     const double cd = cos(dec);

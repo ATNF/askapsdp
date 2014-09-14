@@ -102,20 +102,12 @@ casa::MDirection CalcUVWTask::phaseCentre(const casa::MDirection &dishPointing,
     return fpc;
 }
 
-/// @brief obtain gmst for the given epoch
-/// @param[in] epoch UTC epoch to convert to GMST
-/// @return gmst in radians modulo 2pi
-double CalcUVWTask::calcGMST(const casa::MVEpoch &epoch)
+/// @brief obtain gast for the given epoch
+/// @param[in] epoch UTC epoch to convert to GAST
+/// @return gast in radians modulo 2pi
+double CalcUVWTask::calcGAST(const casa::MVEpoch &epoch)
 {
-    /*
-    // Determine Greenwich Mean Sidereal Time
-    MEpoch epUT1(epoch, MEpoch::UTC);
-    MEpoch::Ref refGMST1(MEpoch::GMST1);
-    MEpoch::Convert epGMST1(epUT1, refGMST1);
-    const double gmst = epGMST1().get("d").getValue("d");
-    return (gmst - Int(gmst)) * C::_2pi; // Into Radians
-    */
-    // get GAST instead of GMST
+    // Determine Greenwich Apparent Sidereal Time
     MEpoch epUT1(epoch, MEpoch::UTC);
     MEpoch::Ref refGAST(MEpoch::GAST);
     MEpoch::Convert epGAST(epUT1, refGAST);
@@ -134,7 +126,7 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     ASKAPCHECK(ant2 < nAnt, "Antenna index (" << ant2 << ") is invalid");
 
     // Determine Greenwich Mean Sidereal Time
-    const double gmst = calcGMST(chunk->time()); 
+    const double gast = calcGAST(chunk->time()); 
     casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
 
     // phase center for a given beam
@@ -145,7 +137,7 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     const double dec = fpc.getAngle().getValue()(1);
 
     // Transformation from antenna position difference (ant2-ant1) to uvw
-    const double H0 = gmst - ra;
+    const double H0 = gast - ra;
     const double sH0 = sin(H0);
     const double cH0 = cos(H0);
     const double sd = sin(dec);

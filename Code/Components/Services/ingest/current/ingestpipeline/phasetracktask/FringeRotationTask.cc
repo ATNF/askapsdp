@@ -100,9 +100,8 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
     // calculate delays (in seconds) and rates (in radians per seconds) for each antenna
     // and beam the values are absolute per antenna w.r.t the Earth centre
 
-    // Determine Greenwich Mean Sidereal Time
-    const double gmst = calcGMST(chunk->time());
-    //casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
+    // Determine Greenwich Apparent Sidereal Time
+    const double gast = calcGAST(chunk->time());
     casa::MeasFrame frame(casa::MEpoch(chunk->time(), casa::MEpoch::UTC));
     const double effLOFreq = getEffectiveLOFreq(*chunk);
     const double siderealRate = casa::C::_2pi / 86400. / (1. - 1./365.25);
@@ -120,7 +119,7 @@ void FringeRotationTask::process(askap::cp::common::VisChunk::ShPtr chunk)
               const double dec = fpc.getAngle().getValue()(1);
 
               // Transformation from antenna position to the geocentric delay
-              const double H0 = gmst - ra;
+              const double H0 = gast - ra;
               const double sH0 = sin(H0);
               const double cH0 = cos(H0);
               const double cd = cos(dec);

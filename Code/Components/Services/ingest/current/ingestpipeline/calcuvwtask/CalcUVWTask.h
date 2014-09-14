@@ -97,10 +97,10 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         casa::MDirection phaseCentre(const casa::MDirection &dishPointing,
                                      const casa::uInt beam) const;
 
-        /// @brief obtain gmst for the given epoch
-        /// @param[in] epoch UTC epoch to convert to GMST
-        /// @return gmst in radians modulo 2pi
-        static double calcGMST(const casa::MVEpoch &epoch);
+        /// @brief obtain gast for the given epoch
+        /// @param[in] epoch UTC epoch to convert to GAST
+        /// @return gast in radians modulo 2pi
+        static double calcGAST(const casa::MVEpoch &epoch);
  
     private:
         // Calculates UVW coordinates for the specified "row" in the "chunk"
