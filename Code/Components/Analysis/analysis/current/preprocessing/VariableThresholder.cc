@@ -302,7 +302,7 @@ namespace askap {
 	      for(size_t i=0;iter!=inputChunkArr.end();iter++,i++,itermask++){
 		size_t pos=i+ctr*spatsize;
 		*iter = this->itsCube->getArray()[pos];
-		*itermask = (!this->itsCube->isBlank(pos) || this->itsWeighter->isValid(pos));
+		*itermask = (!this->itsCube->isBlank(pos) && this->itsWeighter->isValid(pos));
 	      }
 	    }
 	    else{
