@@ -614,12 +614,12 @@ namespace askap {
 	  /// This is only done on the worker nodes.
 
 	  if(itsComms.isParallel() && itsComms.isMaster()){
+	      if(this->itsWeighter->isValid() ){
+		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
+	      }
 	      if (this->itsFlagVariableThreshold) {
 		  this->itsVarThresher->initialise(this->itsCube, this->itsSubimageDef);
 		  this->itsVarThresher->calculate();
-	      }
-	      if(this->itsWeighter->isValid() ){
-		  this->itsWeighter->initialise(this->itsCube, !(itsComms.isParallel()&&itsComms.isMaster()));
 	      }
 	      // If we are doing fitting, and want to use the curvature map, need to define/calculate this here.
 	      if (this->itsFitParams.doFit() && this->itsFitParams.useCurvature()){
