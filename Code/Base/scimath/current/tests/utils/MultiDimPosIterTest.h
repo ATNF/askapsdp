@@ -51,6 +51,7 @@ namespace scimath {
            CPPUNIT_TEST(testRange);
            CPPUNIT_TEST(testIncompleteRange);
            CPPUNIT_TEST(testSplit);
+           CPPUNIT_TEST(testUnbalancedSplit);
            CPPUNIT_TEST_EXCEPTION(testStartAfterEnd, AskapError);           
            CPPUNIT_TEST_EXCEPTION(testStartAfterEnd1, AskapError);           
            CPPUNIT_TEST_SUITE_END();
@@ -124,24 +125,34 @@ namespace scimath {
               CPPUNIT_ASSERT(!it.hasMore());               
            }
            
-           void testSplit() {
+           void doTestSplit(casa::uInt nX, casa::uInt nY, casa::uInt nChunks) {
                std::vector<casa::IPosition> results;
-               results.reserve(15);
-               for (int y = 0; y < 5; ++y) {
+               results.reserve(nX * nY);
+               for (int y = 0; y < static_cast<int>(nY); ++y) {
                     // first index is the fastest to change
-                    for (int x = 0; x < 3; ++x) {
+                    for (int x = 0; x < static_cast<int>(nX); ++x) {
                          results.push_back(casa::IPosition(2,x,y));
                     }
                }
                casa::uInt count = 0;
-               for (casa::uInt chunk = 0; chunk < 4; ++chunk) {
+               for (casa::uInt chunk = 0; chunk < nChunks; ++chunk) {
                     MultiDimPosIter it;
-                    for (it.init(casa::IPosition(2,3,5),4,chunk); it.hasMore(); it.next(),++count) {
+                    for (it.init(casa::IPosition(2,static_cast<int>(nX),static_cast<int>(nY)),nChunks,chunk); it.hasMore(); it.next(),++count) {
                          CPPUNIT_ASSERT(count < results.size());
                          CPPUNIT_ASSERT(it.cursor().isEqual(results[count]));                                                 
                     }
                }
-               CPPUNIT_ASSERT_EQUAL(results.size(), static_cast<size_t>(count));                              
+               CPPUNIT_ASSERT_EQUAL(results.size(), static_cast<size_t>(count));                                          
+           }
+           
+           void testSplit() {
+               doTestSplit(3,5,4);
+           }
+           
+           void testUnbalancedSplit() {
+               doTestSplit(9,304,216);
+               doTestSplit(9,304,113);
+               doTestSplit(9,304,177);
            }
            
            void testStartAfterEnd() {

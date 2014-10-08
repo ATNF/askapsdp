@@ -68,6 +68,9 @@ struct MultiDimPosIter {
   /// @param[in] shape shape of the volume to iterate
   void init(const casa::IPosition &shape);
   
+  /// @brief initialise iterator to the empty range
+  void init();
+  
   /// @brief initialise to iterate over given range
   /// @details
   /// @param[in] shape shape of the volume to iterate

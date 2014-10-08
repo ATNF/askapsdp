@@ -108,7 +108,6 @@ void MultiDimPosIter::init(const casa::IPosition &shape, const casa::IPosition &
        "Shape, start and end are supposed to have the same dimensionality");     
   casa::Int64 flatStart = 0, flatEnd = 0;         
   for (casa::uInt dim = 0; dim < start.nelements(); ++dim) {
-       ASKAPCHECK(start[dim] <= end[dim], "Start point is expected to be earlier than the end point: "<<start<<" "<<end);
        ASKAPCHECK(end[dim] <= shape[dim], "End point exceeds the shape: "<<end<<" "<<shape);
        const casa::Int64 factor = (dim > 0 ? shape.getFirst(dim).product() : 1);
        flatStart += start[dim] * factor;
@@ -155,6 +154,16 @@ void MultiDimPosIter::origin()
   }
 }
 
+/// @brief initialise iterator to the empty range
+void MultiDimPosIter::init()
+{
+  itsHasMore = false;
+  itsStart = casa::IPosition();
+  itsCursor = itsStart;
+  itsEnd = itsStart;
+  itsShape = itsEnd;
+}
+
 /// @brief initialise to iterate over one chunk of the full range
 /// @details This method bins the whole iteration range into a given number of
 /// chunks and sets up iteration over selected chunk.
@@ -167,35 +176,35 @@ void MultiDimPosIter::init(const casa::IPosition &shape, const casa::uInt nChunk
   ASKAPCHECK(chunk < nChunks, "Selected chunk = "<<chunk<<" is outside the range; nChunks="<<nChunks);
   ASKAPCHECK(nChunks > 0, "Number of chunks is supposed to be positive");
   if (shape.empty()) {
-      itsHasMore = false;
-      itsStart = casa::IPosition();
-      itsCursor = itsStart;
-      itsEnd = itsStart;
-      itsShape = shape;
+      init();
   } else {
       const casa::Int64 totalNumber = shape.product();
       ASKAPDEBUGASSERT(totalNumber > 0);
       const casa::uInt pointsPerChunk = static_cast<casa::uInt>(totalNumber / nChunks) + (totalNumber % nChunks == 0 ? 0 : 1);
       casa::Int64 flatStart = pointsPerChunk * chunk;
-      casa::Int64 flatStop = pointsPerChunk * (chunk + 1) - 1;
-      if (flatStop >= totalNumber) {
-          flatStop = totalNumber - 1;
-          // this can only happen for the last chunk
-          ASKAPDEBUGASSERT(chunk + 1 == nChunks);
-      }
-      casa::IPosition start(shape.nelements(),0);
-      casa::IPosition end = start; 
+      if (flatStart >= totalNumber) {
+          // in this case just revert to empty iteration - we have an unbalanced case with more chunks than we need
+          init();
+      } else {
+          casa::Int64 flatStop = pointsPerChunk * (chunk + 1) - 1;
       
-      for (casa::uInt dim = start.nelements() - 1; dim > 0; --dim) {
-           const casa::Int64 factor = shape.getFirst(dim).product(); 
-           start[dim] = flatStart / factor;
-           flatStart -= start[dim] * factor;
-           end[dim] = flatStop / factor;
-           flatStop -= end[dim] * factor;           
-      }
-      start[0] = flatStart;
-      end[0] = flatStop;
-      init(shape, start,end);     
+          if (flatStop >= totalNumber) {
+              flatStop = totalNumber - 1;
+          }
+          casa::IPosition start(shape.nelements(),0);
+          casa::IPosition end = start; 
+      
+          for (casa::uInt dim = start.nelements() - 1; dim > 0; --dim) {
+               const casa::Int64 factor = shape.getFirst(dim).product(); 
+               start[dim] = flatStart / factor;
+               flatStart -= start[dim] * factor;
+               end[dim] = flatStop / factor;
+               flatStop -= end[dim] * factor;           
+          }
+          start[0] = flatStart;
+          end[0] = flatStop;
+          init(shape, start,end);
+      }     
   }
 }
 
