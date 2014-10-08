@@ -9,7 +9,7 @@
 +// defined in C++11. Casacore should have not put these in the std
 +// namespace. Now, on Mac OSX Mavericks, even though we don't compile
 +// with C++11 support, the standard library still has these functions.
-+#if __clang_major__ != 5
++#if __clang_major__ < 5
    inline float  conj(float  x) { return x; }
    inline double conj(double x) { return x; }
    inline float  real(float  x) { return x; }
