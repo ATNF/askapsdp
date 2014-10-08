@@ -71,6 +71,21 @@ Configuration Parameters
 |                      |            |[0..2]                 |[0]), an array of integers such as [0,1,2]   |
 |                      |            |                       |or a range such as [0..2].                   |
 +----------------------+------------+-----------------------+---------------------------------------------+
+|timebegin             |*None*      |1996/11/20/5:20        |Defines a time based filter. Any rows with   |
+|                      |            |or                     |time i*earlier than* this parameter will be  |
+|                      |            |20Nov96-5h20m          |excluded during splitting (i.e. they will    |
+|                      |            |or                     |not be copied to the output measurement set. |
+|                      |            |1996-11-20T5:20        |This parameter is optional and if not present|
+|                      |            |                       |there will be no *later than* filter applied.|
++----------------------+------------+-----------------------+---------------------------------------------+
+|timeend               |*None*      |1996/11/20/5:20        |Defines a time based filter. Any rows with   |
+|                      |            |or                     |time *later than* this parameter will be     |
+|                      |            |20Nov96-5h20m          |excluded during splitting (i.e. they will    |
+|                      |            |or                     |not be copied to the output measurement set. |
+|                      |            |1996-11-20T5:20        |This parameter is optional and if not present|
+|                      |            |                       |there will be no *earlier than* filter       |
+|                      |            |                       |applied.                                     |
++----------------------+------------+-----------------------+---------------------------------------------+
 
 Additional advanced/optional parameters:
 ````````````````````````````````````````

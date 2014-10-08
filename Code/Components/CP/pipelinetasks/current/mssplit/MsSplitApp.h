@@ -42,6 +42,7 @@
 #include "askap/Application.h"
 #include "askap/AskapUtil.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/optional.hpp"
 #include "Common/ParameterSet.h"
 #include "casa/aips.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -52,6 +53,10 @@ namespace pipelinetasks {
 
 class MsSplitApp : public askap::Application {
     public:
+        /// Constructor
+        MsSplitApp();
+
+        /// Entry point method
         virtual int run(int argc, char* argv[]);
 
     private:
@@ -106,7 +111,16 @@ class MsSplitApp : public askap::Application {
 
         // Returns true if the the row should be filtered (i.e excluded), otherwise
         // true.
-        bool rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2) const;
+        bool rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed,
+                           double time) const;
+
+        // Helper method for the configuration of the time range filters.
+        // Parses the parset value associated with "key" (using MVTime::read()),
+        // sets "var" to MVTime::second(), and logs a message "msg".
+        // @throws AskapError is thrown is the time string cannot be parsed by
+        // MVTime::read()
+        void configureTimeFilter(const std::string& key, const std::string& msg,
+                                 double& var);
 
         /// Set of beam IDs to include in the new measurement set, or empty
         /// if all beams are to be included
@@ -115,6 +129,14 @@ class MsSplitApp : public askap::Application {
         /// Set of scan IDs to include in the new measurement set, or empty
         /// if all scans are to be included
         std::set<uint32_t> itsScans;
+
+        // Optional begin time filter. Rows with TIME < this value will be
+        // excluded
+        double itsTimeBegin;
+
+        // Optional end time filter. Rows with TIME > this value will be
+        // excluded
+        double itsTimeEnd;
 };
 
 }

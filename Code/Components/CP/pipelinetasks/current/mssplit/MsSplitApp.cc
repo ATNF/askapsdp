@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <limits>
 #include <stdint.h>
 
 // ASKAPsoft includes
@@ -53,6 +54,7 @@
 #include "casa/Arrays/Array.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Cube.h"
+#include "casa/Quanta/MVTime.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
@@ -70,6 +72,12 @@ using namespace askap;
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
 using namespace std;
+
+MsSplitApp::MsSplitApp()
+    : itsTimeBegin(std::numeric_limits<double>::min()),
+    itsTimeEnd(std::numeric_limits<double>::max())
+{
+}
 
 boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
     const std::string& filename, casa::uInt bucketSize,
@@ -392,13 +400,18 @@ void MsSplitApp::splitSpectralWindow(const casa::MeasurementSet& source,
 
 bool MsSplitApp::rowFiltersExist() const
 {
-    return !itsBeams.empty() || !itsScans.empty();
+    return !itsBeams.empty() || !itsScans.empty()
+        || itsTimeBegin > std::numeric_limits<double>::min()
+        || itsTimeEnd < std::numeric_limits<double>::max();
 }
 
-bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2) const
+bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2,
+                               double time) const
 {
     // Include all rows if no filters exist
     if (!rowFiltersExist()) return false;
+
+    if (time < itsTimeBegin || time > itsTimeEnd) return true;
 
     if (!itsScans.empty() && itsScans.find(scanid) == itsScans.end()) return true;
 
@@ -484,7 +497,8 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
         // Skip this row if it is filtered out
         if (rowIsFiltered(sc.scanNumber()(row),
                     sc.feed1()(row),
-                    sc.feed2()(row))) {
+                    sc.feed2()(row),
+                    sc.time()(row))) {
             row += nRowsThisIteration;
             continue;
         }
@@ -659,11 +673,27 @@ int MsSplitApp::split(const std::string& invis, const std::string& outvis,
     return 0;
 }
 
+void MsSplitApp::configureTimeFilter(const std::string& key, const std::string& msg,
+                                 double& var)
+{
+    if (config().isDefined(key)) {
+        const string ts = config().getString(key);
+        casa::Quantity tq;
+        if(!casa::MVTime::read(tq, ts)) {
+            ASKAPTHROW(AskapError, "Unable to convert " << ts << " to MVTime");
+        }
+
+        const casa::MVTime t(tq);
+        var = t.second();
+        ASKAPLOG_INFO_STR(logger, msg << ts << " (" << var << " sec)");
+    }
+}
+
 int MsSplitApp::run(int argc, char* argv[])
 {
     StatReporter stats;
 
-    // Get the parameters to split
+    // Get the required parameters to split
     const string invis = config().getString("vis");
     const string outvis = config().getString("outputvis");
 
@@ -684,6 +714,10 @@ int MsSplitApp::run(int argc, char* argv[])
         itsScans.insert(v.begin(), v.end());
         ASKAPLOG_INFO_STR(logger,  "Including ONLY scan numbers: " << v);
     }
+
+    // Read time range selection parameters
+    configureTimeFilter("timebegin", "Excluding rows with time less than: ", itsTimeBegin);
+    configureTimeFilter("timeend", "Excluding rows with time greater than: ", itsTimeEnd);
 
     const int error = split(invis, outvis, range.first, range.second, width, config());
     stats.logSummary();
