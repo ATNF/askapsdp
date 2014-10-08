@@ -32,13 +32,9 @@
 
 // System includes
 #include <sstream>
-#include <fstream>
 #include <string>
 #include <vector>
-#include <set>
 #include <utility>
-#include <algorithm>
-#include <iterator>
 #include <stdint.h>
 
 // ASKAPsoft includes
@@ -101,7 +97,7 @@ boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
         newMS.bindAll(incrStMan, True);
     }
 
-    // Bind ANTENNA1, and ANTENNA2 to the standardStMan
+    // Bind ANTENNA1, and ANTENNA2 to the StandardStMan
     // as they may change sufficiently frequently to make the
     // incremental storage manager inefficient for these columns.
     {
@@ -120,7 +116,8 @@ boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
     // These columns contain the bulk of the data so save them in a tiled way
     {
         // Get nr of rows in a tile.
-        const int nrowTile = std::max(1u, bucketSize / (8 * tileNcorr * tileNchan));
+        const int bytesPerRow = sizeof(std::complex<float>) * tileNcorr * tileNchan;
+        const int nrowTile = std::max(1u, bucketSize / bytesPerRow);
         TiledShapeStMan dataMan("TiledData",
                                 IPosition(3, tileNcorr, tileNchan, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::DATA),
@@ -129,9 +126,10 @@ boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
                          dataMan);
     }
     {
-        const int nrowTile = std::max(1u, bucketSize / (4 * 8));
+        const int bytesPerRow = sizeof(float) * tileNcorr;
+        const int nrowTile = std::max(1u, bucketSize / bytesPerRow);
         TiledShapeStMan dataMan("TiledWeight",
-                                IPosition(2, 4, nrowTile));
+                                IPosition(2, tileNcorr, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
                          dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
@@ -269,7 +267,7 @@ void MsSplitApp::copyPointing(const casa::MeasurementSet& source, casa::Measurem
     dest.pointing().addRow(sc.nrow());
 
     // TODO: The first two left out because adding "target" hangs the split (or
-    // at least gets it stuch in some long/infinite loop). Maybe need to handle
+    // at least gets it stuck in some long/infinite loop). Maybe need to handle
     // these MeasCol differently
     //dc.direction().putColumn(sc.direction());
     //dc.target().putColumn(sc.target());
@@ -686,7 +684,6 @@ int MsSplitApp::run(int argc, char* argv[])
         itsScans.insert(v.begin(), v.end());
         ASKAPLOG_INFO_STR(logger,  "Including ONLY scan numbers: " << v);
     }
-
 
     const int error = split(invis, outvis, range.first, range.second, width, config());
     stats.logSummary();
