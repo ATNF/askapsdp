@@ -64,7 +64,7 @@ Cimager.calibrate                           = true
 Cimager.calibaccess                         = table
 Cimager.calibaccess.table                   = \${loopdir}/\${caldata}
 Cimager.calibaccess.table.maxant            = 6
-Cimager.calibaccess.table.maxbeam           = 1
+Cimager.calibaccess.table.maxbeam           = 9
 Cimager.calibaccess.table.maxchan           = 30
 Cimager.calibaccess.table.reuse             = false
 "
@@ -89,18 +89,18 @@ Cimager.Channels                                = [1, %w]
 Cimager.Images.Names                            = [image.${imageBase}]
 ${shapeDefinition}
 ${cellsizeDefinition}
+# This is how many channels to write to the image - just a single one for continuum
 Cimager.Images.image.${imageBase}.nchan        = 1
-Cimager.Images.image.${imageBase}.frequency    = [${freqContSci},${freqContSci}]
-Cimager.Images.image.${imageBase}.nterms       = ${ntermsSci}
-Cimager.Images.image.${imageBase}.direction    = ${directionSci}
 #
 # The following are needed for MFS clean
-# This one assigns one worker for each of the 3 Taylor terms
+# This one says how many Taylor terms we need
+Cimager.Images.image.${imageBase}.nterms        = ${ntermsSci}
+# This one assigns one worker for each of the Taylor terms
 Cimager.nworkergroups                           = ${nworkergroupsSci}
 # This tells the gridder to weight the visibilities appropriately
-Cimager.visweights                              = MFS
+#Cimager.visweights                             = MFS
 # This is the reference frequency - it should lie in your frequency range (ideally in the middle)
-Cimager.visweights.MFS.reffreq                  = ${freqContSci}
+#Cimager.visweights.MFS.reffreq                 = ${freqContSci}
 #
 # This defines the parameters for the gridding.
 Cimager.gridder.snapshotimaging                 = true
@@ -210,14 +210,13 @@ Selavy.sortingParam                             = -iflux
 Ccalibrator.dataset                             = ${CWD}/${msSciAv}
 Ccalibrator.nAnt                                = 6
 Ccalibrator.nBeam                               = 1
-#Ccalibrator.solve                               = antennagains
-Ccalibrator.solve                               = gains
+Ccalibrator.solve                               = antennagains
 Ccalibrator.interval                            = ${intervalSelfcal}
 #
 Ccalibrator.calibaccess                         = table
 Ccalibrator.calibaccess.table                   = \${caldata}
 Ccalibrator.calibaccess.table.maxant            = 6
-Ccalibrator.calibaccess.table.maxbeam           = 1
+Ccalibrator.calibaccess.table.maxbeam           = 9
 Ccalibrator.calibaccess.table.maxchan           = 30
 Ccalibrator.calibaccess.table.reuse             = false
 #

@@ -3,8 +3,11 @@
 # This file takes the default values, after any modification by a
 # user's config file, and creates other variables that depend upon
 # them and do not require user input.
+#
+# (c) Matthew Whiting, ATNF, 2014
 
 
+####################
 # Check for the presence of simager. If not available, turn off
 # spectral-line imaging
 
@@ -68,12 +71,6 @@ fi
 
 ####################
 # Parameters required for continuum imaging
-####
-# For now, ensure we have defined the directionSci
-if [ "${directionSci}" == "" ]; then
-    echo "You have not defined 'directionSci'. Turning off science observation processing."
-    doSci=false
-fi
 
 # nchanContSci = number of channels after averaging
 nchanContSci=`echo $nchanSci $chanAverageSci | awk '{print $1/$2}'`

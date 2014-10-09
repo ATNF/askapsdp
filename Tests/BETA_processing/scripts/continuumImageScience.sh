@@ -43,13 +43,13 @@ Cimager.Channels                                = [1, %w]
 Cimager.Images.Names                            = [image.${imageBase}]
 ${shapeDefinition}
 ${cellsizeDefinition}
-Cimager.Images.image.${imageBase}.nchan        = 1
-Cimager.Images.image.${imageBase}.frequency    = [${freqContSci},${freqContSci}]
-Cimager.Images.image.${imageBase}.nterms       = ${ntermsSci}
-Cimager.Images.image.${imageBase}.direction    = ${directionSci}
+# This is how many channels to write to the image - just a single one for continuum
+Cimager.Images.image.${imageBase}.nchan         = 1
 #
 # The following are needed for MFS clean
-# This one assigns one worker for each of the 3 Taylor terms
+# This one says how many Taylor terms we need
+Cimager.Images.image.${imageBase}.nterms        = ${ntermsSci}
+# This one assigns one worker for each of the Taylor terms
 Cimager.nworkergroups                           = ${nworkergroupsSci}
 # This tells the gridder to weight the visibilities appropriately
 Cimager.visweights                              = MFS

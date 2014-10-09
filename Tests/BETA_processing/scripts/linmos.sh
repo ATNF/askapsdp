@@ -30,7 +30,7 @@ linmos.names            = [beam${BEAM_MIN}..${BEAM_MAX}]
 linmos.findmosaics      = true
 linmos.weighttype       = FromPrimaryBeamModel
 linmos.weightstate      = Inherent
-linmos.feeds.centre     = ${linmosFeedCentre}
+linmos.feeds.centreref  = 0
 linmos.feeds.spacing    = ${linmosBeamSpacing}
 ${linmosBeams}
 linmos.psfref           = ${linmosPSFref}

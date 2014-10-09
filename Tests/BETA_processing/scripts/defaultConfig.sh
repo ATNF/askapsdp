@@ -152,10 +152,15 @@ freqRangeSpectral="713.e6,1013.e6"
 ##  linmos.feeds.BEAM7      = [ 1.0,  0.0]
 ##  linmos.feeds.BEAM8      = [ 1.0,  1.0]"
 
-linmosBeams="diamond"
-# Which frequency band are we in - determines beam arrangement (1,2,3,4)
+# The name of the beam footprint. This needs to be recognised by footprint.py - see beamArrangements.sh
+beamFootprintName="diamond"
+# The position angle of the beam footprint
+beamFootprintPA=0
+# This is the set of beam offsets used by linmos. This can be set manually instead of getting them from footprint.py
+linmosBeams=""
+# Which frequency band are we in - determines beam arrangement (1,2,3,4 - 1 is lowest frequency)
 linmosBand=1
-# Scale factor for beam arrangement, in format like '1deg'
+# Scale factor for beam arrangement, in format like '1deg'. Do not change if using the footprint.py names.
 linmosBeamSpacing="1deg"
 # Reference beam for PSF
 linmosPSFref=0
