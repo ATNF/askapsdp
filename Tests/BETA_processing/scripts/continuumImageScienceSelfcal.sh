@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
 #
 # Launches a job to image the current beam of the science
-# observation, using the BasisfunctionMFS solver.
+# observation, using the BasisfunctionMFS solver. This imaging
+# involves self-calibration, whereby the image is searched with Selavy
+# to produce a component catalogue, which is then used by Ccalibrator
+# to calibrate the gains, before running Cimager again. This is done a
+# number of times to hopefully converge to a sensible image.
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 if [ $doContinuumImaging == true ] && [ $doSelfcal == true ]; then
 
-    imageBase=${sciContImageBase}.beam${BEAM}
-
-    shapeDefinition="# Leave shape definition to advise"
-    if [ $pixsizeCont -gt 0 ]; then
-	shapeDefinition="Cimager.Images.shape                            = [${pixsizeCont}, ${pixsizeCont}]"
-    fi
-    cellsizeDefinition="# Leave cellsize definition to advise"
-    if [ $cellsizeCont -gt 0 ]; then
-	cellsizeDefinition="Cimager.Images.cellsize                         = [${cellsizeCont}arcsec, ${cellsizeCont}arcsec]"
-    fi
+    # Define the Cimager parset
+    . ${SCRIPTDIR}/getContinuumCimagerParams.sh
 
     if [ $NUM_CPUS_CONTIMG_SCI -lt 19 ]; then
 	NUM_CPUS_SELFCAL=19
@@ -81,64 +77,7 @@ Cimager.calibrate                               = false
 ##########
 ## Continuum imaging with cimager
 ##
-Cimager.dataset                                 = ${msSciAv}
-#
-# Each worker will read a single channel selection
-Cimager.Channels                                = [1, %w]
-#
-Cimager.Images.Names                            = [image.${imageBase}]
-${shapeDefinition}
-${cellsizeDefinition}
-# This is how many channels to write to the image - just a single one for continuum
-Cimager.Images.image.${imageBase}.nchan        = 1
-#
-# The following are needed for MFS clean
-# This one says how many Taylor terms we need
-Cimager.Images.image.${imageBase}.nterms        = ${ntermsSci}
-# This one assigns one worker for each of the Taylor terms
-Cimager.nworkergroups                           = ${nworkergroupsSci}
-# This tells the gridder to weight the visibilities appropriately
-#Cimager.visweights                             = MFS
-# This is the reference frequency - it should lie in your frequency range (ideally in the middle)
-#Cimager.visweights.MFS.reffreq                 = ${freqContSci}
-#
-# This defines the parameters for the gridding.
-Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 2600
-Cimager.gridder                                 = WProject
-Cimager.gridder.WProject.wmax                   = 2600
-Cimager.gridder.WProject.nwplanes               = 99
-Cimager.gridder.WProject.oversample             = 4
-Cimager.gridder.WProject.diameter               = 12m
-Cimager.gridder.WProject.blockage               = 2m
-Cimager.gridder.WProject.maxfeeds               = 9
-Cimager.gridder.WProject.maxsupport             = 512
-Cimager.gridder.WProject.variablesupport        = true
-Cimager.gridder.WProject.offsetsupport          = true
-Cimager.gridder.WProject.frequencydependent     = true
-#
-Cimager.solver                                  = Clean
-Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 500
-Cimager.solver.Clean.gain                       = 0.5
-Cimager.solver.Clean.scales                     = [0, 3, 10]
-Cimager.solver.Clean.verbose                    = False
-Cimager.solver.Clean.tolerance                  = 0.01
-Cimager.solver.Clean.weightcutoff               = zero
-Cimager.solver.Clean.weightcutoff.clean         = false
-Cimager.solver.Clean.psfwidth                   = 512
-Cimager.solver.Clean.logevery                   = 50
-Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
-Cimager.threshold.majorcycle                    = 1mJy
-Cimager.ncycles                                 = 2
-Cimager.Images.writeAtMajorCycle                = false
-#
-Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
-Cimager.preconditioner.Wiener.robustness        = 0.5
-#
-Cimager.restore                                 = true
-Cimager.restore.beam                            = ${restoringBeamCont}
+${cimagerParams}
 #
 \${calparams}
 #
@@ -216,7 +155,7 @@ Ccalibrator.interval                            = ${intervalSelfcal}
 Ccalibrator.calibaccess                         = table
 Ccalibrator.calibaccess.table                   = \${caldata}
 Ccalibrator.calibaccess.table.maxant            = 6
-Ccalibrator.calibaccess.table.maxbeam           = 9
+Ccalibrator.calibaccess.table.maxbeam           = ${nbeam}
 Ccalibrator.calibaccess.table.maxchan           = 30
 Ccalibrator.calibaccess.table.reuse             = false
 #
