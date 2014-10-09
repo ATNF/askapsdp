@@ -108,7 +108,13 @@ void SpectralLineWorker::run(void)
         ASKAPLOG_DEBUG_STR(logger, "Received Work Unit for dataset " << ms 
                 << ", local channel " << wu.get_localChannel()
                 << ", global channel " << wu.get_globalChannel());
-        const askap::scimath::Params::ShPtr params = processWorkUnit(wu);
+        askap::scimath::Params::ShPtr params;
+        try {
+            params = processWorkUnit(wu);
+        } catch (AskapError& e) {
+            ASKAPLOG_WARN_STR(logger, "Failure processing channel " << wu.get_globalChannel());
+            ASKAPLOG_WARN_STR(logger, "Exception detail: " << e.what());
+        }
 
         // Send the params to the master, which also implicitly requests
         // more work 

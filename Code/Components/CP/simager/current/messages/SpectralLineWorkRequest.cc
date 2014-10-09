@@ -27,6 +27,9 @@
 // Include own header file first
 #include <messages/SpectralLineWorkRequest.h>
 
+// System includes
+#include <limits>
+
 // ASKAPsoft includes
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
@@ -38,8 +41,11 @@
 // Using
 using namespace askap::cp;
 
+const unsigned int SpectralLineWorkRequest::CHANNEL_UNINITIALISED
+    = std::numeric_limits<unsigned int>::max();
+
 SpectralLineWorkRequest::SpectralLineWorkRequest()
-    : itsGlobalChannel(0)
+    : itsGlobalChannel(CHANNEL_UNINITIALISED)
 {
 }
 

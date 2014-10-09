@@ -39,6 +39,10 @@ namespace askap {
         class SpectralLineWorkRequest : public IMessage
         {
             public:
+                // Default channel number (max value of "unsigned int") used to
+                // indicate the channel number has not been set.
+                static const unsigned int CHANNEL_UNINITIALISED;
+
                 /// @brief Constructor.
                 SpectralLineWorkRequest();
 

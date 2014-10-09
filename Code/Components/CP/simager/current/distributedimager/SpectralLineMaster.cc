@@ -119,8 +119,15 @@ void SpectralLineMaster::run(void)
             // Wait for a worker to request some work
             SpectralLineWorkRequest wrequest;
             itsComms.receiveMessageAnySrc(wrequest, id);
-            if (wrequest.get_params().get() != 0) {
-                handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
+            // If the channel number is CHANNEL_UNINITIALISED then this indicates
+            // there is no image associated with this message. If the channel
+            // number is initialised yet the params pointer is null this indicates
+            // that an an attempt was made to process this channel but an exception
+            // was thrown.
+            if (wrequest.get_globalChannel() != SpectralLineWorkRequest::CHANNEL_UNINITIALISED) {
+                if (wrequest.get_params().get() != 0) {
+                    handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
+                }
                 --outstanding;
             }
 
@@ -145,8 +152,10 @@ void SpectralLineMaster::run(void)
         int id;
         SpectralLineWorkRequest wrequest;
         itsComms.receiveMessageAnySrc(wrequest, id);
-        if (wrequest.get_params().get() != 0) {
-            handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
+        if (wrequest.get_globalChannel() != SpectralLineWorkRequest::CHANNEL_UNINITIALISED) {
+            if (wrequest.get_params().get() != 0) {
+                handleImageParams(wrequest.get_params(), wrequest.get_globalChannel());
+            }
             --outstanding;
         }
     }
