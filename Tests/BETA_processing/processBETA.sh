@@ -8,7 +8,10 @@
 #  self-calibration. 
 # Many of the parameters are governed by the environment variables
 #  defined in scripts/defaultConfig.sh. The user needs to define the 
-#  scheduling block numbers of the datasets to be used. This can be 
+#  scheduling block numbers of the datasets to be used, or to provide
+#  the filenames of specific measurement sets.
+#
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 USAGE="processBETA.sh -c <config file>"
 

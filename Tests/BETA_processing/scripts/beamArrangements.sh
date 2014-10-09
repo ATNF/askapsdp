@@ -4,11 +4,10 @@
 # of the ACES footprint.py tool to extract the beam offsets for a named beam
 # footprint. The following variables must be defined: $beamFootprintName,
 # $linmosBand, $beamFootprintPA.
-#
 # Upon return, either $linmosBeams will be set, or $doLinmos will have been
 # set to false.
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 if [ $doLinmos == true ]; then
 

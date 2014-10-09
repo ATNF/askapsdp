@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#
+# Process the science field observations: split out per beam, flag,
+# apply the bandpass solution, average spectrally, image the continuum
+# with or without self-calibration, and image the spectral-line
+# data. Finally, mosaic the continuum images.
+#
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 echo "Setting up and calibrating the science observation"
 

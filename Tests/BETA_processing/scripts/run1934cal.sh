@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Process the 1934-638 calibration observations: split out per beam,
+# flag, then find the bandpass solution
+#
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 mslist=""
 FLAG_1934_DEP=""

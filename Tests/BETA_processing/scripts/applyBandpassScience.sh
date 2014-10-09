@@ -2,7 +2,7 @@
 #
 # Launches a job to apply the bandpass solution to the measurement set 
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 if [ $doApplyBandpass == true ]; then
 

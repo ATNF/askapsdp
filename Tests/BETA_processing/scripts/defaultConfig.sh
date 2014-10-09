@@ -1,4 +1,23 @@
 #!/usr/bin/env bash
+#
+# The complete set of user-defined parameters, along with their
+# default values. All parameters defined herein can be set in the
+# input file, and any value given there will override the default
+# value set here.
+#
+# (c) Matthew Whiting, CSIRO ATNF, 2014
+
+####################
+# Whether to submit the scripts to the queue.
+doSubmit=false
+
+####################
+# Locations of the executables. 
+# If you have a local version of the ASKAPsoft codebase, and have
+# defined ASKAP_ROOT, then you will use the executables from that
+# tree. 
+# Otherwise (the most common case for ACES members), the executables
+# from the askapsoft module will be used.
 
 if [ "$ASKAP_ROOT" != "" ]; then
     AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
@@ -23,8 +42,8 @@ else
     selavy=selavy
 fi
 
-doSubmit=false
-
+####################
+# Define & create directories
 CWD=`pwd`
 parsets=parsets
 logs=logs
@@ -35,10 +54,13 @@ mkdir -p $slurms
 
 ####################
 # Control flags
+
+# Primary calibration
 do1934cal=true
 doFlag1934=true
 doFindBandpass=true
 
+# Calibration & imaging of the 'science' field.
 doSci=true
 doFlagScience=true
 doApplyBandpass=true
@@ -51,7 +73,7 @@ doLinmos=true
 ####################
 # Input Scheduling Blocks (SBs)
 # Location of the SBs
-SBdir=/scratch/askap/askapops/archive/askap-scheduling-blocks
+SBdir=/scratch2/askap/askapops/archive/askap-scheduling-blocks
 # SB with 1934-638 observation
 SB1934="SET_THIS"
 input1934=""
@@ -69,11 +91,17 @@ nbeam=9
 ####################
 ##  BANDPASS CAL
 
+# Base name for the 1934 measurement sets after splitting
 ms1934base=1934_beamBEAM.ms
+# Number of channels
 nchanCBP=16416
+# Channel range for splitting
 chanRange1934="1-16416"
+# Location of 1934-638, formatted for use in cbpcalibrator
 direction1934="[19h39m25.036, -63.42.45.63, J2000]"
+# Name of the table for the bandpass calibration parameters
 bandpassParams=calparameters_1934_bp.tab
+# Number of cycles used in cbpcalibrator
 ncyclesCBPcal=25
 
 # Dynamic threshold applied to amplitudes [sigma]
@@ -87,21 +115,26 @@ cflagAmpThreshold1934=0.2
 # This allows selection of particular scans from the science
 # observation. If this isn't needed, leave as a blank string.
 scanSelectionScience=""
+# Base name for the science observation measurement set
 msSciBase=scienceObservation.ms
+# Direction of the science field
 directionSci=""
 
+# Range of channels in science observation (used in splitting and averaging)
 chanRangeSci="1-16416"
+# Number of channels in science observation (used in applying the bandpass solution)
 nchanSci=16416
+# Number of channels to be averaged to create continuum measurement set
+chanAverageSci=54
 
 # Dynamic threshold applied to amplitudes [sigma]
 cflagDynamicThresholdSci=4.0
 # Second amplitude threshold applied [hardware units - before calibration]
 cflagAmpThresholdSci=0.2
 
-chanAverageSci=54
-
+# Number of Taylor terms to create in MFS imaging
 ntermsSci=3
-nchanContSci=1
+# Number of CPUs to use on each core in the continuum imaging
 CPUS_PER_CORE_CONTIMG_SCI=20
 
 # base name for images: if sciContImageBase=i.blah then we'll get
@@ -136,22 +169,11 @@ sciSpectralImageBase=i.spectral
 pixsizeSpectral=2048
 # Size of the pixels in arcsec
 cellsizeSpectral=10
-# Frequency range for the spectral imager
+# Frequency range for the spectral imager [Hz]
 freqRangeSpectral="713.e6,1013.e6"
 
 # Beam arrangement, used in linmos. If one of "diamond",
-# "octagon",... then the positions are filled automatically. Or you
-# can use something like (ignoring the ## of course):
-##  linmosBeams="linmos.feeds.BEAM0      = [-1.0, -1.0]
-##  linmos.feeds.BEAM1      = [-1.0,  0.0]
-##  linmos.feeds.BEAM2      = [-1.0,  1.0]
-##  linmos.feeds.BEAM3      = [ 0.0, -1.0]
-##  linmos.feeds.BEAM4      = [ 0.0,  0.0]
-##  linmos.feeds.BEAM5      = [ 0.0,  1.0]
-##  linmos.feeds.BEAM6      = [ 1.0, -1.0]
-##  linmos.feeds.BEAM7      = [ 1.0,  0.0]
-##  linmos.feeds.BEAM8      = [ 1.0,  1.0]"
-
+# "octagon",... then the positions are filled automatically.
 # The name of the beam footprint. This needs to be recognised by footprint.py - see beamArrangements.sh
 beamFootprintName="diamond"
 # The position angle of the beam footprint

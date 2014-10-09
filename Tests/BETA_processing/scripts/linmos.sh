@@ -3,7 +3,7 @@
 # Launches a job to mosaic all individual beam images to a single
 # image. 
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 if [ $doLinmos == true ]; then
 

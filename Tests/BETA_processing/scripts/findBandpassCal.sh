@@ -5,7 +5,7 @@
 # completed. The bandpass calibration is done assuming the special
 # '1934-638' component.
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 sbatchfile=$slurms/cbpcalibrator_1934.sbatch
 cat > $sbatchfile <<EOF

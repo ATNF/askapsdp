@@ -4,7 +4,7 @@
 # of the science observation so that it can be imaged by the continuum
 # imager. 
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 sedstr="s/\.ms/_averaged\.ms/g"
 msSciAv=`echo $msSci | sed -e $sedstr`

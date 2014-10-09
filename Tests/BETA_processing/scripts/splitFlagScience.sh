@@ -5,7 +5,7 @@
 # with a dynamic threshold and the second with a flat amplitude cut to
 # remove any remaining spikes.
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
 if [ $doFlagScience == true ]; then
 

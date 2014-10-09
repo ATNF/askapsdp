@@ -4,9 +4,9 @@
 # user's config file, and creates other variables that depend upon
 # them and do not require user input.
 #
-# (c) Matthew Whiting, ATNF, 2014
+# (c) Matthew Whiting, CSIRO ATNF, 2014
 
-
+####################
 ####################
 # Check for the presence of simager. If not available, turn off
 # spectral-line imaging
@@ -28,15 +28,15 @@ if [ "$input1934" == "" ]; then
 	if [ `\ls $sb1934dir | grep "ms" | wc -l` == 1 ]; then
 	    input1934=$sb1934dir/`\ls $sb1934dir | grep "ms"`
 	else
-	    echo "SB directory $SB1934 has more than one measurement set. Please specify with variable 'input1934'."
+	    echo "SB directory $SB1934 has more than one measurement set. Please specify with parameter 'input1934'."
 	fi
     else
-	echo "You must set either SB1934 (scheduling block number) or input1934 (1934 measurement set)."
+	echo "You must set either 'SB1934' (scheduling block number) or 'input1934' (1934 measurement set)."
     fi
 fi
 if [ "$input1934" == "" ]; then
     if [ $do1934cal == true ]; then
-	echo "input1934 not defined. Turning off 1934-638 processing with do1934cal=false."
+	echo "Parameter 'input1934' not defined. Turning off 1934-638 processing with do1934cal=false."
     fi
     do1934cal=false
 fi
@@ -48,15 +48,15 @@ if [ "$inputSci" == "" ]; then
 	if [ `\ls $sbScienceDir | grep "ms" | wc -l` == 1 ]; then
 	    inputSci=$sbScienceDir/`\ls $sbScienceDir | grep "ms"`
 	else
-	    echo "SB directory $SBscience has more than one measurement set. Please specify with variable 'inputSci'."
+	    echo "SB directory $SBscience has more than one measurement set. Please specify with parameter 'inputSci'."
 	fi
     else
-	echo "You must set either SBscience (scheduling block number) or inputSci (Science observation measurement set)."
+	echo "You must set either 'SBscience' (scheduling block number) or 'inputSci' (Science observation measurement set)."
     fi
 fi
 if [ "$inputSci" == "" ]; then
     if [ $doSci == true ]; then
-	echo "inputSci not defined. Turning off science processing with doSci=false."
+	echo "Parameter 'inputSci' not defined. Turning off science processing with doSci=false."
     fi
     doSci=false
 fi
@@ -64,13 +64,19 @@ fi
 ####################
 # Check the number of beams
 
-requestedBeams=`echo $BEAM_MAX $BEAM_MIN | awk '{print $1-$2+1}'`
-if [ $nbeam -gt $requestedBeams ]; then
-    nbeam=$requestedBeams
+nbeam=`echo $BEAM_MAX $BEAM_MIN | awk '{print $1-$2+1}'`
+
+# Turn off mosaicking if there is just a single beam
+if [ $nbeam -eq 1 ]; then
+    if [ $doLinmos == true ]; then
+	echo "Only have a single beam to process, so setting doLinmos=false"
+    fi
+    doLinmos=false
 fi
 
 ####################
 # Parameters required for continuum imaging
+####
 
 # nchanContSci = number of channels after averaging
 nchanContSci=`echo $nchanSci $chanAverageSci | awk '{print $1/$2}'`
