@@ -33,27 +33,23 @@ cp $sbatchfile \`echo $sbatchfile | sed -e \$sedstr\`
 parset=$parsets/science_spectral_imager_beam${BEAM}_\${SLURM_JOB_ID}.in
 cat > \$parset << EOF
 
-Simager.dataset                                = ${msSci}
+Simager.dataset                                 = ${msSci}
 #
-Simager.Images.name                            = image.${imageBase}
+Simager.Images.name                             = image.${imageBase}
 ${shapeDefinition}
 ${cellsizeDefinition}
-Simager.Images.frequency                       = [${freqRangeSpectral}]
-Simager.Images.direction                       = ${directionSci}
+Simager.Images.frequency                        = [${freqRangeSpectral}]
+Simager.Images.direction                        = ${directionSci}
 #
 Simager.gridder.snapshotimaging                 = true
 Simager.gridder.snapshotimaging.wtolerance      = 2600
 Simager.gridder                                 = WProject
-Simager.gridder.WProject.wmax                  = 2600
-Simager.gridder.WProject.nwplanes              = 99
-Simager.gridder.WProject.oversample            = 4
-Simager.gridder.WProject.diameter              = 12m
-Simager.gridder.WProject.blockage              = 2m
-Simager.gridder.WProject.maxfeeds              = 36
-Simager.gridder.WProject.maxsupport            = 512
-Simager.gridder.WProject.variablesupport       = true
-Simager.gridder.WProject.offsetsupport         = true
-Simager.gridder.WProject.frequencydependent    = true
+Simager.gridder.WProject.wmax                   = 2600
+Simager.gridder.WProject.nwplanes               = 99
+Simager.gridder.WProject.oversample             = 4
+Simager.gridder.WProject.maxsupport             = 512
+Simager.gridder.WProject.variablesupport        = true
+Simager.gridder.WProject.offsetsupport          = true
 #
 Simager.solver                                  = Dirty
 Simager.solver.Dirty.tolerance                  = 0.1
