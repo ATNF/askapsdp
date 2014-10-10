@@ -54,7 +54,7 @@ fi
 
 # The "job" actually runs out of scratch, where the build is
 # happening in the home directory
-SCRATCH=/scratch/askap/askapops/dc1a-hudson-workspace
+SCRATCH=/scratch2/askap/askapops/dc1a-hudson-workspace
 
 #
 # Link to the dataset
