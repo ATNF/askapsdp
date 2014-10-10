@@ -35,11 +35,11 @@ if [ "${directionSci}" != "" ]; then
 fi
 
 preconditioning="Cimager.preconditioner.Names                    = ${PRECONDITIONER_LIST}"
-if [ `echo ${PRECONDITIONER_LIST} | grep GaussianTaper` != "" ]; then
+if [ "`echo ${PRECONDITIONER_LIST} | grep GaussianTaper`" != "" ]; then
     preconditioning="$preconditioning
 Cimager.preconditioner.GaussianTaper            = ${PRECONDITIONER_GAUSS_TAPER}"
 fi
-if [ `echo ${PRECONDITIONER_LIST} | grep Wiener` != "" ]; then
+if [ "`echo ${PRECONDITIONER_LIST} | grep Wiener`" != "" ]; then
     if [ "${PRECONDITIONER_WIENER_ROBUSTNESS}" != "" ]; then
 	preconditioning="$preconditioning
 Cimager.preconditioner.Wiener.robustness        = ${PRECONDITIONER_WIENER_ROBUSTNESS}"
