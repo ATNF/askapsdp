@@ -43,13 +43,13 @@ else
 
     . ${SCRIPTDIR}/processDefaults.sh
 
-    if [ $do1934cal == true ]; then
+    if [ $DO_1934_CAL == true ]; then
 
 	. ${SCRIPTDIR}/run1934cal.sh
 
     fi
 
-    if [ $doSci == true ]; then
+    if [ $DO_SCIENCE_FIELD == true ]; then
 
 	. ${SCRIPTDIR}/scienceCalIm.sh
 

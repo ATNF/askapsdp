@@ -9,7 +9,7 @@
 sedstr="s/\.ms/_averaged\.ms/g"
 msSciAv=`echo $msSci | sed -e $sedstr`
 
-if [ $doAverageScience == true ]; then
+if [ $DO_AVERAGE_CHANNELS == true ]; then
 
     sbatchfile=$slurms/science_average_beam${BEAM}.sbatch
     cat > $sbatchfile <<EOFOUTER
@@ -40,11 +40,11 @@ outputvis   = ${msSciAv}
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
 # is inclusive of both the start and end, indexing is one-based.
 # Default: <no default>
-channel     = ${chanRangeSci}
+channel     = ${CHAN_RANGE_SCIENCE}
 
 # Defines the number of channel to average to form the one output channel
 # Default: 1
-width       = ${chanAverageSci}
+width       = ${NUM_CHAN_TO_AVERAGE}
 
 EOFINNER
 
@@ -54,7 +54,7 @@ aprun -n 1 -N 1 $mssplit -c \${parset} > \${log}
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	DEP=""
 	if [ "$ID_CCALAPPLY_SCI" != "" ]; then
 	    DEP="-d afterok:${ID_CCALAPPLY_SCI}"

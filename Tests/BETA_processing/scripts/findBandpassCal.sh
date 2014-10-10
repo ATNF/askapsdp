@@ -25,23 +25,23 @@ cat > \$parset <<EOFINNER
 Cbpcalibrator.dataset                         = [${mslist}]
 Cbpcalibrator.nAnt                            = 6
 Cbpcalibrator.nBeam                           = ${nbeam}
-Cbpcalibrator.nChan                           = ${nchanCBP}
+Cbpcalibrator.nChan                           = ${NUM_CHAN}
 Cbpcalibrator.refantenna                      = 1
 #
 Cbpcalibrator.calibaccess                     = table
 Cbpcalibrator.calibaccess.table.maxant        = 6
 Cbpcalibrator.calibaccess.table.maxbeam       = ${nbeam}
-Cbpcalibrator.calibaccess.table.maxchan       = ${nchanCBP}
-Cbpcalibrator.calibaccess.table               = ${bandpassParams}
+Cbpcalibrator.calibaccess.table.maxchan       = ${NUM_CHAN}
+Cbpcalibrator.calibaccess.table               = ${TABLE_BANDPASS}
 #
 Cbpcalibrator.sources.names                   = [field1]
-Cbpcalibrator.sources.field1.direction        = ${direction1934}
+Cbpcalibrator.sources.field1.direction        = ${DIRECTION_1934}
 Cbpcalibrator.sources.field1.components       = src
 Cbpcalibrator.sources.src.calibrator          = 1934-638
 #
 Cbpcalibrator.gridder                         = SphFunc
 #
-Cbpcalibrator.ncycles                         = ${ncyclesCBPcal}
+Cbpcalibrator.ncycles                         = ${NCYCLES_BANDPASS_CAL}
 
 EOFINNER
 
@@ -51,7 +51,7 @@ aprun -n 343 -N 20 ${cbpcalibrator} -c \${parset} > \${log}
 
 EOF
 
-if [ $doSubmit == true ]; then
+if [ $SUBMIT_JOBS == true ]; then
     ID_CBPCAL=`sbatch ${FLAG_1934_DEP} $sbatchfile | awk '{print $4}'`
     echo "Calibrating with 1934-638 with job ${ID_CBPCAL}, and flags \"$FLAG_1934_DEP\""
 else

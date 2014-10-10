@@ -8,7 +8,7 @@
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
 sedstr="s/BEAM/${BEAM}/g"
-ms=`echo $ms1934base | sed -e $sedstr`
+ms=`echo $MS_BASE_1934 | sed -e $sedstr`
 
 if [ "$mslist" == "" ]; then 
     mslist="$ms"
@@ -35,7 +35,7 @@ parset=${parsets}/split_1934_beam${BEAM}_\${SLURM_JOB_ID}.in
 cat > \$parset <<EOFINNER
 # Input measurement set
 # Default: <no default>
-vis         = ${input1934}
+vis         = ${MS_INPUT_1934}
 
 # Output measurement set
 # Default: <no default>
@@ -45,7 +45,7 @@ outputvis   = ${ms}
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
 # is inclusive of both the start and end, indexing is one-based.
 # Default: <no default>
-channel     = ${chanRange1934}
+channel     = ${CHAN_RANGE_1934}
 
 # Beam selection via beam ID
 # Select just a single beam for this obs
@@ -56,7 +56,7 @@ scans        = [${BEAM}]
 
 # Set a larger bucketsize
 stman.bucketsize  = 65536
-stman.tilenchan   = 54
+stman.tilenchan   = ${NUM_CHAN_TO_AVERAGE}
 EOFINNER
 
 log=logs/split_1934_beam${BEAM}_\${SLURM_JOB_ID}.log
@@ -73,9 +73,9 @@ Cflag.dataset                           = ${ms}
 # Amplitude based flagging
 Cflag.amplitude_flagger.enable           = true
 Cflag.amplitude_flagger.dynamicBounds    = true
-Cflag.amplitude_flagger.threshold        = ${cflagDynamicThreshold1934}
+Cflag.amplitude_flagger.threshold        = ${FLAG_THRESHOLD_DYNAMIC_1934}
 Cflag.amplitude_flagger.integrateSpectra = true
-Cflag.amplitude_flagger.integrateSpectra.threshold = ${cflagDynamicThreshold1934}
+Cflag.amplitude_flagger.integrateSpectra.threshold = ${FLAG_THRESHOLD_DYNAMIC_1934}
 EOFINNER
 
 log=${logs}/cflag_dynamic_1934_beam${BEAM}_\${SLURM_JOB_ID}.log
@@ -90,7 +90,7 @@ Cflag.dataset                           = ${ms}
 
 # Amplitude based flagging
 Cflag.amplitude_flagger.enable          = true
-Cflag.amplitude_flagger.high            = ${cflagAmpThreshold1934}
+Cflag.amplitude_flagger.high            = ${FLAG_THRESHOLD_AMPLITUDE_1934}
 Cflag.amplitude_flagger.low             = 0.
 EOFINNER
 
@@ -101,7 +101,7 @@ aprun -n 1 -N 1 ${cflag} -c \${parset} > \${log}
 
 EOFOUTER
 
-if [ $doSubmit == true ]; then
+if [ $SUBMIT_JOBS == true ]; then
     ID_FLAG_1934=`sbatch $DEP_START $sbatchfile | awk '{print $4}'`
     echo "Splitting and flagging 1934-638, beam $BEAM with job ${ID_FLAG_1934}"
     if [ "$FLAG_1934_DEP" == "" ]; then

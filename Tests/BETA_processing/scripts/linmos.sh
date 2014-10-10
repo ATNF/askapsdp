@@ -5,7 +5,7 @@
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-if [ $doLinmos == true ]; then
+if [ $DO_MOSAIC == true ]; then
 
     sbatchfile=$slurms/science_linmos.sbatch
     cat > $sbatchfile <<EOFOUTER
@@ -31,17 +31,17 @@ linmos.findmosaics      = true
 linmos.weighttype       = FromPrimaryBeamModel
 linmos.weightstate      = Inherent
 linmos.feeds.centreref  = 0
-linmos.feeds.spacing    = ${linmosBeamSpacing}
-${linmosBeams}
-linmos.psfref           = ${linmosPSFref}
-linmos.nterms           = ${ntermsSci}
+linmos.feeds.spacing    = ${LINMOS_BEAM_SPACING}
+${LINMOS_BEAM_OFFSETS}
+linmos.psfref           = ${LINMOS_PSF_REF}
+linmos.nterms           = ${NUM_TAYLOR_TERMS}
 EOFINNER
 
 aprun -n 1 -N 1 $linmos -c \$parset > \$log
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	ID_LINMOS_SCI=`sbatch $FLAG_IMAGING_DEP $sbatchfile | awk '{print $4}'`
 	echo "Make a mosaic image of the science observation, with job ${ID_LINMOS_SCI}, and flags \"${FLAG_IMAGING_DEP}\""
     else

@@ -14,7 +14,7 @@ FLAG_IMAGING_DEP=""
 for((BEAM=${BEAM_MIN}; BEAM<=${BEAM_MAX}; BEAM++)); do
     
     sedstr="s/\.ms/_${BEAM}\.ms/g"
-    msSci=`echo $msSciBase | sed -e $sedstr`
+    msSci=`echo $MS_BASE_SCIENCE | sed -e $sedstr`
 
     . ${SCRIPTDIR}/splitFlagScience.sh
     
@@ -22,7 +22,7 @@ for((BEAM=${BEAM_MIN}; BEAM<=${BEAM_MAX}; BEAM++)); do
 
     . ${SCRIPTDIR}/averageScience.sh
 
-    if [ $doSelfcal == true ]; then
+    if [ $DO_SELFCAL == true ]; then
 	. ${SCRIPTDIR}/continuumImageScienceSelfcal.sh
     else
 	. ${SCRIPTDIR}/continuumImageScience.sh

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 
-if [ $doSpectralImaging == true ]; then
+if [ $DO_SPECTRAL_IMAGING == true ]; then
 
     echo "Imaging the spectral-line science observation"
 
-    imageBase=${sciSpectralImageBase}.beam${BEAM}
+    imageBase=${IMAGE_BASE_SPECTRAL}.beam${BEAM}
 
     shapeDefinition="# Leave shape definition to advise"
-    if [ $pixsizeSpectral -gt 0 ]; then
-	shapeDefinition="Cimager.Images.shape                            = [${pixsizeSpectral}, ${pixsizeSpectral}]"
+    if [ $NUM_PIXELS_SPECTRAL -gt 0 ]; then
+	shapeDefinition="Cimager.Images.shape                            = [${NUM_PIXELS_SPECTRAL}, ${NUM_PIXELS_SPECTRAL}]"
     fi
     cellsizeDefinition="# Leave cellsize definition to advise"
-    if [ $cellsizeSpectral -gt 0 ]; then
-	cellsizeDefinition="Simager.Images.cellsize                         = [${cellsizeSpectral}arcsec, ${cellsizeSpectral}arcsec]"
+    if [ $CELLSIZE_SPECTRAL -gt 0 ]; then
+	cellsizeDefinition="Simager.Images.cellsize                         = [${CELLSIZE_SPECTRAL}arcsec, ${CELLSIZE_SPECTRAL}arcsec]"
     fi
 
     sbatchfile=$slurms/science_continuumImage_beam$BEAM.sbatch
@@ -38,7 +38,7 @@ Simager.dataset                                 = ${msSci}
 Simager.Images.name                             = image.${imageBase}
 ${shapeDefinition}
 ${cellsizeDefinition}
-Simager.Images.frequency                        = [${freqRangeSpectral}]
+Simager.Images.frequency                        = [${FREQ_RANGE_SPECTRAL}]
 Simager.Images.direction                        = ${directionSci}
 #
 Simager.gridder.snapshotimaging                 = true

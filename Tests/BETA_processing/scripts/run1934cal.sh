@@ -8,7 +8,7 @@
 mslist=""
 FLAG_1934_DEP=""
 
-if [ $doFlag1934 == true ]; then
+if [ $DO_FLAG_1934 == true ]; then
 
     for((BEAM=${BEAM_MIN}; BEAM<=${BEAM_MAX}; BEAM++)); do
 	
@@ -18,7 +18,7 @@ if [ $doFlag1934 == true ]; then
 
 fi
 
-if [ $doFindBandpass == true ]; then
+if [ $DO_FIND_BANDPASS == true ]; then
 
     . ${SCRIPTDIR}/findBandpassCal.sh
 

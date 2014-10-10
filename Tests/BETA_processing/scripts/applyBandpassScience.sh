@@ -4,7 +4,7 @@
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-if [ $doApplyBandpass == true ]; then
+if [ $DO_APPLY_BANDPASS == true ]; then
 
     sbatchfile=$slurms/ccalapply_science_beam$BEAM.sbatch
     cat > $sbatchfile <<EOFOUTER
@@ -29,8 +29,8 @@ Ccalapply.calibrate.allowflag                 = true
 Ccalapply.calibaccess                     = table
 Ccalapply.calibaccess.table.maxant        = 6
 Ccalapply.calibaccess.table.maxbeam       = ${nbeam}
-Ccalapply.calibaccess.table.maxchan       = ${nchanSci}
-Ccalapply.calibaccess.table               = ${bandpassParams}
+Ccalapply.calibaccess.table.maxchan       = ${NUM_CHAN}
+Ccalapply.calibaccess.table               = ${TABLE_BANDPASS}
 
 EOFINNER
 
@@ -40,7 +40,7 @@ aprun -n 1 -N 1 ${ccalapply} -c \$parset > \$log
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	DEP=""
 	if [ "$ID_FLAG_SCI" != "" ] || [ "$ID_CBPCAL" != "" ]; then
 	    DEP="-d afterok"

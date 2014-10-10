@@ -7,12 +7,12 @@
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-if [ $doFlagScience == true ]; then
+if [ $DO_FLAG_SCIENCE == true ]; then
 
-    if [ "$scanSelectionScience" == "" ]; then
+    if [ "$SCAN_SELECTION_SCIENCE" == "" ]; then
 	scanParam="# No scan selection done"
     else
-	scanParam="scans        = [${scanSelectionScience}]"
+	scanParam="scans        = [${SCAN_SELECTION_SCIENCE}]"
     fi
 
     sbatchfile=$slurms/split_flag_science_beam${BEAM}.sbatch
@@ -34,7 +34,7 @@ parset=${parsets}/split_science_beam${BEAM}_\${SLURM_JOB_ID}.in
 cat > \$parset <<EOFINNER
 # Input measurement set
 # Default: <no default>
-vis         = ${inputSci}
+vis         = ${MS_INPUT_SCIENCE}
 
 # Output measurement set
 # Default: <no default>
@@ -44,7 +44,7 @@ outputvis   = ${msSci}
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
 # is inclusive of both the start and end, indexing is one-based.
 # Default: <no default>
-channel     = ${chanRangeSci}
+channel     = ${CHAN_RANGE_SCIENCE}
 
 # Beam selection via beam ID
 # Select an individual beam
@@ -56,7 +56,7 @@ $scanParam
 # Set a larger bucketsize
 stman.bucketsize  = 65536
 # Make the tile size 54 channels, as that is what we will average over
-stman.tilenchan   = 54
+stman.tilenchan   = ${NUM_CHAN_TO_AVERAGE}
 EOFINNER
 
 log=logs/split_science_beam${BEAM}_\${SLURM_JOB_ID}.log
@@ -76,9 +76,9 @@ Cflag.dataset                           = ${msSci}
 #  spectrum at the end.
 Cflag.amplitude_flagger.enable           = true
 Cflag.amplitude_flagger.dynamicBounds    = true
-Cflag.amplitude_flagger.threshold        = ${cflagDynamicThresholdSci}
+Cflag.amplitude_flagger.threshold        = ${FLAG_THRESHOLD_DYNAMIC_SCIENCE}
 Cflag.amplitude_flagger.integrateSpectra = true
-Cflag.amplitude_flagger.integrateSpectra.threshold = ${cflagDynamicThresholdSci}
+Cflag.amplitude_flagger.integrateSpectra.threshold = ${FLAG_THRESHOLD_DYNAMIC_SCIENCE}
 EOFINNER
 
 log=${logs}/cflag_dynamic_science_beam${BEAM}_\${SLURM_JOB_ID}.log
@@ -95,7 +95,7 @@ Cflag.dataset                           = ${msSci}
 #   Here we apply a simple cut at a given amplitude level, to remove
 #   any remaining spikes
 Cflag.amplitude_flagger.enable          = true
-Cflag.amplitude_flagger.high            = ${cflagAmpThresholdSci}
+Cflag.amplitude_flagger.high            = ${FLAG_THRESHOLD_AMPLITUDE_SCIENCE}
 Cflag.amplitude_flagger.low             = 0.
 EOFINNER
 
@@ -105,7 +105,7 @@ aprun -n 1 -N 1 ${cflag} -c \${parset} > \${log}
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	ID_FLAG_SCI=`sbatch $DEP_START $sbatchfile | awk '{print $4}'`
 	echo "Splitting and flagging beam ${BEAM} of science observation, with job ${ID_FLAG_SCI}"
     else

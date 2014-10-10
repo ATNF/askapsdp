@@ -9,7 +9,7 @@
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-if [ $doContinuumImaging == true ] && [ $doSelfcal == true ]; then
+if [ $DO_CONT_IMAGING == true ] && [ $DO_SELFCAL == true ]; then
 
     # Define the Cimager parset
     . ${SCRIPTDIR}/getContinuumCimagerParams.sh
@@ -20,9 +20,9 @@ if [ $doContinuumImaging == true ] && [ $doSelfcal == true ]; then
 	NUM_CPUS_SELFCAL=$NUM_CPUS_CONTIMG_SCI
     fi
 
-    NPROCS_SELAVY=`echo $selfcalNsubx $selfcalNsuby | awk '{print $1*$2+1}'`
-    if [ ${CPUS_PER_CORE_CONTIMG_SCI} -lt ${NPROCS_SELAVY} ]; then
-	CPUS_PER_CORE_SELFCAL=${CPUS_PER_CORE_CONTIMG_SCI}
+    NPROCS_SELAVY=`echo $SELFCAL_SELAVY_NSUBX $SELFCAL_SELAVY_NSUBY | awk '{print $1*$2+1}'`
+    if [ ${CPUS_PER_CORE_CONT_IMAGING} -lt ${NPROCS_SELAVY} ]; then
+	CPUS_PER_CORE_SELFCAL=${CPUS_PER_CORE_CONT_IMAGING}
     else
 	CPUS_PER_CORE_SELFCAL=${NPROCS_SELAVY}
     fi
@@ -32,7 +32,7 @@ if [ $doContinuumImaging == true ] && [ $doSelfcal == true ]; then
 #!/usr/bin/env bash
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=${NUM_CPUS_SELFCAL}
-#SBATCH --ntasks-per-node=${CPUS_PER_CORE_CONTIMG_SCI}
+#SBATCH --ntasks-per-node=${CPUS_PER_CORE_CONT_IMAGING}
 #SBATCH --job-name=cleanSC${BEAM}
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
@@ -45,9 +45,9 @@ cp $sbatchfile \`echo $sbatchfile | sed -e \$sedstr\`
 caldir=selfCal_beam${BEAM}
 mkdir -p \$caldir
 
-copyImages=${selfcalKeepImages}
+copyImages=${SELFCAL_KEEP_IMAGES}
 
-for((LOOP=0;LOOP<=${numLoopsSelfcal};LOOP++)); do
+for((LOOP=0;LOOP<=${SELFCAL_NUM_LOOPS};LOOP++)); do
 
     loopdir=\${caldir}/Loop\${LOOP}
     sources=sources_loop\${LOOP}.in
@@ -93,13 +93,13 @@ Selavy.image                                    = ${CWD}/image.${imageBase}.tayl
 # This is how we divide it up for distributed processing, with the
 #  number of subdivisions in each direction, and the size of the
 #  overlap region in pixels
-Selavy.nsubx                                    = ${selfcalNsubx}
-Selavy.nsuby                                    = ${selfcalNsuby}
+Selavy.nsubx                                    = ${SELFCAL_SELAVY_NSUBX}
+Selavy.nsuby                                    = ${SELFCAL_SELAVY_NSUBY}
 Selavy.overlapx                                 = 50
 Selavy.overlapy                                 = 50
 #
 # The search threshold, in units of sigma
-Selavy.snrCut                                   = ${selavySNRselfcal}
+Selavy.snrCut                                   = ${SELFCAL_SELAVY_THRESHOLD}
 # Grow the detections to a secondary threshold
 Selavy.flagGrowth                               = true
 Selavy.growthCut                                = 5
@@ -150,7 +150,7 @@ Ccalibrator.dataset                             = ${CWD}/${msSciAv}
 Ccalibrator.nAnt                                = 6
 Ccalibrator.nBeam                               = 1
 Ccalibrator.solve                               = antennagains
-Ccalibrator.interval                            = ${intervalSelfcal}
+Ccalibrator.interval                            = ${SELFCAL_INTERVAL}
 #
 Ccalibrator.calibaccess                         = table
 Ccalibrator.calibaccess.table                   = \${caldata}
@@ -203,7 +203,7 @@ EOFINNER
 
     # Run the imager, calibrating if not the first time.
     echo "--- Imaging with $cimager ---" >> \$log
-    aprun -n ${NUM_CPUS_CONTIMG_SCI} -N ${CPUS_PER_CORE_CONTIMG_SCI} $cimager -c \$parset >> \$log
+    aprun -n ${NUM_CPUS_CONTIMG_SCI} -N ${CPUS_PER_CORE_CONT_IMAGING} $cimager -c \$parset >> \$log
     err=\$?
     if [ \$err != 0 ]; then
         exit \$err
@@ -213,7 +213,7 @@ done
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	DEP=""
 	if [ "$ID_AVERAGE_SCI" != "" ]; then
 	    DEP="-d afterok:${ID_AVERAGE_SCI}"

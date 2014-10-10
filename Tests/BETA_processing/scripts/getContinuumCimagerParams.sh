@@ -11,27 +11,43 @@
 #   * directionDefinition - the direction of the centre of the image, 
 #   as a Cimager parameter if 'directionSci' is defined
 #   * shapeDefinition - the shape of the images, as a Cimager
-#   parameter if 'pixsizeCont' is defined
+#   parameter if 'NUM_PIXELS_CONT' is defined
 #   * cellsizeDefinition - the shape of the images, as a Cimager
-#   parameter if 'cellsizeCont' is defined
+#   parameter if 'CELLSIZE_CONT' is defined
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-imageBase=${sciContImageBase}.beam${BEAM}
+imageBase=${IMAGE_BASE_CONT}.beam${BEAM}
 
 shapeDefinition="# Leave shape definition to Cimager to determine from the data"
-if [ $pixsizeCont -gt 0 ]; then
-    shapeDefinition="Cimager.Images.shape                            = [${pixsizeCont}, ${pixsizeCont}]"
+if [ $NUM_PIXELS_CONT -gt 0 ]; then
+    shapeDefinition="Cimager.Images.shape                            = [${NUM_PIXELS_CONT}, ${NUM_PIXELS_CONT}]"
 fi
 
 cellsizeDefinition="# Leave cellsize definition to Cimager to determine from the data"
-if [ $cellsizeCont -gt 0 ]; then
-    cellsizeDefinition="Cimager.Images.cellsize                         = [${cellsizeCont}arcsec, ${cellsizeCont}arcsec]"
+if [ $CELLSIZE_CONT -gt 0 ]; then
+    cellsizeDefinition="Cimager.Images.cellsize                         = [${CELLSIZE_CONT}arcsec, ${CELLSIZE_CONT}arcsec]"
 fi
 
 directionDefinition="# Leave direction definition to Cimager to determine from the data"
 if [ "${directionSci}" != "" ]; then
     directionDefinition="Cimager.Images.image.${imageBase}.direction    = ${directionSci}"
+fi
+
+preconditioning="Cimager.preconditioner.Names                    = ${PRECONDITIONER_LIST}"
+if [ `echo ${PRECONDITIONER_LIST} | grep GaussianTaper` != "" ]; then
+    preconditioning="$preconditioning
+Cimager.preconditioner.GaussianTaper            = ${PRECONDITIONER_GAUSS_TAPER}"
+fi
+if [ `echo ${PRECONDITIONER_LIST} | grep Wiener` != "" ]; then
+    if [ "${PRECONDITIONER_WIENER_ROBUSTNESS}" != "" ]; then
+	preconditioning="$preconditioning
+Cimager.preconditioner.Wiener.robustness        = ${PRECONDITIONER_WIENER_ROBUSTNESS}"
+    fi
+    if [ "${PRECONDITIONER_WIENER_TAPER}" != "" ]; then
+	preconditioning="$preconditioning
+Cimager.preconditioner.Wiener.taper             = ${PRECONDITIONER_WIENER_TAPER}"
+    fi
 fi
 
 
@@ -50,45 +66,44 @@ Cimager.Images.image.${imageBase}.nchan        = 1
 #
 # The following are needed for MFS clean
 # This one defines the number of Taylor terms
-Cimager.Images.image.${imageBase}.nterms       = ${ntermsSci}
+Cimager.Images.image.${imageBase}.nterms       = ${NUM_TAYLOR_TERMS}
 # This one assigns one worker for each of the Taylor terms
 Cimager.nworkergroups                           = ${nworkergroupsSci}
 # This tells the gridder to weight the visibilities appropriately
 Cimager.visweights                              = MFS
 # This is the reference frequency - it should lie in your frequency range (ideally in the middle)
-Cimager.visweights.MFS.reffreq                  = ${freqContSci}
+Cimager.visweights.MFS.reffreq                  = ${MFS_REF_FREQ}
 #
 # This defines the parameters for the gridding.
-Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 2600
+Cimager.gridder.snapshotimaging                 = ${GRIDDER_SNAPSHOT_IMAGING}
+Cimager.gridder.snapshotimaging.wtolerance      = ${GRIDDER_SNAPSHOT_WTOL}
 Cimager.gridder                                 = WProject
-Cimager.gridder.WProject.wmax                   = 2600
-Cimager.gridder.WProject.nwplanes               = 99
-Cimager.gridder.WProject.oversample             = 4
-Cimager.gridder.WProject.maxsupport             = 512
+Cimager.gridder.WProject.wmax                   = ${GRIDDER_WMAX}
+Cimager.gridder.WProject.nwplanes               = ${GRIDDER_NWPLANES}
+Cimager.gridder.WProject.oversample             = ${GRIDDER_OVERSAMPLE}
+Cimager.gridder.WProject.maxsupport             = ${GRIDDER_MAXSUPPORT}
 Cimager.gridder.WProject.variablesupport        = true
 Cimager.gridder.WProject.offsetsupport          = true
 #
+# These parameters define the clean algorithm 
 Cimager.solver                                  = Clean
-Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 500
-Cimager.solver.Clean.gain                       = 0.5
-Cimager.solver.Clean.scales                     = [0, 3, 10]
+Cimager.solver.Clean.algorithm                  = ${CLEAN_ALGORITHM}
+Cimager.solver.Clean.niter                      = ${CLEAN_MINORCYCLE_NITER}
+Cimager.solver.Clean.gain                       = ${CLEAN_GAIN}
+Cimager.solver.Clean.scales                     = ${CLEAN_SCALES}
 Cimager.solver.Clean.verbose                    = False
 Cimager.solver.Clean.tolerance                  = 0.01
 Cimager.solver.Clean.weightcutoff               = zero
 Cimager.solver.Clean.weightcutoff.clean         = false
 Cimager.solver.Clean.psfwidth                   = 512
 Cimager.solver.Clean.logevery                   = 50
-Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
-Cimager.threshold.majorcycle                    = 1mJy
-Cimager.ncycles                                 = 2
+Cimager.threshold.minorcycle                    = ${CLEAN_THRESHOLD_MINORCYCLE}
+Cimager.threshold.majorcycle                    = ${CLEAN_THRESHOLD_MAJORCYCLE}
+Cimager.ncycles                                 = ${CLEAN_NUM_MAJORCYCLES}
 Cimager.Images.writeAtMajorCycle                = false
 #
-Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
-Cimager.preconditioner.Wiener.robustness        = 0.5
+${preconditioning}
 #
 Cimager.restore                                 = true
-Cimager.restore.beam                            = ${restoringBeamCont}
+Cimager.restore.beam                            = ${RESTORING_BEAM_CONT}
 "

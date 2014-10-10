@@ -5,7 +5,7 @@
 #
 # (c) Matthew Whiting, CSIRO ATNF, 2014
 
-if [ $doContinuumImaging == true ]; then
+if [ $DO_CONT_IMAGING == true ]; then
 
     # Define the Cimager parset
     . ${SCRIPTDIR}/getContinuumCimagerParams.sh
@@ -15,7 +15,7 @@ if [ $doContinuumImaging == true ]; then
 #!/usr/bin/env bash
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=${NUM_CPUS_CONTIMG_SCI}
-#SBATCH --ntasks-per-node=${CPUS_PER_CORE_CONTIMG_SCI}
+#SBATCH --ntasks-per-node=${CPUS_PER_CORE_CONT_IMAGING}
 #SBATCH --job-name=clean${BEAM}
 #SBATCH --export=ASKAP_ROOT,AIPSPATH
 
@@ -35,11 +35,11 @@ EOFINNER
 
 log=$logs/science_imaging_beam${BEAM}_\${SLURM_JOB_ID}.log
 
-aprun -n ${NUM_CPUS_CONTIMG_SCI} -N ${CPUS_PER_CORE_CONTIMG_SCI} $cimager -c \$parset > \$log
+aprun -n ${NUM_CPUS_CONTIMG_SCI} -N ${CPUS_PER_CORE_CONT_IMAGING} $cimager -c \$parset > \$log
 
 EOFOUTER
 
-    if [ $doSubmit == true ]; then
+    if [ $SUBMIT_JOBS == true ]; then
 	DEP=""
 	if [ "$ID_AVERAGE_SCI" != "" ]; then
 	    DEP="-d afterok:${ID_AVERAGE_SCI}"

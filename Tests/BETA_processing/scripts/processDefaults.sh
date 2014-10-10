@@ -11,9 +11,9 @@
 # Check for the presence of simager. If not available, turn off
 # spectral-line imaging
 
-if [ $doSpectralImaging == true ] && [ ! -e $simager ]; then
-    echo "WARNING! Spectral-line imager '${simager}' not found. Setting doSpectralImaging=false."
-    doSpectralImaging=false
+if [ $DO_SPECTRAL_IMAGING == true ] && [ ! -e $simager ]; then
+    echo "WARNING! Spectral-line imager '${simager}' not found. Setting DO_SPECTRAL_IMAGING=false."
+    DO_SPECTRAL_IMAGING=false
 fi
 
 
@@ -22,43 +22,43 @@ fi
 #  We define these based on the SB number
 
 # 1934-638 calibration
-if [ "$input1934" == "" ]; then
-    if [ $SB1934 != "SET_THIS" ]; then
-	sb1934dir=$SBdir/$SB1934
+if [ "$MS_INPUT_1934" == "" ]; then
+    if [ $SB_1934 != "SET_THIS" ]; then
+	sb1934dir=$DIR_SB/$SB_1934
 	if [ `\ls $sb1934dir | grep "ms" | wc -l` == 1 ]; then
-	    input1934=$sb1934dir/`\ls $sb1934dir | grep "ms"`
+	    MS_INPUT_1934=$sb1934dir/`\ls $sb1934dir | grep "ms"`
 	else
-	    echo "SB directory $SB1934 has more than one measurement set. Please specify with parameter 'input1934'."
+	    echo "SB directory $SB_1934 has more than one measurement set. Please specify with parameter 'MS_INPUT_1934'."
 	fi
     else
-	echo "You must set either 'SB1934' (scheduling block number) or 'input1934' (1934 measurement set)."
+	echo "You must set either 'SB_1934' (scheduling block number) or 'MS_INPUT_1934' (1934 measurement set)."
     fi
 fi
-if [ "$input1934" == "" ]; then
-    if [ $do1934cal == true ]; then
-	echo "Parameter 'input1934' not defined. Turning off 1934-638 processing with do1934cal=false."
+if [ "$MS_INPUT_1934" == "" ]; then
+    if [ $DO_1934_CAL == true ]; then
+	echo "Parameter 'MS_INPUT_1934' not defined. Turning off 1934-638 processing with DO_1934_CAL=false."
     fi
-    do1934cal=false
+    DO_1934_CAL=false
 fi
 
 # science observation
-if [ "$inputSci" == "" ]; then
-    if [ $SBscience != "SET_THIS" ]; then
-	sbScienceDir=$SBdir/$SBscience
+if [ "$MS_INPUT_SCIENCE" == "" ]; then
+    if [ $SB_SCIENCE != "SET_THIS" ]; then
+	sbScienceDir=$DIR_SB/$SB_SCIENCE
 	if [ `\ls $sbScienceDir | grep "ms" | wc -l` == 1 ]; then
-	    inputSci=$sbScienceDir/`\ls $sbScienceDir | grep "ms"`
+	    MS_INPUT_SCIENCE=$sbScienceDir/`\ls $sbScienceDir | grep "ms"`
 	else
-	    echo "SB directory $SBscience has more than one measurement set. Please specify with parameter 'inputSci'."
+	    echo "SB directory $SB_SCIENCE has more than one measurement set. Please specify with parameter 'MS_INPUT_SCIENCE'."
 	fi
     else
-	echo "You must set either 'SBscience' (scheduling block number) or 'inputSci' (Science observation measurement set)."
+	echo "You must set either 'SB_SCIENCE' (scheduling block number) or 'MS_INPUT_SCIENCE' (Science observation measurement set)."
     fi
 fi
-if [ "$inputSci" == "" ]; then
-    if [ $doSci == true ]; then
-	echo "Parameter 'inputSci' not defined. Turning off science processing with doSci=false."
+if [ "$MS_INPUT_SCIENCE" == "" ]; then
+    if [ $DO_SCIENCE_FIELD == true ]; then
+	echo "Parameter 'MS_INPUT_SCIENCE' not defined. Turning off science processing with DO_SCIENCE_FIELD=false."
     fi
-    doSci=false
+    DO_SCIENCE_FIELD=false
 fi
 
 ####################
@@ -68,10 +68,10 @@ nbeam=`echo $BEAM_MAX $BEAM_MIN | awk '{print $1-$2+1}'`
 
 # Turn off mosaicking if there is just a single beam
 if [ $nbeam -eq 1 ]; then
-    if [ $doLinmos == true ]; then
-	echo "Only have a single beam to process, so setting doLinmos=false"
+    if [ $DO_MOSAIC == true ]; then
+	echo "Only have a single beam to process, so setting DO_MOSAIC=false"
     fi
-    doLinmos=false
+    DO_MOSAIC=false
 fi
 
 ####################
@@ -79,10 +79,10 @@ fi
 ####
 
 # nchanContSci = number of channels after averaging
-nchanContSci=`echo $nchanSci $chanAverageSci | awk '{print $1/$2}'`
+nchanContSci=`echo $NUM_CHAN $NUM_CHAN_TO_AVERAGE | awk '{print $1/$2}'`
 
 # nworkergroupsSci = number of worker groups, used for MFS imaging. 
-nworkergroupsSci=`echo $ntermsSci | awk '{print 2*$1-1}'`
+nworkergroupsSci=`echo $NUM_TAYLOR_TERMS | awk '{print 2*$1-1}'`
 
 # total number of CPUs required for MFS continuum imaging, including
 # the master
