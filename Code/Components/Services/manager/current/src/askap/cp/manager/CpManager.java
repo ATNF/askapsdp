@@ -27,6 +27,9 @@ package askap.cp.manager;
 
 import org.apache.log4j.Logger;
 
+import askap.util.ServiceApplication;
+import askap.util.ServiceManager;
+
 public class CpManager extends ServiceApplication {
 	/** Logger */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
@@ -60,8 +63,7 @@ public class CpManager extends ServiceApplication {
 			// Blocks until shutdown
 			ServiceManager.runService(communicator(), svc, serviceName, adapterName);
 		} catch (Exception e) {
-			logger.error("Unexpected exception: " + e.getMessage());
-			logger.error(e.getStackTrace());
+			logger.error("Unexpected exception: " + e);
 		}
 
 		return 0;

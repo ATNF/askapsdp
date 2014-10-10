@@ -25,11 +25,13 @@ package askap.cp.caldatasvc;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
+
 import Ice.Current;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
+import askap.util.ParameterSet;
 
 /**
  * Implementation of the Calibration Data Service ICE interface.
@@ -53,16 +55,9 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	/**
 	 * Constructor
 	 */
-	public CalibrationDataServiceImpl(Ice.Communicator ic) {
+	public CalibrationDataServiceImpl(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating Calibration Data Service");
 		itsManager = new SolutionManager(null);
-	}
-
-	/**
-	 * finalize
-	 */
-	public void finalize() {
-		logger.info("Destroying Calibration Data Service");
 	}
 	
 	/**

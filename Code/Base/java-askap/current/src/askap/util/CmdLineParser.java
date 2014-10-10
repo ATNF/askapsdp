@@ -23,7 +23,7 @@
  * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.manager;
+package askap.util;
 
 import java.io.PrintStream;
 import java.util.HashMap;

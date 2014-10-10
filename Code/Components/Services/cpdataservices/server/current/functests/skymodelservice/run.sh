@@ -20,7 +20,7 @@ REG_PID=$!
 waitIceRegistry icegridadmin.cfg
 
 # Start the service under test
-nohup java -Xmx1024m askap/cp/skymodelsvc/Server --Ice.Config=skymodelsvc.cfg > ${APP_LOG} 2>&1 &
+nohup java -Xmx2048m askap/cp/skymodelsvc/Server -c skymodelsvc.in -l askap.log_cfg > ${APP_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg SkyModelServiceAdapter
 

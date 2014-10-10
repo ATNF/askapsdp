@@ -26,13 +26,16 @@ package askap.cp.rfisourcesvc;
 // Java imports
 import java.util.List;
 
+
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
+
 import Ice.Current;
 import askap.cp.rfisourcesvc.persist.PersistenceInterface;
 import askap.interfaces.rfisourcesvc.EntryDoesNotExistException;
 import askap.interfaces.rfisourcesvc.RFIEntry;
 import askap.interfaces.rfisourcesvc._IRFISourceServiceDisp;
+import askap.util.ParameterSet;
 
 /**
  * Implementation of the RFI Source Service ICE interface.
@@ -59,16 +62,9 @@ public class RFISourceServiceImpl extends _IRFISourceServiceDisp {
 	/**
 	 * Constructor
 	 */
-	public RFISourceServiceImpl(Ice.Communicator ic) {
+	public RFISourceServiceImpl(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating RFI Source Service");
 		itsPersistance = new PersistenceInterface();
-	}
-
-	/**
-	 * finalize
-	 */
-	public void finalize() {
-		logger.info("Destroying RFI Source Service");
 	}
 	
 	/**

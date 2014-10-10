@@ -25,56 +25,60 @@
  */
 package askap.cp.rfisourcesvc;
 
-// System imports
-import java.io.File;
-
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
-import askap.cp.utils.ServiceManager;
+import askap.util.ServiceApplication;
+import askap.util.ServiceManager;
 
-public class Server extends Ice.Application {
+public class Server extends ServiceApplication {
 
 	/**
 	 * Logger
 	 * */
 	private static Logger logger = Logger.getLogger(Server.class.getName());
 
+	public Server() {
+		super();
+	}
+
+	/**
+	 * @see askap.cp.manager.ServiceApplication#run(java.lang.String[])
+	 */
 	@Override
 	public int run(String[] args) {
-		// Init logging
-		final String logcfg = "askap.log_cfg";
-		File f = new File(logcfg);
-		if (f.exists()) {
-			PropertyConfigurator.configure(logcfg);
-		} else {
-			BasicConfigurator.configure();
-		}
-
-		logger.info("ASKAP RFI Source Service (Server)");
-
-		int status = 0;
 		try {
-			RFISourceServiceImpl svc = new RFISourceServiceImpl(communicator());
+			logger.info("RFI Source Service");
+
+			final String serviceName = config().getString("ice.servicename");
+			if (serviceName == null) {
+				logger.error("Parameter 'ice.servicename' not found");
+				return 1;
+			}
+			final String adapterName = config().getString("ice.adaptername");
+			if (adapterName == null) {
+				logger.error("Parameter 'ice.adaptername' not found");
+				return 1;
+			}
+
+			// Create and register the ObsService object
+			RFISourceServiceImpl svc = new RFISourceServiceImpl(communicator(), config());
 
 			// Blocks until shutdown
-			ServiceManager.runService(communicator(), svc, "RFISourceService",
-					"RFISourceServiceAdapter");
+			ServiceManager.runService(communicator(), svc, serviceName, adapterName);
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			status = 1;
+			logger.error("Unexpected exception: " + e);
 		}
-		return status;
+
+		return 0;
 	}
-	
+
 	/**
+	 * Main
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		Server svr = new Server();
-		int status = svr.main("RFISourceService", args);
+		int status = svr.servicemain(args);
 		System.exit(status);
 	}
 }

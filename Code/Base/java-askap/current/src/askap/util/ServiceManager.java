@@ -21,18 +21,25 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
-package askap.cp.utils;
+package askap.util;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 
 public class ServiceManager {
-	/**
-	 * Logger
-	 */
+	/** Logger */
 	private static Logger logger = Logger.getLogger(ServiceManager.class
 			.getName());
 
+	/**
+	 * Runs an Ice Service. This call blocks until the Ice communicator
+	 * is shutdown.
+	 * 
+	 * @param ic
+	 * @param svc
+	 * @param serviceName
+	 * @param adapterName
+	 */
 	public static void runService(Ice.Communicator ic, Ice.Object svc,
 			final String serviceName, final String adapterName) {
 
@@ -81,6 +88,5 @@ public class ServiceManager {
 		adapter.deactivate();
 		adapter.destroy();
 		logger.info(serviceName + " stopped");
-
 	}
 }

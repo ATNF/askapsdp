@@ -28,11 +28,14 @@ package askap.cp.skymodelsvc;
 // Java imports
 import java.util.List;
 
+
 // ASKAPsoft imports
 import Ice.Current;
 import askap.cp.skymodelsvc.persist.PersistenceInterface;
 import askap.interfaces.skymodelservice.Component;
 import askap.interfaces.skymodelservice._ISkyModelServiceDisp;
+import askap.util.ParameterSet;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -56,16 +59,9 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * Constructor
 	 */
-	public SkyModelServiceImpl(Ice.Communicator ic) {
+	public SkyModelServiceImpl(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating SkyModelService");
 		itsPersistance = new PersistenceInterface();
-	}
-
-	/**
-	 * finalize
-	 */
-	public void finalize() {
-		logger.info("Destroying SkyModelService");
 	}
 
 	/**

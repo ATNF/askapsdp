@@ -22,7 +22,7 @@ waitIceRegistry icegridadmin.cfg
 
 # Start the service under test
 echo "Starting the Calibration Data Service..."
-nohup java -Xmx1024m askap/cp/caldatasvc/Server --Ice.Config=caldatasvc.cfg > ${APP_LOG} 2>&1 &
+nohup java -Xmx2048m askap/cp/caldatasvc/Server -c caldatasvc.in -l askap.log_cfg > ${APP_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg CalibrationDataServiceAdapter
 

@@ -49,8 +49,6 @@ import askap.interfaces.skymodelservice.Component;
 
 public class PersistenceInterfaceTest {
 	
-	String itsComponentsTbl = "components";
-	
 	/**
 	 * Hibernate session object
 	 */
@@ -138,7 +136,7 @@ public class PersistenceInterfaceTest {
 		List<Long> ids2 = itsInstance.addComponents(components);
 		assertEquals(1, ids2.size());
 
-		assertNotSame(ids1.get(0).longValue(), ids2.get(0).longValue());
+		assertNotSame(ids1.get(0), ids2.get(0));
 		
 		// Add multiple components
 		components.clear();
@@ -150,7 +148,7 @@ public class PersistenceInterfaceTest {
 		
 		List<Long> ids3 = itsInstance.addComponents(components);
 		assertEquals(n, ids3.size());
-		assertNotSame(ids3.get(0).longValue(), ids3.get(1).longValue());
+		assertNotSame(ids3.get(0), ids3.get(1));
 	}
 	
 	@Test

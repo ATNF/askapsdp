@@ -1,0 +1,18 @@
+########################## Ice Properties ##############################
+
+# Registry location
+ice_properties.Ice.Default.Locator                  = IceGrid/Locator:tcp -h localhost -p 4061
+
+# Object adapter
+ice_properties.CalibrationDataServiceAdapter.Endpoints    = tcp
+ice_properties.CalibrationDataServiceAdapter.AdapterId    = CalibrationDataServiceAdapter
+
+ice_properties.Ice.MessageSizeMax                   = 131072
+ice_properties.Ice.ThreadPool.Server.Size           = 4
+ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
+
+################## CP Manager Specific Properties ######################
+
+# Object identity and proxy to use for the ICE object
+ice.servicename                 = CalibrationDataService
+ice.adaptername                 = CalibrationDataServiceAdapter
