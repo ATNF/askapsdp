@@ -141,7 +141,7 @@ CPUS_PER_CORE_CONT_IMAGING=20
 # image.i.blah, image.i.blah.restored, psf.i.blah etc
 IMAGE_BASE_CONT=i.cont
 # number of pixels on the side of the images to be created
-NUM_PIXELS_CONT=2048
+NUM_PIXELS_CONT=4096
 # Size of the pixels in arcsec
 CELLSIZE_CONT=10
 # Frequency at which continuum image is made [Hz]
