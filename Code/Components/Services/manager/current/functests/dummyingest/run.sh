@@ -47,9 +47,10 @@ waitIceRegistry icegridadmin.cfg
 
 # Start the cpmanager
 echo "Starting the CP Manager..."
-nohup java askap/cp/manager/CpManager -c cpmanager.in -l askap.log_cfg > ${CPMAN_LOG} 2>&1 &
+java askap/cp/manager/CpManager -c cpmanager.in -l askap.log_cfg > ${CPMAN_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg CentralProcessorAdapter
+waitIceAdapter icegridadmin.cfg CentralProcessorMonitoringAdapter
 
 # Run the test
 echo "Executing the testcase..."

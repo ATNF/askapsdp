@@ -66,6 +66,7 @@ public class ObsService extends _ICPObsServiceDisp {
 	 * @param parset
 	 */
 	public ObsService(Ice.Communicator ic, ParameterSet parset) {
+		super();
 		logger.debug("Creating ObsService");
 
 		// Instantiate real or mock FCM

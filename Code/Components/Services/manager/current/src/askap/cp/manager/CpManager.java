@@ -27,16 +27,13 @@ package askap.cp.manager;
 
 import org.apache.log4j.Logger;
 
+import askap.cp.manager.monitoring.MonitoringSingleton;
 import askap.util.ServiceApplication;
 import askap.util.ServiceManager;
 
 public class CpManager extends ServiceApplication {
 	/** Logger */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
-
-	public CpManager() {
-		super();
-	}
 
 	/**
 	 * @see askap.cp.manager.ServiceApplication#run(java.lang.String[])
@@ -59,9 +56,21 @@ public class CpManager extends ServiceApplication {
 
 			// Create and register the ObsService object
 			ObsService svc = new ObsService(communicator(), config());
+			
+			// Initialise monitoring interface if configured
+			boolean monitoring = config().getBoolean("monitoring.enabled", false);
+			if (monitoring) {
+				boolean status = initMonitoring();
+				if (!status) {
+					logger.error("Monitoring sub-system failed to initialise correctly");
+				}
+			}
 
 			// Blocks until shutdown
 			ServiceManager.runService(communicator(), svc, serviceName, adapterName);
+			if (monitoring) {
+				MonitoringSingleton.destroy();
+			}
 		} catch (Exception e) {
 			logger.error("Unexpected exception: " + e);
 		}
@@ -71,11 +80,34 @@ public class CpManager extends ServiceApplication {
 
 	/**
 	 * Main
-	 * @param args
+	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
 		CpManager svr = new CpManager();
 		int status = svr.servicemain(args);
 		System.exit(status);
+	}
+
+	/**
+	 * Initialise the monitoring singleton.
+	 * @return true if the monitoring sub-system was correctly initialised,
+	 * otherwise false.
+	 */
+	private boolean initMonitoring() {
+		final String key1 = "monitoring.ice.servicename";
+		final String key2 = "monitoring.ice.adaptername";
+		String serviceName = config().getString(key1);
+		if (serviceName == null) {
+			logger.error("Parameter '" + key1 + "' not found");
+			return false;
+		}
+		String adapterName = config().getString(key2);
+		if (adapterName == null) {
+			logger.error("Parameter '" + key2 + "' not found");
+			return false;
+		}
+		MonitoringSingleton.init(communicator(),
+				serviceName, adapterName);
+		return true;
 	}
 }

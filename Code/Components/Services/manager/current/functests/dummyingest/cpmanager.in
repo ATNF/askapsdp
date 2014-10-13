@@ -7,6 +7,9 @@ ice_properties.Ice.Default.Locator                  = IceGrid/Locator:tcp -h loc
 ice_properties.CentralProcessorAdapter.Endpoints    = tcp
 ice_properties.CentralProcessorAdapter.AdapterId    = CentralProcessorAdapter
 
+ice_properties.CentralProcessorMonitoringAdapter.Endpoints    = tcp
+ice_properties.CentralProcessorMonitoringAdapter.AdapterId    = CentralProcessorMonitoringAdapter
+
 ice_properties.Ice.MessageSizeMax                   = 131072
 ice_properties.Ice.ThreadPool.Server.Size           = 4
 ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
@@ -16,6 +19,11 @@ ice_properties.Ice.ThreadPool.Server.SizeMax        = 16
 # Object identity and proxy to use for the CP manager ICE object
 ice.servicename                 = CentralProcessorService
 ice.adaptername                 = CentralProcessorAdapter
+
+# Monitoring provider configuration
+monitoring.enabled              = true
+monitoring.ice.servicename      = CentralProcessoMonitoringrService
+monitoring.ice.adaptername      = CentralProcessorMonitoringAdapter
 
 # Use a mock FCM
 fcm.mock                        = true
