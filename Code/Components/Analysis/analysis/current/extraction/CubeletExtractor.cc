@@ -203,6 +203,9 @@ namespace askap {
 		// write the array
 		ia.write(this->itsOutputFilename,newarray);
 
+		// write the flux units
+		ia.setUnits(this->itsOutputFilename,this->itsInputCubePtr->units().getName());
+
 		this->writeBeam(this->itsOutputFilename);
 		
 		casa::LogicalArray mask(this->itsInputCubePtr->pixelMask().getSlice(this->itsSlicer).reform(outshape));
