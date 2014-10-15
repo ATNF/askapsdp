@@ -135,7 +135,7 @@ FLAG_THRESHOLD_AMPLITUDE_SCIENCE=0.2
 # Number of Taylor terms to create in MFS imaging
 NUM_TAYLOR_TERMS=3
 # Number of CPUs to use on each core in the continuum imaging
-CPUS_PER_CORE_CONT_IMAGING=20
+CPUS_PER_CORE_CONT_IMAGING=15
 
 # base name for images: if IMAGE_BASE_CONT=i.blah then we'll get
 # image.i.blah, image.i.blah.restored, psf.i.blah etc
