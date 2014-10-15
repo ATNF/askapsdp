@@ -45,6 +45,11 @@ public abstract class AbstractIngestManager {
 	 * Parameter set (i.e. configuration from file)
 	 */
 	private ParameterSet itsParset;
+	
+	/**
+	 * Monitoring thread
+	 */
+	Thread monitoringThread;
 
 	/**
 	 * Constructor
@@ -53,6 +58,8 @@ public abstract class AbstractIngestManager {
 		// Pre-conditions
 		assert (parset != null);
 		itsParset = parset;
+		monitoringThread = new Thread(new IngestMonitorThread(this));
+		monitoringThread.start();
 	}
 
 	/**

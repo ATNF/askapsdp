@@ -87,11 +87,10 @@ public class MonitoringSingleton {
 
 	/**
 	 * @return the singleton instance of the MonitoringSingleton
+	 * or null if the singleton is not initialised (likely indicating
+	 * monitoring is not enabled)
 	 */
 	public static synchronized MonitoringSingleton getInstance() {
-		if (instance == null) {
-			throw new RuntimeException("MonitoringSingleton not initialised");
-		}
 		return instance;
 	}
 
@@ -152,6 +151,8 @@ public class MonitoringSingleton {
 	 * If a value for this point is already set it will be replaced with
 	 * the supplied data.
 	 * 
+	 * This method adds a "cp.manager." prefix to all monitoring points.
+	 * 
 	 * @param name		a name identifying the monitoring point.
 	 * @param value		the value a point has (e.g. some measurement or state)
 	 * @param status	the status of the point
@@ -160,7 +161,7 @@ public class MonitoringSingleton {
 	public <T> void update(String name, T value, MonitorPointStatus status,
 			String unit) {
 		MonitorPoint point = new MonitorPoint();
-		point.name = name;
+		point.name = "cp.manager." + name;
 		point.value = TypedValueUtils.object2TypedValue(value);
 		point.status = toIceStatus(status);
 		point.unit = unit;
