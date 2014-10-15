@@ -7,11 +7,11 @@ if [ $DO_SPECTRAL_IMAGING == true ]; then
     imageBase=${IMAGE_BASE_SPECTRAL}.beam${BEAM}
 
     shapeDefinition="# Leave shape definition to advise"
-    if [ $NUM_PIXELS_SPECTRAL -gt 0 ]; then
+    if [ "${NUM_PIXELS_SPECTRAL}" != "" ] && [ $NUM_PIXELS_SPECTRAL -gt 0 ]; then
 	shapeDefinition="Cimager.Images.shape                            = [${NUM_PIXELS_SPECTRAL}, ${NUM_PIXELS_SPECTRAL}]"
     fi
     cellsizeDefinition="# Leave cellsize definition to advise"
-    if [ $CELLSIZE_SPECTRAL -gt 0 ]; then
+    if [ "${CELLSIZE_SPECTRAL}" != "" ] && [ $CELLSIZE_SPECTRAL -gt 0 ]; then
 	cellsizeDefinition="Simager.Images.cellsize                         = [${CELLSIZE_SPECTRAL}arcsec, ${CELLSIZE_SPECTRAL}arcsec]"
     fi
 

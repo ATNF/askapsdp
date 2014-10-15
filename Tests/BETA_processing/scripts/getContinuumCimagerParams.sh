@@ -21,13 +21,13 @@ imageBase=${IMAGE_BASE_CONT}.beam${BEAM}
 
 # Define the shape parameter, or leave to "advise"
 shapeDefinition="# Leave shape definition to Cimager to determine from the data"
-if [ $NUM_PIXELS_CONT -gt 0 ]; then
+if [ "${NUM_PIXELS_CONT}" != "" ] && [ $NUM_PIXELS_CONT -gt 0 ]; then
     shapeDefinition="Cimager.Images.shape                            = [${NUM_PIXELS_CONT}, ${NUM_PIXELS_CONT}]"
 fi
 
 # Define the cellsize parameter, or leave to "advise"
 cellsizeDefinition="# Leave cellsize definition to Cimager to determine from the data"
-if [ $CELLSIZE_CONT -gt 0 ]; then
+if [ "${CELLSIZE_CONT}" != "" ] && [ $CELLSIZE_CONT -gt 0 ]; then
     cellsizeDefinition="Cimager.Images.cellsize                         = [${CELLSIZE_CONT}arcsec, ${CELLSIZE_CONT}arcsec]"
 fi
 
@@ -62,7 +62,7 @@ Cimager.Images.image.${imageBase}.nterms       = ${NUM_TAYLOR_TERMS}
 Cimager.nworkergroups                           = ${nworkergroupsSci}
 # Leave 'Cimager.visweights' to be determined by Cimager, based on nterms"
 
-if [ "${MFS_REF_FREQ}" == "" ]; then
+if [ "${MFS_REF_FREQ}" == "" ] || [ $MFS_REF_FREQ -le 0 ]; then
     mfsParams="${mfsParams}
 # Leave 'Cimager.visweights.MFS.reffreq' to be determined by Cimager"
 else
