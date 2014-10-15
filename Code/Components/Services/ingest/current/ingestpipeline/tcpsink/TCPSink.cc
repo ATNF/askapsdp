@@ -132,6 +132,7 @@ void TCPSink::serialiseVisChunk(const askap::cp::common::VisChunk& chunk, std::v
     pushBack<uint32_t>(chunk.nChannel(), v);
     pushBack<uint32_t>(chunk.nPol(), v);
     pushBack<uint64_t>(askap::epoch2bat(MEpoch(chunk.time(), MEpoch::UTC)), v);
+    pushBack<uint32_t>(chunk.scan(), v);
 
     pushBack<double>(chunk.channelWidth(), v);
     pushBackArray<double>(chunk.frequency(), v);

@@ -97,7 +97,8 @@ int PublisherApp::run(int argc, char* argv[])
             try {
                 InputMessage inMsg = InputMessage::build(socket);
                 timer.mark();
-                ASKAPLOG_DEBUG_STR(logger, "Received a message");
+                ASKAPLOG_DEBUG_STR(logger, "Received a message - Timestamp: "
+                        << inMsg.timestamp() << " Scan: " << inMsg.scan());
 
                 ///////////////////
                 // Publish SPD data

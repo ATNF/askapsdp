@@ -60,6 +60,9 @@ class SpdOutputMessage {
         /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t& timestamp(void) { return itsTimestamp; };
 
+        /// Scan ID
+        uint32_t& scan(void) { return itsScan; };
+
         /// Beam ID (zero based)
         uint32_t& beamId(void) { return itsBeamId; };
 
@@ -106,6 +109,9 @@ class SpdOutputMessage {
         /// Binary Atomic Time (BAT) of the correlator integration midpoint.
         /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t itsTimestamp;
+
+        /// ScanID
+        uint32_t itsScan;
 
         /// Beam ID (zero based)
         uint32_t itsBeamId;

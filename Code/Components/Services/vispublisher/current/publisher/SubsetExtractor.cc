@@ -54,6 +54,7 @@ SpdOutputMessage SubsetExtractor::subset(const InputMessage& in, uint32_t beam, 
 
     SpdOutputMessage out;
     out.timestamp() = in.timestamp();
+    out.scan() = in.scan();
     out.beamId() = beam;
     out.polId() = pol;
     out.nChannels() = nChannels;

@@ -40,8 +40,8 @@
 using namespace askap::cp::vispublisher;
 
 SpdOutputMessage::SpdOutputMessage()
-    : itsTimestamp(0), itsBeamId(0), itsPolarisationId(0), itsNChannels(0),
-    itsChanWidth(0.0), itsNBaselines(0)
+    : itsTimestamp(0), itsScan(0), itsBeamId(0), itsPolarisationId(0),
+    itsNChannels(0), itsChanWidth(0.0), itsNBaselines(0)
 {
 }
 
@@ -58,6 +58,7 @@ void SpdOutputMessage::encode(zmq::message_t& msg) const
     msg.rebuild(sz);
     uint8_t* ptr = static_cast<uint8_t*>(msg.data());
     ptr = pushBack<uint64_t>(itsTimestamp, ptr);
+    ptr = pushBack<uint32_t>(itsScan, ptr);
     ptr = pushBack<uint32_t>(itsBeamId, ptr);
     ptr = pushBack<uint32_t>(itsPolarisationId, ptr);
     ptr = pushBack<uint32_t>(itsNChannels, ptr);
@@ -76,7 +77,7 @@ void SpdOutputMessage::encode(zmq::message_t& msg) const
 size_t SpdOutputMessage::sizeInBytes(void) const
 {
     return sizeof (uint64_t)        // time
-        + (4 * sizeof (uint32_t))   // beamid, polid, nchannels, nbaselines
+        + (5 * sizeof (uint32_t))   // scan, beamid, polid, nchannels, nbaselines
         + sizeof (double)           // chanwidth
         + (itsFrequency.size() * sizeof (double))
         + (itsAntenna1.size() * sizeof (uint32_t))

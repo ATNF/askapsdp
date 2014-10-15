@@ -59,6 +59,9 @@ class InputMessage {
         uint64_t& timestamp(void);
         const uint64_t& timestamp(void) const;
 
+        uint32_t& scan(void);
+        const uint32_t& scan(void) const;
+
         uint32_t& nRow(void);
         const uint32_t& nRow(void) const;
 
@@ -142,6 +145,9 @@ class InputMessage {
         /// Binary Atomic Time (BAT) of the correlator integration midpoint.
         /// The number of microseconds since Modified Julian Day (MJD) = 0
         uint64_t itsTimestamp;
+
+        /// Scan ID
+        uint32_t itsScan;
 
         /// Channel width (in Hz)
         double itsChanWidth;

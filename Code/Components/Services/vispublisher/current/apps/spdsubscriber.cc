@@ -41,6 +41,7 @@ using askap::utility::toString;
 struct header_t
 {
     uint64_t timestamp;
+    uint32_t scan;
     uint32_t beam;  // Zero based
     uint32_t pol;   // Polarisation - 0=XX, 1=XY, 2=YX, 3=YY
     uint32_t nChan;
@@ -54,6 +55,7 @@ static void printmsg(std::ostream& os, const zmq::message_t& msg)
     os << "Received Message - Beam: " << p->beam
         << " Pol: " << p->pol
         << " Time: " << p->timestamp
+        << " Scan: " << p->scan
         << endl;
 }
 

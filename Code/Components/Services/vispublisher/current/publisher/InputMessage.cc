@@ -54,6 +54,7 @@ InputMessage InputMessage::build(boost::asio::ip::tcp::socket& socket)
     msg.itsNChannel = read<uint32_t>(socket);
     msg.itsNPol = read<uint32_t>(socket);
     msg.itsTimestamp = read<uint64_t>(socket);
+    msg.itsScan = read<uint32_t>(socket);
     msg.itsChanWidth = read<double>(socket);
     msg.itsFrequency = readVector<double>(socket, msg.itsNChannel);
     msg.itsAntenna1 = readVector<uint32_t>(socket, msg.itsNRow);
@@ -104,6 +105,16 @@ uint64_t& InputMessage::timestamp(void)
 const uint64_t& InputMessage::timestamp(void) const
 {
     return itsTimestamp;
+}
+
+uint32_t& InputMessage::scan(void)
+{
+    return itsScan;
+}
+
+const uint32_t& InputMessage::scan(void) const
+{
+    return itsScan;
 }
 
 double& InputMessage::chanWidth(void)
