@@ -145,7 +145,7 @@ NUM_PIXELS_CONT=4096
 # Size of the pixels in arcsec
 CELLSIZE_CONT=10
 # Frequency at which continuum image is made [Hz]
-MFS_REF_FREQ=863.e6
+MFS_REF_FREQ=""
 # Restoring beam: 'fit' will fit the PSF to determine the appropriate
 # beam, else give a size
 RESTORING_BEAM_CONT=fit

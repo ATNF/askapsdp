@@ -19,21 +19,25 @@
 
 imageBase=${IMAGE_BASE_CONT}.beam${BEAM}
 
+# Define the shape parameter, or leave to "advise"
 shapeDefinition="# Leave shape definition to Cimager to determine from the data"
 if [ $NUM_PIXELS_CONT -gt 0 ]; then
     shapeDefinition="Cimager.Images.shape                            = [${NUM_PIXELS_CONT}, ${NUM_PIXELS_CONT}]"
 fi
 
+# Define the cellsize parameter, or leave to "advise"
 cellsizeDefinition="# Leave cellsize definition to Cimager to determine from the data"
 if [ $CELLSIZE_CONT -gt 0 ]; then
     cellsizeDefinition="Cimager.Images.cellsize                         = [${CELLSIZE_CONT}arcsec, ${CELLSIZE_CONT}arcsec]"
 fi
 
+# Define the direction parameter, or leave to "advise"
 directionDefinition="# Leave direction definition to Cimager to determine from the data"
 if [ "${directionSci}" != "" ]; then
     directionDefinition="Cimager.Images.image.${imageBase}.direction    = ${directionSci}"
 fi
 
+# Define the preconditioning
 preconditioning="Cimager.preconditioner.Names                    = ${PRECONDITIONER_LIST}"
 if [ "`echo ${PRECONDITIONER_LIST} | grep GaussianTaper`" != "" ]; then
     preconditioning="$preconditioning
@@ -50,6 +54,23 @@ Cimager.preconditioner.Wiener.taper             = ${PRECONDITIONER_WIENER_TAPER}
     fi
 fi
 
+#Define the MFS parameters: visweights and reffreq, or leave to advise
+mfsParams="# The following are needed for MFS clean
+# This one defines the number of Taylor terms
+Cimager.Images.image.${imageBase}.nterms       = ${NUM_TAYLOR_TERMS}
+# This one assigns one worker for each of the Taylor terms
+Cimager.nworkergroups                           = ${nworkergroupsSci}
+# Leave 'Cimager.visweights' to be determined by Cimager, based on nterms"
+
+if [ "${MFS_REF_FREQ}" == "" ]; then
+    mfsParams="${mfsParams}
+# Leave 'Cimager.visweights.MFS.reffreq' to be determined by Cimager"
+else
+    mfsParams="${mfsParams}
+# This is the reference frequency - it should lie in your frequency range (ideally in the middle)
+Cimager.visweights.MFS.reffreq                  = ${MFS_REF_FREQ}"
+fi
+
 
 cimagerParams="#Standard Parameter set for Cimager
 Cimager.dataset                                 = ${msSciAv}
@@ -64,15 +85,7 @@ ${directionDefinition}
 # This is how many channels to write to the image - just a single one for continuum
 Cimager.Images.image.${imageBase}.nchan        = 1
 #
-# The following are needed for MFS clean
-# This one defines the number of Taylor terms
-Cimager.Images.image.${imageBase}.nterms       = ${NUM_TAYLOR_TERMS}
-# This one assigns one worker for each of the Taylor terms
-Cimager.nworkergroups                           = ${nworkergroupsSci}
-# This tells the gridder to weight the visibilities appropriately
-Cimager.visweights                              = MFS
-# This is the reference frequency - it should lie in your frequency range (ideally in the middle)
-Cimager.visweights.MFS.reffreq                  = ${MFS_REF_FREQ}
+${mfsParams}
 #
 # This defines the parameters for the gridding.
 Cimager.gridder.snapshotimaging                 = ${GRIDDER_SNAPSHOT_IMAGING}
