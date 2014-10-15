@@ -22,7 +22,7 @@ ice.adaptername                 = CentralProcessorAdapter
 
 # Monitoring provider configuration
 monitoring.enabled              = true
-monitoring.ice.servicename      = CentralProcessoMonitoringrService
+monitoring.ice.servicename      = CentralProcessoMonitoringService
 monitoring.ice.adaptername      = CentralProcessorMonitoringAdapter
 
 # Use a mock FCM
