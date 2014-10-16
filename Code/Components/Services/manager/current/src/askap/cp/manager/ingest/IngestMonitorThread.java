@@ -59,6 +59,12 @@ public class IngestMonitorThread implements Runnable {
 
 			boolean running = ingestManager.isRunning();
 			mon.update("ingest.running", running, MonitorPointStatus.OK);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// Polling more quickly is fine in the event
+				// the sleep is interrupted
+			}
 		}
 	}
 }

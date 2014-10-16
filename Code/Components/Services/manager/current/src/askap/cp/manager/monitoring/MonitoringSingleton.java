@@ -161,6 +161,7 @@ public class MonitoringSingleton {
 	public <T> void update(String name, T value, MonitorPointStatus status,
 			String unit) {
 		MonitorPoint point = new MonitorPoint();
+		point.timestamp = getCurrentTimeMJD();
 		point.name = "cp.manager." + name;
 		point.value = TypedValueUtils.object2TypedValue(value);
 		point.status = toIceStatus(status);
@@ -191,5 +192,16 @@ public class MonitoringSingleton {
 		default:
 			throw new RuntimeException("Unmapped PointStatus: " + in);
 		}
+	}
+	
+	/**
+	 * @return Current time expressed as microseconds since MJD=0.
+	 */
+	 static long getCurrentTimeMJD() {
+		final long MJD1970 = 40587; // MJD of 1970/01/01
+		final long SECONDS_PER_DAY = 86400;
+		java.util.Date now = new java.util.Date();
+		long usecSinceUnixEpoch = now.getTime() * 1000;
+		return usecSinceUnixEpoch + (MJD1970 * SECONDS_PER_DAY * 1000 * 1000);
 	}
 }
