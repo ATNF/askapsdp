@@ -12,9 +12,9 @@ def svnversion():
     return stdout
 
 # For a "release" uncomment these and set the release name
-#version = '0.1'
-#release = '0.1-draft'
+version = '0.4'
+release = '0.4'
 
 # For a snapshot use the svn revision instead
-version = 'r' + svnversion()
-release = version
+#version = 'r' + svnversion()
+#release = version
