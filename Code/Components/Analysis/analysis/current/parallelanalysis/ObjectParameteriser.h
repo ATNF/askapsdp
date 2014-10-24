@@ -31,7 +31,6 @@
 
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
-#include <duchamp/Detection/Detection.hh>
 #include <vector>
 
 namespace askap {
