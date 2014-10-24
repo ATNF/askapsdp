@@ -58,11 +58,19 @@ namespace askap {
 
 	ObjectParameteriser::ObjectParameteriser(const ObjectParameteriser& other)
 	{
+	    this->operator=(other);
 	}
 	
 	ObjectParameteriser& ObjectParameteriser::operator= (const ObjectParameteriser& other)
 	{
+	    if(this==&other) return *this;
+	    this->itsComms = other.itsComms;
+	    this->itsDP = other.itsDP;
+	    this->itsInputList = other.itsInputList;
+	    this->itsOutputList = other.itsOutputList;
+	    return *this;
 	}
+
 
 	ObjectParameteriser::~ObjectParameteriser()
 	{
@@ -175,7 +183,7 @@ namespace askap {
 
 		    // define a duchamp Cube using the filename from the this->itsDP->cube()
 		    // set the subsection
-		    DuchampParallel tempDP(*this->itsComms,parset);
+		    DuchampParallel tempDP(*this->itsComms, parset);
 
 		    // open the image
 		    tempDP.readData();
@@ -186,8 +194,12 @@ namespace askap {
 		    // parameterise
 		    tempDP.cube().calcObjectWCSparams();
 
+		    sourcefitting::RadioSource src(tempDP.cube().getObject(0));
+
+		    if(tempDP.fitParams()->doFit()) tempDP.fitSource(src,true);
+
 		    // get the parameterised object and store to itsOutputList
-		    this->itsOutputList.push_back(sourcefitting::RadioSource(tempDP.cube().getObject(0)));
+		    this->itsOutputList.push_back(src);
 		}
 
 	    }

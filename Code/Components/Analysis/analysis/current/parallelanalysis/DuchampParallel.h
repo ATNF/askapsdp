@@ -116,6 +116,9 @@ namespace askap {
                 void setFlagVariableThreshold(bool f) {itsFlagVariableThreshold = f;};
                 /// @}
 
+		sourcefitting::FittingParameters* fitParams(){return &itsFitParams;};
+
+
 	        /// @brief Make sure the spectral index/curvature images have appropriate names.
 	        void checkSpectralTermImages();
 
