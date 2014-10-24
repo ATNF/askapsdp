@@ -203,6 +203,9 @@ namespace askap {
                     /// @brief Define the boundaries of the box
                     void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis = 2);
 
+		    /// @brief Return a subsection string detailing extent of object
+		    std::string boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, unsigned int padsize, bool fullSpectralRange);
+
                     /// @brief Commands to return the extent and size of the box
                     /// surrounding the object.
                     /// @name

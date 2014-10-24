@@ -210,7 +210,7 @@ namespace askap {
 	  this->checkPol(this->itsInputCubeList[0], this->itsStokesList[0],1);
 	}
 	else { // multiple Stokes parameters requested
-	  if(this->itsInputCubeList[0].find("%p") != std::string::npos) { // the filename as a "%p" string, meaning polarisation substitution is possible
+	  if(this->itsInputCubeList[0].find("%p") != std::string::npos) { // the filename has a "%p" string, meaning polarisation substitution is possible
 	    std::string input = this->itsInputCubeList[0];
 	    this->itsInputCubeList=std::vector<std::string>(this->itsStokesList.size());
 	    casa::Stokes stokes;

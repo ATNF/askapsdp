@@ -204,6 +204,43 @@ namespace askap {
                 this->itsBox = casa::Slicer(start, end, stride, Slicer::endIsLast);
             }
 
+            //**************************************************************//
+
+	    std::string RadioSource::boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, unsigned int padsize, bool fullSpectralRange)
+	    {
+		/// @details This function returns a subsection string
+		/// that shows the bounding box for the object. This
+		/// will be in a suitable format for use with the
+		/// subsection string in the input parameter set. It
+		/// uses the FitsHeader object to know which axis
+		/// belongs where.
+
+		const int lng=header->getWCS()->lng;
+		const int lat=header->getWCS()->lat;
+		const int spec=header->getWCS()->spec;
+		std::vector<std::string> sectionlist(dim.size(),"1:1");
+		for(int ax=0;ax<dim.size();ax++){
+		    std::stringstream ss;
+		    if (ax==spec){
+			if (fullSpectralRange) ss << "1:"<<dim[ax]+1;
+			else ss << std::max(1L,this->zmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->zmax-+padsize+1);
+		    }
+		    else if(ax==lng)
+			ss << std::max(1L,this->xmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->xmax-+padsize+1);
+		    else if (ax==lat)
+			ss << std::max(1L,this->ymin-padsize+1)<<":"<<std::min(long(dim[ax]),this->ymax-+padsize+1);
+		    else
+			ss << "1:1";
+		    sectionlist[ax]=ss.str();
+		}
+		std::stringstream secstr;
+		secstr << "[ " << sectionlist[0];
+		for(size_t i=1;i<dim.size();i++) secstr << "," << sectionlist[i];
+		secstr << "]";
+
+		return secstr.str();
+	    }
+
 
             //**************************************************************//
 

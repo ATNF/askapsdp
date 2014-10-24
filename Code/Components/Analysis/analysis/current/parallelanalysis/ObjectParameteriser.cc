@@ -33,7 +33,6 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askapparallel/AskapParallel.h>
-#include <duchamp/Detection/Detection.hh>
 
 #include <parallelanalysis/DuchampParallel.h>
 
@@ -154,32 +153,12 @@ namespace askap {
 		std::vector<size_t> dim(this->itsDP->cube().getDimArray(),this->itsDP->cube().getDimArray()+this->itsDP->cube().getNumDim());
 		LOFAR::ParameterSet parset=this->itsDP->parset();
 		parset.replace("flagsubsection","true");
-		const int lng=this->itsDP->cube().pHeader()->getWCS()->lng;
-		const int lat=this->itsDP->cube().pHeader()->getWCS()->lat;
-		const int spec=this->itsDP->cube().pHeader()->getWCS()->spec;
 
 		int padsize=0;
 		for(size_t i=0;i<this->itsInputList.size();i++){
 
 		    // get bounding subsection & transform into a Subsection string
-		    std::vector<std::string> sectionlist(dim.size(),"1:1");
-		    for(int ax=0;ax<dim.size();ax++){
-			std::stringstream ss;
-			if (ax==spec)
-			    ss << "1:"<<dim[ax]+1;
-			else if(ax==lng)
-			    ss << std::max(1L,this->itsInputList[i].getXmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getXmax()-+padsize+1);
-			else if (ax==lat)
-			    ss << std::max(1L,this->itsInputList[i].getYmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getYmax()-+padsize+1);
-			else
-			    ss << "1:1";
-			sectionlist[ax]=ss.str();
-		    }
-		    std::stringstream secstr;
-		    secstr << "[ " << sectionlist[0];
-		    for(size_t i=1;i<dim.size();i++) secstr << "," << sectionlist[i];
-		    secstr << "]";
-		    parset.replace("subsection",secstr.str());
+		    parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), padsize, true));
 
 		    // define a duchamp Cube using the filename from the this->itsDP->cube()
 		    // set the subsection

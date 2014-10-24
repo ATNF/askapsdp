@@ -204,7 +204,8 @@ namespace askap {
 		ia.write(this->itsOutputFilename,newarray);
 
 		// write the flux units
-		ia.setUnits(this->itsOutputFilename,this->itsInputCubePtr->units().getName());
+		std::string units=this->itsInputCubePtr->units().getName();
+		ia.setUnits(this->itsOutputFilename,units);
 
 		this->writeBeam(this->itsOutputFilename);
 		
