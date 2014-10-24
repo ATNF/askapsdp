@@ -154,7 +154,8 @@ namespace askap {
 		LOFAR::ParameterSet parset=this->itsDP->parset();
 		parset.replace("flagsubsection","true");
 
-		int padsize=0;
+		int padsize=(this->itsDP->fitParams()->doFit() && !this->itsDP->fitParams()->fitJustDetection()) ? this->itsDP->fitParams()->boxPadSize() : 0;
+
 		for(size_t i=0;i<this->itsInputList.size();i++){
 
 		    // get bounding subsection & transform into a Subsection string
