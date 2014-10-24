@@ -147,11 +147,34 @@ namespace askap {
 		LOFAR::ParameterSet parset=this->itsDP->parset();
 		parset.replace("flagsubsection","true");
 
+		int padsize=0;
 		for(size_t i=0;i<this->itsInputList.size();i++){
 
 		    // get bounding subsection & transform into a Subsection string
-		    std::string objectSection = this->itsInputList[i].boundingSection(dim,this->itsDP->cube().pHeader(),0);
-		    parset.replace("subsection",objectSection);
+		    std::vector<std::string> sectionlist(dim.size(),"1:1");
+		    for(size_t ax=0;ax<dim.size();ax++){
+			std::stringstream ss;
+			switch(ax){
+			case this->itsDP->cube().pHeader()->getWCS()->spec:
+			    ss << "1:"<<dim[ax]+1;
+			    break;
+			case this->itsDP->cube().pHeader()->getWCS()->lng:
+			    ss << std::max(1L,this->itsInputList[i].getXmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getXmax()-+padsize+1);
+			    break;
+			case this->itsDP->cube().pHeader()->getWCS()->lat:
+			    ss << std::max(1L,this->itsInputList[i].getYmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getYmax()-+padsize+1);
+			    break;
+			default:
+			    ss << "1:1";
+			    break;
+			}
+			sectionlist[ax]=ss.str();
+		    }
+		    std::stringstream secstr;
+		    secstr << "[ " << sectionlist[0];
+		    for(size_t i=1;i<dim.size();i++) secstr << "," << sectionlist[i];
+		    secstr << "]";
+		    parset.replace("subsection",secstr.str());
 
 		    // define a duchamp Cube using the filename from the this->itsDP->cube()
 		    // set the subsection
