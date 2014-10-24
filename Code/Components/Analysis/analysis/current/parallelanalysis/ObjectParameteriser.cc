@@ -146,28 +146,25 @@ namespace askap {
 		std::vector<size_t> dim(this->itsDP->cube().getDimArray(),this->itsDP->cube().getDimArray()+this->itsDP->cube().getNumDim());
 		LOFAR::ParameterSet parset=this->itsDP->parset();
 		parset.replace("flagsubsection","true");
+		const int lng=this->itsDP->cube().pHeader()->getWCS()->lng;
+		const int lat=this->itsDP->cube().pHeader()->getWCS()->lat;
+		const int spec=this->itsDP->cube().pHeader()->getWCS()->spec;
 
 		int padsize=0;
 		for(size_t i=0;i<this->itsInputList.size();i++){
 
 		    // get bounding subsection & transform into a Subsection string
 		    std::vector<std::string> sectionlist(dim.size(),"1:1");
-		    for(size_t ax=0;ax<dim.size();ax++){
+		    for(int ax=0;ax<dim.size();ax++){
 			std::stringstream ss;
-			switch(ax){
-			case this->itsDP->cube().pHeader()->getWCS()->spec:
+			if (ax==spec)
 			    ss << "1:"<<dim[ax]+1;
-			    break;
-			case this->itsDP->cube().pHeader()->getWCS()->lng:
+			else if(ax==lng)
 			    ss << std::max(1L,this->itsInputList[i].getXmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getXmax()-+padsize+1);
-			    break;
-			case this->itsDP->cube().pHeader()->getWCS()->lat:
+			else if (ax==lat)
 			    ss << std::max(1L,this->itsInputList[i].getYmin()-padsize+1)<<":"<<std::min(long(dim[ax]),this->itsInputList[i].getYmax()-+padsize+1);
-			    break;
-			default:
+			else
 			    ss << "1:1";
-			    break;
-			}
 			sectionlist[ax]=ss.str();
 		    }
 		    std::stringstream secstr;
