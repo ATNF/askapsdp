@@ -206,6 +206,8 @@ namespace askap {
 		
 		std::vector<sourcefitting::RadioSource> *pSourceList(){return &itsSourceList;};
 		std::vector<sourcefitting::RadioSource> sourceList(){return itsSourceList;};
+		std::vector<sourcefitting::RadioSource> *pEdgeList(){return &itsEdgeSourceList;};
+		std::vector<sourcefitting::RadioSource> edgeList(){return itsEdgeSourceList;};
 
 		std::string getSubimageAnnotationFile()      {return itsSubimageAnnotationFile;};
 		void        setSubimageAnnotationFile(std::string s){itsSubimageAnnotationFile=s;};
