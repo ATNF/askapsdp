@@ -72,6 +72,7 @@ using namespace LOFAR::TYPES;
 #include <parallelanalysis/DuchampParallel.h>
 #include <parallelanalysis/Weighter.h>
 #include <parallelanalysis/ParallelStats.h>
+#include <parallelanalysis/ObjectParameteriser.h>
 #include <preprocessing/VariableThresholder.h>
 #include <extraction/ExtractionFactory.h>
 #include <analysisutilities/AnalysisUtilities.h>
@@ -929,6 +930,7 @@ namespace askap {
                         // for each RadioSource object, send to master
                         out << *src;
 
+			/*
                         if (src->isAtEdge()) {
                             int xmin, xmax, ymin, ymax, zmin, zmax;
                             xmin = std::max(0 , int(src->boxXmin()));
@@ -958,6 +960,8 @@ namespace askap {
                                 }
                             }
                         }
+			*/
+
                     }
 
                     out.putEnd();
@@ -1043,6 +1047,7 @@ namespace askap {
 		if(src.isAtEdge()) this->itsEdgeSourceList.push_back(src);
 		else this->itsSourceList.push_back(src);
 
+		/*
 		if (src.isAtEdge()) {
 		  int numVox;
 		  bool haveSNRvalues;
@@ -1069,6 +1074,8 @@ namespace askap {
 		    }
 		  }
 		}
+		*/
+
 	      }
 
 	      if(this->itsFlagVariableThreshold)
@@ -1083,6 +1090,7 @@ namespace askap {
 	  }
 	}
 
+	/*
 	if(itsComms.isParallel() && itsComms.isMaster()) 
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Distributing full voxel list, of size " << this->itsVoxelList.size() << " to the workers.");
 	else if(itsComms.isParallel() && itsComms.isWorker())
@@ -1090,6 +1098,7 @@ namespace askap {
 	this->distributeVoxelList();
 	if(itsComms.isParallel() && itsComms.isMaster()) 
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Voxel list distributed");
+	*/
 
       }
 
@@ -1110,8 +1119,16 @@ namespace askap {
             /// Name field) and given object IDs.
 	  if(itsComms.isParallel() && itsComms.isWorker()){
 	    // need to call calcObjectParams only, so that the distributed calculation works
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating the parameters in a distributed manner via calcObjectParams()");
-	    this->calcObjectParams();
+	    //	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating the parameters in a distributed manner via calcObjectParams()");
+	    /*	    this->calcObjectParams();*/
+
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Parameterising edge objects in distributed manner");
+		ObjectParameteriser objParam(this->itsComms);
+		objParam.initialise(this);
+		objParam.distribute();
+		objParam.parameterise();
+		objParam.gather();
+
 	  }
 
 
@@ -1146,17 +1163,23 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
                     this->itsCube.pars().setFlagGrowth(false);  // can't grow as don't have flux array in itsCube
+		    ///@todo Need to grow edge sources before sending to master, which means finding objects at edge above growth threshold but below detection threshold
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Merging edge sources");
                     this->itsCube.ObjectMerger();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
                     this->itsCube.pars().setFlagGrowth(growthflag);
+		    /*
 		    this->calcObjectParams();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after param calcs = " << this->itsCube.getNumObj());
+		    */
 
 		    this->itsEdgeSourceList.clear();
                     for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
+			src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+
+			/*
 			if(!this->itsFlagDistribFit){
 			  if (this->itsFitParams.doFit())
                             ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
@@ -1238,38 +1261,56 @@ namespace askap {
 				src.findSpectralTerm(this->itsSpectralTermImages[t-1], t, this->itsFlagFindSpectralTerms[t-1]);
 			  }
 			}
+			*/
+
                         this->itsEdgeSourceList.push_back(src);
                     }
                 }
-		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...
+		/*		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...*/
 
+		/*
 		if(this->itsFlagDistribFit && this->itsFitParams.doFit()) this->fitRemaining();
+		*/
+
+		ObjectParameteriser objParam(this->itsComms);
+		objParam.initialise(this);
+		objParam.distribute();
+		objParam.parameterise();
+		objParam.gather();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up " << this->itsEdgeSourceList.size() <<" edge sources");
 
 		for(src=this->itsEdgeSourceList.begin(); src<this->itsEdgeSourceList.end();src++){
+		    ASKAPLOG_DEBUG_STR(logger, "'Edge' source, name " << src->getName());
 		  this->itsSourceList.push_back(*src);
 		}
 		this->itsEdgeSourceList.clear();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
-                std::multimap<float, int> detlist;
+                // std::multimap<float, int> detlist;
 
-                for (size_t i = 0; i < this->itsSourceList.size(); i++) {
-                    float val = this->is2D() ? this->itsSourceList[i].getXcentre() : this->itsSourceList[i].getVel();
-                    detlist.insert(std::pair<float, int>(val, int(i)));
-                }
+                // for (size_t i = 0; i < this->itsSourceList.size(); i++) {
+                //     float val = this->is2D() ? this->itsSourceList[i].getXcentre() : this->itsSourceList[i].getVel();
+                //     detlist.insert(std::pair<float, int>(val, int(i)));
+                // }
 
-                std::vector<sourcefitting::RadioSource> newlist;
-                std::map<float, int>::iterator det;
+                // std::vector<sourcefitting::RadioSource> newlist;
+                // std::map<float, int>::iterator det;
 
-                for (det = detlist.begin(); det != detlist.end(); det++) newlist.push_back(this->itsSourceList[det->second]);
+                // for (det = detlist.begin(); det != detlist.end(); det++) newlist.push_back(this->itsSourceList[det->second]);
 
-                this->itsSourceList.clear();
-                this->itsSourceList = newlist;
+                // this->itsSourceList.clear();
+                // this->itsSourceList = newlist;
+
+                for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+                    src->setID(src - this->itsSourceList.begin() + 1);
+		}
+
 		SortDetections(this->itsSourceList, this->itsCube.pars().getSortingParam());
-		newlist.clear();
+
+		// newlist.clear();
+
                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished sort of source list");
                 this->itsCube.clearDetectionList();
 
@@ -1286,7 +1327,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
-	    else if(itsComms.isWorker() && this->itsFlagDistribFit && this->itsFitParams.doFit()) this->fitRemaining();
+	    /*	    else if(itsComms.isWorker() && this->itsFlagDistribFit && this->itsFitParams.doFit()) this->fitRemaining();*/
         }
 
         //**************************************************************//

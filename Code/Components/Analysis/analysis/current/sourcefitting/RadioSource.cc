@@ -223,12 +223,12 @@ namespace askap {
 		    std::stringstream ss;
 		    if (ax==spec){
 			if (fullSpectralRange) ss << "1:"<<dim[ax]+1;
-			else ss << std::max(1L,this->zmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->zmax-+padsize+1);
+			else ss << std::max(1L,this->zmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->zmax+padsize+1);
 		    }
 		    else if(ax==lng)
-			ss << std::max(1L,this->xmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->xmax-+padsize+1);
+			ss << std::max(1L,this->xmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->xmax+padsize+1);
 		    else if (ax==lat)
-			ss << std::max(1L,this->ymin-padsize+1)<<":"<<std::min(long(dim[ax]),this->ymax-+padsize+1);
+			ss << std::max(1L,this->ymin-padsize+1)<<":"<<std::min(long(dim[ax]),this->ymax+padsize+1);
 		    else
 			ss << "1:1";
 		    sectionlist[ax]=ss.str();
@@ -1544,34 +1544,25 @@ namespace askap {
 	      /// the duchamp library's SortDetections function. The
 	      /// objects are sorted as duchamp::Detection objects,
 	      /// keeping track of their individual identities by
-	      /// using the ID field. The original ID field is
-	      /// replaced at the end.
+	      /// using the ID field. This will need to be reassigned
+	      /// afterwards.
 
-	      std::vector<duchamp::Detection> detlist(sourcelist.size());
-	      int ID=0;
-	      std::map<string,int> posMap;
-	      for(std::vector<RadioSource>::iterator src=sourcelist.begin();src<sourcelist.end();src++){
+		size_t size=sourcelist.size();
+		std::vector<duchamp::Detection> detlist(size);
+		std::vector<RadioSource> newSourcelist(size);
 
-		std::stringstream ss;
-		ss << src->getXPeak() << "_"<<src->getYPeak()<< "_"<<src->getZPeak();
-		posMap.insert(std::pair<string,int>(ss.str(),ID));
-		detlist[ID] = duchamp::Detection(*src);
-		ID++;
+		for(size_t i=0;i<size;i++){
+		    sourcelist[i].setID(i);
+		    detlist[i] = duchamp::Detection(sourcelist[i]);
+		}
 
-	      }
+		duchamp::SortDetections(detlist,parameter);
 
-	      duchamp::SortDetections(detlist,parameter);
-	      
-	      std::vector<RadioSource> newSourcelist(sourcelist.size());
+		for(size_t i=0;i<size;i++){
+		    newSourcelist[i] = sourcelist[detlist[i].getID()];
+		}
 
-	      for(size_t i=0;i<detlist.size();i++){
-		std::stringstream ss;
-		ss << detlist[i].getXPeak() << "_"<<detlist[i].getYPeak()<< "_"<<detlist[i].getZPeak();
-		ID=posMap[ss.str()];
-		newSourcelist[i] = sourcelist[ID];
-	      }
-
-	      sourcelist = newSourcelist;
+		sourcelist = newSourcelist;
 	      
 
 	    }

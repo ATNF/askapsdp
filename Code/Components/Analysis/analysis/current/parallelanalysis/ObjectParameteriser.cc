@@ -36,6 +36,8 @@
 
 #include <parallelanalysis/DuchampParallel.h>
 
+#include <casainterface/CasaInterface.h>
+
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
@@ -89,13 +91,15 @@ namespace askap {
 
 	void ObjectParameteriser::distribute()
 	{
+	  if (this->itsComms->isParallel()){
+
 	    if(this->itsComms->isMaster()){
 		// send objects in itsInputList to workers in round-robin fashion
 		// broadcast 'finished' signal
 		LOFAR::BlobString bs;
 		for(size_t i=0;i<this->itsInputList.size();i++){
 		    unsigned int rank = i % (this->itsComms->nProcs() - 1);
-		    ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<" to worker "<<rank+1);
+		    ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<", ID="<< this->itsInputList[i].getID() << " to worker "<<rank+1 << " for parameterisation");
 		    bs.resize(0);
 		    LOFAR::BlobOBufString bob(bs);
 		    LOFAR::BlobOStream out(bob);
@@ -115,7 +119,10 @@ namespace askap {
 		out.putStart("OP", 1);
 		out << false;
 		out.putEnd();
-		this->itsComms->broadcastBlob(bs,0);
+		//this->itsComms->broadcastBlob(bs,0);
+		for (int i = 1; i < this->itsComms->nProcs(); ++i) {
+		  this->itsComms->sendBlob(bs, i);
+		}
 
 	    }
 	    else{
@@ -136,11 +143,14 @@ namespace askap {
 		    if(isOK){
 			in >> src;
 			this->itsInputList.push_back(src);
+			ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received object ID " << this->itsInputList.back().getID());
 		    }
 		    in.getEnd();
 		}
+		ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received " << this->itsInputList.size() << " objects to parameterise.");
 
 	    }
+	  }
 	}
 
 	void ObjectParameteriser::parameterise()
@@ -150,13 +160,20 @@ namespace askap {
 		// Define a DuchampParallel and use it to do the parameterisation
 		// put parameterised objects into itsOutputList
 
-		std::vector<size_t> dim(this->itsDP->cube().getDimArray(),this->itsDP->cube().getDimArray()+this->itsDP->cube().getNumDim());
+	      //std::vector<size_t> dim(this->itsDP->cube().getDimArray(),this->itsDP->cube().getDimArray()+this->itsDP->cube().getNumDim());
+	      std::vector<size_t> dim = analysisutilities::getCASAdimensions(this->itsDP->cube().pars().getImageFile());
 		LOFAR::ParameterSet parset=this->itsDP->parset();
 		parset.replace("flagsubsection","true");
 
-		int padsize=(this->itsDP->fitParams()->doFit() && !this->itsDP->fitParams()->fitJustDetection()) ? this->itsDP->fitParams()->boxPadSize() : 0;
+		int padsize;
+		if(this->itsDP->fitParams()->doFit() && !this->itsDP->fitParams()->fitJustDetection())
+		  padsize = std::max(this->itsDP->fitParams()->boxPadSize(),this->itsDP->fitParams()->noiseBoxSize());
+		else
+		  padsize = 0;
 
 		for(size_t i=0;i<this->itsInputList.size();i++){
+
+		  ASKAPLOG_DEBUG_STR(logger, "Parameterising object #"<<i << " out of " << this->itsInputList.size());
 
 		    // get bounding subsection & transform into a Subsection string
 		    parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), padsize, true));
@@ -168,6 +185,10 @@ namespace askap {
 		    // open the image
 		    tempDP.readData();
 
+		    this->itsInputList[i].setOffsets(tempDP.cube().pars());
+		    this->itsInputList[i].removeOffsets();
+		    this->itsInputList[i].setFlagText("");
+
 		    // store the current object to the cube
 		    tempDP.cube().addObject(this->itsInputList[i]);
 
@@ -176,11 +197,21 @@ namespace askap {
 
 		    sourcefitting::RadioSource src(tempDP.cube().getObject(0));
 
-		    if(tempDP.fitParams()->doFit()) tempDP.fitSource(src,true);
+		    if(tempDP.fitParams()->doFit()){
+
+		      src.setFitParams(*tempDP.fitParams());
+		      src.setDetectionThreshold(tempDP.cube(), tempDP.getFlagVariableThreshold());
+		      src.prepareForFit(tempDP.cube(),true);
+		      src.setAtEdge(false);
+
+		      tempDP.fitSource(src,true);
+		    }
 
 		    // get the parameterised object and store to itsOutputList
 		    this->itsOutputList.push_back(src);
 		}
+
+		ASKAPASSERT(this->itsOutputList.size() == this->itsInputList.size());
 
 	    }
 
@@ -188,7 +219,7 @@ namespace askap {
 
 	void ObjectParameteriser::gather()
 	{
-	    
+	  if(this->itsComms->isParallel()){
 	    if(this->itsComms->isMaster()){
 		// for each worker, read completed objects until we get a 'finished' signal
 
@@ -204,14 +235,20 @@ namespace askap {
 		    int version = in.getStart("OPfinal");
 		    ASKAPASSERT(version == 1);
 		    in >> numSrc;
+		    ASKAPLOG_DEBUG_STR(logger, "Reading " << numSrc << " objects from worker #"<<n+1);
 		    for(int i=0;i<numSrc;i++){
 			sourcefitting::RadioSource src;
 			in >> src;
+			ASKAPLOG_DEBUG_STR(logger, "Read parameterised object " << src.getName() <<", ID="<<src.getID());
 			src.setHeader(this->itsDP->cube().pHeader());  // make sure we have the right WCS etc information
+			this->itsOutputList.push_back(src);
 			this->itsDP->pEdgeList()->push_back(src);
 		    }
 		    in.getEnd();
 		}
+
+		ASKAPASSERT(this->itsOutputList.size() == this->itsInputList.size());
+		ASKAPASSERT(this->itsOutputList.size() == this->itsDP->pEdgeList()->size());
 
 	    }
 	    else{
@@ -221,13 +258,22 @@ namespace askap {
 		bs.resize(0);
 		LOFAR::BlobOBufString bob(bs);
 		LOFAR::BlobOStream out(bob);
-		out.putStart("final", 1);
-		out << int(this->itsInputList.size());
-		for(size_t i=0;i<this->itsInputList.size();i++) out << this->itsInputList[i];
+		out.putStart("OPfinal", 1);
+		out << int(this->itsOutputList.size());
+		for(size_t i=0;i<this->itsOutputList.size();i++) out << this->itsOutputList[i];
 		out.putEnd();
 		this->itsComms->sendBlob(bs, 0);
 	    }
 	    
+	  }
+	  else {
+	    // serial case - need to put output sources into the DP edgelist
+	    for(size_t i=0;i<this->itsOutputList.size();i++){
+	      this->itsOutputList[i].setHeader(this->itsDP->cube().pHeader());  // make sure we have the right WCS etc information
+	      this->itsDP->pEdgeList()->push_back( this->itsOutputList[i] );
+	    }
+
+	  }
 
 	}
 
