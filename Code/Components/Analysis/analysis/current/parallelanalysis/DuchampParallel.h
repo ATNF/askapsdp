@@ -57,15 +57,6 @@ namespace askap {
       /// @brief An enumeration describing what data we're after when reading CASA images
       enum DATATYPE { IMAGE, METADATA};
 
-/*       /// Comparison operator for Voxels */
-/*       struct voxComp { */
-/* 	bool operator() (const PixelInfo::Voxel &lhs, const PixelInfo::Voxel &rhs) const { */
-/* 	  if(lhs.getZ()!=rhs.getZ()) return lhs.getZ()<rhs.getZ(); */
-/* 	  else if(lhs.getY()!=rhs.getY()) return lhs.getY()<rhs.getY(); */
-/* 	  else return lhs.getX()<rhs.getX(); */
-/* 	} */
-/*       }; */
-
         /// @brief Support for parallel source finding
         ///
         /// @details This class allows the source finding to be carried out in a
@@ -149,9 +140,6 @@ namespace askap {
                 /// @brief Condense the lists (on the master)
                 void condenseLists();
 
-                /// @brief Sort out the fluxes for all detected objects (on the master)
-                void calcFluxes();
-
                 /// @brief Print out the resulting source list (on the master)
                 void printResults();
 
@@ -175,14 +163,9 @@ namespace askap {
 
                 /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
                 void cleanup();
-		void fitRemaining();
-		void distributeVoxelList();
 
 		/// @brief Extract spectra/moment-maps/cubelets from a cube for each detected object
 		void extract();
-
-                /// @brief Calculate the object parameters on the workers
-                void calcObjectParams();
 
                 /// @brief Write a Karma/DS9/CASA annotation files showing the fits (on the master).
                 void writeFitAnnotations();
