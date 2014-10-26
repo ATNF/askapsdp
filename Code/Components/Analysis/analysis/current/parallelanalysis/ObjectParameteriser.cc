@@ -207,6 +207,8 @@ namespace askap {
 		      tempDP.fitSource(src,true);
 		    }
 
+		    src.addOffsets();
+
 		    // get the parameterised object and store to itsOutputList
 		    this->itsOutputList.push_back(src);
 		}
@@ -241,6 +243,7 @@ namespace askap {
 			in >> src;
 			ASKAPLOG_DEBUG_STR(logger, "Read parameterised object " << src.getName() <<", ID="<<src.getID());
 			src.setHeader(this->itsDP->cube().pHeader());  // make sure we have the right WCS etc information
+			src.setOffsets(this->itsDP->cube().pars());
 			this->itsOutputList.push_back(src);
 			this->itsDP->pEdgeList()->push_back(src);
 		    }
