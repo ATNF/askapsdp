@@ -154,7 +154,7 @@ namespace askap {
 		    int version = in.getStart("OP");
 		    ASKAPASSERT(version == 1);
 		    in >> this->itsTotalListSize;
-		    in.getEnd()
+		    in.getEnd();
 
 		    if(this->itsTotalListSize > 0){
 			// now read individual sources
