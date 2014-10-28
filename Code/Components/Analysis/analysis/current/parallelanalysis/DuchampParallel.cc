@@ -856,7 +856,7 @@ namespace askap {
 		    if (itsComms.nProcs() == 1) src.setAtEdge(false);
 
 		    if (!src.isAtEdge() && this->itsFitParams.doFit())
-		      this->fitSource(src, true);
+		      this->fitSource(src);
 
                     this->itsSourceList.push_back(src);
                 }
@@ -865,35 +865,19 @@ namespace askap {
 
        //**************************************************************//
 
-      void DuchampParallel::fitSource(sourcefitting::RadioSource &src, bool useArray)
+      void DuchampParallel::fitSource(sourcefitting::RadioSource &src)
       {
 
-	if (this->itsFitParams.fitJustDetection()) {
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to detected pixels");
-	  std::vector<PixelInfo::Voxel> voxlist;
-	  if(useArray) voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
-	  else {
-	    voxlist = src.getPixelSet();
-	    std::vector<PixelInfo::Voxel>::iterator vox,voxcomp;
-	    for ( vox=voxlist.begin(); vox < voxlist.end(); vox++) {
-	      voxcomp = this->itsVoxelList.begin();
-		
-	      while (voxcomp < this->itsVoxelList.end() && !vox->match(*voxcomp))
-		voxcomp++;
-		
-	      if (voxcomp == this->itsVoxelList.end())
-		ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
-	      else vox->setF(voxcomp->getF());
-	    }
+	  if (this->itsFitParams.fitJustDetection()) {
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to detected pixels");
+	      std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+	      src.fitGaussNew(&voxlist, this->itsFitParams);
+	  } else {
+	      src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitParams);
 	  }
-	  src.fitGaussNew(&voxlist, this->itsFitParams);
-	} else {
-	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitParams);
-	  else src.fitGauss(&this->itsVoxelList, this->itsFitParams);
-	}
 
-	for(int t=1;t<=2;t++)
-	  src.findSpectralTerm(this->itsSpectralTermImages[t-1], t, this->itsFlagFindSpectralTerms[t-1]);
+	  for(int t=1;t<=2;t++)
+	      src.findSpectralTerm(this->itsSpectralTermImages[t-1], t, this->itsFlagFindSpectralTerms[t-1]);
 
       }
 
@@ -929,38 +913,6 @@ namespace askap {
                     for (; src < this->itsSourceList.end(); src++) {
                         // for each RadioSource object, send to master
                         out << *src;
-
-			/*
-                        if (src->isAtEdge()) {
-                            int xmin, xmax, ymin, ymax, zmin, zmax;
-                            xmin = std::max(0 , int(src->boxXmin()));
-                            xmax = std::min(int(this->itsCube.getDimX()) - 1, int(src->boxXmax()));
-                            ymin = std::max(0 , int(src->boxYmin()));
-                            ymax = std::min(int(this->itsCube.getDimY()) - 1, int(src->boxYmax()));
-
-                            if (this->is2D()) {
-                                zmin = zmax = 0;
-                            } else {
-                                zmin = std::max(0 , int(src->boxZmin()));
-                                zmax = std::min(int(this->itsCube.getDimZ()) - 1, int(src->boxZmax()));
-                            }
-
-                            int numVox = (xmax - xmin + 1) * (ymax - ymin + 1) * (zmax - zmin + 1);
-                            out << numVox << this->itsFlagVariableThreshold;
-
-                            for (int32 x = xmin; x <= xmax; x++) {
-                                for (int32 y = ymin; y <= ymax; y++) {
-                                    for (int32 z = zmin; z <= zmax; z++) {
-                                        bool inObject = src->isInObject(x, y, z);
-                                        float flux = this->itsCube.getPixValue(x, y, z);
-                                        out << inObject << x << y << z << flux;
-
-                                        if (this->itsFlagVariableThreshold) out << this->itsCube.getReconValue(x, y, z);
-                                    }
-                                }
-                            }
-                        }
-			*/
 
                     }
 
@@ -1045,20 +997,24 @@ namespace askap {
 		src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 		src.fitparams() = this->itsFitParams;
 		if(src.isAtEdge()) this->itsEdgeSourceList.push_back(src);
-		else this->itsSourceList.push_back(src);
+		else{
+                    src.setHeader(this->itsCube.pHeader());
+		    if (src.hasEnoughChannels(this->itsCube.pars().getMinChannels())  
+			&& (src.getSpatialSize() >= this->itsCube.pars().getMinPix()) ) {
+			// Only add the source if it meets the true criteria for size
+			this->itsSourceList.push_back(src);
+		    }
+		}
 
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
+				  << numObj << " from worker #" << rank);
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
+				  << this->itsSourceList.size() << " good objects and " << this->itsEdgeSourceList.size() << " edge objects");
+		in.getEnd();
 	      }
-
-	      if(this->itsFlagVariableThreshold)
-		ASKAPASSERT(this->itsVoxelList.size()==this->itsSNRVoxelList.size());
-
-	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
-				<< numObj << " from worker #" << rank);
-	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
-				<< this->itsSourceList.size() << " good objects and " << this->itsEdgeSourceList.size() << " edge objects");
-	      in.getEnd();
 	    }
 	  }
+
 	}
 
       }
@@ -1095,19 +1051,7 @@ namespace askap {
             if (!itsComms.isParallel() || itsComms.isMaster()) {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Beginning the cleanup");
 
-                duchamp::FitsHeader *head = this->itsCube.pHeader();
                 std::vector<sourcefitting::RadioSource>::iterator src;
-
-		ASKAPLOG_DEBUG_STR(logger, "Refining non-edge source list of size " << this->itsSourceList.size());
-                for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-                    src->setHeader(head);
-
-                    // Need to check that there are no small sources present that violate the minimum size criteria
-                    if (!(src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
-			|| (src->getSpatialSize() < this->itsCube.pars().getMinPix()))
-                        this->itsSourceList.erase(src);
-                }
-		ASKAPLOG_DEBUG_STR(logger, "Now have " << this->itsSourceList.size() << " non-edge sources");
 
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsEdgeSourceList.size());
 
@@ -1133,31 +1077,26 @@ namespace askap {
                         this->itsEdgeSourceList.push_back(src);
                     }
 
-		    ObjectParameteriser objParam(this->itsComms);
-		    objParam.initialise(this);
-		    objParam.distribute();
-		    objParam.parameterise();
-		    objParam.gather();
-
-		    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up " << this->itsEdgeSourceList.size() <<" edge sources");
-
-		    for(src=this->itsEdgeSourceList.begin(); src<this->itsEdgeSourceList.end();src++){
-			ASKAPLOG_DEBUG_STR(logger, "'Edge' source, name " << src->getName());
-			this->itsSourceList.push_back(*src);
-		    }
-		    this->itsEdgeSourceList.clear();
-
                 }
+
+		ObjectParameteriser objParam(this->itsComms);
+		objParam.initialise(this);
+		objParam.distribute();
+		objParam.parameterise();
+		objParam.gather();
+
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished parameterising " << this->itsEdgeSourceList.size() <<" edge sources");
+
+		for(src=this->itsEdgeSourceList.begin(); src<this->itsEdgeSourceList.end();src++){
+		    ASKAPLOG_DEBUG_STR(logger, "'Edge' source, name " << src->getName());
+		    this->itsSourceList.push_back(*src);
+		}
+		this->itsEdgeSourceList.clear();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
-                for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-                    src->setID(src - this->itsSourceList.begin() + 1);
-		}
-
 		SortDetections(this->itsSourceList, this->itsCube.pars().getSortingParam());
 
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished sort of source list");
                 this->itsCube.clearDetectionList();
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {

@@ -146,7 +146,7 @@ namespace askap {
                 /// @brief Fit the detected sources (on the workers)
                 void fitSources();
 		/// @brief Fit a single source
-		void fitSource(sourcefitting::RadioSource &src, bool useArray);
+		void fitSource(sourcefitting::RadioSource &src);
 
 		/// @brief Run any preprocessing on the workers
 		void preprocess();
@@ -249,13 +249,6 @@ namespace askap {
 		/// Whether to extract noise spectra for detected sources, POSSUM-style
 		bool itsFlagExtractNoiseSpectra;
 		
-                /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
-                std::vector<PixelInfo::Voxel> itsVoxelList;
-		std::map<PixelInfo::Voxel,float> itsVoxelMap;
-
-                /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagVariableThreshold is true)
-                std::vector<PixelInfo::Voxel> itsSNRVoxelList;
-
                 /// The Gaussian Fitting parameter class
                 sourcefitting::FittingParameters itsFitParams;
 

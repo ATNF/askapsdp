@@ -177,6 +177,10 @@ namespace askap {
 
 		    // get bounding subsection & transform into a Subsection string
 		    parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), padsize, true));
+		    // turn off the subimaging, so we read the whole lot.
+		    parset.replace("nsubx","1");
+		    parset.replace("nsuby","1");
+		    parset.replace("nsubz","1");
 
 		    // define a duchamp Cube using the filename from the this->itsDP->cube()
 		    // set the subsection
@@ -204,7 +208,7 @@ namespace askap {
 		      src.prepareForFit(tempDP.cube(),true);
 		      src.setAtEdge(false);
 
-		      tempDP.fitSource(src,true);
+		      tempDP.fitSource(src);
 		    }
 
 		    src.addOffsets();
