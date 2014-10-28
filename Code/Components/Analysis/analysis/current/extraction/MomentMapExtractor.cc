@@ -284,7 +284,7 @@ namespace askap {
 
 			casa::PagedImage<float> img(filename);
 			ASKAPLOG_DEBUG_STR(logger, img.shape() << " " << theMask.shape());
-			img.makeMask(filename);
+			img.makeMask("mask");
 			img.pixelMask().put(theMask);
 
 		    }
