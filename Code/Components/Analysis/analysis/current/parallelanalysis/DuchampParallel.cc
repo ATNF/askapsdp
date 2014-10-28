@@ -1006,12 +1006,10 @@ namespace askap {
 		    }
 		}
 
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
-				  << numObj << " from worker #" << rank);
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
-				  << this->itsSourceList.size() << " good objects and " << this->itsEdgeSourceList.size() << " edge objects");
-		in.getEnd();
 	      }
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size " << numObj << " from worker #" << rank);
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have " << this->itsSourceList.size() << " good objects and " << this->itsEdgeSourceList.size() << " edge objects");
+	      in.getEnd();
 	    }
 	  }
 
