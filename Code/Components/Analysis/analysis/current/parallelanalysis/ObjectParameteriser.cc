@@ -113,6 +113,7 @@ namespace askap {
 		    for (int i = 1; i < this->itsComms->nProcs(); ++i) {
 			this->itsComms->sendBlob(bs, i);
 		    }
+
 		    if(this->itsTotalListSize>0){
 			for(size_t i=0;i<this->itsInputList.size();i++){
 			    unsigned int rank = i % (this->itsComms->nProcs() - 1);
@@ -153,6 +154,7 @@ namespace askap {
 		    int version = in.getStart("OP");
 		    ASKAPASSERT(version == 1);
 		    in >> this->itsTotalListSize;
+		    in.getEnd()
 
 		    if(this->itsTotalListSize > 0){
 			// now read individual sources
