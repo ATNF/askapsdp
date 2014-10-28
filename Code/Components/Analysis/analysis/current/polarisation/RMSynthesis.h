@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Handle the parameterisation of objects that require reading from a file on disk
+/// Perform Rotation Measure Synthesis and parameterise
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,40 +26,44 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_OBJECT_PARAMER_H_
-#define ASKAP_OBJECT_PARAMER_H_
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-#include <vector>
+#ifndef ASKAP_ANALYSIS_RM_SYNTHESIS_H_
+#define ASKAP_ANALYSIS_RM_SYNTHESIS_H_
 
 namespace askap {
 
     namespace analysis {
 
-	class ObjectParameteriser
+	class RMSynthesis
 	{
 	public:
-	    ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
-	    ObjectParameteriser(const ObjectParameteriser& other);
-	    ObjectParameteriser& operator= (const ObjectParameteriser& other);
-	    virtual ~ObjectParameteriser();
+	    RMSynthesis(const LOFAR::ParameterSet &parset);
+	    RMSynthesis(const RMSynthesis& other);
+	    RMSynthesis& operator= (const RMSynthesis& other);
+	    virtual ~RMSynthesis();
 
-	    /// @brief Initialise
-	    void initialise(DuchampParallel *dp);
+	    void initialise(PolarisationData &poldata);
 
-	    /// @brief Master sends list to workers, who fill out itsInputList
-	    void distribute(); 
-	    void parameterise();
-	    void gather();
 
-	protected:
+	private:
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    DuchampParallel *itsDP;
-	    std::vector<sourcefitting::RadioSource> itsInputList;
-	    std::vector<sourcefitting::RadioSource> itsOutputList;
-	    unsigned int itsTotalListSize;
+	    PolarisationData itsPolData;
+	    casa::Array<float> itsWeights;
+	    
+	    int itsNumPhiChan;
+	    float itsDeltaPhi;
+	    float itsPhiRef;
+	    casa::Array<float> itsPhi;
+	    
+	    casa::Array<casa::Complex> itsFaradayDF;
+
+	    casa::Array<float> itsPhiDouble;
+
+	    casa::Array<casa::Complex> itsRMSF;
+
+	    float itsRMSFwidth;
+	    
+	    float itsRefLambdaSquared;
+
 
 	};
 

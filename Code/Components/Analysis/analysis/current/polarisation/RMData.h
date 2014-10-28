@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Handle the parameterisation of objects that require reading from a file on disk
+/// Holds the measured parameters taken from the results of RM Synthesis
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,46 +26,58 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_OBJECT_PARAMER_H_
-#define ASKAP_OBJECT_PARAMER_H_
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-#include <vector>
+#ifndef ASKAP_ANALYSIS_RM_DATA_H_
+#define ASKAP_ANALYSIS_RM_DATA_H_
 
 namespace askap {
 
     namespace analysis {
 
-	class ObjectParameteriser
+	class RMData
 	{
 	public:
-	    ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
-	    ObjectParameteriser(const ObjectParameteriser& other);
-	    ObjectParameteriser& operator= (const ObjectParameteriser& other);
-	    virtual ~ObjectParameteriser();
+	    RMData();
+	    RMData(const RMData& other);
+	    RMData& operator= (const RMData& other);
+	    virtual ~RMData();
 
-	    /// @brief Initialise
-	    void initialise(DuchampParallel *dp);
+	    void initialise(RMSynthesis *rmsynth);
 
-	    /// @brief Master sends list to workers, who fill out itsInputList
-	    void distribute(); 
-	    void parameterise();
-	    void gather();
+	    void calculate();
 
-	protected:
+	private:
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    DuchampParallel *itsDP;
-	    std::vector<sourcefitting::RadioSource> itsInputList;
-	    std::vector<sourcefitting::RadioSource> itsOutputList;
-	    unsigned int itsTotalListSize;
+	    RMSynthesis *itsRMSynth;
+
+	    float itsPintPeak;
+	    float itsPintPeak_err;
+	    float itsPhiPeak;
+	    float itsPhiPeak_err;
+	    float itsPintPeakFit;
+	    float itsPintPeakFit_err;
+	    float itsPhiPeakFit;
+	    float itsPhiPeakFit_err;
+
+	    bool itsFlagDetection;
+	    bool itsFlagEdge;
+
+	    float itsPolAngleRef;
+	    float itsPolAngleRef_err;
+	    float itsPolAngleZero;
+	    float itsPolAngleZero_err;
+
+	    float itsFracPol;
+	    float itsFracPol_err;
+	    
+	    float itsSNR;
+	    float itsSNR_err;
+	    
+	    
 
 	};
 
     }
 
 }
-
 
 #endif

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Handle the parameterisation of objects that require reading from a file on disk
+/// Holds spectral information for a given source for a given Stokes parameter
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,46 +26,43 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_OBJECT_PARAMER_H_
-#define ASKAP_OBJECT_PARAMER_H_
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-#include <vector>
+#ifndef ASKAP_ANALYSIS_STOKES_SPECTRUM_H_
+#define ASKAP_ANALYSIS_STOKES_SPECTRUM_H_
 
 namespace askap {
 
-    namespace analysis {
+    namespace analysis { 
 
-	class ObjectParameteriser
+	class StokesSpectrum
 	{
 	public:
-	    ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
-	    ObjectParameteriser(const ObjectParameteriser& other);
-	    ObjectParameteriser& operator= (const ObjectParameteriser& other);
-	    virtual ~ObjectParameteriser();
+	    StokesSpectrum(const LOFAR::ParameterSet &parset);
+	    StokesSpectrum(const StokesSpectrum& other);
+	    StokesSpectrum& operator= (const StokesSpectrum& other);
+	    virtual ~StokesSpectrum();
 
-	    /// @brief Initialise
-	    void initialise(DuchampParallel *dp);
+	    void initialise(RadioSource *src);
 
-	    /// @brief Master sends list to workers, who fill out itsInputList
-	    void distribute(); 
-	    void parameterise();
-	    void gather();
+	    casa::Array<float> spectrum(){return itsSpectrum;};
+	    casa::Array<float> noiseSpectrum(){return itsNoiseSpectrum;};
+	    float median(){return itsMedianValue;};
+	    float medianNoise(){return itsMedianNoise;};
 
-	protected:
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    DuchampParallel *itsDP;
-	    std::vector<sourcefitting::RadioSource> itsInputList;
-	    std::vector<sourcefitting::RadioSource> itsOutputList;
-	    unsigned int itsTotalListSize;
+	private:
+
+	    RadioSource *itsSrc;
+	    std::string itsCubeName;
+	    unsigned int itsBoxWidth;
+	    casa::Array<float> itsSpectrum;
+	    float itsMedianValue;
+	    casa::Array<float> itsNoiseSpectrum;
+	    float itsMedianNoise;
 
 	};
 
     }
 
 }
-
 
 #endif

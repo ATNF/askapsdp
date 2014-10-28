@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Handle the parameterisation of objects that require reading from a file on disk
+/// Class to hold the input data for the polarisation pipeline
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,46 +26,52 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_OBJECT_PARAMER_H_
-#define ASKAP_OBJECT_PARAMER_H_
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-#include <vector>
+#ifndef ASKAP_ANALYSIS_POL_DATA_H_
+#define ASKAP_ANALYSIS_POL_DATA_H_
 
 namespace askap {
 
-    namespace analysis {
+    namespace analysis { 
 
-	class ObjectParameteriser
+	class PolarisationData
 	{
 	public:
-	    ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
-	    ObjectParameteriser(const ObjectParameteriser& other);
-	    ObjectParameteriser& operator= (const ObjectParameteriser& other);
-	    virtual ~ObjectParameteriser();
+	    PolarisationData(const LOFAR::ParameterSet &parset);
+	    PolarisationData(const PolarisationData& other);
+	    PolarisationData& operator= (const PolarisationData& other);
+	    virtual ~PolarisationData();
 
-	    /// @brief Initialise
-	    void initialise(DuchampParallel *dp);
+	    void initialise(RadioSource *src);
 
-	    /// @brief Master sends list to workers, who fill out itsInputList
-	    void distribute(); 
-	    void parameterise();
-	    void gather();
+	private:
 
-	protected:
+	    /// @brief Spectra extracted from cubes
+	    /// {
+	    StokesSpectrum itsStokesI;
+	    StokesSpectrum itsStokesQ;
+	    StokesSpectrum itsStokesU;
+	    /// }
+	    
+	    casa::Array<float> itsAverageNoiseSpectrum;
+	    
+	    casa::Array<float> itsFrequency;
+	    casa::Array<float> itsLambdaSquared;
+	    casa::Array<float> itsStokesIcoeffs;
+	    casa::Array<float> itsModelStokesI;
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    DuchampParallel *itsDP;
-	    std::vector<sourcefitting::RadioSource> itsInputList;
-	    std::vector<sourcefitting::RadioSource> itsOutputList;
-	    unsigned int itsTotalListSize;
+	    /// @brief Width of extraction box, defined through parset
+	    unsigned int itsExtractBoxSize;
+
+	    float itsBoxNormalisation;
 
 	};
+
 
     }
 
 }
+
+
 
 
 #endif

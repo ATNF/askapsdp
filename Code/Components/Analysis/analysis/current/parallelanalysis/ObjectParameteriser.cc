@@ -53,7 +53,7 @@ namespace askap {
     namespace analysis {
 
 	ObjectParameteriser::ObjectParameteriser(askap::askapparallel::AskapParallel& comms):
-	    itsComms(&comms), itsDP(),itsInputList(),itsOutputList()
+	    itsComms(&comms), itsDP(),itsInputList(),itsOutputList(),itsTotalListSize(0)
 	{
 	}
 
@@ -69,6 +69,7 @@ namespace askap {
 	    this->itsDP = other.itsDP;
 	    this->itsInputList = other.itsInputList;
 	    this->itsOutputList = other.itsOutputList;
+	    this->itsTotalListSize = other.itsTotalListSize;
 	    return *this;
 	}
 
@@ -83,8 +84,9 @@ namespace askap {
 	    if(this->itsComms->isMaster()){
 		for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsDP->pEdgeList()->begin();
 		    src!=this->itsDP->pEdgeList()->end(); src++){
-		    itsInputList.push_back(*src);
+		    this->itsInputList.push_back(*src);
 		}
+		this->itsTotalListSize = this->itsInputList.size();
 	    }
 	    
 	}
@@ -96,20 +98,9 @@ namespace askap {
 		if(this->itsComms->isMaster()){
 		    // send objects in itsInputList to workers in round-robin fashion
 		    // broadcast 'finished' signal
-		    LOFAR::BlobString bs;
-		    for(size_t i=0;i<this->itsInputList.size();i++){
-			unsigned int rank = i % (this->itsComms->nProcs() - 1);
-			ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<", ID="<< this->itsInputList[i].getID() << " to worker "<<rank+1 << " for parameterisation");
-			bs.resize(0);
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			out.putStart("OP", 1);
-			out << true << this->itsInputList[i];
-			out.putEnd();
-			this->itsComms->sendBlob(bs, rank + 1);
-		    }
 
-		    // now notify all workers that we're finished.
+		    // First send total number of sources to all workers
+		    LOFAR::BlobString bs;
 		    LOFAR::BlobOBufString bob(bs);
 		    LOFAR::BlobOStream out(bob);
 		    bs.resize(0);
@@ -117,11 +108,38 @@ namespace askap {
 		    out = LOFAR::BlobOStream(bob);
 		    ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
 		    out.putStart("OP", 1);
-		    out << false;
+		    out << this->itsTotalListSize;
 		    out.putEnd();
-		    //this->itsComms->broadcastBlob(bs,0);
 		    for (int i = 1; i < this->itsComms->nProcs(); ++i) {
 			this->itsComms->sendBlob(bs, i);
+		    }
+		    if(this->itsTotalListSize>0){
+			for(size_t i=0;i<this->itsInputList.size();i++){
+			    unsigned int rank = i % (this->itsComms->nProcs() - 1);
+			    ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<", ID="<< this->itsInputList[i].getID() << " to worker "<<rank+1 << " for parameterisation");
+			    bs.resize(0);
+			    LOFAR::BlobOBufString bob(bs);
+			    LOFAR::BlobOStream out(bob);
+			    out.putStart("OP", 1);
+			    out << true << this->itsInputList[i];
+			    out.putEnd();
+			    this->itsComms->sendBlob(bs, rank + 1);
+			}
+
+			// now notify all workers that we're finished.
+			LOFAR::BlobOBufString bob(bs);
+			LOFAR::BlobOStream out(bob);
+			bs.resize(0);
+			bob = LOFAR::BlobOBufString(bs);
+			out = LOFAR::BlobOStream(bob);
+			ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
+			out.putStart("OP", 1);
+			out << false;
+			out.putEnd();
+			//this->itsComms->broadcastBlob(bs,0);
+			for (int i = 1; i < this->itsComms->nProcs(); ++i) {
+			    this->itsComms->sendBlob(bs, i);
+			}
 		    }
 
 		}
@@ -129,25 +147,34 @@ namespace askap {
 		    // receive objects and put in itsInputList until receive 'finished' signal
 		    LOFAR::BlobString bs;
 	      
-		    // now read individual sources
-		    bool isOK=true;
-		    this->itsInputList.clear();
-		    while(isOK) {	    
-			sourcefitting::RadioSource src;
-			this->itsComms->receiveBlob(bs, 0);
-			LOFAR::BlobIBufString bib(bs);
-			LOFAR::BlobIStream in(bib);
-			int version = in.getStart("OP");
-			ASKAPASSERT(version == 1);
-			in >> isOK;
-			if(isOK){
-			    in >> src;
-			    this->itsInputList.push_back(src);
-			    ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received object ID " << this->itsInputList.back().getID());
+		    this->itsComms->receiveBlob(bs, 0);
+		    LOFAR::BlobIBufString bib(bs);
+		    LOFAR::BlobIStream in(bib);
+		    int version = in.getStart("OP");
+		    ASKAPASSERT(version == 1);
+		    in >> this->itsTotalListSize;
+
+		    if(this->itsTotalListSize > 0){
+			// now read individual sources
+			bool isOK=true;
+			this->itsInputList.clear();
+			while(isOK) {	    
+			    sourcefitting::RadioSource src;
+			    this->itsComms->receiveBlob(bs, 0);
+			    LOFAR::BlobIBufString bib(bs);
+			    LOFAR::BlobIStream in(bib);
+			    int version = in.getStart("OP");
+			    ASKAPASSERT(version == 1);
+			    in >> isOK;
+			    if(isOK){
+				in >> src;
+				this->itsInputList.push_back(src);
+				ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received object ID " << this->itsInputList.back().getID());
+			    }
+			    in.getEnd();
 			}
-			in.getEnd();
+			ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received " << this->itsInputList.size() << " objects to parameterise.");
 		    }
-		    ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received " << this->itsInputList.size() << " objects to parameterise.");
 
 		}
 	    }
@@ -231,7 +258,7 @@ namespace askap {
 	{
 	    if(this->itsComms->isParallel()){
 		
-		if(this->itsInputList.size() > 0) {
+		if(this->itsTotalListSize > 0) {
 
 		    if(this->itsComms->isMaster()){
 			// for each worker, read completed objects until we get a 'finished' signal
@@ -265,7 +292,7 @@ namespace askap {
 			ASKAPASSERT(this->itsOutputList.size() == this->itsDP->pEdgeList()->size());
 
 		    }
-		    else{
+		    else{ // WORKER
 			// for each object in itsOutputList, send to master
 			ASKAPLOG_INFO_STR(logger, "Have parameterised " << this->itsInputList.size() << " edge sources. Returning results to master.");
 			LOFAR::BlobString bs;
