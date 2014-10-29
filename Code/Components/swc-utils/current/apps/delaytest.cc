@@ -62,10 +62,11 @@ using namespace askap::accessors;
 void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
   sel->chooseFeed(0);
-  sel->chooseCrossCorrelations();
-  //sel->chooseAutoCorrelations();
+  //sel->chooseCrossCorrelations();
+  sel->chooseAutoCorrelations();
   if (ctrl >=0 ) {
-      sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
+      //sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
+      sel->chooseUserDefinedIndex("SCAN_NUMBER",casa::uInt(ctrl));
   }
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
@@ -173,7 +174,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             
             // to disable flagging
             //flagged = false; 
-            flagged = allFlagged; 
+            //flagged = allFlagged; 
             
 
             if (flagged) {
@@ -226,9 +227,11 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        stopTime = it->time() + 1; // 1s integration time is hardcoded
   }
   if (counter>1) {
-      buf /= float(counter);
-      buf2 /= float(counter);
-      std::cout<<"Averaged "<<counter<<" integration cycles, "<<nGoodRows<<" good and "<<nBadRows<<" bad rows, time span "<<(stopTime-startTime)/60.<<" minutues"<<std::endl;
+      ASKAPCHECK(nGoodRows % nRow == 0, "Number of good rows="<<nGoodRows<<" is supposed to be integral multiple of number of rows in a cycle="<<nRow);
+      casa::uInt nGoodCycles = nGoodRows / nRow;
+      buf /= float(nGoodCycles);
+      buf2 /= float(nGoodCycles);
+      std::cout<<"Averaged "<<nGoodCycles<<" integration cycles, "<<nGoodRows<<" good and "<<nBadRows<<" bad rows, time span "<<(stopTime-startTime)/60.<<" minutues, cycles="<<counter<<std::endl;
       { // export averaged spectrum
         ASKAPDEBUGASSERT(freq.nelements() == nChan);
         std::ofstream os("avgspectrum.dat");
