@@ -327,10 +327,16 @@ casa::Vector<casa::Float>AmplitudeFlagger::getRobustStats(
     casa::Array<casa::Float>
         sortedAmplitudes = maskedAmplitudes.getCompressedArray();
 
+    // return with zeros if all of the data are flagged
+    if (sortedAmplitudes.shape()[0] == 0) {
+        statsVector.set(0.0);
+        return(statsVector);
+    }
+
     // sort the unflagged amplitudes
     casa::Int numUnflagged=GenSort<casa::Float>::sort(sortedAmplitudes,
         Sort::Ascending, Sort::HeapSort);
-   
+
     // estimate stats, assuming Gaussian noise dominates the frequency channels.
     // (50% of a Gaussian dist. is within 0.67448 sigma of the mean...)
     statsVector[0] = sortedAmplitudes.data()[numUnflagged/2]; // median
@@ -417,7 +423,7 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
             casa::Vector<casa::Float> aveSpectrum(it->second.shape());
             casa::Vector<casa::Int> countSpectrum = itsCountSpectra[it->first];
             casa::Vector<casa::Bool> maskSpectrum = itsMaskSpectra[it->first];
-         
+
             for (size_t chan = 0; chan < aveSpectrum.size(); ++chan) {
                 if (countSpectrum[chan]>0) {
                     aveSpectrum[chan] = it->second[chan] /
