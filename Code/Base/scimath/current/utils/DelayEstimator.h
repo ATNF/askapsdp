@@ -60,6 +60,13 @@ public:
    /// @return delay in seconds
    double getDelay(const casa::Vector<casa::Complex> &vis) const;
 
+   /// @brief estimate delay for a given spectrum via FFT
+   /// @details This method works well in the case of multiple harmonics
+   /// present. However, it only gives a rough estimate
+   /// @param[in] vis (visibility) spectrum
+   /// @return delay in seconds
+   double getDelayWithFFT(const casa::Vector<casa::Complex> &vis) const;
+
    /// @brief set new spectral resolution
    /// @details The new value will apply to all subsequent calculations
    /// @param[in] resolution the spectral resolution in Hz

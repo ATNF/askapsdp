@@ -33,6 +33,7 @@
 
 #include "utils/DelayEstimator.h"
 #include "utils/PhaseUnwrapper.h"
+#include "fft/FFTWrapper.h"
 #include <casa/BasicSL/Constants.h>
 #include <askap/AskapError.h>
 
@@ -52,7 +53,8 @@ DelayEstimator::DelayEstimator(const double resolution) : itsResolution(resoluti
 /// @return delay in seconds
 double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
 {
-   ASKAPDEBUGASSERT(itsResolution != 0.);
+   ASKAPASSERT(itsResolution != 0.);
+   ASKAPASSERT(vis.nelements() > 1);
    std::vector<float> phases(vis.nelements());
    const float threshold = 3 * casa::C::pi / 2;
 
@@ -86,6 +88,34 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    const double coeff = (sxy - sx * sy) / (sx2 - sx * sx);
    // calculate delay based on the fitted slope
    return coeff / 2. / casa::C::pi / itsResolution;
+}
+
+/// @brief estimate delay for a given spectrum via FFT
+/// @details This method works well in the case of multiple harmonics
+/// present. However, it only gives a rough estimate
+/// @param[in] vis (visibility) spectrum
+/// @return delay in seconds
+double DelayEstimator::getDelayWithFFT(const casa::Vector<casa::Complex> &vis) const
+{
+  ASKAPASSERT(itsResolution != 0.);
+   
+  // create a copy explicitly due to reference semantics of casa arrays
+  casa::Vector<casa::Complex> lags(vis.copy());
+  scimath::fft(lags, true);
+  // search for a peak lag
+  casa::uInt peakLagChan = lags.nelements(); 
+  float peakAmp = -1.;
+  for (casa::uInt chan = 0; chan < lags.nelements(); ++chan) {
+       const float curAmp = abs(lags[chan]);
+       if (peakAmp < curAmp) {
+           peakAmp = curAmp;
+           peakLagChan = chan;
+       }
+  }
+  ASKAPCHECK(peakLagChan < lags.nelements(), "Empty spectrum is passed to getDelayWithFFT");
+  const double bandwidth = vis.nelements() * itsResolution;
+  const double delay =  (static_cast<casa::Int>(peakLagChan) - vis.nelements() / 2)  / bandwidth;
+  return delay;
 }
 
 
