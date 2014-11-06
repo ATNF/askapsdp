@@ -36,13 +36,15 @@ on the fast Lustre filesystem::
 Retrieving the tutorial dataset
 -------------------------------
 The measurement set used in this tutorial resides on the "Commissioning Archive" and
-can be retrieved using the scp command. As the measurement set may need to be fetched
-from tape, it should be staged first::
+can be retrieved and extracted using the following commands::
 
-    ssh cortex.ivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/groupfs/askap/tutorials/basic1/coarse_chan.ms
-    scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic1/coarse_chan.ms .
+    ashell.py
+    <ivec.offline>login
+    <ivec.online>get /projects/ASKAP Commissioning Data/tutorials/basic1.tar
+    <ivec.online>quit
+    tar xvf basic1.tar
 
-You may notice the **scp** may stall. This is likely due to the fact the data has not been
+You may notice the "get"  may stall. This is likely due to the fact the data has not been
 fetched (staged) from tape to disk. This is quite normal, and the length of the stall depends
 upon the load on the system (e.g. other users).
 

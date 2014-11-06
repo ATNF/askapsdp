@@ -71,6 +71,9 @@ Add the following to your ~/.bashrc
     # Load the BBCP module for fast external data transfer
     module load bbcp
 
+    # Load the "ashell" module for access to the commissioning archive
+    module load ashell
+
     # Allow MPICH to fallback to 4k pages if large pages cannot be allocated
     export MPICH_GNI_MALLOC_FALLBACK=enabled
 

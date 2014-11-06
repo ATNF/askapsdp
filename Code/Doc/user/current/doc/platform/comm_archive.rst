@@ -1,45 +1,39 @@
 Commissioning Archive Platform
 ==============================
 
-.. warning:: This information is no longer valid. Cortex is being decommissioned.
+.. note:: A cache of measurement sets for recently observed scheduling blocks is
+          kept on the Galaxy Lustre file system at the following path:
+          */scratch2/askap/askapops/askap-scheduling-blocks* - You may wish to check
+          there first as access to this location is faster than access to the
+          commissioning archive, where the files may reside on tape media.
 
-Within the Pawsey Centre iVEC's legacy tape archive system exists. This will be used
-for the commissioning archive until such times as the newly procured Spectralogic tape archive
-is available. The system itself can be accessed by ssh::
+The archive can be accessed from Galaxy via a command line utility called ashell.py. This can
+be loaded manually using::
+	
+	module load ashell
+	
+You can add this to .bashrc for automatic loading; see the section "Setting up your account"
+in the :doc:`processing` documentation page. Once loaded you can start the interface with::
 
-    ssh cortex.ivec.org
+	ashell.py
+	
+After starting ashell you should be presented with the the following prompt::
 
-However you will usually be logged into the ASKAP Central Processor and want to copy data to/from
-PBStore, so the examples below are from the perspective of a user logged into the ASKAP Central
-Processor, or another system potentially external to the Pawsey Centre.
+	<ivec.offline>
+	
+To download the scheduling block 50 data to your current folder use the following commands::
 
-You have a directory on an archive file system, "/pbstore/userfs/<username>". There is a link
-in your home directory called ARCHIVE that points to your personal archive directory
-on the "userfs" file system. This file system has the following default quotas:
+	<ivec.offline>login
+	<ivec.online>get /projects/ASKAP Commissioning Data/askap-scheduling-blocks/50.tar
+	
+Ashell uses the concept of remote and local folders, the remote folder is the directory
+where the files are located in the archive, this is set by the 'cf <path>' (Change Folder)
+command, you can check the current remote folder with the 'pwf' (Print Working Folder)
+command. The local folder is set by the 'cd <path>' command and can be checked with 'pwd'.
 
-* For disk space, there is a 200GB soft limit and a 400GB hard limit.
-* For number of files, there is a 20,000 file soft limit and a 30,000 hard limit.
+Quick help is also available via 'help' and 'help <command>'
 
-To transfer data from the CP to PBStore::
+Additional Information
+----------------------
 
-    scp <filename> cortex.ivec.org:/pbstore/userfs/<username>
-
-To transfer data from PBStore to the CP::
-
-    scp cortex.ivec.org:/pbstore/userfs/<username>/<filename>
-
-**IMPORTANT:** If you are retrieving more than one file, it is much more efficient to stage
-the files before copying. Essentially by doing this you are telling PBStore, in advance,
-all the files you are going to retrieve so it can fetch them in the most optimal manner.
-
-A single file can be staged with the command stage <filename> or a directory can have
-all files recursively staged with the command stage -r <filename>. For example, to stage
-a directory (actually the files within the directory) then copy retrieve it::
-
-    ssh cortex.ivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/userfs/<username>/mydir
-    scp -r cortex.ivec.org:/pbstore/userfs/<username>/mydir
-
-To list your files on /pbstore/userfs/<username> (when logged into epic)::
-
-    ssh cortex.ivec.org ls -l /pbstore/userfs/<username>
-
+* `Data@iVEC Help <https://data.ivec.org/help>`_
