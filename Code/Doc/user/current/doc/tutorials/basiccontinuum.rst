@@ -82,22 +82,20 @@ Retrieving the tutorial dataset
 -------------------------------
 
 There are 10 measurement sets associated with this tutorial. There are nine for the
-calibration observations (one per beam), named calibrator_J1934m638_forSKADS_BEAM0.ms
-through calibrator_J1934m638_forSKADS_BEAM8.ms (these are 2.6GB each). The science field
-has one measurement set, at full spectral resolution, named sciencefield_SKADS.ms (291GB).
+calibration observations (one per beam), named *calibrator_J1934m638_forSKADS_BEAM0.ms*
+through *calibrator_J1934m638_forSKADS_BEAM8.ms* (these are 2.6GB each). The science field
+has one measurement set, at full spectral resolution, named *sciencefield_SKADS.ms* (291GB).
 
 The measurement sets reside on the "Commissioning Archive" and can be retrieved using the
-scp command. As the measurement sets may need to be fetched from tape, they should be
-staged first. This can be done once on the directory::
+following commands::
 
-    ssh cortex.ivec.org /opt/SUNWsamfs/bin/stage -r /pbstore/groupfs/askap/tutorials/basic_continuum
+    ashell.py
+    <ivec.offline>login
+    <ivec.online>get /projects/ASKAP Commissioning Data/tutorials/basic_continuum.tar
+    <ivec.online>quit
+    tar xvf basic_continuum.tar
 
-and then the files can be copied via scp::
-
-    scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic_continuum/sciencefield_SKADS.ms .
-    scp -r cortex.ivec.org:/pbstore/groupfs/askap/tutorials/basic_continuum/calibrator_J1934m638_forSKADS_BEAM?.ms .
-
-You may notice the **scp** may stall. This is likely due to the fact the data has not been
+You may notice the **get** may stall. This is likely due to the fact the data has not been
 fetched (staged) from tape to disk. This is quite normal, and the length of the stall
 depends upon the load on the system (e.g. other users).
 
