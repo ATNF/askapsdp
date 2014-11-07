@@ -206,7 +206,7 @@ void AmplitudeFlagger::processRow(casa::MSColumns& msc, const casa::uInt pass,
                     itsHighLimit = median+itsThresholdFactor*sigma_IQR;
                     hasHighLimit = casa::True;
                 }
-         
+
                 // check min and max relative to thresholds, and do not loop over
                 // data again if they are good. If indicies were also sorted, could
                 // just test where the sorted amplitudes break the threshold...
@@ -435,7 +435,7 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
                     maskSpectrum[chan] = casa::False;
                 }
             }
-         
+
             // generate the flagging stats. could fill the unflagged spectrum
             // directly in the preceding loop, but the full vector is needed below
             casa::MaskedArray<casa::Float>
@@ -444,22 +444,23 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
                 statsVector = getRobustStats(maskedAmplitudes);
             casa::Float median = statsVector[0];
             casa::Float sigma_IQR = statsVector[1];
-         
+            casa::Float lowerLim = median-itsSpectraFactor*sigma_IQR;
+            casa::Float upperLim = median+itsSpectraFactor*sigma_IQR;
+
             // check min and max relative to thresholds.
             // do not loop over data again if all unflagged channels are good
-            if ((statsVector[2] < median-itsSpectraFactor*sigma_IQR) ||
-                (statsVector[3] > median+itsSpectraFactor*sigma_IQR)) {
-         
+            if ((statsVector[2] < lowerLim) || (statsVector[3] > upperLim)) {
+
                 for (size_t chan = 0; chan < aveSpectrum.size(); ++chan) {
                     if (maskSpectrum[chan]==casa::False) continue;
-                    if ((aveSpectrum[chan]<median-itsSpectraFactor*sigma_IQR) ||
-                        (aveSpectrum[chan]>median+itsSpectraFactor*sigma_IQR)) {
+                    if ((aveSpectrum[chan]<lowerLim) ||
+                        (aveSpectrum[chan]>upperLim)) {
                         maskSpectrum[chan]=casa::False;
                     }
                 }
-         
+
             }
-         
+
         }
 
     }
@@ -471,31 +472,32 @@ void AmplitudeFlagger::setFlagsFromIntegrations(void)
 
             // reset the counter for this key
             itsCountTimes[it->first] = -1;
-         
+
             // get the spectra
             casa::Vector<casa::Float> aveTime = it->second;
             casa::Vector<casa::Bool> maskTime = itsMaskTimes[it->first];
-         
+
             // generate the flagging stats
             casa::MaskedArray<casa::Float> maskedAmplitudes(aveTime, maskTime);
             casa::Vector<casa::Float>
                 statsVector = getRobustStats(maskedAmplitudes);
             casa::Float median = statsVector[0];
             casa::Float sigma_IQR = statsVector[1];
-         
+            casa::Float lowerLim = median-itsTimesFactor*sigma_IQR;
+            casa::Float upperLim = median+itsTimesFactor*sigma_IQR;
+
             // check min and max relative to thresholds.
             // do not loop over data again if all unflagged times are good
-            if ((statsVector[2] < median-itsTimesFactor*sigma_IQR) ||
-                (statsVector[3] > median+itsTimesFactor*sigma_IQR)) {
-         
+            if ((statsVector[2] < lowerLim) || (statsVector[3] > upperLim)) {
+
                 for (size_t t = 0; t < aveTime.size(); ++t) {
                     if (maskTime[t] == casa::False) continue;
-                    if ((aveTime[t] < median-itsTimesFactor*sigma_IQR) ||
-                        (aveTime[t] > median+itsTimesFactor*sigma_IQR)) {
+                    if ((aveTime[t] < lowerLim) ||
+                        (aveTime[t] > upperLim)) {
                         maskTime[t] = casa::False;
                     }
                 }
-         
+
             }
 
         }
