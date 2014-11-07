@@ -56,6 +56,11 @@ Configuration Parameters
 +----------------------+------------+-----------------------+---------------------------------------------+
 |width                 |1           |54                     |Defines the number of input channels to      |
 |                      |            |                       |average together to form one output channel. |
+|                      |            |                       |As the averaged visiblities can have         |
+|                      |            |                       |different noise levels due to flagging,      |
+|                      |            |                       |an additional array column containing noise  |
+|                      |            |                       |sigmas for each spectral channel will be     |
+|                      |            |                       |written when width>1.                        |
 +----------------------+------------+-----------------------+---------------------------------------------+
 |beams                 |*None*      |[0]                    |Defines the beam numbers that will be        |
 |                      |            |or                     |exported to the output files. If this        |
