@@ -502,13 +502,44 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
   // default action first - just resize the cube and assign 1.
   noise.resize(itsNumberOfRows, nChan, itsNumberOfPols);
   noise.set(casa::Complex(1.,0.));
-  if (table().actualTableDesc().isColumn("SIGMA")) {
+  // if the sigma spectrum exists, use those sigmas to fill the noise cube
+  if (table().actualTableDesc().isColumn("SIGMA_SPECTRUM")) {
+      // noise is given per channel and polarisation
+      ROArrayColumn<Float> sigmaCol(itsCurrentIteration,"SIGMA_SPECTRUM");
+      for (uInt row = 0; row<itsNumberOfRows; ++row) {
+           const casa::IPosition shape = sigmaCol.shape(row);
+           ASKAPASSERT(shape.size()==2);
+           ASKAPASSERT((shape[0] == casa::Int(itsNumberOfPols)) && 
+                       (shape[1] == casa::Int(itsNumberOfChannels)));
+           
+           casa::Array<Float> buf(casa::IPosition(2,itsNumberOfPols,itsNumberOfChannels));
+           sigmaCol.get(row+itsCurrentTopRow,buf,False);
+                       
+           // SIGMA_SPECTRUM is ordered (row,pol,chan), so need to transpose
+           const IPosition blc(2,0,startChan);
+           const IPosition trc(2,itsNumberOfPols-1,startChan+nChan-1);               
+           casa::Matrix<casa::Complex> rowNoise = noise.yzPlane(row);
+           const casa::Matrix<casa::Float> inVals = buf(blc,trc);
+           //convertArray(rowNoise, buf(blc,trc));            
+           for (casa::uInt x=0; x<rowNoise.nrow(); ++x) {
+                for (casa::uInt y=0; y<rowNoise.ncolumn(); ++y) {
+                     ASKAPDEBUGASSERT(y<inVals.nrow());
+                     ASKAPDEBUGASSERT(x<inVals.ncolumn());
+                     // same polarisation for both real and imaginary parts
+                     const casa::Float val = inVals(y,x);
+                     rowNoise(x,y) = casa::Complex(val,val);
+                } 
+           }     
+      } // loop over rows
+  } // if-statement checking that SIGMA_SPECTRUM column is present
+  else if (table().actualTableDesc().isColumn("SIGMA")) {
       ROArrayColumn<Float> sigmaCol(itsCurrentIteration,"SIGMA");
       for (uInt row = 0; row<itsNumberOfRows; ++row) {
            const casa::IPosition shape = sigmaCol.shape(row);
            ASKAPASSERT((shape.size()<=2) && (shape.size()!=0));
            if (shape.size() == 1) {
                // noise is given per polarisation, same for all spectral channels
+               // IS SIGMA EVER NOT GOING TO BE THIS SIZE? (SEE SIGMA_SPECTRUM)
                ASKAPASSERT(shape[0] == casa::Int(itsNumberOfPols));
                casa::Array<Float> buf(casa::IPosition(1,itsNumberOfPols));
                sigmaCol.get(row+itsCurrentTopRow,buf,False);
@@ -525,6 +556,7 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
                }
            } else {
                // noise is given per channel and polarisation
+               // IS THIS EVER THE CASE, OR IS SIGMA_SPECTRUM (above) ALWAYS USED?
                ASKAPASSERT((shape[0] == casa::Int(itsNumberOfChannels)) && 
                            (shape[1] == casa::Int(itsNumberOfPols)));
                
