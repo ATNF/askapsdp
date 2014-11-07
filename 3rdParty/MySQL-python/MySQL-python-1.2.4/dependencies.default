@@ -1,4 +1,0 @@
-# This file lists the external dependencies
-# use pkgname=ASKAP_ROOT_relative_path
-mysql=3rdParty/mysql
- 
