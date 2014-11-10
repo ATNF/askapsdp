@@ -72,6 +72,12 @@ void DelaySolverApp::process(const IConstDataSource &ds, const std::vector<doubl
   casa::uInt beam = config().getUint("beam",0);
   sel->chooseFeed(beam);
   sel->chooseCrossCorrelations();
+  const int scan = config().getInt32("scan",-1);
+  if (scan >= 0) {
+      ASKAPLOG_INFO_STR(logger, "Process only scan "<<scan);
+      sel->chooseUserDefinedIndex("SCAN_NUMBER",casa::uInt(scan));
+  }
+ 
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
