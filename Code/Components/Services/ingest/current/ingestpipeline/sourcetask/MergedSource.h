@@ -30,6 +30,7 @@
 // System includes
 #include <set>
 #include <string>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/IndexConverter.h"
@@ -89,6 +90,30 @@ class MergedSource : public ISource {
         /// Identifies a datagram based on baselineid, sliceid & beamid.
         /// This is used for duplicate detection
         typedef boost::tuple<int32_t, int32_t, int32_t> DatagramIdentity;
+
+
+        /// Calculates the sum of an arithmetic series
+        /// @param[in] n    the number of terms to sum
+        /// @param[in] a    the first term
+        /// @param[in] d    the common difference between the terms
+        /// @return the sum of an arithmetic series
+        static uint32_t sumOfArithmeticSeries(uint32_t n, uint32_t a, uint32_t d);
+
+        /// Given a baseline id and beam id, calulate the row number where
+        /// the data show be stored.
+        ///
+        /// If the antenna indicies are not within the range [0, nAntenna - 1]
+        /// the return value is undefined (i.e. not valid). It is up to the
+        /// caller to ensure these input indicies are valid!
+        ///
+        /// @param[in] ant1 first antenna index number. This must be in the
+        ///                 range [0, nAntenna - 1]
+        /// @param[in] ant2 second antenna index number. This must be in the
+        ///                 range [0, nAntenna - 1]
+        /// @param[in] beam beam index, zero based
+        /// @return the row number
+        static uint32_t calculateRow(uint32_t ant1, uint32_t ant2,
+                                     uint32_t beam, uint32_t nAntenna);
 
         /// Creates an "empty" VisChunk
         askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
@@ -175,6 +200,15 @@ class MergedSource : public ISource {
 
         // No support for copy constructor
         MergedSource(const MergedSource& src);
+
+        /// For unit testing
+        friend class MergedSourceTest;
+
+        /// This allows the Nometadata source to use some of the private functions
+        /// in the MergedSource. This class (NometadataSource) is very temporary
+        /// and is meant to be removed soon. If this doesn't happen then some
+        /// refactoring will be necessary.
+        friend class NoMetadataSource;
 };
 
 }

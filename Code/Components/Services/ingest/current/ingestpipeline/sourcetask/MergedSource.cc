@@ -393,22 +393,8 @@ bool MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     receivedDatagrams.insert(identity);
 
     // 4) Find the row for the given beam and baseline
-    // TODO: This is slow, need to develop an indexing method
-    casa::uInt row = 0;
-    casa::uInt idx = 0;
-    for (casa::uInt beam = 0; beam < itsNBeams; ++beam) {
-        for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
-            for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
-                if (ant1 == antenna1 &&
-                        ant2 == antenna2 &&
-                        beam == static_cast<casa::uInt>(beamid)) {
-                    row = idx;
-                    break;
-                }
-                idx++;
-            }
-        }
-    }
+    const casa::uInt row = calculateRow(antenna1, antenna2, beamid, nAntenna);
+
     static const std::string errorMsg = "Indexing failed to find row";
     ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
     ASKAPCHECK(chunk->antenna2()(row) == antenna2, errorMsg);
@@ -474,4 +460,17 @@ void MergedSource::checkInterruptSignal()
     if (itsInterrupted) {
         throw InterruptedException();
     }
+}
+
+uint32_t MergedSource::sumOfArithmeticSeries(uint32_t n, uint32_t a, uint32_t d)
+{
+    return (n / 2.0) * ((2 * a) + ((n - 1) * d));
+}
+
+uint32_t MergedSource::calculateRow(uint32_t ant1, uint32_t ant2,
+                                    uint32_t beam, uint32_t nAntenna)
+{
+    return (beam * (nAntenna * (nAntenna + 1) / 2))
+        + (ant1 * (nAntenna) - sumOfArithmeticSeries(ant1 + 1, 0, 1))
+        + ant2;
 }

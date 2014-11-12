@@ -52,6 +52,8 @@ namespace ingest {
 
 class MergedSourceTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(MergedSourceTest);
+        CPPUNIT_TEST(testSumOfArithmeticSeries);
+        CPPUNIT_TEST(testCalculateRow);
         CPPUNIT_TEST(testMockMetadataSource);
         CPPUNIT_TEST(testMockVisSource);
         CPPUNIT_TEST(testSingle);
@@ -200,6 +202,38 @@ class MergedSourceTest : public CppUnit::TestFixture {
             // Check frequency vector
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(N_CHANNELS_PER_SLICE),
                     chunk->frequency().size());
+        }
+
+        void testSumOfArithmeticSeries()
+        {
+            const uint32_t A = 0; // First term
+            const uint32_t D = 1; // Common difference between the terms
+            CPPUNIT_ASSERT_EQUAL(0u, MergedSource::sumOfArithmeticSeries(1, A, D));
+            CPPUNIT_ASSERT_EQUAL(1u, MergedSource::sumOfArithmeticSeries(2, A, D));
+            CPPUNIT_ASSERT_EQUAL(3u, MergedSource::sumOfArithmeticSeries(3, A, D));
+            CPPUNIT_ASSERT_EQUAL(6u, MergedSource::sumOfArithmeticSeries(4, A, D));
+            CPPUNIT_ASSERT_EQUAL(10u, MergedSource::sumOfArithmeticSeries(5, A, D));
+            CPPUNIT_ASSERT_EQUAL(15u, MergedSource::sumOfArithmeticSeries(6, A, D));
+        }
+
+        void testCalculateRow()
+        {
+            const uint32_t NANTENNAS = 36;
+            const uint32_t NBEAMS = 36;
+
+            // This ensures the row mapping sees the second antenna index changing
+            // the fastest, then the first antenna index, and finally the beam id 
+            // changing the slowest
+            uint32_t idx = 0;
+            for (uint32_t beam = 0; beam < NBEAMS; ++beam) {
+                for (uint32_t ant1 = 0; ant1 < NANTENNAS; ++ant1) {
+                    for (uint32_t ant2 = ant1; ant2 < NANTENNAS; ++ant2) {
+                        CPPUNIT_ASSERT_EQUAL(idx,
+                                MergedSource::calculateRow(ant1, ant2, beam, NANTENNAS));
+                        idx++;
+                    }
+                }
+            }
         }
 
     private:

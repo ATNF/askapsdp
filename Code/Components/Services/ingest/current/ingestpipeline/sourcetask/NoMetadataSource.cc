@@ -59,6 +59,7 @@
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "ingestpipeline/sourcetask/InterruptedException.h"
+#include "ingestpipeline/sourcetask/MergedSource.h"
 #include "configuration/Configuration.h"
 #include "configuration/BaselineMap.h"
 
@@ -333,23 +334,7 @@ bool NoMetadataSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     receivedDatagrams.insert(identity);
 
     // 4) Find the row for the given beam and baseline
-    // TODO: This is slow, need to develop an indexing method
-    casa::uInt row = 0;
-    casa::uInt idx = 0;
-    for (casa::uInt beam = 0; beam < itsMaxNBeams; ++beam) {
-        for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
-            for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
-                if (ant1 == antenna1 &&
-                        ant2 == antenna2 &&
-                        beam == static_cast<casa::uInt>(beamid)) {
-                    row = idx;
-                    break;
-                }
-
-                idx++;
-            }
-        }
-    }
+    const casa::uInt row = MergedSource::calculateRow(antenna1, antenna2, beamid, nAntenna);
 
     const std::string errorMsg = "Indexing failed to find row";
     ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
