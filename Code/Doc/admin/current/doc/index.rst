@@ -5,7 +5,6 @@ ASKAP Central Processor Administrator Documentation
    :titlesonly:
    :maxdepth: 2
  
-   manager/index.rst
    ingestpipeline/index.rst
    cpservices/index.rst
    unsupported/index.rst

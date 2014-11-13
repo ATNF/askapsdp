@@ -11,4 +11,5 @@ ASKAP Central Processor User Documentation
    calim/index.rst
    analysis/index.rst
    utils/index.rst
+   services/index.rst
    tutorials/index.rst
