@@ -80,8 +80,8 @@ MsSplitApp::MsSplitApp()
 }
 
 boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
-    const std::string& filename, casa::uInt bucketSize,
-    casa::uInt tileNcorr, casa::uInt tileNchan)
+    const std::string& filename, const casa::Bool addSigmaSpec,
+    casa::uInt bucketSize, casa::uInt tileNcorr, casa::uInt tileNchan)
 {
     if (bucketSize < 8192) bucketSize = 8192;
 
@@ -96,6 +96,11 @@ boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
 
     // Add the DATA column.
     MS::addColumnToDesc(msDesc, MS::DATA, 2);
+
+    // Add the SIGMA_SPECTRUM column?
+    if (addSigmaSpec) {
+        MS::addColumnToDesc(msDesc, MS::SIGMA_SPECTRUM, 2);
+    }
 
     SetupNewTable newMS(filename, msDesc, Table::New);
 
@@ -132,6 +137,10 @@ boost::shared_ptr<casa::MeasurementSet> MsSplitApp::create(
                          dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::FLAG),
                          dataMan);
+        if (addSigmaSpec) {
+            newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA_SPECTRUM),
+                             dataMan);
+        }
     }
     {
         const int bytesPerRow = sizeof(float) * tileNcorr;
@@ -437,7 +446,7 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
     const ROMSColumns sc(source);
     MSColumns dc(dest);
 
-    // Add rows upfront is no row based filters exist
+    // Add rows upfront if no row based filters exist
     const casa::uInt nRows = sc.nrow();
     if (!rowFiltersExist()) dest.addRow(nRows);
 
@@ -448,11 +457,30 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
     const uInt nPol = sc.data()(0).shape()(0);
     ASKAPDEBUGASSERT(nPol > 0);
 
+    // Test to see whether SIGMA_SPECTRUM has been added
+    casa::Bool haveInSigmaSpec = source.isColumn(MS::SIGMA_SPECTRUM);
+    casa::Bool haveOutSigmaSpec = dest.isColumn(MS::SIGMA_SPECTRUM);
+    if (haveInSigmaSpec) {
+        ASKAPLOG_INFO_STR(logger, "Reading and using the spectra of sigma values");
+    }
+    if (haveOutSigmaSpec) {
+        ASKAPLOG_INFO_STR(logger, "Calculating and storing spectra of sigma values");
+    }
+
     // Decide how many rows to process simultaneously. This needs to fit within
     // a reasonable amount of memory, because all visibilities will be read
     // in for possible averaging. Assumes 32MB working space.
-    uInt maxSimultaneousRows = (32 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
-            / (sizeof(casa::Complex) + sizeof(casa::Bool));
+    std::size_t inDataSize = sizeof(casa::Complex) + sizeof(casa::Bool);
+    std::size_t outDataSize = inDataSize;
+    if (haveInSigmaSpec) {
+        inDataSize += sizeof(casa::Float);
+    }
+    if (haveOutSigmaSpec) {
+        outDataSize += sizeof(casa::Float);
+    }
+    uInt maxSimultaneousRows = (32 * 1024 * 1024) / nPol /
+            (nChanIn * inDataSize) / (nChanOut * outDataSize);
+    if (maxSimultaneousRows<1) maxSimultaneousRows = 1;
 
     // However, if there is row-based filtering only one row can be copied
     // at a time.
@@ -464,6 +492,12 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
     dc.data().setMaximumCacheSize(cacheSize);
     sc.flag().setMaximumCacheSize(cacheSize);
     dc.flag().setMaximumCacheSize(cacheSize);
+    if (haveInSigmaSpec) {
+        sc.sigmaSpectrum().setMaximumCacheSize(cacheSize);
+    }
+    if (haveOutSigmaSpec) {
+        dc.sigmaSpectrum().setMaximumCacheSize(cacheSize);
+    }
 
     uInt progressCounter = 0; // Used for progress reporting
     const uInt PROGRESS_INTERVAL_IN_ROWS = nRows / 100;
@@ -528,12 +562,15 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
         dc.uvw().putColumnRange(dstrowslicer, sc.uvw().getColumnRange(srcrowslicer));
         dc.flagRow().putColumnRange(dstrowslicer, sc.flagRow().getColumnRange(srcrowslicer));
         dc.weight().putColumnRange(dstrowslicer, sc.weight().getColumnRange(srcrowslicer));
-        dc.sigma().putColumnRange(dstrowslicer, sc.sigma().getColumnRange(srcrowslicer));
+        dc.sigma().putColumnRange(dstrowslicer, sc.sigma().getColumnRange(srcrowslicer)/sqrt(width));
 
         // Set the shape of the destination arrays
         for (uInt i = dstRow; i < dstRow + nRowsThisIteration; ++i) {
             dc.data().setShape(i, IPosition(2, nPol, nChanOut));
             dc.flag().setShape(i, IPosition(2, nPol, nChanOut));
+            if (haveOutSigmaSpec) {
+                dc.sigmaSpectrum().setShape(i, IPosition(2, nPol, nChanOut));
+            }
         }
 
         //  Average (if applicable) then write data into the output MS
@@ -544,41 +581,71 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
 
         if (width == 1) {
             dc.data().putColumnRange(dstrowslicer, destarrslicer,
-                                     sc.data().getColumnRange(srcrowslicer, srcarrslicer));
+                sc.data().getColumnRange(srcrowslicer, srcarrslicer));
             dc.flag().putColumnRange(dstrowslicer, destarrslicer,
-                                     sc.flag().getColumnRange(srcrowslicer, srcarrslicer));
+                sc.flag().getColumnRange(srcrowslicer, srcarrslicer));
+            if (haveInSigmaSpec && haveOutSigmaSpec) {
+                dc.sigmaSpectrum().putColumnRange(dstrowslicer, destarrslicer,
+                    sc.sigmaSpectrum().getColumnRange(srcrowslicer, srcarrslicer));
+            }
         } else {
-            // Get (read) the input data/flag
+            // Get (read) the input data/flag/sigma
             const casa::Cube<casa::Complex> indata = sc.data().getColumnRange(srcrowslicer, srcarrslicer);
             const casa::Cube<casa::Bool> inflag = sc.flag().getColumnRange(srcrowslicer, srcarrslicer);
+            // This is only needed if generating sigmaSpectra, but that should be the
+            // case with width>1, and this avoids testing in the tight loops below
+            casa::Cube<casa::Float> insigma;
+            if (haveInSigmaSpec) {
+                insigma = sc.sigmaSpectrum().getColumnRange(srcrowslicer, srcarrslicer);
+            } else {
+                // There's only 1 sigma per pol & row, so spread over channels
+                insigma = casa::Cube<casa::Float>(indata.shape());
+                casa::IPosition arrayShape(3, nPol,1,nRowsThisIteration);
+                casa::Array<casa::Float> sigmaArray =
+                    sc.sigma().getColumnRange(srcrowslicer).reform(arrayShape);
+                for (uInt i = 0; i < nChanIn; ++i) {
+                    const Slicer blockSlicer(IPosition(3, 0,i,0),
+                                             arrayShape, Slicer::endIsLength);
+                    insigma(blockSlicer) = sigmaArray;
+                }
+            }
 
-            // Create the output data/flag
+            // Create the output data/flag/sigma
             casa::Cube<casa::Complex> outdata(nPol, nChanOut, nRowsThisIteration);
             casa::Cube<casa::Bool> outflag(nPol, nChanOut, nRowsThisIteration);
+            // This is only needed if generating sigmaSpectra, but that should be the
+            // case with width>1, and this avoids testing in the tight loops below
+            casa::Cube<casa::Float> outsigma(nPol, nChanOut, nRowsThisIteration); 
 
             // Average data and combine flag information
             for (uInt pol = 0; pol < nPol; ++pol) {
                 for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
                     for (uInt r = 0; r < nRowsThisIteration; ++r) {
                         casa::Complex sum(0.0, 0.0);
-                        casa::Bool outputFlag = false;
+                        casa::Float varsum = 0.0; 
+                        casa::uInt sumcount = 0; 
 
                         // Starting at the appropriate offset into the source data, average "width"
                         // channels together
                         for (uInt i = (destChan * width); i < (destChan * width) + width; ++i) {
                             ASKAPDEBUGASSERT(i < nChanIn);
+                            if (inflag(pol, i, r)) continue;
                             sum += indata(pol, i, r);
-
-                            if (outputFlag == false && inflag(pol, i, r)) {
-                                outputFlag = true;
-                            }
+                            varsum += insigma(pol, i, r) * insigma(pol, i, r);
+                            sumcount++;
                         }
 
                         // Now the input channels have been averaged, write the data to
                         // the output cubes
-                        outdata(pol, destChan, r) = casa::Complex(sum.real() / width,
-                                                    sum.imag() / width);
-                        outflag(pol, destChan, r) = outputFlag;
+                        if (sumcount > 0) { 
+                            outdata(pol, destChan, r) = casa::Complex(sum.real() / sumcount,
+                                                                      sum.imag() / sumcount);
+                            outflag(pol, destChan, r) = false;
+                            outsigma(pol, destChan, r) = sqrt(varsum) / sumcount;
+                        } else {
+                            outflag(pol, destChan, r) = true;
+                        }
+
                     }
                 }
             }
@@ -586,6 +653,9 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
             // Put (write) the output data/flag
             dc.data().putColumnRange(dstrowslicer, destarrslicer, outdata);
             dc.flag().putColumnRange(dstrowslicer, destarrslicer, outflag);
+            if (haveOutSigmaSpec) {
+                dc.sigmaSpectrum().putColumnRange(dstrowslicer, destarrslicer, outsigma);
+            }
         }
 
         row += nRowsThisIteration;
@@ -619,17 +689,33 @@ int MsSplitApp::split(const std::string& invis, const std::string& outvis,
     // Open the input measurement set
     const casa::MeasurementSet in(invis);
 
+    // Verify split parameters that require input MS info
+    casa::Int totChanIn = ROScalarColumn<casa::Int>(in.spectralWindow(),"NUM_CHAN")(0);
+    if ((startChan<1) || (endChan > totChanIn)) {
+        ASKAPLOG_ERROR_STR(logger,
+            "Input channel range is inconsistent with input spectra: ["<<
+            startChan<<","<<endChan<<"] is outside [1,"<<totChanIn<<"]");
+        return 1;
+    }
+
     // Create the output measurement set
     if (casa::File(outvis).exists()) {
         ASKAPLOG_ERROR_STR(logger, "File or table " << outvis << " already exists!");
         return 1;
     }
 
+    // Add a sigma spectrum to the output measurement set?
+    casa::Bool addSigmaSpec = false;
+    if ((width > 1) || in.isColumn(MS::SIGMA_SPECTRUM)) {
+        addSigmaSpec = true;
+    }
+
     const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 64 * 1024);
     const casa::uInt tileNcorr = parset.getUint32("stman.tilencorr", 4);
     const casa::uInt tileNchan = parset.getUint32("stman.tilenchan", 1);
 
-    boost::shared_ptr<casa::MeasurementSet> out(create(outvis, bucketSize, tileNcorr, tileNchan));
+    boost::shared_ptr<casa::MeasurementSet>
+        out(create(outvis, addSigmaSpec, bucketSize, tileNcorr, tileNchan));
 
     // Copy ANTENNA
     ASKAPLOG_INFO_STR(logger,  "Copying ANTENNA table");

@@ -62,8 +62,8 @@ class MsSplitApp : public askap::Application {
     private:
 
         static boost::shared_ptr<casa::MeasurementSet> create(
-            const std::string& filename, casa::uInt bucketSize,
-            casa::uInt tileNcorr, casa::uInt tileNchan);
+            const std::string& filename, const casa::Bool addSigmaSpec,
+            casa::uInt bucketSize, casa::uInt tileNcorr, casa::uInt tileNchan);
 
         static void copyAntenna(const casa::MeasurementSet& source, casa::MeasurementSet& dest);
 
