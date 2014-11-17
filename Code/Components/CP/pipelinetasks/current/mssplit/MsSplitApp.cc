@@ -690,7 +690,7 @@ int MsSplitApp::split(const std::string& invis, const std::string& outvis,
     const casa::MeasurementSet in(invis);
 
     // Verify split parameters that require input MS info
-    casa::Int totChanIn = ROScalarColumn<casa::Int>(in.spectralWindow(),"NUM_CHAN")(0);
+    const casa::uInt totChanIn = ROScalarColumn<casa::Int>(in.spectralWindow(),"NUM_CHAN")(0);
     if ((startChan<1) || (endChan > totChanIn)) {
         ASKAPLOG_ERROR_STR(logger,
             "Input channel range is inconsistent with input spectra: ["<<
