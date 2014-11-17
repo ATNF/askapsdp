@@ -168,7 +168,7 @@ public class MonitoringSingleton {
 		point.unit = unit;
 
 		synchronized (pointdata) {
-			pointdata.put(name, point);
+			pointdata.put(point.name, point);
 		}
 	}
 
