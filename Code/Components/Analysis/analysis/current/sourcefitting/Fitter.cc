@@ -235,7 +235,6 @@ namespace askap {
 
 	        this->itsParams.setBoxFlux(f);
                 this->itsSolution.resize();
-                bool thisFitGood = true;
                 int numLoops = 3;
                 this->itsFitter.setMaxRetries(this->itsParams.maxRetries());
 
@@ -255,7 +254,6 @@ namespace askap {
                             std::string message = err.getMesg().chars();
                             message = "FIT ERROR: " + message;
                             ASKAPLOG_ERROR(logger, message);
-                            thisFitGood = false;
                         }
 
                         for (unsigned int i = 0; i < this->itsNumGauss; i++) {

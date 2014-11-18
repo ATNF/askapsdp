@@ -76,7 +76,7 @@ namespace askap {
             /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id,name;
-            double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
+            double peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj, guess;
 
             // Convert the base position
@@ -102,15 +102,11 @@ namespace askap {
 	      inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess;
 	      
 	      if (fluxUseFit == "no") {
-                    flux = iflux1;
                     peakflux = pflux1;
                 } else if (fluxUseFit == "yes") {
-                    flux = iflux2;
                     peakflux = pflux2;
                 } else {
                     //NOTE: was if(fluxUseFit=="best") but taking "best" to be the default
-                    if (iflux2 > 0) flux = iflux2;
-                    else flux = iflux1;
 
                     if (pflux2 > 0) peakflux = pflux2;
                     else peakflux = pflux1;
@@ -145,7 +141,6 @@ namespace askap {
                 if (radius < 0 || (radius > 0 && hypot(x - xBase, y - yBase) < radius*60.)) {
                     // matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa,alpha,beta);
 		    matching::Point pt(xBase, yBase, peakflux, id);
-                    // pt.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
                 }
 
@@ -250,7 +245,7 @@ namespace askap {
             std::string raS, decS, sdud, id, name;
             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
             double decBase = analysis::dmsToDec(decBaseStr);
-            double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
+            double xpt, ypt, ra, dec, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj,guess;
 	    std::string line;
 
@@ -267,16 +262,11 @@ namespace askap {
 		inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess;
 		  
 		  if (fluxUseFit == "no") {
-                    flux = iflux1;
                     peakflux = pflux1;
 		  } else if (fluxUseFit == "yes") {
-                    flux = iflux2;
                     peakflux = pflux2;
 		  } else {
                     //NOTE: was if(fluxUseFit=="best") but taking "best" to be the default
-                    if (iflux2 > 0) flux = iflux2;
-                    else flux = iflux1;
-		    
                     if (pflux2 > 0) peakflux = pflux2;
                     else peakflux = pflux1;
 		  }
@@ -307,7 +297,6 @@ namespace askap {
                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
 		  //                    matching::Point pix(xpt, ypt, peakflux, id, maj, min, pa,alpha,beta);
                     matching::Point pix(xpt, ypt, peakflux, id);
-		    //                    pix.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pix);
                 }
 	      }

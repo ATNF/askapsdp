@@ -219,7 +219,7 @@ namespace askap {
 		const int lat=header->getWCS()->lat;
 		const int spec=header->getWCS()->spec;
 		std::vector<std::string> sectionlist(dim.size(),"1:1");
-		for(int ax=0;ax<dim.size();ax++){
+		for(int ax=0;ax<int(dim.size());ax++){
 		    std::stringstream ss;
 		    if (ax==spec){
 			if (fullSpectralRange) ss << "1:"<<dim[ax]+1;
@@ -1416,7 +1416,7 @@ namespace askap {
 
 		char initialLetter='a';
 		std::stringstream id;
-		for(int c=0,count=0,factor=1; count <= num; factor*=26,c++,count+=factor){
+		for(unsigned int c=0,count=0,factor=1; count <= num; factor*=26,c++,count+=factor){
 		    int n = ((num-count)/factor)%26;
 		    id << char(initialLetter+n);
 		}

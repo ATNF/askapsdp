@@ -265,7 +265,7 @@ namespace askap {
 	std::stable_sort(list1.begin(), list1.end());
 	std::stable_sort(list2.begin(), list2.end());
 	// find maximum ratio tolerances for each list
-	double maxTol1,maxTol2;
+	double maxTol1=0.,maxTol2=0.;
 
 	for (size_t i = 0; i < size1; i++) {
 	  list1[i].defineTolerances(epsilon);
@@ -379,8 +379,6 @@ namespace askap {
 	  nIter++;
 	} while (nIter < maxIter && trilist.size() > 0);
 
-	unsigned int ctr = 0;
-
 	for (unsigned int i = 0; i < trilist.size(); i++) {
 	  if (trilist[i].first.isClockwise() == trilist[i].second.isClockwise()) nSame++;
 	  else nOpp++;
@@ -421,7 +419,6 @@ namespace askap {
 	  std::vector<Point> ptlist2 = trilist[i].second.getPtList();
 
 	  for (int p = 0; p < 3; p++) { // for each of the three points:
-	    int thisVote = 1;
 	    bool foundMatch=false;
 	    if (votes.size()>0){
 
