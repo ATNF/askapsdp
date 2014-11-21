@@ -29,7 +29,7 @@
 #ifndef ASKAP_ANALYSIS_RM_SYNTHESIS_H_
 #define ASKAP_ANALYSIS_RM_SYNTHESIS_H_
 
-#include <polarisation/PolarisationData.h>
+/* #include <polarisation/PolarisationData.h> */
 
 #include <casa/Arrays/Vector.h>
 #include <casa/Complex.h>

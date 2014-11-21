@@ -28,7 +28,7 @@
 ///
 #include <polarisation/RMSynthesis.h>
 
-#include <polarisation/PolarisationData.h>
+// #include <polarisation/PolarisationData.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
