@@ -52,8 +52,8 @@ int main(int argc, const char *argv[])
     try {
 	// initialise with defaults
 	LOFAR::ParameterSet parset;
-	const int numPhiChan=25000;
-	const float deltaPhi=1.;
+	const int numPhiChan=2500;
+	const float deltaPhi=25.;
 	parset.replace(LOFAR::KVpair("numPhiChan",numPhiChan));
 	parset.replace(LOFAR::KVpair("deltaPhi",deltaPhi));
 	parset.replace("weightType","uniform");
