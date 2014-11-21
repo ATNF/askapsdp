@@ -63,8 +63,10 @@ namespace askap {
 	    casa::Vector<casa::Complex> rmsf(){return itsRMSF;};
 	    casa::Vector<float> phi_rmsf(){return itsPhiForRMSF;};
 	    float rmsf_width(){return itsRMSFwidth;};
+	    float refLambdaSq(){return itsRefLambdaSquared;};
 
 	    float normalisation(){return itsNormalisation;};
+	    float fdf_noise(){return itsFDFnoise;};
 
 	private:
 
@@ -81,6 +83,7 @@ namespace askap {
 	    casa::Vector<float> itsPhi;
 	    
 	    casa::Vector<casa::Complex> itsFaradayDF;
+	    float itsFDFnoise; ///< The average of the provided noise spectrum, scaled by sqrt(num_freq_chan)
 
 	    casa::Vector<float> itsPhiDouble;
 
@@ -90,7 +93,6 @@ namespace askap {
 	    float itsRMSFwidth;
 	    
 	    float itsRefLambdaSquared;
-	    float itsRefFrequency;
 
 
 	};

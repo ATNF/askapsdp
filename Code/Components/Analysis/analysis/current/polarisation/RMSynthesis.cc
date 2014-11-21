@@ -104,12 +104,12 @@ namespace askap {
 	    this->itsPhiZero = other.itsPhiZero;
 	    this->itsPhi = other.itsPhi;
 	    this->itsFaradayDF = other.itsFaradayDF;
+	    this->itsFDFnoise = other.itsFDFnoise;
 	    this->itsPhiDouble = other.itsPhiDouble;
 	    this->itsPhiForRMSF = other.itsPhiForRMSF;
 	    this->itsRMSF = other.itsRMSF;
 	    this->itsRMSFwidth = other.itsRMSFwidth;
 	    this->itsRefLambdaSquared = other.itsRefLambdaSquared;
-	    this->itsRefFrequency = other.itsRefFrequency;
 	    return *this;
 
 	}
@@ -151,6 +151,7 @@ namespace askap {
 	    else
 		this->itsWeights = casa::Vector<float>(noise.size(),1.);
 
+	    this->itsFDFnoise = casa::mean(noise)/sqrt(noise.size());
 
 	    // K = \sum(w_i)^-1
 	    this->itsNormalisation = 1./casa::sum(this->itsWeights);

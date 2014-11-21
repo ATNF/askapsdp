@@ -54,7 +54,7 @@ int main(int argc, const char *argv[])
 	// initialise with defaults
 	LOFAR::ParameterSet parset;
 	const int numPhiChan=2500;
-	const float deltaPhi=25.;
+	const float deltaPhi=30.;
 	parset.replace(LOFAR::KVpair("numPhiChan",numPhiChan));
 	parset.replace(LOFAR::KVpair("deltaPhi",deltaPhi));
 	parset.replace("weightType","uniform");
@@ -64,7 +64,7 @@ int main(int argc, const char *argv[])
 	const float C_ms=299792458.0;
 	casa::IPosition shape(1,nchan);
 	casa::Vector<float> freq(nchan);
-	casa::indgen<float>(freq, 700.e6, 1.e6);
+	casa::indgen<float>(freq, 1150.e6, 1.e6);
 	casa::Vector<float> wl = C_ms / freq;
 	casa::Vector<float> lamsq = wl * wl;
 
