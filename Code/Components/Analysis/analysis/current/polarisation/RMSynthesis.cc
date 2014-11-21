@@ -227,7 +227,7 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "RMSF fit: pos = " << pos);
 	    ASKAPLOG_DEBUG_STR(logger, "RMSF fit: f = " << f);
 
-	    FitGaussian<casa::Double> fitter;
+	    casa::FitGaussian<casa::Double> fitter;
 	    fitter.setDimensions(1);
 	    fitter.setNumGaussians(1);
 	    casa::Matrix<casa::Double> estimate;

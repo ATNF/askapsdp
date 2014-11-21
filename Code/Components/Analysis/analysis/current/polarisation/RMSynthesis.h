@@ -32,7 +32,7 @@
 /* #include <polarisation/PolarisationData.h> */
 
 #include <casa/Arrays/Vector.h>
-#include <casa/Complex.h>
+#include <casa/BasicSL/Complex.h>
 
 #include <Common/ParameterSet.h>
 
