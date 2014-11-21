@@ -27,6 +27,7 @@
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #include <polarisation/RMSynthesis.h>
+#include <askap_analysis.h>
 
 // #include <polarisation/PolarisationData.h>
 
@@ -36,7 +37,7 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/ArrayMath.h>
-#include <complex.h>
+#include <complex>
 #include <casa/BasicSL/Complex.h>
 #include <scimath/Fitting/FitGaussian.h>
 

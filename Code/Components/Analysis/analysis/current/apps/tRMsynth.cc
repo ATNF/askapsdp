@@ -27,6 +27,7 @@
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #include <polarisation/RMSynthesis.h>
+#include <askap_analysis.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
