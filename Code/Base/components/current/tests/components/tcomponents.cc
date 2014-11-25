@@ -29,10 +29,12 @@
 
 // Test includes
 #include "AskapComponentImagerTest.h"
+#include "SpectralIndexTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::components::SpectralIndexTest::suite());
     runner.addTest(askap::components::AskapComponentImagerTest::suite());
     bool wasSucessful = runner.run();
 
