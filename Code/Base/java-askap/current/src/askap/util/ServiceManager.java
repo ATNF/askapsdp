@@ -101,6 +101,8 @@ public class ServiceManager {
 				logger.warn("Connect failed exception" + baseWarn);
 			} catch (Ice.DNSException e) {
 				logger.warn("DNS exception" + baseWarn);
+			} catch (Ice.SocketException e) {
+				logger.warn("Socket exception" + baseWarn);
 			}
 			if (!activated) {
 				try {
