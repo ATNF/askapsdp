@@ -103,7 +103,7 @@ module monitoring
      * monitoring points in the returned sequence.
      *
      * Where a point name is not available it will simply not
-     * be sincluded in the result sequence.
+     * be included in the result sequence.
      *
      * If an empty sequence is passed, the returned sequence will
      * be empty.

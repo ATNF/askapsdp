@@ -61,16 +61,35 @@ module schedblock
         PENDINGARCHIVE,
         COMPLETED,
         ERRORED,
-	RETIRED
+        RETIRED
     };
 
     /**
      * A sequence of ObsStates.
      *
      **/
-
     sequence<ObsState> ObsStateSeq;
 
+
+    /**
+     * A Scheduling block summary
+     * See ISchedulingBlockService for details on the attributes
+     **/
+    struct SchedulingBlockInfo
+    {
+      long id;
+      string alias;
+      ObsState state;
+      string templateName;
+      long templateVersion;
+      string owner;
+      string startTime;
+      string scheduledTime;
+    };
+
+    ["java:type:java.util.ArrayList<askap.interfaces.schedblock.SchedulingBlockInfo>"] sequence<SchedulingBlockInfo> SchedulingBlockInfoSeq;
+
+    
     /**
      * The SchedulingBlockService provides and interface to the main ASKAP
      * obseravtion entity - the Scheduling Block. The Scheduling Block describes
@@ -94,16 +113,28 @@ module schedblock
          *
          **/
         void transition(long sbid, ObsState newstate) throws
-		TransitionException,
-		NoSuchSchedulingBlockException;
+            TransitionException,
+            NoSuchSchedulingBlockException;
 
         /**
          * Get all Scheduling Block ids matching the given state.
          *
+         * @param changedsince get Scheduling Blocks changed since given
+         *                      ISO8061 UTC date/time
          * @return a sequence of Scheduling Block ids
          *
          **/
-        idempotent askap::interfaces::LongSeq getByState(ObsStateSeq states);
+        idempotent askap::interfaces::LongSeq getByState(ObsStateSeq states,
+                                                         string changedsince);
+
+
+        /**
+         * Get all Scheduling Block Info for the given ids.
+         *
+         * @return a sequence of SchedulingBlockInfo structs
+         *
+         **/
+        idempotent SchedulingBlockInfoSeq getMany(askap::interfaces::LongSeq ids);
 
         /**
          * Get all Scheduling Blocks for a given SBTemplate (name) given
@@ -117,14 +148,17 @@ module schedblock
         idempotent askap::interfaces::LongSeq getByTemplate(string name,
                                                             int majorversion);
 
-	/**
-	 * Get Scheduling Block (id) for the ObsProgram "name"
+        /**
+         * Get Scheduling Block (id) for the ObsProgram "name"
+         *
          * @param name the name of the ObsProgram
-	 * @return a sequence of Scheduling Block ids
-	 *
-	 **/	 
-	idempotent askap::interfaces::LongSeq getByObsProgram(string name) 
-	    throws NoSuchObsProgramException;
+         * @param changedsince get Scheduling Blocks changed since given
+         *                     ISO8061 UTC date/time
+         * @return a sequence of Scheduling Block ids
+        *
+        **/
+        idempotent askap::interfaces::LongSeq getByObsProgram(string name,
+                string changedsince) throws NoSuchObsProgramException;
 
         /**
          * Create a new Scheduling Block with the given initial configuration.
@@ -139,7 +173,7 @@ module schedblock
          **/
         long create(string program, string templname, string alias)
              throws NoSuchSBTemplateException,
-	            NoSuchObsProgramException;
+                    NoSuchObsProgramException;
 
         /**
          * Remove and existing Scheduling Block. This will only work with
@@ -268,8 +302,7 @@ module schedblock
          * @param obsvarkeys The Obs Variables to remove
          *
          **/
-        void removeObsVariables(long sbid,
-                                 askap::interfaces::StringSeq obsvarkeys)
+        void removeObsVariables(long sbid, askap::interfaces::StringSeq obsvarkeys)
                 throws ParameterException,
                        NoSuchSchedulingBlockException;
 
@@ -296,7 +329,7 @@ module schedblock
          *
          **/
         void updateTemplateVersion(long sbid, int majorversion,
-				   askap::interfaces::ParameterMap userparams)
+                askap::interfaces::ParameterMap userparams)
                 throws NoSuchSchedulingBlockException,
                        NoSuchSBTemplateException;
 
@@ -308,7 +341,7 @@ module schedblock
          *
          **/
         idempotent ObsState getState(long sbid)
-	      throws NoSuchSchedulingBlockException;
+            throws NoSuchSchedulingBlockException;
 
         /**
          * Get the ObsProgram which owns the given Scheduling Block.
@@ -318,7 +351,7 @@ module schedblock
          *
          **/
         idempotent string getOwner(long sbid)
-	      throws NoSuchSchedulingBlockException;
+            throws NoSuchSchedulingBlockException;
 
         /**
          * Get a list of all ObsPrograms associated  with the given Scheduling
@@ -329,7 +362,7 @@ module schedblock
          *
          **/
         idempotent askap::interfaces::StringSeq getObsPrograms(long sbid)
-	      throws NoSuchSchedulingBlockException;
+            throws NoSuchSchedulingBlockException;
 
         /**
          * Associate the given ObsProgram with the given Scheduling Block.
@@ -339,8 +372,8 @@ module schedblock
          *
          **/
         void addObsProgram(long sbid, string program)
-	  throws NoSuchSchedulingBlockException,
-	         NoSuchObsProgramException;
+            throws NoSuchSchedulingBlockException,
+                   NoSuchObsProgramException;
 
         /**
          * Disassociate an ObsProgram from the given Scheduling Block.
@@ -350,9 +383,8 @@ module schedblock
          *
          **/
         void removeObsProgram(long sbid, string program)
-	  throws NoSuchSchedulingBlockException,
-	         NoSuchObsProgramException;
-
+            throws NoSuchSchedulingBlockException,
+                   NoSuchObsProgramException;
     };
 };
 };
