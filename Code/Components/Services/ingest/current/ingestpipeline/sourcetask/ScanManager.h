@@ -27,14 +27,8 @@
 #ifndef ASKAP_CP_INGEST_SCANMANAGER_H
 #define ASKAP_CP_INGEST_SCANMANAGER_H
 
-// System includes
-
 // ASKAPsoft includes
 #include "casa/aips.h"
-#include <string>
-
-// Local package includes
-#include "configuration/Configuration.h"
 
 namespace askap {
 namespace cp {
@@ -47,9 +41,7 @@ class ScanManager {
     public:
 
         /// Constructor
-        /// @param[in] config   the configuration that defines the sequence
-        ///                     of scans.
-        ScanManager(const Configuration& config);
+        ScanManager();
 
         /// Destructor
         ~ScanManager();
@@ -58,7 +50,10 @@ class ScanManager {
         /// telescope operating system. The scan_active and scan_id fields from
         /// the metadata payload are passed in as parameters.
         ///
-        /// @param[in] scanId       the scan_id field from the TOS metadata.
+        /// @param[in] scanId   the scan_id field from the TOS metadata
+        /// @throws AskapError  if the scan id parameter is less than zero and not
+        ///                     equal to the SCANID_IDLE or SCANID_OBS_COMPLETE
+        ///                     constants
         void update(const casa::Int scanId);
 
         /// @return true if the observation is complete, otherwise false. The
@@ -79,9 +74,6 @@ class ScanManager {
         static const casa::Int SCANID_OBS_COMPLETE = -2;
 
     private:
-
-        // A copy of the system and observation configuration
-        const Configuration itsConfig;
 
         // Current (zero based) scan index, if the first scan has not yet
         // started this will be set to SCANID_IDLE

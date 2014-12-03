@@ -54,7 +54,7 @@ class ScanManagerTest : public CppUnit::TestFixture {
         };
 
         void testUpdate() {
-            ScanManager sm(ConfigurationHelper::createDummyConfig());
+            ScanManager sm;
             CPPUNIT_ASSERT(!sm.observationComplete());
             CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
 
@@ -70,10 +70,20 @@ class ScanManagerTest : public CppUnit::TestFixture {
                 CPPUNIT_ASSERT_EQUAL(0, sm.scanIndex());
             }
 
+            // Test robustness to SCANID_IDLE between scans
+            sm.update(-1);
+            CPPUNIT_ASSERT(!sm.observationComplete());
+            CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
+
             for (int i = 0; i < 10; ++i) {
                 sm.update(1);
                 CPPUNIT_ASSERT(!sm.observationComplete());
                 CPPUNIT_ASSERT_EQUAL(1, sm.scanIndex());
+
+                // Test robustness to SCANID_IDLE mid-scan!
+                sm.update(-1);
+                CPPUNIT_ASSERT(!sm.observationComplete());
+                CPPUNIT_ASSERT_EQUAL(-1, sm.scanIndex());
             }
 
             // Skip scanid 2

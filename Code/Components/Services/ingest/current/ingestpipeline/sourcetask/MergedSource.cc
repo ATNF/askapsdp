@@ -74,7 +74,6 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsConfig(config),
      itsMetadataSrc(metadataSrc), itsVisSrc(visSrc),
      itsNumTasks(numTasks), itsId(id),
-     itsScanManager(config),
      itsChannelManager(params),
      itsBaselineMap(config.bmap()),
      itsInterrupted(false),
@@ -104,25 +103,20 @@ VisChunk::ShPtr MergedSource::next(void)
     // Used for a timeout
     const long ONE_SECOND = 10000000;
 
-    if (itsScanManager.scanIndex() < 0) {
-        // If the TOS hasn't started the observation yet (i.e. scan id hasn't
-        // changed from SCANID_IDLE), just eat metadata payloads until scan_id >= 0
-        ASKAPLOG_INFO_STR(logger, "Waiting for first scan to begin");
-        do {
-            itsMetadata = itsMetadataSrc->next(ONE_SECOND);
-            checkInterruptSignal();
-            if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
-                ASKAPLOG_WARN_STR(logger,
-                        "Observation has been aborted before first scan was started");
-                return VisChunk::ShPtr();
-            }
-        } while (!itsMetadata || itsMetadata->scanId() < 0);
-    } else {
-        do {
-            itsMetadata = itsMetadataSrc->next(ONE_SECOND);
-            checkInterruptSignal();
-        } while (!itsMetadata);
-    }
+    // Get metadata for a real (i.e. scan id >= 0) scan
+    do {
+        itsMetadata = itsMetadataSrc->next(ONE_SECOND);
+        checkInterruptSignal();
+        if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
+            ASKAPLOG_WARN_STR(logger,
+                    "Observation has been aborted before first scan was started");
+            return VisChunk::ShPtr();
+        }
+        if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_IDLE) {
+            ASKAPLOG_INFO_STR(logger,
+                    "Skipping this cycle, metadata indicates SCANID_IDLE");
+        }
+    } while (!itsMetadata || itsMetadata->scanId() < 0);
 
     // Update the Scan Manager
     itsScanManager.update(itsMetadata->scanId());

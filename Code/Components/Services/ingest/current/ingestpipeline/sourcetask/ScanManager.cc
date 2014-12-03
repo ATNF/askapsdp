@@ -33,20 +33,15 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "askap/AskapUtil.h"
 #include "casa/aips.h"
-#include "measures/Measures/MDirection.h"
-#include "casa/Quanta/MVDirection.h"
-#include "casa/Quanta/MVAngle.h"
-#include "configuration/Configuration.h"
 
 ASKAP_LOGGER(logger, ".ScanManager");
 
 using namespace askap;
 using namespace askap::cp::ingest;
 
-ScanManager::ScanManager(const Configuration& config)
-    : itsConfig(config), itsScanIndex(SCANID_IDLE), itsObsComplete(false)
+ScanManager::ScanManager()
+    : itsScanIndex(SCANID_IDLE), itsObsComplete(false)
 {
 }
 
@@ -54,7 +49,7 @@ ScanManager::~ScanManager()
 {
 }
 
-void ScanManager::update(const casa::Int scanId)
+void ScanManager::update(const casa::Int newScanId)
 {
     // 1: If the observation is complete then the scan state should no longer
     // be updated.
@@ -62,32 +57,31 @@ void ScanManager::update(const casa::Int scanId)
         return;
     }
 
-    // 2: Handle the case where the first usable metadata of the observation is received.
-    if (itsScanIndex == SCANID_IDLE && scanId >= 0) {
-        ASKAPLOG_DEBUG_STR(logger, "First scan has begun - Scan Id: " << scanId);
-        itsScanIndex = scanId;
+    // 2: Handle the end-of-observation (scanid of -2)
+    if (newScanId == SCANID_OBS_COMPLETE) {
+        itsObsComplete = true;
+        itsScanIndex = newScanId;
         return;
     }
 
-    // 3: Handle the case where the observation is in progress and the scan id changes
-    if (itsScanIndex >= 0 && itsScanIndex != scanId) {
-        if (scanId >= 0) {
-            // Handle the case where we have obviously transitioned
-            // to the next scan
-            ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << scanId);
-            itsScanIndex = scanId;
-        } else {
-            // Alternatively handle the case where a SCANID_IDLE or SCANID_OBS_COMPLETE
-            // has been received, indicating end-of-observation
-            itsObsComplete = true;
-        }
+    // 3: Handle the "IDLE" scan (scanid of -1)
+    if (newScanId == SCANID_IDLE) {
+        itsScanIndex = newScanId;
+        return;
     }
 
-    // 4: Handle the case where the observation never started (i.e. no non-negative
-    // scan id was received, but now a -2 (indicating end-of-observation) has been
-    // received
-    if (scanId == SCANID_OBS_COMPLETE) {
-        itsObsComplete = true;
+    // 4: Handle the case where we start a new (real) scan.
+    // i.e. scanId is >= 0
+    if (newScanId >= 0 && itsScanIndex != newScanId) {
+        ASKAPLOG_DEBUG_STR(logger, "New scan Id: " << newScanId);
+        itsScanIndex = newScanId;
+        return;
+    }
+
+    // 5: Handle an unknown negative scan id
+    if (newScanId < 0 && newScanId != SCANID_OBS_COMPLETE
+            && newScanId != SCANID_IDLE) {
+        ASKAPTHROW(AskapError, "Unexpected scan id " << newScanId);
     }
 }
 
