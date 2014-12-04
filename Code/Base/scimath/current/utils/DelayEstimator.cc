@@ -114,7 +114,7 @@ double DelayEstimator::getDelayWithFFT(const casa::Vector<casa::Complex> &vis) c
   }
   ASKAPCHECK(peakLagChan < lags.nelements(), "Empty spectrum is passed to getDelayWithFFT");
   const double bandwidth = vis.nelements() * itsResolution;
-  const double delay =  (static_cast<casa::Int>(peakLagChan) - vis.nelements() / 2)  / bandwidth;
+  const double delay =  (static_cast<casa::Int>(peakLagChan) - static_cast<casa::Int>(vis.nelements()) / 2)  / bandwidth;
   return delay;
 }
 
