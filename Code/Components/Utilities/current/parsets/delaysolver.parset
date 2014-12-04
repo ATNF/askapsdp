@@ -7,6 +7,9 @@ stokes = XX
 # resolution is already coarser than this value
 resolution = 1e6
 
+# if true, lags are used to estimate delays approximately before averaging data to the given resolution
+uselags = false
+
 # beam to work with
 beam = 0
 

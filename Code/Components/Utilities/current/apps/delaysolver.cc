@@ -97,12 +97,32 @@ void DelaySolverApp::process(const IConstDataSource &ds, const std::vector<doubl
              casa::uInt>(1,2)));
   }
   
+  const bool estimateViaLags = config().getBool("uselags", false);
+  
+  if (estimateViaLags) {
+      ASKAPLOG_INFO_STR(logger, "Initial delay will be estimated via lags using full resolution data");
+      // the following means no averaging
+      solver.setTargetResolution(1.);
+      
+      // initial pass over data
+      for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {
+           solver.process(*it);  
+      }
+      // solve via FFT
+      const casa::Vector<double> delayApprox = solver.solve(true);
+      // use FFT-based estimate as an approximation before averaging
+      solver.setApproximateDelays(delayApprox);
+      solver.init();
+      solver.setTargetResolution(targetRes);      
+  }
+      
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {
        solver.process(*it);  
   }
+  
   // corrections have the opposite sign from determined delays, hence the minus
   // the units in the fcm are in ns
-  casa::Vector<double> delays = -solver.solve() * 1e9;
+  casa::Vector<double> delays = -solver.solve(false) * 1e9;
   ASKAPLOG_INFO_STR(logger, "Corrections (ns): "<<std::setprecision(9)<<delays);
   if (currentDelays.size() > 0) {
       ASKAPLOG_INFO_STR(logger, "Old delays (ns): "<< std::setprecision(9) << currentDelays);

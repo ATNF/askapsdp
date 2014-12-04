@@ -154,14 +154,26 @@ void DelaySolverImpl::process(const accessors::IConstDataAccessor &acc)
         casa::Vector<casa::Complex> thisBufRowVis = itsSpcBuffer.row(row);
         casa::Vector<casa::uInt> thisRowCounts = itsAvgCounts.row(row);
         
+        const double thisRowApproxDelay = delayApproximation(row);        
+        
         ASKAPDEBUGASSERT(thisRowVis.nelements() == thisRowFlags.nelements());
         for (casa::uInt chan = 0, index = 0; chan < thisBufRowVis.nelements(); ++chan) {
              for (casa::uInt ch2 = 0; ch2 < itsChanToAverage; ++ch2,++index) {
                   ASKAPDEBUGASSERT(index < thisRowFlags.nelements());
+                  
                   if (!thisRowFlags[index]) {
                       const casa::Complex curVis = thisRowVis[index];
                       if ((itsAmpCutoff < 0) || (abs(curVis) < itsAmpCutoff)) {
-                          thisBufRowVis[chan] += curVis;
+                          if (itsDelayApproximation.nelements() > 0) {
+                              ASKAPDEBUGASSERT(index < itsFreqAxis.nelements());
+                              // technically we don't need to subtract the start frequency, but it helps
+                              // to avoid issues with subtracting two large numbers
+                              const double phase = -casa::C::_2pi * (itsFreqAxis[index] - itsFreqAxis[0]) * thisRowApproxDelay;
+                              const casa::Complex phasor(cos(phase),sin(phase));
+                              thisBufRowVis[chan] += curVis * phasor;
+                          } else {
+                              thisBufRowVis[chan] += curVis;
+                          }
                           ++thisRowCounts[chan];
                       }
                   }
@@ -170,12 +182,44 @@ void DelaySolverImpl::process(const accessors::IConstDataAccessor &acc)
    }
    ++itsNAvg;
 }
+
+/// @brief helper method to obtain delay approximation for the given row
+/// @details Zero is returned if itsDelayApproximation is empty. Otherwise,
+/// delay for the given row is extracted (based on metadata contained in the buffers).
+/// Note, delay units are the same as itsDelayApproximation (i.e. seconds).
+/// @param[in] row row of interest
+double DelaySolverImpl::delayApproximation(casa::uInt row) const
+{
+  if (itsDelayApproximation.nelements() == 0) {
+      return 0.;
+  }
+  ASKAPDEBUGASSERT(row < itsAnt1IDs.nelements());
+  ASKAPDEBUGASSERT(row < itsAnt2IDs.nelements());
+  const casa::uInt ant1 = itsAnt1IDs[row];
+  const casa::uInt ant2 = itsAnt2IDs[row];
+  ASKAPCHECK(ant1 < itsDelayApproximation.nelements(), "Initial delay approximation not found for antenna "<<ant1);
+  ASKAPCHECK(ant2 < itsDelayApproximation.nelements(), "Initial delay approximation not found for antenna "<<ant2);
+  return itsDelayApproximation[ant1] - itsDelayApproximation[ant2];
+}
+
+/// @brief set target resolution
+/// @details
+/// @param[in] targetRes target spectral resolution in Hz, data are averaged to match the desired resolution 
+/// note, integral number of channels are averaged.
+void DelaySolverImpl::setTargetResolution(double targetRes)
+{
+  itsTargetRes = targetRes;
+  ASKAPCHECK(itsTargetRes > 0, "Target spectral resolution should be positive, you have "<<itsTargetRes<<" Hz");
+}
+
     
 /// @brief solve for antenna-based delays
 /// @details This method estimates delays for all baselines and then solves for
-/// antenna-based delays honouring baselines to be excluded. 
+/// antenna-based delays honouring baselines to be excluded.
+/// @param[in] useFFT if true, FFT-based delay estimator is used. It is less accurate but
+/// is more robust for large delays and less sensitive to flagged data.  
 /// @return a vector with one delay per antenna (antennas are in the index-increasing order).
-casa::Vector<double> DelaySolverImpl::solve() const
+casa::Vector<double> DelaySolverImpl::solve(bool useFFT) const
 {
   ASKAPCHECK(itsNAvg > 0, "No valid data found. At least one chunk of data have to be processed before delays can be estimated");
   ASKAPCHECK(itsFreqAxis.nelements() > 1, "Unable to estimate delays from monochromatic data");
@@ -219,7 +263,9 @@ casa::Vector<double> DelaySolverImpl::solve() const
                 }
                 os<<itsAnt1IDs[bsln]<<" "<<itsAnt2IDs[bsln]<<" "<<chan<<" "<<arg(buf[chan])/casa::C::pi*180.<<std::endl;
            }
-           delays[bsln] = itsDelayEstimator.getDelay(buf);
+           
+           delays[bsln] = useFFT ? itsDelayEstimator.getDelayWithFFT(buf) : itsDelayEstimator.getDelay(buf);
+           
            // now fill the design matrix
            const casa::uInt ant1 = itsAnt1IDs[bsln];
            ASKAPDEBUGASSERT(ant1 < dm.ncolumn()); 
@@ -246,5 +292,37 @@ casa::Vector<double> DelaySolverImpl::solve() const
   
   casa::Vector<double> result = product(invert(nm), product(dmt,delays));
   
+  if (itsDelayApproximation.nelements() > 0) {
+      ASKAPCHECK(itsDelayApproximation.nelements() == result.nelements(), "Delay approximations should be given for all antennas. nAnt="<<nAnt);
+      result += itsDelayApproximation;
+  }
   return result;  
 }
+
+/// @brief set initial delay approximation
+/// @details The class can optionally remove some a priori known (approximate) delay in 
+/// full resolution data before averaging takes place. This allows to get a coarse delay 
+/// first in full resolution data and then refine it with
+/// averaging. Empty array means zero initial delay for all antennas (i.e. nothing special is done,
+/// this is the default). There should be one value per antenna. An exception is thrown if
+/// antenna ID greater than or equal to the size of the vector is encountered
+/// @param[in] delays
+void DelaySolverImpl::setApproximateDelays(const casa::Vector<double> &delays)
+{
+  if (delays.nelements()) {
+      ASKAPLOG_INFO_STR(logger, "The following approximate delays (ns) will be removed before averaging "<<delays * 1e9);
+  }
+  itsDelayApproximation.assign(delays.copy());
+}
+    
+/// @brief initialise the accumulation
+/// @details This method reverts the state of the object to that before the first call to process method.
+/// This allows to repeat delay estimation with a set of approximate delays.
+void DelaySolverImpl::init()
+{
+  itsFreqAxis.resize(0);
+  itsAnt1IDs.resize(0);
+  itsAnt2IDs.resize(0);
+  itsNAvg = 0;  
+}
+
