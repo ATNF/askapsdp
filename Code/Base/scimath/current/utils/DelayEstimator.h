@@ -72,10 +72,21 @@ public:
    /// @param[in] resolution the spectral resolution in Hz
    void setResolution(const double resolution);
    
-
+   /// @brief obtain the quality of the latest solution
+   /// @details The quality is characterised by a number from 0 to 1, with 1 being the perfect solution and 0
+   /// corresponding to failed solution. Exact meaning depends on the method used (and the value is non-linear) 
+   inline double quality() const { return itsQuality;}
+   
 private:
    /// @brief spectral resolution
    double itsResolution;
+   
+   /// @brief quality metric 
+   /// @details The number ranges from 0 to 1 and represents the quality of the latest solution.
+   /// The value of 1 corresponds to perfect solution, 0 corresponds to a junk solution. 
+   /// It is non-linear and exact meaning depends on the method used. 
+   mutable double itsQuality;
+   
 }; // class DelayEstimator
 
 } // namespace scimath

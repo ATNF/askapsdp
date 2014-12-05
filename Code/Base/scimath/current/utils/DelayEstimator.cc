@@ -46,7 +46,7 @@ namespace scimath {
 
 /// @brief construct estimator for a given spectral resolution
 /// @param[in] resolution the spectral resolution in Hz
-DelayEstimator::DelayEstimator(const double resolution) : itsResolution(resolution) {}
+DelayEstimator::DelayEstimator(const double resolution) : itsResolution(resolution), itsQuality(0.) {}
    
 /// @brief estimate delay for a given spectrum
 /// @param[in] vis (visibility) spectrum
@@ -70,24 +70,38 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    }
    
    // do LSF into phase vs. channel
-   double sx = 0., sy = 0., sx2 = 0., sxy = 0.;
+   double sx = 0., sy = 0., sx2 = 0., sxy = 0., sy2 = 0.;
    // could've combined two loops, but keep it easy for now
    for (size_t chan=0; chan < phases.size(); ++chan) {
         if (std::isnan(phases[chan])) {
             continue;
         }
+        const double phase = double(phases[chan]); 
         sx += double(chan);
-        sx2 += double(chan)*double(chan);
-        sy += double(phases[chan]);
-        sxy += double(chan)*double(phases[chan]);
+        sx2 += double(chan) * double(chan);
+        sy += phase;
+        sxy += double(chan) * phase;
+        sy2 += phase * phase;
    }
    sx /= double(phases.size());
    sy /= double(phases.size());
    sx2 /= double(phases.size());
    sxy /= double(phases.size());
-   const double coeff = (sxy - sx * sy) / (sx2 - sx * sx);
-   // calculate delay based on the fitted slope
-   return coeff / 2. / casa::C::pi / itsResolution;
+   sy2 /= double(phases.size());
+   const double coeffNumerator = sxy - sx * sy;
+   const double chanVariance = sx2 - sx * sx;
+   ASKAPDEBUGASSERT(chanVariance != 0.);
+   const double coeff =  coeffNumerator / chanVariance;
+   // for this method quality is the absolute value of the correlation coefficient
+   const double phaseVariance = sy2 - sy * sy;
+   if (phaseVariance > 0.) {
+       itsQuality =  abs(coeffNumerator / sqrt(chanVariance * phaseVariance));
+       // calculate delay based on the fitted slope
+       return coeff / 2. / casa::C::pi / itsResolution;
+   }
+   // degenerate case - zero delay
+   itsQuality = 1.;
+   return 0.;
 }
 
 /// @brief estimate delay for a given spectrum via FFT
@@ -105,17 +119,31 @@ double DelayEstimator::getDelayWithFFT(const casa::Vector<casa::Complex> &vis) c
   // search for a peak lag
   casa::uInt peakLagChan = lags.nelements(); 
   float peakAmp = -1.;
+  float meanAmp = 0.;
   for (casa::uInt chan = 0; chan < lags.nelements(); ++chan) {
        const float curAmp = abs(lags[chan]);
+       meanAmp += curAmp;
        if (peakAmp < curAmp) {
            peakAmp = curAmp;
            peakLagChan = chan;
        }
   }
   ASKAPCHECK(peakLagChan < lags.nelements(), "Empty spectrum is passed to getDelayWithFFT");
-  const double bandwidth = vis.nelements() * itsResolution;
-  const double delay =  (static_cast<casa::Int>(peakLagChan) - static_cast<casa::Int>(vis.nelements()) / 2)  / bandwidth;
-  return delay;
+  meanAmp -= peakAmp;
+  if (lags.nelements() > 1) {
+      const double bandwidth = vis.nelements() * itsResolution;
+      const double delay =  (static_cast<casa::Int>(peakLagChan) - static_cast<casa::Int>(vis.nelements()) / 2)  / bandwidth;
+      meanAmp /= double(lags.nelements() - 1);
+      ASKAPDEBUGASSERT(meanAmp >= 0.);
+      // atan2 is a convenient function to map a ratio of two non-negative numbers to the [0,1] interval 
+      itsQuality = atan2(peakAmp, meanAmp) * casa::C::_2_pi;
+      ASKAPDEBUGASSERT(itsQuality >= 0.);
+      ASKAPDEBUGASSERT(itsQuality <= 1.);      
+      return delay;
+  }
+  // degenerate case of a single spectral point - unable to estimate delay
+  itsQuality = 0.;
+  return 0.;
 }
 
 

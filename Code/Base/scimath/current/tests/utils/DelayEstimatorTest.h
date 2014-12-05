@@ -47,38 +47,46 @@ class DelayEstimatorTest : public CppUnit::TestFixture
 public:
    void testZeroDelay() {
       DelayEstimator de(1e6);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., de.quality(), 1e-6);
       casa::Vector<casa::Complex> buf(1024,casa::Complex(0.,0.));
       const double delay = de.getDelay(buf);
       CPPUNIT_ASSERT_DOUBLES_EQUAL(0., delay, 1e-6); 
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 1e-6);
    }
    
    void testEstimation() {
       DelayEstimator de(1.); // resolution 1 Hz
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., de.quality(), 1e-6);
       casa::Vector<casa::Complex> buf(1024);
       // fill the spectrum with a period of 50 channels -> delay of 1/50. seconds
       fillTestSpectrum(buf);
       const double delay = de.getDelay(buf);
       CPPUNIT_ASSERT_DOUBLES_EQUAL(1./50., delay, 1e-6);       
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 1e-6);
    }
    
    void testFFTBasedEstimation() {
       DelayEstimator de(1.); // resolution 1 Hz
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., de.quality(), 1e-6);
       casa::Vector<casa::Complex> buf(1024);
       // fill the spectrum with a period of 50 channels -> delay of 1/50. seconds
       fillTestSpectrum(buf);
       const double delay = de.getDelayWithFFT(buf);
       // uncertainty is half the channel width in the lag domain
       CPPUNIT_ASSERT_DOUBLES_EQUAL(1./50., delay, 0.5/1024.);             
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 5e-3);
    }
 
    void testFFTBasedEstimation2() {
       DelayEstimator de(1e3); // resolution 1 kHz
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., de.quality(), 1e-6);
       casa::Vector<casa::Complex> buf(2048);
       // fill the spectrum with a period of 50 channels -> delay of 20 microseconds
       fillTestSpectrum(buf);
       const double delay = de.getDelayWithFFT(buf);
       // uncertainty is half the channel width in the lag domain
       CPPUNIT_ASSERT_DOUBLES_EQUAL(20e-6, delay, 5e-4/2048.);             
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 1e-3);
    }
 private:
    // generate the test spectrum with the phase wrap period of 50 channels
