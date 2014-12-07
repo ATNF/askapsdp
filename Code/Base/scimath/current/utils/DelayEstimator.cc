@@ -95,7 +95,7 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    // for this method quality is the absolute value of the correlation coefficient
    const double phaseVariance = sy2 - sy * sy;
    if (phaseVariance > 0.) {
-       itsQuality =  abs(coeffNumerator / sqrt(chanVariance * phaseVariance));
+       itsQuality =  fabs(coeffNumerator / sqrt(chanVariance * phaseVariance));
        // calculate delay based on the fitted slope
        return coeff / 2. / casa::C::pi / itsResolution;
    }

@@ -283,7 +283,7 @@ casa::Vector<double> DelaySolverImpl::solve(bool useFFT) const
        }
   }
   ASKAPLOG_INFO_STR(logger, "Delays (ns) per baseline: "<<std::setprecision(9)<<delays*1e9);
-  ASKAPLOG_INFO_STR(logger, "Quality of delay estimate: "<<std::setprecision(2)<<quality);
+  ASKAPLOG_INFO_STR(logger, "Quality of delay estimate: "<<std::setprecision(3)<<quality);
 
   // condition for the reference antenna (zero ref. delay is set in the last element of delays)
   ASKAPCHECK(itsRefAnt < nAnt, "Reference antenna is not present");

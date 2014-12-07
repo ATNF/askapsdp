@@ -30,6 +30,9 @@
 #ifndef ASKAP_UTILITIES_DELAY_SOLVER_IMPL_H
 #define ASKAP_UTILITIES_DELAY_SOLVER_IMPL_H
 
+// boost
+#include <boost/noncopyable.hpp>
+
 // std
 #include <utility>
 
@@ -50,7 +53,7 @@ namespace utils {
 /// @details This class accumulates data averaged down to a given resolution and solves for delays
 /// when requested.
 /// @ingroup utils
-class DelaySolverImpl {
+class DelaySolverImpl : public boost::noncopyable {
 public:
     /// @brief constructor
     /// @param[in] targetRes target spectral resolution in Hz, data are averaged to match the desired resolution 

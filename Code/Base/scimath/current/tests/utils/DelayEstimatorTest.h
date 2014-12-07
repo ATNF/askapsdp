@@ -50,8 +50,8 @@ public:
       CPPUNIT_ASSERT_DOUBLES_EQUAL(0., de.quality(), 1e-6);
       casa::Vector<casa::Complex> buf(1024,casa::Complex(0.,0.));
       const double delay = de.getDelay(buf);
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., delay, 1e-6); 
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 1e-6);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0., delay, 1e-6);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1., de.quality(), 1e-6);      
    }
    
    void testEstimation() {
