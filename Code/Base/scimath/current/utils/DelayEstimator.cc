@@ -92,10 +92,16 @@ double DelayEstimator::getDelay(const casa::Vector<casa::Complex> &vis) const
    const double chanVariance = sx2 - sx * sx;
    ASKAPDEBUGASSERT(chanVariance != 0.);
    const double coeff =  coeffNumerator / chanVariance;
-   // for this method quality is the absolute value of the correlation coefficient
+   // for this method quality is determined by the chi-squared. It is found better than 
+   // the correlation coefficient, because the latter could be quite close to zero if the delay is small but
+   // bandpass shape cannot be approximated by a line. the absolute value of the correlation coefficient
    const double phaseVariance = sy2 - sy * sy;
    if (phaseVariance > 0.) {
-       itsQuality =  fabs(coeffNumerator / sqrt(chanVariance * phaseVariance));
+       const double chi2 = phaseVariance - 2 * coeff * coeffNumerator + casa::square(coeff) * chanVariance;
+       // abs value of correlation coefficient: fabs(coeffNumerator / sqrt(chanVariance * phaseVariance));
+       // atan2 is just a convenient non-linear function to map an inverse into [0,1] range and avoid issues
+       // with infinities
+       itsQuality = atan2(1., chi2)  * casa::C::_2_pi;
        // calculate delay based on the fitted slope
        return coeff / 2. / casa::C::pi / itsResolution;
    }
