@@ -35,7 +35,7 @@ def _is_dir_in_repo(path):
     '''Does the directory path exist in the subversion repository?
     :param path: relative (to ASKAP_ROOT) path to directory.
     '''
-    comm = 'svn info %s | grep URL' % ASKAP_ROOT
+    comm = 'svn info %s | grep ^URL:' % ASKAP_ROOT
     (stdout, stderr, returncode) = runcmd(comm, shell=True)
 
     if returncode:
