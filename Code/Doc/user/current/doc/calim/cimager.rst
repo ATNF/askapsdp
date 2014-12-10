@@ -70,7 +70,8 @@ description.
 
 A number of other parameters allowing to narrow down the data selection are understood.
 They are given in a separate table (see :doc:`data_selection`) and should also have the
-**Cimager** prefix.
+**Cimager** prefix. Note that option **Cimager.CorrelationType** will be ignored and
+default to "cross".
  
 +--------------------------+------------------+--------------+----------------------------------------------------+
 |**Parameter**             |**Type**          |**Default**   |**Description**                                     |
