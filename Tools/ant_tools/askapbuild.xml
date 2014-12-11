@@ -58,7 +58,7 @@
                srcdir="${generated.dir}"
                destdir="${build.dir}"
                debug="${debug}"
-               verbose="${verbose}"/>
+               includeantruntime="false"/>
     </target>
 
 
@@ -70,7 +70,8 @@
         <javac srcdir="${src.dir}"
                destdir="${build.dir}"
                debug="${debug}"
-               verbose="${verbose}">
+               verbose="${verbose}"
+               includeantruntime="false">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
@@ -81,7 +82,8 @@
         <javac srcdir="${test.dir}"
                destdir="${build.dir}"
                debug="${debug}"
-               verbose="${verbose}">
+               verbose="${verbose}"
+               includeantruntime="false">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>

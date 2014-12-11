@@ -15,7 +15,7 @@ def callback():
 
 
 builder = Builder()
-builder.remote_archive = "apache-ant-1.7.1-bin.tar.bz2"
+builder.remote_archive = "apache-ant-1.9.4-bin.tar.bz2"
 builder.add_postcallback(callback)
 builder._installdir = ANT_DIR
 
