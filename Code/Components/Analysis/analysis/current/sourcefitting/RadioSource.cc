@@ -170,6 +170,33 @@ namespace askap {
 
             //**************************************************************//
 
+	    void RadioSource::addOffsets()
+	    {
+		this->addOffsets(this->xSubOffset,this->ySubOffset,this->zSubOffset);
+	    }
+
+	    void RadioSource::addOffsets(long xoff, long yoff, long zoff)
+	    {
+		/// @details Reimplementing the addOffsets function
+		/// from Detection. It runs the Detection version,
+		/// then adds the offsets to each of the component
+		/// positions.
+
+		this->Detection::addOffsets(xoff, yoff, zoff);
+		
+                std::map<std::string, FitResults>::iterator fit;
+                for (fit = this->itsBestFitMap.begin(); fit != this->itsBestFitMap.end(); fit++) {
+		    std::vector<casa::Gaussian2D<Double> >::iterator gauss;
+		    for(gauss=fit->second.fits().begin();gauss!=fit->second.fits().end(); gauss++){
+			gauss->setXcenter(gauss->xCenter() + xoff);
+			gauss->setYcenter(gauss->yCenter() + yoff);
+		    }
+                }
+		
+	    }
+
+            //**************************************************************//
+
             void RadioSource::defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis)
             {
                 /// @details Defines the maximum and minimum points of the box

@@ -102,6 +102,9 @@ namespace askap {
                     /// @brief Destructor
                     virtual ~RadioSource() {};
 
+		    void addOffsets();
+		    void addOffsets(long xoff, long yoff, long zoff);
+
                     /// @brief Find the local maxima in the flux distribution of the Detection.
                     std::multimap<int, PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
