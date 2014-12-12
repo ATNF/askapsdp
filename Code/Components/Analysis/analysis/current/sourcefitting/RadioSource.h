@@ -40,6 +40,7 @@
 #include <Blob/BlobOStream.h>
 
 #include <duchamp/fitsHeader.hh>
+#include <duchamp/param.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Outputs/columns.hh>
@@ -102,8 +103,13 @@ namespace askap {
                     /// @brief Destructor
                     virtual ~RadioSource() {};
 
-		    void addOffsets();
 		    void addOffsets(long xoff, long yoff, long zoff);
+		    void addOffsets(){addOffsets(this->xSubOffset,this->ySubOffset,this->zSubOffset);};
+		    void removeOffsets(long xoff, long yoff, long zoff){ addOffsets(-xoff, -yoff, -zoff);};
+		    void removeOffsets(){ addOffsets(-xSubOffset, -ySubOffset, -zSubOffset);};
+		    void addOffsets(duchamp::Param &par){setOffsets(par); addOffsets();};
+
+		    void haveNoParams(){haveParams=false;};
 
                     /// @brief Find the local maxima in the flux distribution of the Detection.
                     std::multimap<int, PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
@@ -151,7 +157,7 @@ namespace askap {
                     /// @}
 
 		    /// @brief Set the detection threshold for a particular Cube
-		    void setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch);
+		    void setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch, std::string snrImage="");
                     /// @brief Set the detection threshold directly
                     void setDetectionThreshold(float threshold) {itsDetectionThreshold = threshold;};
 		    void setDetectionThreshold(std::vector<PixelInfo::Voxel> &inVoxlist,std::vector<PixelInfo::Voxel> &inSNRvoxlist,  bool flagMedianSearch);
@@ -207,7 +213,7 @@ namespace askap {
                     void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis = 2);
 
 		    /// @brief Return a subsection string detailing extent of object
-		    std::string boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, unsigned int padsize, bool fullSpectralRange);
+		    std::string boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, FittingParameters *fitparam, bool fullSpectralRange);
 
                     /// @brief Commands to return the extent and size of the box
                     /// surrounding the object.

@@ -170,11 +170,6 @@ namespace askap {
 
             //**************************************************************//
 
-	    void RadioSource::addOffsets()
-	    {
-		this->addOffsets(this->xSubOffset,this->ySubOffset,this->zSubOffset);
-	    }
-
 	    void RadioSource::addOffsets(long xoff, long yoff, long zoff)
 	    {
 		/// @details Reimplementing the addOffsets function
@@ -189,7 +184,7 @@ namespace askap {
 		    std::vector<casa::Gaussian2D<Double> >::iterator gauss;
 		    for(gauss=fit->second.fits().begin();gauss!=fit->second.fits().end(); gauss++){
 			gauss->setXcenter(gauss->xCenter() + xoff);
-			gauss->setYcenter(gauss->yCenter() + yoff);
+			gauss->setYcenter(gauss->yCenter() + yoff); 
 		    }
                 }
 		
@@ -204,7 +199,8 @@ namespace askap {
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
 
-	        casa::IPosition start(3, 0), end(3, 0), stride(3, 1);
+		int ndim=(spectralAxis>=0) ? 3 : 2;
+	        casa::IPosition start(ndim, 0), end(ndim, 0), stride(ndim, 1);
                 start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
                 end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
                 start(1) = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
@@ -233,7 +229,7 @@ namespace askap {
 
             //**************************************************************//
 
-	    std::string RadioSource::boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, unsigned int padsize, bool fullSpectralRange)
+	    std::string RadioSource::boundingSubsection(std::vector<size_t> dim, duchamp::FitsHeader *header, FittingParameters *fitparam, bool fullSpectralRange)
 	    {
 		/// @details This function returns a subsection string
 		/// that shows the bounding box for the object. This
@@ -246,16 +242,31 @@ namespace askap {
 		const int lat=header->getWCS()->lat;
 		const int spec=header->getWCS()->spec;
 		std::vector<std::string> sectionlist(dim.size(),"1:1");
+		long min,max;
 		for(int ax=0;ax<int(dim.size());ax++){
 		    std::stringstream ss;
 		    if (ax==spec){
 			if (fullSpectralRange) ss << "1:"<<dim[ax]+1;
-			else ss << std::max(1L,this->zmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->zmax+padsize+1);
+			else ss << std::max(1L,this->zmin-fitparam->boxPadSize()+1)<<":"<<std::min(long(dim[ax]),this->zmax+fitparam->boxPadSize()+1);
 		    }
-		    else if(ax==lng)
-			ss << std::max(1L,this->xmin-padsize+1)<<":"<<std::min(long(dim[ax]),this->xmax+padsize+1);
-		    else if (ax==lat)
-			ss << std::max(1L,this->ymin-padsize+1)<<":"<<std::min(long(dim[ax]),this->ymax+padsize+1);
+		    else if(ax==lng){
+			min = this->xmin-fitparam->boxPadSize()+1;
+			max = this->xmax+fitparam->boxPadSize()+1;
+			if(fitparam->useNoise()){
+			    min = std::min(min, this->xpeak-fitparam->noiseBoxSize()/2);
+			    max = std::max(max, this->xpeak+fitparam->noiseBoxSize()/2);
+			}
+			ss << std::max(1L,min)<<":"<<std::min(long(dim[ax]),max);
+		    }
+		    else if (ax==lat){
+			min = this->ymin-fitparam->boxPadSize()+1;
+			max = this->ymax+fitparam->boxPadSize()+1;
+			if(fitparam->useNoise()){
+			    min = std::min(min, this->ypeak-fitparam->noiseBoxSize()/2);
+			    max = std::max(max, this->ypeak+fitparam->noiseBoxSize()/2);
+			}
+			ss << std::max(1L,min)<<":"<<std::min(long(dim[ax]),max);
+		    }
 		    else
 			ss << "1:1";
 		    sectionlist[ax]=ss.str();
@@ -419,19 +430,29 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch)
+	    void RadioSource::setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch, std::string snrImage)
 	  {
 	    
 
 	    if (flagMedianSearch) {
+
 	      std::vector<PixelInfo::Voxel> voxSet = this->getPixelSet();
+
+	      casa::IPosition globalOffset(this->itsBox.start().size(),0);
+	      globalOffset[0] = cube.pars().getXOffset();
+	      globalOffset[1] = cube.pars().getYOffset();
+	      casa::Slicer fullImageBox(this->itsBox.start()+globalOffset,this->itsBox.length(),Slicer::endIsLength);
+	      casa::Array<float> snrArray = analysisutilities::getPixelsInBox(snrImage,fullImageBox,false);
+
 	      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-	      this->peakSNR = cube.getReconValue(vox->getX(), vox->getY(), vox->getZ());
 	      this->itsDetectionThreshold = cube.getPixValue(vox->getX(), vox->getY(), vox->getZ());
+	      int loc = (vox->getX() - this->boxXmin()) + this->boxXsize() * (vox->getY() - this->boxYmin());
+	      this->peakSNR = snrArray.data()[loc];
 	      
 	      for (; vox < voxSet.end(); vox++) {
-		this->peakSNR = std::max(this->peakSNR, cube.getReconValue(vox->getX(), vox->getY(), vox->getZ()));
-		this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, cube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
+		  loc = (vox->getX() - this->boxXmin()) + this->boxXsize() * (vox->getY() - this->boxYmin());
+		  this->peakSNR = std::max(this->peakSNR,snrArray.data()[loc]);
+		  this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, cube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
 	      }
 	      
 	    } else {
@@ -879,8 +900,8 @@ namespace askap {
                 casa::Vector<casa::Double> curpos(2);
                 curpos = 0;
 
-                if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
-                    ASKAPLOG_ERROR_STR(logger, "Can only do fitting for two-dimensional objects!");
+                if ( this->getZmin() != this->getZmax()) {
+                    ASKAPLOG_ERROR_STR(logger, "Can only do fitting for two-dimensional objects!: z-locations show a spread: zmin="<<this->getZmin()<<", zmax="<<this->getZmax());
                     return false;
                 }
 
@@ -1385,8 +1406,8 @@ namespace askap {
 			spec.column("NAME").check(src->getName());
 			spec.column("RAJD").check(ra);
 			spec.column("DECJD").check(dec);
-			spec.column("X").check(gauss.xCenter() + src->getXOffset());
-			spec.column("Y").check(gauss.yCenter() + src->getYOffset());
+			spec.column("X").check(gauss.xCenter());
+			spec.column("Y").check(gauss.yCenter());
 			spec.column("FINT").check(src->getIntegFlux());
 			spec.column("FPEAK").check(src->getPeakFlux());
 			spec.column("FINTFIT").check(intFluxFit);
@@ -1480,8 +1501,8 @@ namespace askap {
 	    else if(type=="NAME")  column.printEntry(stream, this->getName());
 	    else if(type=="RAJD")  column.printEntry(stream, thisRA);
 	    else if(type=="DECJD")  column.printEntry(stream, thisDec);
-	    else if(type=="X") column.printEntry(stream,gauss.xCenter() + this->xSubOffset);
-	    else if(type=="Y") column.printEntry(stream,gauss.yCenter() + this->ySubOffset);
+	    else if(type=="X") column.printEntry(stream,gauss.xCenter());
+	    else if(type=="Y") column.printEntry(stream,gauss.yCenter());
 	    else if(type=="FINT")  column.printEntry(stream, this->getIntegFlux());
 	    else if(type=="FPEAK")  column.printEntry(stream, this->getPeakFlux());
 	    else if(type=="FINTFIT")  column.printEntry(stream, intfluxfit);

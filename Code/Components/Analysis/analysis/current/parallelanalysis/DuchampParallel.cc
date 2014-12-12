@@ -847,8 +847,9 @@ namespace askap {
 					  << "," << this->itsCube.getObject(i).getYPeak()+this->itsCube.getObject(i).getYOffset() << ")");
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
+		    src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 		    src.setFitParams(this->itsFitParams);
-		    src.setDetectionThreshold(this->itsCube, this->itsFlagVariableThreshold);
+		    src.setDetectionThreshold(this->itsCube, this->itsFlagVariableThreshold, this->itsVarThresher->snrImage());
 		    src.prepareForFit(this->itsCube,true);
 		    // Only do fit if object is not next to boundary
 		    src.setAtEdge(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
@@ -981,16 +982,6 @@ namespace askap {
 		src.addOffsets();
 		src.calcParams();
 		src.calcWCSparams(this->itsCube.header());
-
-		// Correct the offsets for the fitted components
-		for (fittype = fittypelist.begin(); fittype < fittypelist.end(); fittype++) {
-		  if(this->itsFitParams.hasType(*fittype) || *fittype=="best" || *fittype=="guess"){
-		    for (unsigned int f = 0; f < src.fitset(*fittype).size(); f++) {
-		      src.fitset(*fittype)[f].setXcenter(src.fitset(*fittype)[f].xCenter() + src.getXOffset());
-		      src.fitset(*fittype)[f].setYcenter(src.fitset(*fittype)[f].yCenter() + src.getYOffset());
-		    }
-		  }
-		}
 
 		// And now set offsets to those of the full image as we are in the master cube
 		src.setOffsets(this->itsCube.pars());
@@ -1248,7 +1239,6 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 		// make sure the boxes are defined for each of the sources prior to distribution
 		this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-		this->itsSourceList[i].addOffsets();
 	    }
 
 	    ExtractionFactory extractor(this->itsComms, this->itsParset);

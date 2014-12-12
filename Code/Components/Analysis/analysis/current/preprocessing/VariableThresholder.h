@@ -77,6 +77,12 @@ namespace askap {
 	    void calculate();
 	    void search();
 
+	    std::string snrImage(){return itsSNRimageName;};
+	    std::string thresholdImage(){return itsThresholdImageName;};
+	    std::string noiseImage(){return itsNoiseImageName;};
+	    std::string averageImage(){return itsAverageImageName;};
+	    std::string boxSumImage(){return itsBoxSumImageName;};
+
 	    int boxSize(){return itsBoxSize;};
 
 	protected:

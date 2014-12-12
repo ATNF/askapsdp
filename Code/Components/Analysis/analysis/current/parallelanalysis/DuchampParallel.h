@@ -106,6 +106,7 @@ namespace askap {
                 bool getFlagVariableThreshold() {return itsFlagVariableThreshold;};
                 void setFlagVariableThreshold(bool f) {itsFlagVariableThreshold = f;};
                 /// @}
+		VariableThresholder *varThresher(){return itsVarThresher;};
 
 		sourcefitting::FittingParameters* fitParams(){return &itsFitParams;};
 

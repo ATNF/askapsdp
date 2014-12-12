@@ -354,12 +354,17 @@ namespace askap {
                     for (int i = 0; i < size; i++) blob << val->second[i];
                 }
 
+		i = src.box().ndim(); blob << i;
 		i = src.box().start()[0]; blob << i;
 		i = src.box().start()[1]; blob << i;
-		i = src.box().start()[2]; blob << i;
+		if(src.box().ndim()>2){
+		    i = src.box().start()[2]; blob << i;
+		}
 		i = src.box().end()[0]; blob << i;
 		i = src.box().end()[1]; blob << i;
-		i = src.box().end()[2]; blob << i;
+		if(src.box().ndim()>2){
+		    i = src.box().end()[2]; blob << i;
+		}
 
 		//		ASKAPLOG_DEBUG_STR(logger, "Sending box: start="<<src.box().start()<<", end="<<src.box().end());
 
@@ -478,11 +483,18 @@ namespace askap {
                     src.itsBetaMap[s] = vec;
                 }
 
-		int x1,y1,z1,x2,y2,z2;
-		blob >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
-		casa::IPosition start(3),end(3),stride(3,1);
-		start(0)=x1; start(1)=y1; start(2)=z1;
-		end(0)=x2; end(1)=y2; end(2)=z2;
+		int ndim,x1,y1,z1,x2,y2,z2;
+		blob >> ndim >> x1 >> y1;
+		if(ndim>2) blob >> z1;
+		blob >> x2 >> y2;
+		if(ndim>2) blob >> z2;
+		casa::IPosition start(ndim),end(ndim),stride(ndim,1);
+		start(0)=x1; start(1)=y1; 
+		end(0)=x2; end(1)=y2; 
+		if(ndim>2){
+		    start(2)=z1;
+		    end(2)=z2;
+		}
 		ASKAPCHECK(end>=start, "Slicer in blob transfer of RadioSource - start "<< start << " > end " << end);
 		Slicer box(start, end, stride, Slicer::endIsLast);;
 		src.setBox(box);

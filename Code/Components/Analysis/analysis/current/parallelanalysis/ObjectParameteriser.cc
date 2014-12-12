@@ -170,6 +170,7 @@ namespace askap {
 			    in >> isOK;
 			    if(isOK){
 				in >> src;
+				src.haveNoParams();
 				this->itsInputList.push_back(src);
 				ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received object ID " << this->itsInputList.back().getID());
 			    }
@@ -196,18 +197,12 @@ namespace askap {
 		    LOFAR::ParameterSet parset=this->itsDP->parset();
 		    parset.replace("flagsubsection","true");
 
-		    int padsize;
-		    if(this->itsDP->fitParams()->doFit() && !this->itsDP->fitParams()->fitJustDetection())
-			padsize = std::max(this->itsDP->fitParams()->boxPadSize(),this->itsDP->fitParams()->noiseBoxSize());
-		    else
-			padsize = 0;
-
 		    for(size_t i=0;i<this->itsInputList.size();i++){
 
 			ASKAPLOG_DEBUG_STR(logger, "Parameterising object #"<<i << " out of " << this->itsInputList.size());
 
 			// get bounding subsection & transform into a Subsection string
-			parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), padsize, true));
+			parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), this->itsDP->fitParams(), true));
 			// turn off the subimaging, so we read the whole lot.
 			parset.replace("nsubx","1");
 			parset.replace("nsuby","1");
@@ -216,6 +211,7 @@ namespace askap {
 			// define a duchamp Cube using the filename from the this->itsDP->cube()
 			// set the subsection
 			DuchampParallel tempDP(*this->itsComms, parset);
+			tempDP.cube().setReconFlag(false); // set this to false to stop anything trying to access the recon array
 
 			// open the image
 			tempDP.readData();
@@ -234,12 +230,14 @@ namespace askap {
 
 			if(tempDP.fitParams()->doFit()){
 
+			    src.defineBox(tempDP.cube().pars().section(), *tempDP.fitParams(), tempDP.cube().header().getWCS()->spec);
 			    src.setFitParams(*tempDP.fitParams());
-			    src.setDetectionThreshold(tempDP.cube(), tempDP.getFlagVariableThreshold());
+			    src.setDetectionThreshold(tempDP.cube(), tempDP.getFlagVariableThreshold(), tempDP.varThresher()->snrImage());
 			    src.prepareForFit(tempDP.cube(),true);
 			    src.setAtEdge(false);
 
 			    tempDP.fitSource(src);
+
 			}
 
 			src.addOffsets();
