@@ -67,9 +67,14 @@ class CommunicatorConfig {
 
         /// @brief Add or modify an Ice adapter in the CommunicatorConfig.
         ///
-        /// @param[in] name name of the adapter to configure.
+        /// @param[in] name         Name of the adapter to configure.
         /// @param[in] endpoints    Endpoints for the adapter (eg. "tcp").
-        void setAdapter(const std::string& name, const std::string& endpoints);
+        /// @param[in] setId        Set "AdapterId" property. If this is set to
+        ///                         false Ice creates a unique Id for the
+        ///                         adapter. If it is true, there can only be
+        ///                         one adapter with this name.
+        void setAdapter(const std::string& name, const std::string& endpoints,
+                bool setId = false);
 
         /// @brief Remove an adapter from the CommunicatorConfig.
         ///

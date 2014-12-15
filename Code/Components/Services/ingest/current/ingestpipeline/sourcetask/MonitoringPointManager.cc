@@ -38,7 +38,7 @@
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
 #include "cpcommon/VisChunk.h"
-#include "monitoring/MonitorPoint.h"
+#include "monitoring/MonitoringSingleton.h"
 #include "measures/Measures/MDirection.h"
 
 ASKAP_LOGGER(logger, ".MonitoringPointManager");
@@ -92,6 +92,5 @@ void MonitoringPointManager::submitMonitoringPoints(const askap::cp::common::Vis
 
 void MonitoringPointManager::submitPointNull(const std::string& key) const
 {
-    MonitorPoint<int32_t> point(key);
-    point.updateNull();
+    MonitoringSingleton::invalidatePoint(key);
 }

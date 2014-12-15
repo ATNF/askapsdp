@@ -84,7 +84,7 @@ void IngestPipeline::ingest(void)
     const std::vector<TaskDesc>& tasks = itsConfig.tasks();
 
     // 2) Configure the Monitoring Singleton
-    if (!itsConfig.monitoringArchiverService().registryHost().empty()) {
+    if (!itsConfig.monitoringConfig().registryHost().empty()) {
         MonitoringSingleton::init(itsConfig);
     }
 
@@ -126,9 +126,8 @@ void IngestPipeline::ingest(void)
 
     // 7) Clean up
     itsSource.reset();
-    if (MonitoringSingleton::instance()) {
-        MonitoringSingleton::destroy();
-    }
+    // Destroying this is safe even if the object was not initialised
+    MonitoringSingleton::destroy();
 }
 
 bool IngestPipeline::ingestOne(void)

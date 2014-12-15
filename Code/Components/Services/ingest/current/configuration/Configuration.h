@@ -45,6 +45,7 @@
 #include "configuration/CorrelatorMode.h"
 #include "configuration/ServiceConfig.h"
 #include "configuration/TopicConfig.h"
+#include "configuration/MonitoringProviderConfig.h"
 
 namespace askap {
 namespace cp {
@@ -99,8 +100,8 @@ class Configuration {
         /// @brief Ice configuration for the calibration data service
         ServiceConfig calibrationDataService(void) const;
 
-        /// @brief Ice configuration for the monitoring archiver (MoniCA).
-        ServiceConfig monitoringArchiverService(void) const;
+        /// @brief Ice configuration for the monitoring provider interface
+        MonitoringProviderConfig monitoringConfig(void) const;
 
     private:
 

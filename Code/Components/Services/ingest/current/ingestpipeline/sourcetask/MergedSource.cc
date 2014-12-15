@@ -41,6 +41,7 @@
 #include "askap/AskapUtil.h"
 #include "boost/tuple/tuple.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
+#include "boost/bind/bind.hpp"
 #include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"

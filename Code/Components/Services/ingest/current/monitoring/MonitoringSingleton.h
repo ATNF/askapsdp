@@ -28,20 +28,20 @@
 #define ASKAP_CP_INGEST_MONITORINGSINGLETON_H
 
 // System includes
-#include <stdint.h>
 #include <string>
-#include <deque>
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
-#include "boost/thread.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition.hpp"
+#include "boost/scoped_ptr.hpp"
 #include "Ice/Ice.h"
-#include "MoniCA.h" // ICE generated interface
+#include "iceutils/ServiceManager.h"
+
+// Ice interfaces
+#include "MonitoringProvider.h"
 
 // Local package includes
-#include "configuration/Configuration.h" // Includes all configuration attributes too
+#include "monitoring/MonitorPointStatus.h"
+#include "monitoring/DataManager.h"
+#include "configuration/Configuration.h"
 
 namespace askap {
 namespace cp {
@@ -49,90 +49,67 @@ namespace ingest {
 
 class MonitoringSingleton {
     public:
-        /// @brief Obtain the singleton instance of the monitoring
-        /// data interface singleton.
-        ///
-        /// @return the singleton instance.
-        static MonitoringSingleton* instance(void);
+        /// @brief Destructor.
+        ~MonitoringSingleton();
 
         /// Initialise the singleton instance
         static void init(const Configuration& config);
 
         /// Destroy the singleton instance
+        /// This method can be called safely even if init() has not
+        /// been called, in which case this method will return without
+        /// action.
         static void destroy();
 
-        /// @brief Destructor.
-        ~MonitoringSingleton();
+        ///  Submit an update to a monitoring point.
+        ///
+        /// If a value for this point is already set it will be replaced with
+        ///  the supplied data.
+        ///
+        ///  This method adds a "cp.ingest." prefix to all monitoring points.
+        ///
+        /// @param[in] name     a name identifying the monitoring point.
+        /// @param[in] value    the value a point has (e.g. some measurement or state)
+        /// @param[in] status   the status of the point
+        /// @param[in] unit     unit associated with the value
+        template <typename T>
+        static void update(const std::string& name, const T value,
+                           const MonitorPointStatus_t status,
+                           const std::string& unit)
+        {
+            if (theirDataManager.get()) {
+                theirDataManager->update(name,
+                                         value,
+                                         status, unit);
+            }
+        }
 
-        // Send a monitoring point with value type "bool"
-        void sendBool(const std::string& name, bool value, bool alarm = false);
+        /// Submit an update to a monitoring point (without a unit)
+        template <typename T>
+        static void update(const std::string& name, const T value,
+                           const MonitorPointStatus_t status)
+        {
+            update(name, value, status, "");
+        }
 
-        // Send a monitoring point with value type "float"
-        void sendFloat(const std::string& name, float value, bool alarm = false);
-
-        // Send a monitoring point with value type "double"
-        void sendDouble(const std::string& name, double value, bool alarm = false);
-
-        // Send a monitoring point with value type "int32_t"
-        void sendInt32(const std::string& name, int32_t value, bool alarm = false);
-
-        // Send a monitoring point with value type "int64_t"
-        void sendInt64(const std::string& name, int64_t value, bool alarm = false);
-
-        // Send a monitoring point with value type "string"
-        void sendString(const std::string& name, const std::string& value, bool alarm = false);
-
-        // Send a monitoring point with type null
-        void sendNull(const std::string& name, bool alarm);
+        /// Updates a monitoring point to a state indicating the point is
+        /// invalid.
+        ///
+        /// @param[in] name     a name identifying the monitoring point.
+        static void invalidatePoint(const std::string& name);
 
     private:
+        // Instance of the Data Manager
+        static boost::scoped_ptr<DataManager> theirDataManager;
 
-        /// @brief Constructor.
-        MonitoringSingleton(const Configuration& config);
-
-        // Adds a monitoring point update to the queue to be sent to MoniCA
-        void enqueue(const std::string& name,
-                     atnf::atoms::mon::comms::DataValuePtr value,
-                     bool alarm);
-
-        // Returns time since the epoch
-        long getTime(void) const;
-
-        // Entry method for sender thread
-        void senderrun(void);
-
-        /// Attempt to connect to the MoniCA service
-        /// @return returns true if connection succeeded
-        bool tryConnect(void);
-
-        // Singleton instance of this calss
-        static MonitoringSingleton* itsInstance;
-
-        // Configuration data
-        const Configuration itsConfig;
+        // Instance of the Service Manager
+        static boost::scoped_ptr<askap::cp::icewrapper::ServiceManager> theirServiceManager;
 
         // Ice communicator
-        Ice::CommunicatorPtr itsComm;
+        static Ice::CommunicatorPtr theirComm;
 
-        // Proxy object for MoniCA service
-        atnf::atoms::mon::comms::MoniCAIcePrx itsMonicaProxy;
-
-        // Buffer to act as a mailbox between the caller and the sender thread
-        std::deque<atnf::atoms::mon::comms::PointDataIce> itsBuffer;
-
-        // Mutex to synchronise access to "itsBuffer"
-        boost::mutex itsMutex;
-
-        // Condition variable user for synchronisation between the thread that enqueues
-        // monitoring point updates, and the one that sends them
-        boost::condition itsCondVar;
-
-        // Thread for sending data to MoniCA
-        boost::shared_ptr<boost::thread> itsThread;
-
-        // The prefix that each monitoring point name will have prepended
-        // to it. Eg. "cp.ingest0"
-        std::string itsPrefix;
+        /// @brief Constructor.
+        MonitoringSingleton();
 
         // No support for assignment
         MonitoringSingleton& operator=(const MonitoringSingleton& rhs);

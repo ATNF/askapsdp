@@ -57,6 +57,7 @@
 #include "configuration/CorrelatorMode.h"
 #include "configuration/ServiceConfig.h"
 #include "configuration/TopicConfig.h"
+#include "configuration/MonitoringProviderConfig.h"
 
 using namespace std;
 using namespace askap;
@@ -135,15 +136,16 @@ ServiceConfig Configuration::calibrationDataService(void) const
     return ServiceConfig(registryHost, registryPort, serviceName);
 }
 
-ServiceConfig Configuration::monitoringArchiverService(void) const
+MonitoringProviderConfig Configuration::monitoringConfig(void) const
 {
     if (itsParset.isDefined("monitoring.enabled") && itsParset.getBool("monitoring.enabled", false)) {
         const string registryHost = itsParset.getString("monitoring.ice.locator_host");
         const string registryPort = itsParset.getString("monitoring.ice.locator_port");
         const string serviceName = itsParset.getString("monitoring.servicename");
-        return ServiceConfig(registryHost, registryPort, serviceName);
+        const string adapterName = itsParset.getString("monitoring.adaptername");
+        return MonitoringProviderConfig(registryHost, registryPort, serviceName, adapterName);
     } else {
-        return ServiceConfig("", "", "");
+        return MonitoringProviderConfig("", "", "", "");
     }
 }
 

@@ -35,7 +35,7 @@
 
 // Local package includes
 #include "configuration/Configuration.h"
-#include "monitoring/MonitorPoint.h"
+#include "monitoring/MonitoringSingleton.h"
 
 namespace askap {
 namespace cp {
@@ -68,11 +68,11 @@ class MonitoringPointManager {
         // indicating the previous value is no longer valid.
         void submitNullMonitoringPoints(void) const;
 
+        // Submit a valid for a single monitoring point
         template <typename T>
         void submitPoint(const std::string& key, const T& val) const
         {
-            MonitorPoint<T> point(key);
-            point.update(val);
+            MonitoringSingleton::update(key, val, MonitorPointStatus::OK);
         }
 
     private:

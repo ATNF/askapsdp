@@ -60,7 +60,7 @@
 
 // Local package includes
 #include "configuration/Configuration.h" // Includes all configuration attributes too
-#include "monitoring/MonitorPoint.h"
+#include "monitoring/MonitoringSingleton.h"
 
 // name substitution should get the same name for all ranks, we need MPI for that
 // it would be nicer to get all MPI-related stuff to a single (top-level?) file eventually
@@ -863,11 +863,13 @@ void MSSink::submitMonitoringPoints(askap::cp::common::VisChunk::ShPtr chunk)
             << " visibilities flagged");
 
     // Submit monitoring data
-    MonitorPoint<int32_t> flagCountPoint("VisFlagCount");
-    flagCountPoint.update(flagCount);
+    MonitoringSingleton::update("VisFlagCount", flagCount, MonitorPointStatus::OK);
     if (flags.size()) {
-        MonitorPoint<float> flagPercentPoint("VisFlagPercent");
-        flagPercentPoint.update(flagCount / static_cast<float>(flags.size()) * 100.);
+        MonitoringSingleton::update("VisFlagPercent",
+                flagCount / static_cast<float>(flags.size()) * 100.0,
+                MonitorPointStatus::OK);
+    } else {
+        MonitoringSingleton::invalidatePoint("VisFlagPercent");
     }
 }
 

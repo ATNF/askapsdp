@@ -86,22 +86,16 @@ void CommunicatorConfig::removeProperty(const std::string& key)
     itsProperties.erase(key);
 }
 
-void CommunicatorConfig::setAdapter(const std::string& name, const std::string& endpoints)
+void CommunicatorConfig::setAdapter(const std::string& name,
+        const std::string& endpoints, bool setId)
 {
     // Syntax example:
     // MyAdapterName.AdapterId=MyAdapterName
     // MyAdapterName.Endpoints=tcp
-    //std::ostringstream adapterId;
-    //adapterId << name << ".AdapterId";
-    //setProperty(adapterId.str(), name);
-
-    // NOTE: The creation of the AdapterId is disabled (above) so that Ice
-    // creates a unique Id for each instance of an application.
-    
-    std::ostringstream epprop;
-    epprop << name << ".Endpoints";
-    setProperty(epprop.str(), endpoints);
-
+    if (setId) {
+        setProperty(name + ".AdapterId", name);
+    }
+    setProperty(name + ".Endpoints", endpoints);
 }
 
 void CommunicatorConfig::removeAdapter(const std::string& name)
