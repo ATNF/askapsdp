@@ -36,6 +36,7 @@
 #include <ComplexGaussianNoiseTest.h>
 #include <DelayEstimatorTest.h>
 #include <MultiDimPosIterTest.h>
+#include <SharedGSLTypesTest.h>
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::ComplexGaussianNoiseTest::suite());
     runner.addTest(askap::scimath::DelayEstimatorTest::suite());
     runner.addTest(askap::scimath::MultiDimPosIterTest::suite());
+    runner.addTest(askap::utility::SharedGSLTypesTest::suite());
 
     bool wasSucessful = runner.run();
 
