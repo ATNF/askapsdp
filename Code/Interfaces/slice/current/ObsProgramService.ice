@@ -38,6 +38,19 @@ module interfaces
 module schedblock
 {
 
+    struct Allocation
+    {
+    string startDate;
+    string endDate;
+    bool fixed;
+
+    };
+    /**
+     * A sequence of Allocation.
+     *
+     */
+    ["java:type:java.util.ArrayList<askap.interfaces.schedblock.Allocation>"]
+    sequence<Allocation> AllocationSeq;
 
     struct ObsProgram 
     {
@@ -57,6 +70,12 @@ module schedblock
 	 * Applications & Links" (OPAL) system.
 	 */
 	string projectRef;
+
+	/**
+	 * A sequence of date/time allocations for this program
+	 **/
+	AllocationSeq allocations;
+
     };
     
     interface IObsProgramService extends askap::interfaces::services::IService
@@ -78,7 +97,13 @@ module schedblock
 	/**
 	 * Returns a sequence of all observing program names
 	 */
-	StringSeq getAll();             
+	StringSeq getAll();
+
+	/**
+	 * Set/overwrite the obsprogram's information.
+	 */
+    void set(ObsProgram program) throws NoSuchObsProgramException;
+
     };
 
 };
