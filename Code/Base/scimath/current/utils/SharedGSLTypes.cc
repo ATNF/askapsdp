@@ -54,6 +54,15 @@ void CustomGSLDeleter<gsl_matrix>::operator()(gsl_matrix *obj) const
   gsl_matrix_free(obj);
 }
 
+// CustomGSLDeleter<gsl_eigen_symmv_workspace>
+
+/// @brief this method frees the object
+/// @param[in] obj pointer to gsl eigen_symmv_workspace
+void CustomGSLDeleter<gsl_eigen_symmv_workspace>::operator()(gsl_eigen_symmv_workspace *obj) const
+{
+  gsl_eigen_symmv_free(obj);
+}
+
 
 } // namespace utility
 

@@ -29,9 +29,10 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // own includes
-#include <askap/IndexedCompare.h>
-#include <askap/AskapError.h>
-#include <utils/EigenDecompose.h>
+#include "askap/IndexedCompare.h"
+#include "askap/AskapError.h"
+#include "utils/EigenDecompose.h"
+#include "utils/SharedGSLTypes.h"
 
 // GSL includes
 #include <gsl/gsl_matrix.h>
@@ -47,8 +48,7 @@ namespace askap {
 namespace utility {
 
 /// @brief helper class acting as a random access iterator to a gsl vector
-/// @details The gsl vector is held using reference semantics, the user is
-/// responsible for allocation/delallocation.
+/// @details The gsl vector is held using reference semantics via the shared pointer
 /// @ingroup utils
 struct GSLVectorRAIterator {
    /// @brief value type
@@ -56,7 +56,7 @@ struct GSLVectorRAIterator {
    /// @brief construct the object
    /// @param[in] vect gsl vector
    /// @param[in] elem element index pointed by this iterator
-   explicit GSLVectorRAIterator(gsl_vector *vect, casa::uInt elem = 0) : itsIndex(elem), itsVector(vect) {}
+   explicit GSLVectorRAIterator(const utility::SharedGSLVector &vect, casa::uInt elem = 0) : itsIndex(elem), itsVector(vect) {}
    
    /// @brief advance iterator
    /// @details step how far to advance
@@ -65,12 +65,12 @@ struct GSLVectorRAIterator {
 
    /// @brief obtain data
    /// @return current element
-   double operator*() { return gsl_vector_get(itsVector,itsIndex);}
+   double operator*() { return gsl_vector_get(itsVector.get(),itsIndex);}
 private:
    /// @brief current element   
    casa::uInt itsIndex;
    /// @brief gsl vector
-   gsl_vector *itsVector;
+   utility::SharedGSLVector itsVector;
 };
 
 } // namespace scimath
@@ -90,18 +90,18 @@ void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eV
     eVal.resize(size);
     eVect.resize(size,size);
          
-    gsl_matrix *A = gsl_matrix_alloc(size,size);
-    gsl_matrix *gslEVect = gsl_matrix_alloc(size,size);
-    gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(size);
-    gsl_vector *gslEVal = gsl_vector_alloc(size);
+    utility::SharedGSLMatrix A = utility::createGSLMatrix(size,size);
+    utility::SharedGSLMatrix gslEVect = utility::createGSLMatrix(size,size);
+    boost::shared_ptr<gsl_eigen_symmv_workspace> work = utility::createGSLObject(gsl_eigen_symmv_alloc(size));
+    utility::SharedGSLVector gslEVal = utility::createGSLVector(size);
 
     for (casa::uInt row = 0; row<size; ++row) {
          for (casa::uInt col = 0; col<size; ++col) {
-              gsl_matrix_set(A, row, col, mtr(row,col));
+              gsl_matrix_set(A.get(), row, col, mtr(row,col));
          }
     }
          
-    const int status = gsl_eigen_symmv(A,gslEVal,gslEVect,work);
+    const int status = gsl_eigen_symmv(A.get(),gslEVal.get(),gslEVect.get(),work.get());
     
     if (status == GSL_SUCCESS) {
         std::vector<casa::uInt> indices(size);
@@ -116,19 +116,14 @@ void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eV
         for (casa::uInt elem = 0; elem<size; ++elem) {
              const casa::uInt index = indices[elem];
              ASKAPDEBUGASSERT(index<size);
-             eVal[elem] = gsl_vector_get(gslEVal,index);
+             eVal[elem] = gsl_vector_get(gslEVal.get(),index);
              // extract the appropriate eigenvector
              for (casa::uInt i=0; i<size; ++i) {
-                  eVect(i,elem) = gsl_matrix_get(gslEVect,i,index);                             
+                  eVect(i,elem) = gsl_matrix_get(gslEVect.get(),i,index);                             
              }         
         }
     }
-        
-    gsl_matrix_free(A);         
-    gsl_matrix_free(gslEVect);         
-    gsl_eigen_symmv_free(work);
-    gsl_vector_free(gslEVal);
-         
+                 
     ASKAPCHECK(status == GSL_SUCCESS, "Error solving eigenproblem in scimath::symmEigenDecompose, status="<<status);
 }
 

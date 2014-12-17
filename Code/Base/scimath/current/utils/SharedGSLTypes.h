@@ -39,6 +39,8 @@
 // gsl includes
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
+#include <gsl/gsl_eigen.h>
+
 
 // own includes
 #include "askap/AskapError.h"
@@ -84,11 +86,19 @@ template<> struct CustomGSLDeleter<gsl_matrix> {
     void operator()(gsl_matrix *obj) const;
 };
 
+/// @brief specialised deleter for a gsl eigen_symmv_workspace
+/// @ingroup utils
+template<> struct CustomGSLDeleter<gsl_eigen_symmv_workspace> {
+    /// @brief this method frees the object
+    /// @param[in] obj pointer to gsl eigen_symmv_workspace
+    void operator()(gsl_eigen_symmv_workspace *obj) const;
+};
+
 
 /// @brief templated helper method to wrap newly allocated gsl object 
 /// @details This method processes a pointer to a gsl object and transfers the ownership (i.e. 
 /// responsibility for deallocation to the boost shared pointer. Templates are used to automatically
-/// deduce the object type and add an appropriate deleter. This method is not supposed to be used directly.
+/// deduce the object type and add an appropriate deleter. 
 /// @note the pointer passed as a parameter is tested to be non-zero. Otherwise an exception is thrown.
 /// @param[in] obj a pointer to gsl object
 /// @return boost shared pointer to the object
