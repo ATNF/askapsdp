@@ -51,22 +51,15 @@ class MonitoringPointManager {
         MonitoringPointManager();
 
         /// Destructor
+        ///
+        /// Sends null values for all managed monitoring points.
+        /// This essentially invalidates the monitoring point,
+        /// indicating the previous value is no longer valid.
         ~MonitoringPointManager();
 
-        // Submit monitoring points to monitoring system.
-        // The source data is a valid VisChunk
+        /// Submit monitoring points to monitoring system.
+        /// The source data is a valid VisChunk
         void submitMonitoringPoints(const askap::cp::common::VisChunk& chunk) const;
-
-        // Submit monitoring points to monitoring system.
-        // This method just sets the specified scanid and is
-        // intended to be used for scanid values of < 0 which
-        // will not result in a VisCunk being created
-        void submitMonitoringPoints(const int scanid) const;
-
-        // Send null values for all managed monitoring points.
-        // This essentially invalidates the monitoring point,
-        // indicating the previous value is no longer valid.
-        void submitNullMonitoringPoints(void) const;
 
         // Submit a valid for a single monitoring point
         template <typename T>

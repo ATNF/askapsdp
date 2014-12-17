@@ -34,16 +34,12 @@
 #include "askap_cpingest.h"
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
 #include "cpcommon/VisChunk.h"
 #include "monitoring/MonitoringSingleton.h"
 #include "measures/Measures/MDirection.h"
 
-ASKAP_LOGGER(logger, ".MonitoringPointManager");
-
-using namespace askap;
 using namespace askap::cp::ingest;
 
 MonitoringPointManager::MonitoringPointManager()
@@ -51,11 +47,6 @@ MonitoringPointManager::MonitoringPointManager()
 }
 
 MonitoringPointManager::~MonitoringPointManager()
-{
-    submitNullMonitoringPoints();
-}
-
-void MonitoringPointManager::submitNullMonitoringPoints(void) const
 {
     submitPointNull("obs.ScanId");
     submitPointNull("obs.FieldName");
@@ -71,15 +62,10 @@ void MonitoringPointManager::submitNullMonitoringPoints(void) const
     submitPointNull("PacketsLostPercent");
 }
 
-void MonitoringPointManager::submitMonitoringPoints(const int scanid) const
-{
-    submitPoint<int32_t>("obs.ScanId", scanid);
-}
-
 void MonitoringPointManager::submitMonitoringPoints(const askap::cp::common::VisChunk& chunk) const
 {
     const casa::MDirection target = chunk.targetPointingCentre()[0];
-    submitMonitoringPoints(chunk.scan());
+    submitPoint<int32_t>("obs.ScanId", chunk.scan());
     submitPoint<string>("obs.FieldName", chunk.targetName());
     submitPoint<string>("obs.dir1", askap::printLon(target));
     submitPoint<string>("obs.dir2", askap::printLat(target));
