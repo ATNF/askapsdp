@@ -41,11 +41,22 @@ namespace askap {
 
 namespace utility {
 
+/// @brief helper specialisation to allow testing of the destructor call
+/// @details It is not used anywhere outside this test suit 
+template<> struct CustomGSLDeleter<bool> {
+    /// @brief this method just sets the passed object to true
+    /// @param[in] obj pointer to a boolean variable
+    void operator()(bool *obj) const { *obj = true; }
+};
+
+
 class SharedGSLTypesTest : public CppUnit::TestFixture 
 {
    CPPUNIT_TEST_SUITE(SharedGSLTypesTest);
    CPPUNIT_TEST(testVector);
-   CPPUNIT_TEST(testMatrix);      
+   CPPUNIT_TEST(testMatrix);
+   CPPUNIT_TEST_EXCEPTION(testNullPointer,AskapError);     
+   CPPUNIT_TEST(testDestruction); 
    CPPUNIT_TEST_SUITE_END();
 public:
    void testVector() {
@@ -80,6 +91,23 @@ public:
            }
       }
       // destructor should be called on leaving this method      
+   }
+   
+   void testNullPointer() {
+      gsl_vector *nullVec = NULL;
+      // the following should throw an exception
+      createGSLObject(nullVec);
+   }
+   
+   void testDestruction() {
+      bool destructorCalledBuf = false;
+      {
+        const boost::shared_ptr<bool> destructorCalledPtr = createGSLObject(&destructorCalledBuf);
+        CPPUNIT_ASSERT(destructorCalledPtr);
+        CPPUNIT_ASSERT_EQUAL(false, *destructorCalledPtr);
+        CPPUNIT_ASSERT_EQUAL(false, destructorCalledBuf);        
+      }
+      CPPUNIT_ASSERT_EQUAL(true, destructorCalledBuf);      
    }
 };
 
