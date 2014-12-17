@@ -108,16 +108,17 @@ VisChunk::ShPtr MergedSource::next(void)
     do {
         itsMetadata = itsMetadataSrc->next(ONE_SECOND);
         checkInterruptSignal();
-        if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_OBS_COMPLETE) {
-            ASKAPLOG_WARN_STR(logger,
-                    "Observation has been aborted before first scan was started");
-            return VisChunk::ShPtr();
+        if (itsMetadata && itsMetadata->scanId() < 0
+                && itsMetadata->scanId() != ScanManager::SCANID_OBS_COMPLETE
+                && itsMetadata->scanId() != ScanManager::SCANID_IDLE) {
+            ASKAPTHROW(AskapError, "Invalid ScanID: " << itsMetadata->scanId());
         }
+
         if (itsMetadata && itsMetadata->scanId() == ScanManager::SCANID_IDLE) {
             ASKAPLOG_INFO_STR(logger,
                     "Skipping this cycle, metadata indicates SCANID_IDLE");
         }
-    } while (!itsMetadata || itsMetadata->scanId() < 0);
+    } while (!itsMetadata || itsMetadata->scanId() == ScanManager::SCANID_IDLE);
 
     // Update the Scan Manager
     itsScanManager.update(itsMetadata->scanId());
