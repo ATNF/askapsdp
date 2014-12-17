@@ -50,7 +50,7 @@ ServiceManager::ServiceManager(Ice::CommunicatorPtr ic, Ice::ObjectPtr obj,
 {
 }
 
-void ServiceManager::start(void)
+void ServiceManager::start(bool blocking)
 {
         // Create an adapter
         itsAdapter = itsComm->createObjectAdapter(itsAdapterName);
@@ -61,32 +61,36 @@ void ServiceManager::start(void)
         // Register the service object
         itsAdapter->add(itsObject, itsComm->stringToIdentity(itsServiceName));
 
-       // Activate the adapter
-        bool activated = false;
-        while (!activated) {
-            const int INTERVAL = 5; // seconds
-            const std::string BASE_WARN(" - will retry in " + utility::toString(INTERVAL)
-                    + " seconds");
-            try {
-                itsAdapter->activate();
-                activated = true;
-            } catch (Ice::ConnectionRefusedException& e) {
-                ASKAPLOG_WARN_STR(logger, "Connection refused" << BASE_WARN);
-            } catch (Ice::NoEndpointException& e) {
-                ASKAPLOG_WARN_STR(logger, "No endpoint" << BASE_WARN);
-            } catch (Ice::NotRegisteredException& e) {
-                ASKAPLOG_WARN_STR(logger, "Not registered" << BASE_WARN);
-            } catch (Ice::ConnectFailedException& e) {
-                ASKAPLOG_WARN_STR(logger, "Connect failed" << BASE_WARN);
-            } catch (Ice::DNSException& e) {
-                ASKAPLOG_WARN_STR(logger, "DNS exception" << BASE_WARN);
-            } catch (Ice::SocketException& e) {
-                ASKAPLOG_WARN_STR(logger, "Socket exception" << BASE_WARN);
+        if (blocking) {
+            // Activate the adapter
+            bool activated = false;
+            while (!activated) {
+                const int INTERVAL = 5; // seconds
+                const std::string BASE_WARN(" - will retry in " + utility::toString(INTERVAL)
+                        + " seconds");
+                try {
+                    itsAdapter->activate();
+                    activated = true;
+                } catch (Ice::ConnectionRefusedException& e) {
+                    ASKAPLOG_WARN_STR(logger, "Connection refused" << BASE_WARN);
+                } catch (Ice::NoEndpointException& e) {
+                    ASKAPLOG_WARN_STR(logger, "No endpoint" << BASE_WARN);
+                } catch (Ice::NotRegisteredException& e) {
+                    ASKAPLOG_WARN_STR(logger, "Not registered" << BASE_WARN);
+                } catch (Ice::ConnectFailedException& e) {
+                    ASKAPLOG_WARN_STR(logger, "Connect failed" << BASE_WARN);
+                } catch (Ice::DNSException& e) {
+                    ASKAPLOG_WARN_STR(logger, "DNS exception" << BASE_WARN);
+                } catch (Ice::SocketException& e) {
+                    ASKAPLOG_WARN_STR(logger, "Socket exception" << BASE_WARN);
+                }
+                if (!activated) {
+                    sleep(INTERVAL);
+                }
             }
-            if (!activated) {
-                sleep(INTERVAL);
-            }
-        } 
+        } else {
+            itsAdapter->activate();
+        }
 }
 
 void ServiceManager::waitForShutdown(void)

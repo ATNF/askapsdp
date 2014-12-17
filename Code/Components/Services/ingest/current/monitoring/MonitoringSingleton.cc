@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <stdexcept>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -81,9 +82,13 @@ void MonitoringSingleton::init(const Configuration& config)
         const string prefix = "ingest" + utility::toString(config.rank()) + ".cp.ingest.";
         theirDataManager.reset(new DataManager(prefix));
 
+        // Add the "MPI rank" as a suffix to the adapter name to make the
+        // adapter name unique across the ingest pipeline processes
+        const string adapterName = monconf.adapterName() +  utility::toString(config.rank());
+
         // Configure the Ice communicator
         CommunicatorConfig cc(monconf.registryHost(), monconf.registryPort());
-        cc.setAdapter(monconf.adapterName(), "tcp", true);
+        cc.setAdapter(adapterName, "tcp", true);
         CommunicatorFactory commFactory;
         theirComm = commFactory.createCommunicator(cc);
 
@@ -92,8 +97,19 @@ void MonitoringSingleton::init(const Configuration& config)
 
         // Create the service manager and start the service running
         theirServiceManager.reset(new ServiceManager(theirComm, obj,
-                                  monconf.serviceIdentity(), monconf.adapterName()));
-        theirServiceManager->start();
+                                  monconf.serviceIdentity(), adapterName));
+        try {
+            theirServiceManager->start(false);
+        } catch (Ice::Exception& e) {
+            ASKAPLOG_ERROR_STR(logger, "Ice Exception registering monitoring provider - "
+                    << e.what());
+            theirDataManager.reset();
+        } catch (std::exception& e) {
+            ASKAPLOG_ERROR_STR(logger, "Exception registering monitoring provider - "
+                    << e.what());
+            theirDataManager.reset();
+        }
+
     } else {
         ASKAPTHROW(AskapError, "Monitoring Singleton already initialised");
     }

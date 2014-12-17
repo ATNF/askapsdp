@@ -189,7 +189,8 @@ metadata_source.icestorm.topicmanager   = IceStorm/TopicManager@IceStorm.TopicMa
 monitoring.enabled                      = false
 monitoring.ice.locator_host             = localhost
 monitoring.ice.locator_port             = 4061
-monitoring.servicename                  = MoniCAService@MoniCAAdminAdapter
+monitoring.servicename                  = MonitoringService
+monitoring.adaptername                  = IngestPipelineMonitoringAdapter
 
 #
 # Task List

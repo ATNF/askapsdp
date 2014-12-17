@@ -63,7 +63,15 @@ class ServiceManager {
         /// - Creates an adapter given the constructor parameter "adapterName"
         /// - Registers the service object
         /// - Activates the adapter
-        void start(void);
+        ///
+        /// @param[in] blocking if true, the start() methods will handle exceptions
+        ///                     from the Ice framework and will retry until the
+        ///                     service can be registered in the Ice registry.
+        ///                     If false, an instance of Ice::Exception will
+        ///                     be thrown in the case the registry could not
+        ///                     be contcted or the adapter/object could not
+        ///                     be registered.
+        void start(bool blocking = false);
 
         /// Block until shutdown has been indicated via the Ice communicator
         void waitForShutdown(void);
