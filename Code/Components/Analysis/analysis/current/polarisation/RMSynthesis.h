@@ -68,6 +68,9 @@ namespace askap {
 	    float normalisation(){return itsNormalisation;};
 	    float fdf_noise(){return itsFDFnoise;};
 
+	    unsigned int numFreqChan(){return itsWeights.size();};
+	    float lsqVariance(){return itsLambdaSquaredVariance;};
+
 	private:
 
 	    /// @brief Initialise phi and weights based on parset
@@ -76,6 +79,7 @@ namespace askap {
 	    casa::Vector<float> itsWeights;
 	    std::string itsWeightType;
 	    float itsNormalisation;
+	    float itsLambdaSquaredVariance;
 	    
 	    unsigned int itsNumPhiChan;
 	    float itsDeltaPhi;

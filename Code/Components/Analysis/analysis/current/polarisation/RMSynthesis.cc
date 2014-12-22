@@ -143,6 +143,11 @@ namespace askap {
 	    /// calls the fitRMSF function to obtain the FWHM of the
 	    /// main RMSF lobe.
 
+	    // Ensure all arrays are the same size
+	    ASKAPASSERT(lsq.size()==q.size());
+	    ASKAPASSERT(lsq.size()==u.size());
+	    ASKAPASSERT(lsq.size()==noise.size());
+
 	    // p = q + iu
 	    casa::Vector<casa::Complex> p = casa::makeComplex(q,u);
 
@@ -158,6 +163,9 @@ namespace askap {
 
 	    // \lambda^2_0 = K * \sum(w_i*\lambda^2_i)
 	    this->itsRefLambdaSquared = this->itsNormalisation * casa::sum(this->itsWeights * lsq);
+
+	    // variance in the lsq distribution
+	    this->itsLambdaSquaredVariance = (casa::sum(lsq*lsq) - pow(casa::sum(lsq),2)/lsq.size())/float(lsq.size()-1);
 
 	    // Compute FDF
 	    for(size_t j=0;j<this->itsNumPhiChan;j++){
