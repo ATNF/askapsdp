@@ -68,65 +68,71 @@ class IContext
 {
 public:
 	
-  /// @brief an empty virtual destructor to make the compiler happy
-  virtual ~IContext();
+   /// @brief an empty virtual destructor to make the compiler happy
+   virtual ~IContext();
 
-  // obtain communicators for message passing
+   // obtain communicators for message passing
 
-  /// @brief obtain named communicator 
-  /// @details
-  /// @param[in] name communicator name
-  /// @return shared pointer to communicator object
-  /// @note The result is guaranteed to be a non-zero pointer. 
-  /// An exception is thrown if a communicator with given name
-  /// does not exist.
-  virtual boost::shared_ptr<IComms> getComm(const std::string &name) const = 0;
+   /// @brief obtain named communicator 
+   /// @details
+   /// @param[in] name communicator name
+   /// @return shared pointer to communicator object
+   /// @note The result is guaranteed to be a non-zero pointer. 
+   /// An exception is thrown if a communicator with given name
+   /// does not exist.
+   virtual boost::shared_ptr<IComms> getComm(const std::string &name) const = 0;
 
-  /// @brief obtain global communicator
-  /// @details
-  /// Global communicator can be used to broadcast across all available ranks.
-  /// It is probably a good idea to try using named communicators as much 
-  /// as we can for these type of operations. 
-  /// @return shared pointer to communicator object
-  /// @note The result is guaranteed to be a non-zero pointer. 
-  /// An exception is thrown if a communicator with given name
-  /// does not exist.
-  virtual boost::shared_ptr<IComms> globalComm() const 
-          { return getComm("global"); }
+   /// @brief obtain global communicator
+   /// @details
+   /// Global communicator can be used to broadcast across all available ranks.
+   /// It is probably a good idea to try using named communicators as much 
+   /// as we can for these type of operations. 
+   /// @return shared pointer to communicator object
+   /// @note The result is guaranteed to be a non-zero pointer. 
+   /// An exception is thrown if a communicator with given name
+   /// does not exist.
+   virtual boost::shared_ptr<IComms> globalComm() const 
+           { return getComm("global"); }
 
-  /// @brief obtain local communicator
-  /// @details
-  /// Local communicator can be used to broadcast within ranks allocated
-  /// to a particular multi-rank processing step.
-  /// @return shared pointer to communicator object
-  /// @note The result is guaranteed to be a non-zero pointer. 
-  /// An exception is thrown if a communicator with given name
-  /// does not exist.
-  virtual boost::shared_ptr<IComms> localComm() const 
+   /// @brief obtain local communicator
+   /// @details
+   /// Local communicator can be used to broadcast within ranks allocated
+   /// to a particular multi-rank processing step.
+   /// @return shared pointer to communicator object
+   /// @note The result is guaranteed to be a non-zero pointer. 
+   /// An exception is thrown if a communicator with given name
+   /// does not exist.
+   virtual boost::shared_ptr<IComms> localComm() const 
           { return getComm("local"); }
   
-  // iteration over work domain
+   // iteration over work domain
 
-  /// @brief rewind the iterator
-  /// @details The iterator is brought back to the origin (same 
-  /// value as just after start)
-  virtual void origin() = 0;
+   /// @brief rewind the iterator
+   /// @details The iterator is brought back to the origin (same 
+   /// value as just after start)
+   /// @note An exception is thrown, if no iteration has been setup
+   virtual void origin() = 0;
 
-  /// @brief test whether there is more work
-  /// @return true if current iteration is not complete
-  virtual bool hasMore() const = 0;
+   /// @brief test whether there is more work
+   /// @return true if current iteration is not complete
+   /// @note this method can be used in all circumstances, even
+   /// if no iteration has been setup (in this case it would return
+   /// false)
+   virtual bool hasMore() const = 0;
 
-  /// @brief obtain current position of the iterator
-  /// @details The new framework provides a convenient way to
-  /// iterate over a hypercube with the mix of physical iteration
-  /// and parallelism. This method returns the current position
-  /// of the iterator. The meaning of each dimension is 
-  /// defined by the user.
-  /// @return current position of the iterator
-  virtual casa::IPosition cursor() const = 0;
+   /// @brief obtain current position of the iterator
+   /// @details The new framework provides a convenient way to
+   /// iterate over a hypercube with the mix of physical iteration
+   /// and parallelism. This method returns the current position
+   /// of the iterator. The meaning of each dimension is 
+   /// defined by the user.
+   /// @return current position of the iterator
+   /// @note An exception is thrown, if no iteration has been setup
+   virtual casa::IPosition cursor() const = 0;
 
-  /// @brief advance iterator to the next work unit
-  virtual void next() = 0;
+   /// @brief advance iterator to the next work unit
+   /// @note An exception is thrown, if no iteration has been setup
+   virtual void next() = 0;
 
 };
 

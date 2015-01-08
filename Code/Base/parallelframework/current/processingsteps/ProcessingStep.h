@@ -1,8 +1,8 @@
 /// @file 
-/// @brief Processing step interface
-/// @details New parallel framework treats all processing as a collection
-/// of processing steps which can be parallelised or run sequentially.
-/// This interface is a common base class for all processing steps.
+/// @brief Basic processing step which does nothing
+/// @details This is a simple processing step which does no useful work
+/// (i.e. essentially no operation stub). It only sets the name of the
+/// object and implements the appropriate getter method.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,11 +29,12 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef ASKAP_ASKAPPARALLEL_I_PROCESSING_STEP_H
-#define ASKAP_ASKAPPARALLEL_I_PROCESSING_STEP_H
+#ifndef ASKAP_ASKAPPARALLEL_PROCESSING_STEP_H
+#define ASKAP_ASKAPPARALLEL_PROCESSING_STEP_H
 
 // own includes
 #include "application/IContext.h"
+#include "processingsteps/IProcessingStep.h"
 
 // std includes
 #include <string>
@@ -42,16 +43,21 @@ namespace askap {
 
 namespace askapparallel {
 	
-/// @brief Processing step interface
-/// @details New parallel framework treats all processing as a collection
-/// of processing steps which can be parallelised or run sequentially.
-/// This interface is a common base class for all processing steps.
-class IProcessingStep
+/// @brief Basic processing step which does nothing
+/// @details This is a simple processing step which does no useful work
+/// (i.e. essentially no operation stub). It only sets the name of the
+/// object and implements the appropriate getter method.
+class ProcessingStep : virtual public IProcessingStep
 {
 public:
 	
-   /// an empty virtual destructor to make the compiler happy
-   virtual ~IProcessingStep();
+   /// @brief an empty constructor to create unnamed object
+   ProcessingStep();
+
+   /// @brief construct an object and assign name
+   /// @details 
+   /// @param[in] name name to assign
+   explicit ProcessingStep(const std::string &name);
 
    /// @brief initialisation of the processing steps
    /// @details Processing steps are required not to do any heavy
@@ -62,13 +68,13 @@ public:
    /// related to work domain iteration. These are not supposed to
    /// be used in initialise. Therefore, passing parameter by
    /// const reference.
-   virtual void initialise(const IContext &context) = 0;
+   virtual void initialise(const IContext &context);
 
    /// @brief core of the processing step
    /// @details Override this method in derived classes with 
    /// the actual implementation of the processing algorithm.
    /// @param[in] context a reference to context class
-   virtual void run(IContext &context) = 0;
+   virtual void run(IContext &context);
 
    /// @brief finalisation of the processing step
    /// @details If some resourses have been allocated in
@@ -78,18 +84,24 @@ public:
    /// related to work domain iteration. These are not supposed to
    /// be used in finalise. Therefore, passing parameter by
    /// const reference.
-   virtual void finalise(const IContext &context) = 0;
+   virtual void finalise(const IContext &context);
 
 
    /// @brief obtain the name of this step
    /// @details For logging and cross-reference it is handy to
    /// assign a name to processing steps. This method returns
    /// the name.
-   /// @return name of the step
-   virtual std::string name() const = 0;
+   /// @return name of the step, "unnamed" is returned for an
+   /// object constructed with the default constructor
+   virtual std::string name() const;
+
+private:
+  
+   /// @brief name of the step
+   std::string itsName;
 };
 
 } // end of namespace askapparallel
 } // end of namespace askap
-#endif // ASKAP_ASKAPPARALLEL_I_PROCESSING_STEP_H
+#endif // ASKAP_ASKAPPARALLEL_PROCESSING_STEP_H
 
