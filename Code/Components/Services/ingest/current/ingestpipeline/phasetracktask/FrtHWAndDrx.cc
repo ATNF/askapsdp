@@ -52,6 +52,9 @@ namespace ingest {
 FrtHWAndDrx::FrtHWAndDrx(const LOFAR::ParameterSet& parset, const Configuration& config) : 
        itsFrtComm(parset, config), 
        itsDRxDelayTolerance(static_cast<int>(parset.getUint32("drxdelaystep",0u))), 
+       itsFRPhaseRateTolerance(static_cast<int>(parset.getUint32("frratestep",20u))),
+       itsDRxMidPoint(parset.getInt32("drxmidpoint",2048)),
+       itsFlagOutOfRangeHW(parset.getBool("flagoutofrange",true)),
        itsTm(config.antennas().size(),0.),
        itsPhases(config.antennas().size(),0.),
        itsUpdateTimeOffset(static_cast<int32_t>(parset.getInt32("updatetimeoffset")))
@@ -62,6 +65,21 @@ FrtHWAndDrx::FrtHWAndDrx(const LOFAR::ParameterSet& parset, const Configuration&
        ASKAPLOG_INFO_STR(logger, "DRx delays will be updated when the required delay diverges more than "
                << itsDRxDelayTolerance << " 1.3ns steps");
    } 
+ 
+   if (itsFRPhaseRateTolerance == 0) {
+       ASKAPLOG_INFO_STR(logger, "FR phase rate will be updated every time the rate changes by 0.0248 deg/s");
+   } else {
+       ASKAPLOG_INFO_STR(logger, "FR phase rate will be updated every time the setting diverges more than "
+               << itsFRPhaseRateTolerance <<" 0.0248 deg/s steps");
+   }
+
+   ASKAPLOG_INFO_STR(logger, "DRx delay midpoint will be "<<itsDRxMidPoint);
+
+   if (itsFlagOutOfRangeHW) {
+       ASKAPLOG_INFO_STR(logger, "Antennas with DRx or FR setting out of range will be flagged");
+   } else {
+       ASKAPLOG_INFO_STR(logger, "Out of HW range delay will be corrected in software (with potentially degraded performance");
+   }
 
    if (itsUpdateTimeOffset == 0) {
       ASKAPLOG_INFO_STR(logger, "The reported BAT of the fringe rotator parameter update will be used as is without any adjustment");
@@ -80,7 +98,9 @@ FrtHWAndDrx::FrtHWAndDrx(const LOFAR::ParameterSet& parset, const Configuration&
         }
    }  
    ASKAPCHECK(itsRefAntIndex < nAnt, "Reference antenna "<<refName<<" is not found in the configuration");
-   ASKAPLOG_INFO_STR(logger, "Will use "<<refName<<" (antenna index "<<itsRefAntIndex<<") as a reference antenna");
+   ASKAPLOG_INFO_STR(logger, "Will use "<<refName<<" (antenna index "<<itsRefAntIndex<<") as the reference antenna");
+   // can set up the reference antenna now to save time later
+   itsFrtComm.setDRxAndFRParameters(itsRefAntIndex, itsDRxMidPoint, 0, 0, 0);
 }
 
 /// Process a VisChunk.
@@ -113,20 +133,27 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
 
   const double integrationTime = chunk->interval();
   ASKAPASSERT(integrationTime > 0);
+
+  // flags that HW (DRx or FR) setting is in range
+  std::vector<bool> hwInRange(delays.nrow(),true);
+
   for (casa::uInt ant = 0; ant < delays.nrow(); ++ant) {
+       bool outOfRange = false;
        // negate the sign here because we want to compensate the delay
        const double diffDelay = (delays(itsRefAntIndex,0) - delays(ant,0))/samplePeriod;
        // ideal delay
        ASKAPLOG_INFO_STR(logger, "delays between "<<ant<<" and ref="<<itsRefAntIndex<<" are "
                <<diffDelay*samplePeriod*1e9<<" ns");
-       casa::Int drxDelay = static_cast<casa::Int>(2048. + diffDelay);
+       casa::Int drxDelay = static_cast<casa::Int>(itsDRxMidPoint + diffDelay);
        if (drxDelay < 0) {
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (below 0)");
            drxDelay = 0;
+           outOfRange = true;
        }
        if (drxDelay > 4095) {
            ASKAPLOG_WARN_STR(logger, "DRx delay for antenna "<<ant<<" is out of range (exceeds 4095)");
            drxDelay = 4095;
+           outOfRange = true;
        }
        // differential rate, negate the sign because we want to compensate here
        casa::Int diffRate = static_cast<casa::Int>((rates(itsRefAntIndex,0) - rates(ant,0))/phaseRateUnit);
@@ -153,12 +180,21 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
        if (diffRate > 131071) {
            ASKAPLOG_WARN_STR(logger, "Phase rate for antenna "<<ant<<" is outside the range (exeeds 131071)");
            diffRate = 131071;
+           outOfRange = true;
        }
        if (diffRate < -131070) {
            ASKAPLOG_WARN_STR(logger, "Phase rate for antenna "<<ant<<" is outside the range (below -131070)");
            diffRate = -131070;
+           outOfRange = true;
        }
-       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > 20) || itsFrtComm.isUninitialised(ant)) {
+       if (itsFlagOutOfRangeHW && outOfRange) {
+           ASKAPLOG_WARN_STR(logger, "Flagging antenna "<<ant);
+           ASKAPDEBUGASSERT(ant < hwInRange.size());
+           hwInRange[ant] = false;
+           // don't even bother setting the hardware in this case as we flag the data anyway
+           continue;
+       }
+       if ((abs(diffRate - itsFrtComm.requestedFRPhaseRate(ant)) > itsFRPhaseRateTolerance) || itsFrtComm.isUninitialised(ant)) {
           if ((abs(drxDelay - itsFrtComm.requestedDRxDelay(ant)) > itsDRxDelayTolerance) || itsFrtComm.isUninitialised(ant)) {
               ASKAPLOG_INFO_STR(logger, "Set DRx delays for antenna "<<ant<<" to "<<drxDelay<<" and phase rate to "<<diffRate);
               itsFrtComm.setDRxAndFRParameters(ant, drxDelay, diffRate,0,0);
@@ -207,7 +243,9 @@ void FrtHWAndDrx::process(const askap::cp::common::VisChunk::ShPtr& chunk,
        const casa::uInt ant2 = chunk->antenna2()[row];
        ASKAPDEBUGASSERT(ant1 < delays.nrow());
        ASKAPDEBUGASSERT(ant2 < delays.nrow());
-       if (itsFrtComm.isValid(ant1) && itsFrtComm.isValid(ant2)) {
+       ASKAPDEBUGASSERT(ant1 < hwInRange.size());
+       ASKAPDEBUGASSERT(ant2 < hwInRange.size());
+       if (itsFrtComm.isValid(ant1) && itsFrtComm.isValid(ant2) && hwInRange[ant1] && hwInRange[ant2]) {
            // desired delays are set and applied, do phase rotation
            casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
            const double appliedDelay = samplePeriod * (itsFrtComm.requestedDRxDelay(ant2)-itsFrtComm.requestedDRxDelay(ant1));
