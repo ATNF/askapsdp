@@ -88,6 +88,16 @@ class FrtHWAndDrx : virtual public IFrtApproach {
         /// @details The DRx delay is updated when the required value goes outside the tolerance.
         int itsDRxDelayTolerance;
 
+        /// @brief tolerance on the FR phase rate setting
+        /// @details The FR phase rate is updated when the required value goes outside the tolerance
+        int itsFRPhaseRateTolerance;
+
+        /// @brief midpoint setting for the DRx delay (to track both positive and negative values)
+        int itsDRxMidPoint;
+
+        /// @brief if true, antennas with out of range drx or fr will be flagged
+        bool itsFlagOutOfRangeHW;
+
         /// @brief index of an antenna used as a reference
         casa::uInt itsRefAntIndex;
 
