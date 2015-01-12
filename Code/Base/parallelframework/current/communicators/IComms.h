@@ -58,6 +58,10 @@ public:
    /// @brief obtain rank in this communicator
    /// @return rank
    virtual unsigned int rank() const = 0;
+
+   /// @brief obtain total number of ranks in this communicator
+   /// @return number of ranks
+   virtual unsigned int nProcs() const = 0;
 };
 
 } // end of namespace askapparallel

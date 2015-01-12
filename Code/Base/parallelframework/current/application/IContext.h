@@ -91,8 +91,7 @@ public:
    /// @note The result is guaranteed to be a non-zero pointer. 
    /// An exception is thrown if a communicator with given name
    /// does not exist.
-   virtual boost::shared_ptr<IComms> globalComm() const 
-           { return getComm("global"); }
+   virtual boost::shared_ptr<IComms> globalComm() const; 
 
    /// @brief obtain local communicator
    /// @details
@@ -102,8 +101,7 @@ public:
    /// @note The result is guaranteed to be a non-zero pointer. 
    /// An exception is thrown if a communicator with given name
    /// does not exist.
-   virtual boost::shared_ptr<IComms> localComm() const 
-          { return getComm("local"); }
+   virtual boost::shared_ptr<IComms> localComm() const; 
   
    // iteration over work domain
 
