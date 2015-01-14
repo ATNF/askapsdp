@@ -99,5 +99,5 @@ fixed delay setting used during observations from the supplied scheduling block
     # We exclude AK01-AK03 baseline due to cross-talk and interference, otherwise it
     # can skew the solution
     exclude13 = true
-    sbpath = /scratch/askap/askapop/archive/askap-scheduling-blocks
+    sbpath = /scratch2/askap/askapop/archive/askap-scheduling-blocks
 

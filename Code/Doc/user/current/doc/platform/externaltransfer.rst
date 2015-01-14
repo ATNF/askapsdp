@@ -13,12 +13,12 @@ be avoided if possible so as to reduce the load on the login nodes.
 Here is an example of copying a file from both the home directory and the scratch filesystem.
 Note these commands are executed on your local host (e.g. your desktop or laptop)::
 
-    scp -r galaxydata.ivec.org:/scratch/askap/user123/image.fits .
+    scp -r galaxydata.ivec.org:/scratch2/askap/user123/image.fits .
     scp -r galaxydata.ivec.org:~/1934-638.ms .
 
 or to copy from your laptop/desktop to the Central Processor::
 
-    scp -r image.fits galaxydata.ivec.org:/scratch/askap/user123
+    scp -r image.fits galaxydata.ivec.org:/scratch2/askap/user123
     scp -r 1934-638.ms galaxydata.ivec.org:~
 
 Note the "-r" performs a recursive copy so can be used to copy files or directories.
@@ -33,13 +33,13 @@ Using *scp* can be quite slow and a program called *bbcp* is suggested for large
 * Command line parameters: http://www.slac.stanford.edu/~abh/bbcp/
 
 The ASKAP software team can supply Debian packages. Usage is similar to scp, but with
-a few extra parameters. To copy a file from the /scratch filesystem::
+a few extra parameters. To copy a file from the /scratch2 filesystem::
 
-    bbcp -z -P 10 -s 32 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch/askap/user123/image.fits .
+    bbcp -z -P 10 -s 32 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch2/askap/user123/image.fits .
 
-and to copy a file to the /scratch filesystem::
+and to copy a file to the /scratch2 filesystem::
 
-    bbcp -P 10 -s 32 -w 2M -r image.fits galaxy-data1.pawsey.ivec.org:/scratch/askap/user123
+    bbcp -P 10 -s 32 -w 2M -r image.fits galaxy-data1.pawsey.ivec.org:/scratch2/askap/user123
 
 .. note:: The hostname necessary to use bbcp is *galaxy-data1.pawsey.ivec.org*. This is one of the
           two hosts to which the *galaxydata* DNS alias points to (the other is *galaxy-data2*).

@@ -29,7 +29,7 @@ Setting up a working directory
 Your working directory will not be within your home directory, instead it will reside
 on the fast Lustre filesystem::
 
-    cd /scratch/askap/$USER
+    cd /scratch2/askap/$USER
     mkdir introtutorial
     cd introtutorial
 
@@ -180,21 +180,21 @@ Visualising the Images
 ----------------------
 
 If you have `CASA`_ installed on your desktop computer you may download and visualise
-these images with *casaviewer*. First copy the file from the /scratch filesystem to your
+these images with *casaviewer*. First copy the file from the /scratch2 filesystem to your
 desktop computer::
 
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored .
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty .
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty .
-    scp -r galaxydata.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty .
+    scp -r galaxydata.ivec.org:/scratch2/askap/<USERID>/introtutorial/image.i.dirty.restored .
+    scp -r galaxydata.ivec.org:/scratch2/askap/<USERID>/introtutorial/psf.i.dirty .
+    scp -r galaxydata.ivec.org:/scratch2/askap/<USERID>/introtutorial/sensitivity.i.dirty .
+    scp -r galaxydata.ivec.org:/scratch2/askap/<USERID>/introtutorial/weights.i.dirty .
 
 The string <USERID> needs to be replaced with your iVEC userid. Alternatively, you may wish to use
 the BBCP program for faster data transfer if you have it installed::
 
-    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/image.i.dirty.restored .
-    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/psf.i.dirty .
-    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/sensitivity.i.dirty .
-    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch/askap/<USERID>/introtutorial/weights.i.dirty .
+    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch2/askap/<USERID>/introtutorial/image.i.dirty.restored .
+    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch2/askap/<USERID>/introtutorial/psf.i.dirty .
+    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch2/askap/<USERID>/introtutorial/sensitivity.i.dirty .
+    bbcp -z -P 10 -s 16 -w 2M -r galaxy-data1.pawsey.ivec.org:/scratch2/askap/<USERID>/introtutorial/weights.i.dirty .
 
 Once the files have finished downloading, view the restored image with casaviewer::
 

@@ -50,7 +50,7 @@ Setting up a working directory
 Your working directory will not be within your home directory, instead it will reside
 on the fast Lustre filesystem::
 
-    cd /scratch/askap/$USER
+    cd /scratch2/askap/$USER
     mkdir continuumtutorial_v2
     cd continuumtutorial_v2
 

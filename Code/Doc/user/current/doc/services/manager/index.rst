@@ -171,7 +171,7 @@ Example
     dataservice.ice.identity        = SchedulingBlockService@DataServiceAdapter
 
     # Ingest working directory
-    ingest.workdir                  = /scratch/datasets
+    ingest.workdir                  = /scratch2/datasets
 
     # Ingest pipeline command and arguments
     ingest.command                  = /askap/cp/cpingest.sh

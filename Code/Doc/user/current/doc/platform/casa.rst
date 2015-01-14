@@ -101,7 +101,7 @@ The following commands will launch CASA::
     casa
 
 Note you can choose from *galaxy-vis1* or *galaxy-vis2*. These nodes share the home directory
-with the Cray supercomputer itself and also mount the /scratch filesystem.
+with the Cray supercomputer itself and also mount the /scratch2 filesystem.
 
 
 Running CASA on Compute Nodes
