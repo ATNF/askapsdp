@@ -33,8 +33,9 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <analysisutilities/AnalysisUtilities.h>
+//#include <analysisutilities/AnalysisUtilities.h>
 #include <askapparallel/AskapParallel.h>
+#include <mathsutils/MathsUtils.h>
 #include <duchamp/Cubes/cubes.hh>
 
 #include <Blob/BlobString.h>
@@ -165,25 +166,37 @@ namespace askap {
 		  stddev = 0.;
 		}
 		else {
-		  float *array=0;
+                    std::vector<float> array(this->itsCube->getSize(),0.);
 		  
-		  if (this->itsCube->pars().getFlagATrous()) {
-		      // create an array that has the residual values from the reconstruction
-		    array = new float[this->itsCube->getSize()];
-		    
-		    for (size_t i = 0; i < this->itsCube->getSize(); i++) array[i] = this->itsCube->getPixValue(i) - this->itsCube->getReconValue(i);
-		  } else if (this->itsCube->pars().getFlagSmooth()) array = this->itsCube->getRecon();
-		  else array = this->itsCube->getArray();
+                    for (size_t i = 0; i < this->itsCube->getSize(); i++){
+                        if (this->itsCube->pars().getFlagATrous()) {
+                            // create an array that has the residual
+                            // values from the reconstruction
+                            array[i] = this->itsCube->getPixValue(i) -
+                                this->itsCube->getReconValue(i);
+                        } else if (this->itsCube->pars().getFlagSmooth()){
+                            array[i] = this->itsCube->getReconValue(i);
+                        } else{
+                            array[i] = this->itsCube->getPixValue(i);
+                        }
+                    }
 		  
-		  std::vector<bool> mask = this->itsCube->pars().makeStatMask(array, this->itsCube->getDimArray());
-		  for(size_t i=0;i<this->itsCube->getSize();i++) if(mask[i]) size++;		      
+                    std::vector<bool> mask =
+                        this->itsCube->pars().makeStatMask(array.data(),
+                                                           this->itsCube->getDimArray());
+                    
+                    for(size_t i=0;i<this->itsCube->getSize();i++){
+                        if(mask[i]){
+                            size++;
+                        }
+                    }
 
-		  if(size>0)
-		    stddev = findSpread(this->itsCube->pars().getFlagRobustStats(), mean, this->itsCube->getSize(), array, mask);
-		  
-		  if (this->itsCube->pars().getFlagATrous()) delete [] array;
-
-		  ASKAPLOG_INFO_STR(logger, "StdDev (Worker #" << this->itsComms->rank() << ") = " << stddev);
+                    if(size>0){
+                        bool flagRobust=this->itsCube->pars().getFlagRobustStats();
+                        stddev = analysisutilities::findSpread(flagRobust, mean, array, mask);
+                    }
+                    
+                    ASKAPLOG_INFO_STR(logger, "StdDev (Worker #" << this->itsComms->rank() << ") = " << stddev);
 		}
 
                 // return it to the master
