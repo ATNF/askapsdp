@@ -33,34 +33,39 @@
 #include <string>
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        /// @brief Remove blank spaces from the beginning of a string
-        std::string removeLeadingBlanks(std::string s);
+/// @brief Remove blank spaces from the beginning of a string
+std::string removeLeadingBlanks(std::string s);
 
-        /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
-        double dmsToDec(std::string input);
+/// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
+double dmsToDec(std::string input);
 
-        /// @brief Converts a decimal into a dd:mm:ss.ss format.
-        std::string decToDMS(const double input, std::string type = "DEC",
-                             int secondPrecision = 2, std::string separator = ":");
+/// @brief Converts a decimal into a dd:mm:ss.ss format.
+std::string decToDMS(const double input, std::string type = "DEC",
+                     int secondPrecision = 2, std::string separator = ":");
 
-	double positionToDouble(std::string position);
-	inline double raToDouble(std::string position){return positionToDouble(position)*(position.find(':')==std::string::npos?1.:15.);};
-	inline double decToDouble(std::string position){return positionToDouble(position);};
+/// Convert a string position to a decimal value. The string can
+/// either be HMS/DMS formatted, or a decimal value (if HMS/DMS, it
+/// needs to use a ':' as the separator).
+double positionToDouble(std::string position);
+/// Convert a RA string to decimal degrees. This will convert from hours to degrees if the string is in HMS format (HH:MM:SS.SSS)
+double raToDouble(std::string position);
+/// Convert a DEC string to decimal degrees. Simply a front-end to positionToDouble.
+double decToDouble(std::string position);
 
-        /// @brief Find the angular separation of two sky positions
-        double angularSeparation(const std::string ra1, const std::string dec1,
-                                 const std::string ra2, const std::string dec2);
+/// @brief Find the angular separation of two sky positions
+double angularSeparation(const std::string ra1, const std::string dec1,
+                         const std::string ra2, const std::string dec2);
 
-        /// @brief Find the angular separation of two sky positions.
-        double angularSeparation(double ra1, double dec1, double ra2, double dec2);
+/// @brief Find the angular separation of two sky positions.
+double angularSeparation(double ra1, double dec1, double ra2, double dec2);
 
-        /// @brief Convert equatorial coordinates to Galactic.
-        void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
+/// @brief Convert equatorial coordinates to Galactic.
+void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
 
 
-    }
+}
 
 }
 

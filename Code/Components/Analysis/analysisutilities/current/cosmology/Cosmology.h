@@ -29,46 +29,41 @@
 #ifndef ASKAP_ANALYSISUTIL_COSMOLOGY_H_
 #define ASKAP_ANALYSISUTIL_COSMOLOGY_H_
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysisutilities
-  {
+namespace analysisutilities {
 
-    namespace cosmology
-    {
-      
-      const float HUBBLE_WMAP = 71.;
-      const float OMEGAM_WMAP = 0.27;
-      const float OMEGAL_WMAP = 0.73;
-      const float MPC_m = 3.086e22;
-      const float C_ms = 299792458.;
+namespace cosmology {
 
-      const int NUMINT=10000;
-      
-      class Cosmology
-      {
-      public:
-	Cosmology();
-	Cosmology(double hubble, double omegaM, double omegaL);
-	Cosmology(const Cosmology& other);
-	Cosmology& operator= (const Cosmology& other);
-	virtual ~Cosmology(){};
-	
-	double dlum(double z);
+const float HUBBLE_WMAP = 71.;
+const float OMEGAM_WMAP = 0.27;
+const float OMEGAL_WMAP = 0.73;
+const float MPC_m = 3.086e22;
+const float C_ms = 299792458.;
+const float C_kms = 299792.458;
 
-	double lum(double z, double flux);
-	
-      private:
-	double itsHubble;
-	double itsOmegaM;
-	double itsOmegaL;
-	
-      };
-      
-    }
-  
-  }
+const int NUMINT = 10000;
+
+class Cosmology {
+    public:
+        Cosmology();
+        Cosmology(double hubble, double omegaM, double omegaL);
+        virtual ~Cosmology() {};
+
+        double dlum(double z);
+
+        double lum(double z, double flux);
+
+    private:
+        double itsHubble;
+        double itsOmegaM;
+        double itsOmegaL;
+
+};
+
+}
+
+}
 
 }
 

@@ -31,66 +31,51 @@
 #include <cosmology/Cosmology.h>
 #include <math.h>
 
-namespace askap
+namespace askap {
+
+namespace analysisutilities {
+
+namespace cosmology {
+
+Cosmology::Cosmology():
+    itsHubble(HUBBLE_WMAP), itsOmegaM(OMEGAM_WMAP), itsOmegaL(OMEGAL_WMAP)
 {
+}
 
-  namespace analysisutilities
-  {
+Cosmology::Cosmology(double hubble, double omegaM, double omegaL):
+    itsHubble(hubble), itsOmegaM(omegaM), itsOmegaL(omegaL)
+{
+}
 
-    namespace cosmology
-    {
 
-      Cosmology::Cosmology():
-	itsHubble(HUBBLE_WMAP),itsOmegaM(OMEGAM_WMAP),itsOmegaL(OMEGAL_WMAP)
-      {
-      }
-
-      Cosmology::Cosmology(double hubble, double omegaM, double omegaL):
-	itsHubble(hubble),itsOmegaM(omegaM),itsOmegaL(omegaL)
-      {
-      }
-
-      Cosmology::Cosmology(const Cosmology &other)
-      {
-	this->operator=(other);
-      }
-
-      Cosmology& Cosmology::operator=(const Cosmology &other)
-      {
-	if(this == &other) return *this;
-	this->itsHubble = other.itsHubble;
-	this->itsOmegaM = other.itsOmegaM;
-	this->itsOmegaL = other.itsOmegaL;
-	return *this;
-      }
-
-      double Cosmology::dlum(double z)
-      {
-	double dz = z/double(NUMINT);
-	double rr = 0.;
-	for(int i=0;i<NUMINT;i++){
-	  double zp1 = (i+0.5)*dz + 1;
-	  double temp = this->itsOmegaL + ((1.-this->itsOmegaL-this->itsOmegaM)*(zp1*zp1)) + 
-	    (this->itsOmegaM*(zp1*zp1*zp1));
-	  double drdz = 1./sqrt(temp);
-	  rr = rr + drdz*dz;
-	}
-	
-	double dl = rr * (1.+z) * (C_ms / 1000.) / this->itsHubble;  /* dlum in Mpc */
-	dl = dl * MPC_m;                                             /* dlum in metres */
-	
-	return log10(dl);
-	
-      }
-
-      double Cosmology::lum(double z, double flux)
-      {
-	return log10(4.*M_PI) + 2.*this->dlum(z) + flux;
-      }
-
+double Cosmology::dlum(double z)
+{
+    double dz = z / double(NUMINT);
+    double rr = 0.;
+    for (int i = 0; i < NUMINT; i++) {
+        double zp1 = (i + 0.5) * dz + 1;
+        double temp = this->itsOmegaL +
+                      ((1. - this->itsOmegaL - this->itsOmegaM) * (zp1 * zp1)) +
+                      (this->itsOmegaM * (zp1 * zp1 * zp1));
+        double drdz = 1. / sqrt(temp);
+        rr = rr + drdz * dz;
     }
 
-  }
+    double dl = rr * (1. + z) * (C_ms / 1000.) / this->itsHubble; /* dlum in Mpc */
+    dl = dl * MPC_m;                                             /* dlum in metres */
+
+    return log10(dl);
+
+}
+
+double Cosmology::lum(double z, double flux)
+{
+    return log10(4.*M_PI) + 2.*this->dlum(z) + flux;
+}
+
+}
+
+}
 
 }
 
