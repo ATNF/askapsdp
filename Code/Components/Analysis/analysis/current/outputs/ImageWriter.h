@@ -40,48 +40,47 @@
 
 namespace askap {
 
-    namespace analysis { 
+namespace analysis {
 
-	class ImageWriter
-	{
-	public:
-	    ImageWriter(){};
-	    ImageWriter(duchamp::Cube *cube, std::string imageName);
-	    ImageWriter(const ImageWriter& other);
-	    ImageWriter& operator= (const ImageWriter& other);
-	    virtual ~ImageWriter(){};
-
-	    
-	    void copyMetadata(duchamp::Cube *cube);
-
-	    std::string &imagename(){return itsImageName;};
-	    casa::Unit &bunit(){return itsBunit;};
-//	    std::string bunit(){return itsBunit.getName();};
-	    casa::CoordinateSystem &coordsys(){return itsCoordSys;};
-	    casa::IPosition &shape(){return itsShape;};
-	    
-	    void setTileshapeFromShape(casa::IPosition &shape);
-
-	    virtual void create();
-	    
-	    void write(float *data, const casa::IPosition &shape, bool accumulate=false);
-	    void write(float *data, const casa::IPosition &shape, const casa::IPosition &loc, bool accumulate=false);
-	    void write(const casa::Array<casa::Float> &data, bool accumulate=false);
-	    virtual void write(const casa::Array<casa::Float> &data, const casa::IPosition &loc, bool accumulate=false);
-
-	    casa::Array<casa::Float> read(const casa::IPosition& loc, const casa::IPosition &shape);
-
-	protected:
-	    std::string itsImageName;
-	    casa::Unit itsBunit;
-	    casa::IPosition itsShape;
-	    casa::IPosition itsTileshape;
-	    casa::CoordinateSystem itsCoordSys;
-	    casa::ImageInfo itsImageInfo;
-	};
+class ImageWriter {
+    public:
+        ImageWriter() {};
+        ImageWriter(duchamp::Cube *cube, std::string imageName);
+        ImageWriter(const ImageWriter& other);
+        ImageWriter& operator= (const ImageWriter& other);
+        virtual ~ImageWriter() {};
 
 
-    }
+        void copyMetadata(duchamp::Cube *cube);
+
+        std::string &imagename() {return itsImageName;};
+        casa::Unit &bunit() {return itsBunit;};
+//      std::string bunit(){return itsBunit.getName();};
+        casa::CoordinateSystem &coordsys() {return itsCoordSys;};
+        casa::IPosition &shape() {return itsShape;};
+
+        void setTileshapeFromShape(casa::IPosition &shape);
+
+        virtual void create();
+
+        void write(float *data, const casa::IPosition &shape, bool accumulate = false);
+        void write(float *data, const casa::IPosition &shape, const casa::IPosition &loc, bool accumulate = false);
+        void write(const casa::Array<casa::Float> &data, bool accumulate = false);
+        virtual void write(const casa::Array<casa::Float> &data, const casa::IPosition &loc, bool accumulate = false);
+
+        casa::Array<casa::Float> read(const casa::IPosition& loc, const casa::IPosition &shape);
+
+    protected:
+        std::string itsImageName;
+        casa::Unit itsBunit;
+        casa::IPosition itsShape;
+        casa::IPosition itsTileshape;
+        casa::CoordinateSystem itsCoordSys;
+        casa::ImageInfo itsImageInfo;
+};
+
+
+}
 
 }
 

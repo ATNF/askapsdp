@@ -131,9 +131,16 @@ namespace askap {
 
                 /// @brief Read in the data from the image file (on the workers)
                 void readData();
+            
 		duchamp::OUTCOME getCASA(DATATYPE typeOfData, bool useSubimageInfo=true);
-		const SubImage<Float>* getSubimage(const ImageInterface<Float>* imagePtr, bool useSubimageInfo=true);
-		duchamp::OUTCOME getCasaMetadata(const ImageInterface<Float>*  imagePtr, DATATYPE typeOfData);
+            
+		const boost::shared_ptr<SubImage<Float> >
+                getSubimage(const boost::shared_ptr<ImageInterface<Float> > imagePtr,
+                            bool useSubimageInfo=true);
+
+                duchamp::OUTCOME
+                getCasaMetadata(const boost::shared_ptr<ImageInterface<Float> >  imagePtr,
+                                DATATYPE typeOfData);
 
                 /// @brief Set up the log file
                 void setupLogfile(int argc, const char** argv);

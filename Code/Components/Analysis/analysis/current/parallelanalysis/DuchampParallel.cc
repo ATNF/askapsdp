@@ -125,13 +125,13 @@ using namespace duchamp;
 namespace askap {
     namespace analysis {
 
-      void reportDim(size_t *dim, size_t size)
+    void reportDim(std::vector<size_t> dim)
       {
 
 	std::stringstream ss;
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < dim.size(); i++) {
 	  ss << dim[i];
-	  if(i < size-1) ss << " x ";
+	  if(i < dim.size()-1) ss << " x ";
 	}
 	
 	ASKAPLOG_INFO_STR(logger, "Dimensions of input image = " << ss.str());
@@ -403,7 +403,7 @@ namespace askap {
 	    this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
 	    this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
 	    std::vector<size_t> dim = getFITSdimensions(this->itsCube.pars().getImageFile());
-	    reportDim(dim.data(),dim.size());
+	    reportDim(dim);
 	    this->itsSubimageDef.setImageDim(dim);
 
 	    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
@@ -1509,30 +1509,27 @@ namespace askap {
 	/// dimensions.
 	/// @return duchamp::SUCCESS if successful, duchamp::FAILURE otherwise.
 
-	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
-	if (lattPtr == 0)
-	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
-	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-
+        const boost::shared_ptr<ImageInterface<Float> > imagePtr =
+            openImage(this->itsCube.pars().getImageFile());
 
 	// Define the subimage - need to be done before metadata, as the latter needs the subsection & offsets
-	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
+	const boost::shared_ptr<SubImage<Float> > sub(
+            new SubImage<Float>(*imagePtr, useSubimageInfo));
 
 	if(this->getCasaMetadata(sub, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
 
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Have subimage with shape " << sub->shape() << " and subsection " << this->itsCube.pars().section().getSection());
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Have subimage with shape " <<
+                           sub->shape() << " and subsection " <<
+                           this->itsCube.pars().section().getSection());
 
 	if(typeOfData == IMAGE){
 	  
 	  ASKAPLOG_INFO_STR(logger, "Reading data from image " << this->itsCube.pars().getImageFile());
 
 	  casa::Array<Float> subarray(sub->shape());	  
-	  const casa::MaskedArray<Float> *msub = new casa::MaskedArray<Float>(sub->get(),sub->getMask());
-	  float minval = min(*msub)-10.;
-	  subarray = *msub;
-	  delete msub;
+	  const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+	  float minval = min(msub)-10.;
+	  subarray = msub;
 	  if(sub->hasPixelMask()){
 	      subarray(!sub->getMask()) = minval;
 	      this->itsCube.pars().setBlankPixVal(minval);
@@ -1542,12 +1539,12 @@ namespace askap {
 	      this->itsCube.pars().setFlagBlankPix(true);
 	  }
 
-	  size_t *dim = getDim(sub);
+          std::vector<size_t> dim = getDim(sub);
 // 	  std::cout << this->itsCube.pars()<<"\n";
 	  // A HACK TO ENSURE THE RECON ARRAY IS ALLOCATED IN THE CASE OF VARIABLE THRESHOLD OR WEIGHTS IMAGE SCALING
 	  bool flag=this->itsCube.pars().getFlagATrous();
 	  if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(true);
-	  this->itsCube.initialiseCube(dim);
+	  this->itsCube.initialiseCube(dim.data());
 	  if(this->itsFlagVariableThreshold || this->itsWeighter->doScaling()) this->itsCube.pars().setFlagATrous(flag);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
@@ -1563,7 +1560,8 @@ namespace askap {
 
       //**************************************************************//
 
-      const SubImage<Float>* DuchampParallel::getSubimage(const ImageInterface<Float>* imagePtr, bool useSubimageInfo)
+    const boost::shared_ptr<SubImage<Float> >
+    DuchampParallel::getSubimage(const boost::shared_ptr<ImageInterface<Float> > imagePtr, bool useSubimageInfo)
       {
 
 	/// @details Define the shape/size of the subimage being used,
@@ -1584,9 +1582,9 @@ namespace askap {
 	this->itsSubimageDef.define(wcs);
 	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
 	this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
-	size_t *dim = getDim(imagePtr);
-	reportDim(dim,imagePtr->ndim());
-	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
+        std::vector<size_t> dim = getDim(imagePtr);
+	reportDim(dim);
+	this->itsSubimageDef.setImageDim(dim);
 	
 	if(useSubimageInfo && (!this->itsComms.isParallel() || this->itsComms.isWorker())){
 	    this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
@@ -1597,16 +1595,22 @@ namespace askap {
 	this->itsCube.pars().setFlagSubsection(true);
 
 	// Now parse the sections to get them properly set up
-	if(this->itsCube.pars().parseSubsections(dim, imagePtr->ndim()) == duchamp::FAILURE){
+	if(this->itsCube.pars().parseSubsections(dim) == duchamp::FAILURE){
 	  // if here, something went wrong - try to detect and throw appropriately
-	  if (this->itsCube.pars().section().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
-	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().section().getSection());
-	  if (this->itsCube.pars().getFlagStatSec() && this->itsCube.pars().statsec().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
-	    ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << this->itsCube.pars().statsec().getSection());
+	  if (this->itsCube.pars().section().parse(dim) == duchamp::FAILURE)
+	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " <<
+                       this->itsCube.pars().section().getSection());
+	  if (this->itsCube.pars().getFlagStatSec() &&
+              this->itsCube.pars().statsec().parse(dim) == duchamp::FAILURE)
+              ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " <<
+                         this->itsCube.pars().statsec().getSection());
 	  if(!this->itsCube.pars().section().isValid())
-	    ASKAPTHROW(AskapError, "Pixel subsection " << this->itsBaseSubsection << " has no pixels");
+	    ASKAPTHROW(AskapError, "Pixel subsection " << this->itsBaseSubsection <<
+                       " has no pixels");
 	  if(this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
-	    ASKAPTHROW(AskapError, "Statistics subsection " << this->itsBaseStatSubsection << " has no pixels in common with the image or the pixel subsection requested");
+              ASKAPTHROW(AskapError, "Statistics subsection " << this->itsBaseStatSubsection <<
+                         " has no pixels in common with the image or \
+the pixel subsection requested");
 	}
 	
 	if(this->itsComms.isMaster() & this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
@@ -1620,14 +1624,16 @@ namespace askap {
 	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
 	fixSlicer(slice, wcs);
 
-	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	const boost::shared_ptr<SubImage<Float> > sub(new SubImage<Float>(*imagePtr, slice));
 	
 	return sub;
       }
 
       //**************************************************************//
 
-      duchamp::OUTCOME DuchampParallel::getCasaMetadata(const ImageInterface<Float>*  imagePtr, DATATYPE typeOfData)
+      duchamp::OUTCOME
+      DuchampParallel::getCasaMetadata(const boost::shared_ptr<ImageInterface<Float> > imagePtr,
+                                       DATATYPE typeOfData)
       {
 
 	/// @details Read some basic metadata from the image, storing
@@ -1640,10 +1646,10 @@ namespace askap {
 	/// @param imagePtr The image, already opened
 	/// @param typeOfData Either IMAGE or METADATA
 
-	size_t *dim = getDim(imagePtr);
+          std::vector<size_t> dim = getDim(imagePtr);
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining WCS and putting into type \""<<this->itsCube.pars().getSpectralType()<<"\"");
-	this->itsCube.header().defineWCS(wcs,1,dim,this->itsCube.pars());
+	this->itsCube.header().defineWCS(wcs,1,dim.data(),this->itsCube.pars());
 	this->itsCube.pars().setOffsets(wcs);
 	readBeamInfo(imagePtr, this->itsCube.header(), this->itsCube.pars());
 	this->itsCube.header().setFluxUnits(imagePtr->units().getName());
@@ -1656,8 +1662,7 @@ namespace askap {
 
 	this->itsCube.header().setIntFluxUnits();
 
-	if(typeOfData == METADATA) this->itsCube.initialiseCube(dim, false);
-	delete [] dim;
+	if(typeOfData == METADATA) this->itsCube.initialiseCube(dim.data(), false);
 	return duchamp::SUCCESS;
 
 

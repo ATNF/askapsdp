@@ -50,57 +50,67 @@
 #include <casa/aipstype.h>
 #include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
+#include <images/Images/SubImage.h>
 using namespace casa;
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-	size_t *getDim(const ImageInterface<Float>* imagePtr);
-	
-       /// @ingroup analysisutilities
-        /// @brief Save a wcsprm struct to a duchamp::FitsHeader
-        void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
+/// Return the dimensions of a given image.
+std::vector<size_t> getDim(const boost::shared_ptr<ImageInterface<Float> > imagePtr);
 
-	/// @brief Return a whole-image subsection string for an image
-	std::string getFullSection(std::string filename);
-        /// @brief Return the dimensions of the image
-        std::vector<size_t> getCASAdimensions(std::string filename);
+/// Open an image and return an ImageInterface object
+const boost::shared_ptr<ImageInterface<Float> > openImage(std::string imagename);
 
-        /// @ingroup analysisutilities
-        /// @brief Read the beam information from a casa image
-        void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par);
+/// Return a subsection of an image, given by a casa::Slicer
+const boost::shared_ptr<SubImage<Float> > getSubImage(std::string imagename, Slicer slicer);
 
-        /// @ingroup analysisutilities
-        /// @brief Extract the WCS information from a casa image
-        /// @name
-        /// @{
-        wcsprm *casaImageToWCS(std::string imageName);
-        wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr);
-        /// @}
+/// @ingroup analysisutilities
+/// @brief Save a wcsprm struct to a duchamp::FitsHeader
+void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
 
-        /// @ingroup analysisutilities
-        /// @brief Convert a WCS struct to a casa coordinate specification
-        casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes);
+/// @brief Return a whole-image subsection string for an image
+std::string getFullSection(std::string filename);
+/// @brief Return the dimensions of the image
+std::vector<size_t> getCASAdimensions(std::string filename);
 
-        /// @ingroup analysisutilities
-        /// @brief Convert a duchamp subsection to a casa Slicer
-        Slicer subsectionToSlicer(duchamp::Section &subsection);
-	Slicer subsectionToSlicer(duchamp::Section &subsection, wcsprm *wcs);
+/// @ingroup analysisutilities
+/// @brief Read the beam information from a casa image
+void readBeamInfo(const boost::shared_ptr<ImageInterface<Float> > imagePtr,
+                  duchamp::FitsHeader &head, duchamp::Param &par);
 
-        /// @ingroup analysisutilities
-        /// @brief Fix axes that aren't position or spectral
-        void fixSlicer(Slicer &slice, wcsprm *wcs);
+/// @ingroup analysisutilities
+/// @brief Extract the WCS information from a casa image
+/// @name
+/// @{
+wcsprm *casaImageToWCS(std::string imageName);
+wcsprm *casaImageToWCS(const boost::shared_ptr<ImageInterface<Float> > imagePtr);
+/// @}
 
-        /// @brief Find the noise within a box surrounding a location in an image.
-        float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
+/// @ingroup analysisutilities
+/// @brief Convert a WCS struct to a casa coordinate specification
+casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes);
 
-        /// @brief Return a vector of pixel values in a box subsection of an image.
-        casa::Array<casa::Float> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlicer=true);
+/// @ingroup analysisutilities
+/// @brief Convert a duchamp subsection to a casa Slicer
+Slicer subsectionToSlicer(duchamp::Section &subsection);
+Slicer subsectionToSlicer(duchamp::Section &subsection, wcsprm *wcs);
 
-	/// @brief Increase the length of a Slicer by adding degenerate dimensions on the end
-	void lengthenSlicer(Slicer &slice, int ndim);
-    }
+/// @ingroup analysisutilities
+/// @brief Fix axes that aren't position or spectral
+void fixSlicer(Slicer &slice, wcsprm *wcs);
+
+/// @brief Find the noise within a box surrounding a location in an image.
+float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
+
+/// @brief Return a vector of pixel values in a box subsection of an image.
+casa::Array<casa::Float> getPixelsInBox(std::string imageName, casa::Slicer box,
+                                        bool fixSlicer = true);
+
+/// @brief Increase the length of a Slicer by adding degenerate dimensions on the end
+void lengthenSlicer(Slicer &slice, int ndim);
+}
 
 }
 

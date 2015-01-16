@@ -40,40 +40,40 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	class CurvatureMapCreator
-	{
-	public:
-	    CurvatureMapCreator(){};
-	    CurvatureMapCreator(askap::askapparallel::AskapParallel &comms, const LOFAR::ParameterSet &parset);
-	    CurvatureMapCreator(const CurvatureMapCreator& other);
-	    CurvatureMapCreator& operator= (const CurvatureMapCreator& other);
-	    virtual ~CurvatureMapCreator(){};
+class CurvatureMapCreator {
+    public:
+        CurvatureMapCreator() {};
+        CurvatureMapCreator(askap::askapparallel::AskapParallel &comms,
+                            const LOFAR::ParameterSet &parset);
+        CurvatureMapCreator(const CurvatureMapCreator& other);
+        CurvatureMapCreator& operator= (const CurvatureMapCreator& other);
+        virtual ~CurvatureMapCreator() {};
 
-	    void setCube(duchamp::Cube &cube){itsCube = &cube;};
-	    void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
-	    void calculate();
-	    void maskBorders();
-	    void write();
+        void setCube(duchamp::Cube &cube) {itsCube = &cube;};
+        void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
+        void calculate();
+        void maskBorders();
+        void write();
 
-	    float sigmaCurv(){return itsSigmaCurv;};
+        float sigmaCurv() {return itsSigmaCurv;};
 
-	protected:
-	    void findSigma();
+    protected:
+        void findSigma();
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    LOFAR::ParameterSet itsParset;
-	    duchamp::Cube *itsCube;
-	    analysisutilities::SubimageDef *itsSubimageDef;
-	    std::string itsFilename;
-	    casa::Array<float> itsArray;
-	    casa::IPosition itsShape;
-	    casa::IPosition itsLocation;
-	    float itsSigmaCurv;
-	};
+        askap::askapparallel::AskapParallel *itsComms;
+        LOFAR::ParameterSet itsParset;
+        duchamp::Cube *itsCube;
+        analysisutilities::SubimageDef *itsSubimageDef;
+        std::string itsFilename;
+        casa::Array<float> itsArray;
+        casa::IPosition itsShape;
+        casa::IPosition itsLocation;
+        float itsSigmaCurv;
+};
 
-    }
+}
 
 }
 
