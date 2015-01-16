@@ -159,7 +159,7 @@ void VariableThresholder::initialise(duchamp::Cube &cube, analysisutilities::Sub
     analysisutilities::fixSlicer(this->itsSlicer, cube.header().getWCS());
 
     const boost::shared_ptr<SubImage<Float> > sub =
-        analysisutilities::getSubImage(cube.pars().getImageFile(), slicer);
+        analysisutilities::getSubImage(cube.pars().getImageFile(), this->itsSlicer);
     this->itsInputCoordSys = sub->coordinates();
     this->itsInputShape = sub->shape();
 

@@ -76,7 +76,7 @@ void ImageWriter::copyMetadata(duchamp::Cube *cube)
 {
 
     const boost::shared_ptr<ImageInterface<Float> > imagePtr =
-        openImage(cube->pars().getImageFile());
+        analysisutilities::openImage(cube->pars().getImageFile());
 
     this->itsCoordSys = imagePtr->coordinates();
     this->itsShape = imagePtr->shape();
