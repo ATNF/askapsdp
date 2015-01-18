@@ -1513,8 +1513,8 @@ namespace askap {
             openImage(this->itsCube.pars().getImageFile());
 
 	// Define the subimage - need to be done before metadata, as the latter needs the subsection & offsets
-	const boost::shared_ptr<SubImage<Float> > sub(
-            new SubImage<Float>(*imagePtr, useSubimageInfo));
+	const boost::shared_ptr<SubImage<Float> > sub =
+            this->getSubimage(imagePtr, useSubimageInfo);
 
 	if(this->getCasaMetadata(sub, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
 
@@ -1625,7 +1625,7 @@ the pixel subsection requested");
 	fixSlicer(slice, wcs);
 
 	const boost::shared_ptr<SubImage<Float> > sub(new SubImage<Float>(*imagePtr, slice));
-	
+
 	return sub;
       }
 

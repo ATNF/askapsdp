@@ -40,6 +40,7 @@
 
 #include <askapparallel/AskapParallel.h>
 
+#include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
@@ -109,8 +110,7 @@ const boost::shared_ptr<ImageInterface<Float> > openImage(std::string imagename)
 
     const boost::shared_ptr<ImageInterface<Float> > imagePtr =
         boost::shared_ptr<ImageInterface<Float> >(
-            dynamic_cast<ImageInterface<Float> *>(lattPtr.get()));
-
+            boost::dynamic_pointer_cast<ImageInterface<Float> >(lattPtr));
     return imagePtr;
 
 }
