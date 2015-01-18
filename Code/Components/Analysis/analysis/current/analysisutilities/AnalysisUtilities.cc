@@ -333,7 +333,10 @@ namespace askap {
 	    std::string maskfileRequested = par.outputMaskFile();
 	    size_t loc=maskfileRequested.rfind('/');
 	    std::string maskfileUsed = (loc!=std::string::npos) ? maskfileRequested.substr(loc+1,maskfileRequested.size()) : maskfileRequested;
-	    ASKAPLOG_INFO_STR(logger, "Changing the mask output file from " << maskfileRequested << " to " << maskfileUsed);
+            if (maskfileRequested != maskfileUsed){
+                ASKAPLOG_INFO_STR(logger, "Changing the mask output file from " <<
+                                  maskfileRequested << " to " << maskfileUsed);
+            }
 	    par.setFileOutputMask(maskfileUsed);
 
            return par;
