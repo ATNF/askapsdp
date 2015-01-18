@@ -1,25 +1,5 @@
 /**
- * @file tIceAppender.cc
- *
- * @detail
- * This test simply sends some messages via the Log4J IceAppender and ensures
- * they have been received. This test program acts as the Log Archiver, which
- * usually subscribes to he appropriate IceStorm topic and receives the
- * LogEvents.
- *
- * The test requires the presence of this file "TestIceAppender.log_cfg" which
- * would usually have the following contents:
- *
- * @code
- * log4j.rootLogger=DEBUG,REMOTE
- *
- * log4j.appender.REMOTE=IceAppender
- * log4j.appender.REMOTE.locator_host=localhost
- * log4j.appender.REMOTE.locator_port=4061
- * log4j.appender.REMOTE.topic=logger
- * @endcode
- *
- * @copyright (c) 2009 CSIRO
+ * Copyright (c) 2009,2014 CSIRO
  * Australia Telescope National Facility (ATNF)
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * PO Box 76, Epping NSW 1710, Australia
@@ -40,26 +20,59 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
  */
 package askap.test;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
-	private static final long serialVersionUID = 1L;
-	private static final Logger log = Logger.getLogger(TestIceAppender.class);
-    private static int total = 100;
-    private static int count = 0;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * This test simply sends some messages via the Log4J IceAppender and ensures
+ * they have been received. This test program acts as the Log Archiver, which
+ * usually subscribes to he appropriate IceStorm topic and receives the
+ * LogEvents.
+ *
+ * The test requires the presence of this file "TestIceAppender.log_cfg" which
+ * would usually have the following contents:
+ *
+ * @code
+ * log4j.rootLogger=DEBUG,REMOTE
+ *
+ * log4j.appender.REMOTE=IceAppender
+ * log4j.appender.REMOTE.locator_host=localhost
+ * log4j.appender.REMOTE.locator_port=4061
+ * log4j.appender.REMOTE.topic=logger
+ * @endcode
+ */
+public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Log events are raised on this object
+     */
+    private static final Logger log = Logger.getLogger(TestIceAppender.class);
+
+    /**
+     * Total number of log message to send
+     */
+    private static final int TOTAL = 100;
+
+    /**
+     * Count of received log messages
+     */
+    private static final AtomicInteger count = new AtomicInteger(0);
+
+    /**
+     * Callback method, called upon receipt of a new log message
+     */
     public void send(askap.interfaces.logging.ILogEvent event, Ice.Current current) {
         System.out.println("Test: Got a message: " + event.message);
-        count++;
+        count.incrementAndGet();
     }
 
     public static void main(String[] args) {
-
         // Setup ICE so this test program can subscribe to the logger topic
         Ice.Communicator ic = null;
         Ice.ObjectAdapter adapter = null;
@@ -112,24 +125,26 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             // Setup logging
             PropertyConfigurator.configure(args[0]);
 
-            System.err.println("Test: Sending log messages");
-            for (int i = 0; i < total; i++) {
-                log.debug("Debug   Message");
-                log.warn ("Warning Message");
-                log.error("Error   Message");
+            System.out.println("Test: Sending log messages");
+            for (int i = 1; i <= TOTAL; i++) {
+                log.debug("Debug   Message " + i);
+                log.warn("Warning Message " + i);
+                log.error("Error   Message " + i);
                 Thread.sleep(20);
             }
 
             // Wait for the three messages, up to a maximum of 10 seconds
-            for (int i = 0; i < 10; ++i) {
-                if (count == total * 3) {
+            final int WAIT_FOR = 10;
+            for (int i = 0; i < WAIT_FOR; ++i) {
+                if (count.get() == TOTAL * 3) {
                     // Success, got all messages expected
                     status = 0;
                     break;
                 }
                 try {
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             }
 
         } catch (Exception e) {
@@ -150,7 +165,7 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             }
         }
 
-        System.out.println("Received " + count + " of expected " + total * 3 + " messages");
+        System.out.println("Received " + count + " of expected " + TOTAL * 3 + " messages");
         System.exit(status);
     }
 }
