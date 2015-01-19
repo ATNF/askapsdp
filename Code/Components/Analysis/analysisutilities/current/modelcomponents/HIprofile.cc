@@ -41,74 +41,61 @@ ASKAP_LOGGER(logger, ".hiprofile");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        HIprofile::HIprofile():
-                Spectrum()
-        {
-            this->itsRedshift = 0.;
-            this->itsMHI = 0.;
-	    this->itsMinFreq = 0.;
-	    this->itsMaxFreq = 0.;
-        }
+HIprofile::HIprofile():
+    Spectrum()
+{
+    this->itsRedshift = 0.;
+    this->itsMHI = 0.;
+    this->itsMinFreq = 0.;
+    this->itsMaxFreq = 0.;
+}
 
-        HIprofile::HIprofile(const HIprofile& h):
-                Spectrum(h)
-        {
-            operator=(h);
-        }
+HIprofile::HIprofile(const HIprofile& h):
+    Spectrum(h)
+{
+    operator=(h);
+}
 
-        HIprofile& HIprofile::operator= (const HIprofile& h)
-        {
-            if (this == &h) return *this;
+HIprofile& HIprofile::operator= (const HIprofile& h)
+{
+    if (this == &h) return *this;
 
-            ((Spectrum &) *this) = h;
-            this->itsRedshift = h.itsRedshift;
-            this->itsMHI = h.itsMHI;
-	    this->itsMinFreq = h.itsMinFreq;
-	    this->itsMaxFreq = h.itsMaxFreq;
-            return *this;
-        }
+    ((Spectrum &) *this) = h;
+    this->itsRedshift = h.itsRedshift;
+    this->itsMHI = h.itsMHI;
+    this->itsMinFreq = h.itsMinFreq;
+    this->itsMaxFreq = h.itsMaxFreq;
+    return *this;
+}
 
-	bool HIprofile::freqRangeOK(double freq1, double freq2)
-	{
-	    double lowfreq=std::min(freq1,freq2);
-	    double highfreq=std::max(freq1,freq2);
-	    return (lowfreq<this->itsMaxFreq) && (highfreq>this->itsMinFreq);
-	}
+bool HIprofile::freqRangeOK(double freq1, double freq2)
+{
+    double lowfreq = std::min(freq1, freq2);
+    double highfreq = std::max(freq1, freq2);
+    return (lowfreq < this->itsMaxFreq) && (highfreq > this->itsMinFreq);
+}
 
-        double HIprofile::integratedFlux(double z, double mhi)
-        {
-            /// @details For an HI source of a given HI mass and a given
-            /// redshift, this function calculates the integrated flux
-            /// according to
-            /// \f$S = 4.24\times10^{-6} M_{HI} / D^2\f$,
-            /// where \f$D\f$ is the luminosity distance to that
-            /// redshift.
-            /// @param z The redshift
-            /// @param mhi The HI mass in solar masses
-            /// @return The integrated flux in Jy km/s
+double HIprofile::integratedFlux(double z, double mhi)
+{
 
-            this->itsRedshift = z;
-            this->itsMHI = mhi;
-            double dist = redshiftToDist(z); // in Mpc
-            double intFlux = 4.24e-6 * mhi / (dist * dist);
-            return intFlux;
-        }
+    this->itsRedshift = z;
+    this->itsMHI = mhi;
+    double dist = redshiftToDist(z); // in Mpc
+    double intFlux = 4.24e-6 * mhi / (dist * dist);
+    return intFlux;
+}
 
-        std::ostream& operator<< (std::ostream& theStream, HIprofile &prof)
-        {
-            /// @details Prints a summary of the parameters to the stream
-            /// @param theStream The destination stream
-            /// @param prof The profile object
-            /// @return A reference to the stream
+std::ostream& operator<< (std::ostream& theStream, HIprofile &prof)
+{
 
-            theStream << "HI profile summary:\n";
-            theStream << "z=" << prof.itsRedshift << "\n";
-            theStream << "M_HI=" << prof.itsMHI << "\n";
-            return theStream;
-        }
+    theStream << "HI profile summary:\n";
+    theStream << "z=" << prof.itsRedshift << "\n";
+    theStream << "M_HI=" << prof.itsMHI << "\n";
+    return theStream;
+}
 
-    }
+}
 
 }

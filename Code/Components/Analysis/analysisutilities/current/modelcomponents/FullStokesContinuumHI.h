@@ -34,65 +34,93 @@
 
 namespace askap {
 
-  namespace analysisutilities {
+namespace analysisutilities {
 
 
-    GALTYPE getGaltype(int sftype, int agntype);
+GALTYPE getGaltype(int sftype, int agntype);
 
-    /// @brief A class to hold spectral information for a continuum spectrum with polarisation.
-    /// @details This class holds information on the continuum
-    /// properties of a spectral profile that also contains
-    /// polarisation information. Everything is inherited from Continuum, and
-    /// new items are the fluxes of various Stokes parameters and the Rotation
-    /// Measure.
+/// @brief A class to hold spectral information for a continuum spectrum with polarisation.
+/// @details This class holds information on the continuum
+/// properties of a spectral profile that also contains
+/// polarisation information. Everything is inherited from Continuum, and
+/// new items are the fluxes of various Stokes parameters and the Rotation
+/// Measure.
 
-    class FullStokesContinuumHI : public FullStokesContinuum {
+class FullStokesContinuumHI : public FullStokesContinuum {
     public:
 
-      /// @brief Default constructor
-      FullStokesContinuumHI();
-      /// @brief Constructor from FullStokesContinuumHI object
-      FullStokesContinuumHI(FullStokesContinuumHI &s);
-      /// @brief Constructor from ContinuumS3SEX object
-      FullStokesContinuumHI(ContinuumS3SEX &s);
-      /// @brief Constructor from Continuum object
-      FullStokesContinuumHI(Continuum &s);
-      /// @brief Constructor from Spectrum object
-      FullStokesContinuumHI(Spectrum &s);
-      /// @brief Set up parameters using a line of input from an ascii file
-      FullStokesContinuumHI(std::string &line);
-      /// @brief Destructor
-      virtual ~FullStokesContinuumHI() {};
-      /// @brief Copy constructor for FullStokesContinuumHI.
-      FullStokesContinuumHI(const FullStokesContinuumHI& f);
+        /// @brief Default constructor
+        FullStokesContinuumHI();
+        /// @brief Constructor from FullStokesContinuumHI object
+        FullStokesContinuumHI(FullStokesContinuumHI &s);
+        /// @brief Constructor from ContinuumS3SEX object
+        FullStokesContinuumHI(ContinuumS3SEX &s);
+        /// @brief Constructor from Continuum object
+        FullStokesContinuumHI(Continuum &s);
+        /// @brief Constructor from Spectrum object
+        FullStokesContinuumHI(Spectrum &s);
+        /// @brief Set up parameters using a line of input from an ascii file
+        /// @details Constructs a FullStokesContinuumHI object from a line of
+        /// text from an ascii file. Uses the FullStokesContinuumHI::define()
+        /// function.
+        FullStokesContinuumHI(std::string &line);
+        /// @brief Destructor
+        virtual ~FullStokesContinuumHI() {};
+        /// @brief Copy constructor for FullStokesContinuumHI.
+        FullStokesContinuumHI(const FullStokesContinuumHI& f);
 
-      /// @brief Assignment operator for FullStokesContinuumHI.
-      FullStokesContinuumHI& operator= (const FullStokesContinuumHI& c);
-      /// @brief Assignment operator for FullStokesContinuumHI, using a ContinuumS3SEX object
-      FullStokesContinuumHI& operator= (const ContinuumS3SEX& c);
-      /// @brief Assignment operator for FullStokesContinuumHI, using a Continuum object
-      FullStokesContinuumHI& operator= (const Continuum& c);
-      /// @brief Assignment operator for FullStokesContinuumHI, using a Spectrum object
-      FullStokesContinuumHI& operator= (const Spectrum& c);
+        /// @brief Assignment operator for FullStokesContinuumHI.
+        FullStokesContinuumHI& operator= (const FullStokesContinuumHI& c);
+        /// @brief Assignment operator for FullStokesContinuumHI, using a ContinuumS3SEX object
+        FullStokesContinuumHI& operator= (const ContinuumS3SEX& c);
+        /// @brief Assignment operator for FullStokesContinuumHI, using a Continuum object
+        FullStokesContinuumHI& operator= (const Continuum& c);
+        /// @brief Assignment operator for FullStokesContinuumHI, using a Spectrum object
+        FullStokesContinuumHI& operator= (const Spectrum& c);
 
-      /// @brief Define using a line of input from an ascii file
-      void define(const std::string &line);
+        /// @brief Define using a line of input from an ascii file
+        /// @details Defines a FullStokesContinuumHI object from a
+        /// line of text from an ascii file. The line is
+        /// interpreted by FullStokesContinuum::define, and then
+        /// the HI mass of the object is calculated. We use the
+        /// expression from Wilman et al (2008): log M_HI = 0.44
+        /// log L_1.4 + 0.48 +- delta where delta is drawn from a
+        /// normal distribution with sigma=0.3. Instead of
+        /// randomly creating the value of delta, we take the
+        /// component number of the object, modulo 1000, and
+        /// interpret that as a fraction between 0 and 1. This is
+        /// then converted to a Standard Normal z-value, which
+        /// provides delta. In this way, the mass is uniquely
+        /// determined for each source. Note that the luminosity
+        /// is in units of W/Hz, so we need to correct the value
+        /// from Jy.
+        /// @param line A line from the ascii input file
+        void define(const std::string &line);
 
-      bool freqRangeOK(double freq1, double freq2){return itsHIprofile.freqRangeOK(freq1,freq2);}
-      
-      double flux(double freq, int istokes){return itsHIprofile.flux(freq,istokes);};
-      double fluxInt(double freq1, double freq2, int istokes){return itsHIprofile.fluxInt(freq1,freq2,istokes);};
+        bool freqRangeOK(double freq1, double freq2)
+        {
+            return itsHIprofile.freqRangeOK(freq1, freq2);
+        }
 
-      void print(std::ostream& theStream);
-      friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuumHI &stokes);
+        double flux(double freq, int istokes)
+        {
+            return itsHIprofile.flux(freq, istokes);
+        };
+        double fluxInt(double freq1, double freq2, int istokes)
+        {
+            return itsHIprofile.fluxInt(freq1, freq2, istokes);
+        };
+
+        void print(std::ostream& theStream);
+        friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuumHI &stokes);
 
     protected:
-		
-      HIprofileS3SEX itsHIprofile;
-      
-    };
 
-  }
+        HIprofileS3SEX itsHIprofile;
+
+};
+
+}
 
 }
 

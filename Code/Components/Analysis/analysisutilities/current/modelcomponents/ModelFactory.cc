@@ -65,126 +65,132 @@ ASKAP_LOGGER(logger, ".modelfactory");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-      ModelFactory::ModelFactory() 
-      {
-      }
+ModelFactory::ModelFactory()
+{
+}
 
-      ModelFactory::ModelFactory(const LOFAR::ParameterSet& parset) 
-      {
-	this->itsDatabaseOrigin = parset.getString("database", "Continuum");
-	if(!this->checkType()) 
-	  ASKAPLOG_ERROR_STR(logger, "Database type '"<<this->itsDatabaseOrigin<<"' is not valid.");
-	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
-	this->itsBaseFreq = parset.getFloat("baseFreq",1400.);
-	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
-	this->itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes",false);
-	this->itsFlagCorrectForBeam = parset.getBool("correctForBeam",false) && !this->itsFlagUseDeconvolvedSizes;
-	if(this->itsFlagCorrectForBeam){
-	    LOFAR::ParameterSet subset = parset.makeSubset("correctForBeam.");
-	    this->itsBeamCorrector = BeamCorrector(subset);
-	}
-      }
-
-      ModelFactory::~ModelFactory()
-      {
-      }
-
-      bool ModelFactory::checkType()
-      {
-	const size_t numTypes=11;
-	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","POSSUMHI","NVSS","SUMSS","S3SEX","S3SAX","Gaussian","FLASH"};
-	bool isOK=false;
-	for(size_t i=0;i<numTypes;i++) isOK = isOK || (this->itsDatabaseOrigin == allowedTypes[i]);
-	return isOK;
-      }
-
-      Spectrum* ModelFactory::read(std::string line)
-      {
-	Spectrum *src=0;
-
-	if (line[0] != '#') {  // ignore commented lines
-
-	  if(!this->checkType()){
-	    ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
-		       << this->itsDatabaseOrigin 
-		       << "' - needs to be one of: 'Continuum', 'ContinuumID', 'Selavy', 'POSSUM', 'POSSUMHI', 'NVSS', 'SUMSS', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
-	  }
-	  else if(this->itsDatabaseOrigin == "Continuum") {
-	    Continuum *cont = new Continuum;
-	    cont->setNuZero(this->itsBaseFreq);
-	    cont->define(line);
-	    src = &(*cont);
-	  }
-	  else if(this->itsDatabaseOrigin == "ContinuumID") {
-	    ContinuumID *cont = new ContinuumID;
-	    cont->setNuZero(this->itsBaseFreq);
-	    cont->define(line);
-	    src = &(*cont);
-	  }
-	  else if(this->itsDatabaseOrigin == "Selavy"){
-	    ContinuumSelavy *sel = new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes);
-	    sel->setNuZero(this->itsBaseFreq);
-	    sel->define(line);
-	    src = &(*sel);
-	  }
-	  else if(this->itsDatabaseOrigin == "POSSUM"){
-	    FullStokesContinuum *stokes = new FullStokesContinuum;
-	    stokes->setNuZero(this->itsBaseFreq);
-	    stokes->define(line);
-	    src = &(*stokes);
-	  }
-	  else if(this->itsDatabaseOrigin == "POSSUMHI"){
-	    FullStokesContinuumHI *stokesHI = new FullStokesContinuumHI;
-	    stokesHI->setNuZero(this->itsBaseFreq);
-	    stokesHI->define(line);
-	    src = &(*stokesHI);
-	  }
-	  else if(this->itsDatabaseOrigin == "NVSS"){
-	    ContinuumNVSS *nvss = new ContinuumNVSS;
-	    nvss->setNuZero(this->itsBaseFreq);
-	    nvss->define(line);
-	    src = &(*nvss);
-	  }
-	  else if(this->itsDatabaseOrigin == "SUMSS"){
-	    ContinuumSUMSS *sumss = new ContinuumSUMSS;
-	    sumss->setNuZero(this->itsBaseFreq);
-	    sumss->define(line);
-	    src = &(*sumss);
-	  }
-	  else if (this->itsDatabaseOrigin == "S3SEX") {
-	    if(this->itsSourceListType == "continuum"){
-	      ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
-	      contS3SEX->setNuZero(this->itsBaseFreq);
-	      contS3SEX->define(line);
-	      src = &(*contS3SEX);
-	    }else if(this->itsSourceListType == "spectralline") {
-	      HIprofileS3SEX *profSEX = new HIprofileS3SEX;
-	      profSEX->define(line);
-	      src = &(*profSEX);
-	    }
-	  }else if (this->itsDatabaseOrigin == "S3SAX") {
-	    HIprofileS3SAX *profSAX = new HIprofileS3SAX;
-	    profSAX->define(line);
-	    src = &(*profSAX);
-	  } else if (this->itsDatabaseOrigin == "Gaussian") {
-	    GaussianProfile *profGauss = new GaussianProfile(this->itsRestFreq);
-	    profGauss->define(line);
-	    src = &(*profGauss);
-	  } else if (this->itsDatabaseOrigin == "FLASH") {
-	    FLASHProfile *profFLASH = new FLASHProfile(this->itsRestFreq);
-	    profFLASH->define(line);
-	    src = &(*profFLASH);
-	  }
-	}
-
-	if (this->itsFlagCorrectForBeam)
-	    this->itsBeamCorrector.convertSource(src);
-	
-	return src;
-
-      }
-
+ModelFactory::ModelFactory(const LOFAR::ParameterSet& parset)
+{
+    this->itsDatabaseOrigin = parset.getString("database", "Continuum");
+    if (!this->checkType())
+        ASKAPLOG_ERROR_STR(logger, "Database type '" << this->itsDatabaseOrigin <<
+                           "' is not valid.");
+    this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
+    this->itsBaseFreq = parset.getFloat("baseFreq", 1400.);
+    this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
+    this->itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes", false);
+    this->itsFlagCorrectForBeam = parset.getBool("correctForBeam", false) &&
+                                  !this->itsFlagUseDeconvolvedSizes;
+    if (this->itsFlagCorrectForBeam) {
+        LOFAR::ParameterSet subset = parset.makeSubset("correctForBeam.");
+        this->itsBeamCorrector = BeamCorrector(subset);
     }
+}
+
+ModelFactory::~ModelFactory()
+{
+}
+
+bool ModelFactory::checkType()
+{
+    bool isOK = false;
+    for (size_t i = 0; i < numModelTypes; i++) {
+        isOK = isOK || (this->itsDatabaseOrigin == allowedModelTypes[i]);
+    }
+    return isOK;
+}
+
+std::string typeListing()
+{
+    std::string listing = "";
+    for (size_t i = 0; i < numModelTypes; i++) {
+        listing = listing + "'" + allowedModelTypes[i] + "'";
+        if (i != (numModelTypes - 1)) {
+            listing = listing + " , ";
+        }
+    }
+    return listing;
+}
+
+Spectrum* ModelFactory::read(std::string line)
+{
+    Spectrum *src = 0;
+
+    if (line[0] != '#') {  // ignore commented lines
+
+        if (!this->checkType()) {
+            ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
+                       << this->itsDatabaseOrigin
+                       << "' - needs to be one of: " << typeListing());
+        } else if (this->itsDatabaseOrigin == "Continuum") {
+            Continuum *cont = new Continuum;
+            cont->setNuZero(this->itsBaseFreq);
+            cont->define(line);
+            src = &(*cont);
+        } else if (this->itsDatabaseOrigin == "ContinuumID") {
+            ContinuumID *cont = new ContinuumID;
+            cont->setNuZero(this->itsBaseFreq);
+            cont->define(line);
+            src = &(*cont);
+        } else if (this->itsDatabaseOrigin == "Selavy") {
+            ContinuumSelavy *sel = new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes);
+            sel->setNuZero(this->itsBaseFreq);
+            sel->define(line);
+            src = &(*sel);
+        } else if (this->itsDatabaseOrigin == "POSSUM") {
+            FullStokesContinuum *stokes = new FullStokesContinuum;
+            stokes->setNuZero(this->itsBaseFreq);
+            stokes->define(line);
+            src = &(*stokes);
+        } else if (this->itsDatabaseOrigin == "POSSUMHI") {
+            FullStokesContinuumHI *stokesHI = new FullStokesContinuumHI;
+            stokesHI->setNuZero(this->itsBaseFreq);
+            stokesHI->define(line);
+            src = &(*stokesHI);
+        } else if (this->itsDatabaseOrigin == "NVSS") {
+            ContinuumNVSS *nvss = new ContinuumNVSS;
+            nvss->setNuZero(this->itsBaseFreq);
+            nvss->define(line);
+            src = &(*nvss);
+        } else if (this->itsDatabaseOrigin == "SUMSS") {
+            ContinuumSUMSS *sumss = new ContinuumSUMSS;
+            sumss->setNuZero(this->itsBaseFreq);
+            sumss->define(line);
+            src = &(*sumss);
+        } else if (this->itsDatabaseOrigin == "S3SEX") {
+            if (this->itsSourceListType == "continuum") {
+                ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
+                contS3SEX->setNuZero(this->itsBaseFreq);
+                contS3SEX->define(line);
+                src = &(*contS3SEX);
+            } else if (this->itsSourceListType == "spectralline") {
+                HIprofileS3SEX *profSEX = new HIprofileS3SEX;
+                profSEX->define(line);
+                src = &(*profSEX);
+            }
+        } else if (this->itsDatabaseOrigin == "S3SAX") {
+            HIprofileS3SAX *profSAX = new HIprofileS3SAX;
+            profSAX->define(line);
+            src = &(*profSAX);
+        } else if (this->itsDatabaseOrigin == "Gaussian") {
+            GaussianProfile *profGauss = new GaussianProfile(this->itsRestFreq);
+            profGauss->define(line);
+            src = &(*profGauss);
+        } else if (this->itsDatabaseOrigin == "FLASH") {
+            FLASHProfile *profFLASH = new FLASHProfile(this->itsRestFreq);
+            profFLASH->define(line);
+            src = &(*profFLASH);
+        }
+    }
+
+    if (this->itsFlagCorrectForBeam)
+        this->itsBeamCorrector.convertSource(src);
+
+    return src;
+
+}
+
+}
 }

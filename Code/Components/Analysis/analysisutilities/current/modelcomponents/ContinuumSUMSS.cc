@@ -1,6 +1,7 @@
 /// @file
 ///
-/// Continuum source from the SUMSS catalogue, version 2.1, as obtained from http://www.physics.usyd.edu.au/sifa/Main/SUMSS
+/// Continuum source from the SUMSS catalogue, version 2.1, as obtained
+/// from http://www.physics.usyd.edu.au/sifa/Main/SUMSS
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -49,106 +50,97 @@ ASKAP_LOGGER(logger, ".ContSUMSS");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        ContinuumSUMSS::ContinuumSUMSS():
-                Continuum()
-        {
-            this->defineSource(0., 0., 1400.);
-        }
+ContinuumSUMSS::ContinuumSUMSS():
+    Continuum()
+{
+    this->defineSource(0., 0., 1400.);
+}
 
-        ContinuumSUMSS::ContinuumSUMSS(Spectrum &s):
-                Continuum(s)
-        {
-            this->defineSource(0., 0., 1400.);
-        }
+ContinuumSUMSS::ContinuumSUMSS(Spectrum &s):
+    Continuum(s)
+{
+    this->defineSource(0., 0., 1400.);
+}
 
-        ContinuumSUMSS::ContinuumSUMSS(std::string &line)
-        {
-            /// @details Constructs a Continuum object from a line of
-            /// text from an ascii file. Uses the ContinuumSUMSS::define()
-            /// function.
-	  this->define(line);
-	}
+ContinuumSUMSS::ContinuumSUMSS(std::string &line)
+{
+    this->define(line);
+}
 
-        void ContinuumSUMSS::define(const std::string &line)
-        {
-            /// @details Defines a Continuum object from a line of
-            /// text from an ascii file. This line should be taken
-            /// from the CDS output from an SUMSS query, formatted in
-            /// ascii text/plain format.
-	    ///  @param line A line from the ascii input file
+void ContinuumSUMSS::define(const std::string &line)
+{
 
-	  this->itsInputLine      = line;
-	  std::stringstream ss(line);
-	  ss >> this->itsRAh >> this->itsRAm >> this->itsRAs >> this->itsDECd >> this->itsDECm >> this->itsDECs
-	     >> this->itsRAerr >> this->itsDECerr 
-	     >> this->itsPeakFlux >> this->itsPeakFluxErr
-	     >> this->itsTotalFlux >> this->itsTotalFluxErr
-	     >> this->itsFittedMajorAxis >> this->itsFittedMinorAxis >> this->itsFittedPositionAngle
-	     >> this->itsDeconvMajorAxis >> this->itsDeconvMinorAxis >> this->itsDeconvPositionAngleString
-	     >> this->itsMosaicName >> this->itsNumMosaics >> this->itsXpos >> this->itsYpos;
-	  
-	  this->itsRA = this->itsRAh+":"+this->itsRAm+":"+this->itsRAs;
-	  this->itsDec = this->itsDECd+":"+this->itsDECm+":"+this->itsDECs;
-	  this->PosToID();
+    this->itsInputLine      = line;
+    std::stringstream ss(line);
+    ss >> this->itsRAh >> this->itsRAm >> this->itsRAs
+       >> this->itsDECd >> this->itsDECm >> this->itsDECs
+       >> this->itsRAerr >> this->itsDECerr
+       >> this->itsPeakFlux >> this->itsPeakFluxErr
+       >> this->itsTotalFlux >> this->itsTotalFluxErr
+       >> this->itsFittedMajorAxis >> this->itsFittedMinorAxis >> this->itsFittedPositionAngle
+       >> this->itsDeconvMajorAxis >> this->itsDeconvMinorAxis
+       >> this->itsDeconvPositionAngleString
+       >> this->itsMosaicName >> this->itsNumMosaics >> this->itsXpos >> this->itsYpos;
 
-	  this->itsFlux = this->itsTotalFlux / 1.e3;  //convert to Jy
-	  this->itsMaj = this->itsDeconvMajorAxis;
-	  this->itsMin = this->itsDeconvMinorAxis;
-	  this->itsPA = (this->itsDeconvPositionAngleString=="---") ? 0. : atof(this->itsDeconvPositionAngleString.c_str());
+    this->itsRA = this->itsRAh + ":" + this->itsRAm + ":" + this->itsRAs;
+    this->itsDec = this->itsDECd + ":" + this->itsDECm + ":" + this->itsDECs;
+    this->PosToID();
 
-	  this->itsAlpha = 0.;
-	  this->itsBeta = 0.;
+    this->itsFlux = this->itsTotalFlux / 1.e3;  //convert to Jy
+    this->itsMaj = this->itsDeconvMajorAxis;
+    this->itsMin = this->itsDeconvMinorAxis;
+    this->itsPA = (this->itsDeconvPositionAngleString == "---") ? 0. :
+                  atof(this->itsDeconvPositionAngleString.c_str());
 
-	  this->checkShape();
+    this->itsAlpha = 0.;
+    this->itsBeta = 0.;
 
-        }
+    this->checkShape();
 
-        ContinuumSUMSS::ContinuumSUMSS(const ContinuumSUMSS& c):
-                Continuum(c)
-        {
-            operator=(c);
-        }
+}
 
-        ContinuumSUMSS& ContinuumSUMSS::operator= (const ContinuumSUMSS& c)
-        {
-            if (this == &c) return *this;
+ContinuumSUMSS::ContinuumSUMSS(const ContinuumSUMSS& c):
+    Continuum(c)
+{
+    operator=(c);
+}
 
-            ((Continuum &) *this) = c;
-            this->itsAlpha      = c.itsAlpha;
-            this->itsBeta       = c.itsBeta;
-            this->itsNuZero     = c.itsNuZero;
-            return *this;
-        }
+ContinuumSUMSS& ContinuumSUMSS::operator= (const ContinuumSUMSS& c)
+{
+    if (this == &c) return *this;
 
-        ContinuumSUMSS& ContinuumSUMSS::operator= (const Spectrum& c)
-        {
-            if (this == &c) return *this;
+    ((Continuum &) *this) = c;
+    this->itsAlpha      = c.itsAlpha;
+    this->itsBeta       = c.itsBeta;
+    this->itsNuZero     = c.itsNuZero;
+    return *this;
+}
 
-            ((Continuum &) *this) = c;
-            this->defineSource(0., 0., 1400.);
-            return *this;
-        }
+ContinuumSUMSS& ContinuumSUMSS::operator= (const Spectrum& c)
+{
+    if (this == &c) return *this;
+
+    ((Continuum &) *this) = c;
+    this->defineSource(0., 0., 1400.);
+    return *this;
+}
 
 
-      void ContinuumSUMSS::print(std::ostream& theStream)
-      {
-	theStream << this->itsInputLine << "\n";
-      }
+void ContinuumSUMSS::print(std::ostream& theStream)
+{
+    theStream << this->itsInputLine << "\n";
+}
 
-        std::ostream& operator<< (std::ostream& theStream, ContinuumSUMSS &cont)
-        {
-            /// @details Prints a summary of the parameters to the stream
-            /// @param theStream The destination stream
-            /// @param prof The profile object
-            /// @return A reference to the stream
+std::ostream& operator<< (std::ostream& theStream, ContinuumSUMSS &cont)
+{
 
-	  cont.print(theStream);
-	  return theStream;
-        }
+    cont.print(theStream);
+    return theStream;
+}
 
-    }
+}
 
 
 }

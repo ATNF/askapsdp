@@ -35,29 +35,40 @@
 #include <string>
 
 namespace askap {
-  
-  namespace analysisutilities {
-    
-    class ModelFactory {
+
+namespace analysisutilities {
+
+/// Number of acceptable model types
+static const size_t numModelTypes = 11;
+/// Set of acceptable model types
+const std::string allowedModelTypes[numModelTypes] = {
+    "Continuum", "ContinuumID", "Selavy", "POSSUM", "POSSUMHI", "NVSS", "SUMSS",
+    "S3SEX", "S3SAX", "Gaussian", "FLASH"
+};
+/// Return a string listing each possible model type (for use in output)
+std::string typeListing();
+
+class ModelFactory {
     public:
-      ModelFactory();
-      ModelFactory(const LOFAR::ParameterSet& parset);
-      ~ModelFactory();
+        ModelFactory();
+        ModelFactory(const LOFAR::ParameterSet& parset);
+        ~ModelFactory();
 
-      bool checkType();
-      Spectrum* read(std::string line);
-      
+        bool checkType();
+        Spectrum* read(std::string line);
+
     protected:
-      std::string itsDatabaseOrigin;
-      std::string itsSourceListType;
-      float itsBaseFreq;
-      float itsRestFreq;
-      BeamCorrector itsBeamCorrector;
-      bool itsFlagUseDeconvolvedSizes;
-      bool itsFlagCorrectForBeam;
-    };
 
-  }
+        std::string itsDatabaseOrigin;
+        std::string itsSourceListType;
+        float itsBaseFreq;
+        float itsRestFreq;
+        BeamCorrector itsBeamCorrector;
+        bool itsFlagUseDeconvolvedSizes;
+        bool itsFlagCorrectForBeam;
+};
+
+}
 }
 
 #endif

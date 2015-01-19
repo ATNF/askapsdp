@@ -33,62 +33,65 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-	Ellipse::Ellipse():
-	    itsX0(0.),itsY0(0.),itsMaj(0.),itsMin(0.),itsAngle(0.)
-	{
-	    this->initialise();
-	}
+Ellipse::Ellipse():
+    itsX0(0.), itsY0(0.), itsMaj(0.), itsMin(0.), itsAngle(0.)
+{
+    this->initialise();
+}
 
-	Ellipse::Ellipse(double x0, double y0, double maj, double min, double pa): 
-	    itsX0(x0),itsY0(y0),itsMaj(std::max(maj,min)),itsMin(std::min(maj,min)),itsAngle(pa+M_PI/2.) 
-	{
-	    this->initialise();
-	}
-
-
-	void Ellipse::initialise()
-	{	 
-	    itsCos=cos(itsAngle); 
-	    itsSin=sin(itsAngle);
-	    itsMajCos=itsMaj*itsCos; 
-	    itsMajSin=itsMaj*itsSin;
-	    itsMinSin=itsMin*itsSin; 
-	    itsMinCos=itsMin*itsCos;
-	    itsArea=itsMaj*itsMin*M_PI;
-	}
-
-	Ellipse::Ellipse(const Ellipse& other)
-	{
-	    this->operator=(other);
-	}
-
-	Ellipse& Ellipse::operator= (const Ellipse& other)
-	{
-	    if(this == &other) return *this;
-	    this->itsX0 =      other.itsX0;     
-	    this->itsY0 =      other.itsY0;     
-	    this->itsMaj =     other.itsMaj;    
-	    this->itsMin =     other.itsMin;    
-	    this->itsAngle =   other.itsAngle;  
-	    this->itsCos =     other.itsCos;    
-	    this->itsSin =     other.itsSin;    
-	    this->itsMajCos =  other.itsMajCos; 
-	    this->itsMajSin =  other.itsMajSin; 
-	    this->itsMinCos =  other.itsMinCos; 
-	    this->itsMinSin =  other.itsMinSin; 
-	    this->itsArea =    other.itsArea;   
-	    return *this;
-	}
-
-	std::ostream& operator<<(std::ostream &theStream, Ellipse &ell)
-	{
-	    theStream << "[ ("<<ell.itsX0<<","<<ell.itsY0<<"), "<<ell.itsMaj<<"x"<<ell.itsMin<<", "<<(ell.itsAngle-M_PI/2)*180./M_PI << " ]";
-	    return theStream;
-	}
+Ellipse::Ellipse(double x0, double y0, double maj, double min, double pa):
+    itsX0(x0), itsY0(y0), itsMaj(std::max(maj, min)),
+    itsMin(std::min(maj, min)), itsAngle(pa + M_PI / 2.)
+{
+    this->initialise();
+}
 
 
-    }
+void Ellipse::initialise()
+{
+    itsCos = cos(itsAngle);
+    itsSin = sin(itsAngle);
+    itsMajCos = itsMaj * itsCos;
+    itsMajSin = itsMaj * itsSin;
+    itsMinSin = itsMin * itsSin;
+    itsMinCos = itsMin * itsCos;
+    itsArea = itsMaj * itsMin * M_PI;
+}
+
+Ellipse::Ellipse(const Ellipse& other)
+{
+    this->operator=(other);
+}
+
+Ellipse& Ellipse::operator= (const Ellipse& other)
+{
+    if (this == &other) return *this;
+    this->itsX0 =      other.itsX0;
+    this->itsY0 =      other.itsY0;
+    this->itsMaj =     other.itsMaj;
+    this->itsMin =     other.itsMin;
+    this->itsAngle =   other.itsAngle;
+    this->itsCos =     other.itsCos;
+    this->itsSin =     other.itsSin;
+    this->itsMajCos =  other.itsMajCos;
+    this->itsMajSin =  other.itsMajSin;
+    this->itsMinCos =  other.itsMinCos;
+    this->itsMinSin =  other.itsMinSin;
+    this->itsArea =    other.itsArea;
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream &theStream, Ellipse &ell)
+{
+    theStream << "[ (" << ell.itsX0 << "," << ell.itsY0 << "), " <<
+              ell.itsMaj << "x" << ell.itsMin << ", " <<
+              (ell.itsAngle - M_PI / 2) * 180. / M_PI << " ]";
+    return theStream;
+}
+
+
+}
 
 }

@@ -35,59 +35,69 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-      /// @brief An enumeration describing what the x-axis of the Gaussian function is defined as.
-      enum AXISTYPE {PIXEL, FREQUENCY, VELOCITY, REDSHIFT};
+/// @brief An enumeration describing what the x-axis of the Gaussian function is defined as.
+enum AXISTYPE {PIXEL, FREQUENCY, VELOCITY, REDSHIFT};
 
-        /// @brief A base class for Gaussian spectral-line profiles 
-        /// @details This holds information about a spectral-line profile
-        /// that has a Gaussian shape. It stores the velocity, FWHM, and peak intensity
-        /// integrated flux), and provides methods for calculating the integrated
-        /// flux, flux at a particular frequency and flux integrated between two
-        /// frequencies.
-        class GaussianProfile : public Spectrum {
-            public:
-                /// @brief Default constructor
-                GaussianProfile();
-                /// @brief Default constructor with rest freq
-                GaussianProfile(float restFreq);
-		/// @brief Specific constructor
-		GaussianProfile(double &height, double &centre, double &width, AXISTYPE &type);
-                /// @brief Destructor
-                virtual ~GaussianProfile() {};
-                /// @brief Copy constructor
-                GaussianProfile(const GaussianProfile& h);
-                /// @brief Assignment operator
-                GaussianProfile& operator= (const GaussianProfile& h);
+/// @brief A base class for Gaussian spectral-line profiles
+/// @details This holds information about a spectral-line profile
+/// that has a Gaussian shape. It stores the velocity, FWHM, and peak intensity
+/// integrated flux), and provides methods for calculating the integrated
+/// flux, flux at a particular frequency and flux integrated between two
+/// frequencies.
+class GaussianProfile : public Spectrum {
+    public:
+        /// @brief Default constructor
+        GaussianProfile();
+        /// @brief Default constructor with rest freq
+        GaussianProfile(float restFreq);
+        /// @brief Specific constructor
+        GaussianProfile(double &height, double &centre, double &width, AXISTYPE &type);
+        /// @brief Destructor
+        virtual ~GaussianProfile() {};
+        /// @brief Copy constructor
+        GaussianProfile(const GaussianProfile& h);
+        /// @brief Assignment operator
+        GaussianProfile& operator= (const GaussianProfile& h);
 
-		virtual void define(const std::string &line);
-		
-		void setFreqLimits();
-		virtual bool freqRangeOK(double freq1, double freq2);
+        /// @details Defines a GaussianProfile object from a line of
+        /// text from an ascii file. This line should be formatted in
+        /// the correct way to match the output from the appropriate
+        /// python script. The columns should be: RA - DEC - Flux -
+        /// Peak height - central position - FWHM.
+        /// @param line A line from the ascii input file
+        virtual void define(const std::string &line);
 
-		void setAxisType(AXISTYPE type){itsAxisType=type;};
-		void setRestFreq(double freq){itsRestFreq=freq;};
+        void setFreqLimits();
+        virtual bool freqRangeOK(double freq1, double freq2);
 
-                /// @brief Return the flux at a given frequency
-                virtual double flux(double nu, int istokes=0);
-                /// @brief Return the flux integrated between two frequencies
-                virtual double fluxInt(double nu1, double nu2, int istokes=0);
+        void setAxisType(AXISTYPE type) {itsAxisType = type;};
+        void setRestFreq(double freq) {itsRestFreq = freq;};
 
-                /// @brief Output the parameters for the source
-                friend std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof);
+        /// @brief Return the flux at a given frequency
+        virtual double flux(double nu, int istokes = 0);
+        /// @brief Return the flux integrated between two frequencies
+        virtual double fluxInt(double nu1, double nu2, int istokes = 0);
 
-            protected:
-		casa::Gaussian1D<double> itsGaussian;
-		AXISTYPE itsAxisType;
-		double itsRestFreq;
-		/// @brief The minimum frequency affected by the source
-		double itsMinFreq;
-		/// @brief The maximum frequency affected by the source
-		double itsMaxFreq;
-        };
+        /// @brief Output the parameters for the source
+        /// @details Prints a summary of the parameters to the stream
+        /// @param theStream The destination stream
+        /// @param prof The profile object
+        /// @return A reference to the stream
+        friend std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof);
 
-    }
+    protected:
+        casa::Gaussian1D<double> itsGaussian;
+        AXISTYPE itsAxisType;
+        double itsRestFreq;
+        /// @brief The minimum frequency affected by the source
+        double itsMinFreq;
+        /// @brief The maximum frequency affected by the source
+        double itsMaxFreq;
+};
+
+}
 
 }
 

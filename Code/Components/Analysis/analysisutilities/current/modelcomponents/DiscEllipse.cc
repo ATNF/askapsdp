@@ -37,78 +37,78 @@ ASKAP_LOGGER(logger, ".discellipse");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-	DiscEllipse::DiscEllipse():
-	    Ellipse()
-	{
-	}
+DiscEllipse::DiscEllipse():
+    Ellipse()
+{
+}
 
-	DiscEllipse::DiscEllipse(double x0, double y0, double maj, double min, double pa): 
-	    Ellipse(x0,y0,maj,min,pa)
-	{
-	}
+DiscEllipse::DiscEllipse(double x0, double y0, double maj, double min, double pa):
+    Ellipse(x0, y0, maj, min, pa)
+{
+}
 
-	DiscEllipse::DiscEllipse(const DiscEllipse& other):
-	    Ellipse(other)
-	{
-	    this->operator=(other);
-	}
+DiscEllipse::DiscEllipse(const DiscEllipse& other):
+    Ellipse(other)
+{
+    this->operator=(other);
+}
 
-	DiscEllipse& DiscEllipse::operator= (const DiscEllipse& other)
-	{
-	    if(this == &other) return *this;
-            ((Ellipse &) *this) = other;
-	    this->itsXmin = other.itsXmin;
-	    this->itsXmax = other.itsXmax;
-	    this->itsYmin = other.itsYmin;
-	    this->itsYmax = other.itsYmax;
-	    return *this;
-	}
+DiscEllipse& DiscEllipse::operator= (const DiscEllipse& other)
+{
+    if (this == &other) return *this;
+    ((Ellipse &) *this) = other;
+    this->itsXmin = other.itsXmin;
+    this->itsXmax = other.itsXmax;
+    this->itsYmin = other.itsYmin;
+    this->itsYmax = other.itsYmax;
+    return *this;
+}
 
 
-	std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
-	{
-	    std::vector<DiscPixel> pixlist;
-	    this->itsXmin = lround(this->itsX0-this->itsMaj);
-	    this->itsXmax = lround(this->itsX0+this->itsMaj);
-	    this->itsYmin = lround(this->itsY0-this->itsMaj);
-	    this->itsYmax = lround(this->itsY0+this->itsMaj);
+std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
+{
+    std::vector<DiscPixel> pixlist;
+    this->itsXmin = lround(this->itsX0 - this->itsMaj);
+    this->itsXmax = lround(this->itsX0 + this->itsMaj);
+    this->itsYmin = lround(this->itsY0 - this->itsMaj);
+    this->itsYmax = lround(this->itsY0 + this->itsMaj);
 
-	    for(int y=this->itsYmin; y<=this->itsYmax; y++){ 
-		for(int x=this->itsXmin; x<=this->itsXmax; x++){ 
+    for (int y = this->itsYmin; y <= this->itsYmax; y++) {
+        for (int x = this->itsXmin; x <= this->itsXmax; x++) {
 
-		    DiscPixel pix(x,y);
-		    pix.setEllipse(this);
-		    pixlist.push_back(pix);
+            DiscPixel pix(x, y);
+            pix.setEllipse(this);
+            pixlist.push_back(pix);
 
-		}
-	    }
-
-	    int dimx=this->itsXmax-this->itsXmin+1;
-	    int oldx=0,oldy=0;
-	    size_t oldpos=0;
-	    double tstep=2.*M_PI/double(numberOfSteps);
-	    for(unsigned int i=0;i<numberOfSteps;i++) {
-		double t=i*tstep;
-		std::pair<double,double> pos=this->parametric(t);
-		int xloc = lround(pos.first);
-		int yloc = lround(pos.second);
-		oldpos=(oldx-this->itsXmin)+(oldy-this->itsYmin)*dimx;
-		size_t newpos=(xloc-this->itsXmin)+(yloc-this->itsYmin)*dimx;
-		if(xloc!=oldx || yloc!=oldy || i==0){
-		    if(i>0) pixlist[oldpos].addTmax(t);
-		    oldx=xloc;
-		    oldy=yloc;
-		    pixlist[newpos].addTmin(t-tstep);
-		}
-		pixlist[newpos].setIsEdge(true);
-	    }
-	    pixlist[oldpos].addTmax(2*M_PI);
-
-	    return pixlist;
-	}
-
+        }
     }
+
+    int dimx = this->itsXmax - this->itsXmin + 1;
+    int oldx = 0, oldy = 0;
+    size_t oldpos = 0;
+    double tstep = 2.*M_PI / double(numberOfSteps);
+    for (unsigned int i = 0; i < numberOfSteps; i++) {
+        double t = i * tstep;
+        std::pair<double, double> pos = this->parametric(t);
+        int xloc = lround(pos.first);
+        int yloc = lround(pos.second);
+        oldpos = (oldx - this->itsXmin) + (oldy - this->itsYmin) * dimx;
+        size_t newpos = (xloc - this->itsXmin) + (yloc - this->itsYmin) * dimx;
+        if (xloc != oldx || yloc != oldy || i == 0) {
+            if (i > 0) pixlist[oldpos].addTmax(t);
+            oldx = xloc;
+            oldy = yloc;
+            pixlist[newpos].addTmin(t - tstep);
+        }
+        pixlist[newpos].setIsEdge(true);
+    }
+    pixlist[oldpos].addTmax(2 * M_PI);
+
+    return pixlist;
+}
+
+}
 
 }

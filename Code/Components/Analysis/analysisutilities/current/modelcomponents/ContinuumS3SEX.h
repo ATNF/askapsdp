@@ -35,85 +35,114 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-      enum SEDTYPE { SIMPLE_POWERLAW, POWERLAW, FIT };
-      const float freqValuesS3SEX[5]={151.e6,610.e6,1400.e6,4860.e6,18000.e6};
+enum SEDTYPE { SIMPLE_POWERLAW, POWERLAW, FIT };
+const float freqValuesS3SEX[5] = {151.e6, 610.e6, 1400.e6, 4860.e6, 18000.e6};
 
-        /// @brief A class to hold spectral information for a continuum spectrum.
-        /// @details This class holds information on the continuum
-        /// properties of a spectral profile. The information kept is the spectral
-        /// index alpha, the spectral curvature parameter beta, and the
-        /// normalisation frequency. It inherits the position, shape and flux
-        /// normalisation from Spectrum.
-        ///
-        /// The flux at a given frequency is given by the relation:
-        /// \f$F(\nu) = F(\nu_0) \left(\frac{\nu}{\nu_0}\right)^{\alpha + \beta\log(\nu/\nu_0)} \f$
-        class ContinuumS3SEX : public Continuum {
-            public:
-                /// @brief Default constructor
-                ContinuumS3SEX();
-                /// @brief Constructor from Spectrum object
-                ContinuumS3SEX(Spectrum &s);
-                /// @brief Constructor from Continuum object
-                ContinuumS3SEX(Continuum &c);
-                /// @brief Set up parameters using a line of input from an ascii file
-                ContinuumS3SEX(std::string &line);
-                /// @brief Define parameters directly
-                ContinuumS3SEX(float alpha, float beta, float nuZero) {defineSource(alpha, beta, nuZero);};
-                /// @brief Define parameters directly
-                ContinuumS3SEX(float alpha, float beta, float nuZero, float fluxZero) {defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);};
-                /// @brief Destructor
-                virtual ~ContinuumS3SEX() {};
-                /// @brief Copy constructor for ContinuumS3SEX.
-                ContinuumS3SEX(const ContinuumS3SEX& f);
+/// @brief A class to hold spectral information for a continuum spectrum.
+/// @details This class holds information on the continuum
+/// properties of a spectral profile. The information kept is the spectral
+/// index alpha, the spectral curvature parameter beta, and the
+/// normalisation frequency. It inherits the position, shape and flux
+/// normalisation from Spectrum.
+///
+/// The flux at a given frequency is given by the relation:
+/// \f$F(\nu) = F(\nu_0) \left(\frac{\nu}{\nu_0}\right)^{\alpha + \beta\log(\nu/\nu_0)} \f$
+class ContinuumS3SEX : public Continuum {
+    public:
+        /// @brief Default constructor
+        ContinuumS3SEX();
+        /// @brief Constructor from Spectrum object
+        ContinuumS3SEX(Spectrum &s);
+        /// @brief Constructor from Continuum object
+        ContinuumS3SEX(Continuum &c);
+        /// @brief Set up parameters using a line of input from an ascii file
+        /// @details Constructs a Continuum object from a line of
+        /// text from an ascii file. Uses the ContinuumS3SEX::define()
+        /// function.
+        ContinuumS3SEX(std::string &line);
+        /// @brief Define parameters directly
+        ContinuumS3SEX(float alpha, float beta, float nuZero)
+        {
+            defineSource(alpha, beta, nuZero);
+        };
+        /// @brief Define parameters directly
+        ContinuumS3SEX(float alpha, float beta, float nuZero, float fluxZero)
+        {
+            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
+        };
+        /// @brief Destructor
+        virtual ~ContinuumS3SEX() {};
+        /// @brief Copy constructor for ContinuumS3SEX.
+        ContinuumS3SEX(const ContinuumS3SEX& f);
 
-                /// @brief Assignment operator for Continuum.
-                ContinuumS3SEX& operator= (const ContinuumS3SEX& c);
-                /// @brief Assignment operator for Continuum, using a Continuum object
-                ContinuumS3SEX& operator= (const Continuum& c);
-                /// @brief Assignment operator for Continuum, using a Spectrum object
-                ContinuumS3SEX& operator= (const Spectrum& c);
+        /// @brief Assignment operator for Continuum.
+        ContinuumS3SEX& operator= (const ContinuumS3SEX& c);
+        /// @brief Assignment operator for Continuum, using a Continuum object
+        ContinuumS3SEX& operator= (const Continuum& c);
+        /// @brief Assignment operator for Continuum, using a Spectrum object
+        ContinuumS3SEX& operator= (const Spectrum& c);
 
-		/// @brief Define using a line of input from an ascii file
-		void define(const std::string &line);
+        /// @brief Define using a line of input from an ascii file
+        /// @details Defines a Continuum object from a line of
+        /// text from an ascii file. This line should be formatted in
+        /// the correct way to match the output from the appropriate
+        /// python script. The columns should accepted by this function are:
+        /// RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
+        /// (Alpha & Beta are the spectral index & spectral curvature).
+        /// @param line A line from the ascii input file
+        void define(const std::string &line);
 
-		/// @brief Return the component type. Discs for structure=lobe(2) or SF disc (4). Point source for structure=core(1) or hotspot(3)
-		virtual ComponentType type() {if(itsStructure==2 || itsStructure==4) return DISC; else return POINT;};
-
-		/// @brief Set the type of SED to apply
-		void setSEDtype(SEDTYPE type){itsSEDtype=type;};
-		void defaultSEDtype(){itsSEDtype = FIT;};
-
-		double I151(){return itsI151;};
-		double I610(){return itsI610;};
-		double I1400(){return itsI1400;};
-		double I4860(){return itsI4860;};
-		double I18000(){return itsI18000;};
-
-		/// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
-		void prepareForUse();
-
-		void print(std::ostream& theStream);
-                /// @brief Output the parameters for the source
-                friend std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont);
-
-            protected:
-		long itsComponentNum;
-		long itsGalaxyNum;
-		short itsStructure;
-		double itsI151;
-		double itsI610;
-		double itsI1400;
-		double itsI4860;
-		double itsI18000;
-
-		SEDTYPE itsSEDtype;
-
-		std::vector<float> itsFreqValues;
+        /// @brief Return the component type. Discs for
+        /// structure=lobe(2) or SF disc (4). Point source for
+        /// structure=core(1) or hotspot(3)
+        virtual ComponentType type()
+        {
+            if (itsStructure == 2 || itsStructure == 4) return DISC;
+            else return POINT;
         };
 
-    }
+        /// @brief Set the type of SED to apply
+        void setSEDtype(SEDTYPE type) {itsSEDtype = type;};
+        void defaultSEDtype() {itsSEDtype = FIT;};
+
+        double I151() {return itsI151;};
+        double I610() {return itsI610;};
+        double I1400() {return itsI1400;};
+        double I4860() {return itsI4860;};
+        double I18000() {return itsI18000;};
+
+        /// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
+        /// @details Define the values of the flux, the spectral
+        /// index (alpha) and curvature (beta), based on the five
+        /// flux values provided.
+        void prepareForUse();
+
+        void print(std::ostream& theStream);
+        /// @brief Output the parameters for the source
+        /// @details Prints a summary of the parameters to the stream
+        /// @param theStream The destination stream
+        /// @param prof The profile object
+        /// @return A reference to the stream
+        friend std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont);
+
+    protected:
+        long itsComponentNum;
+        long itsGalaxyNum;
+        short itsStructure;
+        double itsI151;
+        double itsI610;
+        double itsI1400;
+        double itsI4860;
+        double itsI18000;
+
+        SEDTYPE itsSEDtype;
+
+        std::vector<float> itsFreqValues;
+};
+
+}
 
 }
 

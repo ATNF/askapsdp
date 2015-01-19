@@ -35,80 +35,89 @@
 
 namespace askap {
 
-  namespace analysisutilities {
+namespace analysisutilities {
 
-    const double C=299279458.;
-    const float POLREFFREQ=1.42e9;  // Reference frequency for polarisation angle - each component of a source has the same angle at this freq
+const double C = 299279458.;
 
-    /// @brief A class to hold spectral information for a continuum spectrum with polarisation.
-    /// @details This class holds information on the continuum
-    /// properties of a spectral profile that also contains
-    /// polarisation information. Everything is inherited from Continuum, and
-    /// new items are the fluxes of various Stokes parameters and the Rotation
-    /// Measure.
+/// Reference frequency for polarisation angle - each component of a
+/// source has the same angle at this freq
+const float POLREFFREQ = 1.42e9;
 
-    class FullStokesContinuum : public ContinuumS3SEX {
+/// @brief A class to hold spectral information for a continuum spectrum with polarisation.
+/// @details This class holds information on the continuum
+/// properties of a spectral profile that also contains
+/// polarisation information. Everything is inherited from Continuum, and
+/// new items are the fluxes of various Stokes parameters and the Rotation
+/// Measure.
+
+class FullStokesContinuum : public ContinuumS3SEX {
     public:
 
-      /// @brief Default constructor
-      FullStokesContinuum();
-      /// @brief Constructor from ContinuumS3SEX object
-      FullStokesContinuum(ContinuumS3SEX &s);
-      /// @brief Constructor from Continuum object
-      FullStokesContinuum(Continuum &s);
-      /// @brief Constructor from Spectrum object
-      FullStokesContinuum(Spectrum &s);
-      /// @brief Set up parameters using a line of input from an ascii file
-      FullStokesContinuum(std::string &line);
-      /// @brief Destructor
-      virtual ~FullStokesContinuum() {};
-      /// @brief Copy constructor for FullStokesContinuum.
-      FullStokesContinuum(const FullStokesContinuum& f);
+        /// @brief Default constructor
+        FullStokesContinuum();
+        /// @brief Constructor from ContinuumS3SEX object
+        FullStokesContinuum(ContinuumS3SEX &s);
+        /// @brief Constructor from Continuum object
+        FullStokesContinuum(Continuum &s);
+        /// @brief Constructor from Spectrum object
+        FullStokesContinuum(Spectrum &s);
+        /// @brief Set up parameters using a line of input from an ascii file
+        /// @details Constructs a FullStokesContinuum object from a line of
+        /// text from an ascii file. Uses the FullStokesContinuum::define()
+        /// function.
+        FullStokesContinuum(std::string &line);
+        /// @brief Destructor
+        virtual ~FullStokesContinuum() {};
+        /// @brief Copy constructor for FullStokesContinuum.
+        FullStokesContinuum(const FullStokesContinuum& f);
 
-      /// @brief Assignment operator for FullStokesContinuum.
-      FullStokesContinuum& operator= (const FullStokesContinuum& c);
-      /// @brief Assignment operator for FullStokesContinuum, using a ContinuumS3SEX object
-      FullStokesContinuum& operator= (const ContinuumS3SEX& c);
-      /// @brief Assignment operator for FullStokesContinuum, using a Continuum object
-      FullStokesContinuum& operator= (const Continuum& c);
-      /// @brief Assignment operator for FullStokesContinuum, using a Spectrum object
-      FullStokesContinuum& operator= (const Spectrum& c);
+        /// @brief Assignment operator for FullStokesContinuum.
+        FullStokesContinuum& operator= (const FullStokesContinuum& c);
+        /// @brief Assignment operator for FullStokesContinuum, using a ContinuumS3SEX object
+        FullStokesContinuum& operator= (const ContinuumS3SEX& c);
+        /// @brief Assignment operator for FullStokesContinuum, using a Continuum object
+        FullStokesContinuum& operator= (const Continuum& c);
+        /// @brief Assignment operator for FullStokesContinuum, using a Spectrum object
+        FullStokesContinuum& operator= (const Spectrum& c);
 
-      /// @brief Define using a line of input from an ascii file
-      void define(const std::string &line);
+        /// Defines a FullStokesContinuum object from a line of
+        /// text from an ascii file. The format of the line is currently taken from the
+        /// POSSUM catalogue supplied by Jeroen Stil.
+        /// @param line A line from the ascii input file
+        void define(const std::string &line);
 
-      double flux(double freq, int istokes);
-      //      double flux(double freq1, double freq2, int istokes);
+        double flux(double freq, int istokes);
+        //      double flux(double freq1, double freq2, int istokes);
 
-      double polAngle(){return itsPolAngleRef;};
+        double polAngle() {return itsPolAngleRef;};
 
-      void print(std::ostream& theStream);
-      friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes);
+        void print(std::ostream& theStream);
+        friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes);
 
     protected:
-		
-      int    itsClusterID;
-      int    itsSFtype;
-      int    itsAGNtype;
-      double itsDistance;
-      double itsRedshift;
-      double itsCosVA;
-      double itsInputMin;
 
-      double itsStokesRefFreq;
-      double itsStokesIref;
-      double itsStokesQref;
-      double itsStokesUref;
-      double itsStokesVref;
-      double itsPolFluxRef;
-      double itsPolFracRef;
-      double itsPolAngleRef;
-      double itsRM;
-      double itsRMflag;
+        int    itsClusterID;
+        int    itsSFtype;
+        int    itsAGNtype;
+        double itsDistance;
+        double itsRedshift;
+        double itsCosVA;
+        double itsInputMin;
 
-    };
+        double itsStokesRefFreq;
+        double itsStokesIref;
+        double itsStokesQref;
+        double itsStokesUref;
+        double itsStokesVref;
+        double itsPolFluxRef;
+        double itsPolFracRef;
+        double itsPolAngleRef;
+        double itsRM;
+        double itsRMflag;
 
-  }
+};
+
+}
 
 }
 

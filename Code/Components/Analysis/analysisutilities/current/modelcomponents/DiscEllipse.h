@@ -34,36 +34,35 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-	class DiscEllipse : public Ellipse
-	{
-	public:
-	    DiscEllipse();
-	    DiscEllipse(double x0, double y0, double maj, double min, double pa);
-	    DiscEllipse(const DiscEllipse& other);
-	    DiscEllipse& operator= (const DiscEllipse& other);
-	    virtual ~DiscEllipse(){};
+class DiscEllipse : public Ellipse {
+    public:
+        DiscEllipse();
+        DiscEllipse(double x0, double y0, double maj, double min, double pa);
+        DiscEllipse(const DiscEllipse& other);
+        DiscEllipse& operator= (const DiscEllipse& other);
+        virtual ~DiscEllipse() {};
 
-	    std::vector<DiscPixel> boundingSet(unsigned int numberOfSteps);
+        std::vector<DiscPixel> boundingSet(unsigned int numberOfSteps);
 
-	    int xmin(){return itsXmin;};
-	    int xmax(){return itsXmax;};
-	    int ymin(){return itsYmin;};
-	    int ymax(){return itsYmax;};
+        int xmin() {return itsXmin;};
+        int xmax() {return itsXmax;};
+        int ymin() {return itsYmin;};
+        int ymax() {return itsYmax;};
 
-	protected:
+    protected:
 
-	    int itsXmin;
-	    int itsXmax;
-	    int itsYmin;
-	    int itsYmax;
-    
-	};
+        int itsXmin;
+        int itsXmax;
+        int itsYmin;
+        int itsYmax;
 
+};
 
 
-    }
+
+}
 
 }
 

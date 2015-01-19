@@ -35,47 +35,64 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        /// @brief A class for absorption-line profiles, aimed at FLASH simulations
-        /// @details This holds information about an absorption-line profile
-        /// that has a Gaussian shape. It uses the GaussianProfile class to do all 
-        /// calculations, but assumes: the height of the Gaussian is peak optical 
-        /// depth; the central location is in redshift; and the width is in velocity (km/s).
-        class FLASHProfile : public GaussianProfile {
-            public:
-                /// @brief Default constructor
-                FLASHProfile();
-                /// @brief Default constructor with rest freq
-                FLASHProfile(float restFreq);
-		/// @brief Specific constructor
-		FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type);
-                /// @brief Destructor
-                virtual ~FLASHProfile() {};
-                /// @brief Copy constructor
-                FLASHProfile(const FLASHProfile& h);
-                /// @brief Assignment operator
-                FLASHProfile& operator= (const FLASHProfile& h);
+/// @brief A class for absorption-line profiles, aimed at FLASH simulations
+/// @details This holds information about an absorption-line profile
+/// that has a Gaussian shape. It uses the GaussianProfile class to do all
+/// calculations, but assumes: the height of the Gaussian is peak optical
+/// depth; the central location is in redshift; and the width is in velocity (km/s).
+class FLASHProfile : public GaussianProfile {
+    public:
+        /// @brief Default constructor
+        FLASHProfile();
+        /// @brief Default constructor with rest freq
+        FLASHProfile(float restFreq);
+        /// @brief Specific constructor
+        FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type);
+        /// @brief Destructor
+        virtual ~FLASHProfile() {};
+        /// @brief Copy constructor
+        FLASHProfile(const FLASHProfile& h);
+        /// @brief Assignment operator
+        FLASHProfile& operator= (const FLASHProfile& h);
 
-		void define(const std::string &line);
+        /// @details Defines a FLASHProfile object from a line of
+        /// text from an ascii file. This line should be formatted in
+        /// the correct way to match the output from the appropriate
+        /// python script. The columns should be: RA - DEC - Flux -
+        /// Peak optical depth - central position - FWHM.
+        /// The flux is used to scale the depth of the Gaussian, and,
+        /// if itsFlagContinuumSubtracted is true, the component flux
+        /// is then set to zero.
+        /// The central position is assumed to be in units of redshift.
+        /// The FWHM is assumed to be in units of velocity [km/s],
+        /// and is converted to redshift.
+        /// @param line A line from the ascii input file
+        void define(const std::string &line);
 
-		void prepareForUse();
+        void prepareForUse();
 
-		void print(std::ostream& theStream);
-                /// @brief Output the parameters for the source
-                friend std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof);
+        void print(std::ostream& theStream);
 
-            protected:
-		bool   itsFlagContinuumSubtracted;
-		long   itsComponentNum;
-		double itsContinuumFlux;
-		double itsPeakOpticalDepth;
-		double itsCentreRedshift;
-		double itsVelocityWidth;
+        /// @brief Output the parameters for the source
+        /// @details Prints a summary of the parameters to the stream
+        /// @param theStream The destination stream
+        /// @param prof The profile object
+        /// @return A reference to the stream
+        friend std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof);
 
-        };
+    protected:
+        bool   itsFlagContinuumSubtracted;
+        long   itsComponentNum;
+        double itsContinuumFlux;
+        double itsPeakOpticalDepth;
+        double itsCentreRedshift;
+        double itsVelocityWidth;
 
-    }
+};
+
+}
 
 }
 

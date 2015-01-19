@@ -33,46 +33,45 @@
 #include <modelcomponents/Spectrum.h>
 #include <Common/ParameterSet.h>
 
-namespace askap { 
-    
-    namespace analysisutilities {
+namespace askap {
+
+namespace analysisutilities {
 
 
-	class Disc
-	{
-	public:
-	    Disc();
-	    Disc(const LOFAR::ParameterSet &parset);
-	    Disc(const Disc& other);
-	    Disc& operator= (const Disc& other);
-	    virtual ~Disc(){};
+class Disc {
+    public:
+        Disc();
+        Disc(const LOFAR::ParameterSet &parset);
+        Disc(const Disc& other);
+        Disc& operator= (const Disc& other);
+        virtual ~Disc() {};
 
-	    void setup(double x0, double y0, double maj, double min, double pa);
-	    /* void setup(Spectrum *spec, double x0, double y0); */
-	    /* void populate(float *arr); */
+        void setup(double x0, double y0, double maj, double min, double pa);
+        /* void setup(Spectrum *spec, double x0, double y0); */
+        /* void populate(float *arr); */
 
-	    int xmin(){return itsEllipse.xmin();};
-	    int xmax(){return itsEllipse.xmax();};
-	    int ymin(){return itsEllipse.ymin();};
-	    int ymax(){return itsEllipse.ymax();};
+        int xmin() {return itsEllipse.xmin();};
+        int xmax() {return itsEllipse.xmax();};
+        int ymin() {return itsEllipse.ymin();};
+        int ymax() {return itsEllipse.ymax();};
 
-	    double flux(int x, int y);
+        double flux(int x, int y);
 
-	    Ellipse &ellipse(){return itsEllipse;};
-	    friend std::ostream& operator<<(std::ostream &theStream, Disc &disc);
+        Ellipse &ellipse() {return itsEllipse;};
+        friend std::ostream& operator<<(std::ostream &theStream, Disc &disc);
 
-	protected:
-	    DiscEllipse itsEllipse;
-	    std::vector<DiscPixel> itsPixelSet;
+    protected:
+        DiscEllipse itsEllipse;
+        std::vector<DiscPixel> itsPixelSet;
 
-	    double itsResolutionLimit;
-	    double itsTresolution;   // number of points to divide the t-range by
-	    unsigned int itsDecimationFactor;
+        double itsResolutionLimit;
+        double itsTresolution;   // number of points to divide the t-range by
+        unsigned int itsDecimationFactor;
 
-	};
+};
 
 
-    }
+}
 
 }
 #endif

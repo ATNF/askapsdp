@@ -49,83 +49,76 @@ ASKAP_LOGGER(logger, ".continuum");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        ContinuumID::ContinuumID():
-                Continuum()
-        {
-        }
+ContinuumID::ContinuumID():
+    Continuum()
+{
+}
 
-        ContinuumID::ContinuumID(Spectrum &s):
-	  Continuum(s)
-        {
-        }
+ContinuumID::ContinuumID(Spectrum &s):
+    Continuum(s)
+{
+}
 
-        ContinuumID::ContinuumID(std::string &line)
-        {
-            /// @details Constructs a ContinuumID object from a line of
-            /// text from an ascii file. Uses the ContinuumID::define()
-            /// function.
-	  this->define(line);
-	}
+ContinuumID::ContinuumID(std::string &line)
+{
+    this->define(line);
+}
 
-        void ContinuumID::define(const std::string &line)
-        {
-            /// @details Defines a ContinuumID object from a line of
-            /// text from an ascii file. This line should be formatted in
-            /// the following way, explicitly setting the ID:
-            /// ID - RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
-            /// (Alpha & Beta are the spectral index & spectral curvature). *** The Flux provided in the text file is no longer assumed to be in log space.***
-            /// @param line A line from the ascii input file
+void ContinuumID::define(const std::string &line)
+{
 
-            std::stringstream ss(line);
-	    ss >> this->itsID >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
-	    this->checkShape();
+    std::stringstream ss(line);
+    ss >> this->itsID >> this->itsRA >> this->itsDec
+       >> this->itsFlux >> this->itsAlpha >> this->itsBeta
+       >> this->itsMaj >> this->itsMin >> this->itsPA;
+    this->checkShape();
 
-        }
+}
 
-        ContinuumID::ContinuumID(const ContinuumID& c):
-                Continuum(c)
-        {
-            operator=(c);
-        }
+ContinuumID::ContinuumID(const ContinuumID& c):
+    Continuum(c)
+{
+    operator=(c);
+}
 
-        ContinuumID& ContinuumID::operator= (const ContinuumID& c)
-        {
-            if (this == &c) return *this;
-            ((Continuum &) *this) = c;
-            return *this;
-        }
+ContinuumID& ContinuumID::operator= (const ContinuumID& c)
+{
+    if (this == &c) return *this;
+    ((Continuum &) *this) = c;
+    return *this;
+}
 
-        ContinuumID& ContinuumID::operator= (const Continuum& c)
-        {
-            if (this == &c) return *this;
-            ((Continuum &) *this) = c;
-            return *this;
-        }
+ContinuumID& ContinuumID::operator= (const Continuum& c)
+{
+    if (this == &c) return *this;
+    ((Continuum &) *this) = c;
+    return *this;
+}
 
-        ContinuumID& ContinuumID::operator= (const Spectrum& c)
-        {
-            if (this == &c) return *this;
-            ((Spectrum &) *this) = c;
-            this->defineSource(0., 0., 1400.);
-            return *this;
-        }
+ContinuumID& ContinuumID::operator= (const Spectrum& c)
+{
+    if (this == &c) return *this;
+    ((Spectrum &) *this) = c;
+    this->defineSource(0., 0., 1400.);
+    return *this;
+}
 
-      void ContinuumID::print(std::ostream& theStream)
-      {
-	theStream << this->itsID << "\t" << this->itsRA << "\t" << this->itsDec << "\t" 
-		  << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
-		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
-      }
+void ContinuumID::print(std::ostream& theStream)
+{
+    theStream << this->itsID << "\t" << this->itsRA << "\t" << this->itsDec << "\t"
+              << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t"
+              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
+}
 
-        std::ostream& operator<< (std::ostream& theStream, ContinuumID &cont)
-	{
-	  cont.print(theStream);
-	  return theStream;
-	}
+std::ostream& operator<< (std::ostream& theStream, ContinuumID &cont)
+{
+    cont.print(theStream);
+    return theStream;
+}
 
-    }
+}
 
 
 }

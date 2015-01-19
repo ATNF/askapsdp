@@ -43,311 +43,323 @@ ASKAP_LOGGER(logger, ".hiprofiles3sex");
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        HIprofileS3SEX::HIprofileS3SEX(const HIprofileS3SEX& h):
-                HIprofile(h)
-        {
-            operator=(h);
-        }
+HIprofileS3SEX::HIprofileS3SEX(const HIprofileS3SEX& h):
+    HIprofile(h)
+{
+    operator=(h);
+}
 
-        HIprofileS3SEX& HIprofileS3SEX::operator= (const HIprofileS3SEX& h)
-        {
-            if (this == &h) return *this;
+HIprofileS3SEX& HIprofileS3SEX::operator= (const HIprofileS3SEX& h)
+{
+    if (this == &h) return *this;
 
-            ((HIprofile &) *this) = h;
-            this->itsSourceType = h.itsSourceType;
-            this->itsVelZero = h.itsVelZero;
-            this->itsVRot = h.itsVRot;
-            this->itsDeltaVel = h.itsDeltaVel;
-            this->itsDipAmp = h.itsDipAmp;
-            this->itsSigmaEdge = h.itsSigmaEdge;
-            this->itsSigmaDip = h.itsSigmaDip;
-            this->itsMaxVal = h.itsMaxVal;
-            this->itsIntFlux = h.itsIntFlux;
-            this->itsEdgeFlux = h.itsEdgeFlux;
-            this->itsMiddleFlux = h.itsMiddleFlux;
-            this->itsProfileFlux = h.itsProfileFlux;
-            return *this;
-        }
+    ((HIprofile &) *this) = h;
+    this->itsSourceType = h.itsSourceType;
+    this->itsVelZero = h.itsVelZero;
+    this->itsVRot = h.itsVRot;
+    this->itsDeltaVel = h.itsDeltaVel;
+    this->itsDipAmp = h.itsDipAmp;
+    this->itsSigmaEdge = h.itsSigmaEdge;
+    this->itsSigmaDip = h.itsSigmaDip;
+    this->itsMaxVal = h.itsMaxVal;
+    this->itsIntFlux = h.itsIntFlux;
+    this->itsEdgeFlux = h.itsEdgeFlux;
+    this->itsMiddleFlux = h.itsMiddleFlux;
+    this->itsProfileFlux = h.itsProfileFlux;
+    return *this;
+}
 
-	void HIprofileS3SEX::init()
-	{
-            this->itsVelZero = 0.;
-            this->itsVRot = 0.;
-            this->itsDeltaVel = 0.;
-            this->itsDipAmp = 0.;
-            this->itsSigmaEdge = 0.;
-            this->itsSigmaDip = 0.;
-            this->itsMaxVal = 0.;
-            this->itsIntFlux = 0.;
-            this->itsEdgeFlux = 0.;
-            this->itsMiddleFlux = 0.;
-            this->itsProfileFlux = 0.;
-	}
+void HIprofileS3SEX::init()
+{
+    this->itsVelZero = 0.;
+    this->itsVRot = 0.;
+    this->itsDeltaVel = 0.;
+    this->itsDipAmp = 0.;
+    this->itsSigmaEdge = 0.;
+    this->itsSigmaDip = 0.;
+    this->itsMaxVal = 0.;
+    this->itsIntFlux = 0.;
+    this->itsEdgeFlux = 0.;
+    this->itsMiddleFlux = 0.;
+    this->itsProfileFlux = 0.;
+}
 
-        HIprofileS3SEX::HIprofileS3SEX(std::string &line)
-        {
-            /// @details Constructs a HIprofileS3SEX object from a
-            /// line of text from an ascii file. Uses the
-            /// HIprofileS3SEX::define() function.
-	  this->define(line);
-	}
+HIprofileS3SEX::HIprofileS3SEX(std::string &line)
+{
+    this->define(line);
+}
 
-	HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min):
-	    itsSourceType(type)
-	{
-	    this->init();
-	    this->itsRedshift=z;
-	    this->itsMHI=mhi;
-	    this->itsMaj=maj;
-	    this->itsMin=min;
-	    this->prepareForUse();
-	}
-	
-
-	HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min, long componentNum, long galaxyNum):
-	itsSourceType(type)
-	{
-	    this->init();
-	    this->itsRedshift=z;
-	    this->itsMHI=mhi;
-	    this->itsMaj=maj;
-	    this->itsMin=min;
-	    this->prepareForUse(componentNum, galaxyNum);
-	}
-	
-
-        void HIprofileS3SEX::define(const std::string &line)
-        {
-            /// @details Defines a HIprofileS3SEX object from a line of
-            /// text from an ascii file. This line should be formatted in
-            /// the correct way to match the output from the appropriate
-            /// python script. The columns should be: RA - DEC - Flux -
-            /// Alpha - Beta - Major axis - Minor axis - Pos.Angle -
-            /// redshift - HI Mass - galaxy type. (Alpha & Beta are the
-            /// spectral index and spectral curvature - these are produced
-            /// by the python scripts, but not used for the HI profiles,
-            /// only Continuum profiles.)  The define() function is called
-            /// to set up the profile description.
-            /// @param line A line from the ascii input file
-
-            int type;
-            std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsRedshift >> this->itsMHI >> type;
-            this->itsSourceType = GALTYPE(type);
-	    this->PosToID();
-	    this->checkShape();
-	    this->prepareForUse();
-        }
-
-      void HIprofileS3SEX::diagnostic(std::ostream& theStream)
-      {
-            theStream << "HI profile summary:\n";
-            theStream << "z=" << this->itsRedshift << "\n";
-            theStream << "M_HI=" << this->itsMHI << "\n";
-            theStream << "V_0=" << this->itsVelZero << "\n";
-            theStream << "Vrot=" << this->itsVRot << "\n";
-            theStream << "Vwidth=" << this->itsDeltaVel << "\n";
-            theStream << "Dip Amplitude=" << this->itsDipAmp << "\n";
-            theStream << "Sigma_edge=" << this->itsSigmaEdge << "\n";
-            theStream << "Sigma_dip=" << this->itsSigmaDip << "\n";
-            theStream << "Peak value=" << this->itsMaxVal << "\n";
-            theStream << "Integrated Flux=" << this->itsIntFlux << "\n";
-            theStream << "Edge int. flux=" << this->itsEdgeFlux << "\n";
-            theStream << "Middle int. flux=" << this->itsMiddleFlux << "\n";
-            theStream << "Profile int. flux=" << this->itsProfileFlux << "\n";
-	    theStream << "Min Freq="<<this->itsMinFreq <<"\n";
-	    theStream << "Max Freq="<<this->itsMaxFreq <<"\n";
-
-      }
-
-      void HIprofileS3SEX::print(std::ostream& theStream)
-      {
-	theStream << this->itsRA << "\t" << this->itsDec << "\t" 
-		  << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
-		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t"
-		  << this->itsRedshift << "\t" << this->itsMHI << "\t" << int(this->itsSourceType) << "\n";
-      }
-
-        std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
-        {
-            /// @details Prints a summary of the parameters to the stream
-            /// @param theStream The destination stream
-            /// @param prof The profile object
-            /// @return A reference to the stream
-
-	  prof.print(theStream);
-	  return theStream;
-        }
-
-        // void HIprofileS3SEX::setup(GALTYPE type, double z, double mhi, double maj, double min)
-        // {
-        //     /// @details This function assigns values to all the
-        //     /// parameters of the profile. The profile is described by
-        //     /// Gaussian shapes: the edges of the profile are Gaussian
-        //     /// tails
-        //     /// \f$f(V) = M \exp( -(V-(V_0\pm\Delta V))^2/2\sigma_e^2), |V-V_0|>\Delta V\f$,
-        //     /// while the dip between the peaks is an inverted Gaussian:
-        //     /// \f$f(V) = M - D \exp( -(V-V_0)^2/2\sigma_d^2 ) + D \exp( -\Delta V^2/2\sigma_d^2 ), |V-V_0|<\Delta V \f$
-        //     /// There are a number of randomly generated values: itsVRot, itsSigmaEdge and itsDipAmp
-        //     /// @param type The type of galaxy: used to give the range of VRot values. Only SFG and SBG give non-zero values.
-        //     /// @param z The redshift of the profile
-        //     /// @param mhi The HI mass - used to get the integrated flux
-        //     /// @param maj The major axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
-        //     /// @param min The minor axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
-
-	//   this->itsSourceType = type;
-	//   this->itsRedshift = z;
-	//   this->itsMHI = mhi;
-	//   this->itsMaj = maj;
-	//   this->itsMin = min;
-	  
-	//   this->prepareForUse();
-
-	// }
-
-	void HIprofileS3SEX::prepareForUse()
-	{
-	    if(this->itsSourceType == SBG || this->itsSourceType==SFG){
-		this->itsVRot = vrotMin[this->itsSourceType] + (vrotMax[this->itsSourceType] - vrotMin[this->itsSourceType]) * random() / (RAND_MAX + 1.0);
-		this->itsSigmaEdge = normalRandomVariable(doubleHornShape[EDGE_SIG_MEAN], doubleHornShape[EDGE_SIG_SD]);
-		this->itsSigmaEdge = std::max(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);
-		this->itsSigmaEdge = std::min(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MAX]);
-		this->itsMaxVal = 1. / (rootTwoPi * this->itsSigmaEdge);
-		this->itsDipAmp = (doubleHornShape[DIP_MIN] + (doubleHornShape[DIP_MAX] - doubleHornShape[DIP_MIN]) * random() / (RAND_MAX + 1.0)) * this->itsMaxVal;
-		
-		this->setup();
-	    }
-	}
-
-	void HIprofileS3SEX::prepareForUse(long num1, long num2)
-	{
-	    if(this->itsSourceType == SBG || this->itsSourceType==SFG){
-		this->itsVRot = vrotMin[this->itsSourceType] + (vrotMax[this->itsSourceType] - vrotMin[this->itsSourceType]) * ((num1%1000 + 0.5)/1000.);
-		this->itsSigmaEdge = doubleHornShape[EDGE_SIG_MEAN] + doubleHornShape[EDGE_SIG_SD] * probToZvalue(((num1+num2)%1000+0.5)/1000.);
-		this->itsSigmaEdge = std::max(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);
-		this->itsSigmaEdge = std::min(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MAX]);
-		this->itsMaxVal = 1. / (rootTwoPi * this->itsSigmaEdge);
-		this->itsDipAmp = (doubleHornShape[DIP_MIN] + (doubleHornShape[DIP_MAX] - doubleHornShape[DIP_MIN]) *  ((num2%1000 + 0.5)/1000.)) * this->itsMaxVal;
-	    
-		this->setup();
-	    }
-	}
-
-	void HIprofileS3SEX::setup()
-	{
-	    // must have run one of the prepareForUse functions first.
-
-            this->itsIntFlux = this->integratedFlux(this->itsRedshift, this->itsMHI);
-
-            if (this->itsMaj == this->itsMin) this->itsDeltaVel = 0.01 * this->itsVRot;
-            else this->itsDeltaVel = this->itsVRot * sin(acos(this->itsMin / this->itsMaj));
-
-            this->itsVelZero = redshiftToVel(this->itsRedshift);
-
-            this->itsSigmaDip = doubleHornShape[DIP_SIG_SCALE] * this->itsDeltaVel;
-
-            this->itsEdgeFlux = 0.5 * this->itsMaxVal * rootTwoPi * this->itsSigmaEdge;
-            this->itsMiddleFlux = 2. * this->itsDeltaVel *
-                                  (this->itsMaxVal + this->itsDipAmp / exp(this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip))) -
-                                  this->itsDipAmp * rootTwoPi * this->itsSigmaDip * erf(this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip));
-
-            this->itsProfileFlux = 2.*this->itsEdgeFlux + this->itsMiddleFlux;
-
-	    this->itsMinFreq =  HIVelToFreq( this->itsVelZero - this->itsDeltaVel - this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT * this->itsMaxVal)) );
-	    this->itsMaxFreq =  HIVelToFreq( this->itsVelZero + this->itsDeltaVel + this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT * this->itsMaxVal)) );
-
-	    if(this->itsMinFreq > this->itsMaxFreq) std::swap(this->itsMinFreq, this->itsMaxFreq);
-
-        }
-
-      double HIprofileS3SEX::flux(double nu, int istokes)
-        {
-            /// @details This function returns the flux value at a
-            /// particular frequency, using the expressions shown in the
-            /// comments for define(). This is a monochromatic flux, not
-            /// integrated.
-            /// @param nu The frequency, in Hz.
-	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
-            /// @return The flux, in Jy.
-
-	  if(istokes>0) return 0.;
-	  else{
-	      if(this->itsMHI>0.){
-		  double flux;
-		  double vdiff = freqToHIVel(nu) - this->itsVelZero;
-		  
-		  if (vdiff < (-this->itsDeltaVel)) {
-		      double v = vdiff + this->itsDeltaVel;
-		      flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
-		  } else if (vdiff > this->itsDeltaVel) {
-		      double v = vdiff - this->itsDeltaVel;
-		      flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
-		  } else {
-		      flux = this->itsMaxVal - this->itsDipAmp * exp(-vdiff * vdiff / (2.*this->itsSigmaDip * this->itsSigmaDip)) +
-			  this->itsDipAmp * exp(-this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip));
-		  }
-		  
-		  return flux * this->itsIntFlux / this->itsProfileFlux;
-	      }
-	      else return 0.;
-	  }
-        }
+HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min):
+    itsSourceType(type)
+{
+    this->init();
+    this->itsRedshift = z;
+    this->itsMHI = mhi;
+    this->itsMaj = maj;
+    this->itsMin = min;
+    this->prepareForUse();
+}
 
 
-        double HIprofileS3SEX::fluxInt(double nu1, double nu2, int istokes)
-        {
-            /// @details This function returns the flux integrated between
-            /// two frequencies. This can be used to calculate the flux in
-            /// a given channel, for instance. The flux is divided by the
-            /// frequency range, so that units of Jy are returned.
-            /// @param nu1 One frequency, in Hz.
-            /// @param nu2 The second frequency, in Hz.
-	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
-            /// @return The flux, in Jy.
-
-	  if(istokes>0) return 0.;
-	  else{
-	      if(this->itsMHI > 0.){
-
-		  const double rootPiOnTwo = 2.* M_SQRT1_2 / M_2_SQRTPI; // sqrt(pi/2), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
-
-		  double v[2], f[2];
-		  v[0] = freqToHIVel(std::max(nu1, nu2)); // lowest velocty
-		  v[1] = freqToHIVel(std::min(nu1, nu2)); // highest velocity
-		  f[0] = f[1] = 0.;
-
-		  double minPeak = this->itsVelZero - this->itsDeltaVel;
-		  double maxPeak = this->itsVelZero + this->itsDeltaVel;
-
-		  for (int i = 0; i < 2; i++) {
-		      if (v[i] < minPeak) {
-			  f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
-		      } else {
-			  f[i] += this->itsEdgeFlux;
-
-			  if (v[i] < maxPeak) {
-			      double norm = (v[i] - minPeak) * (this->itsMaxVal + this->itsDipAmp / exp(this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip)));
-			      double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip * (erfc(-1.*this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip)) -
-												erfc((v[i] - this->itsVelZero) / (M_SQRT2 * this->itsSigmaDip)));
-			      f[i] += (norm - dip);
-			  } else {
-			      f[i] += this->itsMiddleFlux;
-			      f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
-			  }
-		      }
-		  }
-
-		  double flux = (f[1] - f[0]) / (v[1] - v[0]);
-		  return flux * this->itsIntFlux / this->itsProfileFlux;
-	      }
-	      else return 0.;
-	  }
-	}
+HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min,
+                               long componentNum, long galaxyNum):
+    itsSourceType(type)
+{
+    this->init();
+    this->itsRedshift = z;
+    this->itsMHI = mhi;
+    this->itsMaj = maj;
+    this->itsMin = min;
+    this->prepareForUse(componentNum, galaxyNum);
+}
 
 
+void HIprofileS3SEX::define(const std::string &line)
+{
+
+    int type;
+    std::stringstream ss(line);
+    ss >> this->itsRA >> this->itsDec >> this->itsFlux
+       >> this->itsAlpha >> this->itsBeta
+       >> this->itsMaj >> this->itsMin >> this->itsPA
+       >> this->itsRedshift >> this->itsMHI >> type;
+    this->itsSourceType = GALTYPE(type);
+    this->PosToID();
+    this->checkShape();
+    this->prepareForUse();
+}
+
+void HIprofileS3SEX::diagnostic(std::ostream& theStream)
+{
+    theStream << "HI profile summary:\n";
+    theStream << "z=" << this->itsRedshift << "\n";
+    theStream << "M_HI=" << this->itsMHI << "\n";
+    theStream << "V_0=" << this->itsVelZero << "\n";
+    theStream << "Vrot=" << this->itsVRot << "\n";
+    theStream << "Vwidth=" << this->itsDeltaVel << "\n";
+    theStream << "Dip Amplitude=" << this->itsDipAmp << "\n";
+    theStream << "Sigma_edge=" << this->itsSigmaEdge << "\n";
+    theStream << "Sigma_dip=" << this->itsSigmaDip << "\n";
+    theStream << "Peak value=" << this->itsMaxVal << "\n";
+    theStream << "Integrated Flux=" << this->itsIntFlux << "\n";
+    theStream << "Edge int. flux=" << this->itsEdgeFlux << "\n";
+    theStream << "Middle int. flux=" << this->itsMiddleFlux << "\n";
+    theStream << "Profile int. flux=" << this->itsProfileFlux << "\n";
+    theStream << "Min Freq=" << this->itsMinFreq << "\n";
+    theStream << "Max Freq=" << this->itsMaxFreq << "\n";
+
+}
+
+void HIprofileS3SEX::print(std::ostream& theStream)
+{
+    theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsFlux << "\t"
+              << this->itsAlpha << "\t" << this->itsBeta << "\t"
+              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t"
+              << this->itsRedshift << "\t" << this->itsMHI
+              << "\t" << int(this->itsSourceType) << "\n";
+}
+
+std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
+{
+
+    prof.print(theStream);
+    return theStream;
+}
+
+// void HIprofileS3SEX::setup(GALTYPE type, double z, double mhi, double maj, double min)
+// {
+//     /// @details This function assigns values to all the
+//     /// parameters of the profile. The profile is described by
+//     /// Gaussian shapes: the edges of the profile are Gaussian
+//     /// tails
+//     /// \f$f(V) = M \exp( -(V-(V_0\pm\Delta V))^2/2\sigma_e^2), |V-V_0|>\Delta V\f$,
+//     /// while the dip between the peaks is an inverted Gaussian:
+//     /// \f$f(V) = M - D \exp( -(V-V_0)^2/2\sigma_d^2 ) + D \exp( -\Delta V^2/2\sigma_d^2 ), |V-V_0|<\Delta V \f$
+//     /// There are a number of randomly generated values: itsVRot, itsSigmaEdge and itsDipAmp
+//     /// @param type The type of galaxy: used to give the range of VRot values. Only SFG and SBG give non-zero values.
+//     /// @param z The redshift of the profile
+//     /// @param mhi The HI mass - used to get the integrated flux
+//     /// @param maj The major axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
+//     /// @param min The minor axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
+
+//   this->itsSourceType = type;
+//   this->itsRedshift = z;
+//   this->itsMHI = mhi;
+//   this->itsMaj = maj;
+//   this->itsMin = min;
+
+//   this->prepareForUse();
+
+// }
+
+void HIprofileS3SEX::prepareForUse()
+{
+    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+
+        double n1 = random() / (RAND_MAX + 1.0);
+        double n2 = random() / (RAND_MAX + 1.0);
+        prepareForUse(n1, n2);
+
+    }
+}
+
+void HIprofileS3SEX::prepareForUse(long num1, long num2)
+{
+    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+        double n1 = (num1 % 1000 + 0.5) / 1000.;
+        double n2 = (num2 % 1000 + 0.5) / 1000.;
+
+        prepareForUse(n1, n2);
+    }
+}
+
+void HIprofileS3SEX::prepareForUse(double n1, double n2)
+{
+    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+
+        this->itsVRot = vrotMin[this->itsSourceType] +
+                        (vrotMax[this->itsSourceType] - vrotMin[this->itsSourceType]) * n1;
+        this->itsSigmaEdge = normalRandomVariable(doubleHornShape[EDGE_SIG_MEAN],
+                             doubleHornShape[EDGE_SIG_SD]);
+        this->itsSigmaEdge = std::max(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);
+        this->itsSigmaEdge = std::min(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MAX]);
+        this->itsMaxVal = 1. / (rootTwoPi * this->itsSigmaEdge);
+        this->itsDipAmp = (doubleHornShape[DIP_MIN] +
+                           (doubleHornShape[DIP_MAX] - doubleHornShape[DIP_MIN]) * n2) *
+                          this->itsMaxVal;
+
+        this->setup();
+    }
+}
+
+void HIprofileS3SEX::setup()
+{
+    // must have run one of the prepareForUse functions first.
+
+    this->itsIntFlux = this->integratedFlux(this->itsRedshift, this->itsMHI);
+
+    if (this->itsMaj == this->itsMin) {
+        this->itsDeltaVel = 0.01 * this->itsVRot;
+    } else {
+        this->itsDeltaVel = this->itsVRot * sin(acos(this->itsMin / this->itsMaj));
+    }
+
+    this->itsVelZero = redshiftToVel(this->itsRedshift);
+
+    this->itsSigmaDip = doubleHornShape[DIP_SIG_SCALE] * this->itsDeltaVel;
+
+    this->itsEdgeFlux = 0.5 * this->itsMaxVal * rootTwoPi * this->itsSigmaEdge;
+    double exponent = this->itsDeltaVel * this->itsDeltaVel /
+                      (2.*this->itsSigmaDip * this->itsSigmaDip);
+    this->itsMiddleFlux = 2. * this->itsDeltaVel *
+                          (this->itsMaxVal + this->itsDipAmp / exp(exponent)) -
+                          this->itsDipAmp * rootTwoPi * this->itsSigmaDip *
+                          erf(this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip));
+
+    this->itsProfileFlux = 2.*this->itsEdgeFlux + this->itsMiddleFlux;
+
+    this->itsMinFreq =  HIVelToFreq(this->itsVelZero - this->itsDeltaVel -
+                                    this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
+                                            this->itsMaxVal)));
+    this->itsMaxFreq =  HIVelToFreq(this->itsVelZero + this->itsDeltaVel +
+                                    this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
+                                            this->itsMaxVal)));
+
+    if (this->itsMinFreq > this->itsMaxFreq) {
+        std::swap(this->itsMinFreq, this->itsMaxFreq);
     }
 
 }
-    
+
+double HIprofileS3SEX::flux(double nu, int istokes)
+{
+
+    if (istokes > 0) return 0.;
+    else {
+        if (this->itsMHI > 0.) {
+            double flux;
+            double vdiff = freqToHIVel(nu) - this->itsVelZero;
+
+            if (vdiff < (-this->itsDeltaVel)) {
+                double v = vdiff + this->itsDeltaVel;
+                double exponent = -(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge);
+                flux = this->itsMaxVal * exp(exponent);
+            } else if (vdiff > this->itsDeltaVel) {
+                double v = vdiff - this->itsDeltaVel;
+                double exponent = -(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge);
+                flux = this->itsMaxVal * exp(exponent);
+            } else {
+                double exponent1 = -(vdiff * vdiff) / (2.*this->itsSigmaDip * this->itsSigmaDip);
+                double exponent2 = -(this->itsDeltaVel * this->itsDeltaVel) /
+                                   (2.*this->itsSigmaDip * this->itsSigmaDip);
+                flux = this->itsMaxVal - this->itsDipAmp * exp(exponent1) +
+                       this->itsDipAmp * exp(exponent2);
+            }
+
+            return flux * this->itsIntFlux / this->itsProfileFlux;
+
+        } else return 0.;
+    }
+}
+
+
+double HIprofileS3SEX::fluxInt(double nu1, double nu2, int istokes)
+{
+
+    if (istokes > 0) return 0.;
+    else {
+        if (this->itsMHI > 0.) {
+
+            // sqrt(pi/2), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
+            const double rootPiOnTwo = 2.* M_SQRT1_2 / M_2_SQRTPI;
+
+            double v[2], f[2];
+            v[0] = freqToHIVel(std::max(nu1, nu2)); // lowest velocty
+            v[1] = freqToHIVel(std::min(nu1, nu2)); // highest velocity
+            f[0] = f[1] = 0.;
+
+            double minPeak = this->itsVelZero - this->itsDeltaVel;
+            double maxPeak = this->itsVelZero + this->itsDeltaVel;
+
+            for (int i = 0; i < 2; i++) {
+                if (v[i] < minPeak) {
+                    f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge *
+                            erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
+                } else {
+                    f[i] += this->itsEdgeFlux;
+
+                    if (v[i] < maxPeak) {
+                        double exponent = this->itsDeltaVel * this->itsDeltaVel /
+                                          (2.*this->itsSigmaDip * this->itsSigmaDip);
+                        double norm = (v[i] - minPeak) *
+                                      (this->itsMaxVal + this->itsDipAmp / exp(exponent));
+
+                        double err1 = erfc(-1.*this->itsDeltaVel /
+                                           (M_SQRT2 * this->itsSigmaDip));
+                        double err2 = erfc((v[i] - this->itsVelZero) /
+                                           (M_SQRT2 * this->itsSigmaDip));
+
+                        double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip *
+                                     (err1 - err2);
+                        f[i] += (norm - dip);
+                    } else {
+                        f[i] += this->itsMiddleFlux;
+                        f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge *
+                                erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
+                    }
+                }
+            }
+
+            double flux = (f[1] - f[0]) / (v[1] - v[0]);
+            return flux * this->itsIntFlux / this->itsProfileFlux;
+        } else return 0.;
+    }
+}
+
+
+}
+
+}
+

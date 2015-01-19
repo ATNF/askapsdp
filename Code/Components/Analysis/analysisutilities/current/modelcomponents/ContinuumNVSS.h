@@ -1,6 +1,7 @@
 /// @file
 ///
-/// Continuum source from the NVSS catalogue, using the full content as obtained from CDS, with ascii text/plain option
+/// Continuum source from the NVSS catalogue, using the full content
+/// as obtained from CDS, with ascii text/plain option
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,84 +34,101 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-        /// @brief A class to hold information for a continuum source taken from the NVSS.
-        /// @details This class is a specialisation of
-        ///simulations::Continuum, adapted for sources from the NRAO VLA Sky
-        ///Survey (NVSS, Condon et al 1998).
-        ///
-        /// The flux at a given frequency is given by the relation:
-        /// \f$F(\nu) = F(\nu_0) \left(\frac{\nu}{\nu_0}\right)^{\alpha + \beta\log(\nu/\nu_0)} \f$
-        class ContinuumNVSS : public Continuum {
-            public:
-                /// @brief Default constructor
-                ContinuumNVSS();
-                /// @brief Constructor from Spectrum object
-                ContinuumNVSS(Spectrum &s);
-                /// @brief Constructor from Continuum object
-                ContinuumNVSS(Continuum &c);
-                /// @brief Set up parameters using a line of input from an ascii file
-                ContinuumNVSS(std::string &line);
-                /// @brief Define parameters directly
-                ContinuumNVSS(float alpha, float beta, float nuZero) {defineSource(alpha, beta, nuZero);};
-                /// @brief Define parameters directly
-                ContinuumNVSS(float alpha, float beta, float nuZero, float fluxZero) {defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);};
-                /// @brief Destructor
-                virtual ~ContinuumNVSS() {};
-                /// @brief Copy constructor for ContinuumNVSS.
-                ContinuumNVSS(const ContinuumNVSS& f);
+/// @brief A class to hold information for a continuum source taken
+/// from the NVSS.  @details This class is a specialisation of
+/// simulations::Continuum, adapted for sources from the NRAO VLA Sky
+/// Survey (NVSS, Condon et al 1998).
+///
+/// The flux at a given frequency is given by the relation:
+/// \f$F(\nu) = F(\nu_0) \left(\frac{\nu}{\nu_0}\right)^{\alpha + \beta\log(\nu/\nu_0)} \f$
+class ContinuumNVSS : public Continuum {
+    public:
+        /// @brief Default constructor
+        ContinuumNVSS();
+        /// @brief Constructor from Spectrum object
+        ContinuumNVSS(Spectrum &s);
+        /// @brief Constructor from Continuum object
+        ContinuumNVSS(Continuum &c);
+        /// @brief Set up parameters using a line of input from an ascii file
+        /// @details Constructs a Continuum object from a line of
+        /// text from an ascii file. Uses the ContinuumNVSS::define()
+        /// function.
+        ContinuumNVSS(std::string &line);
+        /// @brief Define parameters directly
+        ContinuumNVSS(float alpha, float beta, float nuZero)
+        {
+            defineSource(alpha, beta, nuZero);
+        };
+        /// @brief Define parameters directly
+        ContinuumNVSS(float alpha, float beta, float nuZero, float fluxZero)
+        {
+            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
+        };
+        /// @brief Destructor
+        virtual ~ContinuumNVSS() {};
+        /// @brief Copy constructor for ContinuumNVSS.
+        ContinuumNVSS(const ContinuumNVSS& f);
 
-                /// @brief Assignment operator for Continuum.
-                ContinuumNVSS& operator= (const ContinuumNVSS& c);
-                /// @brief Assignment operator for Continuum, using a Continuum object
-                ContinuumNVSS& operator= (const Continuum& c);
-                /// @brief Assignment operator for Continuum, using a Spectrum object
-                ContinuumNVSS& operator= (const Spectrum& c);
+        /// @brief Assignment operator for Continuum.
+        ContinuumNVSS& operator= (const ContinuumNVSS& c);
+        /// @brief Assignment operator for Continuum, using a Continuum object
+        ContinuumNVSS& operator= (const Continuum& c);
+        /// @brief Assignment operator for Continuum, using a Spectrum object
+        ContinuumNVSS& operator= (const Spectrum& c);
 
-		/// @brief Define using a line of input from an ascii file
-		void define(const std::string &line);
+        /// Defines a Continuum object from a line of text from an
+        /// ascii file. This line should be taken from the CDS output
+        /// from an NVSS query, formatted in ascii text/plain format,
+        /// with recno selected, plus Distance rho and Distance (x,y).
+        /// @param line A line from the ascii input file
+        void define(const std::string &line);
 
-		void print(std::ostream& theStream);
-                /// @brief Output the parameters for the source
-                friend std::ostream& operator<< (std::ostream& theStream, ContinuumNVSS &cont);
+        void print(std::ostream& theStream);
 
-		void printDetails(std::ostream& theStream);
+        /// Prints a summary of the parameters to the stream
+        /// @param theStream The destination stream
+        /// @param prof The profile object
+        /// @return A reference to the stream
+        friend std::ostream& operator<< (std::ostream& theStream, ContinuumNVSS &cont);
 
-            protected:
+        void printDetails(std::ostream& theStream);
 
-		float itsRadius;
-		float itsXoff;
-		float itsYoff;
-		long  itsRecno;
-		std::string itsField;
-		float itsFieldXpos;
-		float itsFieldYpos;
-		std::string itsName;
-		std::string itsRAstring;
-		std::string itsDecstring;
-		float itsRA_err;
-		float itsDec_err;
-		float itsS1400;
-		float itsS1400_err;
-		char itsMajorAxisLimit;
-		float itsMajorAxis;
-		char itsMinorAxisLimit;
-		float itsMinorAxis;
-		float itsPA_input;
-		float itsMajorAxis_err;
-		float itsMinorAxis_err;
-		float itsPA_err;
-		std::string itsFlagResidual;
-		int itsResidualFlux;
-		float itsPolFlux;
-		float itsPolPA;
-		float itsPolFlux_err;
-		float itsPolPA_err;
-		std::string itsInputLine;
-      };
+    protected:
 
-    }
+        float itsRadius;
+        float itsXoff;
+        float itsYoff;
+        long  itsRecno;
+        std::string itsField;
+        float itsFieldXpos;
+        float itsFieldYpos;
+        std::string itsName;
+        std::string itsRAstring;
+        std::string itsDecstring;
+        float itsRA_err;
+        float itsDec_err;
+        float itsS1400;
+        float itsS1400_err;
+        char itsMajorAxisLimit;
+        float itsMajorAxis;
+        char itsMinorAxisLimit;
+        float itsMinorAxis;
+        float itsPA_input;
+        float itsMajorAxis_err;
+        float itsMinorAxis_err;
+        float itsPA_err;
+        std::string itsFlagResidual;
+        int itsResidualFlux;
+        float itsPolFlux;
+        float itsPolPA;
+        float itsPolFlux_err;
+        float itsPolPA_err;
+        std::string itsInputLine;
+};
+
+}
 
 }
 

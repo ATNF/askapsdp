@@ -44,54 +44,80 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-      /// @brief A class to manage access to the beam information of
-      /// an image when dealing with a catalogue made from fits to that
-      /// image.
+/// @brief A class to manage access to the beam information of
+/// an image when dealing with a catalogue made from fits to that
+/// image.
 
-      /// @details This class allows one to straightforwardly access
-      /// the beam information from an image that was used to create a 
-      /// catalogue. The simplest interface to creating a BeamCorrector object is
-      /// to use the parset, where it looks for the BeamCorrector.Image parameter, being
-      /// the name of the file in question. It will then read the beam and
-      /// spatial pixel scale from that image. It can then be used to correct
-      /// the flux of sources created from the catalogue, converting their flux
-      /// from Jy to Jy/beam so that they can be placed onto an image.
+/// @details This class allows one to straightforwardly access the
+/// beam information from an image that was used to create a
+/// catalogue. The simplest interface to creating a BeamCorrector
+/// object is to use the parset, where it looks for the
+/// BeamCorrector.Image parameter, being the name of the file in
+/// question. It will then read the beam and spatial pixel scale from
+/// that image. It can then be used to correct the flux of sources
+/// created from the catalogue, converting their flux from Jy to
+/// Jy/beam so that they can be placed onto an image.
 
-      class BeamCorrector {
-      public:
-	/// @brief Default constructor
-	BeamCorrector();
-	/// @brief Parset-based constructor
-	BeamCorrector(const LOFAR::ParameterSet& parset);
-	/// @brief Copy constructor
-	BeamCorrector(const BeamCorrector& other);
-	/// @brief Assignment constructor
-	BeamCorrector& operator= (const BeamCorrector& other);
-	/// @brief Default destructor
-	virtual ~BeamCorrector(){};
+class BeamCorrector {
+    public:
+        /// @brief Default constructor
+        BeamCorrector();
+        /// @brief Parset-based constructor
+        /// @details Read the image filename from the parset. Also
+        /// calls findBeam().
+        BeamCorrector(const LOFAR::ParameterSet& parset);
+        /// @brief Copy constructor
+        BeamCorrector(const BeamCorrector& other);
+        /// @brief Assignment constructor
+        BeamCorrector& operator= (const BeamCorrector& other);
+        /// @brief Default destructor
+        virtual ~BeamCorrector() {};
 
-	/// @brief Read the beam & pixel scale from the image
-	void findBeam();
-	/// @brief Convert the flux of a source
-	void convertSource(Spectrum *src);
-	/// @brief Return the beam information
-	std::vector<float> beam();
+        /// @brief Read the beam & pixel scale from the image
+        /// @details Find the beam information from the image
+        /// provided. Extracts the beam information from the
+        /// ImageInfo, and stores it in a duchamp::Beam object (this
+        /// allows easy access to the beam area, used by
+        /// convertSource()). Also finds the pixel scale, which is the
+        /// geometric mean of the increment of the two spatial
+        /// directions, and the units of the direction axes. If these
+        /// are not the same an error is raised.  If no beam is found,
+        /// the beam area is set to 1 (so convertSource() will not do
+        /// anything).
+        void findBeam();
 
-      protected:
-	/// @brief The image file 
-	std::string itsFilename;
-	/// @brief The beam information
-	duchamp::Beam itsBeam;
-	/// @brief The pixel scale in the image
-	float itsPixelScale;
-	/// @brief The units of the spatial axes
-	casa::String itsDirUnits;
+        /// @brief Convert the flux of a source
+        /// @details This function scales the flux of the source
+        /// provided by src by the area of the beam. This should do
+        /// the correct conversion from Jy (as provided by the
+        /// catalogue) to Jy/beam.
+        /// @param src The ContinuuSelavy source under
+        /// consideration. Provided as a reference so we can change
+        /// its flux.
+        void convertSource(Spectrum *src);
 
-      };
+        /// @brief Return the beam information
+        /// @details Writes out the beam information in a format that
+        /// can be used by the rest of the FITSfile functions
+        /// (ie. everything in units of degrees).
+        /// @return An STL vector containing major axis, minor axis and position angle, in degrees.
+        std::vector<float> beam();
 
-    }
+    protected:
+        /// @brief The image file
+        std::string itsFilename;
+        /// @brief The beam information
+        duchamp::Beam itsBeam;
+        /// @brief The pixel scale in the image
+        float itsPixelScale;
+        /// @brief The units of the spatial axes
+        casa::String itsDirUnits;
+
+};
+
+}
 
 }
 

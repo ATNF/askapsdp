@@ -1,6 +1,7 @@
 /// @file
 ///
-/// Class to handle operations on a single pixel that makes up a uniform-surface-brightness elliptical disc
+/// Class to handle operations on a single pixel that makes up a
+/// uniform-surface-brightness elliptical disc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,56 +34,61 @@
 
 namespace askap {
 
-    namespace analysisutilities {
+namespace analysisutilities {
 
-	const double defaultResolution = 1.e-3;
-	const double defaultTresolution = 1000.;
-	const unsigned int defaultDecimationFactor = 10;
+const double defaultResolution = 1.e-3;
+const double defaultTresolution = 1000.;
+const unsigned int defaultDecimationFactor = 10;
 
-	class DiscPixel
-	{
-	public:
-	    DiscPixel(double x, double y);
-	    DiscPixel(const DiscPixel& other){operator=(other);};
-	    DiscPixel& operator= (const DiscPixel& other);  
-	    virtual ~DiscPixel(){};
-	    double flux();
-	    std::vector<DiscPixel> decimate();
-	    std::vector<DiscPixel> processedSublist();
+class DiscPixel {
+    public:
+        DiscPixel(double x, double y);
+        DiscPixel(const DiscPixel& other) {operator=(other);};
+        DiscPixel& operator= (const DiscPixel& other);
+        virtual ~DiscPixel() {};
+        double flux();
+        std::vector<DiscPixel> decimate();
+        std::vector<DiscPixel> processedSublist();
 
-	    void addTmin(double t){if(itsTmin>0) itsTmin=std::min(itsTmin,t); else itsTmin=t;};
-	    void addTmax(double t){if(itsTmax>0) itsTmax=std::max(itsTmin,t); else itsTmax=t;};
+        void addTmin(double t)
+        {
+            if (itsTmin > 0) itsTmin = std::min(itsTmin, t); else itsTmin = t;
+        };
+        void addTmax(double t)
+        {
+            if (itsTmax > 0) itsTmax = std::max(itsTmin, t); else itsTmax = t;
+        };
 
-	    void setResolutionLimit(double res){itsResolutionLimit = res;};
-	    void setEllipse(Ellipse *ell){itsEllipse=ell;};
-	    void setIsEdge(bool b){itsIsEdge = b;};
-	    void setDecimationFactor(unsigned int i){itsDecimationFactor = i;};
+        void setResolutionLimit(double res) {itsResolutionLimit = res;};
+        void setEllipse(Ellipse *ell) {itsEllipse = ell;};
+        void setIsEdge(bool b) {itsIsEdge = b;};
+        void setDecimationFactor(unsigned int i) {itsDecimationFactor = i;};
 
-	    double x(){return itsX;}
-	    double y(){return itsY;}
-	    double width(){return itsWidth;};
-	    double tmin(){return itsTmin;};
-	    double tmax(){return itsTmax;};
-	    double resolutionLimit(){return itsResolutionLimit;};
-	    bool isEdge(){return itsIsEdge;};
-	    unsigned int decimationFactor(){return itsDecimationFactor;};
-	    
-
-	protected:
-	    double itsX;
-	    double itsY;
-	    double itsWidth;
-	    double itsTmin;
-	    double itsTmax;
-	    Ellipse *itsEllipse;
-	    double itsResolutionLimit;
-	    bool itsIsEdge;
-	    unsigned int itsDecimationFactor;
-
-	};
+        double x() {return itsX;}
+        double y() {return itsY;}
+        double width() {return itsWidth;};
+        double tmin() {return itsTmin;};
+        double tmax() {return itsTmax;};
+        double resolutionLimit() {return itsResolutionLimit;};
+        bool isEdge() {return itsIsEdge;};
+        unsigned int decimationFactor() {return itsDecimationFactor;};
 
 
-    }
+    protected:
+        double itsX;
+        double itsY;
+        double itsWidth;
+        double itsTmin;
+        double itsTmax;
+        Ellipse *itsEllipse;
+        double itsResolutionLimit;
+        bool itsIsEdge;
+        unsigned int itsDecimationFactor;
+
+};
+
+
+}
 
 }
 
