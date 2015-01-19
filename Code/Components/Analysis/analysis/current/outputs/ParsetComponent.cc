@@ -30,7 +30,8 @@
 #include <askap_analysis.h>
 
 #include <sourcefitting/RadioSource.h>
-#include <analysisutilities/AnalysisUtilities.h>
+#include <coordutils/PositionUtilities.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <scimath/Functionals/Gaussian2D.h>
 
@@ -76,7 +77,8 @@ namespace askap {
 	    casa::Gaussian2D<Double> gauss=src->gaussFitSet(fitType).at(fitNum);
 
 	    double thisRA,thisDec,zworld;
-	    this->itsHead->pixToWCS(gauss.xCenter(),gauss.yCenter(),src->getZcentre(),thisRA,thisDec,zworld);
+	    this->itsHead->pixToWCS(gauss.xCenter(), gauss.yCenter(), src->getZcentre(),
+                                    thisRA, thisDec, zworld);
 	    this->itsDECoff = (thisDec-this->itsDECref)*M_PI/180.;
 	    this->itsRAoff = (thisRA-this->itsRAref)*M_PI/180. * cos(this->itsDECref*M_PI/180.);
 
@@ -85,7 +87,8 @@ namespace askap {
 		this->itsFlux /= this->itsHead->beam().area(); // Convert from Jy/beam to Jy
 
 	    if(this->itsFlagReportSize){
-		std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHead->getBeam());
+		std::vector<Double> deconv =
+                    analysisutilities::deconvolveGaussian(gauss, this->itsHead->getBeam());
 		this->itsBmaj = deconv[0]*this->itsHead->getAvPixScale()*3600.;
 		this->itsBmin = deconv[1]*this->itsHead->getAvPixScale()*3600.;
 		this->itsBpa  = deconv[2]*180. / M_PI;

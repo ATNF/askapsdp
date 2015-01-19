@@ -35,7 +35,8 @@
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
 #include <patternmatching/Matcher.h>
-#include <analysisutilities/AnalysisUtilities.h>
+
+#include <coordutils/PositionUtilities.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/Utils/utils.hh>
@@ -81,8 +82,8 @@ namespace askap {
 
             // Convert the base position
 	    double ra,dec,zworld;
-            ra = analysis::dmsToDec(raBaseStr) * 15.;
-            dec = analysis::dmsToDec(decBaseStr);
+            ra = analysisutilities::dmsToDec(raBaseStr) * 15.;
+            dec = analysisutilities::dmsToDec(decBaseStr);
             zworld = header.specToVel(0.);
             double xBase, yBase,zBase,x,y,z;
 	    header.wcsToPix(ra,dec,zworld,xBase,yBase,zBase);
@@ -120,8 +121,8 @@ namespace askap {
 
 		//		ASKAPLOG_DEBUG_STR(logger, "Read RA, Dec = " << raS << " " << decS);
                 if (posType == "dms") {
-                    ra = analysis::dmsToDec(raS) * 15.;
-                    dec = analysis::dmsToDec(decS);
+                    ra = analysisutilities::dmsToDec(raS) * 15.;
+                    dec = analysisutilities::dmsToDec(decS);
                 } else if (posType == "deg") {
                     ra = atof(raS.c_str());
                     dec = atof(decS.c_str());
@@ -178,8 +179,8 @@ namespace askap {
 
             // Convert the base position
 	    double ra,dec,zworld;
-            ra = analysis::dmsToDec(raBaseStr) * 15.;
-            dec = analysis::dmsToDec(decBaseStr);
+            ra = analysisutilities::dmsToDec(raBaseStr) * 15.;
+            dec = analysisutilities::dmsToDec(decBaseStr);
 	    zworld = header.specToVel(0.);
 	    //	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<ra<<","<<dec<<")");
 	    double xBase,yBase,zBase,x,y,z;
@@ -193,8 +194,8 @@ namespace askap {
                     ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
                     if (posType == "dms") {
-                        ra = analysis::dmsToDec(raS) * 15.;
-                        dec = analysis::dmsToDec(decS);
+                        ra = analysisutilities::dmsToDec(raS) * 15.;
+                        dec = analysisutilities::dmsToDec(decS);
                     } else if (posType == "deg") {
                         ra = atof(raS.c_str());
                         dec = atof(decS.c_str());
@@ -202,7 +203,7 @@ namespace askap {
                         ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
                     std::stringstream idString;
-                    idString << ct++ << "_" << analysis::decToDMS(ra, "RA") << "_" << analysis::decToDMS(dec, "DEC");
+                    idString << ct++ << "_" << analysisutilities::decToDMS(ra, "RA") << "_" << analysisutilities::decToDMS(dec, "DEC");
 
 		    //		    wcsprt(header.getWCS());
 		    //		    ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<ra<<","<<dec<<")");
@@ -243,8 +244,8 @@ namespace askap {
             /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id, name;
-            double raBase = analysis::dmsToDec(raBaseStr) * 15.;
-            double decBase = analysis::dmsToDec(decBaseStr);
+            double raBase = analysisutilities::dmsToDec(raBaseStr) * 15.;
+            double decBase = analysisutilities::dmsToDec(decBaseStr);
             double xpt, ypt, ra, dec, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj,guess;
 	    std::string line;
@@ -278,8 +279,8 @@ namespace askap {
                 std::stringstream ss;
 		
                 if (posType == "dms") {
-		  ra = analysis::dmsToDec(raS) * 15.;
-		  dec = analysis::dmsToDec(decS);
+		  ra = analysisutilities::dmsToDec(raS) * 15.;
+		  dec = analysisutilities::dmsToDec(decS);
                 } else if (posType == "deg") {
 		  ra = atof(raS.c_str());
 		  dec = atof(decS.c_str());
@@ -288,7 +289,7 @@ namespace askap {
 
 
 
-                xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
+                xpt = analysisutilities::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;
 
@@ -328,8 +329,8 @@ namespace askap {
 
             std::vector<matching::Point> pixlist;
             std::string line, raS, decS, id;
-            double raBase = analysis::dmsToDec(raBaseStr) * 15.;
-            double decBase = analysis::dmsToDec(decBaseStr);
+            double raBase = analysisutilities::dmsToDec(raBaseStr) * 15.;
+            double decBase = analysisutilities::dmsToDec(decBaseStr);
             double ra, dec, xpt, ypt, flux, maj, min, pa, alpha, beta;
             int ct = 1;
 
@@ -340,8 +341,8 @@ namespace askap {
                     ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
                     if (posType == "dms") {
-                        ra = analysis::dmsToDec(raS) * 15.;
-                        dec = analysis::dmsToDec(decS);
+                        ra = analysisutilities::dmsToDec(raS) * 15.;
+                        dec = analysisutilities::dmsToDec(decS);
                     } else if (posType == "deg") {
                         ra = atof(raS.c_str());
                         dec = atof(decS.c_str());
@@ -349,8 +350,8 @@ namespace askap {
                         ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
                     std::stringstream idString;
-                    idString << ct++ << "_" << analysis::decToDMS(ra, "RA") << "_" << analysis::decToDMS(dec, "DEC");
-                    xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
+                    idString << ct++ << "_" << analysisutilities::decToDMS(ra, "RA") << "_" << analysisutilities::decToDMS(dec, "DEC");
+                    xpt = analysisutilities::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                     if (ra > raBase) xpt *= -1.;
 

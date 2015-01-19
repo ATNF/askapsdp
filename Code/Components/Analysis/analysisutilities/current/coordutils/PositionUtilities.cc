@@ -96,11 +96,13 @@ double dmsToDec(std::string input)
     return dec;
 }
 
-std::string decToDMS(const double input, std::string type, int secondPrecision, std::string separator)
+std::string decToDMS(const double input, std::string type, int secondPrecision,
+                     std::string separator)
 {
     /// @details
     ///  This is the general form, where one can specify the degree of
-    ///  precision of the seconds, and the separating character. The format reflects the axis type:
+    ///  precision of the seconds, and the separating character.
+    ///  The format reflects the axis type:
     ///  @li RA   (right ascension):     hh:mm:ss.ss, with dec modulo 360. (24hrs)
     ///  @li DEC  (declination):        sdd:mm:ss.ss  (with sign, either + or -)
     ///  @li GLON (galactic longitude): ddd:mm:ss.ss, with dec made modulo 360.
@@ -110,11 +112,20 @@ std::string decToDMS(const double input, std::string type, int secondPrecision, 
     /// @param type Axis type to be used
     /// @param secondPrecision How many decimal places to quote the seconds to.
     /// @param separator The character (or string) to use as a
-    /// separator between hh and mm, and mm and ss.sss.
+    /// separator between hh and mm, and mm and ss.sss. A special
+    /// value of 'parset' for separator will output RA in the format
+    /// 19h39m25.03 and Dec as -63.42.45.63
     ///
     double normalisedInput = input;
     int degSize = 2; // number of figures in the degrees part of the output.
     std::string sign = "";
+
+    bool convertToParset = false;
+    if (separator == "parset") {
+        convertToParset = true;
+        separator = ":";
+    }
+
 
     if ((type == "RA") || (type == "GLON")) {
         if (type == "GLON")  degSize = 3; // longitude has three figures in degrees.
@@ -177,7 +188,24 @@ std::string decToDMS(const double input, std::string type, int secondPrecision, 
            << min  << separator ;
     output << std::setw(secondWidth) << std::setfill('0')
            << std::setprecision(secondPrecision) << sec;
-    return output.str();
+
+    std::string outstring = output.str();
+    if (convertToParset) {
+        size_t pos;
+        if (type == "DEC") {
+            while (pos = outstring.find(":"), pos != std::string::npos) {
+                outstring.replace(pos, 1, ".");
+            }
+        }
+        if (type == "RA") {
+            pos = outstring.find(":");
+            if (pos != std::string::npos) outstring.replace(pos, 1, "h");
+            pos = outstring.find(":");
+            if (pos != std::string::npos) outstring.replace(pos, 1, "m");
+        }
+    }
+
+    return outstring;
 }
 
 double positionToDouble(std::string position)
@@ -222,12 +250,8 @@ double angularSeparation(const std::string ra1, const std::string dec1,
     if ((ra1 == ra2) && (dec1 == dec2))
         return 0.;
     else {
-        double sep = angularSeparation(
-                         dmsToDec(ra1) * 15.,
-                         dmsToDec(dec1),
-                         dmsToDec(ra2) * 15.,
-                         dmsToDec(dec2)
-                     );
+        double sep = angularSeparation(dmsToDec(ra1) * 15.,dmsToDec(dec1),
+                                       dmsToDec(ra2) * 15.,dmsToDec(dec2));
         return sep;
     }
 }
@@ -274,18 +298,7 @@ void equatorialToGalactic(double ra, double dec, double &gl, double &gb)
     // The l in sinl and cosl here is really gl-ASC_NODE
     double sinl = (sin(d) * cos(NGP_DEC) - cos(d) * cos(deltaRA) * sin(NGP_DEC)) / cos(gb);
     double cosl = cos(d) * sin(deltaRA) / cos(gb);
-    gl = atan(fabs(sinl / cosl));
-
-    // atan of the abs.value of the ratio returns a value between 0 and 90 degrees.
-    // Need to correct the value of l according to the correct quandrant it is in.
-    // This is worked out using the signs of sinl and cosl
-    if (sinl > 0) {
-        if (cosl > 0) gl = gl;
-        else       gl = M_PI - gl;
-    } else {
-        if (cosl > 0) gl = 2.*M_PI - gl;
-        else       gl = M_PI + gl;
-    }
+    gl = atan2(sinl, cosl);
 
     // Find the correct values of the lat & lon in degrees.
     gb = asin(sinb) * 180. / M_PI;

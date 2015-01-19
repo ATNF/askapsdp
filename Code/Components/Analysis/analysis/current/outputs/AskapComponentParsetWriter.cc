@@ -34,7 +34,7 @@
 
 #include <outputs/ParsetComponent.h>
 #include <sourcefitting/RadioSource.h>
-#include <analysisutilities/AnalysisUtilities.h>
+#include <coordutils/PositionUtilities.h>
 
 #include <duchamp/Outputs/ASCIICatalogueWriter.hh>
 
@@ -108,8 +108,8 @@ namespace askap {
 	{
 	    if(this->itsOpenFlag){
 		*this->itsStream << "sources.names = field1\n";
-		std::string raRef = decToDMS(this->itsRefRA,"RA",4,"parset");
-		std::string decRef= decToDMS(this->itsRefDec,"DEC",3,"parset");
+		std::string raRef = analysisutilities::decToDMS(this->itsRefRA,"RA",4,"parset");
+		std::string decRef= analysisutilities::decToDMS(this->itsRefDec,"DEC",3,"parset");
 		*this->itsStream << "sources.field1.direction = ["<<raRef<<", "<<decRef<<", J2000]\n";
 	    }
 	}

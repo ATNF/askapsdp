@@ -39,6 +39,7 @@
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisparallel/SubimageDef.h>
 #include <casainterface/CasaInterface.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>

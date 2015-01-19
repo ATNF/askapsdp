@@ -32,7 +32,7 @@
 
 #include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
-#include <analysisutilities/AnalysisUtilities.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -332,8 +332,12 @@ namespace askap {
                 if (!this->passConverged()) return false;
 
                 if (this->itsParams.itsChisqConfidence > 0 && this->itsParams.itsChisqConfidence < 1) {
-                    if (this->itsNDoF < 343)
-                        return chisqProb(this->itsNDoF, this->itsFitter.chisquared()) > this->itsParams.itsChisqConfidence;
+                    if (this->itsNDoF < 343) {
+                        float chisqProb =
+                            analysisutilities::chisqProb(this->itsNDoF,
+                                                         this->itsFitter.chisquared());
+                        return chisqProb > this->itsParams.itsChisqConfidence;
+                    }
                     else
                         return (this->itsRedChisq < 1.2);
                 } else return (this->itsRedChisq < this->itsParams.itsMaxReducedChisq);

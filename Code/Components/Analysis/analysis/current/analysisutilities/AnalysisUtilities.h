@@ -58,38 +58,11 @@ namespace askap {
         /// @brief Return an array of axis dimensions for a FITS file.
         std::vector<size_t> getFITSdimensions(std::string filename);
 
-        /// @brief Return the probability of obtaining a chisq value by
-        ///        chance, for a certain number of degrees of freedom.
-        float chisqProb(float ndof, float chisq);
-
         /// @brief Check for the use of a particular parameter in a ParameterSet and warn the user it is not used.
 	void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
 
         /// @brief Parse a ParameterSet and define duchamp::param parameters.
         duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
-
-        /// @brief Remove blank spaces from the beginning of a string
-        std::string removeLeadingBlanks(std::string s);
-
-        /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
-        double dmsToDec(std::string input);
-
-        /// @brief Converts a decimal into a dd:mm:ss.ss format.
-        std::string decToDMS(const double input, std::string type = "DEC",
-                             int secondPrecision = 2, std::string separator = ":");
-
-        /// @brief Find the angular separation of two sky positions
-        double angularSeparation(const std::string ra1, const std::string dec1,
-                                 const std::string ra2, const std::string dec2);
-
-        /// @brief Find the angular separation of two sky positions.
-        double angularSeparation(double ra1, double dec1, double ra2, double dec2);
-
-        /// @brief Convert equatorial coordinates to Galactic.
-        void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
-
-	/// @brief Return the Gaussian after deconvolution with the given beam
-	std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
 	
 	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
 
