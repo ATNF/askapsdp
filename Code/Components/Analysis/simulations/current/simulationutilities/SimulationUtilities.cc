@@ -366,10 +366,12 @@ namespace askap {
 		  if(verbose) ASKAPLOG_DEBUG_STR(logger, "Single pixel only, so adding as point source.");
 		  return addPointSource(array,axes,pix,fluxGen,verbose);
 		}
-                else if (delta < 1.e-4 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
+//                else if (delta < 1.e-3 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
+		else if(zeroPointMin<1. && integrate){
 		    if(verbose)
-			ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1. / delta
-                                           << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
+			// ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1. / delta
+                        //                    << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
+			ASKAPLOG_DEBUG_STR(logger, "Since zeroPointMin="<<zeroPointMin <<", we use the 1D Gaussian function. Have delta="<<delta<<", minSigma="<<minSigma);
                     add1DGaussian(array, axes, gauss, fluxGen,verbose);
                 } else {
                     // In this case, we need to add it as a Gaussian.
@@ -391,7 +393,11 @@ namespace askap {
 		    size_t pix = 0;
 
                     for (int x = xmin; x <= xmax; x++) {
-                        for (int y = ymin; y <= ymax; y++) {
+
+		      dx[0] = x - 0.5 - gauss.xCenter();
+		      dx[1] = x + 0.5 - gauss.xCenter();
+
+		      for (int y = ymin; y <= ymax; y++) {
 
                             pixelVal = 0.;
 
@@ -401,14 +407,15 @@ namespace askap {
                             // corner of the pixel to the centre of the Gaussian lies within this
                             // ellipse, or if the Gaussian passes through the pixel, we do the
                             // integration.
-                            dx[0] = x - 0.5 - gauss.xCenter();
-                            dx[1] = x + 0.5 - gauss.xCenter();
+
                             dy[0] = y - 0.5 - gauss.yCenter();
                             dy[1] = y + 0.5 - gauss.yCenter();
 
                             for (int i = 0; i < 4; i++) {
-                                du[i] = dx[i%2] * cos(gauss.PA()) + dy[i/2] * sin(gauss.PA());
-                                dv[i] = dy[i/2] * cos(gauss.PA()) - dx[i%2] * sin(gauss.PA());
+                                 du[i] = dx[i%2] * cos(gauss.PA()) + dy[i/2] * sin(gauss.PA());
+                                 dv[i] = dy[i/2] * cos(gauss.PA()) - dx[i%2] * sin(gauss.PA());
+                                // dv[i] = dx[i%2] * cos(gauss.PA()) + dy[i/2] * sin(gauss.PA());
+                                // du[i] = dy[i/2] * cos(gauss.PA()) - dx[i%2] * sin(gauss.PA());
                             }
 
                             mindu = fabs(du[0]); for (int i = 1; i < 4; i++) if (fabs(du[i]) < mindu) mindu = fabs(du[i]);
@@ -507,7 +514,7 @@ namespace askap {
             /// @param fluxGen The FluxGenerator object that defines the
             /// fluxes at each channel.
 
-            enum DIR {VERTICAL, HORIZONTAL};
+            enum DIR {VERTICAL=0, HORIZONTAL};
             DIR direction = VERTICAL;
             bool specialCase = true;
             double pa = gauss.PA();
@@ -528,12 +535,12 @@ namespace askap {
             double y = gauss.yCenter() + zeroPointMax * cospa;
 	    if(verbose)
 		ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
-				   << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")" << ", pa="<<pa
+				   << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")" << ", pa="<<pa << ", sign="<<sign
 				   << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
             int xref = lround(x);
             int yref = lround(y);
             int spatialPixel = xref + axes[0] * yref;
-	    // ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel);
+	    ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel);
             size_t pix = 0;
             double pixelVal = 0.;
             bool addPixel = true;
@@ -568,10 +575,11 @@ namespace askap {
                 }
 
                 x += increment * sinpa;
-                y -= sign * increment * cospa;
+//                y -= sign * increment * cospa;
+		y -= increment * cospa;
                 spatialPixel = xref + axes[0] * yref;
-		// ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel << ", PIXELVAL="<<pixelVal);
                 length += increment;
+		ASKAPLOG_DEBUG_STR(logger, "add1DGaussian: x="<<x<<", xref="<<xref << ", y="<<y<<", yref="<<yref <<", axes[0]="<<axes[0]<<", spatialPixel="<<spatialPixel << ", PIXELVAL="<<pixelVal << ", increment="<<increment <<", direction="<<direction <<", length="<<length);
 
             }
         }
