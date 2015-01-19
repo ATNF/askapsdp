@@ -448,10 +448,14 @@ namespace askap {
 
       //--------------------------------------------------------
 
-      int FITSfile::getNumChan()
+      size_t FITSfile::getNumChan()
       {
-	if(this->getSpectralAxisIndex() > 0) return this->itsAxes[this->itsWCS->spec];
-	else return 1;
+	  size_t val;
+//	  ASKAPLOG_DEBUG_STR(logger, "getNumChan: spectralAxisIndex = " <<this->getSpectralAxisIndex());
+	  if(this->getSpectralAxisIndex() > 0) val =  this->itsAxes[this->getSpectralAxisIndex()];
+	  else val = 1;
+//	  ASKAPLOG_DEBUG_STR(logger, "getNumChan: returning nchan=" << val);
+	  return val;
       }
 
       //--------------------------------------------------------

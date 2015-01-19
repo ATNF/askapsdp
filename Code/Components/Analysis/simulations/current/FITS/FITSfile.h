@@ -113,13 +113,13 @@ namespace askap {
                     /// @brief Get the size of the Z-axis
                     unsigned int getZdim() {return itsAxes[itsWCS->spec];};
                     /// @brief Get the index of the spectral axis
-                    unsigned int getSpectralAxisIndex() {return itsWCS->spec;};
+                    int getSpectralAxisIndex() {return itsWCS->spec;};
                     /// @brief Return the number of pixels
                     size_t getSize() {return itsNumPix;};
 		    /// @brief Get the size of the Stokes axis
 		    int getNumStokes();
 		    /// @brief Get the size of the spectral axis
-		    int getNumChan();
+		    size_t getNumChan();
 
 		    /// @brief Is the requested database a spectral-line one?
 		    bool databaseSpectral();
