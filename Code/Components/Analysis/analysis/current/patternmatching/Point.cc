@@ -34,6 +34,7 @@
 #include <patternmatching/Point.h>
 #include <modelcomponents/Spectrum.h>
 #include <coordutils/PositionUtilities.h>
+#include <boost/shared_ptr.hpp>
 
 #include <iostream>
 #include <math.h>
@@ -71,7 +72,7 @@ namespace askap {
       {
       }
 
-      Point::Point(analysisutilities::Spectrum *spec):
+      Point::Point(boost::shared_ptr<analysisutilities::Spectrum> &spec):
 	itsX(spec->raD()),itsY(spec->decD()),itsFlux(spec->fluxZero()),itsID(spec->id())
       {
       }

@@ -102,7 +102,7 @@ namespace askap {
 	}
 
 
-        void FluxGenerator::addSpectrum(Spectrum *spec, double &x, double &y, struct wcsprm *wcs)
+        void FluxGenerator::addSpectrum(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs)
         {
             /// @details This version of the add spectrum function simply
             /// uses the Spectrum object to find the flux at the centre of
@@ -139,7 +139,7 @@ namespace askap {
 
         }
 
-        void FluxGenerator::addSpectrumInt(Spectrum *spec, double &x, double &y, struct wcsprm *wcs)
+        void FluxGenerator::addSpectrumInt(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs)
         {
             /// @details This version of the add spectrum function simply
             /// uses the Spectrum object to find the total flux within

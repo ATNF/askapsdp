@@ -44,6 +44,7 @@
 #include <casa/Quanta.h>
 
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <vector>
 ASKAP_LOGGER(logger, ".matching.PointCat");
@@ -143,7 +144,7 @@ namespace askap {
 	  while (getline(fin, line),
 		 !fin.eof()) {
 	    if (line[0] != '#') {  // ignore commented lines
-	      analysisutilities::Spectrum *spec=this->itsFactory.read(line);
+	      boost::shared_ptr<analysisutilities::Spectrum> spec = this->itsFactory.read(line);
 	      size_t listSize=this->itsFullPointList.size();
 	      if(this->itsFlagOffsetPositions){
 		  double radius=analysisutilities::angularSeparation(this->itsRAref,this->itsDECref,spec->raD(),spec->decD());
@@ -167,7 +168,6 @@ namespace askap {
 		  itsFullPointList.back().setX(pix[0]);
 		  itsFullPointList.back().setY(pix[1]);
 	      }
-	      delete spec;
 
 	    }
 	  }

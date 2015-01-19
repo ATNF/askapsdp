@@ -50,6 +50,7 @@
 #include <askap/AskapError.h>
 
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -114,9 +115,9 @@ std::string typeListing()
     return listing;
 }
 
-Spectrum* ModelFactory::read(std::string line)
+boost::shared_ptr<Spectrum> ModelFactory::read(std::string line)
 {
-    Spectrum *src = 0;
+    boost::shared_ptr<Spectrum>src;
 
     if (line[0] != '#') {  // ignore commented lines
 
@@ -125,63 +126,64 @@ Spectrum* ModelFactory::read(std::string line)
                        << this->itsDatabaseOrigin
                        << "' - needs to be one of: " << typeListing());
         } else if (this->itsDatabaseOrigin == "Continuum") {
-            Continuum *cont = new Continuum;
+            boost::shared_ptr<Continuum> cont(new Continuum);
             cont->setNuZero(this->itsBaseFreq);
             cont->define(line);
-            src = &(*cont);
+            src = boost::shared_ptr<Spectrum>(cont.get());
         } else if (this->itsDatabaseOrigin == "ContinuumID") {
-            ContinuumID *cont = new ContinuumID;
+            boost::shared_ptr<ContinuumID> cont(new ContinuumID);
             cont->setNuZero(this->itsBaseFreq);
             cont->define(line);
-            src = &(*cont);
+            src = boost::shared_ptr<Spectrum>(cont.get());
         } else if (this->itsDatabaseOrigin == "Selavy") {
-            ContinuumSelavy *sel = new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes);
+            boost::shared_ptr<ContinuumSelavy>
+            sel(new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes));
             sel->setNuZero(this->itsBaseFreq);
             sel->define(line);
-            src = &(*sel);
+            src = boost::shared_ptr<Spectrum>(sel.get());
         } else if (this->itsDatabaseOrigin == "POSSUM") {
-            FullStokesContinuum *stokes = new FullStokesContinuum;
+            boost::shared_ptr<FullStokesContinuum> stokes(new FullStokesContinuum);
             stokes->setNuZero(this->itsBaseFreq);
             stokes->define(line);
-            src = &(*stokes);
+            src = boost::shared_ptr<Spectrum>(stokes.get());
         } else if (this->itsDatabaseOrigin == "POSSUMHI") {
-            FullStokesContinuumHI *stokesHI = new FullStokesContinuumHI;
+            boost::shared_ptr<FullStokesContinuumHI> stokesHI(new FullStokesContinuumHI);
             stokesHI->setNuZero(this->itsBaseFreq);
             stokesHI->define(line);
-            src = &(*stokesHI);
+            src = boost::shared_ptr<Spectrum>(stokesHI.get());
         } else if (this->itsDatabaseOrigin == "NVSS") {
-            ContinuumNVSS *nvss = new ContinuumNVSS;
+            boost::shared_ptr<ContinuumNVSS> nvss(new ContinuumNVSS);
             nvss->setNuZero(this->itsBaseFreq);
             nvss->define(line);
-            src = &(*nvss);
+            src = boost::shared_ptr<Spectrum>(nvss.get());
         } else if (this->itsDatabaseOrigin == "SUMSS") {
-            ContinuumSUMSS *sumss = new ContinuumSUMSS;
+            boost::shared_ptr<ContinuumSUMSS> sumss(new ContinuumSUMSS);
             sumss->setNuZero(this->itsBaseFreq);
             sumss->define(line);
-            src = &(*sumss);
+            src = boost::shared_ptr<Spectrum>(sumss.get());
         } else if (this->itsDatabaseOrigin == "S3SEX") {
             if (this->itsSourceListType == "continuum") {
-                ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
+                boost::shared_ptr<ContinuumS3SEX> contS3SEX(new ContinuumS3SEX);
                 contS3SEX->setNuZero(this->itsBaseFreq);
                 contS3SEX->define(line);
-                src = &(*contS3SEX);
+                src = boost::shared_ptr<Spectrum>(contS3SEX.get());
             } else if (this->itsSourceListType == "spectralline") {
-                HIprofileS3SEX *profSEX = new HIprofileS3SEX;
+                boost::shared_ptr<HIprofileS3SEX> profSEX(new HIprofileS3SEX);
                 profSEX->define(line);
-                src = &(*profSEX);
+                src = boost::shared_ptr<Spectrum>(profSEX.get());
             }
         } else if (this->itsDatabaseOrigin == "S3SAX") {
-            HIprofileS3SAX *profSAX = new HIprofileS3SAX;
+            boost::shared_ptr<HIprofileS3SAX> profSAX(new HIprofileS3SAX);
             profSAX->define(line);
-            src = &(*profSAX);
+            src = boost::shared_ptr<Spectrum>(profSAX.get());
         } else if (this->itsDatabaseOrigin == "Gaussian") {
-            GaussianProfile *profGauss = new GaussianProfile(this->itsRestFreq);
+            boost::shared_ptr<GaussianProfile> profGauss(new GaussianProfile(this->itsRestFreq));
             profGauss->define(line);
-            src = &(*profGauss);
+            src = boost::shared_ptr<Spectrum>(profGauss.get());
         } else if (this->itsDatabaseOrigin == "FLASH") {
-            FLASHProfile *profFLASH = new FLASHProfile(this->itsRestFreq);
+            boost::shared_ptr<FLASHProfile> profFLASH(new FLASHProfile(this->itsRestFreq));
             profFLASH->define(line);
-            src = &(*profFLASH);
+            src = boost::shared_ptr<Spectrum>(profFLASH.get());
         }
     }
 

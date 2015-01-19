@@ -39,6 +39,7 @@
 
 #include <duchamp/FitsIO/Beam.hh>
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
@@ -136,7 +137,7 @@ void BeamCorrector::findBeam()
 
 }
 
-void BeamCorrector::convertSource(Spectrum *src)
+void BeamCorrector::convertSource(boost::shared_ptr<Spectrum> src)
 {
 
     src->setFluxZero(src->fluxZero() * this->itsBeam.area());

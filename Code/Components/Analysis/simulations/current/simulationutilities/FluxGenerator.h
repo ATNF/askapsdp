@@ -32,6 +32,7 @@
 #include <modelcomponents/Spectrum.h>
 using namespace askap::analysisutilities;
 
+#include <boost/shared_ptr.hpp>
 #include <wcslib/wcs.h>
 
 #include <vector>
@@ -72,9 +73,9 @@ namespace askap {
 		void zero();
 
                 /// @brief Add a spectral profile to the flux values, using single flux points
-                void addSpectrum(Spectrum *spec, double &x, double &y, wcsprm *wcs);
+            void addSpectrum(boost::shared_ptr<Spectrum> &spec, double &x, double &y, wcsprm *wcs);
                 /// @brief Add a spectral profile to the flux values, integrating over the channels
-                void addSpectrumInt(Spectrum *spec, double &x, double &y, struct wcsprm *wcs);
+            void addSpectrumInt(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs);
 
                 /// @brief Return the flux in channel i and Stokes plane s
                 float getFlux(size_t i, size_t s=0) {return itsFluxValues.at(s).at(i);};

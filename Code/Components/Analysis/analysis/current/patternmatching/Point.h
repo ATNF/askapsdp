@@ -37,6 +37,7 @@
 #include <math.h>
 
 #include <modelcomponents/Spectrum.h>
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -61,7 +62,7 @@ namespace askap {
 	/// @brief Constructor from position, flux, ID
 	Point(double x, double y, double f, std::string id);
 	/// @brief Constructor from a pointer to a Spectrum
-	Point(analysisutilities::Spectrum *spec);
+          Point(boost::shared_ptr<analysisutilities::Spectrum> &spec);
 	/// @brief Copy Constructor
 	Point(const Point& p);
 	/// @brief Copy function

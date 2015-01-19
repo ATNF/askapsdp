@@ -37,6 +37,7 @@
 
 #include <duchamp/FitsIO/Beam.hh>
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <vector>
@@ -96,7 +97,7 @@ class BeamCorrector {
         /// @param src The ContinuuSelavy source under
         /// consideration. Provided as a reference so we can change
         /// its flux.
-        void convertSource(Spectrum *src);
+        void convertSource(boost::shared_ptr<Spectrum> src);
 
         /// @brief Return the beam information
         /// @details Writes out the beam information in a format that

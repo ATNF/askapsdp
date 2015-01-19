@@ -32,6 +32,7 @@
 #include <modelcomponents/Spectrum.h>
 #include <modelcomponents/BeamCorrector.h>
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace askap {
@@ -55,7 +56,7 @@ class ModelFactory {
         ~ModelFactory();
 
         bool checkType();
-        Spectrum* read(std::string line);
+        boost::shared_ptr<Spectrum> read(std::string line);
 
     protected:
 

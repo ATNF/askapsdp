@@ -53,6 +53,8 @@
 #include <mathsutils/MathsUtils.h>
 
 #include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
+#include <boost/pointer_cast.hpp>
 
 #include <duchamp/Utils/Section.hh>
 
@@ -572,7 +574,7 @@ namespace askap {
 	  int countLines=0, countAdded=0;
 	  int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
-	  Spectrum *src = 0;
+          boost::shared_ptr<Spectrum> src;
 	  
 	  FluxGenerator fluxGen(this->getNumChan(), this->getNumStokes());
 	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
@@ -709,6 +711,12 @@ namespace askap {
 		  else 
 		    fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
 
+                  boost::shared_ptr<FullStokesContinuum> pol;
+                  if ( this->itsDatabaseOrigin == "POSSUM") {
+                      pol = boost::shared_ptr<FullStokesContinuum>(
+                          boost::dynamic_pointer_cast<FullStokesContinuum>(src));
+                  }
+                  
 		  bool addedSource=false;
 		  if(this->itsFlagVerboseSources && sourceType!=POINT) 
 		      ASKAPLOG_DEBUG_STR(logger, "Source " << src->id() << " has axes " << src->maj() << " x " << src->min() << " pix");
@@ -722,8 +730,10 @@ namespace askap {
 		      if ( addedSource ){
 			countPoint++;
 			if( this->itsDatabaseOrigin == "POSSUM") 
-			    if(this->itsFlagVerboseSources)
-				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+			    if(this->itsFlagVerboseSources){
+//				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+                                ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
+                            }
 		      }
 		      else countMiss++;
 		    }
@@ -737,7 +747,7 @@ namespace askap {
 			countGauss++;
 			if( this->itsDatabaseOrigin == "POSSUM") 
 			    if(this->itsFlagVerboseSources)
-				ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+				ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
 		      }
 		      else countMiss++;
 		    }
@@ -752,7 +762,7 @@ namespace askap {
 			      countPoint++;
 			      if( this->itsDatabaseOrigin == "POSSUM") 
 				  if(this->itsFlagVerboseSources)
-				      ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+				      ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
 			  }
 			  else countMiss++;
 		      }
@@ -776,8 +786,6 @@ namespace askap {
 	      else{
 		if(this->itsDryRun) countDud++;
 	      }
-
-	      delete src;
 	     
 	      if( countLines % this->itsSourceLogevery == 0 )
 		  ASKAPLOG_INFO_STR(logger, "Read " << countLines << " sources and have added " << countAdded << " to the image");
@@ -1312,7 +1320,7 @@ namespace askap {
 		// if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
 		// if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
 		// if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
-		if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = Izero;
+                this->itsTTmaps[0](outpos) = Izero;
 		if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = Izero * alpha;
 		if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = Izero * (0.5*alpha*(alpha-1) + beta);
 
