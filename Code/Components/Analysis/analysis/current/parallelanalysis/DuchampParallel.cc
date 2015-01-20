@@ -81,10 +81,12 @@ using namespace LOFAR::TYPES;
 #include <sourcefitting/CurvatureMapCreator.h>
 #include <parametrisation/OptimisedGrower.h>
 #include <preprocessing/Wavelet2D1D.h>
+#include <outputs/CataloguePreparation.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
 #include <outputs/AskapComponentParsetWriter.h>
 #include <outputs/AskapVOTableCatalogueWriter.h>
 #include <outputs/ImageWriter.h>
+#include <outputs/ResultsWriter.h>
 
 #include <casainterface/CasaInterface.h>
 #include <analysisparallel/SubimageDef.h>
@@ -102,6 +104,7 @@ using namespace LOFAR::TYPES;
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/utils.hh>
+#include <duchamp/Utils/VOParam.hh>
 #include <duchamp/Detection/detection.hh>
 // #include <duchamp/Detection/columns.hh>
 #include <duchamp/Outputs/columns.hh>
@@ -246,12 +249,6 @@ namespace askap {
 		}
 		else ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << this->itsParset.getString("extractNoiseSpectra.spectralCube",""));
 	    }
-
-	    this->itsFitSummaryFile = this->itsParset.getString("fitResultsFile","selavy-fitResults.txt");
-	    this->itsFitAnnotationFile = this->itsParset.getString("fitAnnotationFile","selavy-fitResults.ann");
-	    this->itsFitBoxAnnotationFile = this->itsParset.getString("fitBoxAnnotationFile","selavy-fitResults.boxes.ann");
-
-	    this->itsSubimageAnnotationFile = this->itsParset.getString("subimageAnnotationFile", "selavy-SubimageLocations.ann");
 
             if (itsComms.isParallel()) {
 		this->itsSubimageDef = SubimageDef(this->itsParset);
@@ -484,13 +481,8 @@ namespace askap {
 
 		int result=this->getMetadata();
 
-                ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile << "\".");
-
-                if (this->itsSubimageAnnotationFile != "") {
-                    ASKAPLOG_INFO_STR(logger, "Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
-                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms);
-                }
-
+                this->itsSubimageDef.writeAnnotationFile(this->itsCube.header(), itsComms);
+                
                 if (result == duchamp::FAILURE) {
                     ASKAPLOG_ERROR_STR(logger, "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
                     ASKAPTHROW(AskapError, "Unable to read image " << this->itsCube.pars().getImageFile())
@@ -1132,102 +1124,17 @@ namespace askap {
 
 		}
 		ASKAPLOG_INFO_STR(logger, "Found " << this->itsCube.getNumObj() << " sources.");
-
-		ASKAPLOG_INFO_STR(logger, "Writing to output catalogue " << this->itsCube.pars().getOutFile());
-                this->itsCube.outputCatalogue();
-
-                if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
-		  this->itsCube.logSummary();
-                }
-
-		this->itsCube.outputAnnotations();
-
-		if(this->itsCube.pars().getFlagVOT()){
-		    ASKAPLOG_INFO_STR(logger, "Writing to output VOTable " << this->itsCube.pars().getVOTFile());
-		  this->itsCube.outputDetectionsVOTable();
-		}
-
-		if(this->itsCube.pars().getFlagTextSpectra()){
-		    ASKAPLOG_INFO_STR(logger,"Saving spectra to text file " << this->itsCube.pars().getSpectraTextFile());
-		    this->itsCube.writeSpectralData();
-		}
-
-		
-		if(this->itsCube.pars().getFlagWriteBinaryCatalogue() && (this->itsCube.getNumObj()>0)){
-		    ASKAPLOG_INFO_STR(logger, "Creating binary catalogue of detections, called " << this->itsCube.pars().getBinaryCatalogue());
-		    this->itsCube.writeBinaryCatalogue();
-		}
-
-
-		if(this->itsFitParams.doFit()){
-
-		  for (size_t t = 0; t < outtypes.size(); t++) {
- 		    
-		      duchamp::Catalogues::CatalogueSpecification columns = sourcefitting::fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
-		      setupCols(columns,this->itsSourceList,outtypes[t]);
-
-		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
-		    AskapAsciiCatalogueWriter writer(filename);
-		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
-		    writer.setup(this);
-		    writer.setFitType(outtypes[t]);
-		    writer.setColumnSpec(&columns);
-		    writer.setSourceList(&this->itsSourceList);
-		    writer.openCatalogue();
-		    writer.writeTableHeader();
-		    writer.writeEntries();
-		    writer.writeFooter();
-		    writer.closeCatalogue();
-		    
-		    filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
-		    AskapVOTableCatalogueWriter vowriter(filename);
-		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
-		    vowriter.setup(this);
-		    vowriter.setFitType(outtypes[t]);
-		    vowriter.setColumnSpec(&columns);
-		    vowriter.setSourceList(&this->itsSourceList);
-		    vowriter.openCatalogue();
-		    vowriter.writeHeader();
-		    vowriter.writeParameters();
-		    if(this->is2D()){
-			double ra,dec,freq;
-			this->itsCube.header().pixToWCS(this->itsCube.getDimX()/2.,this->itsCube.getDimY()/2.,0.,ra,dec,freq);
-			std::string frequnits(this->itsCube.header().WCS().cunit[this->itsCube.header().WCS().spec]);
-			vowriter.writeParameter(duchamp::VOParam("Reference frequency","em.freq;meta.main","float",freq,0,frequnits));
-		    }
-		    vowriter.writeStats();
-		    vowriter.writeTableHeader();
-		    vowriter.writeEntries();
-		    vowriter.writeFooter();
-		    vowriter.closeCatalogue();
-		  
-		    
-		    filename = this->itsParset.getString("outputComponentParset","");
-		    if(filename!=""){
-			AskapComponentParsetWriter pwriter(filename);
-			ASKAPLOG_INFO_STR(logger, "Writing Fit results to parset named " << filename);
-			pwriter.setup(this);
-			pwriter.setFitType("best");
-			pwriter.setSourceList(&this->itsSourceList);
-			pwriter.setFlagReportSize(this->itsParset.getBool("outputComponentParset.reportSize",true));
-			pwriter.setMaxNumComponents(this->itsParset.getInt("outputComponentParset.maxNumComponents",-1));
-			pwriter.openCatalogue();
-			pwriter.writeTableHeader();
-			pwriter.writeEntries();
-			pwriter.writeFooter();
-			pwriter.closeCatalogue();
-		    }
-
-  
-		  }
-		  
-
-		  if (this->itsFitParams.doFit()) this->writeFitAnnotations();
-
-		}
-
-            } else {
-            }
+                
+                ResultsWriter writer(this);
+                writer.duchampOutput();
+                writer.writeIslandCatalogue();
+                writer.writeComponentCatalogue();
+                writer.writeFitResults();
+                writer.writeFitAnnotations();
+                writer.writeComponentParset();
+                
+              
+            } // end of 'if isMaster'
         }
 
         //**************************************************************//
@@ -1258,112 +1165,6 @@ namespace askap {
 	      this->itsCube.pars().setFlagBlankPix(false);
 	      this->itsCube.writeToFITS(); 
 	  }
-
-	}
-
-
-	void DuchampParallel::writeFitAnnotations()
-	{
-	    /// @details This function writes an annotation file
-            /// showing the location and shape of the fitted 2D
-            /// Gaussian components. It makes use of the
-            /// RadioSource::writeFitToAnnotationFile() function. The
-            /// file written to is given by the input parameter
-            /// fitAnnotationFile.
-
-	    bool doBoxAnnot = !this->itsFitParams.fitJustDetection() && (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile);
-
-	    if(this->itsSourceList.size() > 0) {
-
-		for(int i=0;i<3;i++){
-		    AnnotationWriter *writerFit=0;
-		    AnnotationWriter *writerBox=0;
-		    switch(i){
-		    case 0: //Karma
-			if(this->itsCube.pars().getFlagKarma()){
-			    writerFit = new KarmaAnnotationWriter(this->itsFitAnnotationFile);
-			    ASKAPLOG_INFO_STR(logger, "Writing fit results to karma annotation file: " << this->itsFitAnnotationFile << " with address of writer = " << writerFit);
-			    if(doBoxAnnot)
-				writerBox = new KarmaAnnotationWriter(this->itsFitBoxAnnotationFile);
-			    break;
-			case 1://DS9
-			    if(this->itsCube.pars().getFlagDS9()){
-				std::string filename=itsFitAnnotationFile;
-				size_t loc=filename.rfind(".ann");
-				if(loc==std::string::npos) filename += ".reg";
-				else filename.replace(loc,4,".reg");
-				writerFit = new DS9AnnotationWriter(filename);
-				ASKAPLOG_INFO_STR(logger, "Writing fit results to DS9 annotation file: " << filename << " with address of writer = " << writerFit);
-				if(doBoxAnnot){
-				    filename = this->itsFitBoxAnnotationFile;
-				    size_t loc=filename.rfind(".ann");
-				    if(loc==std::string::npos) filename += ".reg";
-				    else filename.replace(loc,4,".reg");
-				    writerBox = new DS9AnnotationWriter(filename);
-				}
-			    }
-			    break;
-			case 2://CASA
-			    if(this->itsCube.pars().getFlagCasa()){
-				std::string filename=itsFitAnnotationFile;
-				size_t loc=filename.rfind(".ann");
-				if(loc==std::string::npos) filename += ".crf";
-				else filename.replace(loc,4,".crf");
-				writerFit = new CasaAnnotationWriter(filename);
-				ASKAPLOG_INFO_STR(logger, "Writing fit results to casa annotation file: " << filename << " with address of writer = " << writerFit);
-				if(doBoxAnnot){
-				    filename = this->itsFitBoxAnnotationFile;
-				    size_t loc=filename.rfind(".ann");
-				    if(loc==std::string::npos) filename += ".reg";
-				    else filename.replace(loc,4,".reg");
-				    writerBox = new DS9AnnotationWriter(filename);
-				}
-			    }
-			    break;	
-			}
-		    }
-			
-		    if(writerFit!=0){
-			writerFit->setup(&this->itsCube);
-			writerFit->openCatalogue();
-			writerFit->setColourString("BLUE");
-			writerFit->writeHeader();
-			writerFit->writeParameters();
-			writerFit->writeStats();
-			writerFit->writeTableHeader();
-			// writer->writeEntries();
-
-			if(writerBox != 0){
-			    writerBox->setup(&this->itsCube);
-			    writerBox->openCatalogue();
-			    writerFit->setColourString("BLUE");
-			    writerBox->writeHeader();
-			    writerBox->writeParameters();
-			    writerBox->writeStats();
-			    writerBox->writeTableHeader();
-			}
-
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			int num=1;
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    src->writeFitToAnnotationFile(writerFit, num, true, this->itsFitAnnotationFile == this->itsFitBoxAnnotationFile);
-			    if(doBoxAnnot && writerBox!=0) src->writeFitToAnnotationFile(writerBox, num, false, true);
-			    num++;
-			}
-
-			writerFit->writeFooter();
-			writerFit->closeCatalogue();
-			if(writerBox!=0){
-			    writerBox->writeFooter();
-			    writerBox->closeCatalogue();
-			}
-		    }
-
-		    if(writerFit!=0) delete writerFit;
-		    if(writerBox!=0) delete writerBox;
-		}
-		
-	    }
 
 	}
 

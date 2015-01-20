@@ -92,13 +92,13 @@ namespace askap {
 	    return *this;
 	}
 
-	void AskapComponentParsetWriter::setup(DuchampParallel *finder)
+        void AskapComponentParsetWriter::setup(duchamp::Cube *cube)
 	{
 	    // only thing to do here is get the centre position of the
 	    // image so that we can calculate relative offsets for
 	    // each of the components, and get the RadioSource list.
 	    
-	    this->CatalogueWriter::setup(finder->pCube());
+	    this->CatalogueWriter::setup(cube);
 	    this->itsRefRA =  this->itsHead->getWCS()->crval[0];
 	    this->itsRefDec = this->itsHead->getWCS()->crval[1];
 

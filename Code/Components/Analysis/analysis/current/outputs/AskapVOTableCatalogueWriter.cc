@@ -34,130 +34,172 @@
 #include <duchamp/Utils/VOField.hh>
 #include <duchamp/Utils/utils.hh>
 
-namespace askap { 
+namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter():
-      duchamp::VOTableCatalogueWriter()
-    {
-      this->itsFlagWriteFits = true;
-      this->itsSourceList = 0;
-      this->itsFitType = "best";
+using sourcefitting::RadioSource;
+using std::pair;
+using std::string;
+using namespace duchamp::Catalogues;
+
+AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter():
+    duchamp::VOTableCatalogueWriter()
+{
+    this->itsSourceList = 0;
+    this->itsFitType = "best";
+    this->itsEntryType = COMPONENT;
+}
+
+AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(string name):
+    duchamp::VOTableCatalogueWriter(name)
+{
+    this->itsSourceList = 0;
+    this->itsFitType = "best";
+    this->itsEntryType = COMPONENT;
+}
+
+AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other)
+{
+    this->operator=(other);
+}
+
+AskapVOTableCatalogueWriter& AskapVOTableCatalogueWriter::operator= (const AskapVOTableCatalogueWriter& other)
+{
+    if (this == &other) return *this;
+    ((VOTableCatalogueWriter &) *this) = other;
+    this->itsSourceList = other.itsSourceList;
+    this->itsFitType = other.itsFitType;
+    this->itsEntryType = other.itsEntryType;
+    return *this;
+}
+
+// void AskapVOTableCatalogueWriter::setup(DuchampParallel *finder)
+// {
+//     this->CatalogueWriter::setup(finder->pCube());
+//     this->itsSourceList = finder->pSourceList();
+// }
+
+void AskapVOTableCatalogueWriter::writeEntries()
+{
+    if (this->itsOpenFlag) {
+        for (std::vector<RadioSource>::iterator src = this->itsSourceList->begin();
+                src < this->itsSourceList->end(); src++)
+            this->writeEntry(&*src);
     }
+}
 
-    AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(std::string name):
-      duchamp::VOTableCatalogueWriter(name)
-    {
-      this->itsFlagWriteFits = true;
-      this->itsSourceList = 0;
-      this->itsFitType = "best";
+void AskapVOTableCatalogueWriter::writeTableHeader()
+{
+    if (this->itsOpenFlag) {
+
+        std::map<string, string> posUCDmap;
+        posUCDmap.insert(pair<string, string>("ra", "pos.eq.ra"));
+        posUCDmap.insert(pair<string, string>("ra_deg_cont", "pos.eq.ra"));
+        posUCDmap.insert(pair<string, string>("dec", "pos.eq.dec"));
+        posUCDmap.insert(pair<string, string>("dec_deg_cont", "pos.eq.dec"));
+        posUCDmap.insert(pair<string, string>("glon", "pos.galactic.lng"));
+        posUCDmap.insert(pair<string, string>("glat", "pos.galactic.lat"));
+        Column &raCol = this->itsColumnSpecification->column("RAJD");
+        string lngUCDbase = posUCDmap[makelower(raCol.getName())];
+        Column &decCol = this->itsColumnSpecification->column("DECJD");
+        string latUCDbase = posUCDmap[makelower(decCol.getName())];
+
+        std::map<string, string> specUCDmap;
+        specUCDmap.insert(pair<string, string>("velo", "phys.veloc;spect.dopplerVeloc"));
+        specUCDmap.insert(pair<string, string>("vopt", "phys.veloc;spect.dopplerVeloc.opt"));
+        specUCDmap.insert(pair<string, string>("vrad", "phys.veloc;spect.dopplerVeloc.rad"));
+        specUCDmap.insert(pair<string, string>("freq", "em.freq"));
+        specUCDmap.insert(pair<string, string>("ener", "em.energy"));
+        specUCDmap.insert(pair<string, string>("wavn", "em.wavenumber"));
+        specUCDmap.insert(pair<string, string>("wave", "em.wl"));
+        specUCDmap.insert(pair<string, string>("awav", "em.wl"));
+        specUCDmap.insert(pair<string, string>("zopt", "src.redshift"));
+        specUCDmap.insert(pair<string, string>("beta", "src.redshift; spect.dopplerVeloc"));
+        Column &velCol = this->itsColumnSpecification->column("VEL");
+        string specUCDbase = specUCDmap[makelower(velCol.getName())];
+
+        for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
+
+            Column *col = this->itsColumnSpecification->pCol(i);
+            string type = col->type();
+
+            // A hack as the VOField currently tries to change a few
+            // column names & we don't want it to.
+            col->setType("IGNORETHIS");
+            duchamp::VOField field(*col);
+            col->setType(type);
+
+            if (col->type() == "RAJD")  field.setUCD(lngUCDbase + ";meta.main");
+            // if(col->type()=="WRA")   field.setUCD("phys.angSize;"+lngUCDbase);
+            if (col->type() == "DECJD") field.setUCD(latUCDbase + ";meta.main");
+            // if(col->type()=="WDEC")  field.setUCD("phys.angSize;"+latUCDbase);
+            // if(col->type()=="VEL")   field.setUCD(specUCDbase+";meta.main");
+            // if(col->type()=="W20")   field.setUCD("spect.line.width;"+specUCDbase);
+            // if(col->type()=="W50")   field.setUCD("spect.line.width;"+specUCDbase);
+            // if(col->type()=="WVEL")  field.setUCD("spect.line.width;"+specUCDbase);
+            this->itsFileStream << "      ";
+            field.printField(this->itsFileStream);
+
+        }
+
+        this->itsFileStream << "      <DATA>\n"
+                            << "        <TABLEDATA>\n";
+
+
     }
+}
 
-    AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other)
-    {
-      this->operator=(other);
+void AskapVOTableCatalogueWriter::writeEntry(RadioSource *source)
+{
+    if (this->itsOpenFlag) {
+        this->itsFileStream.setf(std::ios::fixed);
+
+        if (this->itsEntryType == COMPONENT) {
+
+            // write out an entry for all fits
+            for (size_t f = 0; f < source->numFits(this->itsFitType); f++) {
+                this->itsFileStream << "        <TR>\n";
+                this->itsFileStream << "          ";
+                for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
+                    Column col = this->itsColumnSpecification->column(i);
+                    this->itsFileStream << "<TD>";
+                    source->printTableEntry(this->itsFileStream, col,
+                                            f, this->itsFitType);
+                    this->itsFileStream << "</TD>";
+                }
+                this->itsFileStream << "\n";
+                this->itsFileStream << "        </TR>\n";
+            }
+
+        } else {
+
+            this->itsFileStream << "        <TR>\n";
+            this->itsFileStream << "          ";
+            for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
+                Column col = this->itsColumnSpecification->column(i);
+                this->itsFileStream << "<TD>";
+                if (col.type() == "NCOMP") {
+                    // n_components printing not defined elsewhere
+                    col.printEntry(this->itsFileStream,
+                                   source->numFits(this->itsFitType));
+                } else if (col.type() == "NUM") {
+                    // ensure we print the island ID, not the 1st component ID
+                    col.printEntry(this->itsFileStream, source->getID());
+                } else {
+                    // use Duchamp library to print all other columns
+                    source->printTableEntry(this->itsFileStream, col);
+                }
+                this->itsFileStream << "</TD>";
+            }
+            this->itsFileStream << "\n";
+            this->itsFileStream << "        </TR>\n";
+
+
+        }
     }
+}
 
-    AskapVOTableCatalogueWriter& AskapVOTableCatalogueWriter::operator= (const AskapVOTableCatalogueWriter& other)
-    {
-      if(this==&other) return *this;
-      ((VOTableCatalogueWriter &) *this) = other;
-      this->itsFlagWriteFits = other.itsFlagWriteFits;
-      this->itsSourceList = other.itsSourceList;
-      this->itsFitType = other.itsFitType;
-      return *this;
-    }
+}
 
-    void AskapVOTableCatalogueWriter::setup(DuchampParallel *finder)
-    {
-      this->CatalogueWriter::setup(finder->pCube());
-      this->itsSourceList = finder->pSourceList();
-    }
-    
-    void AskapVOTableCatalogueWriter::writeEntries()
-    {
-      if(this->itsFlagWriteFits){
-	if(this->itsOpenFlag){
-	  for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList->begin(); 
-	      src<this->itsSourceList->end(); src++)
-	    this->writeEntry(&*src);
-	}
-      }
-      else this->CatalogueWriter::writeEntries();
-      
-    }    
-
-    void AskapVOTableCatalogueWriter::writeTableHeader()
-    {
-      if(this->itsOpenFlag){
-	
-	std::map<std::string,std::string> posUCDmap;
-	posUCDmap.insert(std::pair<std::string,std::string>("ra","pos.eq.ra"));
-	posUCDmap.insert(std::pair<std::string,std::string>("dec","pos.eq.dec"));
-	posUCDmap.insert(std::pair<std::string,std::string>("glon","pos.galactic.lng"));
-	posUCDmap.insert(std::pair<std::string,std::string>("glat","pos.galactic.lat"));
-	duchamp::Catalogues::Column &raCol=this->itsColumnSpecification->column("RAJD");
-	std::string lngUCDbase = posUCDmap[makelower(raCol.getName())];
-	duchamp::Catalogues::Column &decCol=this->itsColumnSpecification->column("DECJD");
-	std::string latUCDbase = posUCDmap[makelower(decCol.getName())];
-	
-	std::map<std::string,std::string> specUCDmap;
-	specUCDmap.insert(std::pair<std::string,std::string>("VELO","phys.veloc;spect.dopplerVeloc"));
-	specUCDmap.insert(std::pair<std::string,std::string>("VOPT","phys.veloc;spect.dopplerVeloc.opt"));
-	specUCDmap.insert(std::pair<std::string,std::string>("VRAD","phys.veloc;spect.dopplerVeloc.rad"));
-	specUCDmap.insert(std::pair<std::string,std::string>("FREQ","em.freq"));
-	specUCDmap.insert(std::pair<std::string,std::string>("ENER","em.energy"));
-	specUCDmap.insert(std::pair<std::string,std::string>("WAVN","em.wavenumber"));
-	specUCDmap.insert(std::pair<std::string,std::string>("WAVE","em.wl"));
-	specUCDmap.insert(std::pair<std::string,std::string>("AWAV","em.wl"));
-	specUCDmap.insert(std::pair<std::string,std::string>("ZOPT","src.redshift"));
-	specUCDmap.insert(std::pair<std::string,std::string>("BETA","src.redshift; spect.dopplerVeloc"));
-	std::string specUCDbase = specUCDmap[this->itsColumnSpecification->column("VEL").getName()];
-	
-	for(size_t i=0;i<this->itsColumnSpecification->size();i++){
-	  
-	  duchamp::Catalogues::Column *col = this->itsColumnSpecification->pCol(i);
-	  duchamp::VOField field(*col); 
-	  if(col->type()=="RAJD")  field.setUCD(lngUCDbase+";meta.main");
-	  if(col->type()=="WRA")   field.setUCD("phys.angSize;"+lngUCDbase);
-	  if(col->type()=="DECJD") field.setUCD(latUCDbase+";meta.main");
-	  if(col->type()=="WDEC")  field.setUCD("phys.angSize;"+latUCDbase);	
-	  if(col->type()=="VEL")   field.setUCD(specUCDbase+";meta.main");
-	  if(col->type()=="W20")   field.setUCD("spect.line.width;"+specUCDbase);
-	  if(col->type()=="W50")   field.setUCD("spect.line.width;"+specUCDbase);
-	  if(col->type()=="WVEL")  field.setUCD("spect.line.width;"+specUCDbase);
-	  this->itsFileStream << "      ";
-	  field.printField(this->itsFileStream);
-	
-	}
-	
-	this->itsFileStream<<"      <DATA>\n"
-			   <<"        <TABLEDATA>\n";
-
-
-      }
-    }
-
-    void AskapVOTableCatalogueWriter::writeEntry(sourcefitting::RadioSource *source)
-    {
-      if(this->itsOpenFlag){
-	this->itsFileStream.setf(std::ios::fixed);  
-	
-	for(size_t f=0;f<source->numFits(this->itsFitType);f++){
-	  this->itsFileStream<<"        <TR>\n";
-	  this->itsFileStream<<"          ";
-	  for(size_t i=0;i<this->itsColumnSpecification->size();i++){
-	    this->itsFileStream<<"<TD>";
-	    source->printTableEntry(this->itsFileStream, this->itsColumnSpecification->column(i),f,this->itsFitType);
-	    this->itsFileStream<<"</TD>";
-	  }
-	  this->itsFileStream<<"\n";
-	  this->itsFileStream<<"        </TR>\n";
-	}
-      }
-    }
-
-  }
-  
 }

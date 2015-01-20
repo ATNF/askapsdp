@@ -51,7 +51,6 @@ namespace askap {
       std::string fitType(){return itsFitType;};
       void setFitType(std::string s){itsFitType = s;};
 
-      void setup(DuchampParallel *finder);
       void writeTableHeader();
       void writeEntries();
       using duchamp::ASCIICatalogueWriter::writeEntry;

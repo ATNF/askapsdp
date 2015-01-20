@@ -31,37 +31,73 @@
 
 namespace askap {
 
-  namespace analysis { 
+namespace analysis {
 
-    class AskapVOTableCatalogueWriter : public duchamp::VOTableCatalogueWriter
-    {
+using sourcefitting::RadioSource;
+
+/// Enumeration to distinguish between the options of writing
+/// out an Island catalogue or a component catalogue.
+enum ENTRYTYPE { ISLAND, COMPONENT};
+
+/// A class to handle writing of VOTables, adapted for use with
+/// ASKAP/Selavy catalogues. This builds on the Duchamp library,
+/// adding interfaces to the RadioSource objects and, from
+/// there, the fitted components. This offers the options of
+/// either writing out a catalogue of components, or a catalogue
+/// of the islands from which they come (these are the duchamp
+/// Detection objects, but a differently-formatted catalogue to
+/// that provided by Duchamp).
+
+class AskapVOTableCatalogueWriter : public duchamp::VOTableCatalogueWriter {
     public:
-      AskapVOTableCatalogueWriter();
-      AskapVOTableCatalogueWriter(std::string name);
-      AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other);
-      AskapVOTableCatalogueWriter& operator= (const AskapVOTableCatalogueWriter& other);
-      virtual ~AskapVOTableCatalogueWriter(){};
+        AskapVOTableCatalogueWriter();
+        AskapVOTableCatalogueWriter(std::string name);
+        AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other);
+        AskapVOTableCatalogueWriter& operator= (
+            const AskapVOTableCatalogueWriter& other);
+        virtual ~AskapVOTableCatalogueWriter() {};
 
-      bool writeFits(){return itsFlagWriteFits;};
-      void setFlagWriteFits(bool b){itsFlagWriteFits = b;};
-      std::vector<sourcefitting::RadioSource> *sourcelist(){return itsSourceList;};
-      void setSourceList(std::vector<sourcefitting::RadioSource> *srclist){itsSourceList = srclist;};
-      std::string fitType(){return itsFitType;};
-      void setFitType(std::string s){itsFitType = s;};
+        std::vector<RadioSource> *srclist() {return itsSourceList;};
+        void setSourceList(std::vector<RadioSource> *cmplist)
+        {
+            itsSourceList = cmplist;
+        };
+        std::string fitType() {return itsFitType;};
+        void setFitType(std::string s) {itsFitType = s;};
+        ENTRYTYPE entryType() {return itsEntryType;};
+        void setEntryType(ENTRYTYPE type) {itsEntryType = type;};
 
-      void setup(DuchampParallel *finder);
-      void writeTableHeader();
-      void writeEntries();
-      using duchamp::VOTableCatalogueWriter::writeEntry;
-      void writeEntry(sourcefitting::RadioSource *source);
-      
+        // /// Initialise with a given DuchampParallel, taking the
+        // /// duchamp::Cube and the source list
+        // void setup(DuchampParallel *finder);
+
+        /// Writes out the header information for each column, making
+        /// appropriate WCS substitutions for columns that need it
+        /// (RA, DEC, VEL etc)
+        void writeTableHeader();
+
+        /// Loops over all sources in itsSourceList, writing them out
+        /// individually.
+        void writeEntries();
+
+        // Declare that we are using the writeEntry from
+        // VOTableCatalogueWriter as well.
+        using duchamp::VOTableCatalogueWriter::writeEntry;
+
+        /// Modified version of writeEntry to take a RadioSource
+        /// source and treat it either as an island (if
+        /// itsEntryType==ISLAND) or as a collection of one or more
+        /// components (itsEntryType==COMPONENT).
+        void writeEntry(RadioSource *source);
+
     protected:
-      bool itsFlagWriteFits; ///< Do we write the information on the fits to each source?
-      std::vector<sourcefitting::RadioSource> *itsSourceList;
-      std::string itsFitType; ///< Which fit type to write out.
-    };
+        std::vector<RadioSource> *itsSourceList;
+        std::string itsFitType; ///< Which fit type to write out.
+        ENTRYTYPE itsEntryType;
 
-  }
+}; // end 'class AskapVOTableCatalogueWriter'
+
+}
 
 }
 

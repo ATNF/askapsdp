@@ -28,6 +28,9 @@
 ///
 #include <outputs/ParsetComponent.h>
 #include <askap_analysis.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <outputs/CataloguePreparation.h>
 
 #include <sourcefitting/RadioSource.h>
 #include <coordutils/PositionUtilities.h>
@@ -96,7 +99,7 @@ namespace askap {
 	    else this->itsBmaj = this->itsBmin = this->itsBpa = 0.;
 
 	    std::stringstream ID;
-	    ID << src->getID() << sourcefitting::getSuffix(fitNum);
+	    ID << src->getID() << getSuffix(fitNum);
 	    this->itsID=ID.str();
 	}
 

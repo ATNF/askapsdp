@@ -62,7 +62,7 @@ namespace askap {
 	int maxNumComponents(){return itsMaxNumComponents;};
 	void setMaxNumComponents(int i){itsMaxNumComponents = i;};
 
-	void setup(DuchampParallel *finder);
+	void setup(duchamp::Cube *cube);
      	void writeTableHeader();
  	/// @brief Front-end to writing the catalogue. 
 	void writeEntries();

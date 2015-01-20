@@ -35,6 +35,7 @@
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 #include <sourcefitting/FittingParameters.h>
+#include <outputs/CataloguePreparation.h>
 #include <mathsutils/MathsUtils.h>
 
 #include <cppunit/extensions/HelperMacros.h>

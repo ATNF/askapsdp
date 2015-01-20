@@ -175,9 +175,6 @@ namespace askap {
 		/// @brief Extract spectra/moment-maps/cubelets from a cube for each detected object
 		void extract();
 
-                /// @brief Write a Karma/DS9/CASA annotation files showing the fits (on the master).
-                void writeFitAnnotations();
-
 		void writeToFITS();
 		
 		/// @brief Write an array to an image
@@ -197,23 +194,17 @@ namespace askap {
 		
 		std::vector<sourcefitting::RadioSource> *pSourceList(){return &itsSourceList;};
 		std::vector<sourcefitting::RadioSource> sourceList(){return itsSourceList;};
+                std::vector<sourcefitting::RadioSource> &rSourceList(){
+                    std::vector<sourcefitting::RadioSource> &ref=itsSourceList;
+                    return ref;
+                };
 		std::vector<sourcefitting::RadioSource> *pEdgeList(){return &itsEdgeSourceList;};
 		std::vector<sourcefitting::RadioSource> edgeList(){return itsEdgeSourceList;};
-
-		std::string getSubimageAnnotationFile()      {return itsSubimageAnnotationFile;};
-		void        setSubimageAnnotationFile(std::string s){itsSubimageAnnotationFile=s;};
-		std::string getFitSummaryFile()      {return itsFitSummaryFile;};
-		void        setFitSummaryFile(std::string s){itsFitSummaryFile=s;};
-		std::string getFitAnnotationFile()      {return itsFitAnnotationFile;};
-		void        setFitAnnotationFile(std::string s){itsFitAnnotationFile=s;};
-		std::string getFitBoxAnnotationFile()      {return itsFitBoxAnnotationFile;};
-		void        setFitBoxAnnotationFile(std::string s){itsFitBoxAnnotationFile=s;};
 
             protected:
 
 		/// @brief Check for the existence of deprecated parameters in the parset.
 		void checkAndWarn(std::string oldParam, std::string newParam="");
-
 
                 // Class for communications
                 askap::askapparallel::AskapParallel& itsComms;
@@ -264,17 +255,6 @@ namespace askap {
 		std::vector<bool> itsFlagFindSpectralTerms;
                 /// Where shall we find spectral index/curvature information?
 		std::vector<string> itsSpectralTermImages;
-
-                /// Name of the summary file
-                std::string itsFitSummaryFile;
-
-                /// Name of the Karma annotation file showing the subimages used when in parallel
-                std::string itsSubimageAnnotationFile;
-
-                /// Name of the Karma annotation file with the fitted Gaussian components
-                std::string itsFitAnnotationFile;
-                /// Name of the Karma annotation file with the boxes surrounding the fitted Gaussian components
-                std::string itsFitBoxAnnotationFile;
 
                 /// The list of fits to the detected sources.
                 std::vector<sourcefitting::RadioSource> itsSourceList;

@@ -87,12 +87,6 @@ namespace askap {
       this->itsFitType = other.itsFitType;
       return *this;
     }
-
-    void AskapAsciiCatalogueWriter::setup(DuchampParallel *finder)
-    {
-      this->CatalogueWriter::setup(finder->pCube());
-      this->itsSourceList = finder->pSourceList();
-    }
     
     void AskapAsciiCatalogueWriter::writeEntries()
     {
