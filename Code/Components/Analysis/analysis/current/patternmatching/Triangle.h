@@ -158,65 +158,6 @@ class Triangle {
 
 };
 
-/// @brief Create a list of triangles from a list of points
-std::vector<Triangle> getTriList(std::vector<Point> &pixlist);
-
-/// @brief Match two lists of triangles
-/// @details Finds a list of matching triangles from two
-/// lists. The lists are both sorted in order of increasing
-/// ratio, and the maximum ratio tolerance is found for each
-/// list. Triangles from list1 are compared with a range from
-/// list2, where the ratio of the comparison triangle falls
-/// between the maximum acceptable range using the maximum
-/// ratio tolerances (so that we don't look at every possible
-/// triangle pair). The matching triangles are returned as a
-/// vector of pairs of triangles.
-/// @param list1 The first list of triangles
-/// @param list2 The other list of triangles
-/// @param epsilon The error parameter used to define the tolerances. Defaults to posTolerance.
-/// @return A list of matching pairs of triangles.
-std::vector<std::pair<Triangle, Triangle> >
-matchLists(std::vector<Triangle> &list1, std::vector<Triangle> &list2, double epsilon);
-
-/// @brief Eliminate likely false matches from a triangle list
-/// @details A list of triangle matches is trimmed of false
-/// matches. First, the magnifications (the difference in the
-/// log(perimeter) values of the two matching triangles) are
-/// examined: the true matches will have mags in a small range
-/// of values, while false matches will have a broader
-/// distribution. Only those matches in a narrow range of mags
-/// will be accepted: those with mean_mag +- rms_mag*scale,
-/// where scale is determined based on the number of same- and
-/// opposite-sense matches.
-///
-/// If n_same and n_opp are the numbers of matches with the
-/// same sense (both clockwise or both anticlockwise) or
-/// opposite sense, then we get estimates of the number of
-/// true & false matches by m_t=|n_same-n_opp| and m_f =
-/// n_same + n_opp - m_t. Then scale is :
-/// @li 1 if m_f > m_t
-/// @li 3 if 0.1 m_t > m_f
-/// @li 2 otherwise
-///
-/// Finally, all matches should have the same sense, so if
-/// n_same > n_opp, all opposite sense matches are discarded,
-/// and vice versa.
-void trimTriList(std::vector<std::pair<Triangle, Triangle> > &trilist);
-
-/// @brief Make the final assignment of matching points
-/// @details The final step in removing false matches is the
-/// voting. Each matched triangle votes for matched
-/// points. The array of votes is ordered from max vote to min
-/// vote. If no pair of points received more than one vote,
-/// the lists don't match. Otherwise, successive points are
-/// accepted until one of :
-/// @li The vote drops by a factor of 2
-/// @li We try to accept a point already accepted
-/// @li The vote drops to zero.
-std::vector<std::pair<Point, Point> >
-vote(std::vector<std::pair<Triangle, Triangle> > &trilist);
-
-
 }
 }
 }

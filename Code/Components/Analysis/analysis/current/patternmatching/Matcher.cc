@@ -34,7 +34,7 @@
 #include <patternmatching/Matcher.h>
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
-#include <analysisutilities/MatchingUtilities.h>
+#include <patternmatching/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
 

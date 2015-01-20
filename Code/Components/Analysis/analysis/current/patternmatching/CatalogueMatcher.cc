@@ -35,7 +35,7 @@
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
 #include <patternmatching/PointCatalogue.h>
-#include <analysisutilities/MatchingUtilities.h>
+#include <patternmatching/MatchingUtilities.h>
 #include <casainterface/CasaInterface.h>
 
 #include <Common/ParameterSet.h>
