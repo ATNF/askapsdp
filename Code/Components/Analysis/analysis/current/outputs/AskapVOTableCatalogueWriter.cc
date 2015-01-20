@@ -188,7 +188,7 @@ void AskapVOTableCatalogueWriter::writeEntry(RadioSource *source)
                     col.printEntry(this->itsFileStream, source->getID());
                 } else {
                     // use Duchamp library to print all other columns
-                    source->printTableEntry(this->itsFileStream, col);
+                    source->duchamp::Detection::printTableEntry(this->itsFileStream, col);
                 }
                 this->itsFileStream << "</TD>";
             }

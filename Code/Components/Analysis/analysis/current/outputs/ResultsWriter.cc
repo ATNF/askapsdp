@@ -59,7 +59,8 @@ namespace analysis {
 
 ResultsWriter::ResultsWriter(DuchampParallel *finder):
     itsParset(finder->parset()), itsCube(finder->cube()),
-    itsSourceList(finder->rSourceList()), itsFitParams(*finder->fitParams())
+    itsSourceList(finder->rSourceList()), itsFitParams(*finder->fitParams()),
+    itsFlag2D(finder->is2D())
 {
 }
 
@@ -179,7 +180,7 @@ void ResultsWriter::writeFrequencyParam(AskapVOTableCatalogueWriter &vowriter)
 
 void ResultsWriter::writeComponentCatalogue()
 {
-    if (itsFlag2D) {
+    if (itsFitParams.doFit()) {
         duchamp::Catalogues::CatalogueSpecification casdaColumns =
             ComponentCatalogue(itsCube.header());
         setupCols(casdaColumns, itsSourceList, "best");
