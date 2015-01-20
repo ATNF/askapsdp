@@ -55,6 +55,18 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "testMW.log");
 
+/// @brief A simple way of printing the worker number
+std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms)
+{
+    std::stringstream ss;
+    if (comms.isParallel()) {
+        if (comms.isMaster())
+	    ss << "MASTER: ";
+        else if (comms.isWorker())
+	    ss << "Worker #" << comms.rank() << ": ";
+    } else ss << "";
+    return ss.str();
+}
 
 // Main function
 int main(int argc, const char** argv)
@@ -62,10 +74,14 @@ int main(int argc, const char** argv)
     // This class must have scope outside the main try/catch block
     askap::askapparallel::AskapParallel comms(argc, argv);
     try{
-      ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << "rank = " << comms.rank());
-      ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << "isParallel() = " << comms.isParallel());
-      ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << "isMaster() = " << comms.isMaster());
-      ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << "isWorker() = " << comms.isWorker());
+        ASKAPLOG_INFO_STR(logger,
+                          printWorkerPrefix(comms) << "rank = " << comms.rank());
+        ASKAPLOG_INFO_STR(logger,
+                          printWorkerPrefix(comms) << "isParallel() = " << comms.isParallel());
+        ASKAPLOG_INFO_STR(logger,
+                          printWorkerPrefix(comms) << "isMaster() = " << comms.isMaster());
+        ASKAPLOG_INFO_STR(logger,
+                          printWorkerPrefix(comms) << "isWorker() = " << comms.isWorker());
         ///==============================================================================
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

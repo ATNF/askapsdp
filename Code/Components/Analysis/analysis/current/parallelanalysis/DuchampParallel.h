@@ -192,9 +192,6 @@ namespace askap {
                 /// @brief Is the dataset a 2-dimensional image?
                 bool is2D();
 
-                /// @brief Print out the worker number in form useful for logging.
-                std::string workerPrefix(){return printWorkerPrefix(itsComms);};
-
                 /// @brief Get a particular RadioSource
                 sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
 		

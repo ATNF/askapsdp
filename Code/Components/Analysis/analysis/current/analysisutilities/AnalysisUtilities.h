@@ -47,28 +47,32 @@
 #include <duchamp/Detection/detection.hh>
 
 namespace askap {
-    namespace analysis {
+namespace analysis {
 
-	/// @ingroup analysisutilities
-	/// @{
+/// @ingroup analysisutilities
+/// @{
 
-	/// @brief A simple way of printing the worker number
-	std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms);
-      
-        /// @brief Return an array of axis dimensions for a FITS file.
-        std::vector<size_t> getFITSdimensions(std::string filename);
+/// @brief Return an array of axis dimensions for a FITS file.
+std::vector<size_t> getFITSdimensions(std::string filename);
 
-        /// @brief Check for the use of a particular parameter in a ParameterSet and warn the user it is not used.
-	void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
+/// @brief Check for the use of a particular parameter in a
+/// ParameterSet and warn the user it is not used.
+void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
 
-        /// @brief Parse a ParameterSet and define duchamp::param parameters.
-        duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
-	
-	std::string objectToSubsection(duchamp::Detection *object, long padding, std::string imageName, duchamp::FitsHeader &header);
+/// @brief Parse a ParameterSet and define duchamp::param parameters.
+/// Takes a ParameterSet and reads in the necessary Duchamp
+/// parameters. It checks many of the duchamp::param parameters, and
+/// if they are not present, a default value, defined herein, is set
+/// (note that this is not necessarily the standard Duchamp default
+/// value).
+duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
 
-	/// @}
+std::string objectToSubsection(duchamp::Detection *object, long padding,
+                               std::string imageName, duchamp::FitsHeader &header);
 
-    }
+/// @}
+
+}
 }
 
 #endif
