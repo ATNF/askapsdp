@@ -50,8 +50,7 @@ using namespace askap::simulations::FITS;
 
 ASKAP_LOGGER(logger, "createFITS.log");
 
-class CreateFitsApp : public askap::Application
-{
+class CreateFitsApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -72,22 +71,21 @@ class CreateFitsApp : public askap::Application
                 bool doConvolution = subset.getBool("doConvolution", true);
                 FITSparallel file(comms, subset);
 
-                if (comms.isMaster()) ASKAPLOG_INFO_STR(logger, "In MASTER node!");
-
-                if (comms.isWorker()) ASKAPLOG_INFO_STR(logger, "In WORKER node #" << comms.rank());
-
                 file.processSources();
 
-                if (doNoise && (noiseBeforeConvolve || !doConvolution))
+                if (doNoise && (noiseBeforeConvolve || !doConvolution)) {
                     file.addNoise(true);
+                }
 
                 file.toMaster();
 
-                if (doConvolution)
+                if (doConvolution) {
                     file.convolveWithBeam();
+                }
 
-                if (doNoise && (!noiseBeforeConvolve && doConvolution))
+                if (doNoise && (!noiseBeforeConvolve && doConvolution)) {
                     file.addNoise(false);
+                }
 
                 file.output();
 
@@ -98,8 +96,10 @@ class CreateFitsApp : public askap::Application
                 std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " <<
+                                   argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " <<
+                          argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             }
 

@@ -29,15 +29,14 @@
 
 namespace askap {
 
-    namespace simulations {
+namespace simulations {
 
-	class MakeAllModelSlicesApp : public askap::Application
-	{
-	public:
-	    virtual int run(int argc, char* argv[]);
-	};
+class MakeAllModelSlicesApp : public askap::Application {
+    public:
+        virtual int run(int argc, char* argv[]);
+};
 
-    }
+}
 
 }
 

@@ -61,7 +61,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -90,16 +90,18 @@ int main(int argc, const char** argv)
     boost::shared_ptr<Spectrum> spec(&cont);
     fluxes.addSpectrum(spec, x, y, wcs);
 
-    for (size_t i = 0; i < fluxes.nChan(); i++)
+    for (size_t i = 0; i < fluxes.nChan(); i++) {
         std::cout << i << " " << fluxes.getFlux(i) << "\n";
+    }
 
     std::cout << "\n";
 
     FluxGenerator singleFlux(1);
     cont = Continuum(0., 0., 1.4e9, 1.);
-    spec=boost::shared_ptr<Spectrum>(&cont);
+    spec = boost::shared_ptr<Spectrum>(&cont);
     singleFlux.addSpectrum(spec, x, y, wcs);
 
-    for (size_t i = 0; i < singleFlux.nChan(); i++)
+    for (size_t i = 0; i < singleFlux.nChan(); i++) {
         std::cout << i << " " << singleFlux.getFlux(i) << "\n";
+    }
 }

@@ -63,7 +63,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -76,43 +76,44 @@ int main(int argc, const char** argv)
 {
     askap::askapparallel::AskapParallel comms(argc, argv);
 //     try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-        casa::Timer timer;
-        timer.mark();
-        srandom(time(0));
-        std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
-        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
- 
-	std::string outfile = subset.getString("workerList","workerSectionList.txt");
-	int nsubx = subset.getInt32("nsubx",1);
-	int nsuby = subset.getInt32("nsuby",1);
-	int nsubz = subset.getInt32("nsubz",1);
-	int nworkers = nsubx * nsuby * nsubz;
-	ASKAPLOG_DEBUG_STR(logger, nsubx << " " << nsuby << " " << nsubz << " " <<nworkers);
-	if(nworkers<=1){
-	  ASKAPLOG_WARN_STR(logger, "Number of workers required by parset is only one!");
-	  exit(0);
-	}
-	size_t dim = subset.getInt32("dim", 2);
-	std::vector<int> axes = subset.getInt32Vector("axes");
-	analysisutilities::SubimageDef subdef = analysisutilities::SubimageDef(subset);
-	subdef.define(dim);
-	subdef.setImageDim(axes);
-	subdef.setInputSubsection(duchamp::nullSection(dim));
-	subdef.defineAllSections();
-	
-	std::ofstream output(outfile.c_str());
-	output << "# Worker Subsection\n";
-	for(int i=0;i<nworkers;i++){
-	  output << i+1 << "  " << subdef.section(i).getSection() << "\n";
-	}
+    // Ensure that CASA log messages are captured
+    casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+    casa::LogSink::globalSink(globalSink);
+    casa::Timer timer;
+    timer.mark();
+    srandom(time(0));
+    std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
+    ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+    LOFAR::ParameterSet parset(parsetFile);
+    LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
+
+    std::string outfile = subset.getString("workerList", "workerSectionList.txt");
+    int nsubx = subset.getInt32("nsubx", 1);
+    int nsuby = subset.getInt32("nsuby", 1);
+    int nsubz = subset.getInt32("nsubz", 1);
+    int nworkers = nsubx * nsuby * nsubz;
+    ASKAPLOG_DEBUG_STR(logger, nsubx << " " << nsuby << " " << nsubz << " " << nworkers);
+    if (nworkers <= 1) {
+        ASKAPLOG_WARN_STR(logger, "Number of workers required by parset is only one!");
+        exit(0);
+    }
+    size_t dim = subset.getInt32("dim", 2);
+    std::vector<int> axes = subset.getInt32Vector("axes");
+    analysisutilities::SubimageDef subdef = analysisutilities::SubimageDef(subset);
+    subdef.define(dim);
+    subdef.setImageDim(axes);
+    subdef.setInputSubsection(duchamp::nullSection(dim));
+    subdef.defineAllSections();
+
+    std::ofstream output(outfile.c_str());
+    output << "# Worker Subsection\n";
+    for (int i = 0; i < nworkers; i++) {
+        output << i + 1 << "  " << subdef.section(i).getSection() << "\n";
+    }
 
 
-        ASKAPLOG_INFO_STR(logger, "Time for execution of workerSectionList = " << timer.real() << " sec");
+    ASKAPLOG_INFO_STR(logger, "Time for execution of workerSectionList = " <<
+                      timer.real() << " sec");
 
 //     } catch (const askap::AskapError& x) {
 //         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

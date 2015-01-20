@@ -54,6 +54,7 @@
 
 #include <Common/ParameterSet.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/pointer_cast.hpp>
 
 #include <duchamp/Utils/Section.hh>
@@ -96,1259 +97,1298 @@ using namespace askap::analysisutilities;
 
 namespace askap {
 
-  namespace simulations {
-
-    namespace FITS {
-
-      FITSfile::FITSfile()
-      {
-	/// @details Default constructor does not allocate anything, and the arrayAllocated flag is set to false.
-	this->itsArrayAllocated = false;
-	this->itsWCSAllocated = false;
-	this->itsWCSsourcesAllocated = false;
-	this->itsCreateTaylorTerms = false;
-	this->itsWriteFullImage = true;
-      }
-
-      //--------------------------------------------------------
-
-      FITSfile::~FITSfile()
-      {
-	/// @details Destructor deletes the flux array if it has been allocated.
-	if (this->itsArrayAllocated) delete [] this->itsArray;
-
-	int nwcs = 1;
-
-	if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
-
-	if (this->itsWCSsourcesAllocated) wcsvfree(&nwcs, &this->itsWCSsources);
-
-      }
-
-
-      FITSfile::FITSfile(const FITSfile &f)
-      {
-	operator=(f);
-      }
-
-      FITSfile& FITSfile::operator=(const FITSfile &f)
-      {
-	if (this == &f) return *this;
-
-	this->itsFileName = f.itsFileName;
-	this->itsFITSOutput = f.itsFITSOutput;
-	this->itsCasaOutput = f.itsCasaOutput;
-	this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
-	this->itsWriteFullImage = f.itsWriteFullImage;
-	this->itsCreateTaylorTerms = f.itsCreateTaylorTerms;
-	this->itsMaxTaylorTerm = f.itsMaxTaylorTerm;
-	this->itsTTmaps = f.itsTTmaps;
-	this->itsTTlogevery = f.itsTTlogevery;
-	this->itsSourceList = f.itsSourceList;
-	this->itsSourceListType = f.itsSourceListType;
-	this->itsSourceLogevery = f.itsSourceLogevery;
-	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
-	this->itsFlagVerboseSources = f.itsFlagVerboseSources;
-	this->itsModelFactory = f.itsModelFactory;
-	this->itsPosType = f.itsPosType;
-	this->itsMinMinorAxis = f.itsMinMinorAxis;
-	this->itsPAunits = f.itsPAunits;
-	this->itsSourceFluxUnits = f.itsSourceFluxUnits;
-	this->itsAxisUnits = f.itsAxisUnits;
-	this->itsFlagIntegrateGaussians = f.itsFlagIntegrateGaussians;
-	this->itsNumPix = f.itsNumPix;
-
-	if (this->itsArrayAllocated) {
-	  this->itsArrayAllocated = false;
-	  delete [] itsArray;
-	}
-
-	this->itsArrayAllocated = f.itsArrayAllocated;
-
-	if (this->itsArrayAllocated) {
-	  this->itsArray = new float[this->itsNumPix];
-
-	  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = f.itsArray[i];
-	}
-
-	this->itsNoiseRMS = f.itsNoiseRMS;
-	this->itsDim = f.itsDim;
-	this->itsAxes = f.itsAxes;
-	this->itsSourceSection = f.itsSourceSection;
-	this->itsHaveBeam = f.itsHaveBeam;
-	this->itsBeamInfo = f.itsBeamInfo;
-	this->itsBeamCorrector = f.itsBeamCorrector;
-	this->itsBaseFreq = f.itsBaseFreq;
-	this->itsRestFreq = f.itsRestFreq;
-	this->itsAddSources = f.itsAddSources;
-	this->itsDryRun = f.itsDryRun;
-	this->itsEquinox = f.itsEquinox;
-	this->itsBunit = f.itsBunit;
-	this->itsUnitScl = f.itsUnitScl;
-	this->itsUnitOff = f.itsUnitOff;
-	this->itsUnitPwr = f.itsUnitPwr;
-
-	int nwcs = 1;
-
-	if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
-
-	this->itsWCSAllocated = f.itsWCSAllocated;
-
-	if (this->itsWCSAllocated) {
-	  this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	  this->itsWCSAllocated = true;
-	  this->itsWCS->flag     = -1;
-	  wcsini(true, f.itsWCS->naxis, this->itsWCS);
-	  wcscopy(true, f.itsWCS, this->itsWCS);
-	  wcsset(this->itsWCS);
-	}
-
-	this->itsFlagPrecess = f.itsFlagPrecess;
-
-	if (this->itsWCSsourcesAllocated) wcsvfree(&nwcs, &this->itsWCSsources);
-
-	this->itsWCSsourcesAllocated = f.itsWCSsourcesAllocated;
-
-	if (this->itsFlagPrecess) {
-	  if (this->itsWCSsourcesAllocated) {
-	    this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	    this->itsWCSsourcesAllocated = true;
-	    this->itsWCSsources->flag     = -1;
-	    wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources);
-	    wcscopy(true, f.itsWCSsources, this->itsWCSsources);
-	    wcsset(this->itsWCSsources);
-	  }
-	}
-
-	this->itsFlagOutputList = f.itsFlagOutputList;
-	this->itsFlagOutputListGoodOnly = f.itsFlagOutputListGoodOnly;
-	this->itsOutputSourceList = f.itsOutputSourceList;
-
-	return *this;
-
-      }
-
-      //--------------------------------------------------------
-
-      FITSfile::FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory)
-      {
-	/// @details Constructor that reads in the necessary
-	/// definitions from the parameterset. All FITSfile members
-	/// are read in. The conversion factors for the source fluxes
-	/// are also defined using the WCSLIB wcsunits function (using
-	/// the sourceFluxUnits parameter: if this is not specified,
-	/// the fluxes are assumed to be the same units as those of
-	/// BUNIT). The pixel array is allocated here.
-
-	ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
-	this->itsFileName = parset.getString("filename", "");
-	this->itsFITSOutput = parset.getBool("fitsOutput", true);
-	this->itsCasaOutput = parset.getBool("casaOutput", false);
-	this->itsFlagWriteByChannel = parset.getBool("flagWriteByChannel",false);
-	this->itsWriteFullImage = parset.getBool("writeFullImage",true);
-	this->itsCreateTaylorTerms = parset.getBool("createTaylorTerms",false);
-	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);	
-	this->itsTTmaps = std::vector<casa::Array<Float> >(this->itsMaxTaylorTerm+1);
-	this->itsTTlogevery = parset.getInt32("TTlogevery",10);
-	ASKAPLOG_DEBUG_STR(logger, "createTaylorTerms="<<this->itsCreateTaylorTerms<<", maxTaylorTerm="<<this->itsMaxTaylorTerm);
-
-	this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
-	this->itsSourceList = parset.getString("sourcelist", "");
-	std::ifstream file;
-	file.open(this->itsSourceList.c_str(), std::ifstream::in);
-	file.close();
-
-	if (file.fail()) {
-	  ASKAPTHROW(AskapError, "Source list " << this->itsSourceList << " could not be opened. Exiting.");
-	}
-
-	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
-
-	if (this->itsSourceListType != "continuum" && this->itsSourceListType != "spectralline") {
-	  this->itsSourceListType = "continuum";
-	  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to 'continuum'.");
-	}
-
-	this->itsAddSources = parset.getBool("addSources", true);
-	this->itsDryRun = parset.getBool("dryRun", false);
-	this->itsSourceLogevery = parset.getInt32("sourceLogevery",1000);
-
-	this->itsModelFactory = ModelFactory(parset);
-	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
-	if(!this->itsModelFactory.checkType())
-	  ASKAPLOG_ERROR_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") not a valid type.");
-	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
-	this->itsUseGaussians=true;
-	if(this->itsDatabaseOrigin == "POSSUM" || this->itsDatabaseOrigin == "POSSUMHI"){
-	    this->itsUseGaussians = parset.getBool("useGaussians",false);
-	    if(this->itsUseGaussians) 
-		ASKAPLOG_DEBUG_STR(logger, "Expressing disc components as 2D gaussians");
-	    else
-		ASKAPLOG_DEBUG_STR(logger, "Leaving disc components as discs");
-	}
-	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
-	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
-	this->itsFlagVerboseSources = parset.getBool("verboseSources",true);
-
-	this->itsPosType = parset.getString("posType", "dms");
-	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
-	this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
-	if (this->itsPAunits != "rad" && this->itsPAunits != "deg") {
-	  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
-	  this->itsPAunits = "rad";
-	}
-	if(this->itsDatabaseOrigin == "Selavy" && this->itsPAunits != "deg") {
-	  if(parset.isDefined("PAunits"))
-	    ASKAPLOG_WARN_STR(logger, "With Selavy, PAunits must be 'deg'.");
-	  this->itsPAunits = "deg";
-	}	     
-
-	this->itsFlagIntegrateGaussians = parset.getBool("integrateGaussians",true);
-	// For the Selavy case, we want to default to false, unless specified in the parset.
-	if(this->itsDatabaseOrigin == "Selavy" && !parset.isDefined("integrateGaussians")) 
-	  this->itsFlagIntegrateGaussians = false;
-
-	this->itsAxisUnits = casa::Unit(parset.getString("axisUnits", "arcsec"));
-	this->itsSourceFluxUnits = casa::Unit(parset.getString("sourceFluxUnits", ""));
-
-	if (this->itsSourceFluxUnits != "") {
-	  char *base = (char *)this->itsBunit.getName().c_str();
-	  wcsutrn(0, base);
-	  char *src = (char *)this->itsSourceFluxUnits.getName().c_str();
-	  wcsutrn(0, src);
-	  int status = wcsunits(src, base, &this->itsUnitScl, &this->itsUnitOff, &this->itsUnitPwr);
-
-	  if (status) ASKAPTHROW(AskapError, "The parameters bunit (\"" << base
-				 << "\") and sourceFluxUnits (\"" << src
-				 << "\") are not interconvertible.");
-
-	  ASKAPLOG_INFO_STR(logger, "Converting from " << src << " to " << base
-			    << ": " << this->itsUnitScl << "," << this->itsUnitOff << "," << this->itsUnitPwr);
-	} else {
-	  this->itsSourceFluxUnits = this->itsBunit;
-	  this->itsUnitScl = 1.;
-	  this->itsUnitOff = 0.;
-	  this->itsUnitPwr = 1.;
-	}
-
-	this->itsNoiseRMS = parset.getFloat("noiserms", 0.001);
-
-	this->itsDim = parset.getUint16("dim", 2);
-	this->itsAxes = parset.getUint32Vector("axes");
-	std::string sectionString = parset.getString("subsection", duchamp::nullSection(this->itsDim));
-	this->itsSourceSection.setSection(sectionString);
-	std::vector<int> axes(this->itsDim);
-
-	for (uint i = 0; i < this->itsDim; i++) axes[i] = this->itsAxes[i];
-
-	this->itsSourceSection.parse(axes);
-
-	if (this->itsAxes.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but axes has " << this->itsAxes.size() << " dimensions.");
-
-	for (uint i = 0; i < this->itsDim; i++)
-	  this->itsAxes[i] = this->itsSourceSection.getDim(i);
-
-	std::stringstream ss;
-	this->itsNumPix = this->itsAxes[0];
-	ss << this->itsAxes[0];
-
-	for (uint i = 1; i < this->itsDim; i++) {
-	  this->itsNumPix *= this->itsAxes[i];
-	  ss << "x" << this->itsAxes[i];
-	}
-
-
-	this->itsHaveBeam = parset.isDefined("beam");
-	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
-
-	if(parset.getBool("correctForBeam",false) && !parset.getBool("useDeconvolvedSizes",false)){
-	  this->itsBeamCorrector = BeamCorrector(parset.makeSubset("correctForBeam."));
-	  if (!this->itsHaveBeam) {
-	    this->itsBeamInfo = this->itsBeamCorrector.beam();
-	    this->itsHaveBeam=true;
-	  }
-	}
-
-	if(this->itsHaveBeam)
-	  ASKAPLOG_DEBUG_STR(logger, "Using beam " << this->itsBeamInfo[0] << " " << this->itsBeamInfo[1] << " " << this->itsBeamInfo[2]);
-	else
-	  ASKAPLOG_DEBUG_STR(logger, "No beam used");
-
-	this->itsEquinox = parset.getFloat("equinox", 2000.);
-	this->itsRestFreq = parset.getFloat("restFreq", -1.);
-	if(this->itsRestFreq > 0.) ASKAPLOG_DEBUG_STR(logger,"Rest freq = " << this->itsRestFreq);
-
-	LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
-	this->itsWCSAllocated = false;
-	this->setWCS(true, subset);
-	this->itsFlagPrecess = parset.getBool("WCSsources", false);
-	this->itsWCSsourcesAllocated = false;
-
-	if (this->itsFlagPrecess) {
-	  LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
-	  this->setWCS(false, subset);
-	}
-
-	this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
-	ASKAPLOG_DEBUG_STR(logger,"Base freq = " << this->itsBaseFreq);
-
-	if (this->itsDryRun) {
-	  this->itsFITSOutput = false;
-	  this->itsCasaOutput = false;
-	  ASKAPLOG_INFO_STR(logger, "Just a DRY RUN - no sources being added or images created.");
-	}
-
-	this->itsFlagOutputList = parset.getBool("outputList", false);
-	this->itsFlagOutputListGoodOnly = parset.getBool("outputListGoodOnly", false);
-
-	if (this->itsSourceList.size() == 0) this->itsFlagOutputList = false;
-
-	this->itsOutputSourceList = parset.getString("outputSourceList", "");
-
-	this->itsArrayAllocated = false;
-	if (allocateMemory && !this->itsDryRun) {
-	  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes, for total size of " << this->itsNumPix*sizeof(float)/1024./1024./1024. << "GB");
-	  this->itsArray = new float[this->itsNumPix];
-	  this->itsArrayAllocated = true;
-	  ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
-
-	  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
-	}
-
-	ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
-      }
-
-      //--------------------------------------------------------
-
-      bool FITSfile::databaseSpectral()
-      {
-	bool val=((this->itsDatabaseOrigin == "S3SEX" && this->itsSourceListType=="spectralline") ||
-		  this->itsDatabaseOrigin == "S3SAX" ||
-		  this->itsDatabaseOrigin == "Gaussian" ||
-		  this->itsDatabaseOrigin == "FLASH");
-	return val;
-      }
-
-      //--------------------------------------------------------
-
-      int FITSfile::getNumStokes()
-      {
-	// first find which axis is the STOKES axis. Return its dimension, or 1 if there isn't one.
-	bool haveStokes=false;
-	unsigned int stokesAxis=-1;
-	for(unsigned int i=0;i<this->itsDim && !haveStokes;i++){
-	  haveStokes = (std::string(this->itsWCS->ctype[i]) == "STOKES");
-	  if(haveStokes) stokesAxis=i;
-	}
-
-	if(haveStokes) return this->itsAxes[stokesAxis];
-	else return 1;
-      }
-
-
-      //--------------------------------------------------------
-
-      size_t FITSfile::getNumChan()
-      {
-	  size_t val;
-//	  ASKAPLOG_DEBUG_STR(logger, "getNumChan: spectralAxisIndex = " <<this->getSpectralAxisIndex());
-	  if(this->getSpectralAxisIndex() > 0) val =  this->itsAxes[this->getSpectralAxisIndex()];
-	  else val = 1;
-//	  ASKAPLOG_DEBUG_STR(logger, "getNumChan: returning nchan=" << val);
-	  return val;
-      }
-
-      //--------------------------------------------------------
-
-      void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
-      {
-	/// @details Defines a world coordinate system from an
-	/// input parameter set. This looks for parameters that
-	/// define the various FITS header keywords for each
-	/// axis (ctype, cunit, crval, cdelt, crpix, crota), as
-	/// well as the equinox, then defines a WCSLIB wcsprm
-	/// structure and assigns it to either FITSfile::itsWCS
-	/// or FITSfile::itsWCSsources depending on the isImage
-	/// parameter.
-	/// @param isImage If true, the FITSfile::itsWCS
-	/// structure is defined, else it is the
-	/// FITSfile::itsWCSsources.
-	/// @param parset The input parset to be examined.
-
-
-	int stat[NWCSFIX];
-	int axes[this->itsAxes.size()];
-
-	for (uint i = 0; i < this->itsAxes.size(); i++) axes[i] = this->itsAxes[i];
-
-	int nwcs = 1;
-	struct wcsprm *wcs;
-
-	if (isImage) {
-	  if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
-
-	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
-	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsRestFreq,this->itsSourceSection);
-	  this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	  this->itsWCSAllocated = true;
-	  this->itsWCS->flag = -1;
-	  wcsini(true, wcs->naxis, this->itsWCS);
-	  wcsfix(1, (const int*)axes, wcs, stat);
-	  wcscopy(true, wcs, this->itsWCS);
-	  //wcscopy(true, parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection), this->itsWCS);
-	  wcsset(this->itsWCS);
-	} else {
-	  if (this->itsWCSsourcesAllocated)  wcsvfree(&nwcs, &this->itsWCSsources);
-
-	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
-	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsRestFreq,this->itsSourceSection);
-	  this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	  this->itsWCSsourcesAllocated = true;
-	  this->itsWCSsources->flag = -1;
-	  wcsini(true, wcs->naxis, this->itsWCSsources);
-	  wcsfix(1, (const int*)axes, wcs, stat);
-	  wcscopy(true, wcs, this->itsWCSsources);
-	  // wcscopy(true, parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection), this->itsWCSsources);
-	  wcsset(this->itsWCSsources);
-	}
-
-	wcsvfree(&nwcs, &wcs);
-
-      }
-
-      //--------------------------------------------------------
-
-      void FITSfile::makeNoiseArray()
-      {
-	/// @details Fills the pixel array with fluxes sampled from a
-	/// normal distribution ~ N(0,itsNoiseRMS) (i.e. the mean of
-	/// the distribution is zero). Note that this overwrites the array.
-	if (this->itsArrayAllocated) {
-	  ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
-
-	  for (size_t i = 0; i < this->itsNumPix; i++) {
-	    this->itsArray[i] = analysisutilities::normalRandomVariable(0., this->itsNoiseRMS);
-	  }
-	}
-      }
-
-      //--------------------------------------------------------
-
-      void FITSfile::addNoise()
-      {
-	/// @details Adds noise to the array. Noise values are
-	/// distributed as N(0,itsNoiseRMS) (i.e. with mean zero).
-	if (this->itsArrayAllocated) {
-	  ASKAPLOG_DEBUG_STR(logger, "Adding noise");
-
-	  for (size_t i = 0; i < this->itsNumPix; i++) {
-	    this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
-	  }
-	}
-      }
-
-      //--------------------------------------------------------
-
-      void FITSfile::processSources()
-      {
-	/// @details Adds sources to the array. If the source list
-	/// file has been defined, it is read one line at a time, and
-	/// each source is added to the array. If it is a point source
-	/// (i.e. major_axis = 0) then its flux is added to the
-	/// relevant pixel, assuming it lies within the boundaries of
-	/// the array. If it is a Gaussian source (major_axis>0), then
-	/// the function addGaussian is used. The WCSLIB functions are
-	/// used to convert the ra/dec positions to pixel positions.
-
-	if (this->itsSourceList.size() > 0) { // if the source list is defined.
-	  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
-	  std::ifstream srclist(this->itsSourceList.c_str());
-	  std::string line;
-	  double *wld = new double[3];
-	  double *pix = new double[3];
-	  double *newwld = new double[3];
-	  std::ofstream outfile;
-
-	  int countLines=0, countAdded=0;
-	  int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
-
-          boost::shared_ptr<Spectrum> src;
-	  
-	  FluxGenerator fluxGen(this->getNumChan(), this->getNumStokes());
-	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
-
-	  casa::Gaussian2D<casa::Double> gauss;
-	  analysisutilities::Disc disc;
-	  const double arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
-
-	  if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
-
-	  while (getline(srclist, line),
-		 !srclist.eof()) {
-//  	    ASKAPLOG_DEBUG_STR(logger, "input = " << line);
-	    
-	    fluxGen.zero();
-	    
-	    if (line[0] != '#') {  // ignore commented lines
-		
-		countLines++;
-		
-	      src = this->itsModelFactory.read(line);
-//	      ASKAPLOG_DEBUG_STR(logger, "Read source ID=" << src->id()<<": " << src->ra() << " " << src->dec() << " " << src->fluxZero() << " " << src->maj() << " " << src->min() << " " << src->pa());
-
-// 	      src->prepareForUse();
-
- 	      // convert fluxes to correct units according to the image BUNIT keyword
- 	      src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
-
-	      // convert sky position to pixels
-	      if (this->itsPosType == "dms") {
-		wld[0] = analysisutilities::dmsToDec(src->ra()) * 15.;
-		wld[1] = analysisutilities::dmsToDec(src->dec());
-	      } else if (this->itsPosType == "deg") {
-		wld[0] = atof(src->ra().c_str());
-		wld[1] = atof(src->dec().c_str());
-	      } else ASKAPLOG_ERROR_STR(logger, "Incorrect position type: " << this->itsPosType);
-
-	      if(this->itsDim > 2)
-		  wld[2] = this->itsBaseFreq;
-	      else 
-		  wld[2] = 0.;
-
-//  	      ASKAPLOG_DEBUG_STR(logger, "Source positions (with posType="<<this->itsPosType
-//  				 <<"): RA="<<src->ra()<<"->"<<wld[0]<<", DEC="<<src->dec()<<"->"<<wld[1]
-//  				 <<", and Freq="<<this->itsBaseFreq);
-
-// 	      ASKAPLOG_DEBUG_STR(logger, "wcs->flag = " << this->itsWCS->flag
-// 				 << " wcs->lat = " << this->itsWCS->lat
-// 				 << " wcs->lng = " << this->itsWCS->lng
-// 				 << " wcs->spec = " << this->itsWCS->spec);
-
-	      if (this->itsFlagPrecess) wcsToPixSingle(this->itsWCSsources, wld, pix);
-	      else                      wcsToPixSingle(this->itsWCS, wld, pix);
-
-// 	      ASKAPLOG_DEBUG_STR(logger, "Pixel positions are (x,y,z)=("<<pix[0]<<','<<pix[1]<<','<<pix[2]<<")");
-
-	      if (this->itsFlagOutputList) {
-		pixToWCSSingle(this->itsWCS, pix, newwld);
-		// if(!this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){  // use doAddPointSource since this just checks central position
-		if(!this->itsFlagOutputListGoodOnly){
-		  if (this->itsPosType == "dms") 
-		    src->print(outfile,analysisutilities::decToDMS(newwld[0],"RA"),analysisutilities::decToDMS(newwld[1],"DEC"));
-		  else 
-		    src->print(outfile,newwld[0],newwld[1]);
-		}
-	      }
-
-	      bool lookAtSource = (this->itsArrayAllocated && this->itsAddSources) || this->itsDryRun;
-
-	      ComponentType sourceType = src->type();
-
-//	      if(src->maj() > 0) {
-	      if(sourceType == POINT){
-		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
-	      }
-	      else if(sourceType == GAUSSIAN || this->itsUseGaussians){
-
-		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-
-		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
-// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
-		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
-		  //		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-		  gauss.setXcenter(pix[0]);
-		  gauss.setYcenter(pix[1]);
-		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
-		  //		  gauss.setMinorAxis(src->maj());
-		  gauss.setMajorAxis(src->maj());
-		  gauss.setMinorAxis(src->min());
-		  //		  ASKAPLOG_DEBUG_STR(logger, "PA = " << src->pa() << " " << this->itsPAunits.getName() << " or " 
-		  //				     << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad") << " rad");
-		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-		  gauss.setFlux(src->fluxZero());
-		  // ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
-
-		  lookAtSource = lookAtSource && doAddGaussian(this->itsAxes, gauss);
-	      }
-	      else if(sourceType == DISC){
-		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
-// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
-		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  disc.setup(pix[0],pix[1],src->maj(),src->min(),casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-		  lookAtSource = lookAtSource && doAddDisc(this->itsAxes, disc);
-	      }
-
-	      lookAtSource = lookAtSource && src->freqRangeOK(this->minFreq(),this->maxFreq());
-
-	      if (lookAtSource) {
-
-		src->prepareForUse();
-		  
-		bool isGood = true;
-		// if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
-		//   // check the frequency limits for this source to see whether we need to look at it.
-		//     if(this->itsFlagVerboseSources)
-		// 	ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
-		//   //		std::pair<double,double> freqLims = profSAX.freqLimits();
-		//   std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
-		//   isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
-		// }
-
-		if(isGood){
-
-		  src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
-	      
-		  gauss.setFlux(src->fluxZero());
-
-		  if(this->databaseSpectral() && this->itsDatabaseOrigin!="Gaussian")
-		    fluxGen.addSpectrumInt(src,pix[0],pix[1],this->itsWCS);
-		  else 
-		    fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
-
-                  boost::shared_ptr<FullStokesContinuum> pol;
-                  if ( this->itsDatabaseOrigin == "POSSUM") {
-                      pol = boost::shared_ptr<FullStokesContinuum>(
-                          boost::dynamic_pointer_cast<FullStokesContinuum>(src));
-                  }
-                  
-		  bool addedSource=false;
-		  if(this->itsFlagVerboseSources && sourceType!=POINT) 
-		      ASKAPLOG_DEBUG_STR(logger, "Source " << src->id() << " has axes " << src->maj() << " x " << src->min() << " pix");
-		  // if (src->maj() > 0) {
-		  if(sourceType == POINT) {
-		    if (!this->itsDryRun){
-			addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen,this->itsFlagVerboseSources);
-		    }
-		    else{
-		      addedSource=doAddPointSource(this->itsAxes, pix);
-		      if ( addedSource ){
-			countPoint++;
-			if( this->itsDatabaseOrigin == "POSSUM") 
-			    if(this->itsFlagVerboseSources){
-//				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
-                                ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
-                            }
-		      }
-		      else countMiss++;
-		    }
-		  } else if(sourceType == GAUSSIAN || this->itsUseGaussians){
-		    if (!this->itsDryRun){
-			addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians, this->itsFlagVerboseSources);
-		    }
-		    else{
-		      addedSource=doAddGaussian(this->itsAxes, gauss);
-		      if ( addedSource ){
-			countGauss++;
-			if( this->itsDatabaseOrigin == "POSSUM") 
-			    if(this->itsFlagVerboseSources)
-				ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
-		      }
-		      else countMiss++;
-		    }
-		  // } else {
-		  } else if(sourceType==DISC) {
-		      if( !this->itsDryRun){
-			  addedSource=addDisc(this->itsArray, this->itsAxes, disc, fluxGen,this->itsFlagVerboseSources);
-		      }
-		      else{
-			  addedSource=doAddDisc(this->itsAxes, disc);
-			  if ( addedSource ){
-			      countPoint++;
-			      if( this->itsDatabaseOrigin == "POSSUM") 
-				  if(this->itsFlagVerboseSources)
-				      ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<pol->polAngle());
-			  }
-			  else countMiss++;
-		      }
-		  }
-
-		  if(addedSource){
-		    if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
-		      if (this->itsPosType == "dms") 
-			src->print(outfile,analysisutilities::decToDMS(newwld[0],"RA"),analysisutilities::decToDMS(newwld[1],"DEC"));
-		      else 
-			src->print(outfile,newwld[0],newwld[1]);
-		    }
-
-		    countAdded++;
-
-
-		  }
-
-		}
-	      }
-	      else{
-		if(this->itsDryRun) countDud++;
-	      }
-	     
-	      if( countLines % this->itsSourceLogevery == 0 )
-		  ASKAPLOG_INFO_STR(logger, "Read " << countLines << " sources and have added " << countAdded << " to the image");
- 
-	    } else {
-	      // Write all commented lines directly into the output file
-	      if (this->itsFlagOutputList) outfile << line << "\n";
-	    }
-	  }
-
-	  if (this->itsFlagOutputList) outfile.close();
-
-	  srclist.close();
-
-	  if (this->itsDryRun)
-	    ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians, with " << countMiss<<" misses and " << countDud << " duds");
-
-
-	  ASKAPLOG_DEBUG_STR(logger, "Finished adding sources");
-
-	  delete [] wld;
-	  delete [] pix;
-	  delete [] newwld;
-	}
-      }
-
-
-      //--------------------------------------------------------
-
-      void FITSfile::convolveWithBeam()
-      {
-	/// @brief The array is convolved with the Gaussian beam
-	/// specified in itsBeamInfo. The GaussSmooth2D class from the
-	/// Duchamp library is used. Note that this is only done if
-	/// itsHaveBeam is set true.
-	if (!this->itsHaveBeam) {
-	  ASKAPLOG_WARN_STR(logger, "Cannot convolve with beam as the beam was not specified in the parset.");
-	} else {
-	  ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
-	  float maj = this->itsBeamInfo[0] / fabs(this->itsWCS->cdelt[0]);
-	  float min = this->itsBeamInfo[1] / fabs(this->itsWCS->cdelt[1]);
-	  float pa = this->itsBeamInfo[2];
-	  GaussSmooth2D<float> smoother(maj, min, pa);
-	  ASKAPLOG_DEBUG_STR(logger, "Defined the smoother with beam=("<<maj<<","<<min<<","<<pa<<"), now to do the smoothing");
-	  // for(int i=0;i<smoother.getKernelWidth()*smoother.getKernelWidth();i++)
-	  //   std::cerr << i << " " << i%smoother.getKernelWidth() << " " << i/smoother.getKernelWidth() << "    " << smoother.getKernel()[i] << "\n";
-	  ASKAPLOG_DEBUG_STR(logger, "Smoothing kernel width = " << smoother.getKernelWidth() << ", stddev scale = " << smoother.getStddevScale());
-
-	  float scaleFactor = 1.;
-	  // size_t width=smoother.getKernelWidth();
-	  // size_t hw=width/2;
-	  // if(this->itsBunit.getName()=="Jy/beam") scaleFactor = smoother.getKernel()[hw*width+hw]; // scale by the peak of the beam
-	  // ASKAPLOG_DEBUG_STR(logger, "Kernel has width " << width << " and central position ("<<hw*width+hw<<") has value " << smoother.getKernel()[hw*width+hw] << " which means for bunit="<<this->itsBunit.getName()<<" we have a scaleFactor of " << scaleFactor);
-	  if(this->itsBunit.getName()=="Jy/beam"){
-	      duchamp::Beam beam(maj,min,pa);
-	      scaleFactor = 1./beam.area();
-	      ASKAPLOG_DEBUG_STR(logger, "Since bunit="<<this->itsBunit.getName() << " we scale by the area of the beam, which is " << scaleFactor);
-	  }
-	  
-	  ASKAPASSERT(this->itsDim<=4);
-	  size_t xySize = this->itsAxes[0]*this->itsAxes[1];
-	  float *image = new float[xySize];
-	  int specdim = (this->itsDim>2)?this->itsAxes[2]:1;
-	  int stokesdim = (this->itsDim>3)?this->itsAxes[3]:1;
-	  for(int z=0;z<specdim;z++){
-	    for(int j=0;j<stokesdim;j++){
-	      	for(size_t pix=0;pix<xySize;pix++) image[pix] = this->itsArray[z*xySize+pix+j*specdim*xySize];
-		float *newArray = smoother.smooth(image, this->itsAxes[0], this->itsAxes[1],SCALEBYCOVERAGE);
-
-		//float *newArray = smoother.smooth(image, this->itsAxes[0], this->itsAxes[1],EQUALTOEDGE);
-		// ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
-		for (size_t pix=0;pix<xySize;pix++) this->itsArray[z*xySize+pix+j*specdim*xySize] = newArray[pix]/scaleFactor;
-		delete [] newArray;
-	    }
-	  }
-
-	  delete [] image;
-
-	  ASKAPLOG_DEBUG_STR(logger, "Convolving done.");
-
-	}
-      }
-
-
-      //--------------------------------------------------------
-
-      char *numerateKeyword(std::string key, int num)
-      {
-	/// @details A utility function to combine a keyword and a
-	/// value, to produce a relevant FITS keyword for a given
-	/// axis. For example numerateKeyword(CRPIX,1) returns CRPIX1.
-	std::stringstream ss;
-	ss << key << num;
-	return (char *)ss.str().c_str();
-      }
-
-      //--------------------------------------------------------
-
-      void FITSfile::writeFITSimage(bool createFile, bool saveData, bool useOffset)
-      {
-	/// @details Creates a FITS file with the appropriate headers
-	/// and saves the flux array into it. Uses the CFITSIO library
-	/// to do so.
-
-	if (this->itsFITSOutput) {
-
-	  ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << this->itsFileName);
-
-
-	  int status = 0;
-
-	  fitsfile *fptr;
-
-	  if (createFile) {
-	    ASKAPLOG_INFO_STR(logger, "Creating the FITS file");
-
-	    if (fits_create_file(&fptr, this->itsFileName.c_str(), &status)) {
-	      ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
-	      fits_report_error(stderr, status);
-	      ASKAPTHROW(AskapError, "Error opening FITS file.");
-	    }
-
-	    status = 0;
-	    long *dim = new long[this->itsDim];
-
-	    for (uint i = 0; i < this->itsDim; i++) dim[i] = this->itsAxes[i];
-
-	    if (fits_create_img(fptr, FLOAT_IMG, this->itsDim, dim, &status)) {
-	      ASKAPLOG_ERROR_STR(logger, "Error creating the FITS image:");
-	      fits_report_error(stderr, status);
-	    }
-
-	    delete [] dim;
-
-	    status = 0;
-
-	    std::string header = "EQUINOX";
-
-	    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsEquinox), NULL, &status))
-	      fits_report_error(stderr, status);
-
-	    if (this->itsHaveBeam) {
-	      status = 0;
-
-	      header = "BMAJ";
-
-	      if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[0]), NULL, &status))
-		fits_report_error(stderr, status);
-
-	      status = 0;
-
-	      header = "BMIN";
-
-	      if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[1]), NULL, &status))
-		fits_report_error(stderr, status);
-
-	      status = 0;
-
-	      header = "BPA";
-
-	      if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[2]), NULL, &status))
-		fits_report_error(stderr, status);
-	    }
-
-	    status = 0;
-
-	    char *unit = (char *)this->itsBunit.getName().c_str();
-
-	    header = "BUNIT";
-
-	    if (fits_update_key(fptr, TSTRING, (char *)header.c_str(), unit,  NULL, &status))
-	      fits_report_error(stderr, status);
-
-	    if ( (this->itsSourceListType == "spectralline") && (this->itsRestFreq > 0.) ) {
-	      status = 0;
-
-	      header = "RESTFREQ";
-
-	      if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsRestFreq), NULL, &status))
-		fits_report_error(stderr, status);
-	    }
-
-	    float val;
-
-	    for (uint d = 0; d < this->itsDim; d++) {
-	      status = 0;
-
-	      if (fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE", d + 1), this->itsWCS->ctype[d],  NULL, &status))
-		fits_report_error(stderr, status);
-
-	      status = 0;
-
-	      if (fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT", d + 1), this->itsWCS->cunit[d],  NULL, &status))
-		fits_report_error(stderr, status);
-
-	      status = 0;
-	      val = this->itsWCS->crval[d];
-
-	      if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL", d + 1), &val, NULL, &status))
-		fits_report_error(stderr, status);
-
-	      val = this->itsWCS->cdelt[d];
-	      status = 0;
-
-	      if (fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT", d + 1), &val, NULL, &status))
-		fits_report_error(stderr, status);
-
-	      val = this->itsWCS->crpix[d];
-	      status = 0;
-
-	      if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX", d + 1), &val, NULL, &status))
-		fits_report_error(stderr, status);
-
-	      val = this->itsWCS->crota[d];
-	      status = 0;
-
-	      if (fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA", d + 1), &val, NULL, &status))
-		fits_report_error(stderr, status);
-	    }
-
-	  }
-
-	  if (saveData) {
-
-	    ASKAPLOG_INFO_STR(logger, "Saving the data to the FITS file");
-
-	    if (!createFile) {
-	      status = 0;
-	      std::string filename = this->itsFileName;
-
-	      if (filename[0] == '!') filename = filename.substr(1);
-
-	      ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
-
-	      if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
-		ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
-		fits_report_error(stderr, status);
-		ASKAPTHROW(AskapError, "Error opening FITS file.");
-	      }
-	    }
-
-	    int ndim = 4;
-	    long axes[ndim];
-	    fits_get_img_size(fptr, ndim, axes, &status);
-	    ASKAPLOG_DEBUG_STR(logger, "Image dimensions are " << axes[0] << "x" << axes[1] << "x" << axes[2] << "x" << axes[3]);
-
-	    ASKAPLOG_INFO_STR(logger, "Opened the FITS file, preparing to write data");
-
-	    long *fpixel = new long[this->itsDim];
-	    long *lpixel = new long[this->itsDim];
-
-	    for (uint i = 0; i < this->itsDim; i++) {
-	      if(useOffset){
-		fpixel[i] = this->itsSourceSection.getStart(i) + 1;
-		lpixel[i] = this->itsSourceSection.getEnd(i) + 1;
-	      }
-	      else{
-		fpixel[i] = 1;
-		lpixel[i] = this->itsAxes[i];
-	      }
-	    }
-
-	    status = 0;
-
-	    if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
-	      fits_report_error(stderr, status);
-
-	    delete [] fpixel;
-	    delete [] lpixel;
-
-	  } //end of if(saveData)
-
-	  if (saveData || createFile) {
-	    ASKAPLOG_DEBUG_STR(logger, "Closing fits file");
-	    status = 0;
-
-	    if (fits_close_file(fptr, &status)) {
-	      ASKAPLOG_ERROR_STR(logger, "Error closing file:");
-	      fits_report_error(stderr, status);
-	    }
-	  }
-
-
-	}
-      }
-
-      //--------------------------------------------------------
-
-      std::string casafy(std::string fitsName)
-      {
-	/// @details Takes the name of a fits file and produces
-	/// the equivalent CASA image name. This simply involves
-	/// removing the ".fits" extension if it exists, or, if it
-	/// doesn't, adding a ".casa" extension.
-	/// @param fitsName The name of the fits file
-	/// @return The name of the casa image.
-
-	std::string casaname;
-	size_t pos = fitsName.rfind(".fits");
-
-	if (pos == std::string::npos) { // imageName doesn't have a .fits extension
-	  casaname = fitsName + ".casa";
-	} else { // just remove the .fits extension
-	  casaname = fitsName.substr(0, pos);
-	}
-
-	if (casaname[0] == '!') casaname = casaname.substr(1);
-
-	return casaname;
-      }
-
-
-      //--------------------------------------------------------
-
-      void FITSfile::writeCASAimage(bool createFile, bool saveData, bool useOffset)
-      {
-	/// @details Writes the data to a casa image. The WCS is
-	/// converted to a casa-format coordinate system using
-	/// the analysis package function, the brightness units
-	/// and restoring beam are saved to the image, and the
-	/// data array is written using a casa::Array class. No
-	/// additional memory allocation is done in saving the
-	/// data array (the casa::SHARE flag is used in the
-	/// array constructor). The name of the casa image is
-	/// determined by the casafy() function.
-
-	if (this->itsCasaOutput) {
-
-	  std::string newName = casafy(this->itsFileName);
-	  casa::IPosition shape(this->itsDim);
-	  casa::IPosition ttshape;
-
-	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
-
-	  if (createFile) {
-
-	    int nstokes = this->getNumStokes();
-	    ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes << ", databaseOrigin = " << this->itsDatabaseOrigin);
-	    casa::IPosition tileshape(shape.size(),1);
-	    tileshape(this->itsWCS->lng) = std::min(128L,shape(this->itsWCS->lng));
-	    tileshape(this->itsWCS->lat) = std::min(128L,shape(this->itsWCS->lat));
-	    if(this->itsWCS->spec>=0)
-	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
-	    
-	    casa::CoordinateSystem csys = analysisutilities::wcsToCASAcoord(this->itsWCS, nstokes);
-	    casa::ImageInfo ii;
-	    
-	    if (this->itsHaveBeam)
-	      ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
-				  casa::Quantity(this->itsBeamInfo[1], "deg"),
-				  casa::Quantity(this->itsBeamInfo[2], "deg"));
-	    
-	    if( this->itsWriteFullImage) {
-	      
-	      ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
-	      casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
-	      
-	      img.setUnits(this->itsBunit);
-	      if (this->itsHaveBeam) img.setImageInfo(ii);
-	      
-	    }
-
-	    if (this->itsCreateTaylorTerms){
-
-	      tileshape(this->itsWCS->spec) = 1;
-	      ttshape = shape;
-	      ttshape(this->itsWCS->spec)=1;
-	      ASKAPLOG_INFO_STR(logger, "Creating Taylor term images with form " << newName << ".taylor.0-"<<this->itsMaxTaylorTerm<<" with the shape " << ttshape << " and tileshape " << tileshape);
-	      createTaylorTermImages(newName,csys,ttshape,tileshape,this->itsBunit,ii);
-
-	    }
-
-	  }
-
-	  if (saveData) {
-
-	    if(this->itsArrayAllocated){
-	      
-	      casa::IPosition location(this->itsDim,0);
-	      if(useOffset)
-		for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-
-	      if(this->itsWriteFullImage){
-
-		casa::PagedImage<float> img(newName);
-	      
-		if (this->itsFlagWriteByChannel) {
-		  shape(this->itsWCS->spec) = 1;
-		  for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
-		    size_t spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
-		    Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
-		    img.putSlice(arr, location);
-		    // 		  ASKAPLOG_DEBUG_STR(logger, "Writing an array into channel " << z << " with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-		    // 		  img.doPutSlice(arr,location,casa::IPosition(this->itsDim,1));
-		    location(this->itsWCS->spec)++;
-		    
-		  }
-		}
-		else{
-		  // make the casa::Array, sharing the memory storage so there is minimal additional impact
-		  Array<Float> arr(shape, this->itsArray, casa::SHARE);
-		  
-		  casa::IPosition location(this->itsDim,0);
-		  
-		  if(useOffset)
-		    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-		  
-		  ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
-		  ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-		  img.putSlice(arr, location);
-		}
-	      }
-
-	      if(this->itsCreateTaylorTerms){
-		
-		location(this->itsWCS->spec) = this->itsSourceSection.getStart(this->itsWCS->spec);
-		ASKAPLOG_INFO_STR(logger, "Writing to Taylor term images");
-		writeTaylorTermImages(newName,location);
-		  
-	      }
-	    }
-	    else{
-	      ASKAPLOG_WARN_STR(logger, "Cannot write array as it has not been allocated");
-	    }
-	  }
-
-	}
-
-      }
-
-
-      double FITSfile::maxFreq()
-      {
-	int spec=this->itsWCS->spec;
-	return this->itsWCS->crval[spec] + (this->itsAxes[spec]/2+0.5)*this->itsWCS->cdelt[spec];
-      }
-      double FITSfile::minFreq()
-      {
-	int spec=this->itsWCS->spec;
-	return this->itsWCS->crval[spec] - (this->itsAxes[spec]/2+0.5)*this->itsWCS->cdelt[spec];
-      }
-	 
-
-      void FITSfile::createTaylorTermImages(std::string nameBase, casa::CoordinateSystem csys, casa::IPosition shape, casa::IPosition tileshape, casa::Unit bunit, casa::ImageInfo iinfo)
-      {
-
-
-	for(size_t t=0;t<=this->itsMaxTaylorTerm;t++){
-
-	  std::stringstream outname;
-	  outname << nameBase << ".taylor."<<t;
-	  
-// 	  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << outname.str() << " with the shape " << shape << " and tileshape " << tileshape);
-	  casa::PagedImage<float> outimg(casa::TiledShape(shape,tileshape), csys, outname.str());
-	
-	  outimg.setUnits(bunit);
-	  outimg.setImageInfo(iinfo);
-
-	}
-
-      }
-
-
-      void FITSfile::defineTaylorTerms()
-      {
-
-	if(this->itsArrayAllocated){
-
-	  ASKAPLOG_INFO_STR(logger, "Calculating taylor term arrays, for terms up to and including .taylor." << this->itsMaxTaylorTerm);
-
-	  const size_t spec=this->itsWCS->spec;
-	  const unsigned int maxterm = 2;
-	  if(this->itsMaxTaylorTerm > maxterm){
-	    ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " << this->itsMaxTaylorTerm << " was requested. We will only fill terms up to .taylor."<<maxterm);
-	  }
-
-	  casa::IPosition shape(this->itsDim);
-	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
-	  shape(spec)=1;
-	  for(size_t i=0;i<=this->itsMaxTaylorTerm;i++){
-	    this->itsTTmaps[i] = casa::Array<float>(shape,0.);
-	  }
-	  const size_t ndata=this->itsAxes[this->itsWCS->spec];
-	  const size_t degree=this->itsMaxTaylorTerm+3;
-	  double chisq;
-	  gsl_matrix *xdat, *cov;
-	  gsl_vector *ydat, *w, *c;
-	  xdat = gsl_matrix_alloc(ndata,degree);
-	  ydat = gsl_vector_alloc(ndata);
-	  w = gsl_vector_alloc(ndata);
-	  c = gsl_vector_alloc(degree);
-	  cov = gsl_matrix_alloc(degree,degree);
-
-      	  for(size_t i=0;i<ndata;i++){
-	      // Set the frequency values, normalised by the reference frequency nuZero.
-	      // Note that the fitting is done in log-space (and **NOT** log10-space!!)
-	    double freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
-	    float logfreq = log(freq/this->itsBaseFreq);
-	    float xval=1.;
-	    for(size_t d=0;d<degree;d++){
-	      gsl_matrix_set(xdat,i,d,xval);
-	      xval *= logfreq;
-	    }
-	    gsl_vector_set(w,i,1.);
-	  }
-
-	  const size_t xlen=this->itsAxes[this->itsWCS->lng];
-	  const size_t ylen=this->itsAxes[this->itsWCS->lat];
-	  casa::IPosition outpos(shape.size(),0);
-	  for(size_t y=0; y<ylen; y++){
-	    outpos[1]=y;
-
-	    for(size_t x=0; x<xlen; x++){
-	      outpos[0]=x;
-
-	      size_t pos=x+y*xlen;
-
-	      if( pos % int(xlen*ylen*this->itsTTlogevery/100.) == 0 )
-		ASKAPLOG_INFO_STR(logger, "Found Taylor terms for " << pos << " spectra out of " << xlen*ylen <<" with x="<<x<<" and y="<<y);
-
-	      if(this->itsArray[pos]>1.e-20){
-		for (size_t i=0;i<ndata;i++){
-		  gsl_vector_set(ydat,i,log(this->itsArray[pos+i*xlen*ylen]));
-		}
-		gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
-		gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
-		gsl_multifit_linear_free (work);
-	      
-		float Izero = exp(gsl_vector_get(c,0));
-		float alpha = gsl_vector_get(c,1);
-		float beta = gsl_vector_get(c,2);
-		// if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
-		// if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
-		// if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
-                this->itsTTmaps[0](outpos) = Izero;
-		if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = Izero * alpha;
-		if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = Izero * (0.5*alpha*(alpha-1) + beta);
-
-	      }
-	    }
-	  }
-	}
-      }
-
-      void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition location)
-      {
-
-	for(size_t t=0;t<=this->itsMaxTaylorTerm; t++){
-	  std::stringstream outname;
-	  outname << nameBase <<".taylor." << t;
-	  casa::PagedImage<float> outimg(outname.str());
-// 	  ASKAPLOG_INFO_STR(logger, "Writing to CASA image " << outname.str() << " at location " << location);
-	  outimg.putSlice(this->itsTTmaps[t], location);
-	}
-						
-      }
-
-
-
-
+namespace simulations {
+
+namespace FITS {
+
+FITSfile::FITSfile()
+{
+    this->itsWCSAllocated = false;
+    this->itsWCSsourcesAllocated = false;
+    this->itsCreateTaylorTerms = false;
+    this->itsWriteFullImage = true;
+}
+
+//--------------------------------------------------------
+
+FITSfile::~FITSfile()
+{
+    int nwcs = 1;
+
+    if (this->itsWCSAllocated) {
+        wcsvfree(&nwcs, &this->itsWCS);
+    }
+
+    if (this->itsWCSsourcesAllocated) {
+        wcsvfree(&nwcs, &this->itsWCSsources);
+    }
+
+}
+
+
+FITSfile::FITSfile(const FITSfile &f)
+{
+    operator=(f);
+}
+
+FITSfile& FITSfile::operator=(const FITSfile &f)
+{
+    if (this == &f) return *this;
+
+    this->itsFileName = f.itsFileName;
+    this->itsFITSOutput = f.itsFITSOutput;
+    this->itsCasaOutput = f.itsCasaOutput;
+    this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
+    this->itsWriteFullImage = f.itsWriteFullImage;
+    this->itsCreateTaylorTerms = f.itsCreateTaylorTerms;
+    this->itsMaxTaylorTerm = f.itsMaxTaylorTerm;
+    this->itsTTmaps = f.itsTTmaps;
+    this->itsTTlogevery = f.itsTTlogevery;
+    this->itsSourceList = f.itsSourceList;
+    this->itsSourceListType = f.itsSourceListType;
+    this->itsSourceLogevery = f.itsSourceLogevery;
+    this->itsDatabaseOrigin = f.itsDatabaseOrigin;
+    this->itsFlagVerboseSources = f.itsFlagVerboseSources;
+    this->itsModelFactory = f.itsModelFactory;
+    this->itsPosType = f.itsPosType;
+    this->itsMinMinorAxis = f.itsMinMinorAxis;
+    this->itsPAunits = f.itsPAunits;
+    this->itsSourceFluxUnits = f.itsSourceFluxUnits;
+    this->itsAxisUnits = f.itsAxisUnits;
+    this->itsFlagIntegrateGaussians = f.itsFlagIntegrateGaussians;
+    this->itsNumPix = f.itsNumPix;
+
+    this->itsArray = f.itsArray;
+
+    this->itsNoiseRMS = f.itsNoiseRMS;
+    this->itsDim = f.itsDim;
+    this->itsAxes = f.itsAxes;
+    this->itsSourceSection = f.itsSourceSection;
+    this->itsHaveBeam = f.itsHaveBeam;
+    this->itsBeamInfo = f.itsBeamInfo;
+    this->itsBeamCorrector = f.itsBeamCorrector;
+    this->itsBaseFreq = f.itsBaseFreq;
+    this->itsRestFreq = f.itsRestFreq;
+    this->itsAddSources = f.itsAddSources;
+    this->itsDryRun = f.itsDryRun;
+    this->itsEquinox = f.itsEquinox;
+    this->itsBunit = f.itsBunit;
+    this->itsUnitScl = f.itsUnitScl;
+    this->itsUnitOff = f.itsUnitOff;
+    this->itsUnitPwr = f.itsUnitPwr;
+
+    int nwcs = 1;
+
+    if (this->itsWCSAllocated) {
+        wcsvfree(&nwcs, &this->itsWCS);
+    }
+
+    this->itsWCSAllocated = f.itsWCSAllocated;
+
+    if (this->itsWCSAllocated) {
+        this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+        this->itsWCSAllocated = true;
+        this->itsWCS->flag     = -1;
+        wcsini(true, f.itsWCS->naxis, this->itsWCS);
+        wcscopy(true, f.itsWCS, this->itsWCS);
+        wcsset(this->itsWCS);
+    }
+
+    this->itsFlagPrecess = f.itsFlagPrecess;
+
+    if (this->itsWCSsourcesAllocated) {
+        wcsvfree(&nwcs, &this->itsWCSsources);
+    }
+
+    this->itsWCSsourcesAllocated = f.itsWCSsourcesAllocated;
+
+    if (this->itsFlagPrecess) {
+        if (this->itsWCSsourcesAllocated) {
+            this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+            this->itsWCSsourcesAllocated = true;
+            this->itsWCSsources->flag     = -1;
+            wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources);
+            wcscopy(true, f.itsWCSsources, this->itsWCSsources);
+            wcsset(this->itsWCSsources);
+        }
+    }
+
+    this->itsFlagOutputList = f.itsFlagOutputList;
+    this->itsFlagOutputListGoodOnly = f.itsFlagOutputListGoodOnly;
+    this->itsOutputSourceList = f.itsOutputSourceList;
+
+    return *this;
+
+}
+
+//--------------------------------------------------------
+
+FITSfile::FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory)
+{
+
+    ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
+    itsFileName = parset.getString("filename", "");
+    itsFITSOutput = parset.getBool("fitsOutput", true);
+    itsCasaOutput = parset.getBool("casaOutput", false);
+    itsFlagWriteByChannel = parset.getBool("flagWriteByChannel", false);
+    itsWriteFullImage = parset.getBool("writeFullImage", true);
+    itsCreateTaylorTerms = parset.getBool("createTaylorTerms", false);
+    itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);
+    itsTTmaps = std::vector<casa::Array<Float> >(itsMaxTaylorTerm + 1);
+    itsTTlogevery = parset.getInt32("TTlogevery", 10);
+    ASKAPLOG_DEBUG_STR(logger, "createTaylorTerms=" << itsCreateTaylorTerms <<
+                       ", maxTaylorTerm=" << itsMaxTaylorTerm);
+
+    itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
+    itsSourceList = parset.getString("sourcelist", "");
+    std::ifstream file;
+    file.open(itsSourceList.c_str(), std::ifstream::in);
+    file.close();
+
+    if (file.fail()) {
+        ASKAPTHROW(AskapError,
+                   "Source list " << itsSourceList << " could not be opened. Exiting.");
+    }
+
+    itsSourceListType = parset.getString("sourcelisttype", "continuum");
+
+    if (itsSourceListType != "continuum" && itsSourceListType != "spectralline") {
+        itsSourceListType = "continuum";
+        ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be " <<
+                          "*either* 'continuum' or 'spectralline'. Setting to 'continuum'.");
+    }
+
+    itsAddSources = parset.getBool("addSources", true);
+    itsDryRun = parset.getBool("dryRun", false);
+    itsSourceLogevery = parset.getInt32("sourceLogevery", 1000);
+
+    itsModelFactory = ModelFactory(parset);
+    itsDatabaseOrigin = parset.getString("database", "Continuum");
+    if (!itsModelFactory.checkType()) {
+        ASKAPLOG_ERROR_STR(logger, "Input parameter databaseorigin (" <<
+                           itsDatabaseOrigin << ") not a valid type.");
+    }
+    ASKAPLOG_DEBUG_STR(logger, "database origin = " << itsDatabaseOrigin);
+    itsUseGaussians = true;
+    if (itsDatabaseOrigin == "POSSUM" || itsDatabaseOrigin == "POSSUMHI") {
+        itsUseGaussians = parset.getBool("useGaussians", false);
+        if (itsUseGaussians) {
+            ASKAPLOG_DEBUG_STR(logger, "Expressing disc components as 2D gaussians");
+        }        else {
+            ASKAPLOG_DEBUG_STR(logger, "Leaving disc components as discs");
+        }
+    }
+    if (this->databaseSpectral()) {
+        itsSourceListType = "spectralline";
+    }
+    ASKAPLOG_DEBUG_STR(logger, "source list type = " << itsSourceListType);
+    itsFlagVerboseSources = parset.getBool("verboseSources", true);
+
+    itsPosType = parset.getString("posType", "dms");
+    itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
+    itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
+    if (itsPAunits != "rad" && itsPAunits != "deg") {
+        ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be " <<
+                          "*either* 'rad' *or* 'deg'. Setting to rad.");
+        itsPAunits = "rad";
+    }
+    if (itsDatabaseOrigin == "Selavy" && itsPAunits != "deg") {
+        if (parset.isDefined("PAunits")) {
+            ASKAPLOG_WARN_STR(logger, "With Selavy, PAunits must be 'deg'.");
+        }
+        itsPAunits = "deg";
+    }
+
+    itsFlagIntegrateGaussians = parset.getBool("integrateGaussians", true);
+    // For the Selavy case, we want to default to false, unless specified in the parset.
+    if (itsDatabaseOrigin == "Selavy" && !parset.isDefined("integrateGaussians")) {
+        itsFlagIntegrateGaussians = false;
+    }
+
+    itsAxisUnits = casa::Unit(parset.getString("axisUnits", "arcsec"));
+    itsSourceFluxUnits = casa::Unit(parset.getString("sourceFluxUnits", ""));
+
+    if (itsSourceFluxUnits != "") {
+        char *base = (char *)itsBunit.getName().c_str();
+        wcsutrn(0, base);
+        char *src = (char *)itsSourceFluxUnits.getName().c_str();
+        wcsutrn(0, src);
+        int status = wcsunits(src, base,
+                              &itsUnitScl, &itsUnitOff, &itsUnitPwr);
+
+        if (status) {
+            ASKAPTHROW(AskapError, "The parameters bunit (\"" << base
+                       << "\") and sourceFluxUnits (\"" << src
+                       << "\") are not interconvertible.");
+        }
+        ASKAPLOG_INFO_STR(logger, "Converting from " << src << " to " << base <<
+                          ": " << itsUnitScl <<
+                          "," << itsUnitOff <<
+                          "," << itsUnitPwr);
+    } else {
+        itsSourceFluxUnits = itsBunit;
+        itsUnitScl = 1.;
+        itsUnitOff = 0.;
+        itsUnitPwr = 1.;
+    }
+
+    itsNoiseRMS = parset.getFloat("noiserms", 0.001);
+
+    itsDim = parset.getUint16("dim", 2);
+    itsAxes = parset.getUint32Vector("axes");
+    std::string sectionString = parset.getString("subsection",
+                                duchamp::nullSection(itsDim));
+    itsSourceSection.setSection(sectionString);
+    std::vector<int> axes(itsDim);
+
+    for (uint i = 0; i < itsDim; i++) axes[i] = itsAxes[i];
+
+    itsSourceSection.parse(axes);
+
+    if (itsAxes.size() != itsDim) {
+        ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << itsDim
+                   << ", but axes has " << itsAxes.size() << " dimensions.");
+    }
+    for (uint i = 0; i < itsDim; i++) {
+        itsAxes[i] = itsSourceSection.getDim(i);
+    }
+
+    std::stringstream ss;
+    itsNumPix = itsAxes[0];
+    ss << itsAxes[0];
+
+    for (uint i = 1; i < itsDim; i++) {
+        itsNumPix *= itsAxes[i];
+        ss << "x" << itsAxes[i];
+    }
+
+
+    itsHaveBeam = parset.isDefined("beam");
+    if (itsHaveBeam) {
+        itsBeamInfo = parset.getFloatVector("beam");
+    }
+
+    if (parset.getBool("correctForBeam", false) &&
+            !parset.getBool("useDeconvolvedSizes", false)) {
+        itsBeamCorrector = BeamCorrector(parset.makeSubset("correctForBeam."));
+        if (!itsHaveBeam) {
+            itsBeamInfo = itsBeamCorrector.beam();
+            itsHaveBeam = true;
+        }
+    }
+
+    if (itsHaveBeam) {
+        ASKAPLOG_DEBUG_STR(logger, "Using beam " << itsBeamInfo[0] << " " <<
+                           itsBeamInfo[1] << " " << itsBeamInfo[2]);
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "No beam used");
+    }
+
+    itsEquinox = parset.getFloat("equinox", 2000.);
+    itsRestFreq = parset.getFloat("restFreq", -1.);
+    if (itsRestFreq > 0.) {
+        ASKAPLOG_DEBUG_STR(logger, "Rest freq = " << itsRestFreq);
+    }
+
+    LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
+    itsWCSAllocated = false;
+    this->setWCS(true, subset);
+    itsFlagPrecess = parset.getBool("WCSsources", false);
+    itsWCSsourcesAllocated = false;
+
+    if (itsFlagPrecess) {
+        LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
+        this->setWCS(false, subset);
+    }
+
+    itsBaseFreq = parset.getFloat("baseFreq", itsWCS->crval[itsWCS->spec]);
+    ASKAPLOG_DEBUG_STR(logger, "Base freq = " << itsBaseFreq);
+
+    if (itsDryRun) {
+        itsFITSOutput = false;
+        itsCasaOutput = false;
+        ASKAPLOG_INFO_STR(logger, "Just a DRY RUN - no sources being added or images created.");
+    }
+
+    itsFlagOutputList = parset.getBool("outputList", false);
+    itsFlagOutputListGoodOnly = parset.getBool("outputListGoodOnly", false);
+
+    if (itsSourceList.size() == 0) {
+        itsFlagOutputList = false;
+    }
+
+    itsOutputSourceList = parset.getString("outputSourceList", "");
+
+    if (allocateMemory && !itsDryRun) {
+        ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() <<
+                           " with " << itsNumPix << " pixels, each of size " <<
+                           sizeof(float) << " bytes, for total size of " <<
+                           itsNumPix * sizeof(float) / 1024. / 1024. / 1024. << "GB");
+        itsArray = std::vector<float>(itsNumPix, 0.);
+        ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
 
     }
 
-  }
+    ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
+}
+
+//--------------------------------------------------------
+
+bool FITSfile::databaseSpectral()
+{
+    bool val = ((itsDatabaseOrigin == "S3SEX" &&
+                 itsSourceListType == "spectralline") ||
+                itsDatabaseOrigin == "S3SAX" ||
+                itsDatabaseOrigin == "Gaussian" ||
+                itsDatabaseOrigin == "FLASH");
+    return val;
+}
+
+//--------------------------------------------------------
+
+int FITSfile::getNumStokes()
+{
+    // first find which axis is the STOKES axis. Return its dimension,
+    // or 1 if there isn't one.
+    bool haveStokes = false;
+    unsigned int stokesAxis = -1;
+    for (unsigned int i = 0; i < itsDim && !haveStokes; i++) {
+        haveStokes = (std::string(itsWCS->ctype[i]) == "STOKES");
+        if (haveStokes) {
+            stokesAxis = i;
+        }
+    }
+
+    int returnVal;
+    if (haveStokes) {
+        returnVal = itsAxes[stokesAxis];
+    } else {
+        returnVal = 1;
+    }
+    return returnVal;
+}
+
+
+//--------------------------------------------------------
+
+size_t FITSfile::getNumChan()
+{
+    size_t val;
+    if (this->getSpectralAxisIndex() > 0) {
+        val =  itsAxes[this->getSpectralAxisIndex()];
+    } else val = 1;
+    return val;
+}
+
+//--------------------------------------------------------
+
+void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
+{
+    int stat[NWCSFIX];
+    int axes[itsAxes.size()];
+
+    for (uint i = 0; i < itsAxes.size(); i++) axes[i] = itsAxes[i];
+
+    int nwcs = 1;
+    struct wcsprm *wcs;
+
+    if (isImage) {
+        if (itsWCSAllocated) {
+            wcsvfree(&nwcs, &itsWCS);
+        }
+        wcs = parsetToWCS(parset, itsAxes, itsEquinox,
+                          itsRestFreq, itsSourceSection);
+        itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+        itsWCSAllocated = true;
+        itsWCS->flag = -1;
+        wcsini(true, wcs->naxis, itsWCS);
+        wcsfix(1, (const int*)axes, wcs, stat);
+        wcscopy(true, wcs, itsWCS);
+        wcsset(itsWCS);
+    } else {
+        if (itsWCSsourcesAllocated) {
+            wcsvfree(&nwcs, &itsWCSsources);
+        }
+        wcs = parsetToWCS(parset, itsAxes, itsEquinox,
+                          itsRestFreq, itsSourceSection);
+        itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+        itsWCSsourcesAllocated = true;
+        itsWCSsources->flag = -1;
+        wcsini(true, wcs->naxis, itsWCSsources);
+        wcsfix(1, (const int*)axes, wcs, stat);
+        wcscopy(true, wcs, itsWCSsources);
+        wcsset(itsWCSsources);
+    }
+
+    wcsvfree(&nwcs, &wcs);
+
+}
+
+//--------------------------------------------------------
+
+void FITSfile::makeNoiseArray()
+{
+    if (itsArray.size() > 0) {
+        ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
+
+        for (size_t i = 0; i < itsNumPix; i++) {
+            itsArray[i] = analysisutilities::normalRandomVariable(0., itsNoiseRMS);
+        }
+    }
+}
+
+//--------------------------------------------------------
+
+void FITSfile::addNoise()
+{
+    if (itsArray.size() > 0) {
+        ASKAPLOG_DEBUG_STR(logger, "Adding noise");
+
+        for (size_t i = 0; i < itsNumPix; i++) {
+            itsArray[i] += normalRandomVariable(0., itsNoiseRMS);
+        }
+    }
+}
+
+//--------------------------------------------------------
+
+void FITSfile::processSources()
+{
+
+    if (itsSourceList.size() > 0) { // if the source list is defined.
+        ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << itsSourceList);
+        std::ifstream srclist(itsSourceList.c_str());
+        std::string line;
+        std::vector<double> wld(3);
+        std::vector<double> pix(3);
+        std::vector<double> newwld(3);
+        std::ofstream outfile;
+
+        int countLines = 0, countAdded = 0;
+        int countGauss = 0, countPoint = 0, countMiss = 0, countDud = 0;
+
+        boost::shared_ptr<Spectrum> src;
+
+        FluxGenerator fluxGen(this->getNumChan(), this->getNumStokes());
+        ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() <<
+                           " channels and " << fluxGen.nStokes() << " Stokes parameters");
+
+        casa::Gaussian2D<casa::Double> gauss;
+        analysisutilities::Disc disc;
+        const double arcsecToPixel = 3600. * sqrt(fabs(itsWCS->cdelt[0] * itsWCS->cdelt[1]));
+
+        if (itsFlagOutputList) {
+            outfile.open(itsOutputSourceList.c_str(), std::ios::app);
+        }
+
+        while (getline(srclist, line),
+                !srclist.eof()) {
+//          ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+
+            fluxGen.zero();
+
+            if (line[0] == '#') {
+                // Write all commented lines directly into the output file
+                if (itsFlagOutputList) {
+                    outfile << line << "\n";
+                }
+
+            } else {
+                // ignore commented lines
+
+                countLines++;
+
+                src = itsModelFactory.read(line);
+
+                // convert fluxes to correct units according to the image BUNIT keyword
+                casa::Quantity flux0(src->fluxZero(), itsSourceFluxUnits);
+                src->setFluxZero(flux0.getValue(itsBunit));
+                casa::Quantity maj(src->maj(), itsAxisUnits);
+                src->setMaj(maj.getValue("arcsec") / arcsecToPixel);
+                casa::Quantity min;
+                if (src->maj() > 0 && !(src->min() > itsMinMinorAxis)) {
+                    min = casa::Quantity(itsMinMinorAxis, itsAxisUnits);
+                } else {
+                    min = casa::Quantity(src->min(), itsAxisUnits);
+                }
+                src->setMin(min.getValue("arcsec") / arcsecToPixel);
+                casa::Quantity pa(src->pa(), itsPAunits);
+
+                // convert sky position to pixels
+                if (itsPosType == "dms") {
+                    wld[0] = analysisutilities::dmsToDec(src->ra()) * 15.;
+                    wld[1] = analysisutilities::dmsToDec(src->dec());
+                } else if (itsPosType == "deg") {
+                    wld[0] = atof(src->ra().c_str());
+                    wld[1] = atof(src->dec().c_str());
+                } else {
+                    ASKAPLOG_ERROR_STR(logger, "Incorrect position type: " << itsPosType);
+                }
+
+                if (itsDim > 2) {
+                    wld[2] = itsBaseFreq;
+                } else {
+                    wld[2] = 0.;
+                }
+
+                if (itsFlagPrecess) {
+                    wcsToPixSingle(itsWCSsources, wld.data(), pix.data());
+                } else {
+                    wcsToPixSingle(itsWCS, wld.data(), pix.data());
+                }
+
+                if (itsFlagOutputList) {
+                    pixToWCSSingle(itsWCS, pix.data(), newwld.data());
+
+                    if (!itsFlagOutputListGoodOnly) {
+                        if (itsPosType == "dms") {
+                            src->print(outfile,
+                                       analysisutilities::decToDMS(newwld[0], "RA"),
+                                       analysisutilities::decToDMS(newwld[1], "DEC"));
+                        } else {
+                            src->print(outfile, newwld[0], newwld[1]);
+                        }
+                    }
+                }
+
+                bool lookAtSource = (itsArray.size() > 0 && itsAddSources) || itsDryRun;
+
+                ComponentType sourceType = src->type();
+
+                if (sourceType == POINT) {
+                    lookAtSource = lookAtSource && doAddPointSource(itsAxes, pix);
+                } else if (sourceType == GAUSSIAN || itsUseGaussians) {
+
+                    if (src->fluxZero() == 0.) {
+                        src->setFluxZero(1.e-99);
+                    }
+
+                    gauss.setXcenter(pix[0]);
+                    gauss.setYcenter(pix[1]);
+                    // need this so that we never have the minor axis > major axis
+                    gauss.setMinorAxis(std::min(gauss.majorAxis(), src->maj()));
+                    gauss.setMajorAxis(src->maj());
+                    gauss.setMinorAxis(src->min());
+                    gauss.setPA(pa.getValue("rad"));
+                    gauss.setFlux(src->fluxZero());
+
+                    lookAtSource = lookAtSource && doAddGaussian(itsAxes, gauss);
+                } else if (sourceType == DISC) {
+                    disc.setup(pix[0], pix[1], src->maj(), src->min(), pa.getValue("rad"));
+                    lookAtSource = lookAtSource && doAddDisc(itsAxes, disc);
+                }
+
+                lookAtSource = lookAtSource &&
+                               src->freqRangeOK(this->minFreq(), this->maxFreq());
+
+                if (lookAtSource) {
+
+                    src->prepareForUse();
+
+                    if (this->databaseSpectral() && itsDatabaseOrigin != "Gaussian") {
+                        fluxGen.addSpectrumInt(src, pix[0], pix[1], itsWCS);
+                    } else {
+                        fluxGen.addSpectrum(src, pix[0], pix[1], itsWCS);
+                    }
+
+                    boost::shared_ptr<FullStokesContinuum> pol;
+                    if (itsDatabaseOrigin == "POSSUM") {
+                        pol = boost::shared_ptr<FullStokesContinuum>(
+                                  boost::dynamic_pointer_cast<FullStokesContinuum>(src));
+                    }
+
+                    bool addedSource = false;
+                    if (itsFlagVerboseSources && sourceType != POINT) {
+                        ASKAPLOG_DEBUG_STR(logger, "Source " << src->id() <<
+                                           " has axes " << src->maj() << " x "
+                                           << src->min() << " pix");
+                    }
+
+                    if (sourceType == POINT) {
+                        if (!itsDryRun) {
+                            addedSource = addPointSource(itsArray,
+                                                         itsAxes,
+                                                         pix,
+                                                         fluxGen,
+                                                         itsFlagVerboseSources);
+                        } else {
+                            addedSource = doAddPointSource(itsAxes, pix);
+                            if (addedSource) {
+                                countPoint++;
+                                if (itsDatabaseOrigin == "POSSUM") {
+                                    if (itsFlagVerboseSources) {
+                                        ASKAPLOG_DEBUG_STR(logger, "Point Source at RA=" <<
+                                                           src->ra() << ", Dec=" <<
+                                                           src->dec() << ", angle=" <<
+                                                           pol->polAngle());
+                                    }
+                                }
+                            } else countMiss++;
+                        }
+                    } else if (sourceType == GAUSSIAN || itsUseGaussians) {
+                        if (!itsDryRun) {
+                            addedSource = addGaussian(itsArray,
+                                                      itsAxes,
+                                                      gauss, fluxGen,
+                                                      itsFlagIntegrateGaussians,
+                                                      itsFlagVerboseSources);
+                        } else {
+                            addedSource = doAddGaussian(itsAxes, gauss);
+                            if (addedSource) {
+                                countGauss++;
+                                if (itsDatabaseOrigin == "POSSUM") {
+                                    if (itsFlagVerboseSources) {
+                                        ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA=" <<
+                                                           src->ra() << ", Dec=" <<
+                                                           src->dec() << ", angle=" <<
+                                                           pol->polAngle());
+                                    }
+                                }
+                            } else countMiss++;
+                        }
+                    } else if (sourceType == DISC) {
+                        if (!itsDryRun) {
+                            addedSource = addDisc(itsArray, itsAxes, disc,
+                                                  fluxGen, itsFlagVerboseSources);
+                        } else {
+                            addedSource = doAddDisc(itsAxes, disc);
+                            if (addedSource) {
+                                countPoint++;
+                                if (itsDatabaseOrigin == "POSSUM") {
+                                    if (itsFlagVerboseSources) {
+                                        ASKAPLOG_DEBUG_STR(logger, "Point Source at RA=" <<
+                                                           src->ra() << ", Dec=" <<
+                                                           src->dec() << ", angle=" <<
+                                                           pol->polAngle());
+                                    }
+                                }
+                            } else countMiss++;
+                        }
+                    }
+
+                    if (addedSource) {
+                        if (itsFlagOutputList &&
+                                itsFlagOutputListGoodOnly &&
+                                doAddPointSource(itsAxes, pix)) {
+                            if (itsPosType == "dms")
+                                src->print(outfile,
+                                           analysisutilities::decToDMS(newwld[0], "RA"),
+                                           analysisutilities::decToDMS(newwld[1], "DEC"));
+                            else
+                                src->print(outfile, newwld[0], newwld[1]);
+                        }
+
+                        countAdded++;
+
+
+                    }
+
+
+                } else {
+                    if (itsDryRun) countDud++;
+                }
+
+                if (countLines % itsSourceLogevery == 0) {
+                    ASKAPLOG_INFO_STR(logger, "Read " << countLines <<
+                                      " sources and have added " << countAdded <<
+                                      " to the image");
+                }
+
+            }
+
+        }
+
+        if (itsFlagOutputList) {
+            outfile.close();
+        }
+
+        srclist.close();
+
+        if (itsDryRun) {
+            ASKAPLOG_INFO_STR(logger, "Would add " << countPoint <<
+                              " point sources and " << countGauss <<
+                              " Gaussians, with " << countMiss <<
+                              " misses and " << countDud << " duds");
+        }
+
+        ASKAPLOG_DEBUG_STR(logger, "Finished adding sources");
+
+    }
+}
+
+
+//--------------------------------------------------------
+
+void FITSfile::convolveWithBeam()
+{
+    if (!itsHaveBeam) {
+        ASKAPLOG_WARN_STR(logger,
+                          "Cannot convolve with beam as the beam was not " <<
+                          "specified in the parset.");
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
+        float maj = itsBeamInfo[0] / fabs(itsWCS->cdelt[0]);
+        float min = itsBeamInfo[1] / fabs(itsWCS->cdelt[1]);
+        float pa = itsBeamInfo[2];
+        GaussSmooth2D<float> smoother(maj, min, pa);
+        ASKAPLOG_DEBUG_STR(logger, "Defined the smoother with beam=(" << maj << ","
+                           << min << "," << pa << "), now to do the smoothing");
+        ASKAPLOG_DEBUG_STR(logger, "Smoothing kernel width = " << smoother.getKernelWidth() <<
+                           ", stddev scale = " << smoother.getStddevScale());
+
+        float scaleFactor = 1.;
+        if (itsBunit.getName() == "Jy/beam") {
+            duchamp::Beam beam(maj, min, pa);
+            scaleFactor = 1. / beam.area();
+            ASKAPLOG_DEBUG_STR(logger, "Since bunit=" << itsBunit.getName() <<
+                               " we scale by the area of the beam, which is " << scaleFactor);
+        }
+
+        ASKAPASSERT(itsDim <= 4);
+        size_t xySize = itsAxes[0] * itsAxes[1];
+        std::vector<float> image(xySize);
+        int specdim = (itsDim > 2) ? itsAxes[2] : 1;
+        int stokesdim = (itsDim > 3) ? itsAxes[3] : 1;
+        for (int z = 0; z < specdim; z++) {
+            for (int j = 0; j < stokesdim; j++) {
+                for (size_t pix = 0; pix < xySize; pix++) {
+                    image[pix] = itsArray[z * xySize + pix + j * specdim * xySize];
+                }
+                boost::scoped_ptr<float>
+                newArray(smoother.smooth(image.data(), itsAxes[0],
+                                         itsAxes[1], SCALEBYCOVERAGE));
+
+                for (size_t pix = 0; pix < xySize; pix++) {
+                    itsArray[z * xySize + pix + j * specdim * xySize] =
+                        newArray.get()[pix] / scaleFactor;
+                }
+            }
+        }
+
+        ASKAPLOG_DEBUG_STR(logger, "Convolving done.");
+
+    }
+}
+
+
+//--------------------------------------------------------
+
+char *numerateKeyword(std::string key, int num)
+{
+    std::stringstream ss;
+    ss << key << num;
+    return (char *)ss.str().c_str();
+}
+
+//--------------------------------------------------------
+
+void FITSfile::writeFITSimage(bool createFile, bool saveData, bool useOffset)
+{
+
+    if (itsFITSOutput) {
+
+        ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << itsFileName);
+
+
+        int status = 0;
+
+        fitsfile *fptr;
+
+        if (createFile) {
+            ASKAPLOG_INFO_STR(logger, "Creating the FITS file");
+
+            if (fits_create_file(&fptr, itsFileName.c_str(), &status)) {
+                ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
+                fits_report_error(stderr, status);
+                ASKAPTHROW(AskapError, "Error opening FITS file.");
+            }
+
+            status = 0;
+            std::vector<long> dim(itsDim);
+
+            for (uint i = 0; i < itsDim; i++) dim[i] = itsAxes[i];
+
+            if (fits_create_img(fptr, FLOAT_IMG, itsDim, dim.data(), &status)) {
+                ASKAPLOG_ERROR_STR(logger, "Error creating the FITS image:");
+                fits_report_error(stderr, status);
+            }
+
+            status = 0;
+
+            std::string header = "EQUINOX";
+
+            if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(),
+                                &(itsEquinox), NULL, &status)) {
+                fits_report_error(stderr, status);
+            }
+
+            if (itsHaveBeam) {
+                status = 0;
+
+                header = "BMAJ";
+
+                if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(),
+                                    &(itsBeamInfo[0]), NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                status = 0;
+
+                header = "BMIN";
+
+                if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(),
+                                    &(itsBeamInfo[1]), NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                status = 0;
+
+                header = "BPA";
+
+                if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(),
+                                    &(itsBeamInfo[2]), NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+            }
+
+            status = 0;
+
+            char *unit = (char *)itsBunit.getName().c_str();
+
+            header = "BUNIT";
+
+            if (fits_update_key(fptr, TSTRING, (char *)header.c_str(),
+                                unit,  NULL, &status)) {
+                fits_report_error(stderr, status);
+            }
+
+            if ((itsSourceListType == "spectralline") && (itsRestFreq > 0.)) {
+                status = 0;
+
+                header = "RESTFREQ";
+
+                if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(),
+                                    &itsRestFreq, NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+            }
+
+            float val;
+
+            for (uint d = 0; d < itsDim; d++) {
+                status = 0;
+
+                if (fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE", d + 1),
+                                    itsWCS->ctype[d],  NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                status = 0;
+
+                if (fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT", d + 1),
+                                    itsWCS->cunit[d],  NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                status = 0;
+                val = itsWCS->crval[d];
+
+                if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL", d + 1),
+                                    &val, NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                val = itsWCS->cdelt[d];
+                status = 0;
+
+                if (fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT", d + 1),
+                                    &val, NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                val = itsWCS->crpix[d];
+                status = 0;
+
+                if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX", d + 1),
+                                    &val, NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+
+                val = itsWCS->crota[d];
+                status = 0;
+
+                if (fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA", d + 1),
+                                    &val, NULL, &status)) {
+                    fits_report_error(stderr, status);
+                }
+            }
+
+        }
+
+        if (saveData) {
+
+            ASKAPLOG_INFO_STR(logger, "Saving the data to the FITS file");
+
+            if (!createFile) {
+                status = 0;
+                std::string filename = itsFileName;
+
+                if (filename[0] == '!') {
+                    filename = filename.substr(1);
+                }
+
+                ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
+
+                if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
+                    ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
+                    fits_report_error(stderr, status);
+                    ASKAPTHROW(AskapError, "Error opening FITS file.");
+                }
+            }
+
+            int ndim = 4;
+            long axes[ndim];
+            fits_get_img_size(fptr, ndim, axes, &status);
+            ASKAPLOG_DEBUG_STR(logger, "Image dimensions are " << axes[0] << "x" <<
+                               axes[1] << "x" << axes[2] << "x" << axes[3]);
+
+            ASKAPLOG_INFO_STR(logger, "Opened the FITS file, preparing to write data");
+
+            std::vector<long> fpixel(itsDim, 1);
+            std::vector<long> lpixel(itsDim);
+
+            for (uint i = 0; i < itsDim; i++) {
+                if (useOffset) {
+                    fpixel[i] = itsSourceSection.getStart(i) + 1;
+                    lpixel[i] = itsSourceSection.getEnd(i) + 1;
+                } else {
+                    lpixel[i] = itsAxes[i];
+                }
+            }
+
+            status = 0;
+
+            if (fits_write_subset(fptr, TFLOAT, fpixel.data(),
+                                  lpixel.data(), itsArray.data(), &status)) {
+                fits_report_error(stderr, status);
+            }
+
+        } //end of if(saveData)
+
+        if (saveData || createFile) {
+            ASKAPLOG_DEBUG_STR(logger, "Closing fits file");
+            status = 0;
+
+            if (fits_close_file(fptr, &status)) {
+                ASKAPLOG_ERROR_STR(logger, "Error closing file:");
+                fits_report_error(stderr, status);
+            }
+        }
+
+
+    }
+}
+
+//--------------------------------------------------------
+
+std::string casafy(std::string fitsName)
+{
+
+    std::string casaname;
+    size_t pos = fitsName.rfind(".fits");
+
+    if (pos == std::string::npos) { // imageName doesn't have a .fits extension
+        casaname = fitsName + ".casa";
+    } else { // just remove the .fits extension
+        casaname = fitsName.substr(0, pos);
+    }
+
+    if (casaname[0] == '!') {
+        casaname = casaname.substr(1);
+    }
+
+    return casaname;
+}
+
+
+//--------------------------------------------------------
+
+void FITSfile::writeCASAimage(bool createFile, bool saveData, bool useOffset)
+{
+
+    if (itsCasaOutput) {
+
+        std::string newName = casafy(itsFileName);
+        casa::IPosition shape(itsDim);
+        casa::IPosition ttshape;
+
+        for (uint i = 0; i < itsDim; i++) shape(i) = itsAxes[i];
+
+        if (createFile) {
+
+            int nstokes = this->getNumStokes();
+            ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes <<
+                               ", databaseOrigin = " << itsDatabaseOrigin);
+            casa::IPosition tileshape(shape.size(), 1);
+            tileshape(itsWCS->lng) = std::min(128L, shape(itsWCS->lng));
+            tileshape(itsWCS->lat) = std::min(128L, shape(itsWCS->lat));
+            if (itsWCS->spec >= 0) {
+                tileshape(itsWCS->spec) = std::min(16L, shape(itsWCS->spec));
+            }
+
+            casa::CoordinateSystem csys = analysisutilities::wcsToCASAcoord(itsWCS, nstokes);
+            casa::ImageInfo ii;
+
+            if (itsHaveBeam) {
+                ii.setRestoringBeam(casa::Quantity(itsBeamInfo[0], "deg"),
+                                    casa::Quantity(itsBeamInfo[1], "deg"),
+                                    casa::Quantity(itsBeamInfo[2], "deg"));
+            }
+
+            if (itsWriteFullImage) {
+
+                ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName <<
+                                  " with the shape " << shape <<
+                                  " and tileshape " << tileshape);
+                casa::PagedImage<float> img(casa::TiledShape(shape, tileshape), csys, newName);
+
+                img.setUnits(itsBunit);
+                if (itsHaveBeam) {
+                    img.setImageInfo(ii);
+                }
+
+            }
+
+            if (itsCreateTaylorTerms) {
+
+                tileshape(itsWCS->spec) = 1;
+                ttshape = shape;
+                ttshape(itsWCS->spec) = 1;
+                ASKAPLOG_INFO_STR(logger, "Creating Taylor term images with form " << newName <<
+                                  ".taylor.0-" << itsMaxTaylorTerm <<
+                                  " with the shape " << ttshape <<
+                                  " and tileshape " << tileshape);
+                createTaylorTermImages(newName, csys, ttshape, tileshape, itsBunit, ii);
+
+            }
+
+        }
+
+        if (saveData) {
+
+            if (itsArray.size() > 0) {
+
+                casa::IPosition location(itsDim, 0);
+                if (useOffset) {
+                    for (uint i = 0; i < itsDim; i++) {
+                        location(i) = itsSourceSection.getStart(i);
+                    }
+                }
+
+                if (itsWriteFullImage) {
+
+                    casa::PagedImage<float> img(newName);
+
+                    if (itsFlagWriteByChannel) {
+                        shape(itsWCS->spec) = 1;
+                        for (size_t z = 0; z < itsAxes[itsWCS->spec]; z++) {
+                            size_t spatsize = itsAxes[itsWCS->lat] *
+                                              itsAxes[itsWCS->lng];
+                            Array<Float> arr(shape, itsArray.data() + z * spatsize, casa::SHARE);
+                            img.putSlice(arr, location);
+                            location(itsWCS->spec)++;
+
+                        }
+                    } else {
+                        // make the casa::Array, sharing the memory
+                        // storage so there is minimal additional
+                        // impact
+                        Array<Float> arr(shape, itsArray.data(), casa::SHARE);
+
+                        casa::IPosition location(itsDim, 0);
+
+                        if (useOffset) {
+                            for (uint i = 0; i < itsDim; i++) {
+                                location(i) = itsSourceSection.getStart(i);
+                            }
+                        }
+
+                        ASKAPLOG_DEBUG_STR(logger, "shape = " << shape <<
+                                           ", location = " << location);
+                        ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " <<
+                                          arr.shape() << " into a CASA image " <<
+                                          newName << " at location " << location);
+                        img.putSlice(arr, location);
+                    }
+                }
+
+                if (itsCreateTaylorTerms) {
+
+                    location(itsWCS->spec) =
+                        itsSourceSection.getStart(itsWCS->spec);
+                    ASKAPLOG_INFO_STR(logger, "Writing to Taylor term images");
+                    writeTaylorTermImages(newName, location);
+
+                }
+            } else {
+                ASKAPLOG_WARN_STR(logger, "Cannot write array as it has not been allocated");
+            }
+        }
+
+    }
+
+}
+
+
+double FITSfile::maxFreq()
+{
+    int spec = itsWCS->spec;
+    return itsWCS->crval[spec] +
+           (itsAxes[spec] / 2 + 0.5) * itsWCS->cdelt[spec];
+}
+double FITSfile::minFreq()
+{
+    int spec = itsWCS->spec;
+    return itsWCS->crval[spec] -
+           (itsAxes[spec] / 2 + 0.5) * itsWCS->cdelt[spec];
+}
+
+
+void FITSfile::createTaylorTermImages(std::string nameBase,
+                                      casa::CoordinateSystem csys,
+                                      casa::IPosition shape,
+                                      casa::IPosition tileshape,
+                                      casa::Unit bunit,
+                                      casa::ImageInfo iinfo)
+{
+
+
+    for (size_t t = 0; t <= itsMaxTaylorTerm; t++) {
+
+        std::stringstream outname;
+        outname << nameBase << ".taylor." << t;
+
+        casa::PagedImage<float> outimg(casa::TiledShape(shape, tileshape), csys, outname.str());
+
+        outimg.setUnits(bunit);
+        outimg.setImageInfo(iinfo);
+
+    }
+
+}
+
+
+void FITSfile::defineTaylorTerms()
+{
+
+    if (itsArray.size() > 0) {
+
+        ASKAPLOG_INFO_STR(logger, "Calculating taylor term arrays, for terms " <<
+                          "up to and including .taylor." << itsMaxTaylorTerm);
+
+        const size_t spec = itsWCS->spec;
+        const unsigned int maxterm = 2;
+        if (itsMaxTaylorTerm > maxterm) {
+            ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " <<
+                              itsMaxTaylorTerm <<
+                              " was requested. We will only fill terms up to .taylor." <<
+                              maxterm);
+        }
+
+        casa::IPosition shape(itsDim);
+        for (uint i = 0; i < itsDim; i++) {
+            shape(i) = itsAxes[i];
+        }
+        shape(spec) = 1;
+        for (size_t i = 0; i <= itsMaxTaylorTerm; i++) {
+            itsTTmaps[i] = casa::Array<float>(shape, 0.);
+        }
+        const size_t ndata = itsAxes[itsWCS->spec];
+        const size_t degree = itsMaxTaylorTerm + 3;
+        double chisq;
+        gsl_matrix *xdat, *cov;
+        gsl_vector *ydat, *w, *c;
+        xdat = gsl_matrix_alloc(ndata, degree);
+        ydat = gsl_vector_alloc(ndata);
+        w = gsl_vector_alloc(ndata);
+        c = gsl_vector_alloc(degree);
+        cov = gsl_matrix_alloc(degree, degree);
+
+        for (size_t i = 0; i < ndata; i++) {
+            // Set the frequency values, normalised by the reference frequency nuZero.
+            // Note that the fitting is done in log-space (and **NOT** log10-space!!)
+            double freq = itsWCS->crval[spec] +
+                          (i - itsWCS->crpix[spec]) * itsWCS->cdelt[spec];
+            float logfreq = log(freq / itsBaseFreq);
+            float xval = 1.;
+            for (size_t d = 0; d < degree; d++) {
+                gsl_matrix_set(xdat, i, d, xval);
+                xval *= logfreq;
+            }
+            gsl_vector_set(w, i, 1.);
+        }
+
+        const size_t xlen = itsAxes[itsWCS->lng];
+        const size_t ylen = itsAxes[itsWCS->lat];
+        casa::IPosition outpos(shape.size(), 0);
+        for (size_t y = 0; y < ylen; y++) {
+            outpos[1] = y;
+
+            for (size_t x = 0; x < xlen; x++) {
+                outpos[0] = x;
+
+                size_t pos = x + y * xlen;
+
+                if (pos % int(xlen * ylen * itsTTlogevery / 100.) == 0) {
+                    ASKAPLOG_INFO_STR(logger, "Found Taylor terms for " << pos <<
+                                      " spectra out of " << xlen * ylen <<
+                                      " with x=" << x << " and y=" << y);
+                }
+
+                if (itsArray[pos] > 1.e-20) {
+                    for (size_t i = 0; i < ndata; i++) {
+                        gsl_vector_set(ydat, i, log(itsArray[pos + i * xlen * ylen]));
+                    }
+                    gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc(ndata,
+                                                           degree);
+                    gsl_multifit_wlinear(xdat, w, ydat, c, cov, &chisq, work);
+                    gsl_multifit_linear_free(work);
+
+                    float Izero = exp(gsl_vector_get(c, 0));
+                    float alpha = gsl_vector_get(c, 1);
+                    float beta = gsl_vector_get(c, 2);
+                    itsTTmaps[0](outpos) = Izero;
+                    if (itsMaxTaylorTerm >= 1) {
+                        itsTTmaps[1](outpos) = Izero * alpha;
+                    }
+                    if (itsMaxTaylorTerm >= 2) {
+                        itsTTmaps[2](outpos) = Izero * (0.5 * alpha * (alpha - 1) + beta);
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition location)
+{
+
+    for (size_t t = 0; t <= itsMaxTaylorTerm; t++) {
+        std::stringstream outname;
+        outname << nameBase << ".taylor." << t;
+        casa::PagedImage<float> outimg(outname.str());
+        outimg.putSlice(itsTTmaps[t], location);
+    }
+
+}
+
+
+
+
+
+}
+
+}
 
 }

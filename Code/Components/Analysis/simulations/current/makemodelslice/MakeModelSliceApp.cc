@@ -52,29 +52,29 @@ int MakeModelSliceApp::run(int argc, char* argv[])
 {
 
     try {
-	StatReporter stats;
-		
-	LOFAR::ParameterSet parset;
-	parset.adoptCollection(config());
-	LOFAR::ParameterSet subset(parset.makeSubset("makeModelSlice."));
-	std::cout << "Initial parset:\n" << parset << "Subset of parset:\n" << subset;
-	// ASKAPLOG_DEBUG_STR(logger, "Initial parset:\n"<<parset);
-	// ASKAPLOG_DEBUG_STR(logger, "Subset of parset:\n"<<subset);
-		
-	SliceMaker maker(subset);
-	maker.initialise();  // verify chunk list and set up coordsys
-	maker.createSlice(); // create the output image
-	maker.writeChunks(); // write the slice of each individual chunk
+        StatReporter stats;
+
+        LOFAR::ParameterSet parset;
+        parset.adoptCollection(config());
+        LOFAR::ParameterSet subset(parset.makeSubset("makeModelSlice."));
+        std::cout << "Initial parset:\n" << parset << "Subset of parset:\n" << subset;
+        // ASKAPLOG_DEBUG_STR(logger, "Initial parset:\n"<<parset);
+        // ASKAPLOG_DEBUG_STR(logger, "Subset of parset:\n"<<subset);
+
+        SliceMaker maker(subset);
+        maker.initialise();  // verify chunk list and set up coordsys
+        maker.createSlice(); // create the output image
+        maker.writeChunks(); // write the slice of each individual chunk
 
 
     } catch (const askap::AskapError& x) {
-	ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-	std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     } catch (const std::exception& x) {
-	ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-	std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     }
 
     return 0;

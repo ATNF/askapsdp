@@ -43,151 +43,139 @@ ASKAP_LOGGER(logger, ".fluxgen");
 
 namespace askap {
 
-    namespace simulations {
+namespace simulations {
 
-        FluxGenerator::FluxGenerator()
-        {
-            this->itsNChan = 0;
-            this->itsNStokes = 1;
+FluxGenerator::FluxGenerator()
+{
+    this->itsNChan = 0;
+    this->itsNStokes = 1;
+}
+
+FluxGenerator::FluxGenerator(size_t numChan, size_t numStokes)
+{
+    ASKAPASSERT(numChan >= 0);
+    ASKAPASSERT(numStokes >= 1);
+    this->itsNChan = numChan;
+    this->itsNStokes = numStokes;
+    this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
+    for (size_t s = 0; s < numStokes; s++) {
+        this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
+    }
+}
+
+FluxGenerator::FluxGenerator(const FluxGenerator& f)
+{
+    operator=(f);
+}
+
+FluxGenerator& FluxGenerator::operator= (const FluxGenerator& f)
+{
+    if (this == &f) return *this;
+
+    this->itsNChan      = f.itsNChan;
+    this->itsNStokes    = f.itsNStokes;
+    this->itsFluxValues = f.itsFluxValues;
+    return *this;
+}
+
+void FluxGenerator::setNumChan(size_t numChan)
+{
+    ASKAPASSERT(numChan >= 0);
+    this->itsNChan = numChan;
+    this->itsFluxValues = std::vector< std::vector<float> >(itsNStokes);
+    for (size_t s = 0; s < this->itsNStokes; s++) {
+        this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
+    }
+}
+
+void FluxGenerator::setNumStokes(size_t numStokes)
+{
+    ASKAPASSERT(numStokes >= 1);
+    this->itsNStokes = numStokes;
+    this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
+    if (this->itsNChan > 0) {
+        for (size_t s = 0; s < this->itsNStokes; s++) {
+            this->itsFluxValues[s] = std::vector<float>(this->itsNChan, 0.);
         }
+    }
+}
 
-      FluxGenerator::FluxGenerator(size_t numChan, size_t numStokes)
-        {
-            ASKAPASSERT(numChan >= 0);
-            ASKAPASSERT(numStokes >= 1);
-            this->itsNChan = numChan;
-            this->itsNStokes = numStokes;
-            this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
-	    for(size_t s=0;s<numStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
+void FluxGenerator::zero()
+{
+    for (size_t s = 0; s < this->itsNStokes; s++) {
+        for (size_t c = 0; c < this->itsNChan; c++) {
+            this->itsFluxValues[s][c] = 0.;
         }
+    }
+}
 
-        FluxGenerator::FluxGenerator(const FluxGenerator& f)
-        {
-            operator=(f);
+
+void FluxGenerator::addSpectrum(boost::shared_ptr<Spectrum> &spec,
+                                double &x, double &y, struct wcsprm *wcs)
+{
+    if (this->itsNChan <= 0)
+        ASKAPTHROW(AskapError,
+                   "FluxGenerator: Have not set the number of channels in the flux array.");
+
+    double pix[3 * this->itsNChan];
+    double wld[3 * this->itsNChan];
+    for (size_t z = 0; z < this->itsNChan; z++) {
+        pix[3 * z + 0] = x;
+        pix[3 * z + 1] = y;
+        pix[3 * z + 2] = double(z);
+    }
+
+    pixToWCSMulti(wcs, pix, wld, this->itsNChan);
+
+    for (size_t istokes = 0; istokes < this->itsNStokes; istokes++) {
+        for (size_t z = 0; z < this->itsNChan; z++) {
+            this->itsFluxValues[istokes][z] += spec->flux(wld[3 * z + 2], istokes);
         }
+    }
 
-        FluxGenerator& FluxGenerator::operator= (const FluxGenerator& f)
-        {
-            if (this == &f) return *this;
+}
 
-            this->itsNChan      = f.itsNChan;
-            this->itsNStokes    = f.itsNStokes;
-            this->itsFluxValues = f.itsFluxValues;
-            return *this;
-        }
+void FluxGenerator::addSpectrumInt(boost::shared_ptr<Spectrum> &spec,
+                                   double &x, double &y, struct wcsprm *wcs)
+{
 
-        void FluxGenerator::setNumChan(size_t numChan)
-        {
-            ASKAPASSERT(numChan >= 0);
-            this->itsNChan = numChan;
-            this->itsFluxValues = std::vector< std::vector<float> >(itsNStokes);
-	    for(size_t s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
-        }
+    if (this->itsNChan <= 0) {
+        ASKAPTHROW(AskapError,
+                   "FluxGenerator: Have not set the number of channels in the flux array.");
+    }
 
-        void FluxGenerator::setNumStokes(size_t numStokes)
-        {
-            ASKAPASSERT(numStokes >= 1);
-            this->itsNStokes = numStokes;
-            this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
-	    if(this->itsNChan>0){
-	      for(size_t s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(this->itsNChan, 0.);
-	    }
-	}
+    double pix[3 * this->itsNChan];
+    double wld[3 * this->itsNChan];
 
-        void FluxGenerator::zero()
-	{
-	  for(size_t s=0;s<this->itsNStokes;s++) 
-	    for(size_t c=0;c<this->itsNChan;c++)
-	      this->itsFluxValues[s][c]=0.;
-	}
+    for (size_t i = 0; i < this->itsNChan; i++) {
+        pix[3 * i + 0] = x;
+        pix[3 * i + 1] = y;
+        pix[3 * i + 2] = double(i);
+    }
 
+    pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
-        void FluxGenerator::addSpectrum(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs)
-        {
-            /// @details This version of the add spectrum function simply
-            /// uses the Spectrum object to find the flux at the centre of
-            /// each channel. The x & y position are used along with the
-            /// WCS specification to find the frequency value of each
-            /// channel.
-            /// @param spec The spectral profile being used.
-            /// @param x The x-pixel location in the flux array
-            /// @param y The y-pixel location in the flux array
-            /// @param wcs The world coordinate system specfication
-	    /// @todo Improve the polymorphism of this function...
+    size_t i;
+    double df;
 
-            if (this->itsNChan <= 0)
-                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
+    for (size_t istokes = 0; istokes < this->itsNStokes; istokes++) {
+        i = 2;
+        for (size_t z = 0; z < this->itsNChan; z++) {
 
-            double *pix = new double[3*this->itsNChan];
-            double *wld = new double[3*this->itsNChan];
-            for (size_t z = 0; z < this->itsNChan; z++) {
-                pix[3*z+0] = x;
-                pix[3*z+1] = y;
-                pix[3*z+2] = double(z);
-            }
-
-            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
-
-	    for(size_t istokes=0; istokes < this->itsNStokes; istokes++){
-	      for (size_t z = 0; z < this->itsNChan; z++) {
-                this->itsFluxValues[istokes][z] += spec->flux(wld[3*z+2],istokes);
-	      }
-	    }
-
-            delete [] pix;
-            delete [] wld;
-
-        }
-
-        void FluxGenerator::addSpectrumInt(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs)
-        {
-            /// @details This version of the add spectrum function simply
-            /// uses the Spectrum object to find the total flux within
-            /// each channel. The x & y position are used along with the
-            /// WCS specification to find the frequency value of each
-            /// channel.
-            /// @param spec The spectral profile being used.
-            /// @param x The x-pixel location in the flux array
-            /// @param y The y-pixel location in the flux array
-            /// @param wcs The world coordinate system specfication
-
-            if (this->itsNChan <= 0)
-                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
-
-            double *pix = new double[3*this->itsNChan];
-            double *wld = new double[3*this->itsNChan];
-
-            for (size_t i = 0; i < this->itsNChan; i++) {
-                pix[3*i+0] = x;
-                pix[3*i+1] = y;
-                pix[3*i+2] = double(i);
-            }
-
-            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
-
-	    size_t i;
-	    double df;
-
-	    for(size_t istokes=0; istokes < this->itsNStokes; istokes++){
-	      i=2;
-	      for (size_t z = 0; z < this->itsNChan; z++) {
-		
-                if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
-                else df = fabs(wld[i] - wld[i-3]);
+            if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i + 3]);
+            else df = fabs(wld[i] - wld[i - 3]);
 
 //     ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-                this->itsFluxValues[istokes][z] += spec->fluxInt(wld[i] - df / 2., wld[i] + df / 2., istokes);
+            this->itsFluxValues[istokes][z] += spec->fluxInt(wld[i] - df / 2., wld[i] + df / 2.,
+                                               istokes);
 
-		i += 3;
-	      }
-	    }
-
-            delete [] pix;
-            delete [] wld;
-
+            i += 3;
         }
-
     }
+
+}
+
+}
 
 
 }

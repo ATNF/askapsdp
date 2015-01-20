@@ -1,6 +1,7 @@
 /// @file
 ///
-/// Application that takes chunks created by createFITS and makes a full-field map over a small number of channels.
+/// Application that takes chunks created by createFITS and makes a
+/// full-field map over a small number of channels.
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)

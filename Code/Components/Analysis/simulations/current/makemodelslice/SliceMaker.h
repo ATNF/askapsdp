@@ -43,46 +43,43 @@
 
 namespace askap {
 
-    namespace simulations {
+namespace simulations {
+
+class SliceMaker {
+    public:
+        SliceMaker(const LOFAR::ParameterSet& parset);
+        virtual ~SliceMaker() {};
+
+        void initialise();  // verify chunk list and set up coordsys
+        void createSlice(); // create the output image
+        const void writeChunks(); // write the slice of each individual chunk
+
+    protected:
+
+        analysisutilities::SubimageDef itsSubimageDef;
+        std::vector<std::string> itsChunkList;
+        unsigned int itsNumChunks;
+        std::string itsModelName;
+        std::string itsSliceName;
+
+        boost::scoped_ptr< casa::PagedImage<float> > itsSlice;
+        casa::IPosition itsSliceShape;
+        std::vector<int> itsNpix;
+        int itsNchan;
+        unsigned int itsLngAxis;
+        unsigned int itsLatAxis;
+        unsigned int itsSpcAxis;
 
 
-
-	class SliceMaker
-	{
-	public:
-	    SliceMaker(const LOFAR::ParameterSet& parset);
-	    virtual ~SliceMaker(){};
-
-	    void initialise();  // verify chunk list and set up coordsys
-	    void createSlice(); // create the output image
-	    const void writeChunks(); // write the slice of each individual chunk
-
-	protected:
-
-	    analysisutilities::SubimageDef itsSubimageDef;
-	    std::vector<std::string> itsChunkList;
-	    unsigned int itsNumChunks;
-	    std::string itsModelName;
-	    std::string itsSliceName;
-
-	    boost::scoped_ptr< casa::PagedImage<float> > itsSlice;
-	    casa::IPosition itsSliceShape;
-	    std::vector<int> itsNpix;
-	    int itsNchan;
-	    unsigned int itsLngAxis;
-	    unsigned int itsLatAxis;
-	    unsigned int itsSpcAxis;
-	    
-
-	    casa::CoordinateSystem itsRefCoordinates;
-	    casa::Unit itsRefUnits;
-	    casa::IPosition itsRefShape;
-	    std::vector<int> itsChanRange;
+        casa::CoordinateSystem itsRefCoordinates;
+        casa::Unit itsRefUnits;
+        casa::IPosition itsRefShape;
+        std::vector<int> itsChanRange;
 
 
-	};
+};
 
-    }
+}
 }
 
 #endif

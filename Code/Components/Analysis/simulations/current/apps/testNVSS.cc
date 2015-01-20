@@ -57,7 +57,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -68,24 +68,24 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  
-  if(argc==1){
-    std::cerr << "Usage: " << argv[0] << " catalogue_file\n";
-    exit(1);
-  }
-    
-  std::ifstream fin(argv[1]);
-  int ct=0;
-  std::string line;
-  while (getline(fin, line),
-		 !fin.eof() && ct<10) {
-    if(line[0]!='#'){
-      ct++;
-      std::cout << line;
-      ContinuumNVSS object(line);      
-      object.printDetails(std::cout);
+
+    if (argc == 1) {
+        std::cerr << "Usage: " << argv[0] << " catalogue_file\n";
+        exit(1);
     }
-  }
-       
+
+    std::ifstream fin(argv[1]);
+    int ct = 0;
+    std::string line;
+    while (getline(fin, line),
+            !fin.eof() && ct < 10) {
+        if (line[0] != '#') {
+            ct++;
+            std::cout << line;
+            ContinuumNVSS object(line);
+            object.printDetails(std::cout);
+        }
+    }
+
 
 }

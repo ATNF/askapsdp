@@ -58,364 +58,406 @@ ASKAP_LOGGER(logger, ".fitsparallel");
 
 namespace askap {
 
-    namespace simulations {
+namespace simulations {
 
-        namespace FITS {
+namespace FITS {
 
-	  FITSparallel::~FITSparallel()
-	  {
-	    
-	    delete this->itsFITSfile;
-	    
-	  }
+FITSparallel::~FITSparallel()
+{
 
-            FITSparallel::FITSparallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset)
-                    : itsComms(comms)
-            {
-                /// @details Assignment of the necessary parameters, reading from the ParameterSet.
+    delete this->itsFITSfile;
 
-                ASKAPLOG_DEBUG_STR(logger, "Starting the definition of FITSparallel");
+}
 
-                LOFAR::ParameterSet newparset = parset;
+FITSparallel::FITSparallel(askap::askapparallel::AskapParallel& comms,
+                           const LOFAR::ParameterSet& parset) :
+    itsComms(comms)
+{
+    /// @details Assignment of the necessary parameters, reading from the ParameterSet.
 
-                this->itsSubimageDef = analysisutilities::SubimageDef(parset);
-                int numSub = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby();
+    ASKAPLOG_DEBUG_STR(logger, "Starting the definition of FITSparallel");
 
-                if (itsComms.isParallel() && (numSub != itsComms.nProcs() - 1))
-                    ASKAPTHROW(AskapError, "Number of requested subimages (" << numSub << ", = "
-                                   << this->itsSubimageDef.nsubx() << "x" << this->itsSubimageDef.nsuby()
-                                   << ") does not match the number of worker nodes (" << itsComms.nProcs() - 1 << ")");
+    LOFAR::ParameterSet newparset = parset;
 
-                size_t dim = parset.getInt32("dim", 2);
-                std::vector<int> axes = parset.getInt32Vector("axes");
+    this->itsSubimageDef = analysisutilities::SubimageDef(parset);
+    int numSub = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby();
 
-		this->itsSubimageDef.setInputSubsection(duchamp::nullSection(dim));
-                this->itsSubimageDef.define(dim);
-                this->itsSubimageDef.setImageDim(axes);
+    if (itsComms.isParallel() && (numSub != itsComms.nProcs() - 1))
+        ASKAPTHROW(AskapError, "Number of requested subimages (" << numSub << ", = " <<
+                   this->itsSubimageDef.nsubx() << "x" << this->itsSubimageDef.nsuby() <<
+                   ") does not match the number of worker nodes (" <<
+                   itsComms.nProcs() - 1 << ")");
 
-                if (axes.size() != dim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << dim << ", but axes has " << axes.size() << " dimensions.");
+    size_t dim = parset.getInt32("dim", 2);
+    std::vector<int> axes = parset.getInt32Vector("axes");
 
-                if (itsComms.isParallel() && itsComms.isWorker()) {
+    this->itsSubimageDef.setInputSubsection(duchamp::nullSection(dim));
+    this->itsSubimageDef.define(dim);
+    this->itsSubimageDef.setImageDim(axes);
 
-		  //                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1, duchamp::nullSection(dim));
-                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1);
-                    this->itsSubsection.parse(axes);
+    if (axes.size() != dim)
+        ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << dim <<
+                   ", but axes has " << axes.size() << " dimensions.");
 
-                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
-                                           << ") and dimensions " << this->itsSubsection.getDim(0) << "x" << this->itsSubsection.getDim(1));
+    if (itsComms.isParallel() && itsComms.isWorker()) {
 
-                    // Update the subsection parameter to the appropriate string for this worker
-                    newparset.replace("subsection", this->itsSubsection.getSection());
+        this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1);
+        this->itsSubsection.parse(axes);
 
-		    // Replace the output list file with an appropriate filename for the subsection
-		    if(newparset.getBool("outputList",false)){
-		      std::string filename=newparset.getString("outputSourceList");
-		      newparset.replace("outputSourceList",filename+"_"+this->itsSubsection.getSection());
-		    }
+        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << " has offsets (" <<
+                           this->itsSubsection.getStart(0) << "," <<
+                           this->itsSubsection.getStart(1) << ") and dimensions " <<
+                           this->itsSubsection.getDim(0) << "x" <<
+                           this->itsSubsection.getDim(1));
 
-                } else {
-                    this->itsSubsection.setSection(duchamp::nullSection(dim));
-                    this->itsSubsection.parse(axes);
-                }
+        // Update the subsection parameter to the appropriate string for this worker
+        newparset.replace("subsection", this->itsSubsection.getSection());
 
-                this->itsFlagStagedWriting = parset.getBool("stagedWriting", true) && this->itsComms.isParallel();
-		this->itsFlagWriteByNode = parset.getBool("writeByNode",false) && this->itsComms.isParallel();
-		if(this->itsFlagWriteByNode) {
-		  if(this->itsFlagStagedWriting) ASKAPLOG_WARN_STR(logger, "writeByNode flag is true, so setting stagedWriting flag to false");
-		  this->itsFlagStagedWriting = false;
-		  std::string newname = workerImageName(parset.getString("filename"));
-		  newparset.replace("filename",newname);
-		  ASKAPLOG_INFO_STR(logger, "Using writeByNode mode, so changing requested image name to " << newname);
-		}
-		  
-                ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
-		//		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) &&  (this->itsComms.isWorker() || !this->itsFlagStagedWriting);
-		// if we want to write, start by assuming we need to allocate
-		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false));   
-		// for the master node, turn allocation off when doing *either* staged writing or writing by node.
-		if(this->itsComms.isMaster()) doAllocation = doAllocation && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode; 
+        // Replace the output list file with an appropriate filename for the subsection
+        if (newparset.getBool("outputList", false)) {
+            std::string filename = newparset.getString("outputSourceList");
+            newparset.replace("outputSourceList",
+                              filename + "_" + this->itsSubsection.getSection());
+        }
 
-                this->itsFITSfile = new FITSfile(newparset, doAllocation);
-                ASKAPLOG_DEBUG_STR(logger, "Defined");
+    } else {
+        this->itsSubsection.setSection(duchamp::nullSection(dim));
+        this->itsSubsection.parse(axes);
+    }
 
-                ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");
+    this->itsFlagStagedWriting = parset.getBool("stagedWriting", true) && this->itsComms.isParallel();
+    this->itsFlagWriteByNode = parset.getBool("writeByNode", false) && this->itsComms.isParallel();
+    if (this->itsFlagWriteByNode) {
+        if (this->itsFlagStagedWriting) {
+            ASKAPLOG_WARN_STR(logger,
+                              "writeByNode flag is true, so setting stagedWriting flag to false");
+        }
+        this->itsFlagStagedWriting = false;
+        std::string newname = workerImageName(parset.getString("filename"));
+        newparset.replace("filename", newname);
+        ASKAPLOG_INFO_STR(logger,
+                          "Using writeByNode mode, so changing requested image name to " <<
+                          newname);
+    }
 
-            }
+    ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
 
-            //--------------------------------------------------
+    // if we want to write, start by assuming we need to allocate
+    bool doAllocation = (parset.getBool("fitsOutput", true) ||
+                         parset.getBool("casaOutput", false));
+    // for the master node, turn allocation off when doing *either*
+    // staged writing or writing by node.
+    if (this->itsComms.isMaster()) {
+        doAllocation = doAllocation && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode;
+    }
 
-	  std::string FITSparallel::workerImageName(std::string name)
-	  {
-	    std::stringstream newname;
-	    size_t pos = name.rfind(".fits");
-	    std::string locString = locationString(this->itsSubsection);
+    this->itsFITSfile = new FITSfile(newparset, doAllocation);
+    ASKAPLOG_DEBUG_STR(logger, "Defined");
 
-	    if (pos == std::string::npos) { // imageName doesn't have a .fits extension
-		newname << name << "_w" << this->itsComms.rank()<<locString;
-	    }
-	    else{
-		newname << name.substr(0,pos) << "_w" << this->itsComms.rank() << locString << ".fits";
-	    }
-	    return newname.str();
-	  }
+    ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");
+
+}
+
+//--------------------------------------------------
+
+std::string FITSparallel::workerImageName(std::string name)
+{
+    std::stringstream newname;
+    size_t pos = name.rfind(".fits");
+    std::string locString = locationString(this->itsSubsection);
+
+    if (pos == std::string::npos) { // imageName doesn't have a .fits extension
+        newname << name << "_w" << this->itsComms.rank() << locString;
+    } else {
+        newname << name.substr(0, pos) << "_w" << this->itsComms.rank() << locString << ".fits";
+    }
+    return newname.str();
+}
 
 
-            //--------------------------------------------------
+//--------------------------------------------------
 
-            void FITSparallel::toMaster()
-            {
+void FITSparallel::toMaster()
+{
 
-                /// @details For the workers, this function sends the x&y
-                /// position of each pixel and the corresponding flux value to
-                /// the Master node. For the master node, it receives that
-                /// information from each worker and fills its copy of the
-                /// flux array. When run in serial mode, this function does
-                /// nothing.
+    /// @details For the workers, this function sends the x&y
+    /// position of each pixel and the corresponding flux value to
+    /// the Master node. For the master node, it receives that
+    /// information from each worker and fills its copy of the
+    /// flux array. When run in serial mode, this function does
+    /// nothing.
 
-                if (itsComms.isParallel() && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode) {
+    if (itsComms.isParallel() && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode) {
 
-                    if (itsComms.isWorker()) {
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": about to send data to Master");
-                        LOFAR::BlobString bs;
-                        bs.resize(0);
-                        LOFAR::BlobOBufString bob(bs);
-                        LOFAR::BlobOStream out(bob);
-                        out.putStart("pixW2M", 1);
-                        int spInd = this->itsFITSfile->getSpectralAxisIndex();
-                        ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
-                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd);
-                        out << this->itsSubsection.getEnd(0)   << this->itsSubsection.getEnd(1)   << this->itsSubsection.getEnd(spInd);
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent minima of " << this->itsSubsection.getStart(0)
-                                               << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent maxima of " << this->itsSubsection.getEnd(0)
-                                               << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": dimensions are " << this->itsFITSfile->getXdim() << ", " << this->itsFITSfile->getYdim() << ", " << this->itsFITSfile->getZdim());
+        if (itsComms.isWorker()) {
+            ASKAPLOG_DEBUG_STR(logger,
+                               "Worker #" << itsComms.rank() << ": about to send data to Master");
+            LOFAR::BlobString bs;
+            bs.resize(0);
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            out.putStart("pixW2M", 1);
+            int spInd = this->itsFITSfile->getSpectralAxisIndex();
+            ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
+            out << this->itsSubsection.getStart(0)
+                << this->itsSubsection.getStart(1)
+                << this->itsSubsection.getStart(spInd);
+            out << this->itsSubsection.getEnd(0)
+                << this->itsSubsection.getEnd(1)
+                << this->itsSubsection.getEnd(spInd);
+            ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() <<
+                               ": sent minima of " << this->itsSubsection.getStart(0) <<
+                               " and " << this->itsSubsection.getStart(1) <<
+                               " and " << this->itsSubsection.getStart(spInd));
+            ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() <<
+                               ": sent maxima of " << this->itsSubsection.getEnd(0)
+                               << " and " << this->itsSubsection.getEnd(1) <<
+                               " and " << this->itsSubsection.getEnd(spInd));
+            ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() <<
+                               ": dimensions are " << this->itsFITSfile->getXdim() <<
+                               ", " << this->itsFITSfile->getYdim() <<
+                               ", " << this->itsFITSfile->getZdim());
 
-                        for (unsigned int z = 0; z < this->itsFITSfile->getZdim(); z++) {
-                            for (unsigned int y = 0; y < this->itsFITSfile->getYdim(); y++) {
-                                for (unsigned int x = 0; x < this->itsFITSfile->getXdim(); x++) {
-                                    float fpt = this->itsFITSfile->array(x, y, z);
-                                    out << fpt;
-                                }
-                            }
-                        }
-
-                        out.putEnd();
-                        itsComms.sendBlob(bs, 0);
-
-                    } else if (itsComms.isMaster()) {
-
-                        LOFAR::BlobString bs;
-
-                        for (int n = 1; n < itsComms.nProcs(); n++) {
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: about to read data from Worker #" << n);
-                            itsComms.receiveBlob(bs, n);
-                            LOFAR::BlobIBufString bib(bs);
-                            LOFAR::BlobIStream in(bib);
-                            int version = in.getStart("pixW2M");
-                            ASKAPASSERT(version == 1);
-                            int xmin, ymin, zmin, xmax, ymax, zmax;
-                            in >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax;
-                            int xdim = (xmax - xmin + 1);
-                            int ydim = (ymax - ymin + 1);
-                            int zdim = (zmax - zmin + 1);
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin << " and " << zmin);
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Read maxima of " << xmax << " and " << ymax << " and " << zmax);
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << xdim << 'x' << ydim << 'x' << zdim << " or " << xdim*ydim*zdim << " pixels");
-
-                            for (int pix = 0; pix < xdim*ydim*zdim; pix++) {
-                                float flux;
-                                unsigned int x = xmin + pix % xdim;
-                                unsigned int y = ymin + (pix / xdim) % ydim;
-                                unsigned int z = zmin + pix / (xdim * ydim);
-                                in >> flux;
-                                flux += this->itsFITSfile->array(x, y, z);
-                                this->itsFITSfile->setArray(x, y, z, flux);
-                            }
-
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Successfully read " << xdim*ydim*zdim << " pixels");
-
-                            in.getEnd();
-
-                        }
-
+            for (unsigned int z = 0; z < this->itsFITSfile->getZdim(); z++) {
+                for (unsigned int y = 0; y < this->itsFITSfile->getYdim(); y++) {
+                    for (unsigned int x = 0; x < this->itsFITSfile->getXdim(); x++) {
+                        float fpt = this->itsFITSfile->array(x, y, z);
+                        out << fpt;
                     }
-
-                }
-
-
-            }
-
-            //--------------------------------------------------
-
-            void FITSparallel::addNoise(bool beforeConvolve)
-            {
-                if (beforeConvolve) { // either adding noise before the convolution, or there is no convolution
-                    if (itsComms.isWorker())
-                        itsFITSfile->addNoise();
-                } else {
-                    // There is convolution and we're adding the noise after it.
-                    // In this case, we need to work out where the data is and only do it for the correct node
-		  bool doAdd = this->itsComms.isMaster();
-		  if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) doAdd = this->itsComms.isWorker();
-		  if (doAdd) itsFITSfile->addNoise();
                 }
             }
 
-            void FITSparallel::processSources()
-            {
-                if (itsComms.isWorker()) {
-                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": About to add sources");
-                    itsFITSfile->processSources();
+            out.putEnd();
+            itsComms.sendBlob(bs, 0);
+
+        } else if (itsComms.isMaster()) {
+
+            LOFAR::BlobString bs;
+
+            for (int n = 1; n < itsComms.nProcs(); n++) {
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: about to read data from Worker #" << n);
+                itsComms.receiveBlob(bs, n);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("pixW2M");
+                ASKAPASSERT(version == 1);
+                int xmin, ymin, zmin, xmax, ymax, zmax;
+                in >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax;
+                int xdim = (xmax - xmin + 1);
+                int ydim = (ymax - ymin + 1);
+                int zdim = (zmax - zmin + 1);
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin <<
+                                   " and " << ymin << " and " << zmin);
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Read maxima of " << xmax <<
+                                   " and " << ymax << " and " << zmax);
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << xdim <<
+                                   'x' << ydim << 'x' << zdim <<
+                                   " or " << xdim * ydim * zdim << " pixels");
+
+                for (int pix = 0; pix < xdim * ydim * zdim; pix++) {
+                    float flux;
+                    unsigned int x = xmin + pix % xdim;
+                    unsigned int y = ymin + (pix / xdim) % ydim;
+                    unsigned int z = zmin + pix / (xdim * ydim);
+                    in >> flux;
+                    flux += this->itsFITSfile->array(x, y, z);
+                    this->itsFITSfile->setArray(x, y, z, flux);
+                }
+
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Successfully read " <<
+                                   xdim * ydim * zdim << " pixels");
+
+                in.getEnd();
+
+            }
+
+        }
+
+    }
+
+
+}
+
+//--------------------------------------------------
+
+void FITSparallel::addNoise(bool beforeConvolve)
+{
+    if (beforeConvolve) {
+        // either adding noise before the convolution, or there is no
+        // convolution
+        if (itsComms.isWorker())
+            itsFITSfile->addNoise();
+    } else {
+        // There is convolution and we're adding the noise after it.
+        // In this case, we need to work out where the data is and
+        // only do it for the correct node
+        bool doAdd = this->itsComms.isMaster();
+        if (this->itsFlagStagedWriting || this->itsFlagWriteByNode) {
+            doAdd = this->itsComms.isWorker();
+        }
+        if (doAdd) itsFITSfile->addNoise();
+    }
+}
+
+void FITSparallel::processSources()
+{
+    if (itsComms.isWorker()) {
+        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": About to add sources");
+        itsFITSfile->processSources();
+    }
+}
+
+void FITSparallel::convolveWithBeam()
+{
+    bool doConv = this->itsComms.isMaster();
+    if (this->itsFlagStagedWriting || this->itsFlagWriteByNode) {
+        doConv = this->itsComms.isWorker();
+    }
+    if (doConv)
+        itsFITSfile->convolveWithBeam();
+}
+
+void FITSparallel::output()
+{
+    if (this->itsFITSfile->createTaylorTerms()) {
+        this->itsFITSfile->defineTaylorTerms();
+    }
+
+    if (this->itsFlagStagedWriting) {
+        this->stagedWriting();
+    } else {
+        this->writeFITSimage();
+        this->writeCASAimage();
+    }
+}
+
+void FITSparallel::writeFITSimage()
+{
+    bool doCreate = this->itsComms.isMaster();
+    if (this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
+    bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
+    bool useOffset = !this->itsFlagWriteByNode;
+    itsFITSfile->writeFITSimage(doCreate, doWrite, useOffset);
+}
+
+void FITSparallel::writeCASAimage()
+{
+    bool doCreate = this->itsComms.isMaster();
+    if (this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
+    bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
+    bool useOffset = !this->itsFlagWriteByNode;
+    if (doWrite) itsFITSfile->writeCASAimage(doCreate, doWrite, useOffset);
+}
+
+
+//--------------------------------------------------
+
+
+void FITSparallel::stagedWriting()
+{
+
+    bool OK;
+    LOFAR::BlobString bs;
+
+    if (!this->itsComms.isParallel()) {
+        this->itsFITSfile->writeFITSimage();
+        this->itsFITSfile->writeCASAimage();
+    } else {
+
+
+        if (this->itsComms.isMaster()) {
+
+            ASKAPLOG_DEBUG_STR(logger, "MASTER: Setting up images");
+            this->itsFITSfile->writeFITSimage(true, false, true);
+            this->itsFITSfile->writeCASAimage(true, false, true);
+
+            // Send out the OK to the workers, so that they access the file in turn
+            ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' messages to each worker");
+
+            for (int i = 1; i < this->itsComms.nProcs(); i++) {
+                // First send the node number
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
+                bs.resize(0);
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                out.putStart("goInput", 1);
+                out << i ;
+                out.putEnd();
+                this->itsComms.sendBlob(bs, i);
+                ASKAPLOG_DEBUG_STR(logger,
+                                   "MASTER: Sent. Now waiting for reply from worker#" << i);
+                // Then wait for the OK from that node
+                bs.resize(0);
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection " << i - 1);
+                this->itsComms.receiveBlob(bs, i);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("inputDone");
+                ASKAPASSERT(version == 1);
+                in >> OK;
+                in.getEnd();
+
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#" << i << " done.");
+                if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
+                ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#" << i << " done.");
+            }
+
+        } else if (this->itsComms.isWorker()) {
+            OK = true;
+            int rank;
+            int version;
+
+            if (this->itsComms.isParallel()) {
+                do {
+                    bs.resize(0);
+                    this->itsComms.receiveBlob(bs, 0);
+                    LOFAR::BlobIBufString bib(bs);
+                    LOFAR::BlobIStream in(bib);
+                    version = in.getStart("goInput");
+                    ASKAPASSERT(version == 1);
+                    in >> rank;
+                    in.getEnd();
+                    OK = (rank == this->itsComms.rank());
+                } while (!OK);
+            }
+
+            if (OK) {
+                ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms.rank() <<
+                                  ": About to write data to image ");
+
+                this->itsFITSfile->writeFITSimage(false, true, true);
+                this->itsFITSfile->writeCASAimage(false, true, true);
+
+                // Return the OK to the master to say that we've read the image
+                if (this->itsComms.isParallel()) {
+                    bs.resize(0);
+                    LOFAR::BlobOBufString bob(bs);
+                    LOFAR::BlobOStream out(bob);
+                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() <<
+                                       ": Sending done message to Master.");
+                    out.putStart("inputDone", 1);
+                    out << OK;
+                    out.putEnd();
+                    this->itsComms.sendBlob(bs, 0);
+                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() <<
+                                       ": All done.");
+
                 }
             }
-
-            void FITSparallel::convolveWithBeam()
-            {
-	      bool doConv = this->itsComms.isMaster();
-	      if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) doConv = this->itsComms.isWorker();
-		//                if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
-		//                        (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
-	      if(doConv)
-                    itsFITSfile->convolveWithBeam();
-            }
-
-            void FITSparallel::output()
-            {
-	      if(this->itsFITSfile->createTaylorTerms()) this->itsFITSfile->defineTaylorTerms();
-
-                if (this->itsFlagStagedWriting) {
-                    this->stagedWriting();
-                } else {
-                    this->writeFITSimage();
-                    this->writeCASAimage();
-                }
-            }
-
-            void FITSparallel::writeFITSimage()
-            {
-	      bool doCreate = this->itsComms.isMaster();
-	      if(this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
-	      bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
-	      bool useOffset = !this->itsFlagWriteByNode;
-	      itsFITSfile->writeFITSimage(doCreate,doWrite,useOffset);
-            }
-
-            void FITSparallel::writeCASAimage()
-            {
-	      bool doCreate = this->itsComms.isMaster();
-	      if(this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
-	      bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
-	      bool useOffset = !this->itsFlagWriteByNode;
-	      if (doWrite) itsFITSfile->writeCASAimage(doCreate,doWrite,useOffset);
-            }
-
-
-            //--------------------------------------------------
-
-
-            void FITSparallel::stagedWriting()
-            {
-
-                bool OK;
-                LOFAR::BlobString bs;
-
-                if (!this->itsComms.isParallel()) {
-                    this->itsFITSfile->writeFITSimage();
-                    this->itsFITSfile->writeCASAimage();
-                } else {
-
-
-                    if (this->itsComms.isMaster()) {
-
-                        ASKAPLOG_DEBUG_STR(logger, "MASTER: Setting up images");
-                        this->itsFITSfile->writeFITSimage(true, false, true);
-                        this->itsFITSfile->writeCASAimage(true, false, true);
-
-                        // Send out the OK to the workers, so that they access the file in turn
-                        ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' messages to each worker");
-
-                        for (int i = 1; i < this->itsComms.nProcs(); i++) {
-                            // First send the node number
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
-                            bs.resize(0);
-                            LOFAR::BlobOBufString bob(bs);
-                            LOFAR::BlobOStream out(bob);
-                            out.putStart("goInput", 1);
-                            out << i ;
-                            out.putEnd();
-                            this->itsComms.sendBlob(bs, i);
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
-                            // Then wait for the OK from that node
-                            bs.resize(0);
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
-                            this->itsComms.receiveBlob(bs, i);
-                            LOFAR::BlobIBufString bib(bs);
-                            LOFAR::BlobIStream in(bib);
-                            int version = in.getStart("inputDone");
-                            ASKAPASSERT(version == 1);
-                            in >> OK;
-                            in.getEnd();
-
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
-                            if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
-                        }
-
-                    } else if (this->itsComms.isWorker()) {
-                        OK = true;
-                        int rank;
-			int version;
-
-                        if (this->itsComms.isParallel()) {
-                            do {
-                                bs.resize(0);
-                                this->itsComms.receiveBlob(bs, 0);
-                                LOFAR::BlobIBufString bib(bs);
-                                LOFAR::BlobIStream in(bib);
-                                version = in.getStart("goInput");
-                                ASKAPASSERT(version == 1);
-                                in >> rank;
-                                in.getEnd();
-                                OK = (rank == this->itsComms.rank());
-                            } while (!OK);
-                        }
-
-                        if (OK) {
-                            ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms.rank() << ": About to write data to image ");
-
-                            this->itsFITSfile->writeFITSimage(false, true, true);
-                            this->itsFITSfile->writeCASAimage(false, true, true);
-
-                            // Return the OK to the master to say that we've read the image
-                            if (this->itsComms.isParallel()) {
-                                bs.resize(0);
-                                LOFAR::BlobOBufString bob(bs);
-                                LOFAR::BlobOStream out(bob);
-				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() << ": Sending done message to Master.");
-                                out.putStart("inputDone", 1);
-                                out << OK;
-                                out.putEnd();
-                                this->itsComms.sendBlob(bs, 0);
-				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() << ": All done.");
-
-                            }
-                        }
-
-
-                    }
-
-                }
-            }
-
-
-
-
 
 
         }
 
     }
+}
+
+
+
+
+
+
+}
+
+}
 
 }

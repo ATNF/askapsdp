@@ -55,46 +55,50 @@ int MakeAllModelSlicesApp::run(int argc, char* argv[])
     askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
     try {
-	StatReporter stats;
-		
-	LOFAR::ParameterSet parset;
-	parset.adoptCollection(config());
-	LOFAR::ParameterSet subset(parset.makeSubset("makeAllModelSlices."));
-	std::cout << "Initial parset:\n" << parset << "Subset of parset:\n" << subset;
-	// ASKAPLOG_DEBUG_STR(logger, "Initial parset:\n"<<parset);
-	// ASKAPLOG_DEBUG_STR(logger, "Subset of parset:\n"<<subset);
-	
-	size_t nchan = subset.getInt("nchanmodel",0);
-	ASKAPCHECK(nchan>0,"Number of channels in model needs to be provided with parameter 'nchanmodel', which must be >0");
-	size_t sliceWidth = subset.getInt("slicewidth",1);
-	std::string slicebase = subset.getString("slicename");
-	size_t firstchan = subset.getInt("firstchan",0);
+        StatReporter stats;
 
-	for (size_t chan=comms.rank()*sliceWidth; chan < nchan; chan += comms.nProcs()*sliceWidth) {
+        LOFAR::ParameterSet parset;
+        parset.adoptCollection(config());
+        LOFAR::ParameterSet subset(parset.makeSubset("makeAllModelSlices."));
+        std::cout << "Initial parset:\n" << parset << "Subset of parset:\n" << subset;
+        // ASKAPLOG_DEBUG_STR(logger, "Initial parset:\n"<<parset);
+        // ASKAPLOG_DEBUG_STR(logger, "Subset of parset:\n"<<subset);
 
-	    std::stringstream slicename;
-	    slicename << slicebase << chan/sliceWidth;
-	    std::stringstream range;
-	    range << "[" << firstchan + chan << "," << firstchan + chan + sliceWidth - 1 << "]";
+        size_t nchan = subset.getInt("nchanmodel", 0);
+        ASKAPCHECK(nchan > 0,
+                   "Number of channels in model needs to be provided with parameter " <<
+                   "'nchanmodel', which must be >0");
+        size_t sliceWidth = subset.getInt("slicewidth", 1);
+        std::string slicebase = subset.getString("slicename");
+        size_t firstchan = subset.getInt("firstchan", 0);
 
-	    subset.replace(LOFAR::KVpair("chanRange",range.str()));
-	    subset.replace(LOFAR::KVpair("slicename",slicename.str()));
+        for (size_t chan = comms.rank() * sliceWidth;
+             chan < nchan;
+             chan += comms.nProcs() * sliceWidth) {
 
-	    SliceMaker maker(subset);
-	    maker.initialise();  // verify chunk list and set up coordsys
-	    maker.createSlice(); // create the output image
-	    maker.writeChunks(); // write the slice of each individual chunk
+            std::stringstream slicename;
+            slicename << slicebase << chan / sliceWidth;
+            std::stringstream range;
+            range << "[" << firstchan + chan << "," << firstchan + chan + sliceWidth - 1 << "]";
 
-	}
+            subset.replace(LOFAR::KVpair("chanRange", range.str()));
+            subset.replace(LOFAR::KVpair("slicename", slicename.str()));
+
+            SliceMaker maker(subset);
+            maker.initialise();  // verify chunk list and set up coordsys
+            maker.createSlice(); // create the output image
+            maker.writeChunks(); // write the slice of each individual chunk
+
+        }
 
     } catch (const askap::AskapError& x) {
-	ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-	std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     } catch (const std::exception& x) {
-	ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-	std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-	exit(1);
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     }
 
     return 0;

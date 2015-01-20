@@ -39,57 +39,79 @@ using namespace askap::analysisutilities;
 
 namespace askap {
 
-    namespace simulations {
+namespace simulations {
 
-        /// @brief A class to generate fluxes for a spectral profile at a given frequency.
-        /// @brief This class holds the set of flux values over a range
-        /// of channels for a given spectral profile (or set of profiles, as they
-        /// can be added together). The aim of this class is to provide a way of
-        /// storing the spectral profile of a source that can be used many times
-        /// to assign fluxes to an extended source.
-        class FluxGenerator {
-            public:
-                /// @brief Default constructor
-                FluxGenerator();
-                /// @brief Constructor based on a certain number of channels & Stokes parameters
-                FluxGenerator(size_t numChan, size_t numStokes=1);
-                /// @brief Destructor
-                virtual ~FluxGenerator() {};
-                /// @brief Copy constructor for FluxGenerator.
-                FluxGenerator(const FluxGenerator& f);
+/// @brief A class to generate fluxes for a spectral profile at a given frequency.
+/// @brief This class holds the set of flux values over a range
+/// of channels for a given spectral profile (or set of profiles, as they
+/// can be added together). The aim of this class is to provide a way of
+/// storing the spectral profile of a source that can be used many times
+/// to assign fluxes to an extended source.
+class FluxGenerator {
+    public:
+        /// @brief Default constructor
+        FluxGenerator();
+        /// @brief Constructor based on a certain number of channels & Stokes parameters
+        FluxGenerator(size_t numChan, size_t numStokes = 1);
+        /// @brief Destructor
+        virtual ~FluxGenerator() {};
+        /// @brief Copy constructor for FluxGenerator.
+        FluxGenerator(const FluxGenerator& f);
 
-                /// @brief Assignment operator for FluxGenerator.
-                FluxGenerator& operator= (const FluxGenerator& f);
+        /// @brief Assignment operator for FluxGenerator.
+        FluxGenerator& operator= (const FluxGenerator& f);
 
-                /// @brief Set the number of channels
-                void setNumChan(size_t num);
-                /// @brief Set the number of Stokes parameters
-                void setNumStokes(size_t num);
-                /// @brief Return the number of channels
-                size_t  nChan() {return itsNChan;};
-                /// @brief Return the number of Stokes parameters
-                size_t  nStokes() {return itsNStokes;};
-		/// @brief Set the flux values to zero
-		void zero();
+        /// @brief Set the number of channels
+        void setNumChan(size_t num);
+        /// @brief Set the number of Stokes parameters
+        void setNumStokes(size_t num);
+        /// @brief Return the number of channels
+        size_t  nChan() {return itsNChan;};
+        /// @brief Return the number of Stokes parameters
+        size_t  nStokes() {return itsNStokes;};
+        /// @brief Set the flux values to zero
+        void zero();
 
-                /// @brief Add a spectral profile to the flux values, using single flux points
-            void addSpectrum(boost::shared_ptr<Spectrum> &spec, double &x, double &y, wcsprm *wcs);
-                /// @brief Add a spectral profile to the flux values, integrating over the channels
-            void addSpectrumInt(boost::shared_ptr<Spectrum> &spec, double &x, double &y, struct wcsprm *wcs);
+        /// @brief Add a spectral profile to the flux values, using single flux points
+        /// @details This version of the add spectrum function simply
+        /// uses the Spectrum object to find the flux at the centre of
+        /// each channel. The x & y position are used along with the
+        /// WCS specification to find the frequency value of each
+        /// channel.
+        /// @param spec The spectral profile being used.
+        /// @param x The x-pixel location in the flux array
+        /// @param y The y-pixel location in the flux array
+        /// @param wcs The world coordinate system specfication
+        /// @todo Improve the polymorphism of this function...
+        void addSpectrum(boost::shared_ptr<Spectrum> &spec, double &x, double &y, wcsprm *wcs);
 
-                /// @brief Return the flux in channel i and Stokes plane s
-                float getFlux(size_t i, size_t s=0) {return itsFluxValues.at(s).at(i);};
+        /// @brief Add a spectral profile to the flux values, integrating over the channels
+        /// @details This version of the add spectrum function simply
+        /// uses the Spectrum object to find the total flux within
+        /// each channel. The x & y position are used along with the
+        /// WCS specification to find the frequency value of each
+        /// channel.
+        /// @param spec The spectral profile being used.
+        /// @param x The x-pixel location in the flux array
+        /// @param y The y-pixel location in the flux array
+        /// @param wcs The world coordinate system specfication
+        void addSpectrumInt(boost::shared_ptr<Spectrum> &spec,
+                            double &x, double &y, struct wcsprm *wcs);
 
-            protected:
-                /// @brief Number of channels
-                size_t itsNChan;
-		size_t itsNStokes;
-                /// @brief The set of flux values for each channel & Stokes parameter
-		std::vector< std::vector<float> > itsFluxValues;
+        /// @brief Return the flux in channel i and Stokes plane s
+        float getFlux(size_t i, size_t s = 0) {return itsFluxValues.at(s).at(i);};
 
-        };
+    protected:
+        /// @brief Number of channels
+        size_t itsNChan;
+        /// Number of Stokes parameters
+        size_t itsNStokes;
+        /// @brief The set of flux values for each channel & Stokes parameter
+        std::vector< std::vector<float> > itsFluxValues;
 
-    }
+};
+
+}
 
 }
 

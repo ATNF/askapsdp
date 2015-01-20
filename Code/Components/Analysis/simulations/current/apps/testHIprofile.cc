@@ -67,7 +67,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -109,7 +109,10 @@ int main(int argc, const char** argv)
         for (int i = 0; i < nchan; i++) {
             double nu = nuMax - i * deltaNu;
             double f = prof.flux(nu);
-            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+            dumpfile << i << "\t"
+                     << nu << "\t"
+                     << freqToHIVel(nu) - redshiftToVel(z) << "\t"
+                     << f << "\n";
         }
 
         dumpfile.close();
@@ -119,7 +122,10 @@ int main(int argc, const char** argv)
         for (int i = 0; i < nchan; i++) {
             double nu = nuMax - i * deltaNu;
             double f = prof.flux(nu - deltaNu / 2., nu + deltaNu / 2.);
-            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+            dumpfile << i << "\t"
+                     << nu << "\t"
+                     << freqToHIVel(nu) - redshiftToVel(z) << "\t"
+                     << f << "\n";
         }
 
         dumpfile.close();
@@ -128,18 +134,21 @@ int main(int argc, const char** argv)
 
 //      std::string inputLine = " -0.145550   0.004051   0.016469   0.000000   0.000000   0.012999   0.012950   0.641905   0.005453 566092000.000000   0.049868   0.049868   7.338150  26.933600  37.023300"; // A source from the S3SAX database, with the redshift changed to match the value above.
 //      std::string inputLine = " -0.019340   0.656939   3.338000   0.000000   0.000000  58.540500  55.164758   0.990367   0.005453 1548270000.000000   0.013327   0.025629  45.206100  66.714800  77.308300";
-//	std::string inputLine = " -0.019340   0.656939   7.448240   0.000000   0.000000   0.000000   0.000000   0.343044   0.010938 158415000.000000   0.0133269  0.025629  45.206100  66.714800  77.308300";
-	std::string inputLine = " -1.797495   1.538403   0.096728   4.906550   0.000000   2.345510   0.042056 642042000.000000   0.000761   0.002616 778.112000 823.561000 891.448000";
+//  std::string inputLine = " -0.019340   0.656939   7.448240   0.000000   0.000000   0.000000   0.000000   0.343044   0.010938 158415000.000000   0.0133269  0.025629  45.206100  66.714800  77.308300";
+        std::string inputLine = " -1.797495   1.538403   0.096728   4.906550   0.000000   2.345510   0.042056 642042000.000000   0.000761   0.002616 778.112000 823.561000 891.448000";
         HIprofileS3SAX prof2(inputLine);
         std::cout << prof2 << "\n";
-	prof2.diagnostic(std::cout);
+        prof2.diagnostic(std::cout);
 
         dumpfile.open("testHIprofileS3SAX_dump1.txt");
 
         for (int i = 0; i < nchan; i++) {
             double nu = nuMax - i * deltaNu;
             double f = prof2.flux(nu);
-            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t"  << f << "\n";
+            dumpfile << i << "\t"
+                     << nu << "\t"
+                     << freqToHIVel(nu) - redshiftToVel(z) << "\t"
+                     << f << "\n";
         }
 
         dumpfile.close();
@@ -149,7 +158,10 @@ int main(int argc, const char** argv)
         for (int i = 0; i < nchan; i++) {
             double nu = nuMax - i * deltaNu;
             double f = prof2.flux(nu - deltaNu / 2., nu + deltaNu / 2.);
-            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+            dumpfile << i << "\t"
+                     << nu << "\t"
+                     << freqToHIVel(nu) - redshiftToVel(z) << "\t"
+                     << f << "\n";
         }
 
         dumpfile.close();

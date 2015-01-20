@@ -63,7 +63,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -81,12 +81,12 @@ int main(int argc, const char **argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
-	subset.replace(LOFAR::KVpair("fitsOutput",false));
-	subset.replace(LOFAR::KVpair("casaOutput",false));
-	subset.replace(LOFAR::KVpair("nsubx",1));
-	subset.replace(LOFAR::KVpair("nsuby",1));
-	subset.replace(LOFAR::KVpair("nsubz",1));
-	FITSparallel file(comms, subset);
+        subset.replace(LOFAR::KVpair("fitsOutput", false));
+        subset.replace(LOFAR::KVpair("casaOutput", false));
+        subset.replace(LOFAR::KVpair("nsubx", 1));
+        subset.replace(LOFAR::KVpair("nsuby", 1));
+        subset.replace(LOFAR::KVpair("nsubz", 1));
+        FITSparallel file(comms, subset);
         file.processSources();
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

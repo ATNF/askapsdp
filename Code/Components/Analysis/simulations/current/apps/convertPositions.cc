@@ -47,14 +47,13 @@ using namespace askap::simulations::FITS;
 
 ASKAP_LOGGER(logger, "convertPositions.log");
 
-class ConvertPosApp : public askap::Application
-{
+class ConvertPosApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
             // This class must have scope outside the main try/catch block
-	    askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
-    
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+
             try {
                 StatReporter stats;
 
@@ -64,24 +63,26 @@ class ConvertPosApp : public askap::Application
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
                 }
 
-		subset.replace("addSources", "false");
-		subset.replace("fitsOutput", "false");
-		subset.replace("casaOutput", "false");
-		FITSparallel file(comms, subset);
-		file.processSources();
+                subset.replace("addSources", "false");
+                subset.replace("fitsOutput", "false");
+                subset.replace("casaOutput", "false");
+                FITSparallel file(comms, subset);
+                file.processSources();
 
                 stats.logSummary();
 
-	    } catch (const askap::AskapError& x) {
+            } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
                 std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in "
+                                   << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": "
+                          << x.what() << std::endl;
                 exit(1);
             }
-	    
+
             return 0;
         }
 };
