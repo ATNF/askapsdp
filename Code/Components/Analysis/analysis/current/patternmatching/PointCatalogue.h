@@ -39,51 +39,48 @@
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    namespace matching {
+namespace matching {
 
-      const double defaultRatioLimit = 10.;
+const double defaultRatioLimit = 10.;
 
-      class PointCatalogue
-      {
-      public:
-	PointCatalogue();
-	PointCatalogue(LOFAR::ParameterSet &parset);
-	PointCatalogue(const PointCatalogue& other);
-	PointCatalogue& operator= (const PointCatalogue& other);
-	virtual ~PointCatalogue(){};
+class PointCatalogue {
+    public:
+        PointCatalogue();
+        PointCatalogue(LOFAR::ParameterSet &parset);
+        virtual ~PointCatalogue() {};
 
-	bool read();
-	void makeTriangleList();
-	bool crudeMatch(std::vector<Point> &other, double maxSep);
+        bool read();
+        void makeTriangleList();
+        bool crudeMatch(std::vector<Point> &other, double maxSep);
 
-	std::string filename(){return itsFilename;};
-	std::vector<Point> &fullPointList(){return itsFullPointList;};
-	std::vector<Point> &pointList(){return itsWorkingPointList;};
-	std::vector<Triangle> &triangleList(){return itsTriangleList;};
-	double ratioLimit(){return itsRatioLimit;};
-	double raRef(){return itsRAref;};
-	double decRef(){return itsDECref;};
-	double radius(){return itsRadius;};
+        std::string filename() {return itsFilename;};
+        std::vector<Point> &fullPointList() {return itsFullPointList;};
+        std::vector<Point> &pointList() {return itsWorkingPointList;};
+        std::vector<Triangle> &triangleList() {return itsTriangleList;};
+        double ratioLimit() {return itsRatioLimit;};
+        double raRef() {return itsRAref;};
+        double decRef() {return itsDECref;};
+        double radius() {return itsRadius;};
 
-      protected:
-	std::vector<Point> itsFullPointList;
-	std::vector<Point> itsWorkingPointList;
-	std::vector<Triangle> itsTriangleList;
-	std::string itsFilename;
-	analysisutilities::ModelFactory itsFactory;
-	size_t itsTrimSize; // only use the first itsTrimSize points to make the triangle list
-	double itsRatioLimit;
-	bool   itsFlagOffsetPositions;
-	double itsRAref;
-	double itsDECref;
-	double itsRadius;
-	std::string itsReferenceImage;
-      };
+    protected:
+        std::vector<Point> itsFullPointList;
+        std::vector<Point> itsWorkingPointList;
+        std::vector<Triangle> itsTriangleList;
+        std::string itsFilename;
+        analysisutilities::ModelFactory itsFactory;
+        size_t itsTrimSize; // only use the first itsTrimSize points to make the triangle list
+        double itsRatioLimit;
+        bool   itsFlagOffsetPositions;
+        double itsRAref;
+        double itsDECref;
+        double itsRadius;
+        std::string itsReferenceImage;
+};
 
-    }
-  }
+}
+}
 }
 
 #endif

@@ -40,50 +40,50 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-        namespace matching {
+namespace matching {
 
-            /// @brief A class to hold info on a triangle side (a straight line)
-            /// @details This class holds the necessary information on a
-            ///  line connecting two points, providing functions to access its length,
-            ///  dx and dy.
-            class Side {
-                public:
-                    /// @brief Default constructor
-                    Side();
-                    /// @brief Constructor using rise over run
-                    Side(double run, double rise);
-                    Side(Point &a, Point &b);
-		    Side(const Side& s);
-		    Side& operator=(const Side& s);
-                   /// @brief Destructor
-                    virtual ~Side() {};
+/// @brief A class to hold info on a triangle side (a straight line)
+/// @details This class holds the necessary information on a
+///  line connecting two points, providing functions to access its length,
+///  dx and dy.
+class Side {
+    public:
+        /// @brief Default constructor
+        Side();
+        /// @brief Constructor using rise over run
+        Side(double run, double rise);
+        Side(Point &a, Point &b);
+        Side(const Side& s);
+        Side& operator=(const Side& s);
+        /// @brief Destructor
+        virtual ~Side() {};
 
-                    /// @brief Definition function, using slope (defined by rise and run)
-                    void define(double run, double rise);
-                    /// @brief Definition function, using two points
-                    void define(Point &a, Point &b);
+        /// @brief Definition function, using slope (defined by rise and run)
+        void define(double run, double rise);
+        /// @brief Definition function, using two points
+        void define(Point &a, Point &b);
 
-                    /// @brief Return the rise (delta-y)
-                    double rise() {return itsDY;};
-                    /// @brief Return the run (delta-x)
-                    double run() {return itsDX;};
-                    /// @brief Return the length of the side
-                    double length() {return hypot(itsDX, itsDY);};
-                    /// @brief Less-than function, working on length of the sides.
-                    friend bool operator<(Side lhs, Side rhs) {return lhs.length() < rhs.length();};
+        /// @brief Return the rise (delta-y)
+        double rise() {return itsDY;};
+        /// @brief Return the run (delta-x)
+        double run() {return itsDX;};
+        /// @brief Return the length of the side
+        double length() {return hypot(itsDX, itsDY);};
+        /// @brief Less-than function, working on length of the sides.
+        friend bool operator<(Side lhs, Side rhs) {return lhs.length() < rhs.length();};
 
-                protected:
-                    /// @brief Length in x-direction
-                    double itsDX;
-                    /// @brief Length in y-direction
-                    double itsDY;
-            };
+    protected:
+        /// @brief Length in x-direction
+        double itsDX;
+        /// @brief Length in y-direction
+        double itsDY;
+};
 
 
-        }
-    }
+}
+}
 }
 
 #endif

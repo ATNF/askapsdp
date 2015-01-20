@@ -46,53 +46,53 @@ ASKAP_LOGGER(logger, ".matching");
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    namespace matching {
+namespace matching {
 
-      Side::Side():
-	itsDX(0.),itsDY(0.)
-      {
-      }
+Side::Side():
+    itsDX(0.), itsDY(0.)
+{
+}
 
-      Side::Side(double run, double rise):
-	itsDX(run), itsDY(rise)
-      {
-      }
-      
-      Side::Side(Point &a, Point &b)
-      {
-	this->itsDX = a.x() - b.x(); 
-	this->itsDY = a.y() - b.y();
-      }
+Side::Side(double run, double rise):
+    itsDX(run), itsDY(rise)
+{
+}
 
-      Side::Side(const Side& s)
-      {
-	this->operator=(s);
-      }
+Side::Side(Point &a, Point &b)
+{
+    this->itsDX = a.x() - b.x();
+    this->itsDY = a.y() - b.y();
+}
 
-      Side& Side::operator=(const Side& s)
-      {
-	if (this == &s) return *this;
+Side::Side(const Side& s)
+{
+    this->operator=(s);
+}
 
-	this->itsDX = s.itsDX;
-	this->itsDY = s.itsDY;
-	return *this;
-      }
-      
-      void Side::define(double run, double rise)
-      {
-	this->itsDX = run; 
-	this->itsDY = rise;
-      }
+Side& Side::operator=(const Side& s)
+{
+    if (this == &s) return *this;
 
-      void Side::define(Point &a, Point &b)
-      {
-	this->itsDX = a.x() - b.x(); 
-	this->itsDY = a.y() - b.y();
-      }
+    this->itsDX = s.itsDX;
+    this->itsDY = s.itsDY;
+    return *this;
+}
+
+void Side::define(double run, double rise)
+{
+    this->itsDX = run;
+    this->itsDY = rise;
+}
+
+void Side::define(Point &a, Point &b)
+{
+    this->itsDX = a.x() - b.x();
+    this->itsDY = a.y() - b.y();
+}
 
 
-    }
-  }
+}
+}
 }

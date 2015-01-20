@@ -48,51 +48,51 @@ ASKAP_LOGGER(logger, ".matching.Point");
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    namespace matching {
+namespace matching {
 
-      Point::Point():
-	itsX(0.),itsY(0.),itsFlux(0.),itsID("")
-      {
-      }
+Point::Point():
+    itsX(0.), itsY(0.), itsFlux(0.), itsID("")
+{
+}
 
-      Point::Point(double x, double y):
-	itsX(x), itsY(y),itsFlux(0.),itsID("")
-      {
-      }
-      
-      Point::Point(double x, double y, double f):
-	itsX(x), itsY(y),itsFlux(f),itsID("")
-      {
-      }
-      
-      Point::Point(double x, double y, double f, std::string id):
-	itsX(x), itsY(y),itsFlux(f),itsID(id)
-      {
-      }
+Point::Point(double x, double y):
+    itsX(x), itsY(y), itsFlux(0.), itsID("")
+{
+}
 
-      Point::Point(boost::shared_ptr<analysisutilities::Spectrum> &spec):
-	itsX(spec->raD()),itsY(spec->decD()),itsFlux(spec->fluxZero()),itsID(spec->id())
-      {
-      }
+Point::Point(double x, double y, double f):
+    itsX(x), itsY(y), itsFlux(f), itsID("")
+{
+}
 
-      Point::Point(const Point& p)
-      {
-	this->operator=(p);
-      }
+Point::Point(double x, double y, double f, std::string id):
+    itsX(x), itsY(y), itsFlux(f), itsID(id)
+{
+}
 
-      Point& Point::operator=(const Point& p)
-      {
-	if (this == &p) return *this;
+Point::Point(boost::shared_ptr<analysisutilities::Spectrum> &spec):
+    itsX(spec->raD()), itsY(spec->decD()), itsFlux(spec->fluxZero()), itsID(spec->id())
+{
+}
 
-	this->itsX = p.itsX;
-	this->itsY = p.itsY;
-	this->itsFlux = p.itsFlux;
-	this->itsID = p.itsID;
-	return *this;
-      }
+Point::Point(const Point& p)
+{
+    this->operator=(p);
+}
 
-    }
-  }
+Point& Point::operator=(const Point& p)
+{
+    if (this == &p) return *this;
+
+    this->itsX = p.itsX;
+    this->itsY = p.itsY;
+    this->itsFlux = p.itsFlux;
+    this->itsID = p.itsID;
+    return *this;
+}
+
+}
+}
 }
