@@ -68,18 +68,12 @@ double atanCircular(double sinTerm, double cosTerm);
 /// sin(t)) to find the limits of x and y once converted from u & v.
 void findEllipseLimits(double major, double minor, double pa, float &xmin, float &xmax, float &ymin, float &ymax);
 
-/// Find an rms for an array given a mean value.
-/// Finds the "spread" (ie. the rms or standard deviation) of an
-/// array of values using a given mean value. The option exists
-/// to use the standard deviation, or, by setting robust=true,
-/// the median absolute deviation from the median. In the latter
-/// case, the middle value given is assumed to be the median,
-/// and the returned value is the median absolute difference of
-/// the data values from the median.
-/// @ingroup analysisutilities
-double findSpread(bool robust, double middle, std::vector<float> array);
+/// Find the mean or robust estimate thereof for an array.  Finds the
+/// "middle" (ie. the mean) of an array of values. The option exists
+/// to use the mean, or, by setting robust=true, the median.
+double findMiddle(bool robust, std::vector<float> &array);
 
-/// Find an rms for an array given a mean value, with masking of pixels.
+/// Find an rms or robust estimate thereof for an array given a mean value.
 /// Finds the "spread" (ie. the rms or standard deviation) of an
 /// array of values using a given mean value. The option exists
 /// to use the standard deviation, or, by setting robust=true,
@@ -88,14 +82,61 @@ double findSpread(bool robust, double middle, std::vector<float> array);
 /// and the returned value is the median absolute difference of
 /// the data values from the median.
 /// @ingroup analysisutilities
-double findSpread(bool robust, double middle, std::vector<float> array, std::vector<bool> mask);
+double findSpread(bool robust, double middle, std::vector<float> &array);
+
+/// Find an rms robust estimate thereof for an array.  Calls
+/// findMiddle first, then uses that value to call
+/// findSpread(bool,double,std::vector<float>&).
+double findSpread(bool robust, std::vector<float> &array);
+
+/// Find the mean or robust estimate thereof for an array, with
+/// masking of pixels.  Finds the "middle" (ie. the mean) of an array
+/// of values. The option exists to use the mean, or, by setting
+/// robust=true, the median. Only pixels where the mask is true are
+/// used.
+double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mask);
+
+/// Find an rms for an array given a mean value, with masking of
+/// pixels.  Finds the "spread" (ie. the rms or standard deviation) of
+/// an array of values using a given mean value. The option exists to
+/// use the standard deviation, or, by setting robust=true, the median
+/// absolute deviation from the median. In the latter case, the middle
+/// value given is assumed to be the median, and the returned value is
+/// the median absolute difference of the data values from the
+/// median. Only pixels where the mask is true are used.
+double findSpread(bool robust, double middle, std::vector<float> &array, std::vector<bool> &mask);
+
+/// Find an rms robust estimate thereof for an array, with masking of
+/// pixels.  Calls findMiddle first, then uses that value to call
+/// findSpread(bool,double,std::vector<float>&,std::vector<bool>&).
+double findSpread(bool robust, std::vector<float> &array, std::vector<bool> &mask);
 
 /// @brief Return the probability of obtaining a chisq value by
 ///        chance, for a certain number of degrees of freedom.
 /// @ingroup analysisutilities
+/// @details Returns the probability of exceeding the given
+/// value of chisq by chance. If it comes from a fit, this
+/// probability is assuming the fit is valid.
+///
+/// Typical use: say you have a fit with ndof=5 degrees of
+/// freedom that gives a chisq value of 12. You call this
+/// function via chisqProb(5,12.), which will return
+/// 0.0347878. If your confidence limit is 95% (ie. you can
+/// tolerate a 1-in-20 chance that a valid fit will produce a
+/// chisq value that high), you would reject that fit (since
+/// 0.0347878 < 0.05), but if it is 99%, you would accept it
+/// (since 0.0347878 > 0.01).
 float chisqProb(float ndof, float chisq);
 
 /// @brief Return the Gaussian after deconvolution with the given beam
+/// @details Deconvolution of a Gaussian shape, assuming it
+/// was convolved with the given beam. This procedure
+/// replicates the approach described in Wild (1970), AuJPh
+/// 23, 113.
+/// @param measured Gaussian shape to be deconvolved
+/// @param beam Beam shape of image
+/// @return A vector containing (in order), the major & minor
+/// axes, and the position angle (in radians).
 std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
 
 }

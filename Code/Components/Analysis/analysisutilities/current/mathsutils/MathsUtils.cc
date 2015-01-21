@@ -160,19 +160,57 @@ void findEllipseLimits(double major, double minor, double pa, float &xmin, float
 
 }
 
+double findMiddle(bool robust, std::vector<float> &array)
+{
+    double middle = 0.;
+    size_t size = array.size();
 
-double findSpread(bool robust, double middle, std::vector<float> array)
+    if (robust) {
+        std::vector<float> arrayCopy(array);
+
+        bool isEven = ((size % 2) == 0);
+        std::nth_element(arrayCopy.begin(),
+                         arrayCopy.begin() + size / 2,
+                         arrayCopy.end());
+        middle = arrayCopy[size / 2];
+
+        if (isEven) {
+            std::nth_element(arrayCopy.begin(),
+                             arrayCopy.begin() + size / 2 - 1,
+                             arrayCopy.end());
+            middle += arrayCopy[size / 2 - 1];
+            middle /= 2.;
+        }
+
+    } else {
+        for (size_t i = 0; i < size; i++) {
+            middle += array[i];
+        }
+        middle /= double(size);
+    }
+
+    return middle;
+
+}
+
+double findSpread(bool robust, std::vector<float> &array)
+{
+    double middle = findMiddle(robust, array);
+    return findSpread(robust, middle, array);
+}
+
+double findSpread(bool robust, double middle, std::vector<float> &array)
 {
     double spread = 0.;
-    size_t size=array.size();
-    
+    size_t size = array.size();
+
     if (robust) {
-        std::vector<float> arrayCopy(size,0);
+        std::vector<float> arrayCopy(size, 0);
 
         for (size_t i = 0; i < size; i++) {
-            arrayCopy.push_back(fabs(array[i] - middle));
+            arrayCopy[i] = fabs(array[i] - middle);
         }
-        
+
         bool isEven = ((size % 2) == 0);
         std::nth_element(arrayCopy.begin(),
                          arrayCopy.begin() + size / 2,
@@ -188,39 +226,93 @@ double findSpread(bool robust, double middle, std::vector<float> array)
         }
 
         spread = Statistics::madfmToSigma(spread);
-        
+
     } else {
         for (size_t i = 0; i < size; i++) {
             spread += (array[i] - middle) * (array[i] - middle);
-        } 
+        }
         spread = sqrt(spread / double(size - 1));
     }
 
     return spread;
 }
 
-
-double findSpread(bool robust, double middle, std::vector<float> array, std::vector<bool> mask)
+double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mask)
 {
-
-    size_t size=array.size(),goodSize = 0;
+    double middle = 0.;
+    size_t size = array.size(), goodSize = 0;
 
     for (size_t i = 0; i < size; i++) {
-        if (mask[i]) goodSize++;
+        if (mask[i]) {
+            goodSize++;
+        }
+    };
+
+    if (robust) {
+        std::vector<float> arrayCopy(goodSize, 0.);
+        int j = 0;
+        for (size_t i = 0; i < size; i++) {
+            if (mask[i]) {
+                arrayCopy[j++] = array[i];
+            }
+        }
+
+        bool isEven = ((goodSize % 2) == 0);
+        std::nth_element(arrayCopy.begin(),
+                         arrayCopy.begin() + goodSize / 2,
+                         arrayCopy.end());
+        middle = arrayCopy[goodSize / 2];
+
+        if (isEven) {
+            std::nth_element(arrayCopy.begin(),
+                             arrayCopy.begin() + goodSize / 2 - 1,
+                             arrayCopy.end());
+            middle += arrayCopy[goodSize / 2 - 1];
+            middle /= 2.;
+        }
+
+    } else {
+        for (size_t i = 0; i < size; i++) {
+            if (mask[i]) {
+                middle += array[i];
+            }
+        }
+        middle /= double(goodSize);
     }
-    
+
+    return middle;
+
+}
+
+double findSpread(bool robust, std::vector<float> &array, std::vector<bool> &mask)
+{
+    double middle = findMiddle(robust, array, mask);
+    return findSpread(robust, middle, array, mask);
+}
+
+double findSpread(bool robust, double middle, std::vector<float> &array, std::vector<bool> &mask)
+{
+
+    size_t size = array.size(), goodSize = 0;
+
+    for (size_t i = 0; i < size; i++) {
+        if (mask[i]) {
+            goodSize++;
+        }
+    }
+
     double spread = 0.;
 
     if (robust) {
-        std::vector<float> arrayCopy(goodSize,0);
+        std::vector<float> arrayCopy(goodSize, 0);
         int j = 0;
 
-        for (size_t i = 0; i < size; i++){
+        for (size_t i = 0; i < size; i++) {
             if (mask[i]) {
                 arrayCopy[j++] = fabs(array[i] - middle);
             }
         }
-        
+
         bool isEven = ((goodSize % 2) == 0);
         std::nth_element(arrayCopy.begin(),
                          arrayCopy.begin() + goodSize / 2,
@@ -239,7 +331,7 @@ double findSpread(bool robust, double middle, std::vector<float> array, std::vec
 
     } else {
         for (size_t i = 0; i < size; i++) {
-            if (mask[i]){
+            if (mask[i]) {
                 spread += (array[i] - middle) * (array[i] - middle);
             }
         }
@@ -251,31 +343,11 @@ double findSpread(bool robust, double middle, std::vector<float> array, std::vec
 
 float chisqProb(float ndof, float chisq)
 {
-    /// @details Returns the probability of exceeding the given
-    /// value of chisq by chance. If it comes from a fit, this
-    /// probability is assuming the fit is valid.
-    ///
-    /// Typical use: say you have a fit with ndof=5 degrees of
-    /// freedom that gives a chisq value of 12. You call this
-    /// function via chisqProb(5,12.), which will return
-    /// 0.0347878. If your confidence limit is 95% (ie. you can
-    /// tolerate a 1-in-20 chance that a valid fit will produce a
-    /// chisq value that high), you would reject that fit (since
-    /// 0.0347878 < 0.05), but if it is 99%, you would accept it
-    /// (since 0.0347878 > 0.01).
     return gsl_sf_gamma_inc(ndof / 2., chisq / 2.) / gsl_sf_gamma(ndof / 2.);
 }
 
 std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam)
 {
-    /// @details Deconvolution of a Gaussian shape, assuming it
-    /// was convolved with the given beam. This procedure
-    /// replicates the approach described in Wild (1970), AuJPh
-    /// 23, 113.
-    /// @param measured Gaussian shape to be deconvolved
-    /// @param beam Beam shape of image
-    /// @return A vector containing (in order), the major & minor
-    /// axes, and the position angle (in radians).
     double a2 = beam.maj(), b2 = beam.min(), pa2 = beam.pa() * M_PI / 180.;
     double a0 = measured.majorAxis(), b0 = measured.minorAxis(), pa0 = measured.PA();
     double twopa0 = 2.0 * pa0, twopa2 = 2.0 * pa2;
@@ -283,36 +355,29 @@ std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, ducham
     double b0sq = b0 * b0;
     double a2sq = a2 * a2;
     double b2sq = b2 * b2;
-    //cerr.setf(std::ios::fixed);
-    //cerr << std::setprecision(10) << a0 << " " << b0 << " " << a2 << " " << b2 << " " << a0sq << " " << b0sq << " " << a2sq << " " << b2sq <<"\n";
-    //ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
     double d0 = a0sq - b0sq;
     double d2 = a2sq - b2sq;
 
     double d1 = sqrt(d0 * d0 + d2 * d2 - 2.0 * d0 * d2 * cos(twopa0 - twopa2));
-    //ASKAPLOG_DEBUG_STR(logger, "d1="<<d1<<", d1-12.="<<d1-12.0);
     double absum0 = a0sq + b0sq;
     double absum2 = a2sq + b2sq;
-    //ASKAPLOG_DEBUG_STR(logger, "absum0="<<absum0<<", absum2="<<absum2<<", diff="<<absum0-absum2 << ", diff-12="<<absum0-absum2-12.0);
     double a1sq = 0.5 * (absum0 - absum2 + d1);
     double b1sq = 0.5 * (absum0 - absum2 - d1);
     double a1 = 0., b1 = 0.;
     if (a1sq > 0.) a1 = sqrt(a1sq);
     if (b1sq > 0.) b1 = sqrt(b1sq);
-    //ASKAPLOG_DEBUG_STR(logger, "Deconvolving: d0="<<d0<<", d2="<<d2<<", d1="<<d1<<", a1sq="<<a1sq<<", b1sq="<<b1sq<<", a1="<<a1<<", b1="<<b1);
+
     double pa1;
     if ((d0 * cos(twopa0) - d2 * cos(twopa2)) == 0.) pa1 = 0.;
     else {
         double sin2pa1 = (d0 * sin(twopa0) - d2 * sin(twopa2));
         double cos2pa1 = (d0 * cos(twopa0) - d2 * cos(twopa2));
-        //pa1 = atanCircular(sin2pa1, cos2pa1)/2.;
         pa1 = atan2(sin2pa1, cos2pa1) / 2.;
     }
 
     std::vector<Double> deconv(3);
     double maj = std::max(std::max(a1, b1), 0.);
     double min = std::max(std::min(a1, b1), 0.);
-    // ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min<<", pa1="<<pa1);
     deconv[0] = maj;
     deconv[1] = min;
     deconv[2] = pa1;
