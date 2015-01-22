@@ -170,7 +170,7 @@ CatalogueSpecification ComponentCatalogue(duchamp::FitsHeader &header)
                       "meta.id", "char", "col_component_name", "");
     newSpec.addColumn("RA", "ra_hms_cont", "", 11, 0,
                       "pos.eq.ra", "char", "col_ra", "J2000");
-    newSpec.addColumn("DEC", "dec_hms_cont", "", 11, 0,
+    newSpec.addColumn("DEC", "dec_dms_cont", "", 11, 0,
                       "pos.eq.dec", "char", "col_dec", "J2000");
     newSpec.addColumn("RAJD", "ra_deg_cont", "[deg]", 11, prPos,
                       "pos.eq.ra;meta.main", "float", "col_rajd", "J2000");
