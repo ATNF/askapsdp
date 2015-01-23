@@ -49,7 +49,6 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/Outputs/CatalogueSpecification.hh>
 
-#include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian2D.h>
 
 #include <casa/namespace.h>
@@ -224,8 +223,8 @@ class RadioSource : public duchamp::Detection {
         /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
         /// sigma). The FittingParameters need to have
         /// been set prior to calling (via setFitParams).
-        bool fitGauss(std::vector<float> fluxArray,
-                      std::vector<size_t> dimArray);
+        bool fitGauss(std::vector<float> &fluxArray,
+                      std::vector<size_t> &dimArray);
 
         /// @details This function drives the fitting of the Gaussian
         /// functions. It first sets up the fitting parameters, then
@@ -246,9 +245,9 @@ class RadioSource : public duchamp::Detection {
         ///
         /// @return The return value is the value of itsFlagHasFit,
         /// which indicates whether a valid fit was made.
-        bool fitGauss(casa::Matrix<casa::Double> pos,
-                      casa::Vector<casa::Double> f,
-                      casa::Vector<casa::Double> sigma);
+        bool fitGauss(casa::Matrix<casa::Double> &pos,
+                      casa::Vector<casa::Double> &f,
+                      casa::Vector<casa::Double> &sigma);
         ///@}
 
         /// @brief Store the FITS header information

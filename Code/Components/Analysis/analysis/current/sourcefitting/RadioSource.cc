@@ -831,6 +831,25 @@ void RadioSource::prepareForFit(duchamp::Cube & cube, bool useArray)
 
 //**************************************************************//
 
+bool RadioSource::fitGauss(duchamp::Cube &cube)
+{
+    std::vector<float> array(cube.getArray(),
+                             cube.getArray() + cube.getSize());
+    std::vector<size_t> dim(cube.getDimArray(),
+                            cube.getDimArray() + cube.getNumDim());
+
+    if (itsFitParams.fitJustDetection()) {
+        ASKAPLOG_DEBUG_STR(logger, "Fitting to detected pixels");
+        std::vector<PixelInfo::Voxel> voxlist = this->getPixelSet(array.data(), dim.data());
+        return fitGauss(voxlist);
+    } else {
+        return fitGauss(array, dim);
+    }
+
+}
+
+//**************************************************************//
+
 bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> &voxelList)
 {
     int size = this->getSize();
@@ -871,27 +890,8 @@ bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> &voxelList)
 
 //**************************************************************//
 
-bool RadioSource::fitGauss(duchamp::Cube &cube)
-{
-    std::vector<float> array(cube.getArray(),
-                             cube.getArray() + cube.getSize());
-    std::vector<size_t> dim(cube.getDimArray(),
-                            cube.getDimArray() + cube.getNumDim());
-
-    if (itsFitParams.fitJustDetection()) {
-        ASKAPLOG_DEBUG_STR(logger, "Fitting to detected pixels");
-        std::vector<PixelInfo::Voxel> voxlist = this->getPixelSet(array.data(), dim.data());
-        return fitGauss(voxlist);
-    } else {
-        return fitGauss(array, dim);
-    }
-
-}
-
-//**************************************************************//
-
-bool RadioSource::fitGauss(std::vector<float> fluxArray,
-                           std::vector<size_t> dimArray)
+bool RadioSource::fitGauss(std::vector<float> &fluxArray,
+                           std::vector<size_t> &dimArray)
 {
 
     if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
@@ -932,9 +932,9 @@ bool RadioSource::fitGauss(std::vector<float> fluxArray,
 
 //**************************************************************//
 
-bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos,
-                           casa::Vector<casa::Double> f,
-                           casa::Vector<casa::Double> sigma)
+bool RadioSource::fitGauss(casa::Matrix<casa::Double> &pos,
+                           casa::Vector<casa::Double> &f,
+                           casa::Vector<casa::Double> &sigma)
 {
 
     ASKAPLOG_INFO_STR(logger, "Fitting source " << this->name <<

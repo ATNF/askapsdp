@@ -295,7 +295,7 @@ class RadioSourceTest : public CppUnit::TestFixture {
             itsGaussSource.setHeader(head);
             itsGaussSource.setFitParams(itsFitparams);
 
-            itsGaussSource.fitGauss(itsGaussArray, itsDim, itsFitparams);
+            itsGaussSource.fitGauss(itsGaussArray, itsDim);
 
             std::vector<casa::Gaussian2D<Double> > fits = itsGaussSource.gaussFitSet();
             ASKAPLOG_DEBUG_STR(logger, "Have fit " << fits[0]);
@@ -318,7 +318,7 @@ class RadioSourceTest : public CppUnit::TestFixture {
             itsGaussSource.setHeader(head);
             itsGaussSource.setFitParams(itsFitparams);
 
-            itsGaussSource.fitGauss(itsGaussArray, itsDim, itsFitparams);
+            itsGaussSource.fitGauss(itsGaussArray, itsDim);
 
             std::vector<casa::Gaussian2D<Double> > fits = itsGaussSource.gaussFitSet();
             duchamp::DuchampBeam beam(BMAJ, BMIN, BPA);
