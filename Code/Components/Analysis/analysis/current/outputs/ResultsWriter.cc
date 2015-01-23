@@ -201,7 +201,7 @@ void ResultsWriter::writeComponentCatalogue()
         vowriter.setSourceList(&itsSourceList);
         vowriter.openCatalogue();
         vowriter.writeHeader();
-        std::string tableVersion = "casda.continuum_component_description_v1.6";
+        std::string tableVersion = "casda.continuum_component_description_v1.7";
         duchamp::VOParam version("table_version", "meta.version", "char", tableVersion, 42, "");
         vowriter.writeParameter(version);
         vowriter.writeParameters();
