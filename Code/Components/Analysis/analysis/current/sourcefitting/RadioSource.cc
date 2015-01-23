@@ -117,6 +117,8 @@ RadioSource::RadioSource():
     itsBetaMap["best"] = std::vector<float>(1, -99.);
 }
 
+//**************************************************************//
+
 RadioSource::RadioSource(duchamp::Detection obj):
     duchamp::Detection(obj)
 {
@@ -136,6 +138,8 @@ RadioSource::RadioSource(duchamp::Detection obj):
     itsAlphaMap["best"] = std::vector<float>(1, -99.);
     itsBetaMap["best"] = std::vector<float>(1, -99.);
 }
+
+//**************************************************************//
 
 RadioSource::RadioSource(const RadioSource& src):
     duchamp::Detection(src)
@@ -165,6 +169,8 @@ RadioSource& RadioSource::operator= (const duchamp::Detection& det)
     itsBetaMap["best"] = std::vector<float>(1, -99.);
     return *this;
 }
+
+//**************************************************************//
 
 RadioSource& RadioSource::operator= (const RadioSource& src)
 {
@@ -224,13 +230,7 @@ void RadioSource::defineBox(duchamp::Section &sec,
         end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset),
                             this->getZmax() + itsFitParams.boxPadSize());
     }
-    // ASKAPLOG_DEBUG_STR(logger, "DefineBox: start = " << start << " end="<<end << " section="<<sec.getSection()
-    //         << ", sec.start: " << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(spectralAxis)
-    //         << ", sec.end: " << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(spectralAxis)
-    //           <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
-    //           <<", mins: " <<this->getXmin() << " " << this->getYmin() << " " << this->getZmin()
-    //           <<", maxs: " <<this->getXmax() << " " << this->getYmax() << " " << this->getZmax()
-    //           <<", boxpadsize: " << itsFitParams.boxPadSize());
+
     if (start >= end) {
         ASKAPLOG_DEBUG_STR(logger,
                            "RadioSource::defineBox failing : sec=" << sec.getSection() <<
@@ -374,6 +374,8 @@ void RadioSource::setNoiseLevel(duchamp::Cube &cube)
         itsNoiseLevel = itsFitParams.noiseLevel();
     }
 }
+
+//**************************************************************//
 
 void RadioSource::setNoiseLevel(std::vector<float> &array,
                                 std::vector<size_t> &dim,
@@ -635,6 +637,8 @@ RadioSource::getSubComponentList(casa::Matrix<casa::Double> pos,
     return cmpntlist;
 }
 
+//**************************************************************//
+
 std::vector<SubComponent>
 RadioSource::getThresholdedSubComponentList(std::vector<float> fluxarray)
 {
@@ -827,8 +831,7 @@ void RadioSource::prepareForFit(duchamp::Cube & cube, bool useArray)
 
 //**************************************************************//
 
-bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> &voxelList,
-                           FittingParameters &baseFitter)
+bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> &voxelList)
 {
     int size = this->getSize();
     casa::Matrix<casa::Double> pos;
@@ -863,26 +866,32 @@ bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> &voxelList,
         }
     }
 
-    return fitGauss(pos, f, sigma, baseFitter);
+    return fitGauss(pos, f, sigma);
 }
 
 //**************************************************************//
 
-bool RadioSource::fitGauss(duchamp::Cube &cube,
-                           FittingParameters &baseFitter)
+bool RadioSource::fitGauss(duchamp::Cube &cube)
 {
     std::vector<float> array(cube.getArray(),
                              cube.getArray() + cube.getSize());
     std::vector<size_t> dim(cube.getDimArray(),
                             cube.getDimArray() + cube.getNumDim());
 
-    return fitGauss(array, dim, baseFitter);
+    if (itsFitParams.fitJustDetection()) {
+        ASKAPLOG_DEBUG_STR(logger, "Fitting to detected pixels");
+        std::vector<PixelInfo::Voxel> voxlist = this->getPixelSet(array.data(), dim.data());
+        return fitGauss(voxlist);
+    } else {
+        return fitGauss(array, dim);
+    }
 
 }
 
+//**************************************************************//
+
 bool RadioSource::fitGauss(std::vector<float> fluxArray,
-                           std::vector<size_t> dimArray,
-                           FittingParameters &baseFitter)
+                           std::vector<size_t> dimArray)
 {
 
     if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
@@ -918,15 +927,14 @@ bool RadioSource::fitGauss(std::vector<float> fluxArray,
         }
     }
 
-    return fitGauss(pos, f, sigma, baseFitter);
+    return fitGauss(pos, f, sigma);
 }
 
 //**************************************************************//
 
 bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos,
                            casa::Vector<casa::Double> f,
-                           casa::Vector<casa::Double> sigma,
-                           FittingParameters &baseFitter)
+                           casa::Vector<casa::Double> sigma)
 {
 
     ASKAPLOG_INFO_STR(logger, "Fitting source " << this->name <<
@@ -935,14 +943,13 @@ bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos,
                       this->getXcentre() + this->getXOffset() << "," <<
                       this->getYcentre() + this->getYOffset() << ")");
 
-    if (this->getSpatialSize() < baseFitter.minFitSize()) {
+    if (this->getSpatialSize() < itsFitParams.minFitSize()) {
         ASKAPLOG_INFO_STR(logger, "Not fitting- source is too small - " <<
                           "spatial size = " << this->getSpatialSize() <<
-                          " cf. minFitSize = " << baseFitter.minFitSize());
+                          " cf. minFitSize = " << itsFitParams.minFitSize());
         return false;
     }
 
-    itsFitParams = baseFitter;
     itsFitParams.saveBox(itsBox);
     itsFitParams.setPeakFlux(this->peakFlux);
     itsFitParams.setDetectThresh(itsDetectionThreshold);
@@ -1369,6 +1376,8 @@ void RadioSource::printTableEntry(std::ostream &stream,
     }
 }
 
+//**************************************************************//
+
 void
 RadioSource::writeFitToAnnotationFile(boost::shared_ptr<duchamp::AnnotationWriter> &writer,
                                       int sourceNum,
@@ -1422,6 +1431,8 @@ RadioSource::writeFitToAnnotationFile(boost::shared_ptr<duchamp::AnnotationWrite
     }
 
 }
+
+//**************************************************************//
 
 LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, RadioSource& src)
 {
@@ -1544,6 +1555,8 @@ LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, RadioSource& src)
 
     return blob;
 }
+
+//**************************************************************//
 
 LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, RadioSource& src)
 {

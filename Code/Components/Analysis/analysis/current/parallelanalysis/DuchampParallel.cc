@@ -941,15 +941,8 @@ void DuchampParallel::fitSources()
 void DuchampParallel::fitSource(sourcefitting::RadioSource &src)
 {
 
-    if (itsFitParams.fitJustDetection()) {
-        ASKAPLOG_DEBUG_STR(logger, "Fitting to detected pixels");
-        std::vector<PixelInfo::Voxel> voxlist =
-            src.getPixelSet(itsCube.getArray(), itsCube.getDimArray());
-        src.fitGauss(voxlist, itsFitParams);
-    } else {
-        src.fitGauss(itsCube, itsFitParams);
-    }
-
+    src.fitGauss(itsCube);
+    
     for (int t = 1; t <= 2; t++) {
         src.findSpectralTerm(itsSpectralTermImages[t - 1], t, itsFlagFindSpectralTerms[t - 1]);
     }

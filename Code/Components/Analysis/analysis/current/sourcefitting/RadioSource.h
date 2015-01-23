@@ -193,6 +193,18 @@ class RadioSource : public duchamp::Detection {
         /// @brief Fit Gaussian components to the Detection.
         /// @name
         ///@{
+
+        /// @details The principle interface to the Gaussian
+        /// fitting. Depending on the choice in the FittingParameters,
+        /// this either extracts the flux and dimension arrays from
+        /// the cube and passes them to fitGauss(std::vector<float>,
+        /// std::vector<size_t>), or extracts the set of voxels that
+        /// make up the object and pass them to
+        /// fitGauss(std::vector<PixelInfo::Voxel> &). The
+        /// FittingParameters need to have been set prior to calling
+        /// (via setFitParams).
+        bool fitGauss(duchamp::Cube &cube);
+
         /// @details First defines the pixel array with the
         /// flux values of just the detected pixels by
         /// extracting the voxels from the given
@@ -200,15 +212,9 @@ class RadioSource : public duchamp::Detection {
         /// flux matrix, which is passed to
         /// fitGauss(casa::Matrix<casa::Double> pos,
         /// casa::Vector<casa::Double> f,
-        /// casa::Vector<casa::Double> sigma).
-        bool fitGauss(std::vector<PixelInfo::Voxel> &voxelList,
-                      FittingParameters &baseFitter);
-
-        /// @details Extracts the flux and dimension arrays from the
-        /// cube and passes them to fitGauss(std::vector<float>,
-        /// std::vector<size_t>, FittingParameters &)
-        bool fitGauss(duchamp::Cube &cube,
-                      FittingParameters &baseFitter);
+        /// casa::Vector<casa::Double> sigma). The FittingParameters need to have
+        /// been set prior to calling (via setFitParams).
+        bool fitGauss(std::vector<PixelInfo::Voxel> &voxelList);
 
         /// @details First defines the pixel array with the flux
         /// values by extracting the voxels from fluxArray that are
@@ -216,10 +222,10 @@ class RadioSource : public duchamp::Detection {
         /// are placed in the flux matrix, which is passed to
         /// fitGauss(casa::Matrix<casa::Double> pos,
         /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
-        /// sigma).
+        /// sigma). The FittingParameters need to have
+        /// been set prior to calling (via setFitParams).
         bool fitGauss(std::vector<float> fluxArray,
-                      std::vector<size_t> dimArray,
-                      FittingParameters &baseFitter);
+                      std::vector<size_t> dimArray);
 
         /// @details This function drives the fitting of the Gaussian
         /// functions. It first sets up the fitting parameters, then
@@ -233,12 +239,16 @@ class RadioSource : public duchamp::Detection {
         /// each type is saved for later writing to the appropriate
         /// summary file, and the best overall is saved in itsBestFit
         ///
+        /// The FittingParameters need to have
+        /// been set prior to calling (via setFitParams). This
+        /// function changes them by setting the specific values of
+        /// the peak flux, detection threshold, and box.
+        ///
         /// @return The return value is the value of itsFlagHasFit,
         /// which indicates whether a valid fit was made.
         bool fitGauss(casa::Matrix<casa::Double> pos,
                       casa::Vector<casa::Double> f,
-                      casa::Vector<casa::Double> sigma,
-                      FittingParameters &baseFitter);
+                      casa::Vector<casa::Double> sigma);
         ///@}
 
         /// @brief Store the FITS header information
@@ -544,7 +554,10 @@ class RadioSource : public duchamp::Detection {
         /// @brief The type of the best fit
         std::string itsBestFitType;
 
-        /// @brief The parameters used to control the fitting
+        /// @brief The parameters used to control the fitting.
+        /// @details These are defined externally and set, then altered to
+        /// include the specific box used in the fitting, as well as the
+        /// source's peak flux & detection threshold.
         FittingParameters itsFitParams;
 
         /// @brief The extent of the box, taking into account the
