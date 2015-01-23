@@ -1279,10 +1279,9 @@ void DuchampParallel::gatherStats()
         }
         itsCube.pars().setFlagUserThreshold(true);
         ASKAPLOG_INFO_STR(logger, "Threshold = " << itsCube.stats().getThreshold());
-    } else if (!itsFlagVariableThreshold &&
-               (!itsCube.pars().getFlagUserThreshold() ||
+    } else if (!itsCube.pars().getFlagUserThreshold() ||
                 (itsCube.pars().getFlagGrowth() &&
-                 !itsCube.pars().getFlagUserGrowthThreshold()))) {
+                 !itsCube.pars().getFlagUserGrowthThreshold())) {
 
         ParallelStats parstats(itsComms, &itsCube);
         parstats.findDistributedStats();
