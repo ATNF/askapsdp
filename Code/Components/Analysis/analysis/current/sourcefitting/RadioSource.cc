@@ -377,7 +377,7 @@ void RadioSource::setNoiseLevel(duchamp::Cube &cube)
 
 void RadioSource::setNoiseLevel(std::vector<float> &array,
                                 std::vector<size_t> &dim,
-                                int boxSize)
+                                unsigned int boxSize)
 {
     if (boxSize % 2 == 0) boxSize += 1;
     int hw = boxSize / 2;
@@ -389,7 +389,8 @@ void RadioSource::setNoiseLevel(std::vector<float> &array,
     long xmax = min(xsize - 1, this->xpeak + hw);
     long ymax = min(ysize - 1, this->ypeak + hw);
 
-    ASKAPASSERT((xmax - xmin + 1) * (ymax - ymin + 1) <= boxSize * boxSize);
+    unsigned int npix = (xmax - xmin + 1) * (ymax - ymin + 1);
+    ASKAPASSERT(npix <= boxSize * boxSize);
     size_t size = 0;
 
     for (int x = xmin; x <= xmax; x++) {

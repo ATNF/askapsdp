@@ -263,7 +263,7 @@ class RadioSource : public duchamp::Detection {
         /// box used.
         void setNoiseLevel(std::vector<float> &array,
                            std::vector<size_t> &dim,
-                           int boxSize = defaultNoiseBoxSize);
+                           unsigned int boxSize = defaultNoiseBoxSize);
 
         /// @brief Set the noise level to the local value, using a
         /// Duchamp::Cube object.
