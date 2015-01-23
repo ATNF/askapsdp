@@ -87,7 +87,7 @@ class VariableThresholder {
         /// not been defined via the parset).
         void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
 
-    void setWeighter(boost::shared_ptr<Weighter> &weighter) {itsWeighter = weighter;};
+        void setWeighter(boost::shared_ptr<Weighter> &weighter) {itsWeighter = weighter;};
 
         /// @details Updates the output image names in the case of
         /// distributed processing. The names will have the worker
@@ -127,7 +127,7 @@ class VariableThresholder {
         std::string averageImage() {return itsAverageImageName;};
         std::string boxSumImage() {return itsBoxSumImageName;};
 
-        int boxSize() {return itsBoxSize;};
+        unsigned int boxSize() {return itsBoxSize;};
 
     protected:
         /// @details Writes the arrays as requested to images on disk. Where
@@ -159,7 +159,7 @@ class VariableThresholder {
         float itsSNRthreshold;
         std::string itsSearchType;
         /// The half-box-width used for the sliding-box calculations
-        int itsBoxSize;
+        unsigned int itsBoxSize;
 
         std::string itsInputImage;
 
@@ -181,7 +181,7 @@ class VariableThresholder {
         /// @brief The subimage definition
         analysisutilities::SubimageDef *itsSubimageDef;
         duchamp::Cube *itsCube;
-    boost::shared_ptr<Weighter> itsWeighter;
+        boost::shared_ptr<Weighter> itsWeighter;
         casa::Slicer itsSlicer;
         casa::IPosition itsInputShape;
         casa::IPosition itsLocation;

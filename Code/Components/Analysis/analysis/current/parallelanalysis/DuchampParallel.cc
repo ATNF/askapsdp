@@ -329,9 +329,9 @@ DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
                               itsSubimageDef.overlapx() << "," <<
                               itsSubimageDef.overlapy() << "," <<
                               itsSubimageDef.overlapz());
-            itsParset.replace(LOFAR::KVpair("overlapx", itsSubimageDef.overlapx()));
-            itsParset.replace(LOFAR::KVpair("overlapy", itsSubimageDef.overlapy()));
-            itsParset.replace(LOFAR::KVpair("overlapz", itsSubimageDef.overlapz()));
+            itsParset.replace(LOFAR::KVpair("overlapx", int(itsSubimageDef.overlapx())));
+            itsParset.replace(LOFAR::KVpair("overlapy", int(itsSubimageDef.overlapy())));
+            itsParset.replace(LOFAR::KVpair("overlapz", int(itsSubimageDef.overlapz())));
         }
     } else {
         itsSubimageDef = SubimageDef();

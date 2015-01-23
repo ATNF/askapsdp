@@ -71,8 +71,8 @@ SubimageDef::SubimageDef()
     itsOverlapX = itsOverlapY = itsOverlapZ = 0;
     itsImageName = "";
     itsInputSection = "";
-    itsNSub = std::vector<int>();
-    itsOverlap = std::vector<int>();
+    itsNSub = std::vector<unsigned int>();
+    itsOverlap = std::vector<unsigned int>();
     itsSectionList = std::vector<duchamp::Section>();
 }
 
@@ -87,8 +87,9 @@ SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
     itsOverlapY = parset.getInt16("overlapy", 0);
     itsOverlapZ = parset.getInt16("overlapz", 0);
     bool flagSub = parset.getBool("flagsubsection", false);
-    if (flagSub)
+    if (flagSub) {
         itsInputSection = parset.getString("subsection", "");
+    }
 
     itsAnnotationFile = parset.getString("subimageAnnotationFile",
                                          "selavy-SubimageLocations.ann");
@@ -102,7 +103,9 @@ SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
 void SubimageDef::setImageDim(std::vector<int> dim)
 {
     itsFullImageDim = std::vector<long>(dim.size());
-    for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];
+    for (size_t i = 0; i < dim.size(); i++) {
+        itsFullImageDim[i] = dim[i];
+    }
 }
 
 void SubimageDef::setImageDim(std::vector<long> dim)
@@ -113,19 +116,25 @@ void SubimageDef::setImageDim(std::vector<long> dim)
 void SubimageDef::setImageDim(std::vector<size_t> dim)
 {
     itsFullImageDim = std::vector<long>(dim.size());
-    for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];
+    for (size_t i = 0; i < dim.size(); i++) {
+        itsFullImageDim[i] = dim[i];
+    }
 }
 
 void SubimageDef::setImageDim(long *dim, size_t size)
 {
     itsFullImageDim = std::vector<long>(size);
-    for (size_t i = 0; i < size; i++) itsFullImageDim[i] = dim[i];
+    for (size_t i = 0; i < size; i++) {
+        itsFullImageDim[i] = dim[i];
+    }
 }
 
 void SubimageDef::setImageDim(size_t *dim, size_t size)
 {
     itsFullImageDim = std::vector<long>(size);
-    for (size_t i = 0; i < size; i++) itsFullImageDim[i] = dim[i];
+    for (size_t i = 0; i < size; i++) {
+        itsFullImageDim[i] = dim[i];
+    }
 }
 
 void SubimageDef::define(int numDim)
@@ -162,8 +171,8 @@ void SubimageDef::define(wcsprm *wcs)
     itsSpec = wcs->spec;
 
     if (itsNAxis > 0) {
-        itsNSub = std::vector<int>(itsNAxis,1);
-        itsOverlap = std::vector<int>(itsNAxis,0);
+        itsNSub = std::vector<unsigned int>(itsNAxis, 1);
+        itsOverlap = std::vector<unsigned int>(itsNAxis, 0);
 
         for (int i = 0; i < itsNAxis; i++) {
             if (i == itsLng) {
@@ -213,8 +222,8 @@ void SubimageDef::defineAllSections()
     }
     if (itsInputSection == "") {
         ASKAPLOG_WARN_STR(logger,
-                          "SubimageDef::defineAllSections : input subsection not defined!\
-Setting to null subsection");
+                          "SubimageDef::defineAllSections : input subsection not defined! " <<
+                          "Setting to null subsection");
         itsInputSection = duchamp::nullSection(itsFullImageDim.size());
     }
     duchamp::Section inputSec(itsInputSection);
@@ -247,8 +256,8 @@ duchamp::Section SubimageDef::section(int workerNum)
     /// on the subsection.
 
     if (itsFullImageDim.size() == 0) {
-        ASKAPTHROW(AskapError, "SubimageDef::section :\
- tried to define a section but the image dimensions have not been set!");
+        ASKAPTHROW(AskapError, "SubimageDef::section : " <<
+                   " tried to define a section but the image dimensions have not been set!");
     }
 
     if (workerNum < 0) {
@@ -256,15 +265,13 @@ duchamp::Section SubimageDef::section(int workerNum)
 
     } else {
         if (itsInputSection == "") {
-            ASKAPLOG_WARN_STR(logger, "SubimageDef::section : \
-input subsection not defined! Setting to null subsection");
+            ASKAPLOG_WARN_STR(logger, "SubimageDef::section : " <<
+                              "input subsection not defined! Setting to null subsection");
             itsInputSection = duchamp::nullSection(itsFullImageDim.size());
         }
         duchamp::Section inputSec(itsInputSection);
         inputSec.parse(itsFullImageDim);
-        long *sub = new long[itsNAxis];
-
-        for (int i = 0; i < itsNAxis; i++) sub[i] = 0;
+        std::vector<long> sub(itsNAxis, 0);
 
         sub[itsLng] = workerNum % itsNSub[0];
         sub[itsLat] = (workerNum % (itsNSub[0] * itsNSub[1])) / itsNSub[0];

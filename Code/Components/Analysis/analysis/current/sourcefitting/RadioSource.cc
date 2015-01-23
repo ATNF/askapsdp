@@ -319,8 +319,8 @@ void RadioSource::setAtEdge(duchamp::Cube &cube,
         ymaxEdge = cube.getDimY() - 1;
         zmaxEdge = cube.getDimZ() - 1;
     } else {
-        std::vector<int> nsub = subimage.nsub();
-        std::vector<int> overlap = subimage.overlap();
+        std::vector<unsigned int> nsub = subimage.nsub();
+        std::vector<unsigned int> overlap = subimage.overlap();
         int colnum = workerNum % nsub[0];
         int rownum = workerNum / nsub[0];
         int znum = workerNum / (nsub[0] * nsub[1]);
@@ -987,10 +987,10 @@ bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos,
             int bestFit = 0;
             float bestRChisq = 9999.;
 
-            int minGauss = itsFitParams.numGaussFromGuess() ? cmpntListCopy.size() : 1;
-            int maxGauss = itsFitParams.numGaussFromGuess() ?
-                           cmpntListCopy.size() :
-                           std::min(itsFitParams.maxNumGauss(), int(f.size()));
+            unsigned int minGauss = itsFitParams.numGaussFromGuess() ? cmpntListCopy.size() : 1;
+            unsigned int maxGauss = itsFitParams.numGaussFromGuess() ?
+                                    cmpntListCopy.size() :
+                                    std::min(size_t(itsFitParams.maxNumGauss()), f.size());
 
             bool fitPossible = true;
             bool stopNow = false;
@@ -1043,8 +1043,7 @@ bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos,
         itsFlagHasFit = false;
         if (itsFitParams.useGuessIfBad()) {
             if (!itsFitParams.numGaussFromGuess()) {
-                cmpntList.resize(std::min(itsFitParams.maxNumGauss(),
-                                          int(f.size())));
+                cmpntList.resize(std::min(size_t(itsFitParams.maxNumGauss()), f.size()));
             }
             itsBestFitType = "guess";
             // set the components to be at least as big as the beam

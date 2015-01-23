@@ -61,19 +61,19 @@ namespace sourcefitting {
 
 /// @brief Minimum number of pixels that an object has for it to be
 /// fit.
-const int defaultMinFitSize = 3;
+const unsigned int defaultMinFitSize = 3;
 
 /// @brief Width of padding border to put around detections for
 /// fitting purposes, in pixels
-const int defaultBoxPadSize = 3;
+const unsigned int defaultBoxPadSize = 3;
 
 /// @brief Default side length of box used to estimate noise for a
 /// detection
-const int defaultNoiseBoxSize = 101;
+const unsigned int defaultNoiseBoxSize = 101;
 
 /// @brief Default maximum number of Gaussian components to fit to a
 /// detection
-const int defaultMaxNumFittedGauss = 4;
+const unsigned int defaultMaxNumFittedGauss = 4;
 
 /// @brief Default value for the confidence level at which chi-squared
 /// values are accepted.  If the value is outside the range [0,1],
@@ -83,7 +83,7 @@ const float defaultChisqConfidence = -1.;
 
 /// @brief Default value for the number of thresholds looked at when
 /// finding subcomponents
-const int defaultNumSubThresholds = 20;
+const unsigned int defaultNumSubThresholds = 20;
 
 /// @brief Default value of the maximum permitted reduced chi-squared
 /// value for an acceptable fit.
@@ -95,7 +95,7 @@ const Double defaultMaxRMS = 1.;
 
 /// @brief Default value for the maxRetries parameters used by
 /// casa::fitGaussian
-const int defaultMaxRetries = 0;
+const unsigned int defaultMaxRetries = 0;
 
 const std::string availableFitTypesArray[5] = {"full", "psf", "shape", "height", "guess"};
 const std::vector<std::string>
@@ -165,9 +165,9 @@ class FittingParameters {
         // @{
 
         void setFlagDoFit(bool b) {itsFlagDoFit = b;};
-        void setMaxNumGauss(int i) {itsMaxNumGauss = i;};
-        void setBoxPadSize(int i) {itsBoxPadSize = i;};
-        void setNoiseBoxSize(int i) {itsNoiseBoxSize = i;};
+        void setMaxNumGauss(unsigned int i) {itsMaxNumGauss = i;};
+        void setBoxPadSize(unsigned int i) {itsBoxPadSize = i;};
+        void setNoiseBoxSize(unsigned int i) {itsNoiseBoxSize = i;};
         void setMaxRMS(Double d) {itsMaxRMS = d;};
         void setChisqConfidence(float f) {itsChisqConfidence = f;};
         void setMaxReducedChisq(float f) {itsMaxReducedChisq = f;};
@@ -176,18 +176,18 @@ class FittingParameters {
         void setFlagFitJustDetection(bool b) {itsFlagFitJustDetection = b;};
         void setPeakFlux(float f) {itsSrcPeak = f;};
         void setDetectThresh(float f) {itsDetectThresh = f;};
-        void setNumSubThresholds(int i) {itsNumSubThresholds = i;};
+        void setNumSubThresholds(unsigned int i) {itsNumSubThresholds = i;};
         void setFlagLogarithmicIncrements(bool b) {itsFlagLogarithmicIncrements = b;};
         void setFlagUseCurvature(bool b) {itsFlagUseCurvature = b;};
         void setSigmaCurv(float f) {itsSigmaCurv = f;};
         void setCurvatureImage(std::string s) {itsCurvatureImage = s;};
         void setMinFitSize(unsigned int i) {itsMinFitSize = i;};
         void setBeamSize(float f) {itsBeamSize = f;};
-        void setMaxRetries(int i) {itsMaxRetries = i;};
+        void setMaxRetries(unsigned int i) {itsMaxRetries = i;};
         void setCriterium(Double d) {itsCriterium = d;};
-        void setMaxIter(uInt i) {itsMaxIter = i;};
+        void setMaxIter(unsigned int i) {itsMaxIter = i;};
         void setNoiseLevel(float f) {itsNoiseLevel = f;};
-        void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
+        void setFlagFitThisParam(unsigned int i, bool b) {itsFlagFitThisParam[i] = b;};
 
         /// For a given type of fit, set the flags for
         /// each parameter. The types that are possible are:
@@ -210,9 +210,9 @@ class FittingParameters {
         void setFitTypes(std::vector<std::string> types) {itsFitTypes = types;};
 
         bool   doFit() {return itsFlagDoFit;};
-        int    maxNumGauss() {return itsMaxNumGauss;};
-        int    boxPadSize() {return itsBoxPadSize;};
-        int    noiseBoxSize() {return itsNoiseBoxSize;};
+        unsigned int    maxNumGauss() {return itsMaxNumGauss;};
+        unsigned int    boxPadSize() {return itsBoxPadSize;};
+        unsigned int    noiseBoxSize() {return itsNoiseBoxSize;};
         Double maxRMS() {return itsMaxRMS;};
         float  chisqConfidence() {return itsChisqConfidence;};
         float  maxReducedChisq() {return itsMaxReducedChisq;};
@@ -220,15 +220,15 @@ class FittingParameters {
         bool   fitJustDetection() {return itsFlagFitJustDetection;};
         float  peakFlux() {return itsSrcPeak;};
         unsigned int   minFitSize() {return itsMinFitSize;};
-        int    numSubThresholds() {return itsNumSubThresholds;};
+        unsigned int    numSubThresholds() {return itsNumSubThresholds;};
         bool   flagLogarithmicIncrements() {return itsFlagLogarithmicIncrements;}
         bool   useCurvature() {return itsFlagUseCurvature;}
         float  sigmaCurv() {return itsSigmaCurv;};
         std::string curvatureImage() {return itsCurvatureImage;};
         float  beamSize() {return itsBeamSize;};
-        int    maxRetries() {return itsMaxRetries;};
+        unsigned int    maxRetries() {return itsMaxRetries;};
         Double criterium() {return itsCriterium;};
-        uInt   maxIter() {return itsMaxIter;};
+        unsigned int   maxIter() {return itsMaxIter;};
         bool   useNoise() {return itsUseNoise;};
         float  noiseLevel() {return itsNoiseLevel;};
         bool   stopAfterFirstGoodFit() {return itsStopAfterFirstGoodFit;};
@@ -238,7 +238,7 @@ class FittingParameters {
         bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
         std::vector<std::string> fitTypes() {return itsFitTypes;};
-        std::string fitType(int i) {return itsFitTypes[i];};
+        std::string fitType(unsigned int i) {return itsFitTypes[i];};
         int    numFitTypes() {return itsFitTypes.size();};
 
         /// @details Whether the given type is one of the fit
@@ -300,7 +300,7 @@ class FittingParameters {
 
         /// @brief The side length of a box centred on the peak pixel
         /// used to find the local noise.
-        int itsNoiseBoxSize;
+        unsigned int itsNoiseBoxSize;
 
         /// @brief The minimum number of pixels an object must have to
         /// be fit.
@@ -321,7 +321,7 @@ class FittingParameters {
 
         /// @brief The number of subthresholds used for finding
         /// subcomponents
-        int itsNumSubThresholds;
+        unsigned int itsNumSubThresholds;
 
         /// @brief Whether the subtresholds should be a constant
         /// separation in log space
@@ -346,14 +346,14 @@ class FittingParameters {
 
         /// @brief The maximum number of retries used by
         /// casa::FitGaussian::fit
-        int itsMaxRetries;
+        unsigned int itsMaxRetries;
 
         /// @brief The convergence criterium
         Double itsCriterium;
 
         /// @brief The maximum number of iterations for
         /// casa::FitGaussian::fit()
-        uInt itsMaxIter;
+        unsigned int itsMaxIter;
 
         /// @brief Whether to calculate the noise surrounding the
         /// object and use it as the sigma in casa::FitGaussian::fit()

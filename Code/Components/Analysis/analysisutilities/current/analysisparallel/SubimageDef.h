@@ -97,27 +97,27 @@ class SubimageDef {
         casa::IPosition blc(int workerNum);
 
         /// @brief Return the number of subimages.
-        int numSubs() {return itsNSubX * itsNSubY * itsNSubZ;};
+        unsigned int numSubs() {return itsNSubX * itsNSubY * itsNSubZ;};
         /// @brief The number of axes
-        int naxis() {return itsNAxis;};
+        unsigned int naxis() {return itsNAxis;};
 
         /// @brief Return the number of subdivisions in given directions
         /// @{
-        int nsubx() {return itsNSubX;};
-        int nsuby() {return itsNSubY;};
-        int nsubz() {return itsNSubZ;};
-    std::vector<int> nsub() {return itsNSub;}
+        unsigned int nsubx() {return itsNSubX;};
+        unsigned int nsuby() {return itsNSubY;};
+        unsigned int nsubz() {return itsNSubZ;};
+        std::vector<unsigned int> nsub() {return itsNSub;}
         /// @}
 
         /// @brief Return the size of the overlap in given directions
         /// @{
-        int overlapx() {return itsOverlapX;};
+        unsigned int overlapx() {return itsOverlapX;};
         void setOverlapX(int o) {itsOverlapX = o;};
-        int overlapy() {return itsOverlapY;};
+        unsigned int overlapy() {return itsOverlapY;};
         void setOverlapY(int o) {itsOverlapY = o;};
-        int overlapz() {return itsOverlapZ;};
+        unsigned int overlapz() {return itsOverlapZ;};
         void setOverlapZ(int o) {itsOverlapZ = o;};
-    std::vector<int> overlap() {return itsOverlap;};
+        std::vector<unsigned int> overlap() {return itsOverlap;};
         /// @}
 
         /// @brief Create a Karma annotation file showing the borders of the subimages.
@@ -133,23 +133,26 @@ class SubimageDef {
 
     protected:
         /// @brief Number of subdivisions in the x-direction
-        int itsNSubX;
+        unsigned int itsNSubX;
         /// @brief Number of subdivisions in the y-direction
-        int itsNSubY;
+        unsigned int itsNSubY;
         /// @brief Number of subdivisions in the z-direction
-        int itsNSubZ;
+        unsigned int itsNSubZ;
         /// @brief Size of the overlap between subimages in the x-direction
-        int itsOverlapX;
+        unsigned int itsOverlapX;
         /// @brief Size of the overlap between subimages in the y-direction
-        int itsOverlapY;
+        unsigned int itsOverlapY;
         /// @brief Size of the overlap between subimages in the z-direction
-        int itsOverlapZ;
-        /// @brief The array of NSub(X,Y,Z) values, ordered in the appropriate sense according to the WCS
-        std::vector<int> itsNSub;
-        /// @brief The array of Overlap(X,Y,Z) values, ordered in the appropriate sense according to the WCS
-        std::vector<int> itsOverlap;
-        /// @brief The number of axes (the size of the itsNSub and itsOverlap arrays)
-        int itsNAxis;
+        unsigned int itsOverlapZ;
+        /// @brief The array of NSub(X,Y,Z) values, ordered in the
+        /// appropriate sense according to the WCS
+        std::vector<unsigned int> itsNSub;
+        /// @brief The array of Overlap(X,Y,Z) values, ordered in the
+        /// appropriate sense according to the WCS
+        std::vector<unsigned int> itsOverlap;
+        /// @brief The number of axes (the size of the itsNSub and
+        /// itsOverlap arrays)
+        unsigned int itsNAxis;
         /// @brief The dimensions of the full image
         std::vector<long> itsFullImageDim;
         /// @brief The name of the image
