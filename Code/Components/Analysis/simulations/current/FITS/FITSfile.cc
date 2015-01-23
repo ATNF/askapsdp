@@ -1368,6 +1368,13 @@ void FITSfile::defineTaylorTerms()
                 }
             }
         }
+
+        gsl_matrix_free(cov);
+        gsl_vector_free(c);
+        gsl_vector_free(w);
+        gsl_vector_free(ydat);
+        gsl_matrix_free(xdat);
+        
     }
 }
 
