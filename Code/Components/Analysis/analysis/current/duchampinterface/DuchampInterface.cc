@@ -37,16 +37,9 @@
 
 #include <askapparallel/AskapParallel.h>
 
-#include <analysisutilities/AnalysisUtilities.h>
-
-#include <gsl/gsl_sf_gamma.h>
-
-#include <casa/namespace.h>
-#include <scimath/Functionals/Gaussian2D.h>
-#include <images/Images/FITSImage.h>
-#include <images/Images/MIRIADImage.h>
-#include <images/Images/ImageOpener.h>
-#include <images/Images/SubImage.h>
+#include <duchampinterface/DuchampInterface.h>
+#include <sourcefitting/RadioSource.h>
+#include <casainterface/CasaInterface.h>
 
 #include <iostream>
 #include <iomanip>
@@ -66,7 +59,7 @@
 #include <fitsio.h>
 
 ///@brief Where the log messages go.
-ASKAP_LOGGER(logger, ".analysisutilities");
+ASKAP_LOGGER(logger, ".duchampinterface");
 
 namespace askap {
 namespace analysis {
@@ -357,6 +350,30 @@ std::string objectToSubsection(duchamp::Detection *object, long padding,
     subsectionString << "]";
 
     return subsectionString.str();
+
+}
+
+void SortDetections(std::vector<sourcefitting::RadioSource> &sourcelist,
+                    std::string parameter)
+{
+
+    size_t size = sourcelist.size();
+    std::vector<duchamp::Detection> detlist(size);
+    std::vector<sourcefitting::RadioSource> newSourcelist(size);
+
+    for (size_t i = 0; i < size; i++) {
+        sourcelist[i].setID(i);
+        detlist[i] = duchamp::Detection(sourcelist[i]);
+    }
+
+    duchamp::SortDetections(detlist, parameter);
+
+    for (size_t i = 0; i < size; i++) {
+        newSourcelist[i] = sourcelist[detlist[i].getID()];
+    }
+
+    sourcelist = newSourcelist;
+
 
 }
 

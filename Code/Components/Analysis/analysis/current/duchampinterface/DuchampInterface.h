@@ -29,22 +29,16 @@
 #ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
 #define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
-#include <analysisparallel/SubimageDef.h>
-#include <askapparallel/AskapParallel.h>
-#include <casainterface/CasaInterface.h>
+#include <sourcefitting/RadioSource.h>
 
 #include <string>
 #include <vector>
 
 #include <Common/ParameterSet.h>
-#include <casa/namespace.h>
-#include <casa/Arrays/Array.h>
-#include <scimath/Functionals/Gaussian2D.h>
 
-#include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
-#include <duchamp/FitsIO/Beam.hh>
 #include <duchamp/Detection/detection.hh>
+#include <duchamp/fitsHeader.hh>
 
 namespace askap {
 namespace analysis {
@@ -69,6 +63,17 @@ duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
 
 std::string objectToSubsection(duchamp::Detection *object, long padding,
                                std::string imageName, duchamp::FitsHeader &header);
+
+// @brief An analogue of the duchamp::SortDetections function
+/// @details This function sorts a vector list of
+/// RadioSource objects, using the same functionality as
+/// the duchamp library's SortDetections function. The
+/// objects are sorted as duchamp::Detection objects,
+/// keeping track of their individual identities by
+/// using the ID field. This will need to be reassigned
+/// afterwards.
+void SortDetections(std::vector<sourcefitting::RadioSource> &sourcelist,
+                    std::string parameter);
 
 /// @}
 

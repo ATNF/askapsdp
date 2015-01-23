@@ -33,7 +33,6 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-//#include <analysisutilities/AnalysisUtilities.h>
 #include <askapparallel/AskapParallel.h>
 #include <mathsutils/MathsUtils.h>
 #include <duchamp/Cubes/cubes.hh>

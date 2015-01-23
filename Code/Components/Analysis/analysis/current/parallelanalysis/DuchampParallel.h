@@ -31,7 +31,6 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
-#include <analysisutilities/AnalysisUtilities.h>
 #include <parallelanalysis/Weighter.h>
 #include <preprocessing/VariableThresholder.h>
 
@@ -119,12 +118,14 @@ class DuchampParallel {
         bool getFlagVariableThreshold() {return itsFlagVariableThreshold;};
         void setFlagVariableThreshold(bool f) {itsFlagVariableThreshold = f;};
         /// @}
-    // VariableThresholder *varThresher() {return itsVarThresher.get();};
-    boost::shared_ptr<VariableThresholder> varThresher() {return itsVarThresher;};
+        // VariableThresholder *varThresher() {return itsVarThresher.get();};
+        boost::shared_ptr<VariableThresholder> varThresher() {return itsVarThresher;};
 
-        sourcefitting::FittingParameters &fitParams() {
+        sourcefitting::FittingParameters &fitParams()
+        {
             sourcefitting::FittingParameters &rFitPars = itsFitParams;
-            return rFitPars;};
+            return rFitPars;
+        };
 
 
         /// @brief Make sure the spectral index/curvature images have
@@ -247,13 +248,13 @@ class DuchampParallel {
         /// @brief Fit a single source
         void fitSource(sourcefitting::RadioSource &src);
 
-        /// @brief Run any preprocessing on the workers    
+        /// @brief Run any preprocessing on the workers
         /// @details Runs any requested pre-processing. This includes
         /// inverting the cube, smoothing or multi-resolution wavelet
         /// reconstruction.  This is only done on the worker nodes.
         void preprocess();
 
-        /// @brief Find the sources on each worker    
+        /// @brief Find the sources on each worker
         /// @details Searches the image/cube for objects, using the
         /// appropriate search function given the user
         /// parameters. Merging of neighbouring objects is then done,
@@ -309,7 +310,7 @@ class DuchampParallel {
         /// store these values in the master's itsCube statsContainer.
         void gatherStats();
 
-        /// @brief Set the desired threshold    
+        /// @brief Set the desired threshold
         /// @details The detection threshold value (which has been
         /// already calculated) is properly set for use. In the
         /// distributed case, this means the master sends it to the
@@ -327,19 +328,27 @@ class DuchampParallel {
         /// @brief Get a particular RadioSource
         sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
 
-        std::vector<sourcefitting::RadioSource> *pSourceList() {
-            return &itsSourceList;};
-        std::vector<sourcefitting::RadioSource> sourceList() {
-            return itsSourceList;};
+        std::vector<sourcefitting::RadioSource> *pSourceList()
+        {
+            return &itsSourceList;
+        };
+        std::vector<sourcefitting::RadioSource> sourceList()
+        {
+            return itsSourceList;
+        };
         std::vector<sourcefitting::RadioSource> &rSourceList()
         {
             std::vector<sourcefitting::RadioSource> &ref = itsSourceList;
             return ref;
         };
-        std::vector<sourcefitting::RadioSource> *pEdgeList() {
-            return &itsEdgeSourceList;};
-        std::vector<sourcefitting::RadioSource> edgeList() {
-            return itsEdgeSourceList;};
+        std::vector<sourcefitting::RadioSource> *pEdgeList()
+        {
+            return &itsEdgeSourceList;
+        };
+        std::vector<sourcefitting::RadioSource> edgeList()
+        {
+            return itsEdgeSourceList;
+        };
 
     protected:
 
@@ -378,7 +387,7 @@ class DuchampParallel {
         bool itsFlagWeightImage;
 
         /// The weighting of each pixel
-    boost::shared_ptr<Weighter> itsWeighter;
+        boost::shared_ptr<Weighter> itsWeighter;
 
         /// The Cube of data, which contains the list of Detections.
         duchamp::Cube itsCube;
@@ -387,7 +396,7 @@ class DuchampParallel {
         bool itsFlagVariableThreshold;
 
         // How we do the variable-threshold searching
-    boost::shared_ptr<VariableThresholder> itsVarThresher;
+        boost::shared_ptr<VariableThresholder> itsVarThresher;
 
         /// Whether to extract spectra of detected sources,
         /// POSSUM-style

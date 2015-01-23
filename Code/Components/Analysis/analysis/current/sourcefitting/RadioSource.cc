@@ -36,7 +36,6 @@
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
 #include <sourcefitting/SubThresholder.h>
-#include <analysisutilities/AnalysisUtilities.h>
 #include <analysisparallel/SubimageDef.h>
 #include <casainterface/CasaInterface.h>
 #include <mathsutils/MathsUtils.h>
@@ -65,6 +64,15 @@
 #include <casa/Arrays/Slicer.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+
+#include <Common/LofarTypedefs.h>
+using namespace LOFAR::TYPES;
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+#include <Common/Exceptions.h>
 
 #include <iostream>
 #include <fstream>
@@ -785,24 +793,6 @@ RadioSource::findDistinctPeaks(casa::Vector<casa::Double> f)
     return peakMap;
 }
 
-//**************************************************************//
-
-/// @brief A simple way of printing fitted parameters
-void printparameters(Matrix<Double> &m)
-{
-    cout.precision(3);
-    cout.setf(ios::fixed);
-    uInt g, p;
-
-    for (g = 0; g < m.nrow(); g++) {
-        for (p = 0; p < m.ncolumn() - 1; p++) cout << m(g, p) << ", ";
-
-        cout << m(g, p) << endl;
-
-        if (g < m.nrow() - 1) cout << "                    ";
-    }
-}
-
 
 //**************************************************************//
 
@@ -1433,29 +1423,259 @@ RadioSource::writeFitToAnnotationFile(boost::shared_ptr<duchamp::AnnotationWrite
 
 }
 
-void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter)
+LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, RadioSource& src)
 {
+    int32 l;
+    int i;
+    float f;
+    double d;
+    std::string s;
+    bool b;
+    int size = src.getSize();
+    blob << size;
+    std::vector<PixelInfo::Voxel> pixelSet = src.getPixelSet();
 
-    size_t size = sourcelist.size();
-    std::vector<duchamp::Detection> detlist(size);
-    std::vector<RadioSource> newSourcelist(size);
-
-    for (size_t i = 0; i < size; i++) {
-        sourcelist[i].setID(i);
-        detlist[i] = duchamp::Detection(sourcelist[i]);
+    for (i = 0; i < size; i++) {
+        l = pixelSet[i].getX(); blob << l;
+        l = pixelSet[i].getY(); blob << l;
+        l = pixelSet[i].getZ(); blob << l;
     }
 
-    duchamp::SortDetections(detlist, parameter);
+    l = src.xSubOffset; blob << l;
+    l = src.ySubOffset; blob << l;
+    l = src.zSubOffset; blob << l;
+    b = src.haveParams; blob << b;
+    f = src.totalFlux;  blob << f;
+    f = src.intFlux;    blob << f;
+    f = src.peakFlux;   blob << f;
+    l = src.xpeak;      blob << l;
+    l = src.ypeak;      blob << l;
+    l = src.zpeak;      blob << l;
+    f = src.peakSNR;    blob << f;
+    f = src.xCentroid;  blob << f;
+    f = src.yCentroid;  blob << f;
+    f = src.zCentroid;  blob << f;
+    s = src.centreType; blob << s;
+    b = src.negSource;  blob << b;
+    s = src.flagText;   blob << s;
+    i = src.id;         blob << i;
+    s = src.name;       blob << s;
+    b = src.flagWCS;    blob << b;
+    s = src.raS;        blob << s;
+    s = src.decS;       blob << s;
+    d = src.ra;         blob << d;
+    d = src.dec;        blob << d;
+    d = src.raWidth;    blob << d;
+    d = src.decWidth;   blob << d;
+    d = src.majorAxis;  blob << d;
+    d = src.minorAxis;  blob << d;
+    d = src.posang;     blob << d;
+    b = src.specOK;     blob << b;
+    s = src.specUnits;  blob << s;
+    s = src.specType;   blob << s;
+    s = src.fluxUnits;  blob << s;
+    s = src.intFluxUnits; blob << s;
+    s = src.lngtype;    blob << s;
+    s = src.lattype;    blob << s;
+    d = src.vel;        blob << d;
+    d = src.velWidth;   blob << d;
+    d = src.velMin;     blob << d;
+    d = src.velMax;     blob << d;
+    d = src.v20min;     blob << d;
+    d = src.v20max;     blob << d;
+    d = src.w20;        blob << d;
+    d = src.v50min;     blob << d;
+    d = src.v50max;     blob << d;
+    d = src.w50;        blob << d;
+    i = src.posPrec;    blob << i;
+    i = src.xyzPrec;    blob << i;
+    i = src.fintPrec;   blob << i;
+    i = src.fpeakPrec;  blob << i;
+    i = src.velPrec;    blob << i;
+    i = src.snrPrec;    blob << i;
+    b = src.itsFlagHasFit;     blob << b;
+    b = src.itsFlagAtEdge;     blob << b;
+    f = src.itsDetectionThreshold; blob << f;
+    f = src.itsNoiseLevel; blob << f;
+    blob << src.itsFitParams;
+    size = src.itsBestFitMap.size();
+    blob << size;
+    std::map<std::string, FitResults>::iterator fit;
 
-    for (size_t i = 0; i < size; i++) {
-        newSourcelist[i] = sourcelist[detlist[i].getID()];
+    for (fit = src.itsBestFitMap.begin(); fit != src.itsBestFitMap.end(); fit++) {
+        blob << fit->first;
+        blob << fit->second;
     }
 
-    sourcelist = newSourcelist;
+    size = src.itsAlphaMap.size();
+    blob << size;
+    std::map<std::string, std::vector<float> >::iterator val;
 
+    for (val = src.itsAlphaMap.begin(); val != src.itsAlphaMap.end(); val++) {
+        blob << val->first;
+        size = val->second.size();
+        blob << size;
 
+        for (int i = 0; i < size; i++) blob << val->second[i];
+    }
+
+    size = src.itsBetaMap.size();
+    blob << size;
+
+    for (val = src.itsBetaMap.begin(); val != src.itsBetaMap.end(); val++) {
+        blob << val->first;
+        size = val->second.size();
+        blob << size;
+
+        for (int i = 0; i < size; i++) blob << val->second[i];
+    }
+
+    i = src.box().ndim(); blob << i;
+    i = src.box().start()[0]; blob << i;
+    i = src.box().start()[1]; blob << i;
+    if (src.box().ndim() > 2) {
+        i = src.box().start()[2]; blob << i;
+    }
+    i = src.box().end()[0]; blob << i;
+    i = src.box().end()[1]; blob << i;
+    if (src.box().ndim() > 2) {
+        i = src.box().end()[2]; blob << i;
+    }
+
+    return blob;
 }
 
+LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, RadioSource& src)
+{
+    int i;
+    int32 l;
+    bool b;
+    float f;
+    double d;
+    std::string s;
+    int32 size;
+    blob >> size;
+
+    for (i = 0; i < size; i++) {
+        int32 x, y, z;
+        blob >> x;
+        blob >> y;
+        blob >> z;
+        src.addPixel(x, y, z);
+    }
+
+    blob >> l; src.xSubOffset = l;
+    blob >> l; src.ySubOffset = l;
+    blob >> l; src.zSubOffset = l;
+    blob >> b; src.haveParams = b;
+    blob >> f; src.totalFlux = f;
+    blob >> f; src.intFlux = f;
+    blob >> f; src.peakFlux = f;
+    blob >> l; src.xpeak = l;
+    blob >> l; src.ypeak = l;
+    blob >> l; src.zpeak = l;
+    blob >> f; src.peakSNR = f;
+    blob >> f; src.xCentroid = f;
+    blob >> f; src.yCentroid = f;
+    blob >> f; src.zCentroid = f;
+    blob >> s; src.centreType = s;
+    blob >> b; src.negSource = b;
+    blob >> s; src.flagText = s;
+    blob >> i; src.id = i;
+    blob >> s; src.name = s;
+    blob >> b; src.flagWCS = b;
+    blob >> s; src.raS = s;
+    blob >> s; src.decS = s;
+    blob >> d; src.ra = d;
+    blob >> d; src.dec = d;
+    blob >> d; src.raWidth = d;
+    blob >> d; src.decWidth = d;
+    blob >> d; src.majorAxis = d;
+    blob >> d; src.minorAxis = d;
+    blob >> d; src.posang = d;
+    blob >> b; src.specOK = b;
+    blob >> s; src.specUnits = s;
+    blob >> s; src.specType = s;
+    blob >> s; src.fluxUnits = s;
+    blob >> s; src.intFluxUnits = s;
+    blob >> s; src.lngtype = s;
+    blob >> s; src.lattype = s;
+    blob >> d; src.vel = d;
+    blob >> d; src.velWidth = d;
+    blob >> d; src.velMin = d;
+    blob >> d; src.velMax = d;
+    blob >> d; src.v20min = d;
+    blob >> d; src.v20max = d;
+    blob >> d; src.w20 = d;
+    blob >> d; src.v50min = d;
+    blob >> d; src.v50max = d;
+    blob >> d; src.w50 = d;
+    blob >> i; src.posPrec = i;
+    blob >> i; src.xyzPrec = i;
+    blob >> i; src.fintPrec = i;
+    blob >> i; src.fpeakPrec = i;
+    blob >> i; src.velPrec = i;
+    blob >> i; src.snrPrec = i;
+    blob >> b; src.itsFlagHasFit = b;
+    blob >> b; src.itsFlagAtEdge = b;
+    blob >> f; src.itsDetectionThreshold = f;
+    blob >> f; src.itsNoiseLevel = f;
+    blob >> src.itsFitParams;
+    blob >> size;
+
+    for (int i = 0; i < size; i++) {
+        FitResults res;
+        blob >> s >> res;
+        src.itsBestFitMap[s] = res;
+    }
+
+    blob >> size;
+
+    for (int i = 0; i < size; i++) {
+        int32 vecsize;
+        blob >> s >> vecsize;
+        std::vector<float> vec(vecsize);
+
+        for (int i = 0; i < vecsize; i++) blob >> vec[i];
+
+        src.itsAlphaMap[s] = vec;
+    }
+
+    blob >> size;
+
+    for (int i = 0; i < size; i++) {
+        int32 vecsize;
+        blob >> s >> vecsize;
+        std::vector<float> vec(vecsize);
+
+        for (int i = 0; i < vecsize; i++) blob >> vec[i];
+
+        src.itsBetaMap[s] = vec;
+    }
+
+    int ndim, x1, y1, z1, x2, y2, z2;
+    blob >> ndim >> x1 >> y1;
+    if (ndim > 2) {
+        blob >> z1;
+    }
+    blob >> x2 >> y2;
+    if (ndim > 2) {
+        blob >> z2;
+    }
+    casa::IPosition start(ndim), end(ndim), stride(ndim, 1);
+    start(0) = x1; start(1) = y1;
+    end(0) = x2; end(1) = y2;
+    if (ndim > 2) {
+        start(2) = z1;
+        end(2) = z2;
+    }
+    ASKAPCHECK(end >= start,
+               "Slicer in blob transfer of RadioSource - start " << start << " > end " << end);
+    Slicer box(start, end, stride, Slicer::endIsLast);;
+    src.setBox(box);
+
+    return blob;
+}
 
 
 

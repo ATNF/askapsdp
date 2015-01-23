@@ -373,9 +373,16 @@ class RadioSource : public duchamp::Detection {
         /// @{
 
         /// @brief Pass a RadioSource object into a Blob
+        /// @brief This function provides a mechanism for passing the
+        /// entire contents of a RadioSource object into a
+        /// LOFAR::BlobOStream stream
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream,
                                               RadioSource& src);
         /// @brief Receive a RadioSource object from a Blob
+        /// @brief Receive a RadioSource object from a Blob
+        /// @details This function provides a mechanism for receiving the
+        /// entire contents of a RadioSource object from a
+        /// LOFAR::BlobIStream stream
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream,
                                               RadioSource& src);
 
@@ -551,18 +558,6 @@ class RadioSource : public duchamp::Detection {
         std::map<std::string, std::vector<float> > itsBetaMap;
 
 };
-
-
-/// @brief An analogue of the duchamp::SortDetections function
-/// @details This function sorts a vector list of
-/// RadioSource objects, using the same functionality as
-/// the duchamp library's SortDetections function. The
-/// objects are sorted as duchamp::Detection objects,
-/// keeping track of their individual identities by
-/// using the ID field. This will need to be reassigned
-/// afterwards.
-void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter);
-
 
 }
 

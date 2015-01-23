@@ -33,13 +33,21 @@
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
-#include <analysisutilities/AnalysisUtilities.h>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
 #include <scimath/Functionals/Gaussian2D.h>
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
+
+#include <Common/LofarTypedefs.h>
+using namespace LOFAR::TYPES;
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+#include <Common/Exceptions.h>
 
 #include <iostream>
 #include <fstream>
@@ -219,6 +227,110 @@ std::string convertSummaryFile(std::string baseName, std::string type)
     }
     return outName;
 }
+
+//**************************************************************//
+
+LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FittingParameters& par)
+{
+    blob << par.itsFlagDoFit;
+    blob << par.itsBoxPadSize;
+    blob << par.itsMaxRMS;
+    blob << par.itsMaxNumGauss;
+    blob << par.itsChisqConfidence;
+    blob << par.itsMaxReducedChisq;
+    blob << par.itsNoiseBoxSize;
+    blob << par.itsMinFitSize;
+    blob << par.itsBoxFlux;
+    blob << par.itsFlagFitJustDetection;
+    blob << par.itsSrcPeak;
+    blob << par.itsDetectThresh;
+    blob << par.itsNumSubThresholds;
+    blob << par.itsFlagLogarithmicIncrements;
+    blob << par.itsFlagUseCurvature;
+    blob << par.itsSigmaCurv;
+    blob << par.itsCurvatureImage;
+    blob << par.itsFlagNumGaussFromGuess;
+    blob << par.itsBeamSize;
+    blob << par.itsMaxRetries;
+    blob << par.itsCriterium;
+    blob << par.itsMaxIter;
+    blob << par.itsUseNoise;
+    blob << par.itsNoiseLevel;
+    blob << par.itsNegativeFluxPossible;
+    blob << par.itsStopAfterFirstGoodFit;
+    blob << par.itsUseGuessIfBad;
+    blob << par.itsXmin;
+    blob << par.itsXmax;
+    blob << par.itsYmin;
+    blob << par.itsYmax;
+    uint32 size = par.itsFlagFitThisParam.size();
+    blob << size;
+    for (uint32 i = 0; i < size; i++) {
+        blob << par.itsFlagFitThisParam[i];
+    }
+    size = par.itsFitTypes.size();
+    blob << size;
+    for (uint32 i = 0; i < size; i++) {
+        blob << par.itsFitTypes[i];
+    }
+
+    return blob;
+}
+
+//**************************************************************//
+
+LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FittingParameters& par)
+{
+    blob >> par.itsFlagDoFit;
+    blob >> par.itsBoxPadSize;
+    blob >> par.itsMaxRMS;
+    blob >> par.itsMaxNumGauss;
+    blob >> par.itsChisqConfidence;
+    blob >> par.itsMaxReducedChisq;
+    blob >> par.itsNoiseBoxSize;
+    blob >> par.itsMinFitSize;
+    blob >> par.itsBoxFlux;
+    blob >> par.itsFlagFitJustDetection;
+    blob >> par.itsSrcPeak;
+    blob >> par.itsDetectThresh;
+    blob >> par.itsNumSubThresholds;
+    blob >> par.itsFlagLogarithmicIncrements;
+    blob >> par.itsFlagUseCurvature;
+    blob >> par.itsSigmaCurv;
+    blob >> par.itsCurvatureImage;
+    blob >> par.itsFlagNumGaussFromGuess;
+    blob >> par.itsBeamSize;
+    blob >> par.itsMaxRetries;
+    blob >> par.itsCriterium;
+    blob >> par.itsMaxIter;
+    blob >> par.itsUseNoise;
+    blob >> par.itsNoiseLevel;
+    blob >> par.itsNegativeFluxPossible;
+    blob >> par.itsStopAfterFirstGoodFit;
+    blob >> par.itsUseGuessIfBad;
+    blob >> par.itsXmin;
+    blob >> par.itsXmax;
+    blob >> par.itsYmin;
+    blob >> par.itsYmax;
+    int32 size;
+    bool flag;
+    blob >> size;
+    par.itsFlagFitThisParam = std::vector<bool>(size);
+    for (int i = 0; i < size; i++) {
+        blob >> flag;
+        par.itsFlagFitThisParam[i] = flag;
+    }
+    blob >> size;
+    par.itsFitTypes = std::vector<std::string>(size);
+    std::string type;
+    for (int i = 0; i < size; i++) {
+        blob >> type;
+        par.itsFitTypes[i] = type;
+    }
+
+    return blob;
+}
+
 
 
 

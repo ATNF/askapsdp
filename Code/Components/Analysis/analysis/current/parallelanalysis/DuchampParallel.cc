@@ -75,7 +75,7 @@ using namespace LOFAR::TYPES;
 #include <parallelanalysis/ObjectParameteriser.h>
 #include <preprocessing/VariableThresholder.h>
 #include <extraction/ExtractionFactory.h>
-#include <analysisutilities/AnalysisUtilities.h>
+#include <duchampinterface/DuchampInterface.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/CurvatureMapCreator.h>
@@ -148,7 +148,7 @@ bool DuchampParallel::is2D()
     int numDim = 0;
     size_t *dim = itsCube.getDimArray();
 
-    for (int i = 0; i < itsCube.getNumDim(); i++){
+    for (int i = 0; i < itsCube.getNumDim(); i++) {
         if (dim[i] > 1) {
             numDim++;
         }
@@ -174,7 +174,7 @@ DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
       itsParset(parset),
       itsWeighter(new Weighter(itsComms, itsParset.makeSubset("Weights."))),
       itsVarThresher(new VariableThresholder(itsComms,
-                                             itsParset.makeSubset("VariableThreshold.")))
+                     itsParset.makeSubset("VariableThreshold.")))
 {
 
     if (itsComms.isMaster()) {
@@ -191,7 +191,7 @@ DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
     itsIsFITSFile = (imageType == ImageOpener::FITS);
     bool useCasa = itsParset.getBool("useCASAforFITS", true);
     itsIsFITSFile = itsIsFITSFile && !useCasa;
-    if (itsIsFITSFile){
+    if (itsIsFITSFile) {
         ASKAPLOG_DEBUG_STR(logger, "Using the Duchamp FITS-IO tasks");
     }
 

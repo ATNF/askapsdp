@@ -33,13 +33,21 @@
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
-#include <analysisutilities/AnalysisUtilities.h>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
 #include <scimath/Functionals/Gaussian2D.h>
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
+
+#include <Common/LofarTypedefs.h>
+using namespace LOFAR::TYPES;
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+#include <Common/Exceptions.h>
 
 #include <iostream>
 #include <fstream>
@@ -153,6 +161,63 @@ void FitResults::logIt(std::string loc)
     }
 }
 
+
+LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FitResults& result)
+{
+    blob << result.itsFitIsGood;
+    blob << result.itsChisq;
+    blob << result.itsRedChisq;
+    blob << result.itsRMS;
+    blob << result.itsNumDegOfFreedom;
+    blob << result.itsNumFreeParam;
+    blob << result.itsNumPix;
+    blob << result.itsNumGauss;
+    blob << result.itsFlagFitIsGuess;
+    uint32 i = result.itsGaussFitSet.size(); blob << i;
+    std::vector<casa::Gaussian2D<Double> >::iterator fit = result.itsGaussFitSet.begin();
+
+    for (; fit < result.itsGaussFitSet.end(); fit++) {
+        blob << fit->height();
+        blob << fit->xCenter();
+        blob << fit->yCenter();
+        blob << fit->majorAxis();
+        blob << fit->axialRatio();
+        blob << fit->PA();
+    }
+
+    return blob;
+}
+
+
+LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FitResults& result)
+{
+    blob >> result.itsFitIsGood;
+    blob >> result.itsChisq;
+    blob >> result.itsRedChisq;
+    blob >> result.itsRMS;
+    blob >> result.itsNumDegOfFreedom;
+    blob >> result.itsNumFreeParam;
+    blob >> result.itsNumPix;
+    blob >> result.itsNumGauss;
+    blob >> result.itsFlagFitIsGuess;
+    uint32 i, size;
+    blob >> size;
+    result.itsGaussFitSet.clear();
+
+    for (i = 0; i < size; i++) {
+        Double d1, d2, d3, d4, d5, d6;
+        blob >> d1;
+        blob >> d2;
+        blob >> d3;
+        blob >> d4;
+        blob >> d5;
+        blob >> d6;
+        casa::Gaussian2D<Double> fit(d1, d2, d3, d4, d5, d6);
+        result.itsGaussFitSet.push_back(fit);
+    }
+
+    return blob;
+}
 
 
 }

@@ -135,9 +135,18 @@ class FitResults {
         /// @{
 
         /// @brief Pass Fitting parameters into a Blob
-        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, FitResults& par);
+        /// @brief This function provides a mechanism for passing the
+        /// entire contents of a FitResults object into a
+        /// LOFAR::BlobOStream stream
+        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream,
+                                              FitResults& par);
+
         /// @brief Receive Fitting parameters from a Blob
-        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, FitResults& par);
+        /// @brief This function provides a mechanism for receiving the
+        /// entire contents of a FitResults object from a
+        /// LOFAR::BlobIStream stream
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream,
+                                              FitResults& par);
 
         /// @}
 

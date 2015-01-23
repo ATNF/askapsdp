@@ -33,7 +33,6 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FitResults.h>
-#include <analysisutilities/AnalysisUtilities.h>
 #include <mathsutils/MathsUtils.h>
 
 #include <duchamp/fitsHeader.hh>

@@ -36,7 +36,6 @@
 #include <askap/Log4cxxLogSink.h>
 
 #include <askapparallel/AskapParallel.h>
-#include <analysisutilities/AnalysisUtilities.h>
 
 #include <duchamp/duchamp.hh>
 
@@ -51,7 +50,6 @@ using std::cout;
 using std::endl;
 
 using namespace askap;
-using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "testMW.log");
 
