@@ -43,83 +43,65 @@ ASKAP_LOGGER(logger, ".parsetcomponent");
 
 namespace askap {
 
-    namespace analysis { 
+namespace analysis {
 
-	ParsetComponent::ParsetComponent():
-	    itsHead(0),itsFlagReportSize(true)
-	{
-	}
+ParsetComponent::ParsetComponent():
+    itsHead(0), itsFlagReportSize(true)
+{
+}
 
-	ParsetComponent::ParsetComponent(const ParsetComponent& other)
-	{
-	    this->operator=(other);
-	}
+void ParsetComponent::defineComponent(sourcefitting::RadioSource *src,
+                                      size_t fitNum,
+                                      std::string fitType)
+{
+    ASKAPCHECK(itsHead != 0, "Have not set the FITS header for the parset component");
 
-	ParsetComponent& ParsetComponent::operator= (const ParsetComponent& other)
-	{
-	    if(this == &other) return *this;
-	    this->itsHead = other.itsHead;
-	    this->itsFlux = other.itsFlux;
-	    this->itsRAref = other.itsRAref;
-	    this->itsDECref = other.itsDECref;
-	    this->itsRAoff = other.itsRAoff;
-	    this->itsDECoff = other.itsDECoff;
-	    this->itsFlagReportSize = other.itsFlagReportSize;
-	    this->itsBmaj = other.itsBmaj;
-	    this->itsBmin = other.itsBmin;
-	    this->itsBpa = other.itsBpa;
-	    this->itsID = other.itsID;
-	    return *this;
-	}
+    casa::Gaussian2D<Double> gauss = src->gaussFitSet(fitType).at(fitNum);
 
+    double thisRA, thisDec, zworld;
+    itsHead->pixToWCS(gauss.xCenter(), gauss.yCenter(), src->getZcentre(),
+                      thisRA, thisDec, zworld);
+    itsDECoff = (thisDec - itsDECref) * M_PI / 180.;
+    itsRAoff = (thisRA - itsRAref) * M_PI / 180. * cos(itsDECref * M_PI / 180.);
 
-	void ParsetComponent::defineComponent(sourcefitting::RadioSource *src, size_t fitNum, std::string fitType)
-	{
-	    ASKAPCHECK(this->itsHead!=0,"Have not set the FITS header for the parset component");
-
-	    casa::Gaussian2D<Double> gauss=src->gaussFitSet(fitType).at(fitNum);
-
-	    double thisRA,thisDec,zworld;
-	    this->itsHead->pixToWCS(gauss.xCenter(), gauss.yCenter(), src->getZcentre(),
-                                    thisRA, thisDec, zworld);
-	    this->itsDECoff = (thisDec-this->itsDECref)*M_PI/180.;
-	    this->itsRAoff = (thisRA-this->itsRAref)*M_PI/180. * cos(this->itsDECref*M_PI/180.);
-
-	    this->itsFlux = gauss.flux();
-	    if (this->itsHead->needBeamSize())
-		this->itsFlux /= this->itsHead->beam().area(); // Convert from Jy/beam to Jy
-
-	    if(this->itsFlagReportSize){
-		std::vector<Double> deconv =
-                    analysisutilities::deconvolveGaussian(gauss, this->itsHead->getBeam());
-		this->itsBmaj = deconv[0]*this->itsHead->getAvPixScale()*3600.;
-		this->itsBmin = deconv[1]*this->itsHead->getAvPixScale()*3600.;
-		this->itsBpa  = deconv[2]*180. / M_PI;
-	    }
-	    else this->itsBmaj = this->itsBmin = this->itsBpa = 0.;
-
-	    std::stringstream ID;
-	    ID << src->getID() << getSuffix(fitNum);
-	    this->itsID=ID.str();
-	}
-
-	std::ostream& operator<<(std::ostream &theStream, ParsetComponent &comp)
-	{
-	    std::stringstream prefix;
-	    prefix << "sources.src"<< comp.itsID;
-
-	    theStream << prefix.str() << ".flux.i        = " << comp.itsFlux <<"\n";
-	    theStream << prefix.str() << ".direction.ra  = " << comp.itsRAoff << "\n";
-	    theStream << prefix.str() << ".direction.dec = " << comp.itsDECoff << "\n";
-	    theStream << prefix.str() << ".shape.bmaj  = " << comp.itsBmaj << "\n";
-	    theStream << prefix.str() << ".shape.bmin  = " << comp.itsBmin << "\n";
-	    theStream << prefix.str() << ".shape.bpa   = " << comp.itsBpa << "\n";
-
-	    return theStream;
-	}
-
-
-
+    itsFlux = gauss.flux();
+    if (itsHead->needBeamSize()) {
+        // Convert from Jy/beam to Jy
+        itsFlux /= itsHead->beam().area();
     }
+
+    if (itsFlagReportSize) {
+        std::vector<Double> deconv =
+            analysisutilities::deconvolveGaussian(gauss, itsHead->getBeam());
+        itsBmaj = deconv[0] * itsHead->getAvPixScale() * 3600.;
+        itsBmin = deconv[1] * itsHead->getAvPixScale() * 3600.;
+        itsBpa  = deconv[2] * 180. / M_PI;
+    } else {
+        itsBmaj = itsBmin = itsBpa = 0.;
+    }
+
+    std::stringstream ID;
+    ID << src->getID() << getSuffix(fitNum);
+    itsID = ID.str();
+}
+
+std::ostream& operator<<(std::ostream &theStream, ParsetComponent &comp)
+{
+    std::stringstream prefix;
+    prefix << "sources.src" << comp.itsID;
+
+    theStream << prefix.str() << ".flux.i        = " << comp.itsFlux << "\n";
+    theStream << prefix.str() << ".direction.ra  = " << comp.itsRAoff << "\n";
+    theStream << prefix.str() << ".direction.dec = " << comp.itsDECoff << "\n";
+    theStream << prefix.str() << ".shape.bmaj  = "   << comp.itsBmaj << "\n";
+    theStream << prefix.str() << ".shape.bmin  = "   << comp.itsBmin << "\n";
+    theStream << prefix.str() << ".shape.bpa   = "   << comp.itsBpa << "\n";
+
+    return theStream;
+}
+
+
+
+}
 
 }

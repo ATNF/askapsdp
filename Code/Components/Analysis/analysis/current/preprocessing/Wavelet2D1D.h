@@ -36,41 +36,52 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <Common/ParameterSet.h>
 
-/// @brief Reconstruct the array with the a trous algorithm, with different treatment of the spatial & spectral directions.
-//void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats=true);
+namespace askap {
 
-class Recon2D1D
-{
- public:
-  Recon2D1D();
-  Recon2D1D(const LOFAR::ParameterSet &parset);
-  Recon2D1D(const Recon2D1D& other);
-  Recon2D1D& operator= (const Recon2D1D& other);
-  virtual ~Recon2D1D(){};
+namespace analysis {
 
-  void setCube(duchamp::Cube *cube);
-  void setFlagPositivity(bool f){itsFlagPositivity = f;};
-  void setFlagDuchampStats(bool f){itsFlagDuchampStats = f;};
+/// @brief Reconstruct the array with the a trous algorithm, with
+/// different treatment of the spatial & spectral directions.
 
-  void reconstruct();
+class Recon2D1D {
+    public:
+        Recon2D1D();
+        Recon2D1D(const LOFAR::ParameterSet &parset);
+        virtual ~Recon2D1D() {};
 
- protected:
+        void setCube(duchamp::Cube *cube);
+        void setFlagPositivity(bool f) {itsFlagPositivity = f;};
+        void setFlagDuchampStats(bool f) {itsFlagDuchampStats = f;};
 
-  duchamp::Cube *itsCube;
-  bool itsFlagPositivity;
-  bool itsFlagDuchampStats;
-  float itsReconThreshold;
-  unsigned int itsMinXYScale;
-  unsigned int itsMaxXYScale;
-  unsigned int itsMinZScale;
-  unsigned int itsMaxZScale;
-  unsigned int itsNumIterations;
-  size_t itsXdim;
-  size_t itsYdim;
-  size_t itsZdim;
+    /// @details This is Lars Floer's <lfloeer@astro.uni-bonn.de>
+    /// implementation of the "2D1D reconstruction" algorithm. This uses
+    /// the three-dimensional 'a trous' method used in Duchamp to do
+    /// wavelet reconstruction, but treats the spatial directions
+    /// separately to the spectral direction. Thresholding of the
+    /// wavelet coefficients is done, using the same snrrecon parameter
+    /// (in the Duchamp Param set) as for the regular Duchamp
+    /// reconstruction.
+        void reconstruct();
+
+    protected:
+
+        duchamp::Cube *itsCube;
+        bool itsFlagPositivity;
+        bool itsFlagDuchampStats;
+        float itsReconThreshold;
+        unsigned int itsMinXYScale;
+        unsigned int itsMaxXYScale;
+        unsigned int itsMinZScale;
+        unsigned int itsMaxZScale;
+        unsigned int itsNumIterations;
+        size_t itsXdim;
+        size_t itsYdim;
+        size_t itsZdim;
 };
 
+}
 
+}
 
 
 #endif

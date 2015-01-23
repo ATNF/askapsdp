@@ -36,36 +36,36 @@
 
 int main(int argc, char *argv[])
 {
-  try{
-    std::ifstream config("askap.log_cfg", std::ifstream::in);
+    try {
+        std::ifstream config("askap.log_cfg", std::ifstream::in);
 
-    if (config) {
-        ASKAPLOG_INIT("askap.log_cfg");
-    } else {
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
+        if (config) {
+            ASKAPLOG_INIT("askap.log_cfg");
+        } else {
+            std::ostringstream ss;
+            ss << argv[0] << ".log_cfg";
+            ASKAPLOG_INIT(ss.str().c_str());
+        }
+        askapdev::testutils::AskapTestRunner runner(argv[0]);
+        runner.addTest(askap::analysis::SourceSpectrumExtractionTest::suite());
+        runner.addTest(askap::analysis::NoiseSpectrumExtractionTest::suite());
+        bool wasSuccessful = runner.run();
+
+        return wasSuccessful ? 0 : 1;
+
+    } catch (const askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (const duchamp::DuchampError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+        std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (const std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     }
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::analysis::SourceSpectrumExtractionTest::suite());
-    runner.addTest(askap::analysis::NoiseSpectrumExtractionTest::suite());
-    bool wasSuccessful = runner.run();
-
-    return wasSuccessful ? 0 : 1;
-
-  } catch (const askap::AskapError& x) {
-    ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-    std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  } catch (const duchamp::DuchampError& x) {
-    ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
-    std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  } catch (const std::exception& x) {
-    ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
 
 }
 

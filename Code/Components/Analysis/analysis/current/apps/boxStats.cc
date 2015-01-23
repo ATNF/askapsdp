@@ -53,8 +53,7 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "boxStats.log");
 
-class BoxstatsApp : public askap::Application
-{
+class BoxstatsApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -65,27 +64,31 @@ class BoxstatsApp : public askap::Application
             try {
                 LOFAR::ParameterSet subset(config().makeSubset("BoxStats."));
 
-		DuchampParallel parl(comms);
-		duchamp::Param par;
-		par.setImageFile(subset.getString("image"));
-		par.setCut(subset.getFloat("snrCut"));
-		par.setFlagRobustStats(subset.getBool("flagRobustStats",true));
-		par.setSearchType(subset.getString("searchType","spatial"));
-		std::vector<size_t> dim = analysisutilities::getCASAdimensions(par.getImageFile());
-		std::vector<long> diml(dim.size());
-		for(size_t i=0;i<dim.size();i++) diml[i]=dim[i];
-		par.setFlagSubsection(subset.getBool("flagSubsection"));
-		par.setSubsection(subset.getString("subsection",duchamp::nullSection(dim.size())));
-		ASKAPCHECK(par.parseSubsections(diml)==duchamp::SUCCESS, "Could not parse subsection in param: " << par);
-		parl.cube().saveParam(par);
-		parl.setBaseSubsection(par.getSubsection());
-		parl.setFlagVariableThreshold(true);
-		parl.readData();
+                DuchampParallel parl(comms);
+                duchamp::Param par;
+                par.setImageFile(subset.getString("image"));
+                par.setCut(subset.getFloat("snrCut"));
+                par.setFlagRobustStats(subset.getBool("flagRobustStats", true));
+                par.setSearchType(subset.getString("searchType", "spatial"));
+                std::vector<size_t> dim = analysisutilities::getCASAdimensions(par.getImageFile());
+                std::vector<long> diml(dim.size());
+                for (size_t i = 0; i < dim.size(); i++) {
+                    diml[i] = dim[i];
+                }
+                par.setFlagSubsection(subset.getBool("flagSubsection"));
+                par.setSubsection(subset.getString("subsection",
+                                                   duchamp::nullSection(dim.size())));
+                ASKAPCHECK(par.parseSubsections(diml) == duchamp::SUCCESS,
+                           "Could not parse subsection in param: " << par);
+                parl.cube().saveParam(par);
+                parl.setBaseSubsection(par.getSubsection());
+                parl.setFlagVariableThreshold(true);
+                parl.readData();
 
-		VariableThresholder varThresh(comms,subset);
-		if(comms.isParallel()) varThresh.setFilenames(comms);
-		varThresh.initialise(parl.cube(),parl.subimageDef());
-		varThresh.calculate();
+                VariableThresholder varThresh(comms, subset);
+                if (comms.isParallel()) varThresh.setFilenames(comms);
+                varThresh.initialise(parl.cube(), parl.subimageDef());
+                varThresh.calculate();
 
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
@@ -96,8 +99,10 @@ class BoxstatsApp : public askap::Application
                 std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
                 exit(1);
             }
 

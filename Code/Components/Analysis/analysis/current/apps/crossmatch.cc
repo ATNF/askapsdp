@@ -47,8 +47,7 @@ using namespace askap::analysis::matching;
 
 ASKAP_LOGGER(logger, "crossmatch.log");
 
-class CrossmatchApp : public askap::Application
-{
+class CrossmatchApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -59,21 +58,26 @@ class CrossmatchApp : public askap::Application
             try {
                 LOFAR::ParameterSet subset(config().makeSubset("Crossmatch."));
                 CatalogueMatcher matcher(subset);
-                if(matcher.read()){
-		    if(subset.getBool("zeroOffsetMatch",true))
-			matcher.zeroOffsetMatch();
-		    else
-			matcher.findMatches();
+                if (matcher.read()) {
+                    if (subset.getBool("zeroOffsetMatch", true)) {
+                        matcher.zeroOffsetMatch();
+                    } else {
+                        matcher.findMatches();
+                    }
                     matcher.findOffsets();
                     matcher.addNewMatches();
                     matcher.findOffsets();
                     matcher.outputLists();
                     matcher.outputSummary();
-                } else{
-                    if (matcher.srcListSize()==0) 
-                        ASKAPLOG_FATAL_STR(logger, "Source list has zero length - no matching done.");
-                    if (matcher.refListSize()==0) 
-                        ASKAPLOG_FATAL_STR(logger, "Reference list has zero length - no matching done.");
+                } else {
+                    if (matcher.srcListSize() == 0) {
+                        ASKAPLOG_FATAL_STR(logger,
+                                           "Source list has zero length - no matching done.");
+                    }
+                    if (matcher.refListSize() == 0) {
+                        ASKAPLOG_FATAL_STR(logger,
+                                           "Reference list has zero length - no matching done.");
+                    }
                 }
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
@@ -84,8 +88,10 @@ class CrossmatchApp : public askap::Application
                 std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
                 exit(1);
             }
 

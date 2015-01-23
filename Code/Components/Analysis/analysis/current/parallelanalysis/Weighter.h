@@ -39,49 +39,49 @@
 #include <string>
 
 namespace askap {
-    namespace analysis {
+namespace analysis {
 
-	/// @brief A simple class to get the relative weight of a given pixel
+/// @brief A simple class to get the relative weight of a given pixel
 
-	class Weighter
-	{
+class Weighter {
 
-	public:
-	    Weighter(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet &parset);
-	    Weighter(const Weighter& other);
-	    Weighter& operator= (const Weighter& other);
-	    virtual ~Weighter(){};
-	
-	    void initialise(duchamp::Cube &cube, bool doAllocation=true);
-	    float weight(size_t i);
-	    void search();
-	    void applyCutoff();
-	    float cutoff(){return itsWeightCutoff;};
+    public:
+        Weighter(askap::askapparallel::AskapParallel& comms,
+                 const LOFAR::ParameterSet &parset);
+        Weighter(const Weighter& other);
+        Weighter& operator= (const Weighter& other);
+        virtual ~Weighter() {};
 
-	    bool fileOK(){return (itsImage!="");};
-	    bool doApplyCutoff(){return fileOK() && (itsWeightCutoff>0.);};
-	    bool isValid(size_t i);
-	    bool doScaling(){return fileOK() && itsFlagDoScaling;};
-	   
-	    bool isValid(){return fileOK() && (doScaling() || doApplyCutoff());};
+        void initialise(duchamp::Cube &cube, bool doAllocation = true);
+        float weight(size_t i);
+        void search();
+        void applyCutoff();
+        float cutoff() {return itsWeightCutoff;};
 
-	protected:
-	    void findNorm();
-	    void readWeights();
+        bool fileOK() {return (itsImage != "");};
+        bool doApplyCutoff() {return fileOK() && (itsWeightCutoff > 0.);};
+        bool isValid(size_t i);
+        bool doScaling() {return fileOK() && itsFlagDoScaling;};
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    std::string itsImage;
-	    duchamp::Section itsSection;
-	    duchamp::Cube *itsCube;
-	    float itsNorm;
-	    float itsWeightCutoff;
-	    std::string itsCutoffType;
-	    bool itsFlagDoScaling;
-	    casa::Array<casa::Float> itsWeights;
+        bool isValid() {return fileOK() && (doScaling() || doApplyCutoff());};
 
-	};
+    protected:
+        void findNorm();
+        void readWeights();
 
-    }
+        askap::askapparallel::AskapParallel *itsComms;
+        std::string itsImage;
+        duchamp::Section itsSection;
+        duchamp::Cube *itsCube;
+        float itsNorm;
+        float itsWeightCutoff;
+        std::string itsCutoffType;
+        bool itsFlagDoScaling;
+        casa::Array<casa::Float> itsWeights;
+
+};
+
+}
 }
 
 

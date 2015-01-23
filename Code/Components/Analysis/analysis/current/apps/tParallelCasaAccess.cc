@@ -80,7 +80,8 @@ bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &par
 {
     /// Trying ways of accessing an image in a way that allows
     /// simultaneous access from different workers.
-    ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << ": About to open image " << name);
+    ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() <<
+                      ": About to open image " << name);
     LatticeBase* lattPtr = ImageOpener::openImage(name);
     ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << ": Done!");
 //    LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Write);
@@ -93,15 +94,18 @@ bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &par
 //    lattPtr->unlock();
 //   delete lock1;
     IPosition shape = imagePtr->shape();
-    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Shape of original image = " << shape);
+    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() <<
+                       ": Shape of original image = " << shape);
     IPosition newLength = shape;
 //    newLength(0) = newLength(0) / (parl.nnode() - 1);
     newLength(0) = newLength(0) / (parl.nProcs() - 1);
-    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": New shape = " << newLength);
+    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() <<
+                       ": New shape = " << newLength);
     int startpos = (parl.rank() - 1) * newLength(0);
     IPosition start(shape.size(), 0);
     start(0) = startpos;
-    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Start position = " << start);
+    ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() <<
+                       ": Start position = " << start);
     Slicer slice(start, newLength);
     SubImage<Float> sub(*imagePtr, slice, True);
     subimage = sub;
@@ -146,19 +150,26 @@ int main(int argc, const char *argv[])
         }
 
         if (parl.isMaster()) {
-            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nProcs() << ")");
+            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() <<
+                              " / " << parl.nProcs() << ")");
             ASKAPLOG_INFO_STR(logger, "Master done!");
         } else if (parl.isWorker()) {
             ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());
             SubImage<Float> subimage;
             bool OK = getSubImage(imageName, subimage, parl);
 
-            if (!OK) ASKAPLOG_ERROR_STR(logger, "Worker #" << parl.rank() << ": ERROR with getting subimage!");
+            if (!OK) {
+                ASKAPLOG_ERROR_STR(logger, "Worker #" << parl.rank() <<
+                                   ": ERROR with getting subimage!");
+            }
 
 //       ASKAPASSERT(&subimage);
-            ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << ": Made a subimage with shape " << subimage.shape());
-            ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": sizeof(subimage) = " << sizeof(subimage));
-            ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << ": subimage mean = " << subimageMean(subimage));
+            ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() <<
+                              ": Made a subimage with shape " << subimage.shape());
+            ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() <<
+                               ": sizeof(subimage) = " << sizeof(subimage));
+            ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() <<
+                              ": subimage mean = " << subimageMean(subimage));
             ASKAPLOG_INFO_STR(logger, "Success for Worker #" << parl.rank());
         }
     } catch (askap::AskapError& x) {

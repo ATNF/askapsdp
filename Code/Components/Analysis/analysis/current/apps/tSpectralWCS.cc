@@ -50,41 +50,54 @@ int main(int argc, const char *argv[])
     // This class must have scope outside the main try/catch block
     askap::askapparallel::AskapParallel comms(argc, argv);
     try {
-      std::string imageName,outfile;
+        std::string imageName, outfile;
 
-        if (argc == 1) imageName = "";
-        else imageName = argv[1];
-	if( argc < 3) outfile="spec.dat";
-	else outfile = argv[2];
-	std::ofstream out(outfile.c_str());
+        if (argc == 1) {
+            imageName = "";
+        } else {
+            imageName = argv[1];
+        }
+        if (argc < 3) {
+            outfile = "spec.dat";
+        } else {
+            outfile = argv[2];
+        }
+        std::ofstream out(outfile.c_str());
 
         LOFAR::ParameterSet parset;
-	parset.replace("image",imageName);
-	parset.replace("verbose","true");
+        parset.replace("image", imageName);
+        parset.replace("verbose", "true");
 
-	DuchampParallel duchamp(comms, parset);
-	duchamp.getMetadata();
-	double zsize = duchamp.cube().getDimZ();
-	double xpos = duchamp.cube().getDimX()/2;
-	double ypos = duchamp.cube().getDimX()/2;
+        DuchampParallel duchamp(comms, parset);
+        duchamp.getMetadata();
+        double zsize = duchamp.cube().getDimZ();
+        double xpos = duchamp.cube().getDimX() / 2;
+        double ypos = duchamp.cube().getDimX() / 2;
 
-	ASKAPLOG_DEBUG_STR(logger, "spectral units = " << duchamp.cube().header().getSpectralUnits()
-			   << "   spectral desc = " << duchamp.cube().header().getSpectralDescription());
-	//	wcsprt(duchamp.cube().header().getWCS());
-	for (double z=0;z<zsize;z+=1.){
-	  double vel = duchamp.cube().header().pixToVel(xpos,ypos,z);
-	  
-	    double deltaVel,zup=z+1,zdn=z-1;
-	    if(z==0) 
-	      deltaVel =  duchamp.cube().header().pixToVel(xpos,ypos,zup) -  duchamp.cube().header().pixToVel(xpos,ypos,z);
-	    else if(z==(zsize-1)) 
-	      deltaVel =  duchamp.cube().header().pixToVel(xpos,ypos,z) -  duchamp.cube().header().pixToVel(xpos,ypos,zdn);
-	    else 
-	      deltaVel =  (duchamp.cube().header().pixToVel(xpos,ypos,zup) - duchamp.cube().header().pixToVel(xpos,ypos,zdn))/2.;
+        ASKAPLOG_DEBUG_STR(logger,
+                           "spectral units = " <<
+                           duchamp.cube().header().getSpectralUnits() <<
+                           "   spectral desc = " <<
+                           duchamp.cube().header().getSpectralDescription());
+        //  wcsprt(duchamp.cube().header().getWCS());
 
-	    out << z << " " << vel << " " << deltaVel << "\n";
-	}
-	out.close();
+        for (double z = 0; z < zsize; z += 1.) {
+            double vel = duchamp.cube().header().pixToVel(xpos, ypos, z);
+
+            double deltaVel, zup = z + 1, zdn = z - 1;
+            if (z == 0)
+                deltaVel =  duchamp.cube().header().pixToVel(xpos, ypos, zup) -
+                            duchamp.cube().header().pixToVel(xpos, ypos, z);
+            else if (z == (zsize - 1))
+                deltaVel =  duchamp.cube().header().pixToVel(xpos, ypos, z) -
+                            duchamp.cube().header().pixToVel(xpos, ypos, zdn);
+            else
+                deltaVel = (duchamp.cube().header().pixToVel(xpos, ypos, zup) -
+                            duchamp.cube().header().pixToVel(xpos, ypos, zdn)) / 2.;
+
+            out << z << " " << vel << " " << deltaVel << "\n";
+        }
+        out.close();
 
 
     } catch (askap::AskapError& x) {

@@ -132,8 +132,8 @@ class CatalogueMatcher {
         /// @brief Output a single catalogue showing matches from the other list
         void outputSummary(PointCatalogue &cat, std::string filename);
 
-        unsigned int srcListSize() {return this->itsSrcCatalogue.pointList().size();}
-        unsigned int refListSize() {return this->itsRefCatalogue.pointList().size();}
+        unsigned int srcListSize() {return itsSrcCatalogue.pointList().size();}
+        unsigned int refListSize() {return itsRefCatalogue.pointList().size();}
 
     protected:
 

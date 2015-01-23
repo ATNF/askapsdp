@@ -86,10 +86,10 @@ Point& Point::operator=(const Point& p)
 {
     if (this == &p) return *this;
 
-    this->itsX = p.itsX;
-    this->itsY = p.itsY;
-    this->itsFlux = p.itsFlux;
-    this->itsID = p.itsID;
+    itsX = p.itsX;
+    itsY = p.itsY;
+    itsFlux = p.itsFlux;
+    itsID = p.itsID;
     return *this;
 }
 

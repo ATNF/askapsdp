@@ -61,10 +61,10 @@ namespace matching {
 
 Matcher::Matcher()
 {
-    this->itsMeanDx = 0.;
-    this->itsMeanDy = 0.;
-    this->itsRmsDx = 0.;
-    this->itsRmsDy = 0.;
+    itsMeanDx = 0.;
+    itsMeanDy = 0.;
+    itsRmsDx = 0.;
+    itsRmsDy = 0.;
 }
 
 Matcher::~Matcher()
@@ -80,62 +80,62 @@ Matcher& Matcher::operator=(const Matcher &m)
 {
     if (this == &m) return *this;
 
-    this->itsFITShead = m.itsFITShead;
-    this->itsSrcFile = m.itsSrcFile;
-    this->itsRefFile = m.itsRefFile;
-    this->itsRA = m.itsRA;
-    this->itsDec = m.itsDec;
-    this->itsSrcPosType = m.itsSrcPosType;
-    this->itsRefPosType = m.itsRefPosType;
-    this->itsRadius = m.itsRadius;
-    this->itsFluxMethod = m.itsFluxMethod;
-    this->itsFluxUseFit = m.itsFluxUseFit;
-    this->itsSrcPixList = m.itsSrcPixList;
-    this->itsRefPixList = m.itsRefPixList;
-    this->itsSrcTriList = m.itsSrcTriList;
-    this->itsRefTriList = m.itsRefTriList;
-    this->itsMatchingTriList = m.itsMatchingTriList;
-    this->itsMatchingPixList = m.itsMatchingPixList;
-    this->itsEpsilon = m.itsEpsilon;
-    this->itsTrimSize = m.itsTrimSize;
-    this->itsMeanDx = m.itsMeanDx;
-    this->itsMeanDy = m.itsMeanDy;
-    this->itsRmsDx = m.itsRmsDx;
-    this->itsRmsDy = m.itsRmsDy;
-    this->itsNumMatch1 = m.itsNumMatch1;
-    this->itsNumMatch2 = m.itsNumMatch2;
-    this->itsSenseMatch = m.itsSenseMatch;
-    this->itsOutputBestFile = m.itsOutputBestFile;
-    this->itsOutputMissFile = m.itsOutputMissFile;
+    itsFITShead = m.itsFITShead;
+    itsSrcFile = m.itsSrcFile;
+    itsRefFile = m.itsRefFile;
+    itsRA = m.itsRA;
+    itsDec = m.itsDec;
+    itsSrcPosType = m.itsSrcPosType;
+    itsRefPosType = m.itsRefPosType;
+    itsRadius = m.itsRadius;
+    itsFluxMethod = m.itsFluxMethod;
+    itsFluxUseFit = m.itsFluxUseFit;
+    itsSrcPixList = m.itsSrcPixList;
+    itsRefPixList = m.itsRefPixList;
+    itsSrcTriList = m.itsSrcTriList;
+    itsRefTriList = m.itsRefTriList;
+    itsMatchingTriList = m.itsMatchingTriList;
+    itsMatchingPixList = m.itsMatchingPixList;
+    itsEpsilon = m.itsEpsilon;
+    itsTrimSize = m.itsTrimSize;
+    itsMeanDx = m.itsMeanDx;
+    itsMeanDy = m.itsMeanDy;
+    itsRmsDx = m.itsRmsDx;
+    itsRmsDy = m.itsRmsDy;
+    itsNumMatch1 = m.itsNumMatch1;
+    itsNumMatch2 = m.itsNumMatch2;
+    itsSenseMatch = m.itsSenseMatch;
+    itsOutputBestFile = m.itsOutputBestFile;
+    itsOutputMissFile = m.itsOutputMissFile;
     return *this;
 }
 
 Matcher::Matcher(const LOFAR::ParameterSet& parset)
 {
-    this->itsSrcFile = parset.getString("srcFile", "");
-    this->itsRefFile = parset.getString("refFile", "");
-    this->itsFluxMethod = parset.getString("fluxMethod", "peak");
-    this->itsFluxUseFit = parset.getString("fluxUseFit", "best");
-    this->itsRA  = parset.getString("RA", "00:00:00");
-    this->itsDec = parset.getString("Dec", "00:00:00");
-    this->itsSrcPosType = parset.getString("srcPosType", "deg");
-    this->itsRefPosType = parset.getString("refPosType", "deg");
-    this->itsRadius = parset.getDouble("radius", -1.);
-    this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
-    this->itsTrimSize = parset.getInt16("trimsize", matching::maxSizePointList);
-    this->itsMeanDx = 0.;
-    this->itsMeanDy = 0.;
-    this->itsRmsDx = 0.;
-    this->itsRmsDy = 0.;
-    this->itsOutputBestFile = parset.getString("matchFile", "matches.txt");
-    this->itsOutputMissFile = parset.getString("missFile", "misses.txt");
+    itsSrcFile = parset.getString("srcFile", "");
+    itsRefFile = parset.getString("refFile", "");
+    itsFluxMethod = parset.getString("fluxMethod", "peak");
+    itsFluxUseFit = parset.getString("fluxUseFit", "best");
+    itsRA  = parset.getString("RA", "00:00:00");
+    itsDec = parset.getString("Dec", "00:00:00");
+    itsSrcPosType = parset.getString("srcPosType", "deg");
+    itsRefPosType = parset.getString("refPosType", "deg");
+    itsRadius = parset.getDouble("radius", -1.);
+    itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
+    itsTrimSize = parset.getInt16("trimsize", matching::maxSizePointList);
+    itsMeanDx = 0.;
+    itsMeanDy = 0.;
+    itsRmsDx = 0.;
+    itsRmsDy = 0.;
+    itsOutputBestFile = parset.getString("matchFile", "matches.txt");
+    itsOutputMissFile = parset.getString("missFile", "misses.txt");
 }
 
 //**************************************************************//
 
 void Matcher::setHeader(duchamp::FitsHeader &head)
 {
-    this->itsFITShead = head;
+    itsFITShead = head;
 }
 
 //**************************************************************//
@@ -145,41 +145,41 @@ void Matcher::readLists()
 
     bool filesOK = true;
 
-    if (this->itsSrcFile == "") {
+    if (itsSrcFile == "") {
         ASKAPTHROW(AskapError, "srcFile not defined. Cannot get pixel list!");
         filesOK = false;
     }
 
-    if (this->itsRefFile == "") {
+    if (itsRefFile == "") {
         ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
         filesOK = false;
     }
 
     if (filesOK) {
-        std::ifstream fsrc(this->itsSrcFile.c_str());
+        std::ifstream fsrc(itsSrcFile.c_str());
 
         if (!fsrc.is_open()) {
             ASKAPTHROW(AskapError,
-                       "srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
+                       "srcFile (" << itsSrcFile << ") not valid. Error opening file.");
         }
 
-        std::ifstream fref(this->itsRefFile.c_str());
+        std::ifstream fref(itsRefFile.c_str());
 
         if (!fref.is_open()) {
             ASKAPTHROW(AskapError,
-                       "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
+                       "refFile (" << itsRefFile << ") not valid. Error opening file.");
         }
 
-        this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead,
-                                            this->itsRA, this->itsDec,
-                                            this->itsSrcPosType, this->itsRadius,
-                                            this->itsFluxMethod, this->itsFluxUseFit);
-        ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
+        itsSrcPixList = getSrcPixList(fsrc, itsFITShead,
+                                            itsRA, itsDec,
+                                            itsSrcPosType, itsRadius,
+                                            itsFluxMethod, itsFluxUseFit);
+        ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << itsSrcPixList.size());
 
-        this->itsRefPixList = getPixList(fref, this->itsFITShead,
-                                         this->itsRA, this->itsDec,
-                                         this->itsRefPosType, this->itsRadius);
-        ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
+        itsRefPixList = getPixList(fref, itsFITShead,
+                                         itsRA, itsDec,
+                                         itsRefPosType, itsRadius);
+        ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << itsRefPixList.size());
     } else {
         ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
     }
@@ -197,9 +197,9 @@ void Matcher::fixRefList(std::vector<float> beam)
     // float b1 = std::min(beam[0] * 3600., beam[1] * 3600.);
     // float pa1 = beam[2];
     // float d1 = a1 * a1 - b1 * b1;
-    // std::vector<Point>::iterator pix = this->itsRefPixList.begin();
+    // std::vector<Point>::iterator pix = itsRefPixList.begin();
 
-    // for (; pix < this->itsRefPixList.end(); pix++) {
+    // for (; pix < itsRefPixList.end(); pix++) {
     //     double a2 = std::max(pix->majorAxis(), pix->minorAxis());
     //     double b2 = std::min(pix->majorAxis(), pix->minorAxis());
     //     double pa2 = pix->PA();
@@ -239,49 +239,49 @@ void Matcher::fixRefList(std::vector<float> beam)
 
 void Matcher::setTriangleLists()
 {
-    std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
+    std::vector<Point> srclist = trimList(itsSrcPixList, itsTrimSize);
     ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
-    // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
+    // std::vector<Point> reflist = trimList(itsRefPixList, itsTrimSize);
     // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
 
-    this->itsSrcTriList = getTriList(srclist);
+    itsSrcTriList = getTriList(srclist);
 
     ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
-    std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList, 5);
+    std::vector<Point> newreflist = crudeMatchList(itsRefPixList, itsSrcPixList, 5);
 
     // ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
-    // std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
+    // std::vector<Point> newreflist = crudeMatchList(itsRefPixList, srclist,5);
     ASKAPLOG_INFO_STR(logger, "Now have reference list of size " <<
                       newreflist.size() << " points");
-    newreflist = trimList(newreflist, this->itsTrimSize);
+    newreflist = trimList(newreflist, itsTrimSize);
     ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " <<
                       newreflist.size() << " points");
 
-    //                this->itsRefTriList = getTriList(reflist);
-    this->itsRefTriList = getTriList(newreflist);
-    this->itsMatchingTriList = matchLists(this->itsSrcTriList,
-                                          this->itsRefTriList,
-                                          this->itsEpsilon);
-    trimTriList(this->itsMatchingTriList);
-    ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches\n");
+    //                itsRefTriList = getTriList(reflist);
+    itsRefTriList = getTriList(newreflist);
+    itsMatchingTriList = matchLists(itsSrcTriList,
+                                          itsRefTriList,
+                                          itsEpsilon);
+    trimTriList(itsMatchingTriList);
+    ASKAPLOG_INFO_STR(logger, "Found " << itsMatchingTriList.size() << " matches\n");
 }
 
 //**************************************************************//
 
 void Matcher::findMatches()
 {
-    this->itsNumMatch1 = 0;
+    itsNumMatch1 = 0;
 
-    if (this->itsMatchingTriList.size() > 0) {
-        this->itsMatchingPixList = vote(this->itsMatchingTriList);
-        this->itsNumMatch1 = this->itsMatchingPixList.size();
+    if (itsMatchingTriList.size() > 0) {
+        itsMatchingPixList = vote(itsMatchingTriList);
+        itsNumMatch1 = itsMatchingPixList.size();
         ASKAPLOG_INFO_STR(logger, "After voting, have found " <<
-                          this->itsMatchingPixList.size() << " matching points\n");
+                          itsMatchingPixList.size() << " matching points\n");
 
-        this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
-                               this->itsMatchingTriList[0].second.isClockwise());
+        itsSenseMatch = (itsMatchingTriList[0].first.isClockwise() ==
+                               itsMatchingTriList[0].second.isClockwise());
 
-        if (this->itsSenseMatch) {
+        if (itsSenseMatch) {
             ASKAPLOG_INFO_STR(logger, "The two lists have the same sense.");
         } else {
             ASKAPLOG_INFO_STR(logger, "The two lists have the opposite sense.");
@@ -294,42 +294,42 @@ void Matcher::findMatches()
 
 void Matcher::findOffsets()
 {
-    std::vector<double> dx(this->itsNumMatch1, 0.), dy(this->itsNumMatch1, 0.);
+    std::vector<double> dx(itsNumMatch1, 0.), dy(itsNumMatch1, 0.);
 
-    for (int i = 0; i < this->itsNumMatch1; i++) {
-        if (this->itsSenseMatch) {
-            dx[i] = this->itsMatchingPixList[i].first.x() - this->itsMatchingPixList[i].second.x();
-            dy[i] = this->itsMatchingPixList[i].first.y() - this->itsMatchingPixList[i].second.y();
+    for (int i = 0; i < itsNumMatch1; i++) {
+        if (itsSenseMatch) {
+            dx[i] = itsMatchingPixList[i].first.x() - itsMatchingPixList[i].second.x();
+            dy[i] = itsMatchingPixList[i].first.y() - itsMatchingPixList[i].second.y();
         } else {
-            dx[i] = this->itsMatchingPixList[i].first.x() - this->itsMatchingPixList[i].second.x();
-            dy[i] = this->itsMatchingPixList[i].first.y() + this->itsMatchingPixList[i].second.y();
+            dx[i] = itsMatchingPixList[i].first.x() - itsMatchingPixList[i].second.x();
+            dy[i] = itsMatchingPixList[i].first.y() + itsMatchingPixList[i].second.y();
         }
 
     }
 
-    this->itsMeanDx = this->itsMeanDy = 0.;
+    itsMeanDx = itsMeanDy = 0.;
 
-    for (int i = 0; i < this->itsNumMatch1; i++) {
-        this->itsMeanDx += dx[i];
-        this->itsMeanDy += dy[i];
+    for (int i = 0; i < itsNumMatch1; i++) {
+        itsMeanDx += dx[i];
+        itsMeanDy += dy[i];
     }
 
-    this->itsMeanDx /= double(this->itsNumMatch1);
-    this->itsMeanDy /= double(this->itsNumMatch1);
+    itsMeanDx /= double(itsNumMatch1);
+    itsMeanDy /= double(itsNumMatch1);
 
-    this->itsRmsDx = this->itsRmsDy = 0.;
+    itsRmsDx = itsRmsDy = 0.;
 
-    for (int i = 0; i < this->itsNumMatch1; i++) {
-        this->itsRmsDx += (dx[i] - this->itsMeanDx) * (dx[i] - this->itsMeanDx);
-        this->itsRmsDy += (dy[i] - this->itsMeanDy) * (dy[i] - this->itsMeanDy);
+    for (int i = 0; i < itsNumMatch1; i++) {
+        itsRmsDx += (dx[i] - itsMeanDx) * (dx[i] - itsMeanDx);
+        itsRmsDy += (dy[i] - itsMeanDy) * (dy[i] - itsMeanDy);
     }
 
-    this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
-    this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
+    itsRmsDx = sqrt(itsRmsDx / (double(itsNumMatch1 - 1)));
+    itsRmsDy = sqrt(itsRmsDy / (double(itsNumMatch1 - 1)));
     std::stringstream ss;
     ss.setf(std::ios::fixed);
-    ss << "Offsets between the two are dx = " << this->itsMeanDx << " +- " << this->itsRmsDx
-       << " dy = " << this->itsMeanDy << " +- " << this->itsRmsDy;
+    ss << "Offsets between the two are dx = " << itsMeanDx << " +- " << itsRmsDx
+       << " dy = " << itsMeanDy << " +- " << itsRmsDy;
     ASKAPLOG_INFO_STR(logger, ss.str());
 }
 
@@ -345,11 +345,11 @@ void Matcher::addNewMatches()
         std::vector<Point>::iterator src, ref;
         std::vector<std::pair<Point, Point> >::iterator match;
 
-        for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
+        for (src = itsSrcPixList.begin(); src < itsSrcPixList.end(); src++) {
             bool isMatch = false;
-            match = this->itsMatchingPixList.begin();
+            match = itsMatchingPixList.begin();
 
-            for (; match < this->itsMatchingPixList.end() && !isMatch; match++) {
+            for (; match < itsMatchingPixList.end() && !isMatch; match++) {
                 isMatch = (src->ID() == match->first.ID());
             }
 
@@ -357,28 +357,28 @@ void Matcher::addNewMatches()
                 float minOffset = 0.;
                 int minRef = -1;
 
-                for (ref = this->itsRefPixList.begin(); ref < this->itsRefPixList.end(); ref++) {
-                    float offset = hypot(src->x() - ref->x() - this->itsMeanDx,
-                                         src->y() - ref->y() - this->itsMeanDy);
+                for (ref = itsRefPixList.begin(); ref < itsRefPixList.end(); ref++) {
+                    float offset = hypot(src->x() - ref->x() - itsMeanDx,
+                                         src->y() - ref->y() - itsMeanDy);
 
-                    if (offset < matchRadius * this->itsEpsilon) {
+                    if (offset < matchRadius * itsEpsilon) {
                         if ((minRef == -1) || (offset < minOffset)) {
                             minOffset = offset;
-                            minRef = int(ref - this->itsRefPixList.begin());
+                            minRef = int(ref - itsRefPixList.begin());
                         }
                     }
                 }
 
                 if (minRef >= 0) { // there was a match within errors
-                    ref = this->itsRefPixList.begin() + minRef;
+                    ref = itsRefPixList.begin() + minRef;
                     std::pair<Point, Point> newMatch(*src, *ref);
-                    this->itsMatchingPixList.push_back(newMatch);
+                    itsMatchingPixList.push_back(newMatch);
                 }
             }
         }
 
         this->rejectMultipleMatches();
-        this->itsNumMatch2 = this->itsMatchingPixList.size();
+        itsNumMatch2 = itsMatchingPixList.size();
     }
 }
 
@@ -386,22 +386,22 @@ void Matcher::addNewMatches()
 
 void Matcher::rejectMultipleMatches()
 {
-    if (this->itsMatchingPixList.size() < 2) return;
+    if (itsMatchingPixList.size() < 2) return;
 
     std::vector<std::pair<Point, Point> >::iterator alice, bob;
-    alice = this->itsMatchingPixList.begin();
+    alice = itsMatchingPixList.begin();
 
-    while (alice < this->itsMatchingPixList.end() - 1) {
+    while (alice < itsMatchingPixList.end() - 1) {
         bool bobGone = false;
         bool aliceGone = false;
         bob = alice + 1;
 
-        while (bob < this->itsMatchingPixList.end() && !aliceGone) {
+        while (bob < itsMatchingPixList.end() && !aliceGone) {
             if (alice->second.ID() == bob->second.ID()) {
                 // alice & bob have the same reference source
                 float df_alice, df_bob;
 
-                // if (this->itsFluxMethod == "integrated") {
+                // if (itsFluxMethod == "integrated") {
                 //     df_alice = alice->first.stuff().flux() - alice->second.flux();
                 //     df_bob   = bob->first.stuff().flux() - bob->second.flux();
                 // } else {
@@ -411,11 +411,11 @@ void Matcher::rejectMultipleMatches()
 
                 if (fabs(df_alice) < fabs(df_bob)) {
                     // delete bob
-                    this->itsMatchingPixList.erase(bob);
+                    itsMatchingPixList.erase(bob);
                     bobGone = true;
                 } else {
                     // delete alice
-                    this->itsMatchingPixList.erase(alice);
+                    itsMatchingPixList.erase(alice);
                     aliceGone = true;
                 }
             }
@@ -434,14 +434,14 @@ void Matcher::rejectMultipleMatches()
 
 void Matcher::outputMatches()
 {
-    std::ofstream fout(this->itsOutputBestFile.c_str());
+    std::ofstream fout(itsOutputBestFile.c_str());
     std::vector<std::pair<Point, Point> >::iterator match;
     int prec = 3;
 
-    for (match = this->itsMatchingPixList.begin();
-            match < this->itsMatchingPixList.end();
+    for (match = itsMatchingPixList.begin();
+            match < itsMatchingPixList.end();
             match++) {
-        // if (this->itsFluxMethod == "integrated") { // need to swap around since we have initially stored peak flux in object.
+        // if (itsFluxMethod == "integrated") { // need to swap around since we have initially stored peak flux in object.
         //     float tmpflux;
         //     tmpflux = match->first.stuff().flux();
         //     match->first.stuff().setFlux(match->first.flux());
@@ -458,11 +458,11 @@ void Matcher::outputMatches()
     int ct = 0;
     char matchType;
 
-    for (match = this->itsMatchingPixList.begin();
-            match < this->itsMatchingPixList.end();
+    for (match = itsMatchingPixList.begin();
+            match < itsMatchingPixList.end();
             match++) {
 
-        if (ct++ < this->itsNumMatch1) matchType = '1';
+        if (ct++ < itsNumMatch1) matchType = '1';
         else matchType = '2';
 
         fout << matchType << "\t" << match->first.ID() << " " << match->second.ID() << " " <<
@@ -500,17 +500,17 @@ void Matcher::outputMatches()
 
 void Matcher::outputMisses()
 {
-    std::ofstream fout(this->itsOutputMissFile.c_str());
+    std::ofstream fout(itsOutputMissFile.c_str());
     fout.setf(std::ios::fixed);
     std::vector<Point>::iterator pt;
     std::vector<std::pair<Point, Point> >::iterator match;
     //                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
 
-    for (pt = this->itsRefPixList.begin(); pt < this->itsRefPixList.end(); pt++) {
+    for (pt = itsRefPixList.begin(); pt < itsRefPixList.end(); pt++) {
         bool isMatch = false;
-        match = this->itsMatchingPixList.begin();
+        match = itsMatchingPixList.begin();
 
-        for (; match < this->itsMatchingPixList.end() && !isMatch; match++) {
+        for (; match < itsMatchingPixList.end() && !isMatch; match++) {
             isMatch = (pt->ID() == match->second.ID());
         }
 
@@ -527,11 +527,11 @@ void Matcher::outputMisses()
         }
     }
 
-    for (pt = this->itsSrcPixList.begin(); pt < this->itsSrcPixList.end(); pt++) {
+    for (pt = itsSrcPixList.begin(); pt < itsSrcPixList.end(); pt++) {
         bool isMatch = false;
-        match = this->itsMatchingPixList.begin();
+        match = itsMatchingPixList.begin();
 
-        for (; match < this->itsMatchingPixList.end() && !isMatch; match++) {
+        for (; match < itsMatchingPixList.end() && !isMatch; match++) {
             isMatch = (pt->ID() == match->first.ID());
         }
 
@@ -561,10 +561,10 @@ void Matcher::outputSummary()
     Point match;
 
     fout.open("match-summary-sources.txt");
-    for (pt = this->itsSrcPixList.begin(); pt < this->itsSrcPixList.end(); pt++) {
+    for (pt = itsSrcPixList.begin(); pt < itsSrcPixList.end(); pt++) {
         bool isMatch = false;
-        for (mpair = this->itsMatchingPixList.begin();
-                mpair < this->itsMatchingPixList.end() && !isMatch;
+        for (mpair = itsMatchingPixList.begin();
+                mpair < itsMatchingPixList.end() && !isMatch;
                 mpair++) {
             isMatch = (pt->ID() == mpair->first.ID());
             if (isMatch) {
@@ -585,10 +585,10 @@ void Matcher::outputSummary()
     fout.close();
 
     fout.open("match-summary-reference.txt");
-    for (pt = this->itsRefPixList.begin(); pt < this->itsRefPixList.end(); pt++) {
+    for (pt = itsRefPixList.begin(); pt < itsRefPixList.end(); pt++) {
         bool isMatch = false;
-        for (mpair = this->itsMatchingPixList.begin();
-                mpair < this->itsMatchingPixList.end() && !isMatch;
+        for (mpair = itsMatchingPixList.begin();
+                mpair < itsMatchingPixList.end() && !isMatch;
                 mpair++) {
             isMatch = (pt->ID() == mpair->second.ID());
             if (isMatch) {

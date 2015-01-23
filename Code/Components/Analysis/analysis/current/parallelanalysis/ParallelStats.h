@@ -34,41 +34,70 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	class ParallelStats
-	{
-	public:
-	    ParallelStats(askap::askapparallel::AskapParallel& comms, duchamp::Cube *cube);
-	    ParallelStats(const ParallelStats& other);
-	    ParallelStats& operator= (const ParallelStats& other);
-	    virtual ~ParallelStats(){};
+class ParallelStats {
+    public:
+        ParallelStats(askap::askapparallel::AskapParallel& comms,
+                      duchamp::Cube *cube);
+        virtual ~ParallelStats() {};
 
-	    /// @brief Find the statistics by looking at the distributed data.
-	    void findDistributedStats();
+        /// @brief Find the statistics by looking at the distributed data.
+        void findDistributedStats();
 
-	    /// @brief Find the mean (on the workers)
-	    void findMeans();
-	    /// @brief Find the STDDEV (on the workers)
-	    void findStddevs();
-	    /// @brief Combine and print the mean (on the master)
-	    void combineMeans();
-	    /// @brief Send the overall mean to the workers (on the master)
-	    void broadcastMean();
-	    /// @brief Combine and print the STDDEV (on the master)
-	    void combineStddevs();
+        /// @brief Find the mean (on the workers)
+        /// @details This finds the mean or median (according to the
+        /// flagRobustStats parameter) of the worker's image/cube,
+        /// then sends that value to the master via LOFAR Blobs.
+        void findMeans();
 
-	    /// @brief Printing cube stats to the log
-	    void printStats();
-	    
-	protected:
-	    askap::askapparallel::AskapParallel *itsComms;
-	    duchamp::Cube *itsCube;
+        /// @brief Find the STDDEV (on the workers) @details This
+        /// finds the stddev or the median absolute deviation from the
+        /// median (MADFM) (dictated by the flagRobustStats parameter)
+        /// of the worker's image/cube, then sends that value to the
+        /// master via LOFAR Blobs. To calculate the stddev/MADFM, the
+        /// mean of the full dataset must be read from the master
+        /// (again passed via LOFAR Blobs). The calculation uses the
+        /// findSpread() function.
+        void findStddevs();
+
+        /// @brief Combine and print the mean (on the master) @details
+        /// The master reads the mean/median values from each of the
+        /// workers, and combines them to form the mean/median of the
+        /// full dataset. Note that if the median of the workers data
+        /// has been provided, the values are treated as estimates of
+        /// the mean, and are combined as if they were means (ie. the
+        /// overall value is the weighted (by size) average of the
+        /// means/medians of the individual images). The value is
+        /// stored in the StatsContainer in itsCube.
+        void combineMeans();
+
+        /// @brief Send the overall mean to the workers (on the master)
+        /// @details The mean/median value of the full dataset is sent
+        /// via LOFAR Blobs to the workers.
+        void broadcastMean();
+
+        /// @brief Combine and print the STDDEV (on the master)
+        /// @details The master reads the stddev/MADFM values from
+        /// each of the workers, and combines them to produce an
+        /// estimate of the stddev for the full cube. Again, if MADFM
+        /// values have been calculated on the workers, they are
+        /// treated as estimates of the stddev and are combined as if
+        /// they are stddev values. The overall value is stored in the
+        /// StatsContainer in itsCube
+        void combineStddevs();
+
+        /// @brief Printing cube stats to the log
+        void printStats();
+
+    protected:
+        askap::askapparallel::AskapParallel *itsComms;
+        duchamp::Cube *itsCube;
 
 
-	};
+};
 
-    }
+}
 
 }
 

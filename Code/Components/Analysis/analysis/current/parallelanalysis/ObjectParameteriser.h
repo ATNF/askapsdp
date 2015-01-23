@@ -35,35 +35,32 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	class ObjectParameteriser
-	{
-	public:
-	    ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
-	    ObjectParameteriser(const ObjectParameteriser& other);
-	    ObjectParameteriser& operator= (const ObjectParameteriser& other);
-	    virtual ~ObjectParameteriser();
+class ObjectParameteriser {
+    public:
+        ObjectParameteriser(askap::askapparallel::AskapParallel& comms);
+        virtual ~ObjectParameteriser();
 
-	    /// @brief Initialise
-	    void initialise(DuchampParallel *dp);
+        /// @brief Initialise
+        void initialise(DuchampParallel *dp);
 
-	    /// @brief Master sends list to workers, who fill out itsInputList
-	    void distribute(); 
-	    void parameterise();
-	    void gather();
+        /// @brief Master sends list to workers, who fill out itsInputList
+        void distribute();
+        void parameterise();
+        void gather();
 
-	protected:
+    protected:
 
-	    askap::askapparallel::AskapParallel *itsComms;
-	    DuchampParallel *itsDP;
-	    std::vector<sourcefitting::RadioSource> itsInputList;
-	    std::vector<sourcefitting::RadioSource> itsOutputList;
-	    unsigned int itsTotalListSize;
+        askap::askapparallel::AskapParallel *itsComms;
+        DuchampParallel *itsDP;
+        std::vector<sourcefitting::RadioSource> itsInputList;
+        std::vector<sourcefitting::RadioSource> itsOutputList;
+        unsigned int itsTotalListSize;
 
-	};
+};
 
-    }
+}
 
 }
 

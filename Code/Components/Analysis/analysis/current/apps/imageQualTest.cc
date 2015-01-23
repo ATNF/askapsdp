@@ -47,8 +47,7 @@ using namespace askap::analysis::matching;
 
 ASKAP_LOGGER(logger, "imageQualTest.log");
 
-class ImageQualApp : public askap::Application
-{
+class ImageQualApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -64,10 +63,12 @@ class ImageQualApp : public askap::Application
                 Matcher matcher(subset);
                 matcher.setHeader(image.cube().header());
                 matcher.readLists();
-                if (matcher.srcListSize()>0 && matcher.refListSize()>0){
+                if (matcher.srcListSize() > 0 && matcher.refListSize() > 0) {
                     bool doFixRef = subset.getBool("convolveReference", true);
 
-                    if (doFixRef) matcher.fixRefList(image.getBeamInfo());
+                    if (doFixRef) {
+                        matcher.fixRefList(image.getBeamInfo());
+                    }
 
                     matcher.setTriangleLists();
                     matcher.findMatches();
@@ -75,11 +76,15 @@ class ImageQualApp : public askap::Application
                     matcher.addNewMatches();
                     matcher.outputLists();
                     matcher.outputSummary();
-                } else{
-                    if (matcher.srcListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
-                    if (matcher.refListSize()==0) 
-                        ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
+                } else {
+                    if (matcher.srcListSize() == 0) {
+                        ASKAPLOG_WARN_STR(logger,
+                                          "Source list has zero length - no matching done.");
+                    }
+                    if (matcher.refListSize() == 0) {
+                        ASKAPLOG_WARN_STR(logger,
+                                          "Reference list has zero length - no matching done.");
+                    }
                 }
             } catch (const askap::AskapError& x) {
                 ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
@@ -90,8 +95,10 @@ class ImageQualApp : public askap::Application
                 std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
                 exit(1);
             }
 

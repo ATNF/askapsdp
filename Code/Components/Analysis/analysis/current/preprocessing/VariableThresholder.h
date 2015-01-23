@@ -40,6 +40,7 @@
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/aipstype.h>
 #include <parallelanalysis/Weighter.h>
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -60,21 +61,64 @@ namespace analysis {
 /// mean/standard deviation. The threshold applied is a
 /// constant signal-to-noise ratio.
 ///
-/// The maps of various quantities can also be written to CASA images on disk. These quantities include the noise level, the threshold (in flux units), the signal-to-noise ratio
+/// The maps of various quantities can also be written to CASA images
+/// on disk. These quantities include the noise level, the threshold
+/// (in flux units), the signal-to-noise ratio
 
 class VariableThresholder {
     public:
         VariableThresholder() {};
+
+        /// @details Initialise from a LOFAR parset. Define all
+        /// parameters save for the input image, the search type
+        /// and the robust stats flag - all of which are set
+        /// according to the duchamp::Cube parameters. If an
+        /// output image name is not provided, it will not be
+        /// written.
         VariableThresholder(askap::askapparallel::AskapParallel& comms,
                             const LOFAR::ParameterSet &parset);
-        VariableThresholder(const VariableThresholder& other);
-        VariableThresholder& operator= (const VariableThresholder& other);
         virtual ~VariableThresholder() {};
 
+        /// @details Initialise the class with information from
+        /// the duchamp::Cube. This is done to avoid replicating
+        /// parameters and preserving the parameter
+        /// hierarchy. Once the input image is known, the output
+        /// image names can be set with fixName() (if they have
+        /// not been defined via the parset).
         void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
-        void setWeighter(Weighter *weighter) {itsWeighter = weighter;};
+
+    void setWeighter(boost::shared_ptr<Weighter> &weighter) {itsWeighter = weighter;};
+
+        /// @details Updates the output image names in the case of
+        /// distributed processing. The names will have the worker
+        /// number appended to them (so that instead of something
+        /// like "image_snr" it will become "image_snr_6_9" for
+        /// worker #6 out of 9.
         void setFilenames(askap::askapparallel::AskapParallel& comms);
+
+        /// @details Calculate the signal-to-noise at each
+        /// pixel. The cube (if it is a cube) is broken up into a
+        /// series of lower dimensional data sets - the search
+        /// type parameter defines whether this is done as a
+        /// series of 2D images or 1D spectra. For each subset,
+        /// the "middle" (mean or median) and "spread" (standard
+        /// deviation or median absolute deviation from the
+        /// median) for each pixel are calculated, and the
+        /// signal-to-noise map is formed. At each stage, any
+        /// outputs are made, with the subset being written to the
+        /// appropriate image at the appropriate location. At the
+        /// end, the signal-to-noise map is written to the Cube's
+        /// reconstructed array, from where the detections can be
+        /// made.
         void calculate();
+
+        /// @details Once the signal-to-noise array is defined, we
+        /// extract objects from it based on the signal-to-noise
+        /// threshold. The resulting object list is put directly
+        /// into the duchamp::Cube object, where it can be
+        /// accessed from elsewhere. The detection map is updated
+        /// and the Duchamp log file can be written to (if
+        /// required).
         void search();
 
         std::string snrImage() {return itsSNRimageName;};
@@ -86,11 +130,22 @@ class VariableThresholder {
         int boxSize() {return itsBoxSize;};
 
     protected:
-        void writeImages(casa::Array<casa::Float> &middle, casa::Array<casa::Float> &spread,
-                         casa::Array<casa::Float> &snr, casa::Array<casa::Float> &boxsum,
-                         casa::IPosition &loc, bool doCreate);
+        /// @details Writes the arrays as requested to images on disk. Where
+        /// the appropriate image name is defined , the array (one of
+        /// mean,noise,boxsum,snr or threshold) is written in distributed
+        /// fashion to a CASA image on disk. The 'accumulate' method for
+        /// DistributedImageWriter::write is used, taking into account any
+        /// overlapping border regions.
+        void writeImages(casa::Array<casa::Float> &middle,
+                         casa::Array<casa::Float> &spread,
+                         casa::Array<casa::Float> &snr,
+                         casa::Array<casa::Float> &boxsum,
+                         casa::IPosition &loc,
+                         bool doCreate);
+
         void defineChunk(casa::Array<Float> &inputChunkArr,
                          casa::MaskedArray<Float> &outputChunk, size_t ctr);
+
         void saveSNRtoCube(casa::Array<casa::Float> &snr, size_t ctr);
 
         /// @brief The MPI communication information
@@ -119,14 +174,14 @@ class VariableThresholder {
         /// Name of box sum image to be written
         std::string itsBoxSumImageName;
         /// Do we need to write any images?
-        bool doWriteImages;
+        bool itsFlagWriteImages;
         /// Are we re-using exising images?
         bool itsFlagReuse;
 
         /// @brief The subimage definition
         analysisutilities::SubimageDef *itsSubimageDef;
         duchamp::Cube *itsCube;
-        Weighter *itsWeighter;
+    boost::shared_ptr<Weighter> itsWeighter;
         casa::Slicer itsSlicer;
         casa::IPosition itsInputShape;
         casa::IPosition itsLocation;

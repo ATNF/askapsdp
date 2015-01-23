@@ -62,8 +62,8 @@ Side::Side(double run, double rise):
 
 Side::Side(Point &a, Point &b)
 {
-    this->itsDX = a.x() - b.x();
-    this->itsDY = a.y() - b.y();
+    itsDX = a.x() - b.x();
+    itsDY = a.y() - b.y();
 }
 
 Side::Side(const Side& s)
@@ -75,21 +75,21 @@ Side& Side::operator=(const Side& s)
 {
     if (this == &s) return *this;
 
-    this->itsDX = s.itsDX;
-    this->itsDY = s.itsDY;
+    itsDX = s.itsDX;
+    itsDY = s.itsDY;
     return *this;
 }
 
 void Side::define(double run, double rise)
 {
-    this->itsDX = run;
-    this->itsDY = rise;
+    itsDX = run;
+    itsDY = rise;
 }
 
 void Side::define(Point &a, Point &b)
 {
-    this->itsDX = a.x() - b.x();
-    this->itsDY = a.y() - b.y();
+    itsDX = a.x() - b.x();
+    itsDY = a.y() - b.y();
 }
 
 

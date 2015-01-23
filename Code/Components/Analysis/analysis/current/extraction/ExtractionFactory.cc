@@ -52,149 +52,160 @@ using namespace LOFAR::TYPES;
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
 
+#include <boost/shared_ptr.hpp>
+using boost::shared_ptr;
 #include <duchamp/param.hh>
 
 ASKAP_LOGGER(logger, ".extractionfactory");
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	/// @details Constructor, setting the AskapParallel MPI
-	/// communications, and the parameter set. The pointer to the
-	/// duchamp params is set to zero, and the source list and
-	/// object choice list set to blank vectors.
-	ExtractionFactory::ExtractionFactory(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset):
-	    itsComms(comms), itsParset(parset)
-	{
-	    this->itsParam = 0;
-	    this->itsSourceList = std::vector<sourcefitting::RadioSource>();
-	    this->itsObjectChoice = std::vector<bool>();
-	}
+ExtractionFactory::ExtractionFactory(askap::askapparallel::AskapParallel& comms,
+                                     const LOFAR::ParameterSet& parset):
+    itsComms(comms), itsParset(parset)
+{
+    itsParam = 0;
+    itsSourceList = std::vector<sourcefitting::RadioSource>();
+    itsObjectChoice = std::vector<bool>();
+}
 
-	/// @details When run in parallel mode, the master node sends
-	/// the objects to the workers in a round-robin fashion,
-	/// thereby spreading the load. *The source list needs to be
-	/// set with setSourceList() prior to calling*. Each worker is
-	/// also sent the full size of the object list. The duchamp
-	/// params are used to initialise the objectChoice vector,
-	/// using the full size, so *the params need to be set with
-	/// setParams() prior to calling*.
-	void ExtractionFactory::distribute()
-	{
-	    
-	    if(this->itsComms.isMaster()) {
-		if(this->itsComms.isParallel()){
-		    int16 rank;
-		    LOFAR::BlobString bs;
-	      
-		    // now send the individual sources to each worker in turn
-		    for(size_t i=0;i<this->itsSourceList.size()+itsComms.nProcs()-1;i++){
-			rank = i % (itsComms.nProcs() - 1);
-			bs.resize(0);
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			out.putStart("extsrc", 1);
-			// the first time we write to each worker, send the total number of sources
-			if(i/(itsComms.nProcs()-1)==0) out << (unsigned int)(this->itsSourceList.size());
-			out << (i<this->itsSourceList.size());
-			if(i<this->itsSourceList.size()){
-			    // this->itsSourceList[i].defineBox(this->itsParam->section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-			    out << this->itsSourceList[i];
-			}
-			out.putEnd();
-			itsComms.sendBlob(bs, rank + 1);
-		    }
-	      
-		}
-	    }
-	  
-	    if(this->itsComms.isWorker()){
-	    
-		unsigned int totalSourceCount=0;
-		if(this->itsComms.isParallel()){
-	      
-		    LOFAR::BlobString bs;
-		    // now read individual sources
-		    bool isOK=true;
-		    this->itsSourceList.clear();
-		    while(isOK) {	    
-			sourcefitting::RadioSource src;
-			itsComms.receiveBlob(bs, 0);
-			LOFAR::BlobIBufString bib(bs);
-			LOFAR::BlobIStream in(bib);
-			int version = in.getStart("extsrc");
-			ASKAPASSERT(version == 1);
-			if(totalSourceCount == 0) in >> totalSourceCount;
-			in >> isOK;
-			if(isOK){
-			    in >> src;
-			    this->itsSourceList.push_back(src);
-			}
-			in.getEnd();
-		    }
-	      
-		}
-		else totalSourceCount = (unsigned int)(this->itsSourceList.size());
-	    
-		this->itsObjectChoice = this->itsParam->getObjectChoices(totalSourceCount);
-	    }
-	}
+void ExtractionFactory::distribute()
+{
+
+    if (itsComms.isMaster()) {
+        if (itsComms.isParallel()) {
+            int16 rank;
+            LOFAR::BlobString bs;
+
+            // now send the individual sources to each worker in turn
+            for (size_t i = 0;
+                    i < itsSourceList.size() + itsComms.nProcs() - 1;
+                    i++) {
+
+                rank = i % (itsComms.nProcs() - 1);
+                bs.resize(0);
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                out.putStart("extsrc", 1);
+                // the first time we write to each worker, send the
+                // total number of sources
+                if (i / (itsComms.nProcs() - 1) == 0) {
+                    out << (unsigned int)(itsSourceList.size());
+                }
+                out << (i < itsSourceList.size());
+                if (i < itsSourceList.size()) {
+                    out << itsSourceList[i];
+                }
+                out.putEnd();
+                itsComms.sendBlob(bs, rank + 1);
+            }
+
+        }
+    }
+
+    if (itsComms.isWorker()) {
+
+        unsigned int totalSourceCount = 0;
+        if (itsComms.isParallel()) {
+
+            LOFAR::BlobString bs;
+            // now read individual sources
+            bool isOK = true;
+            itsSourceList.clear();
+            while (isOK) {
+                sourcefitting::RadioSource src;
+                itsComms.receiveBlob(bs, 0);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("extsrc");
+                ASKAPASSERT(version == 1);
+                if (totalSourceCount == 0) in >> totalSourceCount;
+                in >> isOK;
+                if (isOK) {
+                    in >> src;
+                    itsSourceList.push_back(src);
+                }
+                in.getEnd();
+            }
+
+        } else {
+            totalSourceCount = (unsigned int)(itsSourceList.size());
+        }
+
+        itsObjectChoice = itsParam->getObjectChoices(totalSourceCount);
+    }
+}
 
 
-	/// @details Runs the extraction for each of the different
-	/// types: Spectra, NoiseSpectra, MomentMap and Cubelet. For
-	/// each case, the parset is first read to test for the
-	/// boolean parameter extract<type>. If this is true (the
-	/// default is false, so it needs to be present), the relevant
-	/// extractor is initialised with the parset and run. This is
-	/// done for each source, assuming it is a valid choice given
-	/// the 'objectChoice' input parameter.
-	void ExtractionFactory::extract()
-	{
+void ExtractionFactory::extract()
+{
 
-	    if(this->itsComms.isWorker()){
+    if (itsComms.isWorker()) {
 
+        const unsigned int numTypes = 4;
 
-		const unsigned int numTypes = 4;
+        std::string parsetNames[numTypes] = {"Spectra", "NoiseSpectra",
+                                             "MomentMap", "Cubelet"
+                                            };
 
-		std::string parsetNames[numTypes]={"Spectra","NoiseSpectra","MomentMap","Cubelet"};
+        for (unsigned int type = 0; type < numTypes; type++) {
 
-		for(unsigned int type=0;type<numTypes;type++){
+            std::string parameter = "extract" + parsetNames[type];
+            bool flag = itsParset.getBool(parameter, false);
+            if (flag) {
+                std::vector<sourcefitting::RadioSource>::iterator src;
+                LOFAR::ParameterSet extractSubset = itsParset.makeSubset(parameter + ".");
+                ASKAPLOG_INFO_STR(logger, "Beginnging " << parsetNames[type] <<
+                                  " extraction for " <<
+                                  itsSourceList.size() << " sources");
 
-		    std::string parameter="extract"+parsetNames[type];
-		    bool flag=this->itsParset.getBool(parameter,false);
-		    if(flag){
-			std::vector<sourcefitting::RadioSource>::iterator src;
-			LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset(parameter+".");
-			ASKAPLOG_INFO_STR(logger, "Beginnging " << parsetNames[type] << " extraction for " << this->itsSourceList.size() << " sources");
-			for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-			    if(itsObjectChoice.at(src->getID()-1)){
-				SourceDataExtractor *extractor;
-				switch(type){
-				case 0: extractor = new SourceSpectrumExtractor(extractSubset); break;
-				case 1: extractor = new NoiseSpectrumExtractor(extractSubset); break;
-				case 2: extractor = new MomentMapExtractor(extractSubset); break;
-				case 3: extractor = new CubeletExtractor(extractSubset); break;
-				default: ASKAPTHROW(AskapError, "ExtractionFactory - unknown extraction type : " << type); break;
-				}
+                for (src = itsSourceList.begin();
+                        src < itsSourceList.end();
+                        src++) {
 
-				extractor->setSource(&*src);
-				extractor->extract();
-				extractor->writeImage();
+                    if (itsObjectChoice.at(src->getID() - 1)) {
+                        boost::shared_ptr<SourceDataExtractor> extractor;
+                        switch (type) {
+                            case 0:
+                                extractor = boost::shared_ptr<SourceDataExtractor>(
+                                                new SourceSpectrumExtractor(extractSubset));
+                                break;
+                            case 1:
+                                extractor = boost::shared_ptr<SourceDataExtractor>(
+                                                new NoiseSpectrumExtractor(extractSubset));
+                                break;
+                            case 2:
+                                extractor = boost::shared_ptr<SourceDataExtractor>(
+                                                new MomentMapExtractor(extractSubset));
+                                break;
+                            case 3:
+                                extractor = boost::shared_ptr<SourceDataExtractor>(
+                                                new CubeletExtractor(extractSubset));
+                                break;
+                            default:
+                                ASKAPTHROW(AskapError,
+                                           "ExtractionFactory - unknown extraction type : " <<
+                                           type);
+                                break;
+                        }
 
-				delete extractor;
-			    }
-			}
-		    }
-		
-		}
+                        extractor->setSource(&*src);
+                        extractor->extract();
+                        extractor->writeImage();
 
-	    }
+                    }
+                }
+            }
 
-	}
+        }
 
     }
+
+}
+
+}
 
 
 }

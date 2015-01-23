@@ -69,17 +69,17 @@ std::string getSuffix(unsigned int num)
 }
 
 void getResultsParams(casa::Gaussian2D<Double> &gauss,
-                      duchamp::FitsHeader *head, double zval,
+                      duchamp::FitsHeader &head, double zval,
                       std::vector<Double> &deconvShape, double &ra,
                       double &dec, double &intFluxFit)
 {
-    deconvShape = analysisutilities::deconvolveGaussian(gauss, head->getBeam());
+    deconvShape = analysisutilities::deconvolveGaussian(gauss, head.getBeam());
     double zworld;
-    if (head->pixToWCS(gauss.xCenter(), gauss.yCenter(), zval, ra, dec, zworld) != 0)
+    if (head.pixToWCS(gauss.xCenter(), gauss.yCenter(), zval, ra, dec, zworld) != 0)
         ASKAPLOG_ERROR_STR(logger, "Error with pixToWCS conversion");
     intFluxFit = gauss.flux();
-    if (head->needBeamSize())
-        intFluxFit /= head->beam().area(); // Convert from Jy/beam to Jy
+    if (head.needBeamSize())
+        intFluxFit /= head.beam().area(); // Convert from Jy/beam to Jy
 }
 
 
@@ -347,11 +347,11 @@ void setupCols(CatalogueSpecification &spec,
             double ra, dec, intFluxFit;
             getResultsParams(gauss, src->header(), src->getZcentre(), deconvShape,
                              ra, dec, intFluxFit);
-            float cdelt = src->header()->WCS().cdelt[src->header()->WCS().lng];
+            float cdelt = src->header().WCS().cdelt[src->header().WCS().lng];
             int precision = -int(log10(fabs(cdelt * 3600. / 10.)));
-            std::string raS  = decToDMS(ra, src->header()->lngtype(), precision);
-            std::string decS = decToDMS(dec, src->header()->lattype(), precision);
-            std::string name = src->header()->getIAUName(ra, dec);
+            std::string raS  = decToDMS(ra, src->header().lngtype(), precision);
+            std::string decS = decToDMS(dec, src->header().lattype(), precision);
+            std::string name = src->header().getIAUName(ra, dec);
             spec.column("ISLAND").check(src->getID());
             std::stringstream compid;
             compid << src->getID() << getSuffix(n);
@@ -371,7 +371,7 @@ void setupCols(CatalogueSpecification &spec,
             spec.column("FINTFITERR").check(0.);
             spec.column("FPEAKFIT").check(gauss.height());
             spec.column("FPEAKFITERR").check(0.);
-            float pixScale = src->header()->getAvPixScale() * 3600.; //arcsec/pix
+            float pixScale = src->header().getAvPixScale() * 3600.; //arcsec/pix
             spec.column("MAJFIT").check(gauss.majorAxis()*pixScale);
             spec.column("MINFIT").check(gauss.minorAxis()*pixScale);
             spec.column("PAFIT").check(gauss.PA() * 180. / M_PI, false);

@@ -32,33 +32,47 @@
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    class NoiseSpectrumExtractor : public SpectralBoxExtractor
-    {
+class NoiseSpectrumExtractor : public SpectralBoxExtractor {
     public:
-      NoiseSpectrumExtractor(){};
-      NoiseSpectrumExtractor(const LOFAR::ParameterSet& parset);
-      virtual ~NoiseSpectrumExtractor(){};
-      NoiseSpectrumExtractor(const NoiseSpectrumExtractor& other);
-      NoiseSpectrumExtractor& operator=(const NoiseSpectrumExtractor& other);
-      
-      void setBoxWidth(int w){itsBoxWidth=w;};
-      void setBoxWidth();
-      void setBoxAreaInBeams(float a){itsAreaInBeams=a; setBoxWidth();};
-      float boxArea(){return itsAreaInBeams;};
-      bool robustFlag(){return itsRobustFlag;};
+        NoiseSpectrumExtractor() {};
 
-      void extract();
+        /// @details Initialise the extractor from a LOFAR parset. This
+        /// sets the input cube, the box width, the scaling flag, and
+        /// the base name for the output spectra files (these will have
+        /// _X appended, where X is the ID of the object in question).
+        NoiseSpectrumExtractor(const LOFAR::ParameterSet& parset);
+        virtual ~NoiseSpectrumExtractor() {};
+        NoiseSpectrumExtractor(const NoiseSpectrumExtractor& other);
+        NoiseSpectrumExtractor& operator=(const NoiseSpectrumExtractor& other);
+
+        void setBoxWidth(int w) {itsBoxWidth = w;};
+        void setBoxWidth();
+        void setBoxAreaInBeams(float a) {itsAreaInBeams = a; setBoxWidth();};
+        float boxArea() {return itsAreaInBeams;};
+        bool robustFlag() {return itsRobustFlag;};
+
+        /// @details The main function that extracts the spectrum from
+        /// the desired input. The input cube is opened for reading by
+        /// the SourceDataExtractor::openInput() function. A box of
+        /// required width is centred on the peak pixel of the
+        /// RadioSource, extending over the full spectral range of the
+        /// input cube. The box will be truncated at the spatial edges
+        /// if necessary. The output spectrum is determined one channel
+        /// at a time, summing all pixels within the box and scaling by
+        /// the beam if so required. The output spectrum is stored in
+        /// itsArray, ready for later access or export.
+        void extract();
 
     protected:
-      float itsAreaInBeams;
-      bool itsRobustFlag;
+        float itsAreaInBeams;
+        bool itsRobustFlag;
 
-    };
+};
 
 
-  }
+}
 
 }
 

@@ -33,47 +33,53 @@
 #include <ostream>
 #include <sourcefitting/RadioSource.h>
 
-
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	class ParsetComponent
-	{
-	public:
-	    ParsetComponent();
-	    ParsetComponent(const ParsetComponent& other);
-	    ParsetComponent& operator= (const ParsetComponent& other);
-	    virtual ~ParsetComponent(){};
+class ParsetComponent {
+    public:
+        ParsetComponent();
+        virtual ~ParsetComponent() {};
 
-	    void setHeader(duchamp::FitsHeader *head){itsHead=head;};
-	    void setReference(float raRef, float decRef){this->itsRAref=raRef;this->itsDECref=decRef;};
-	    void setSizeFlag(bool b){itsFlagReportSize=b;};
+        void setHeader(duchamp::FitsHeader *head) {itsHead = head;};
+        void setReference(float raRef, float decRef)
+        {
+            itsRAref = raRef;
+            itsDECref = decRef;
+        };
+        void setSizeFlag(bool b) {itsFlagReportSize = b;};
 
-	    void defineComponent(sourcefitting::RadioSource *src, size_t fitNum, std::string fitType="best");
-	    void print(std::ostream &theStream);
+        void defineComponent(sourcefitting::RadioSource *src,
+                             size_t fitNum,
+                             std::string fitType = "best");
 
-	    float flux(){return itsFlux;};
-	    std::string ID(){return itsID;};
+        void print(std::ostream &theStream);
 
-	    friend std::ostream& operator<<(std::ostream &theStream, ParsetComponent &comp);
-	    friend bool operator<(ParsetComponent &lhs, ParsetComponent &rhs){return lhs.itsFlux < rhs.itsFlux;};
+        float flux() {return itsFlux;};
+        std::string ID() {return itsID;};
 
-	private:
-	    duchamp::FitsHeader *itsHead;
-	    float itsFlux;
-	    float itsRAref;
-	    float itsDECref;
-	    float itsRAoff;
-	    float itsDECoff;
-	    bool  itsFlagReportSize;
-	    float itsBmaj;
-	    float itsBmin;
-	    float itsBpa;
-	    std::string itsID;
-	};
+        friend std::ostream& operator<<(std::ostream &theStream, ParsetComponent &comp);
+        friend bool operator<(ParsetComponent &lhs, ParsetComponent &rhs)
+        {
+            return lhs.itsFlux < rhs.itsFlux;
+        };
 
-    }
+    private:
+        duchamp::FitsHeader *itsHead;
+        float itsFlux;
+        float itsRAref;
+        float itsDECref;
+        float itsRAoff;
+        float itsDECoff;
+        bool  itsFlagReportSize;
+        float itsBmaj;
+        float itsBmin;
+        float itsBpa;
+        std::string itsID;
+};
+
+}
 
 }
 

@@ -49,27 +49,10 @@ namespace askap {
 
 namespace analysis {
 
-ImageWriter::ImageWriter(const ImageWriter &other)
-{
-    this->operator=(other);
-}
-
-ImageWriter& ImageWriter::operator=(const ImageWriter &other)
-{
-    if (this == &other) return *this;
-    this->itsImageName = other.itsImageName;
-    this->itsBunit = other.itsBunit;
-    this->itsShape = other.itsShape;
-    this->itsTileshape = other.itsTileshape;
-    this->itsCoordSys = other.itsCoordSys;
-    this->itsImageInfo = other.itsImageInfo;
-    return *this;
-}
-
 ImageWriter::ImageWriter(duchamp::Cube *cube, std::string imageName)
 {
     this->copyMetadata(cube);
-    this->itsImageName = imageName;
+    itsImageName = imageName;
 }
 
 void ImageWriter::copyMetadata(duchamp::Cube *cube)
@@ -78,84 +61,89 @@ void ImageWriter::copyMetadata(duchamp::Cube *cube)
     const boost::shared_ptr<ImageInterface<Float> > imagePtr =
         analysisutilities::openImage(cube->pars().getImageFile());
 
-    this->itsCoordSys = imagePtr->coordinates();
-    this->itsShape = imagePtr->shape();
-    this->itsBunit = imagePtr->units();
-    this->itsImageInfo = imagePtr->imageInfo();
+    itsCoordSys = imagePtr->coordinates();
+    itsShape = imagePtr->shape();
+    itsBunit = imagePtr->units();
+    itsImageInfo = imagePtr->imageInfo();
 
     // set the default tileshape based on the overall image shape.
     // this can be changed later if preferred (for smaller subsection writing).
-    this->setTileshapeFromShape(this->itsShape);
+    this->setTileshapeFromShape(itsShape);
 
 }
 
 void ImageWriter::setTileshapeFromShape(casa::IPosition &shape)
 {
 
-    int specAxis = this->itsCoordSys.spectralAxisNumber();
-//      int stkAxis=this->itsCoordSys.polarizationAxisNumber();
-    int lngAxis = this->itsCoordSys.directionAxesNumbers()[0];
-    int latAxis = this->itsCoordSys.directionAxesNumbers()[1];
-    this->itsTileshape = casa::IPosition(shape.size(), 1);
-    this->itsTileshape(lngAxis) = std::min(128L, shape(lngAxis));
-    this->itsTileshape(latAxis) = std::min(128L, shape(latAxis));
-    if (this->itsCoordSys.hasSpectralAxis()) {
-        this->itsTileshape(specAxis) = std::min(16L, shape(specAxis));
+    int specAxis = itsCoordSys.spectralAxisNumber();
+    int lngAxis = itsCoordSys.directionAxesNumbers()[0];
+    int latAxis = itsCoordSys.directionAxesNumbers()[1];
+    itsTileshape = casa::IPosition(shape.size(), 1);
+    itsTileshape(lngAxis) = std::min(128L, shape(lngAxis));
+    itsTileshape(latAxis) = std::min(128L, shape(latAxis));
+    if (itsCoordSys.hasSpectralAxis()) {
+        itsTileshape(specAxis) = std::min(16L, shape(specAxis));
     }
 }
 
 
 void ImageWriter::create()
 {
-    if (this->itsImageName != "") {
-        ASKAPLOG_DEBUG_STR(logger, "Creating image named " << this->itsImageName <<
-                           " with shape " << this->itsShape << " and tileshape " <<
-                           this->itsTileshape);
-        casa::PagedImage<float> img(casa::TiledShape(this->itsShape, this->itsTileshape),
-                                    this->itsCoordSys, this->itsImageName);
-        img.setUnits(this->itsBunit);
-        img.setImageInfo(this->itsImageInfo);
+    if (itsImageName != "") {
+        ASKAPLOG_DEBUG_STR(logger,
+                           "Creating image named " << itsImageName <<
+                           " with shape " << itsShape <<
+                           " and tileshape " << itsTileshape);
+
+        casa::PagedImage<float> img(casa::TiledShape(itsShape, itsTileshape),
+                                    itsCoordSys, itsImageName);
+        img.setUnits(itsBunit);
+        img.setImageInfo(itsImageInfo);
     }
 }
 
 
 void ImageWriter::write(float *data, const casa::IPosition &shape, bool accumulate)
 {
-    ASKAPASSERT(shape.size() == this->itsShape.size());
+    ASKAPASSERT(shape.size() == itsShape.size());
     casa::Array<Float> arr(shape, data, casa::SHARE);
-    casa::IPosition location(this->itsShape.size(), 0);
+    casa::IPosition location(itsShape.size(), 0);
     this->write(arr, location);
 }
 
 void ImageWriter::write(float *data, const casa::IPosition &shape,
                         const casa::IPosition &loc, bool accumulate)
 {
-    ASKAPASSERT(shape.size() == this->itsShape.size());
-    ASKAPASSERT(loc.size() == this->itsShape.size());
+    ASKAPASSERT(shape.size() == itsShape.size());
+    ASKAPASSERT(loc.size() == itsShape.size());
     casa::Array<Float> arr(shape, data, casa::SHARE);
     this->write(arr, loc);
 }
 
 void ImageWriter::write(const casa::Array<Float> &data, bool accumulate)
 {
-    ASKAPASSERT(data.ndim() == this->itsShape.size());
-    casa::IPosition location(this->itsShape.size(), 0);
+    ASKAPASSERT(data.ndim() == itsShape.size());
+    casa::IPosition location(itsShape.size(), 0);
     this->write(data, location);
 }
 
 void ImageWriter::write(const casa::Array<Float> &data,
                         const casa::IPosition &loc, bool accumulate)
 {
-    ASKAPASSERT(data.ndim() == this->itsShape.size());
-    ASKAPASSERT(loc.size() == this->itsShape.size());
-    ASKAPLOG_DEBUG_STR(logger, "Opening image " << this->itsImageName << " for writing");
-    casa::PagedImage<float> img(this->itsImageName);
-    ASKAPLOG_DEBUG_STR(logger, "Writing array of shape " << data.shape() << " to image " <<
-                       this->itsImageName << " at location " << loc);
+    ASKAPASSERT(data.ndim() == itsShape.size());
+    ASKAPASSERT(loc.size() == itsShape.size());
+    ASKAPLOG_DEBUG_STR(logger, "Opening image " << itsImageName << " for writing");
+    casa::PagedImage<float> img(itsImageName);
+    ASKAPLOG_DEBUG_STR(logger,
+                       "Writing array of shape " << data.shape() <<
+                       " to image " << itsImageName <<
+                       " at location " << loc);
     if (accumulate) {
         casa::Array<casa::Float> newdata = data + this->read(loc, data.shape());
         img.putSlice(newdata, loc);
-    } else img.putSlice(data, loc);
+    } else {
+        img.putSlice(data, loc);
+    }
 
 }
 
@@ -163,7 +151,7 @@ casa::Array<casa::Float>
 ImageWriter::read(const casa::IPosition& loc, const casa::IPosition &shape)
 {
     ASKAPASSERT(loc.size() == shape.size());
-    casa::PagedImage<float> img(this->itsImageName);
+    casa::PagedImage<float> img(itsImageName);
     return img.getSlice(loc, shape);
 }
 

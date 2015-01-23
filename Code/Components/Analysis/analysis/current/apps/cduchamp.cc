@@ -52,8 +52,7 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "cduchamp.log");
 
-class DuchampApp : public askap::Application
-{
+class DuchampApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -71,11 +70,12 @@ class DuchampApp : public askap::Application
                 LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
 
                 DuchampParallel duchamp(comms, subset);
-                if(!comms.isParallel() || comms.isMaster())
+                if (!comms.isParallel() || comms.isMaster()) {
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
                 duchamp.readData();
                 duchamp.setupLogfile(argc, const_cast<const char**>(argv));
-		duchamp.preprocess();
+                duchamp.preprocess();
                 duchamp.gatherStats();
                 duchamp.setThreshold();
                 duchamp.findSources();
@@ -84,8 +84,8 @@ class DuchampApp : public askap::Application
                 duchamp.receiveObjects();
                 duchamp.cleanup();
                 duchamp.printResults();
-		duchamp.extract();
-		duchamp.writeToFITS();
+                duchamp.extract();
+                duchamp.writeToFITS();
 
                 stats.logSummary();
                 ///==============================================================================
@@ -98,8 +98,10 @@ class DuchampApp : public askap::Application
                 std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
                 exit(1);
             }
 

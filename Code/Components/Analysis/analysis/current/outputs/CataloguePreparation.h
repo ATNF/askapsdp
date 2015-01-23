@@ -56,7 +56,7 @@ std::string getSuffix(unsigned int num);
 /// integrated flux. The FitsHeader is needed for the beam
 /// correction and the WCS transform.
 void getResultsParams(casa::Gaussian2D<Double> &gauss,
-                      duchamp::FitsHeader *head, double zval,
+                      duchamp::FitsHeader &header, double zval,
                       std::vector<Double> &deconvShape, double &ra,
                       double &dec, double &intFluxFit);
 

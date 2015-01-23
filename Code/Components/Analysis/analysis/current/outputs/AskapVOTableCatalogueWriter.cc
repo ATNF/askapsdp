@@ -46,17 +46,17 @@ using namespace duchamp::Catalogues;
 AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter():
     duchamp::VOTableCatalogueWriter()
 {
-    this->itsSourceList = 0;
-    this->itsFitType = "best";
-    this->itsEntryType = COMPONENT;
+    itsSourceList = 0;
+    itsFitType = "best";
+    itsEntryType = COMPONENT;
 }
 
 AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(string name):
     duchamp::VOTableCatalogueWriter(name)
 {
-    this->itsSourceList = 0;
-    this->itsFitType = "best";
-    this->itsEntryType = COMPONENT;
+    itsSourceList = 0;
+    itsFitType = "best";
+    itsEntryType = COMPONENT;
 }
 
 AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other)
@@ -64,34 +64,35 @@ AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(const AskapVOTableCatal
     this->operator=(other);
 }
 
-AskapVOTableCatalogueWriter& AskapVOTableCatalogueWriter::operator= (const AskapVOTableCatalogueWriter& other)
+AskapVOTableCatalogueWriter&
+AskapVOTableCatalogueWriter::operator= (const AskapVOTableCatalogueWriter& other)
 {
     if (this == &other) return *this;
     ((VOTableCatalogueWriter &) *this) = other;
-    this->itsSourceList = other.itsSourceList;
-    this->itsFitType = other.itsFitType;
-    this->itsEntryType = other.itsEntryType;
+    itsSourceList = other.itsSourceList;
+    itsFitType = other.itsFitType;
+    itsEntryType = other.itsEntryType;
     return *this;
 }
 
 // void AskapVOTableCatalogueWriter::setup(DuchampParallel *finder)
 // {
 //     this->CatalogueWriter::setup(finder->pCube());
-//     this->itsSourceList = finder->pSourceList();
+//     itsSourceList = finder->pSourceList();
 // }
 
 void AskapVOTableCatalogueWriter::writeEntries()
 {
-    if (this->itsOpenFlag) {
-        for (std::vector<RadioSource>::iterator src = this->itsSourceList->begin();
-                src < this->itsSourceList->end(); src++)
-            this->writeEntry(&*src);
+    if (itsOpenFlag) {
+        for (std::vector<RadioSource>::iterator src = itsSourceList->begin();
+                src < itsSourceList->end(); src++)
+            this->writeEntry(*src);
     }
 }
 
 void AskapVOTableCatalogueWriter::writeTableHeader()
 {
-    if (this->itsOpenFlag) {
+    if (itsOpenFlag) {
 
         std::map<string, string> posUCDmap;
         posUCDmap.insert(pair<string, string>("ra", "pos.eq.ra"));
@@ -100,9 +101,9 @@ void AskapVOTableCatalogueWriter::writeTableHeader()
         posUCDmap.insert(pair<string, string>("dec_deg_cont", "pos.eq.dec"));
         posUCDmap.insert(pair<string, string>("glon", "pos.galactic.lng"));
         posUCDmap.insert(pair<string, string>("glat", "pos.galactic.lat"));
-        Column &raCol = this->itsColumnSpecification->column("RAJD");
+        Column &raCol = itsColumnSpecification->column("RAJD");
         string lngUCDbase = posUCDmap[makelower(raCol.getName())];
-        Column &decCol = this->itsColumnSpecification->column("DECJD");
+        Column &decCol = itsColumnSpecification->column("DECJD");
         string latUCDbase = posUCDmap[makelower(decCol.getName())];
 
         std::map<string, string> specUCDmap;
@@ -116,12 +117,12 @@ void AskapVOTableCatalogueWriter::writeTableHeader()
         specUCDmap.insert(pair<string, string>("awav", "em.wl"));
         specUCDmap.insert(pair<string, string>("zopt", "src.redshift"));
         specUCDmap.insert(pair<string, string>("beta", "src.redshift; spect.dopplerVeloc"));
-        Column &velCol = this->itsColumnSpecification->column("VEL");
+        Column &velCol = itsColumnSpecification->column("VEL");
         string specUCDbase = specUCDmap[makelower(velCol.getName())];
 
-        for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
+        for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
 
-            Column *col = this->itsColumnSpecification->pCol(i);
+            Column *col = itsColumnSpecification->pCol(i);
             string type = col->type();
 
             // A hack as the VOField currently tries to change a few
@@ -131,69 +132,63 @@ void AskapVOTableCatalogueWriter::writeTableHeader()
             col->setType(type);
 
             if (col->type() == "RAJD")  field.setUCD(lngUCDbase + ";meta.main");
-            // if(col->type()=="WRA")   field.setUCD("phys.angSize;"+lngUCDbase);
             if (col->type() == "DECJD") field.setUCD(latUCDbase + ";meta.main");
-            // if(col->type()=="WDEC")  field.setUCD("phys.angSize;"+latUCDbase);
-            // if(col->type()=="VEL")   field.setUCD(specUCDbase+";meta.main");
-            // if(col->type()=="W20")   field.setUCD("spect.line.width;"+specUCDbase);
-            // if(col->type()=="W50")   field.setUCD("spect.line.width;"+specUCDbase);
-            // if(col->type()=="WVEL")  field.setUCD("spect.line.width;"+specUCDbase);
-            this->itsFileStream << "      ";
-            field.printField(this->itsFileStream);
+            itsFileStream << "      ";
+            field.printField(itsFileStream);
 
         }
 
-        this->itsFileStream << "      <DATA>\n"
+        itsFileStream << "      <DATA>\n"
                             << "        <TABLEDATA>\n";
 
 
     }
 }
 
-void AskapVOTableCatalogueWriter::writeEntry(RadioSource *source)
+void AskapVOTableCatalogueWriter::writeEntry(RadioSource &source)
 {
-    if (this->itsOpenFlag) {
-        this->itsFileStream.setf(std::ios::fixed);
+    if (itsOpenFlag) {
+        itsFileStream.setf(std::ios::fixed);
 
-        if (this->itsEntryType == COMPONENT) {
+        if (itsEntryType == COMPONENT) {
 
             // write out an entry for all fits
-            for (size_t f = 0; f < source->numFits(this->itsFitType); f++) {
-                this->itsFileStream << "        <TR>\n";
-                this->itsFileStream << "          ";
-                for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
-                    Column col = this->itsColumnSpecification->column(i);
-                    this->itsFileStream << "<TD>";
-                    source->printTableEntry(this->itsFileStream, col,
-                                            f, this->itsFitType);
-                    this->itsFileStream << "</TD>";
+            for (size_t f = 0; f < source.numFits(itsFitType); f++) {
+                itsFileStream << "        <TR>\n";
+                itsFileStream << "          ";
+                for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
+                    Column col = itsColumnSpecification->column(i);
+                    itsFileStream << "<TD>";
+                    source.printTableEntry(itsFileStream, col,
+                                            f, itsFitType);
+                    itsFileStream << "</TD>";
                 }
-                this->itsFileStream << "\n";
-                this->itsFileStream << "        </TR>\n";
+                itsFileStream << "\n";
+                itsFileStream << "        </TR>\n";
             }
 
         } else {
 
-            this->itsFileStream << "        <TR>\n";
-            this->itsFileStream << "          ";
-            for (size_t i = 0; i < this->itsColumnSpecification->size(); i++) {
-                Column col = this->itsColumnSpecification->column(i);
-                this->itsFileStream << "<TD>";
+            itsFileStream << "        <TR>\n";
+            itsFileStream << "          ";
+            for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
+                Column col = itsColumnSpecification->column(i);
+                itsFileStream << "<TD>";
                 if (col.type() == "NCOMP") {
                     // n_components printing not defined elsewhere
-                    col.printEntry(this->itsFileStream,
-                                   source->numFits(this->itsFitType));
+                    col.printEntry(itsFileStream,
+                                   source.numFits(itsFitType));
                 } else if (col.type() == "NUM") {
                     // ensure we print the island ID, not the 1st component ID
-                    col.printEntry(this->itsFileStream, source->getID());
+                    col.printEntry(itsFileStream, source.getID());
                 } else {
                     // use Duchamp library to print all other columns
-                    source->duchamp::Detection::printTableEntry(this->itsFileStream, col);
+                    source.duchamp::Detection::printTableEntry(itsFileStream, col);
                 }
-                this->itsFileStream << "</TD>";
+                itsFileStream << "</TD>";
             }
-            this->itsFileStream << "\n";
-            this->itsFileStream << "        </TR>\n";
+            itsFileStream << "\n";
+            itsFileStream << "        </TR>\n";
 
 
         }

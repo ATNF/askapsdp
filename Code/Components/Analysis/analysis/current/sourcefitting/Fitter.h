@@ -52,113 +52,129 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-        namespace sourcefitting {
-            class FittingParameters; // foreshadowing
+namespace sourcefitting {
+class FittingParameters; // foreshadowing
 
-            /// @ingroup sourcefitting
-            /// @brief Simple function to write a list of parameters to the ASKAPLOG
-            void logparameters(Matrix<Double> &m, std::string loc="DEBUG");
+/// @ingroup sourcefitting
+/// @brief Simple function to write a list of parameters to the ASKAPLOG
+void logparameters(Matrix<Double> &m, std::string loc = "DEBUG");
 
-            /// @ingroup sourcefitting
-            /// @brief A class to manage the 2D profile fitting.
-            /// @details The class handles the calling of the fitting
-            /// functions, and stores the results using the casa::FitGaussian class
-            /// and a casa::Matrix with the best fit. The FittingParameters class
-            /// holds the relevant parameters.
-            class Fitter {
-                public:
-                    /// @brief Default constructor
-                    Fitter() {};
-                    /// @brief Default destructor
-                    virtual ~Fitter() {};
-                    /// @brief Copy constructor
-                    Fitter(const Fitter& f);
-                    /// @brief Copy function
-                    Fitter& operator= (const Fitter& f);
+/// @ingroup sourcefitting
+/// @brief A class to manage the 2D profile fitting.
+/// @details The class handles the calling of the fitting
+/// functions, and stores the results using the casa::FitGaussian class
+/// and a casa::Matrix with the best fit. The FittingParameters class
+/// holds the relevant parameters.
+class Fitter {
+    public:
+        /// @brief Default constructor
+        Fitter() {};
+        /// @brief Default destructor
+        virtual ~Fitter() {};
 
-                    /// @brief Set and return the set of fitting parameters
-                    /// @{
-                    void setParams(FittingParameters p) {itsParams = p;};
-                    FittingParameters params() {return itsParams;};
-                    FittingParameters &rparams() {FittingParameters& rfitpars = itsParams; return rfitpars;};
-                    ///@}
+        /// @brief Set and return the set of fitting parameters
+        /// @{
+        void setParams(FittingParameters p) {itsParams = p;};
+        FittingParameters params() {return itsParams;};
+        FittingParameters &rparams() {FittingParameters& rfitpars = itsParams; return rfitpars;};
+        ///@}
 
-                    /// @brief Set and return the number of Gaussian components to be fitted.
-                    /// @{
-                    void setNumGauss(int i) {itsNumGauss = i;};
-                    unsigned int  numGauss() {return itsNumGauss;};
-                    /// @}
+        /// @brief Set and return the number of Gaussian components to be fitted.
+        /// @{
+        void setNumGauss(int i) {itsNumGauss = i;};
+        unsigned int  numGauss() {return itsNumGauss;};
+        /// @}
 
-                    /// @brief Return the chi-squared value from the fit.
-                    float chisq() {return itsFitter.chisquared();};
-                    /// @brief Return the reduced chi-squared value from the fit.
-                    float redChisq() {return itsRedChisq;};
-                    /// @brief Return the RMS of the fit
-                    float RMS() {return itsFitter.RMS();};
-                    /// @brief Return the number of degrees of freedom of the fit.
-                    int ndof() {return itsNDoF;};
+        /// @brief Return the chi-squared value from the fit.
+        float chisq() {return itsFitter.chisquared();};
+        /// @brief Return the reduced chi-squared value from the fit.
+        float redChisq() {return itsRedChisq;};
+        /// @brief Return the RMS of the fit
+        float RMS() {return itsFitter.RMS();};
+        /// @brief Return the number of degrees of freedom of the fit.
+        int ndof() {return itsNDoF;};
 
-                    /// @brief Set the intial estimates for the Gaussian components.
-                    void setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader *head);
-                    /// @brief Set the retry factors
-                    void setRetries();
-                    /// @brief Set the mask values
-                    void setMasks();
-                    /// @brief Fit components to the data
-                    bool fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-                             casa::Vector<casa::Double> sigma);
+        /// @brief Set the intial estimates for the Gaussian components.
+        void setEstimates(std::vector<SubComponent> cmpntList,
+                          duchamp::FitsHeader &head);
+        /// @brief Set the retry factors
+        void setRetries();
+        /// @brief Set the mask values
+        void setMasks();
+        /// @brief Fit components to the data
+        /// Fits the required number of Gaussians to the data.
+        /// Returns the result of testing whether the number of
+        /// degrees of freedom is positive. The fits are only
+        /// performed if this is the case.
+        bool fit(casa::Matrix<casa::Double> pos,
+                 casa::Vector<casa::Double> f,
+                 casa::Vector<casa::Double> sigma);
 
-                    /// @brief Functions to test the fit according to various criteria.
-                    /// @{
+        /// @brief Functions to test the fit according to various criteria.
+        /// @{
 
-                    /// @brief Has the fit converged?
-                    bool passConverged();
-                    /// @brief Does the fit have an acceptable chi-squared value?
-                    bool passChisq();
-                    /// @brief Are the fitted components suitably within the box?
-                    bool passLocation();
-                    /// @brief Are the component sizes big enough?
-                    bool passComponentSize();
-                    /// @brief Are the component fluxes OK?
-                    bool passComponentFlux();
-                    bool passPeakFlux();
-                    bool passIntFlux();
-                    bool passSeparation();
-                    /// @brief Is the fit acceptable overall?
-                    bool acceptable();
-                    /// @}
+        /// @brief Has the fit converged?
+        bool passConverged();
+        /// @brief Does the fit have an acceptable chi-squared value?
+        bool passChisq();
+        /// @brief Are the fitted components suitably within the box?
+        bool passLocation();
+        /// @brief Are the component sizes big enough?
+        bool passComponentSize();
+        /// @brief Are the component fluxes OK?
+        bool passComponentFlux();
+        bool passPeakFlux();
+        bool passIntFlux();
+        bool passSeparation();
 
-                    /// @brief Return an ordered list of peak fluxes
-                    std::multimap<double, int> peakFluxList();
+        /// @brief Is the fit acceptable overall?
+        /// Acceptance criteria for a fit are as follows (after the
+        /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
+        /// @li Fit must have converged
+        /// @li Fit must be acceptable according to its chisq value
+        /// @li The centre of each component must be inside the box
+        /// @li The separation between any pair of components must be
+        /// more than 2 pixels.
+        /// @li The flux of each component must be positive and more
+        /// than half the detection threshold
+        /// @li No component's peak flux can exceed twice the highest
+        /// pixel in the box
+        /// @li The sum of the integrated fluxes of all components
+        /// must not be more than twice the total flux in the box.
+        bool acceptable();
+        /// @}
 
-                    /// @brief Return a casa::Gaussian2D version of a particular component.
-                    casa::Gaussian2D<casa::Double> gaussian(int num);
+        /// @brief Return an ordered list of peak fluxes
+        std::multimap<double, int> peakFluxList();
 
-
-                protected:
-                    /// @brief The set of parameters defining the fits
-                    FittingParameters itsParams;
-
-                    /// @brief The number of Gaussian functions to fit.
-                    unsigned int itsNumGauss;
-                    /// @brief The casa Gaussian Fitter
-                    FitGaussian<casa::Double> itsFitter;
-                    /// @brief The number of degrees of freedom in the fit
-                    int itsNDoF;
-                    /// @brief The reduced chi-squared of the fit
-                    float itsRedChisq;
-
-                    /// @brief The fitted components
-                    casa::Matrix<casa::Double> itsSolution;
-
-            };
+        /// @brief Return a casa::Gaussian2D version of a particular component.
+        casa::Gaussian2D<casa::Double> gaussian(int num);
 
 
-        }
+    protected:
+        /// @brief The set of parameters defining the fits
+        FittingParameters itsParams;
 
-    }
+        /// @brief The number of Gaussian functions to fit.
+        unsigned int itsNumGauss;
+        /// @brief The casa Gaussian Fitter
+        FitGaussian<casa::Double> itsFitter;
+        /// @brief The number of degrees of freedom in the fit
+        int itsNDoF;
+        /// @brief The reduced chi-squared of the fit
+        float itsRedChisq;
+
+        /// @brief The fitted components
+        casa::Matrix<casa::Double> itsSolution;
+
+};
+
+
+}
+
+}
 
 }
 

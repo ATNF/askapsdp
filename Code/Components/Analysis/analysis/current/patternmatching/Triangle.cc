@@ -73,13 +73,13 @@ Triangle::Triangle(double x1, double y1, double x2, double y2, double x3, double
 
 void Triangle::initialise()
 {
-    this->itsPts = std::vector<Point>(3);
+    itsPts = std::vector<Point>(3);
     this->itIsClockwise = true;
-    this->itsLogPerimeter = 0.;
-    this->itsRatio = 0.;
-    this->itsRatioTolerance = 0.;
-    this->itsAngle = 0.;
-    this->itsAngleTolerance = 0.;
+    itsLogPerimeter = 0.;
+    itsRatio = 0.;
+    itsRatioTolerance = 0.;
+    itsAngle = 0.;
+    itsAngleTolerance = 0.;
 
 }
 
@@ -94,13 +94,13 @@ Triangle& Triangle::operator= (const Triangle& t)
 {
     if (this == &t) return *this;
 
-    this->itsLogPerimeter = t.itsLogPerimeter;
+    itsLogPerimeter = t.itsLogPerimeter;
     this->itIsClockwise = t.itIsClockwise;
-    this->itsRatio = t.itsRatio;
-    this->itsRatioTolerance = t.itsRatioTolerance;
-    this->itsAngle = t.itsAngle;
-    this->itsAngleTolerance = t.itsAngleTolerance;
-    this->itsPts = t.itsPts;
+    itsRatio = t.itsRatio;
+    itsRatioTolerance = t.itsRatioTolerance;
+    itsAngle = t.itsAngle;
+    itsAngleTolerance = t.itsAngleTolerance;
+    itsPts = t.itsPts;
     return *this;
 }
 
@@ -142,9 +142,9 @@ void Triangle::define(Point &a, Point &b, Point &c)
         for (int j = 0; j < 3; j++) sum += matrix[i][j];
 
         switch (sum) {
-            case 4: this->itsPts[0] = ptslist[i]; break;
-            case 3: this->itsPts[1] = ptslist[i]; break;
-            case 5: this->itsPts[2] = ptslist[i]; break;
+            case 4: itsPts[0] = ptslist[i]; break;
+            case 3: itsPts[1] = ptslist[i]; break;
+            case 5: itsPts[2] = ptslist[i]; break;
         }
     }
 
@@ -154,13 +154,13 @@ void Triangle::define(Point &a, Point &b, Point &c)
     double r2 = sides.begin()->length(), r3 = sides.rbegin()->length();
     double dx2 = sides.begin()->run(),    dx3 = sides.rbegin()->run();
     double dy2 = sides.begin()->rise(),   dy3 = sides.rbegin()->rise();
-    this->itsRatio = r3 / r2;
-    this->itsAngle = (dx3 * dx2 + dy3 * dy2) / (r3 * r2);
+    itsRatio = r3 / r2;
+    itsAngle = (dx3 * dx2 + dy3 * dy2) / (r3 * r2);
     double sum = 0.;
 
     for (int i = 0; i < 3; i++) sum += sides[i].length();
 
-    this->itsLogPerimeter = log10(sum);
+    itsLogPerimeter = log10(sum);
     double tantheta = (dy2 * dx3 - dy3 * dx2) / (dx2 * dx3 + dy2 * dy3);
     this->itIsClockwise = (tantheta > 0.);
     defineTolerances();
@@ -173,11 +173,11 @@ void Triangle::defineTolerances(double epsilon)
     Side side1_2(itsPts[0].x() - itsPts[1].x(), itsPts[0].y() - itsPts[1].y());
     Side side1_3(itsPts[0].x() - itsPts[2].x(), itsPts[0].y() - itsPts[2].y());
     double r2 = side1_2.length(), r3 = side1_3.length();
-    double angleSqd = this->itsAngle * this->itsAngle;
+    double angleSqd = itsAngle * itsAngle;
     double sinthetaSqd = 1. - angleSqd;
-    double factor = 1. / (r3 * r3) - this->itsAngle / (r3 * r2) + 1. / (r2 * r2);
-    this->itsRatioTolerance = 2. * this->itsRatio * this->itsRatio * epsilon * epsilon * factor;
-    this->itsAngleTolerance = 2. * sinthetaSqd * epsilon * epsilon * factor +
+    double factor = 1. / (r3 * r3) - itsAngle / (r3 * r2) + 1. / (r2 * r2);
+    itsRatioTolerance = 2. * itsRatio * itsRatio * epsilon * epsilon * factor;
+    itsAngleTolerance = 2. * sinthetaSqd * epsilon * epsilon * factor +
                               3. * angleSqd * pow(epsilon, 4) * factor * factor;
 }
 
@@ -187,12 +187,12 @@ bool Triangle::isMatch(Triangle &comp, double epsilon)
 {
     this->defineTolerances(epsilon);
     comp.defineTolerances(epsilon);
-    double ratioSep = this->itsRatio - comp.ratio();
+    double ratioSep = itsRatio - comp.ratio();
     ratioSep *= ratioSep;
-    double ratioTol = this->itsRatioTolerance + comp.ratioTol();
-    double angleSep = this->itsAngle - comp.angle();
+    double ratioTol = itsRatioTolerance + comp.ratioTol();
+    double angleSep = itsAngle - comp.angle();
     angleSep *= angleSep;
-    double angleTol = this->itsAngleTolerance + comp.angleTol();
+    double angleTol = itsAngleTolerance + comp.angleTol();
     return ((ratioSep < ratioTol) && (angleSep < angleTol));
 }
 

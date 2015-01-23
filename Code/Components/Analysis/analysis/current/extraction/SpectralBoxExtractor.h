@@ -34,48 +34,52 @@
 
 namespace askap {
 
-  namespace analysis { 
+namespace analysis {
 
-    /// @brief The default box width for spectral extraction
-    const int defaultSpectralExtractionBoxWidth = 5;
+/// @brief The default box width for spectral extraction
+const int defaultSpectralExtractionBoxWidth = 5;
 
-    /// @brief Class to handle the extraction of some sort of spectrum
-    /// corresponding to a given RadioSource.
+/// @brief Class to handle the extraction of some sort of spectrum
+/// corresponding to a given RadioSource.
 
-    /// @details This is a base class that provides the core
-    /// functionality to extract a spectrum obtained in some way over
-    /// a box of a given size centred on the prescribed object. This
-    /// class defines functions that set up the slicer used to extract
-    /// the data from the input image, and that write out the
-    /// resulting spectrum to an image on disk. The details of the
-    /// extraction (what function to use, how the flux is scaled, etc)
-    /// is left to derived classes. 
+/// @details This is a base class that provides the core
+/// functionality to extract a spectrum obtained in some way over
+/// a box of a given size centred on the prescribed object. This
+/// class defines functions that set up the slicer used to extract
+/// the data from the input image, and that write out the
+/// resulting spectrum to an image on disk. The details of the
+/// extraction (what function to use, how the flux is scaled, etc)
+/// is left to derived classes.
 
-    class SpectralBoxExtractor : public SourceDataExtractor
-    {
+class SpectralBoxExtractor : public SourceDataExtractor {
     public:
-      SpectralBoxExtractor(){};
-      SpectralBoxExtractor(const LOFAR::ParameterSet& parset);
-      virtual ~SpectralBoxExtractor(){};
-      SpectralBoxExtractor(const SpectralBoxExtractor& other);
-      SpectralBoxExtractor& operator=(const SpectralBoxExtractor& other);
-      
-      int boxWidth(){return itsBoxWidth;};
-      virtual void setBoxWidth(int w){itsBoxWidth=w;};
+        SpectralBoxExtractor() {};
 
-      virtual void extract() = 0;
+        /// @details Initialise the extractor from a LOFAR parset. This
+        /// sets the input cube, the box width, the scaling flag, and
+        /// the base name for the output spectra files (these will have
+        /// _X appended, where X is the ID of the object in question).
+        SpectralBoxExtractor(const LOFAR::ParameterSet& parset);
+        virtual ~SpectralBoxExtractor() {};
+        SpectralBoxExtractor(const SpectralBoxExtractor& other);
+        SpectralBoxExtractor& operator=(const SpectralBoxExtractor& other);
 
-      void writeImage();
+        int boxWidth() {return itsBoxWidth;};
+        virtual void setBoxWidth(int w) {itsBoxWidth = w;};
+
+        virtual void extract() = 0;
+
+        void writeImage();
 
     protected:
-      virtual void defineSlicer();
-      void initialiseArray();
+        virtual void defineSlicer();
+        void initialiseArray();
 
-      int itsBoxWidth;
+        int itsBoxWidth;
 
-    };
+};
 
-  }
+}
 }
 
 #endif

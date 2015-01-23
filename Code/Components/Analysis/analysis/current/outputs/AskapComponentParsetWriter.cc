@@ -45,130 +45,134 @@ ASKAP_LOGGER(logger, ".askapcomponentparsetwriter");
 
 namespace askap {
 
-    namespace analysis { 
+namespace analysis {
 
-	AskapComponentParsetWriter::AskapComponentParsetWriter():
-	    duchamp::ASCIICatalogueWriter(), itsSourceList(0), itsFitType("best"), itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
-	{
-	    this->itsOpenFlag=false;
-	    this->itsDestination=duchamp::Catalogues::FILE;
-	}
+AskapComponentParsetWriter::AskapComponentParsetWriter():
+    duchamp::ASCIICatalogueWriter(), itsSourceList(0), itsFitType("best"),
+    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+{
+    itsOpenFlag = false;
+    itsDestination = duchamp::Catalogues::FILE;
+}
 
-	AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name):
-	    duchamp::ASCIICatalogueWriter(name), itsSourceList(0), itsFitType("best"), itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
-	{
-	    this->itsOpenFlag=false;
-	    this->itsDestination=duchamp::Catalogues::FILE;
-	}
+AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name):
+    duchamp::ASCIICatalogueWriter(name), itsSourceList(0), itsFitType("best"),
+    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+{
+    itsOpenFlag = false;
+    itsDestination = duchamp::Catalogues::FILE;
+}
 
-	AskapComponentParsetWriter::AskapComponentParsetWriter(duchamp::Catalogues::DESTINATION dest):
-	    duchamp::ASCIICatalogueWriter(dest), itsSourceList(0), itsFitType("best"), itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
-	{
-	    this->itsOpenFlag=false;
-	}
+AskapComponentParsetWriter::AskapComponentParsetWriter(duchamp::Catalogues::DESTINATION dest):
+    duchamp::ASCIICatalogueWriter(dest), itsSourceList(0), itsFitType("best"),
+    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+{
+    itsOpenFlag = false;
+}
 
-	AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name, duchamp::Catalogues::DESTINATION dest):
-	    duchamp::ASCIICatalogueWriter(name, dest), itsSourceList(0), itsFitType("best"), itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
-	{
-	    this->itsOpenFlag=false;
-	}
+AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name,
+        duchamp::Catalogues::DESTINATION dest):
+    duchamp::ASCIICatalogueWriter(name, dest), itsSourceList(0), itsFitType("best"),
+    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+{
+    itsOpenFlag = false;
+}
 
-	AskapComponentParsetWriter::AskapComponentParsetWriter(const AskapComponentParsetWriter& other)
-	{
-	    this->operator=(other);
-	}
+AskapComponentParsetWriter::AskapComponentParsetWriter(const AskapComponentParsetWriter& other)
+{
+    this->operator=(other);
+}
 
-	AskapComponentParsetWriter& AskapComponentParsetWriter::operator= (const AskapComponentParsetWriter& other)
-	{
-	    if(this==&other) return *this;
-	    ((ASCIICatalogueWriter &) *this) = other;
-	    this->itsSourceList = other.itsSourceList;
-	    this->itsFitType = other.itsFitType;
-	    this->itsRefRA = other.itsRefRA;
-	    this->itsRefDec = other.itsRefDec;
-	    this->itsFlagReportSize = other.itsFlagReportSize;
-	    this->itsSourceIDlist = other.itsSourceIDlist;
-	    this->itsMaxNumComponents = other.itsMaxNumComponents;
-	    return *this;
-	}
+AskapComponentParsetWriter&
+AskapComponentParsetWriter::operator= (const AskapComponentParsetWriter& other)
+{
+    if (this == &other) return *this;
+    ((ASCIICatalogueWriter &) *this) = other;
+    itsSourceList = other.itsSourceList;
+    itsFitType = other.itsFitType;
+    itsRefRA = other.itsRefRA;
+    itsRefDec = other.itsRefDec;
+    itsFlagReportSize = other.itsFlagReportSize;
+    itsSourceIDlist = other.itsSourceIDlist;
+    itsMaxNumComponents = other.itsMaxNumComponents;
+    return *this;
+}
 
-        void AskapComponentParsetWriter::setup(duchamp::Cube *cube)
-	{
-	    // only thing to do here is get the centre position of the
-	    // image so that we can calculate relative offsets for
-	    // each of the components, and get the RadioSource list.
-	    
-	    this->CatalogueWriter::setup(cube);
-	    this->itsRefRA =  this->itsHead->getWCS()->crval[0];
-	    this->itsRefDec = this->itsHead->getWCS()->crval[1];
+void AskapComponentParsetWriter::setup(duchamp::Cube *cube)
+{
+    this->CatalogueWriter::setup(cube);
+    itsRefRA =  itsHead->getWCS()->crval[0];
+    itsRefDec = itsHead->getWCS()->crval[1];
 
-	}
+}
 
-	void AskapComponentParsetWriter::writeTableHeader()
-	{
-	    if(this->itsOpenFlag){
-		*this->itsStream << "sources.names = field1\n";
-		std::string raRef = analysisutilities::decToDMS(this->itsRefRA,"RA",4,"parset");
-		std::string decRef= analysisutilities::decToDMS(this->itsRefDec,"DEC",3,"parset");
-		*this->itsStream << "sources.field1.direction = ["<<raRef<<", "<<decRef<<", J2000]\n";
-	    }
-	}
+void AskapComponentParsetWriter::writeTableHeader()
+{
+    if (itsOpenFlag) {
+        *itsStream << "sources.names = field1\n";
+        std::string raRef = analysisutilities::decToDMS(itsRefRA, "RA", 4, "parset");
+        std::string decRef = analysisutilities::decToDMS(itsRefDec, "DEC", 3, "parset");
+        *itsStream << "sources.field1.direction = [" <<
+                         raRef << ", " << decRef << ", J2000]\n";
+    }
+}
 
-	void AskapComponentParsetWriter::writeEntries()
-	{
-	    /// @details Write out the compoennt list to the
-	    /// parset. We may only want to write out a certain number
-	    /// of components, starting with the brightest, so we need
-	    /// to make a first pass over the source list. We sort the
-	    /// components by their total flux, and then work our way
-	    /// down, printing out their parset details.
+void AskapComponentParsetWriter::writeEntries()
+{
 
-	    if(this->itsOpenFlag){
+    if (itsOpenFlag) {
 
-		std::multimap <float, ParsetComponent> componentList;
-		std::multimap <float, ParsetComponent>::reverse_iterator cmpntIter;
-		ParsetComponent cmpnt;
-		cmpnt.setHeader(this->itsHead);
-		cmpnt.setReference(this->itsRefRA,this->itsRefDec);
-		cmpnt.setSizeFlag(this->itsFlagReportSize);
+        std::multimap <float, ParsetComponent> componentList;
+        std::multimap <float, ParsetComponent>::reverse_iterator cmpntIter;
+        ParsetComponent cmpnt;
+        cmpnt.setHeader(itsHead);
+        cmpnt.setReference(itsRefRA, itsRefDec);
+        cmpnt.setSizeFlag(itsFlagReportSize);
 
-		// First iterate over all components, storing them in a multimap indexed by their flux.
-		for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList->begin(); src<this->itsSourceList->end(); src++){
-		    std::vector<casa::Gaussian2D<Double> > fitset=src->gaussFitSet(this->itsFitType);
-		    for(size_t i=0;i<fitset.size();i++){
-			cmpnt.defineComponent(&*src,i,this->itsFitType);
-			componentList.insert(std::pair<float,ParsetComponent>(cmpnt.flux(),cmpnt));
-		    }
-		}
+        // First iterate over all components, storing them in a multimap indexed by their flux.
+        std::vector<sourcefitting::RadioSource>::iterator src;
+        for (src = itsSourceList->begin();
+                src < itsSourceList->end();
+                src++) {
+            std::vector<casa::Gaussian2D<Double> > fitset = src->gaussFitSet(itsFitType);
+            for (size_t i = 0; i < fitset.size(); i++) {
+                cmpnt.defineComponent(&*src, i, itsFitType);
+                componentList.insert(std::pair<float, ParsetComponent>(cmpnt.flux(), cmpnt));
+            }
+        }
 
-		int count=0;
-		// only do this many components. If negative, do them all.
-		int maxCount = (this->itsMaxNumComponents>0) ? this->itsMaxNumComponents : componentList.size();
-		std::stringstream idlist;
-		idlist << itsSourceIDlist;
+        int count = 0;
+        // only do this many components. If negative, do them all.
+        int maxCount = (itsMaxNumComponents > 0) ?
+                       itsMaxNumComponents : componentList.size();
+        std::stringstream idlist;
+        idlist << itsSourceIDlist;
 
-		// Work down the list, starting at the brightest
-		// component, writing out the parset details to the
-		// file and keeping track of the list of source IDs
-		for(cmpntIter=componentList.rbegin(); cmpntIter!=componentList.rend() && count<maxCount;cmpntIter++,count++) {
-		    *this->itsStream << cmpntIter->second;
-		    // update source ID list
-		    if(itsSourceIDlist.size()>0) idlist<<",";
-		    idlist<<"src"<<cmpntIter->second.ID();
-		    this->itsSourceIDlist = idlist.str();
-		}
+        // Work down the list, starting at the brightest
+        // component, writing out the parset details to the
+        // file and keeping track of the list of source IDs
+        for (cmpntIter = componentList.rbegin();
+                cmpntIter != componentList.rend() && count < maxCount;
+                cmpntIter++, count++) {
 
-	    }
-	    
-	}
-
- 	void AskapComponentParsetWriter::writeFooter()
-	{
-	    if(this->itsOpenFlag){
-		*this->itsStream <<  "sources.field1.components = [" << this->itsSourceIDlist << "]\n";
-	    }
-	}
+            *itsStream << cmpntIter->second;
+            // update source ID list
+            if (itsSourceIDlist.size() > 0) idlist << ",";
+            idlist << "src" << cmpntIter->second.ID();
+            itsSourceIDlist = idlist.str();
+        }
 
     }
+
+}
+
+void AskapComponentParsetWriter::writeFooter()
+{
+    if (itsOpenFlag) {
+        *itsStream <<  "sources.field1.components = [" << itsSourceIDlist << "]\n";
+    }
+}
+
+}
 
 }

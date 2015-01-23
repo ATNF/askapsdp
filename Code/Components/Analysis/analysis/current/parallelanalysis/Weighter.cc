@@ -53,188 +53,187 @@ ASKAP_LOGGER(logger, ".weighter");
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    Weighter::Weighter(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet &parset):
-      itsComms(&comms)
-    {
-      this->itsImage = parset.getString("weightsImage","");
-      if(this->itsComms->isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsImage);
-      this->itsFlagDoScaling = parset.getBool("scaleByWeights",false);
-      this->itsWeightCutoff = parset.getFloat("weightsCutoff",-1.);
-      this->itsCutoffType = parset.getString("weightsCutoffType","zero");
-      if(this->itsCutoffType != "zero" && this->itsCutoffType != "blank"){
-	ASKAPLOG_WARN_STR(logger, "\"weightsCutoffType\" can only be \"zero\" or \"blank\" - setting to \"zero\"");
-	this->itsCutoffType = "zero";
-      }
+using namespace analysisutilities;
+
+Weighter::Weighter(askap::askapparallel::AskapParallel& comms,
+                   const LOFAR::ParameterSet &parset):
+    itsComms(&comms)
+{
+    itsImage = parset.getString("weightsImage", "");
+    if (itsComms->isMaster()) {
+        ASKAPLOG_INFO_STR(logger, "Using weights image: " << itsImage);
+    }
+    itsFlagDoScaling = parset.getBool("scaleByWeights", false);
+    itsWeightCutoff = parset.getFloat("weightsCutoff", -1.);
+    itsCutoffType = parset.getString("weightsCutoffType", "zero");
+    if (itsCutoffType != "zero" && itsCutoffType != "blank") {
+        ASKAPLOG_WARN_STR(logger,
+                          "'weightsCutoffType' can only be 'zero' or 'blank' " <<
+                          "- setting to 'zero'");
+        itsCutoffType = "zero";
+    }
+}
+
+void Weighter::initialise(duchamp::Cube &cube, bool doAllocation)
+{
+    itsCube = &cube;
+    if (doAllocation) {
+        this->readWeights();
     }
 
-    Weighter::Weighter(const Weighter& other)
-    {
-      this->operator=(other);
+    if (itsFlagDoScaling || (itsWeightCutoff > 0.)) {
+        this->findNorm();
+    }
+}
+
+void Weighter::readWeights()
+{
+    ASKAPCHECK(itsImage != "", "Weights image not defined");
+    ASKAPLOG_INFO_STR(logger, "Reading weights from " << itsImage <<
+                      ", section " << itsCube->pars().section().getSection());
+
+    itsWeights = getPixelsInBox(itsImage,
+                                subsectionToSlicer(itsCube->pars().section()),
+                                false);
+}
+
+void Weighter::findNorm()
+{
+    if (itsComms->isParallel()) {
+        LOFAR::BlobString bs;
+        if (itsComms->isWorker()) {
+            if (itsWeights.size() == 0)
+                ASKAPLOG_ERROR_STR(logger, "Weights array not initialised!");
+            // find maximum of weights and send to master
+            float maxW = max(itsWeights);
+            ASKAPLOG_DEBUG_STR(logger, "Local maximum weight = " << maxW);
+            bs.resize(0);
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            out.putStart("localmax", 1);
+            out << maxW;
+            out.putEnd();
+            itsComms->sendBlob(bs, 0);
+
+            // now read actual maximum from master
+            itsComms->broadcastBlob(bs, 0);
+            LOFAR::BlobIBufString bib(bs);
+            LOFAR::BlobIStream in(bib);
+            int version = in.getStart("maxweight");
+            ASKAPASSERT(version == 1);
+            in >> itsNorm;
+            in.getEnd();
+
+        } else if (itsComms->isMaster()) {
+            // read local maxima from workers and find the maximum of them
+            for (int n = 0; n < itsComms->nProcs() - 1; n++) {
+                float localmax;
+                itsComms->receiveBlob(bs, n + 1);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("localmax");
+                ASKAPASSERT(version == 1);
+                in >> localmax;
+                itsNorm = (n == 0) ? localmax : std::max(localmax, itsNorm);
+                in.getEnd();
+            }
+            // send the actual maximum to all workers
+            bs.resize(0);
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            out.putStart("maxweight", 1);
+            out << itsNorm;
+            out.putEnd();
+            itsComms->broadcastBlob(bs, 0);
+        }
+    } else {
+        // serial mode - read entire weights image, so can just measure maximum directly
+        itsNorm = max(itsWeights);
     }
 
-    Weighter& Weighter::operator= (const Weighter& other)
-    {
-      if(this == &other) return *this;
-      this->itsComms = other.itsComms;
-      this->itsImage = other.itsImage;
-      this->itsCube = other.itsCube;
-      this->itsNorm = other.itsNorm;
-      this->itsWeightCutoff = other.itsWeightCutoff;
-      this->itsCutoffType = other.itsCutoffType;
-      this->itsFlagDoScaling = other.itsFlagDoScaling;
-      this->itsWeights = other.itsWeights;
-      return *this;
+    ASKAPLOG_INFO_STR(logger, "Normalising weights image to maximum " << itsNorm);
+
+}
+
+float Weighter::weight(size_t i)
+{
+    ASKAPCHECK(i < itsWeights.size(),
+               "Index out of bounds for weights array : index=" << i <<
+               ", weights array is size " << itsWeights.size());
+
+    return sqrt(itsWeights.data()[i] / itsNorm);
+}
+
+bool Weighter::isValid(size_t i)
+{
+    if (this->doApplyCutoff()) {
+        return (itsWeights.data()[i] / itsNorm > itsWeightCutoff);
+    } else {
+        return true;
     }
+}
 
-    void Weighter::initialise(duchamp::Cube &cube, bool doAllocation)
-    {
-      this->itsCube = &cube;
-      if(doAllocation) this->readWeights();
+void Weighter::applyCutoff()
+{
+    if (this->doApplyCutoff()) {
 
-      if (this->itsFlagDoScaling || (this->itsWeightCutoff > 0.) )
-	this->findNorm();
-    }
-      
-    void Weighter::readWeights()
-    {
-      ASKAPCHECK(this->itsImage!="", "Weights image not defined");
-      ASKAPLOG_INFO_STR(logger, "Reading weights from " << this->itsImage << ", section " << this->itsCube->pars().section().getSection());
-      this->itsWeights = analysisutilities::getPixelsInBox(this->itsImage,analysisutilities::subsectionToSlicer(this->itsCube->pars().section()),false);
-    }
+        ASKAPASSERT(itsCube->getSize() == itsWeights.size());
 
-    void Weighter::findNorm()
-    {
-      if(itsComms->isParallel()){
-	LOFAR::BlobString bs;
-	if(itsComms->isWorker()){
-	  if(this->itsWeights.size()==0)
-	    ASKAPLOG_ERROR_STR(logger, "Weights array not initialised!");
-	  // find maximum of weights and send to master
-	  //		    float maxW = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
-	  float maxW = max(this->itsWeights);
-	  ASKAPLOG_DEBUG_STR(logger, "Local maximum weight = " << maxW);
-	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-	  LOFAR::BlobOStream out(bob);
-	  out.putStart("localmax", 1);
-	  out << maxW;
-	  out.putEnd();
-	  itsComms->sendBlob(bs, 0);
+        float blankValue;
+        if (itsCutoffType == "zero") blankValue = 0.;
+        else if (itsCutoffType == "blank") {
+            blankValue = itsCube->pars().getBzeroKeyword() +
+                         itsCube->pars().getBlankKeyword() * itsCube->pars().getBscaleKeyword();
+            ASKAPASSERT(itsCube->pars().isBlank(blankValue));
+        } else {
+            ASKAPLOG_WARN_STR(logger, "Bad value for \"weightsCutoffType\" - using 0.");
+            blankValue = 0.;
+        }
 
-	  // now read actual maximum from master
-	  itsComms->broadcastBlob(bs, 0);
-	  LOFAR::BlobIBufString bib(bs);
-	  LOFAR::BlobIStream in(bib);
-	  int version = in.getStart("maxweight");
-	  ASKAPASSERT(version == 1);
-	  in >> this->itsNorm;
-	  in.getEnd();
-	}
-	else if(itsComms->isMaster()) {
-	  // read local maxima from workers and find the maximum of them
-	  for (int n=0;n<itsComms->nProcs()-1;n++){
-	    float localmax;
-	    itsComms->receiveBlob(bs, n + 1);
-	    LOFAR::BlobIBufString bib(bs);
-	    LOFAR::BlobIStream in(bib);
-	    int version = in.getStart("localmax");
-	    ASKAPASSERT(version == 1);
-	    in >> localmax;
-	    this->itsNorm = (n==0) ? localmax : std::max(localmax,itsNorm);
-	    in.getEnd();
-	  }
-	  // send the actual maximum to all workers
-	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-	  LOFAR::BlobOStream out(bob);
-	  out.putStart("maxweight", 1);
-	  out << this->itsNorm;
-	  out.putEnd();
-	  itsComms->broadcastBlob(bs, 0);
-	}
-      }
-      else { 
-	// serial mode - read entire weights image, so can just measure maximum directly
-	// this->itsNorm = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
-	this->itsNorm = max(this->itsWeights);
-      }
-
-      ASKAPLOG_INFO_STR(logger, "Normalising weights image to maximum " << this->itsNorm);
-      
+        for (size_t i = 0; i < itsCube->getSize(); i++) {
+            if (! this->isValid(i)) itsCube->getArray()[i] = blankValue;
+        }
 
     }
+}
 
-    float Weighter::weight(size_t i)
-    {
-      ASKAPCHECK(i < this->itsWeights.size(), "Index out of bounds for weights array : index="<<i<<", weights array is size " << this->itsWeights.size());
-      // return sqrt(this->itsWeights(i)/this->itsNorm);
-      return sqrt(this->itsWeights.data()[i]/this->itsNorm);
+void Weighter::search()
+{
+
+    if (itsFlagDoScaling) {
+
+        ASKAPASSERT(itsCube->getSize() == itsWeights.size());
+        ASKAPASSERT(itsCube->getRecon() > 0);
+        for (size_t i = 0; i < itsCube->getSize(); i++) {
+            itsCube->getRecon()[i] = itsCube->getPixValue(i) * this->weight(i);
+        }
+        itsCube->setReconFlag(true);
+
+        ASKAPLOG_DEBUG_STR(logger, "Searching weighted image to threshold " <<
+                           itsCube->stats().getThreshold());
+        itsCube->ObjectList() = searchReconArray(itsCube->getDimArray(),
+                                itsCube->getArray(),
+                                itsCube->getRecon(),
+                                itsCube->pars(),
+                                itsCube->stats());
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "Searching image to threshold " <<
+                           itsCube->stats().getThreshold());
+        itsCube->ObjectList() = search3DArray(itsCube->getDimArray(),
+                                              itsCube->getArray(),
+                                              itsCube->pars(),
+                                              itsCube->stats());
     }
 
-    bool Weighter::isValid(size_t i)
-    {
-      if (this->doApplyCutoff()) 
-	return (this->itsWeights.data()[i]/this->itsNorm > this->itsWeightCutoff);
-      else 
-	return true;
-    }
+    itsCube->updateDetectMap();
+    if (itsCube->pars().getFlagLog())
+        itsCube->logDetectionList();
 
-    void Weighter::applyCutoff()
-    {
-      if (this->doApplyCutoff()){
-
-	ASKAPASSERT(this->itsCube->getSize() == this->itsWeights.size());
-	    
-	float blankValue;
-	if(this->itsCutoffType == "zero") blankValue = 0.;
-	else if(this->itsCutoffType == "blank"){
-	  blankValue = this->itsCube->pars().getBzeroKeyword() + this->itsCube->pars().getBlankKeyword()*this->itsCube->pars().getBscaleKeyword();
-	  ASKAPASSERT(this->itsCube->pars().isBlank(blankValue));//, "Blank value failed isBlank test in Weighter::applyCutoff");
-	}
-	else {
-	  ASKAPLOG_WARN_STR(logger, "Bad value for \"weightsCutoffType\" - using 0.");
-	  blankValue=0.;
-	}
-
-	for(size_t i=0; i<this->itsCube->getSize();i++){
-	  if(! this->isValid(i)) this->itsCube->getArray()[i] = blankValue;
-	}
-
-      }
-    }
-
-    void Weighter::search()
-    {
-
-      if (this->itsFlagDoScaling){
-
-	ASKAPASSERT(this->itsCube->getSize() == this->itsWeights.size());
-	ASKAPASSERT(this->itsCube->getRecon() > 0);
-	for(size_t i=0; i<this->itsCube->getSize();i++){
-	  this->itsCube->getRecon()[i] = this->itsCube->getPixValue(i)*this->weight(i);
-	}
-	this->itsCube->setReconFlag(true);
-
-	ASKAPLOG_DEBUG_STR(logger, "Searching weighted image to threshold " << this->itsCube->stats().getThreshold());
-	this->itsCube->ObjectList() = searchReconArray(this->itsCube->getDimArray(),this->itsCube->getArray(),
-						       this->itsCube->getRecon(),this->itsCube->pars(),this->itsCube->stats());
-      }
-      else{
-	ASKAPLOG_DEBUG_STR(logger, "Searching image to threshold " << this->itsCube->stats().getThreshold());
-	this->itsCube->ObjectList() = search3DArray(this->itsCube->getDimArray(),this->itsCube->getArray(),
-						    this->itsCube->pars(),this->itsCube->stats());
-
-      }
-
-      this->itsCube->updateDetectMap();
-      if(this->itsCube->pars().getFlagLog())
-	this->itsCube->logDetectionList();
-	  
-    }
+}
 
 
-  }
+}
 
 }

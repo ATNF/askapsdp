@@ -38,84 +38,92 @@
 #include <Common/ParameterSet.h>
 #include <measures/Measures/Stokes.h>
 #include <utils/PolConverter.h>
+#include <boost/shared_ptr.hpp>
 
 using namespace askap::analysis::sourcefitting;
 
 namespace askap {
-    namespace analysis {
+namespace analysis {
 
 
-      /// @brief The base class for handling the extraction of
-      /// different types of image data that correspond to a source.
-      /// @details The types of extraction envisaged include
-      /// extraction of an integrated spectrum of a source (either
-      /// summed over a box or integrated over the entirety of an
-      /// extended object), extraction of a subcube ("cubelet"),
-      /// extraction of a moment-0 map. Access to multiple input
-      /// images for different Stokes parameters is possible. This
-      /// base class details the basic functionality, and implements
-      /// constructors, input image verification, and opening of the
-      /// image. 
+/// @brief The base class for handling the extraction of
+/// different types of image data that correspond to a source.
+/// @details The types of extraction envisaged include
+/// extraction of an integrated spectrum of a source (either
+/// summed over a box or integrated over the entirety of an
+/// extended object), extraction of a subcube ("cubelet"),
+/// extraction of a moment-0 map. Access to multiple input
+/// images for different Stokes parameters is possible. This
+/// base class details the basic functionality, and implements
+/// constructors, input image verification, and opening of the
+/// image.
 
-      class SourceDataExtractor
-      {
-      public:
-	SourceDataExtractor(){itsInputCubePtr=0;};
-	SourceDataExtractor(const LOFAR::ParameterSet& parset);
-	virtual ~SourceDataExtractor();
-	SourceDataExtractor(const SourceDataExtractor& other);
-	SourceDataExtractor& operator=(const SourceDataExtractor& other);
+class SourceDataExtractor {
+    public:
+        SourceDataExtractor() {};
+        SourceDataExtractor(const LOFAR::ParameterSet& parset);
+        virtual ~SourceDataExtractor();
+        SourceDataExtractor(const SourceDataExtractor& other);
+        SourceDataExtractor& operator=(const SourceDataExtractor& other);
 
-	/// @brief Set the pointer to the source, and define the output filename based on its ID
-	virtual void setSource(RadioSource *src);
+        /// @brief Set the pointer to the source, and define the output filename based on its ID
+        /// @details Sets the source to be used. Also sets the output
+        /// filename correctly with the suffix indicating the object's
+        /// ID.
+        /// @param src The RadioSource detection used to centre the
+        /// spectrum. The central pixel will be chosen to be the peak
+        /// pixel, so this needs to be defined.
+        virtual void setSource(RadioSource *src);
 
-	virtual void extract()=0;
-	
-	casa::Array<Float> array(){return itsArray;};
-	std::string inputCube(){return itsInputCube;};
-	std::vector<std::string> inputCubeList(){return itsInputCubeList;};
-	std::string outputFileBase(){return itsOutputFilenameBase;};
-	std::string outputFile(){return itsOutputFilename;};
-	RadioSource* source(){return itsSource;};
-	std::vector<std::string> polarisations(){return scimath::PolConverter::toString(itsStokesList);};
+        virtual void extract() = 0;
 
-	virtual void writeImage()=0;
+        casa::Array<Float> array() {return itsArray;};
+        std::string inputCube() {return itsInputCube;};
+        std::vector<std::string> inputCubeList() {return itsInputCubeList;};
+        std::string outputFileBase() {return itsOutputFilenameBase;};
+        std::string outputFile() {return itsOutputFilename;};
+        RadioSource* source() {return itsSource;};
+        std::vector<std::string> polarisations()
+        {
+            return scimath::PolConverter::toString(itsStokesList);
+        };
 
-      protected:
-	bool openInput();
-	void closeInput();
-	virtual void verifyInputs();
-	void getLocation();
-	virtual void defineSlicer()=0;
-	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
-	casa::IPosition getShape(std::string image);
-	virtual void initialiseArray() = 0;
-	void writeBeam(std::string &filename);
+        virtual void writeImage() = 0;
 
-	RadioSource* itsSource;
-	std::string itsCentreType;
-	casa::Slicer itsSlicer;
-	std::string itsInputCube;
-	std::vector<std::string> itsInputCubeList;
-	const casa::ImageInterface<Float>* itsInputCubePtr;
-	const casa::LatticeBase* itsLatticePtr;
-	casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
-	casa::Stokes::StokesTypes itsCurrentStokes;
-	std::string itsOutputFilenameBase;
-	std::string itsOutputFilename;
-	casa::Array<Float> itsArray;
+    protected:
+        bool openInput();
+        void closeInput();
+        virtual void verifyInputs();
+        void getLocation();
+        virtual void defineSlicer() = 0;
+        void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
+        casa::IPosition getShape(std::string image);
+        virtual void initialiseArray() = 0;
+        void writeBeam(std::string &filename);
 
-	float itsXloc;
-	float itsYloc;
+        RadioSource* itsSource;
+        std::string itsCentreType;
+        casa::Slicer itsSlicer;
+        std::string itsInputCube;
+        std::vector<std::string> itsInputCubeList;
+        boost::shared_ptr<casa::ImageInterface<Float> > itsInputCubePtr;
+        casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
+        casa::Stokes::StokesTypes itsCurrentStokes;
+        std::string itsOutputFilenameBase;
+        std::string itsOutputFilename;
+        casa::Array<Float> itsArray;
 
-	casa::CoordinateSystem itsInputCoords;
-	int  itsLngAxis;
-	int  itsLatAxis;
-	int  itsSpcAxis;
-	int  itsStkAxis;
-      };
+        float itsXloc;
+        float itsYloc;
 
-    }
+        casa::CoordinateSystem itsInputCoords;
+        int  itsLngAxis;
+        int  itsLatAxis;
+        int  itsSpcAxis;
+        int  itsStkAxis;
+};
+
+}
 }
 
 #endif

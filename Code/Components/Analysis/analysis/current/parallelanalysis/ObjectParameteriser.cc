@@ -49,278 +49,279 @@ using namespace LOFAR::TYPES;
 ASKAP_LOGGER(logger, ".objectparam");
 
 namespace askap {
+namespace analysis {
 
-    namespace analysis {
+ObjectParameteriser::ObjectParameteriser(askap::askapparallel::AskapParallel& comms):
+    itsComms(&comms), itsDP(), itsInputList(), itsOutputList(), itsTotalListSize(0)
+{
+}
 
-	ObjectParameteriser::ObjectParameteriser(askap::askapparallel::AskapParallel& comms):
-	    itsComms(&comms), itsDP(),itsInputList(),itsOutputList(),itsTotalListSize(0)
-	{
-	}
+ObjectParameteriser::~ObjectParameteriser()
+{
+}
 
-	ObjectParameteriser::ObjectParameteriser(const ObjectParameteriser& other)
-	{
-	    this->operator=(other);
-	}
-	
-	ObjectParameteriser& ObjectParameteriser::operator= (const ObjectParameteriser& other)
-	{
-	    if(this==&other) return *this;
-	    this->itsComms = other.itsComms;
-	    this->itsDP = other.itsDP;
-	    this->itsInputList = other.itsInputList;
-	    this->itsOutputList = other.itsOutputList;
-	    this->itsTotalListSize = other.itsTotalListSize;
-	    return *this;
-	}
-
-
-	ObjectParameteriser::~ObjectParameteriser()
-	{
-	}
-
-	void ObjectParameteriser::initialise(DuchampParallel *dp)
-	{
-	    this->itsDP=dp;
-	    if(this->itsComms->isMaster()){
-		for(std::vector<sourcefitting::RadioSource>::iterator src=this->itsDP->pEdgeList()->begin();
-		    src!=this->itsDP->pEdgeList()->end(); src++){
-		    this->itsInputList.push_back(*src);
-		}
-		this->itsTotalListSize = this->itsInputList.size();
-	    }
-	    
-	}
-
-	void ObjectParameteriser::distribute()
-	{
-	    if (this->itsComms->isParallel()){
-
-		if(this->itsComms->isMaster()){
-		    // send objects in itsInputList to workers in round-robin fashion
-		    // broadcast 'finished' signal
-
-		    // First send total number of sources to all workers
-		    LOFAR::BlobString bs;
-		    LOFAR::BlobOBufString bob(bs);
-		    LOFAR::BlobOStream out(bob);
-		    bs.resize(0);
-		    bob = LOFAR::BlobOBufString(bs);
-		    out = LOFAR::BlobOStream(bob);
-		    ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
-		    out.putStart("OP", 1);
-		    out << this->itsTotalListSize;
-		    out.putEnd();
-		    for (int i = 1; i < this->itsComms->nProcs(); ++i) {
-			this->itsComms->sendBlob(bs, i);
-		    }
-
-		    if(this->itsTotalListSize>0){
-			for(size_t i=0;i<this->itsInputList.size();i++){
-			    unsigned int rank = i % (this->itsComms->nProcs() - 1);
-			    ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<", ID="<< this->itsInputList[i].getID() << " to worker "<<rank+1 << " for parameterisation");
-			    bs.resize(0);
-			    LOFAR::BlobOBufString bob(bs);
-			    LOFAR::BlobOStream out(bob);
-			    out.putStart("OP", 1);
-			    out << true << this->itsInputList[i];
-			    out.putEnd();
-			    this->itsComms->sendBlob(bs, rank + 1);
-			}
-
-			// now notify all workers that we're finished.
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			bs.resize(0);
-			bob = LOFAR::BlobOBufString(bs);
-			out = LOFAR::BlobOStream(bob);
-			ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
-			out.putStart("OP", 1);
-			out << false;
-			out.putEnd();
-			//this->itsComms->broadcastBlob(bs,0);
-			for (int i = 1; i < this->itsComms->nProcs(); ++i) {
-			    this->itsComms->sendBlob(bs, i);
-			}
-		    }
-
-		}
-		else{
-		    // receive objects and put in itsInputList until receive 'finished' signal
-		    LOFAR::BlobString bs;
-	      
-		    this->itsComms->receiveBlob(bs, 0);
-		    LOFAR::BlobIBufString bib(bs);
-		    LOFAR::BlobIStream in(bib);
-		    int version = in.getStart("OP");
-		    ASKAPASSERT(version == 1);
-		    in >> this->itsTotalListSize;
-		    in.getEnd();
-
-		    if(this->itsTotalListSize > 0){
-			// now read individual sources
-			bool isOK=true;
-			this->itsInputList.clear();
-			while(isOK) {	    
-			    sourcefitting::RadioSource src;
-			    this->itsComms->receiveBlob(bs, 0);
-			    LOFAR::BlobIBufString bib(bs);
-			    LOFAR::BlobIStream in(bib);
-			    int version = in.getStart("OP");
-			    ASKAPASSERT(version == 1);
-			    in >> isOK;
-			    if(isOK){
-				in >> src;
-				src.haveNoParams();
-				this->itsInputList.push_back(src);
-				ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received object ID " << this->itsInputList.back().getID());
-			    }
-			    in.getEnd();
-			}
-			ASKAPLOG_DEBUG_STR(logger, "Worker " << this->itsComms->rank() << " received " << this->itsInputList.size() << " objects to parameterise.");
-		    }
-
-		}
-	    }
-	}
-
-	void ObjectParameteriser::parameterise()
-	{
-	    if(this->itsComms->isWorker()){
-		// For each object, get the bounding subsection for that object
-		// Define a DuchampParallel and use it to do the parameterisation
-		// put parameterised objects into itsOutputList
-
-		if (this->itsInputList.size() > 0){
-
-		    //std::vector<size_t> dim(this->itsDP->cube().getDimArray(),this->itsDP->cube().getDimArray()+this->itsDP->cube().getNumDim());
-		    std::vector<size_t> dim = analysisutilities::getCASAdimensions(this->itsDP->cube().pars().getImageFile());
-		    LOFAR::ParameterSet parset=this->itsDP->parset();
-		    parset.replace("flagsubsection","true");
-
-		    for(size_t i=0;i<this->itsInputList.size();i++){
-
-			ASKAPLOG_DEBUG_STR(logger, "Parameterising object #"<<i << " out of " << this->itsInputList.size());
-
-			// get bounding subsection & transform into a Subsection string
-			parset.replace("subsection",this->itsInputList[i].boundingSubsection(dim, this->itsDP->cube().pHeader(), this->itsDP->fitParams(), true));
-			// turn off the subimaging, so we read the whole lot.
-			parset.replace("nsubx","1");
-			parset.replace("nsuby","1");
-			parset.replace("nsubz","1");
-
-			// define a duchamp Cube using the filename from the this->itsDP->cube()
-			// set the subsection
-			DuchampParallel tempDP(*this->itsComms, parset);
-			tempDP.cube().setReconFlag(false); // set this to false to stop anything trying to access the recon array
-
-			// open the image
-			tempDP.readData();
-
-			this->itsInputList[i].setOffsets(tempDP.cube().pars());
-			this->itsInputList[i].removeOffsets();
-			this->itsInputList[i].setFlagText("");
-
-			// store the current object to the cube
-			tempDP.cube().addObject(this->itsInputList[i]);
-
-			// parameterise
-			tempDP.cube().calcObjectWCSparams();
-
-			sourcefitting::RadioSource src(tempDP.cube().getObject(0));
-
-			if(tempDP.fitParams()->doFit()){
-
-			    src.defineBox(tempDP.cube().pars().section(), *tempDP.fitParams(), tempDP.cube().header().getWCS()->spec);
-			    src.setFitParams(*tempDP.fitParams());
-			    src.setDetectionThreshold(tempDP.cube(), tempDP.getFlagVariableThreshold(), tempDP.varThresher()->snrImage());
-			    src.prepareForFit(tempDP.cube(),true);
-			    src.setAtEdge(false);
-
-			    tempDP.fitSource(src);
-
-			}
-
-			src.addOffsets();
-
-			// get the parameterised object and store to itsOutputList
-			this->itsOutputList.push_back(src);
-		    }
-
-		    ASKAPASSERT(this->itsOutputList.size() == this->itsInputList.size());
-
-		}
-
-	    }
-
-	}
-
-	void ObjectParameteriser::gather()
-	{
-	    if(this->itsComms->isParallel()){
-		
-		if(this->itsTotalListSize > 0) {
-
-		    if(this->itsComms->isMaster()){
-			// for each worker, read completed objects until we get a 'finished' signal
-
-			// now read back the sources from the workers
-			this->itsDP->pEdgeList()->clear();
-			LOFAR::BlobString bs;
-			for (int n=0;n<this->itsComms->nProcs()-1;n++){
-			    int numSrc;
-			    ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
-			    this->itsComms->receiveBlob(bs, n + 1);
-			    LOFAR::BlobIBufString bib(bs);
-			    LOFAR::BlobIStream in(bib);
-			    int version = in.getStart("OPfinal");
-			    ASKAPASSERT(version == 1);
-			    in >> numSrc;
-			    ASKAPLOG_DEBUG_STR(logger, "Reading " << numSrc << " objects from worker #"<<n+1);
-			    for(int i=0;i<numSrc;i++){
-				sourcefitting::RadioSource src;
-				in >> src;
-				ASKAPLOG_DEBUG_STR(logger, "Read parameterised object " << src.getName() <<", ID="<<src.getID());
-				src.setHeader(this->itsDP->cube().pHeader());  // make sure we have the right WCS etc information
-				src.setOffsets(this->itsDP->cube().pars());
-				this->itsOutputList.push_back(src);
-				this->itsDP->pEdgeList()->push_back(src);
-			    }
-			    in.getEnd();
-			}
-
-			ASKAPASSERT(this->itsOutputList.size() == this->itsInputList.size());
-			ASKAPASSERT(this->itsOutputList.size() == this->itsDP->pEdgeList()->size());
-
-		    }
-		    else{ // WORKER
-			// for each object in itsOutputList, send to master
-			ASKAPLOG_INFO_STR(logger, "Have parameterised " << this->itsInputList.size() << " edge sources. Returning results to master.");
-			LOFAR::BlobString bs;
-			bs.resize(0);
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			out.putStart("OPfinal", 1);
-			out << int(this->itsOutputList.size());
-			for(size_t i=0;i<this->itsOutputList.size();i++) out << this->itsOutputList[i];
-			out.putEnd();
-			this->itsComms->sendBlob(bs, 0);
-		    }
-	    
-		}
-		else {
-		    // serial case - need to put output sources into the DP edgelist
-		    for(size_t i=0;i<this->itsOutputList.size();i++){
-			this->itsOutputList[i].setHeader(this->itsDP->cube().pHeader());  // make sure we have the right WCS etc information
-			this->itsDP->pEdgeList()->push_back( this->itsOutputList[i] );
-		    }
-
-		}
-
-	    }
-
-	}
-    
+void ObjectParameteriser::initialise(DuchampParallel *dp)
+{
+    itsDP = dp;
+    if (itsComms->isMaster()) {
+        std::vector<sourcefitting::RadioSource>::iterator src;
+        for (src = itsDP->pEdgeList()->begin();
+                src != itsDP->pEdgeList()->end();
+                src++) {
+            itsInputList.push_back(*src);
+        }
+        itsTotalListSize = itsInputList.size();
     }
+
+}
+
+void ObjectParameteriser::distribute()
+{
+    if (itsComms->isParallel()) {
+
+        if (itsComms->isMaster()) {
+            // send objects in itsInputList to workers in round-robin fashion
+            // broadcast 'finished' signal
+
+            // First send total number of sources to all workers
+            LOFAR::BlobString bs;
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            bs.resize(0);
+            bob = LOFAR::BlobOBufString(bs);
+            out = LOFAR::BlobOStream(bob);
+            ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
+            out.putStart("OP", 1);
+            out << itsTotalListSize;
+            out.putEnd();
+            for (int i = 1; i < itsComms->nProcs(); ++i) {
+                itsComms->sendBlob(bs, i);
+            }
+
+            if (itsTotalListSize > 0) {
+                for (size_t i = 0; i < itsInputList.size(); i++) {
+                    unsigned int rank = i % (itsComms->nProcs() - 1);
+                    ASKAPLOG_DEBUG_STR(logger, "Sending source #" << i + 1 <<
+                                       ", ID=" << itsInputList[i].getID() <<
+                                       " to worker " << rank + 1 <<
+                                       " for parameterisation");
+                    bs.resize(0);
+                    LOFAR::BlobOBufString bob(bs);
+                    LOFAR::BlobOStream out(bob);
+                    out.putStart("OP", 1);
+                    out << true << itsInputList[i];
+                    out.putEnd();
+                    itsComms->sendBlob(bs, rank + 1);
+                }
+
+                // now notify all workers that we're finished.
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                bs.resize(0);
+                bob = LOFAR::BlobOBufString(bs);
+                out = LOFAR::BlobOStream(bob);
+                ASKAPLOG_DEBUG_STR(logger, "Broadcasting 'finished' signal to all workers");
+                out.putStart("OP", 1);
+                out << false;
+                out.putEnd();
+                //itsComms->broadcastBlob(bs,0);
+                for (int i = 1; i < itsComms->nProcs(); ++i) {
+                    itsComms->sendBlob(bs, i);
+                }
+            }
+
+        } else {
+            // receive objects and put in itsInputList until receive 'finished' signal
+            LOFAR::BlobString bs;
+
+            itsComms->receiveBlob(bs, 0);
+            LOFAR::BlobIBufString bib(bs);
+            LOFAR::BlobIStream in(bib);
+            int version = in.getStart("OP");
+            ASKAPASSERT(version == 1);
+            in >> itsTotalListSize;
+            in.getEnd();
+
+            if (itsTotalListSize > 0) {
+                // now read individual sources
+                bool isOK = true;
+                itsInputList.clear();
+                while (isOK) {
+                    sourcefitting::RadioSource src;
+                    itsComms->receiveBlob(bs, 0);
+                    LOFAR::BlobIBufString bib(bs);
+                    LOFAR::BlobIStream in(bib);
+                    int version = in.getStart("OP");
+                    ASKAPASSERT(version == 1);
+                    in >> isOK;
+                    if (isOK) {
+                        in >> src;
+                        src.haveNoParams();
+                        itsInputList.push_back(src);
+                        ASKAPLOG_DEBUG_STR(logger, "Worker " << itsComms->rank() <<
+                                           " received object ID " <<
+                                           itsInputList.back().getID());
+                    }
+                    in.getEnd();
+                }
+                ASKAPLOG_DEBUG_STR(logger, "Worker " << itsComms->rank() <<
+                                   " received " << itsInputList.size() <<
+                                   " objects to parameterise.");
+            }
+
+        }
+    }
+}
+
+void ObjectParameteriser::parameterise()
+{
+    if (itsComms->isWorker()) {
+        // For each object, get the bounding subsection for that object
+        // Define a DuchampParallel and use it to do the parameterisation
+        // put parameterised objects into itsOutputList
+
+        if (itsInputList.size() > 0) {
+
+            std::string image = itsDP->cube().pars().getImageFile();
+            std::vector<size_t> dim = analysisutilities::getCASAdimensions(image);
+            LOFAR::ParameterSet parset = itsDP->parset();
+            parset.replace("flagsubsection", "true");
+
+            for (size_t i = 0; i < itsInputList.size(); i++) {
+
+                ASKAPLOG_DEBUG_STR(logger, "Parameterising object #" << i <<
+                                   " out of " << itsInputList.size());
+
+                // get bounding subsection & transform into a Subsection string
+                std::string subsection = itsInputList[i].boundingSubsection(dim, true);
+                parset.replace("subsection", subsection);
+                // turn off the subimaging, so we read the whole lot.
+                parset.replace("nsubx", "1");
+                parset.replace("nsuby", "1");
+                parset.replace("nsubz", "1");
+
+                // define a duchamp Cube using the filename from the itsDP->cube()
+                // set the subsection
+                DuchampParallel tempDP(*itsComms, parset);
+                // set this to false to stop anything trying to access
+                // the recon array
+                tempDP.cube().setReconFlag(false);
+
+                // open the image
+                tempDP.readData();
+
+                itsInputList[i].setOffsets(tempDP.cube().pars());
+                itsInputList[i].removeOffsets();
+                itsInputList[i].setFlagText("");
+
+                // store the current object to the cube
+                tempDP.cube().addObject(itsInputList[i]);
+
+                // parameterise
+                tempDP.cube().calcObjectWCSparams();
+
+                sourcefitting::RadioSource src(tempDP.cube().getObject(0));
+
+                if (tempDP.fitParams().doFit()) {
+
+                    src.setFitParams(tempDP.fitParams());
+                    src.defineBox(tempDP.cube().pars().section(),
+                                  tempDP.cube().header().getWCS()->spec);
+                    src.setDetectionThreshold(tempDP.cube(),
+                                              tempDP.getFlagVariableThreshold(),
+                                              tempDP.varThresher()->snrImage());
+                                              
+                    src.prepareForFit(tempDP.cube(), true);
+                    src.setAtEdge(false);
+
+                    tempDP.fitSource(src);
+
+                }
+
+                src.addOffsets();
+
+                // get the parameterised object and store to itsOutputList
+                itsOutputList.push_back(src);
+            }
+
+            ASKAPASSERT(itsOutputList.size() == itsInputList.size());
+
+        }
+
+    }
+
+}
+
+void ObjectParameteriser::gather()
+{
+    if (itsComms->isParallel()) {
+
+        if (itsTotalListSize > 0) {
+
+            if (itsComms->isMaster()) {
+                // for each worker, read completed objects until we get a 'finished' signal
+
+                // now read back the sources from the workers
+                itsDP->pEdgeList()->clear();
+                LOFAR::BlobString bs;
+                for (int n = 0; n < itsComms->nProcs() - 1; n++) {
+                    int numSrc;
+                    ASKAPLOG_INFO_STR(logger, "Master about to read from worker #" << n + 1);
+                    itsComms->receiveBlob(bs, n + 1);
+                    LOFAR::BlobIBufString bib(bs);
+                    LOFAR::BlobIStream in(bib);
+                    int version = in.getStart("OPfinal");
+                    ASKAPASSERT(version == 1);
+                    in >> numSrc;
+                    ASKAPLOG_DEBUG_STR(logger, "Reading " << numSrc <<
+                                       " objects from worker #" << n + 1);
+                    for (int i = 0; i < numSrc; i++) {
+                        sourcefitting::RadioSource src;
+                        in >> src;
+                        ASKAPLOG_DEBUG_STR(logger, "Read parameterised object " <<
+                                           src.getName() << ", ID=" << src.getID());
+                        // make sure we have the right WCS etc information
+                        src.setHeader(itsDP->cube().header());
+                        src.setOffsets(itsDP->cube().pars());
+                        itsOutputList.push_back(src);
+                        itsDP->pEdgeList()->push_back(src);
+                    }
+                    in.getEnd();
+                }
+
+                ASKAPASSERT(itsOutputList.size() == itsInputList.size());
+                ASKAPASSERT(itsOutputList.size() == itsDP->pEdgeList()->size());
+
+            } else { // WORKER
+                // for each object in itsOutputList, send to master
+                ASKAPLOG_INFO_STR(logger, "Have parameterised " << itsInputList.size() <<
+                                  " edge sources. Returning results to master.");
+                LOFAR::BlobString bs;
+                bs.resize(0);
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                out.putStart("OPfinal", 1);
+                out << int(itsOutputList.size());
+                for (size_t i = 0; i < itsOutputList.size(); i++) out << itsOutputList[i];
+                out.putEnd();
+                itsComms->sendBlob(bs, 0);
+            }
+
+        } else {
+            // serial case - need to put output sources into the DP edgelist
+            for (size_t i = 0; i < itsOutputList.size(); i++) {
+                // make sure we have the right WCS etc information
+                itsOutputList[i].setHeader(itsDP->cube().header());
+                itsDP->pEdgeList()->push_back(itsOutputList[i]);
+            }
+
+        }
+
+    }
+
+}
+
+}
 
 
 }

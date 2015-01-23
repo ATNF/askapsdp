@@ -40,56 +40,55 @@
 
 namespace askap {
 
-    namespace analysis { 
+namespace analysis {
 
 
-	class MomentMapExtractor : public SourceDataExtractor
-	{
-	public:
-	    MomentMapExtractor(){};
-	    MomentMapExtractor(const MomentMapExtractor& other);
-	    MomentMapExtractor(const LOFAR::ParameterSet& parset);
-	    MomentMapExtractor& operator= (const MomentMapExtractor& other);
-	    virtual ~MomentMapExtractor(){};
+class MomentMapExtractor : public SourceDataExtractor {
+    public:
+        MomentMapExtractor() {};
+        MomentMapExtractor(const MomentMapExtractor& other);
+        MomentMapExtractor(const LOFAR::ParameterSet& parset);
+        MomentMapExtractor& operator= (const MomentMapExtractor& other);
+        virtual ~MomentMapExtractor() {};
 
-	    void extract();
-	    void writeImage();
+        void extract();
+        void writeImage();
 
-	protected:
-	    void defineSlicer();
-	    casa::IPosition arrayShape();
-	    void initialiseArray();
-	    std::string outfile(int moment);
-	    double getSpectralIncrement();
-	    double getSpecVal(int z);
-	    void getMom0(const casa::Array<Float> &subarray);
-	    void getMom1(const casa::Array<Float> &subarray);
-	    void getMom2(const casa::Array<Float> &subarray);
+    protected:
+        void defineSlicer();
+        casa::IPosition arrayShape();
+        void initialiseArray();
+        std::string outfile(int moment);
+        double getSpectralIncrement();
+        double getSpecVal(int z);
+        void getMom0(const casa::Array<Float> &subarray);
+        void getMom1(const casa::Array<Float> &subarray);
+        void getMom2(const casa::Array<Float> &subarray);
 
-	    /// What sort of cutout to do - full field or box around the source?
-	    std::string itsSpatialMethod;
-	    
-	    /// For the box method, how many pixels to pad around the source?
-	    unsigned int itsPadSize;
+        /// What sort of cutout to do - full field or box around the source?
+        std::string itsSpatialMethod;
 
-	    /// Use just the detected pixels for the calculation?
-	    bool itsFlagUseDetection;
+        /// For the box method, how many pixels to pad around the source?
+        unsigned int itsPadSize;
 
-	    /// List of moments to calculate
-	    std::map<int,bool> itsMomentRequest;
-	    /// Array containing the moment-0 map
-	    casa::Array<Float> itsMom0map;
-	    casa::LogicalArray itsMom0mask;
-	    /// Array containing the moment-1 map
-	    casa::Array<Float> itsMom1map;
-	    casa::LogicalArray itsMom1mask;
-	    /// Array containing the moment-2 map
-	    casa::Array<Float> itsMom2map;
-	    casa::LogicalArray itsMom2mask;
+        /// Use just the detected pixels for the calculation?
+        bool itsFlagUseDetection;
 
-	};
+        /// List of moments to calculate
+        std::map<int, bool> itsMomentRequest;
+        /// Array containing the moment-0 map
+        casa::Array<Float> itsMom0map;
+        casa::LogicalArray itsMom0mask;
+        /// Array containing the moment-1 map
+        casa::Array<Float> itsMom1map;
+        casa::LogicalArray itsMom1mask;
+        /// Array containing the moment-2 map
+        casa::Array<Float> itsMom2map;
+        casa::LogicalArray itsMom2mask;
 
-    }
+};
+
+}
 
 }
 

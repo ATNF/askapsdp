@@ -1,7 +1,7 @@
 /// @file
 ///
 /// Program to extract spectra for objects detected in a previous
-/// cduchamp/selavy/duchamp run. 
+/// cduchamp/selavy/duchamp run.
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -52,69 +52,78 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "extractSpectra.log");
 
-class SpectraApp : public askap::Application
-{
-public:
-  virtual int run(int argc, char* argv[])
-  {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
-    try {
-      StatReporter stats;
+class SpectraApp : public askap::Application {
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+            try {
+                StatReporter stats;
 
-      ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
+                ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
 
-      // Create a new parset with a nocase key compare policy, then
-      // adopt the contents of the real parset
-      LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
-      parset.adoptCollection(config());
-      LOFAR::ParameterSet subset(parset.makeSubset("Spectra."));
-      std::string previousLog = subset.getString("previousLogfile","duchamp-Logfile-Master.txt");
-      if(!parset.isDefined("previousLogfile")) ASKAPLOG_WARN_STR(logger,"The parameter 'previousLogfile' is not defined - using default of " << previousLog);
+                // Create a new parset with a nocase key compare policy, then
+                // adopt the contents of the real parset
+                LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
+                parset.adoptCollection(config());
+                LOFAR::ParameterSet subset(parset.makeSubset("Spectra."));
+                std::string previousLog = subset.getString("previousLogfile",
+                                          "duchamp-Logfile-Master.txt");
+                if (!parset.isDefined("previousLogfile")) {
+                    ASKAPLOG_WARN_STR(logger, "The parameter 'previousLogfile' " <<
+                                      "is not defined - using default of " << previousLog);
+                }
 
-      DuchampParallel duchamp(comms, subset);
-      duchamp.cube().pars().setFlagUsePrevious(true);
-      if(!comms.isParallel() || comms.isMaster())
-	ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
-		
-      duchamp.readData();
-      duchamp.cube().pars().setLogFile(previousLog);
-      ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " << previousLog << " using list " << duchamp.cube().pars().getObjectList());
-      duchamp.cube().getExistingDetections();
-      ASKAPLOG_INFO_STR(logger, "Cleaning up and parameterising detections");
-      duchamp.finaliseDetection();
-      // Put the list of objects into the RadioSource list
-      for(size_t i=0;i<duchamp.cube().getNumObj();i++){
-	duchamp.pSourceList()->push_back(sourcefitting::RadioSource(duchamp.cube().getObject(i)));
-      }
-      duchamp.sendObjects();
-      duchamp.receiveObjects();
-      duchamp.cleanup();      
-      ASKAPLOG_INFO_STR(logger, "Extracting requested spectra");
-      duchamp.extract();
-	    
-      stats.logSummary();
-      ///==============================================================================
-    } catch (const askap::AskapError& x) {
-      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    } catch (const duchamp::DuchampError& x) {
-      ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
-      std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    } catch (const std::exception& x) {
-      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-      std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    }
+                DuchampParallel duchamp(comms, subset);
+                duchamp.cube().pars().setFlagUsePrevious(true);
+                if (!comms.isParallel() || comms.isMaster()) {
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
 
-    return 0;
-  }
+                duchamp.readData();
+                duchamp.cube().pars().setLogFile(previousLog);
+                ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " <<
+                                  previousLog << " using list " <<
+                                  duchamp.cube().pars().getObjectList());
+                duchamp.cube().getExistingDetections();
+                ASKAPLOG_INFO_STR(logger, "Cleaning up and parameterising detections");
+                duchamp.finaliseDetection();
+                // Put the list of objects into the RadioSource list
+                for (size_t i = 0; i < duchamp.cube().getNumObj(); i++) {
+                    sourcefitting::RadioSource src(duchamp.cube().getObject(i));
+                    duchamp.pSourceList()->push_back(src);
+                }
+                duchamp.sendObjects();
+                duchamp.receiveObjects();
+                duchamp.cleanup();
+                ASKAPLOG_INFO_STR(logger, "Extracting requested spectra");
+                duchamp.extract();
+
+                stats.logSummary();
+                ///==============================================================================
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const duchamp::DuchampError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+                std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
+                exit(1);
+            }
+
+            return 0;
+        }
 };
 
 int main(int argc, char *argv[])
 {
-  SpectraApp app;
-  return app.main(argc, argv);
+    SpectraApp app;
+    return app.main(argc, argv);
 }

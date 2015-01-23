@@ -29,7 +29,7 @@
 #ifndef ASKAP_ANALYSIS_RM_SYNTHESIS_H_
 #define ASKAP_ANALYSIS_RM_SYNTHESIS_H_
 
-/* #include <polarisation/PolarisationData.h> */
+// #include <polarisation/PolarisationData.h>
 
 #include <casa/Arrays/Vector.h>
 #include <casa/BasicSL/Complex.h>
@@ -38,70 +38,96 @@
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	class RMSynthesis
-	{
-	public:
-	    RMSynthesis(const LOFAR::ParameterSet &parset);
-	    RMSynthesis(const RMSynthesis& other);
-	    RMSynthesis& operator= (const RMSynthesis& other);
-	    virtual ~RMSynthesis(){};
+class RMSynthesis {
+    public:
+        /// @details Initialises the Farady Depth array (phi)
+        /// according to the parset specification (which gives the
+        /// number of phi channels, their spacing and the centre RM.
+        RMSynthesis(const LOFAR::ParameterSet &parset);
+        virtual ~RMSynthesis() {};
 
 // **not yet implemented fully**
-//	    void calculate(PolarisationData &poldata);
-	    void calculate(casa::Vector<float> &lsq, casa::Vector<float> &q, casa::Vector<float> &u, casa::Vector<float> &noise);
+//     /// @details Takes the PolarisationData object, which
+//     /// contains the I,Q,U spectra and the QU noise spectrum,
+//     /// and the lambda-squared array, and calls the main
+//     /// calculate function on those arrays to perform RM
+//     /// synthesis.
+//      void calculate(PolarisationData &poldata);
 
-	    void fitRMSF();
+        /// @details Takes the lambda-squared array and corresponding
+        /// Q &U spectra and QU noise spectrum, and defines the
+        /// weights, the normalisation and the reference
+        /// lambda-squared value. It then performs RM Synthesis,
+        /// creating the FDF and RMSF arrays. Also calls the fitRMSF
+        /// function to obtain the FWHM of the main RMSF lobe.
+        void calculate(casa::Vector<float> &lsq,
+                       casa::Vector<float> &q,
+                       casa::Vector<float> &u,
+                       casa::Vector<float> &noise);
 
-	    std::string weightType(){return itsWeightType;};
-	    unsigned int numPhiChan(){return itsNumPhiChan;};
-	    float deltaPhi(){return itsDeltaPhi;};
+        /// Fit to the RM Spread Function. Find extent of peak of RMSF
+        /// by starting at peak and finding where slope changes -
+        /// ie. go left, find where slope become negative. go right,
+        /// find where slope become positive
+        ///
+        /// To that range alone, fit a Gaussian - fitGaussian should be
+        /// fine.
+        ///
+        /// Report the FWHM of the fitted Gaussian
+        void fitRMSF();
 
-	    casa::Vector<casa::Complex> fdf(){return itsFaradayDF;};
-	    casa::Vector<float> phi(){return itsPhi;};
-	    casa::Vector<casa::Complex> rmsf(){return itsRMSF;};
-	    casa::Vector<float> phi_rmsf(){return itsPhiForRMSF;};
-	    float rmsf_width(){return itsRMSFwidth;};
-	    float refLambdaSq(){return itsRefLambdaSquared;};
+        std::string weightType() {return itsWeightType;};
+        unsigned int numPhiChan() {return itsNumPhiChan;};
+        float deltaPhi() {return itsDeltaPhi;};
 
-	    float normalisation(){return itsNormalisation;};
-	    float fdf_noise(){return itsFDFnoise;};
+        casa::Vector<casa::Complex> fdf() {return itsFaradayDF;};
+        casa::Vector<float> phi() {return itsPhi;};
+        casa::Vector<casa::Complex> rmsf() {return itsRMSF;};
+        casa::Vector<float> phi_rmsf() {return itsPhiForRMSF;};
+        float rmsf_width() {return itsRMSFwidth;};
+        float refLambdaSq() {return itsRefLambdaSquared;};
 
-	    unsigned int numFreqChan(){return itsWeights.size();};
-	    float lsqVariance(){return itsLambdaSquaredVariance;};
+        float normalisation() {return itsNormalisation;};
+        float fdf_noise() {return itsFDFnoise;};
 
-	private:
+        unsigned int numFreqChan() {return itsWeights.size();};
+        float lsqVariance() {return itsLambdaSquaredVariance;};
 
-	    /// @brief Initialise phi and weights based on parset
-	    void defineVectors();
+    private:
 
-	    casa::Vector<float> itsWeights;
-	    std::string itsWeightType;
-	    float itsNormalisation;
-	    float itsLambdaSquaredVariance;
-	    
-	    unsigned int itsNumPhiChan;
-	    float itsDeltaPhi;
-	    float itsPhiZero;
-	    casa::Vector<float> itsPhi;
-	    
-	    casa::Vector<casa::Complex> itsFaradayDF;
-	    float itsFDFnoise; ///< The average of the provided noise spectrum, scaled by sqrt(num_freq_chan)
+        /// @brief Initialise phi and weights based on parset
+        void defineVectors();
 
-	    casa::Vector<float> itsPhiDouble;
+        casa::Vector<float> itsWeights;
+        std::string itsWeightType;
+        float itsNormalisation;
+        float itsLambdaSquaredVariance;
 
-	    casa::Vector<float> itsPhiForRMSF;
-	    casa::Vector<casa::Complex> itsRMSF;
+        unsigned int itsNumPhiChan;
+        float itsDeltaPhi;
+        float itsPhiZero;
+        casa::Vector<float> itsPhi;
 
-	    float itsRMSFwidth;
-	    
-	    float itsRefLambdaSquared;
+        casa::Vector<casa::Complex> itsFaradayDF;
+
+/// The average of the provided noise spectrum, scaled by sqrt(num_freq_chan)
+        float itsFDFnoise;
+
+        casa::Vector<float> itsPhiDouble;
+
+        casa::Vector<float> itsPhiForRMSF;
+        casa::Vector<casa::Complex> itsRMSF;
+
+        float itsRMSFwidth;
+
+        float itsRefLambdaSquared;
 
 
-	};
+};
 
-    }
+}
 
 }
 

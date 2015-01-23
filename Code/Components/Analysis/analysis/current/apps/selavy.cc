@@ -53,31 +53,57 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "selavy.log");
 
-void setSelavyParameters(LOFAR::ParameterSet &parset, askap::askapparallel::AskapParallel &comms)
+/// The aim of this function is to ensure the parset contains
+/// entries for all output files, and, where they have not been
+/// provided by the user, add them in with Selavy-specific
+/// defaults.
+void setSelavyParameters(LOFAR::ParameterSet &parset,
+                         askap::askapparallel::AskapParallel &comms)
 {
-    /// The aim of this function is to ensure the parset contains
-    /// entries for all output files, and, where they have not been
-    /// provided by the user, add them in with Selavy-specific
-    /// defaults.
 
-    if(!parset.isDefined("headerFile")) parset.add("headerFile","selavy-results.hdr");
-    if(!parset.isDefined("outFile") && !parset.isDefined("resultsFile")) parset.add("resultsFile","selavy-results.txt");
-    if(!parset.isDefined("logFile")) parset.add("logFile","selavy-Logfile.txt");
-    if(!parset.isDefined("votFile")) parset.add("votFile","selavy-results.xml");
-    if(!parset.isDefined("karmaFile")) parset.add("karmaFile","selavy-results.ann");
-    if(!parset.isDefined("ds9File")) parset.add("ds9File","selavy-results.reg");
-    if(!parset.isDefined("casaFile")) parset.add("casaFile","selavy-results.crf");
-    if(!parset.isDefined("fitResultsFile")) parset.add("fitResultsFile","selavy-fitResults.txt");
-    if(!parset.isDefined("fitAnnotationFile")) parset.add("fitAnnotationFile","selavy-fitResults.ann");
-    if(!parset.isDefined("fitBoxAnnotationFile")) parset.add("fitBoxAnnotationFile","selavy-fitResults.boxes.ann");
-    if(!parset.isDefined("subimageAnnotationFile")) parset.add("subimageAnnotationFile","selavy-SubimageLocations.ann");
-    if(!parset.isDefined("binaryCatalogue")) parset.add("binaryCatalogue","selavy-catalogue.dpc");
-    if(!parset.isDefined("spectraTextFile")) parset.add("spectraTextFile","selavy-spectra.txt");
+    if (!parset.isDefined("headerFile")) {
+        parset.add("headerFile", "selavy-results.hdr");
+    }
+    if (!parset.isDefined("outFile") && !parset.isDefined("resultsFile")) {
+        parset.add("resultsFile", "selavy-results.txt");
+    }
+    if (!parset.isDefined("logFile")) {
+        parset.add("logFile", "selavy-Logfile.txt");
+    }
+    if (!parset.isDefined("votFile")) {
+        parset.add("votFile", "selavy-results.xml");
+    }
+    if (!parset.isDefined("karmaFile")) {
+        parset.add("karmaFile", "selavy-results.ann");
+    }
+    if (!parset.isDefined("ds9File")) {
+        parset.add("ds9File", "selavy-results.reg");
+    }
+    if (!parset.isDefined("casaFile")) {
+        parset.add("casaFile", "selavy-results.crf");
+    }
+    if (!parset.isDefined("fitResultsFile")) {
+        parset.add("fitResultsFile", "selavy-fitResults.txt");
+    }
+    if (!parset.isDefined("fitAnnotationFile")) {
+        parset.add("fitAnnotationFile", "selavy-fitResults.ann");
+    }
+    if (!parset.isDefined("fitBoxAnnotationFile")) {
+        parset.add("fitBoxAnnotationFile", "selavy-fitResults.boxes.ann");
+    }
+    if (!parset.isDefined("subimageAnnotationFile")) {
+        parset.add("subimageAnnotationFile", "selavy-SubimageLocations.ann");
+    }
+    if (!parset.isDefined("binaryCatalogue")) {
+        parset.add("binaryCatalogue", "selavy-catalogue.dpc");
+    }
+    if (!parset.isDefined("spectraTextFile")) {
+        parset.add("spectraTextFile", "selavy-spectra.txt");
+    }
 }
 
 
-class SelavyApp : public askap::Application
-{
+class SelavyApp : public askap::Application {
     public:
         virtual int run(int argc, char* argv[])
         {
@@ -93,17 +119,19 @@ class SelavyApp : public askap::Application
                 LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
                 parset.adoptCollection(config());
                 LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
-		setSelavyParameters(subset,comms);
+                setSelavyParameters(subset, comms);
 
-                if(!comms.isParallel() || comms.isMaster())
+                if (!comms.isParallel() || comms.isMaster()) {
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
                 DuchampParallel finder(comms, subset);
-                if(!comms.isParallel() || comms.isMaster())
+                if (!comms.isParallel() || comms.isMaster()) {
                     ASKAPLOG_INFO_STR(logger, "Parset file as used:\n" << finder.parset());
+                }
 
                 finder.readData();
                 finder.setupLogfile(argc, const_cast<const char**>(argv));
-		finder.preprocess();
+                finder.preprocess();
                 finder.gatherStats();
                 finder.setThreshold();
                 finder.findSources();
@@ -112,8 +140,8 @@ class SelavyApp : public askap::Application
                 finder.receiveObjects();
                 finder.cleanup();
                 finder.printResults();
-		finder.extract();
-		finder.writeToFITS();
+                finder.extract();
+                finder.writeToFITS();
 
                 stats.logSummary();
                 ///==============================================================================
@@ -126,8 +154,10 @@ class SelavyApp : public askap::Application
                 std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
                 exit(1);
             } catch (const std::exception& x) {
-                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                ASKAPLOG_FATAL_STR(logger,
+                                   "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " <<
+                          x.what() << std::endl;
                 exit(1);
             }
 

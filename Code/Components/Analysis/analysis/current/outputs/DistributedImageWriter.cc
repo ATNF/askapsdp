@@ -48,129 +48,99 @@ ASKAP_LOGGER(logger, ".distributedimagewriter");
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-	DistributedImageWriter::DistributedImageWriter(askap::askapparallel::AskapParallel& comms, duchamp::Cube *cube, std::string imageName):
-	  ImageWriter(cube,imageName),itsComms(&comms)
-	{
+DistributedImageWriter::DistributedImageWriter(askap::askapparallel::AskapParallel& comms, duchamp::Cube *cube, std::string imageName):
+    ImageWriter(cube, imageName), itsComms(&comms)
+{
 
-	}
+}
 
-	DistributedImageWriter::DistributedImageWriter(const DistributedImageWriter& other)
-	{
-	    this->operator=(other);
-	}
+void DistributedImageWriter::create()
+{
+    if (!itsComms->isParallel() || itsComms->isMaster()) {
+        // If serial mode, or we're on the master node, create the image
+        this->ImageWriter::create();
+    }
+}
 
-	DistributedImageWriter& DistributedImageWriter::operator= (const DistributedImageWriter& other)
-	{
-	    if(this == &other) return *this;
-	    ((ImageWriter &) *this) = other;
-	    this->itsComms = other.itsComms;
-	    return *this;
-	}
+void DistributedImageWriter::write(const casa::Array<casa::Float> &data,
+                                   const casa::IPosition &loc, bool accumulate)
+{
 
-	void DistributedImageWriter::create()
-	{
-	    /// @details Handles the creation of the image, only doing
-	    /// so when either in serial mode or in the master process
-	    /// when distributed. The ImageWriter::create function is
-	    /// called. Worker processes in distributed mode do
-	    /// nothing here.
+    if (itsComms->isParallel()) {
 
-	    if(!this->itsComms->isParallel() || this->itsComms->isMaster()){
-		// If serial mode, or we're on the master node, create the image
-		this->ImageWriter::create();
-	    }
-	}
+        bool OK;
+        LOFAR::BlobString bs;
 
-	void DistributedImageWriter::write(const casa::Array<casa::Float> &data, const casa::IPosition &loc, bool accumulate)
-	{
+        if (itsComms->isMaster()) {
+            for (int i = 1; i < itsComms->nProcs(); i++) {
+                // First send the node number
+                bs.resize(0);
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                out.putStart("goWrite", 1);
+                out << i ;
+                out.putEnd();
+                itsComms->sendBlob(bs, i);
+                // Then wait for the OK from that node
+                bs.resize(0);
+                itsComms->receiveBlob(bs, i);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("writeDone");
+                ASKAPASSERT(version == 1);
+                in >> OK;
+                in.getEnd();
+                if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
+            }
 
-	    /// @details Handles distributed writing of the requested
-	    /// data. When in parallel mode, the master cycles through
-	    /// the workers, sending an OK signal for them to write,
-	    /// and waiting for an OK reply before contacting the
-	    /// next. Once all have finished, an 'all done' signal is
-	    /// broadcast. The workers wait for the signal from the
-	    /// master for them to write, then write the array using
-	    /// the write function from ImageWriter, then send an OK
-	    /// signal back to the master.
-	    /// In serial mode, we directly call ImageWriter::write.
+        } else if (itsComms->isWorker()) {
 
-	    if(this->itsComms->isParallel()){
-		
-		bool OK;
-		LOFAR::BlobString bs;
+            OK = true;
+            int rank;
+            int version;
 
-		if(this->itsComms->isMaster()){
-		    for (int i = 1; i < this->itsComms->nProcs(); i++) {
-			// First send the node number
-			bs.resize(0);
-			LOFAR::BlobOBufString bob(bs);
-			LOFAR::BlobOStream out(bob);
-			out.putStart("goWrite", 1);
-			out << i ;
-			out.putEnd();
-			this->itsComms->sendBlob(bs, i);
-			// Then wait for the OK from that node
-			bs.resize(0);
-			this->itsComms->receiveBlob(bs, i);
-			LOFAR::BlobIBufString bib(bs);
-			LOFAR::BlobIStream in(bib);
-			int version = in.getStart("writeDone");
-			ASKAPASSERT(version == 1);
-			in >> OK;
-			in.getEnd();			
-			if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
-		    }
+            if (itsComms->isParallel()) {
+                do {
+                    bs.resize(0);
+                    itsComms->receiveBlob(bs, 0);
+                    LOFAR::BlobIBufString bib(bs);
+                    LOFAR::BlobIStream in(bib);
+                    version = in.getStart("goWrite");
+                    ASKAPASSERT(version == 1);
+                    in >> rank;
+                    in.getEnd();
+                    OK = (rank == itsComms->rank());
+                } while (!OK);
+            }
 
-		} else if (this->itsComms->isWorker()) {
-		    
-		    OK = true;
-		    int rank;
-		    int version;
+            if (OK) {
+                this->ImageWriter::write(data, loc, accumulate);
 
-		    if (this->itsComms->isParallel()) {
-			do {
-			    bs.resize(0);
-			    this->itsComms->receiveBlob(bs, 0);
-			    LOFAR::BlobIBufString bib(bs);
-			    LOFAR::BlobIStream in(bib);
-			    version = in.getStart("goWrite");
-			    ASKAPASSERT(version == 1);
-			    in >> rank;
-			    in.getEnd();
-			    OK = (rank == this->itsComms->rank());
-			} while (!OK);
-		    }
+                // Return the OK to the master to say that we've written to the image
+                if (itsComms->isParallel()) {
+                    bs.resize(0);
+                    LOFAR::BlobOBufString bob(bs);
+                    LOFAR::BlobOStream out(bob);
+                    out.putStart("writeDone", 1);
+                    out << OK;
+                    out.putEnd();
+                    itsComms->sendBlob(bs, 0);
+                }
+            }
 
-		    if (OK) {
-		        this->ImageWriter::write(data,loc,accumulate);
+        }
 
-			// Return the OK to the master to say that we've written to the image
-			if (this->itsComms->isParallel()) {
-			    bs.resize(0);
-			    LOFAR::BlobOBufString bob(bs);
-			    LOFAR::BlobOStream out(bob);
-			    out.putStart("writeDone", 1);
-			    out << OK;
-			    out.putEnd();
-			    this->itsComms->sendBlob(bs, 0);
-			}
-		    }
+    } else {
 
-		}
-
-	    }
-	    else {
-
-		this->ImageWriter::write(data,loc);
-
-	    }
-
-	}
+        this->ImageWriter::write(data, loc);
 
     }
+
+}
+
+}
 
 }
 

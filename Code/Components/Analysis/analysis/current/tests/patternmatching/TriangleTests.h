@@ -30,59 +30,64 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace askap {
-    namespace analysis {
+namespace analysis {
 
-        namespace matching {
+namespace matching {
 
-            class TriangleTest : public CppUnit::TestFixture {
-                    CPPUNIT_TEST_SUITE(TriangleTest);
-                    CPPUNIT_TEST(testPerimeter);
-                    CPPUNIT_TEST(testOrientation);
-                    CPPUNIT_TEST(testMatch);
-                    CPPUNIT_TEST_SUITE_END();
+class TriangleTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(TriangleTest);
+        CPPUNIT_TEST(testPerimeter);
+        CPPUNIT_TEST(testOrientation);
+        CPPUNIT_TEST(testMatch);
+        CPPUNIT_TEST_SUITE_END();
 
-                private:
-                    Triangle *t1, *t2, *t3, *t4;
+    private:
+        Triangle *t1, *t2, *t3, *t4;
 
-                public:
+    public:
 
-                    void setUp() {
-                        t1 = new Triangle(4., 2., 5., 9., 1., 4.);
-                        t2 = new Triangle(8., 7., 14., 4., 12., 2.);
-                        t3 = new Triangle(8., 14., 14., 17., 12., 19.);
-                        t4 = new Triangle(1., 22., 4., 24., 5., 17.);
-                    }
-
-                    void tearDown() {
-                        delete t1;
-                        delete t2;
-                        delete t3;
-                        delete t4;
-                    }
-
-                    void testPerimeter() {
-                        CPPUNIT_ASSERT((pow(10, t1->perimeter()) - 17.079) < 0.001);
-                        CPPUNIT_ASSERT((pow(10, t2->perimeter()) - 15.940) < 0.001);
-                        CPPUNIT_ASSERT((pow(10, t3->perimeter()) - 15.940) < 0.001);
-                        CPPUNIT_ASSERT((pow(10, t4->perimeter()) - 17.079) < 0.001);
-                    }
-
-                    void testOrientation() {
-                        CPPUNIT_ASSERT(t1->isClockwise());
-                        CPPUNIT_ASSERT(t2->isClockwise());
-                        CPPUNIT_ASSERT(!t3->isClockwise());
-                        CPPUNIT_ASSERT(!t4->isClockwise());
-                    }
-
-                    void testMatch() {
-                        CPPUNIT_ASSERT(t1->isMatch(*t4));
-                        CPPUNIT_ASSERT(t3->isMatch(*t2));
-                        CPPUNIT_ASSERT(!t1->isMatch(*t2));
-                    }
-
-            };
-
-
+        void setUp()
+        {
+            t1 = new Triangle(4., 2., 5., 9., 1., 4.);
+            t2 = new Triangle(8., 7., 14., 4., 12., 2.);
+            t3 = new Triangle(8., 14., 14., 17., 12., 19.);
+            t4 = new Triangle(1., 22., 4., 24., 5., 17.);
         }
-    }
+
+        void tearDown()
+        {
+            delete t1;
+            delete t2;
+            delete t3;
+            delete t4;
+        }
+
+        void testPerimeter()
+        {
+            CPPUNIT_ASSERT((pow(10, t1->perimeter()) - 17.079) < 0.001);
+            CPPUNIT_ASSERT((pow(10, t2->perimeter()) - 15.940) < 0.001);
+            CPPUNIT_ASSERT((pow(10, t3->perimeter()) - 15.940) < 0.001);
+            CPPUNIT_ASSERT((pow(10, t4->perimeter()) - 17.079) < 0.001);
+        }
+
+        void testOrientation()
+        {
+            CPPUNIT_ASSERT(t1->isClockwise());
+            CPPUNIT_ASSERT(t2->isClockwise());
+            CPPUNIT_ASSERT(!t3->isClockwise());
+            CPPUNIT_ASSERT(!t4->isClockwise());
+        }
+
+        void testMatch()
+        {
+            CPPUNIT_ASSERT(t1->isMatch(*t4));
+            CPPUNIT_ASSERT(t3->isMatch(*t2));
+            CPPUNIT_ASSERT(!t1->isMatch(*t2));
+        }
+
+};
+
+
+}
+}
 }

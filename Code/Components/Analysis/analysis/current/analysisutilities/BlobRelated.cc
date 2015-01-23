@@ -317,8 +317,8 @@ namespace askap {
                 i = src.fpeakPrec;  blob << i;
                 i = src.velPrec;    blob << i;
                 i = src.snrPrec;    blob << i;
-                b = src.hasFit;     blob << b;
-                b = src.atEdge;     blob << b;
+                b = src.itsFlagHasFit;     blob << b;
+                b = src.itsFlagAtEdge;     blob << b;
                 f = src.itsDetectionThreshold; blob << f;
                 f = src.itsNoiseLevel; blob << f;
                 blob << src.itsFitParams;
@@ -446,8 +446,8 @@ namespace askap {
                 blob >> i; src.fpeakPrec = i;
                 blob >> i; src.velPrec = i;
                 blob >> i; src.snrPrec = i;
-                blob >> b; src.hasFit = b;
-                blob >> b; src.atEdge = b;
+                blob >> b; src.itsFlagHasFit = b;
+                blob >> b; src.itsFlagAtEdge = b;
                 blob >> f; src.itsDetectionThreshold = f;
                 blob >> f; src.itsNoiseLevel = f;
                 blob >> src.itsFitParams;

@@ -52,7 +52,15 @@ class CurvatureMapCreator {
         virtual ~CurvatureMapCreator() {};
 
         void setCube(duchamp::Cube &cube) {itsCube = &cube;};
+
+        /// @details Initialise the class with information from
+        /// the duchamp::Cube. This is done to avoid replicating
+        /// parameters and preserving the parameter
+        /// hierarchy. Once the input image is known, the output
+        /// image names can be set with fixName() (if they have
+        /// not been defined via the parset).
         void initialise(duchamp::Cube &cube, analysisutilities::SubimageDef &subdef);
+    
         void calculate();
         void maskBorders();
         void write();

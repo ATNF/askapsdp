@@ -57,141 +57,106 @@ ASKAP_LOGGER(logger, ".sourcefitting");
 using namespace duchamp;
 
 namespace askap {
+namespace analysis {
 
-    namespace analysis {
+namespace sourcefitting {
 
-        namespace sourcefitting {
+void FitResults::saveResults(Fitter &fit)
+{
 
-            FitResults::FitResults(const FitResults& f)
-            {
-                operator=(f);
-            }
+    itsFitIsGood = true;
+    itsFlagFitIsGuess = false;
+    itsChisq = fit.chisq();
+    itsRedChisq = fit.redChisq();
+    itsRMS = fit.RMS();
+    itsNumDegOfFreedom = fit.ndof();
+    itsNumFreeParam = fit.params().numFreeParam();
+    itsNumGauss = fit.numGauss();
+    itsNumPix = itsNumDegOfFreedom + itsNumGauss * itsNumFreeParam + 1;
+    // Make a map so that we can output the fitted components in order of peak flux
+    std::multimap<double, int> fitMap = fit.peakFluxList();
+    // Need to use reverse_iterator so that brightest component's listed first
+    std::multimap<double, int>::reverse_iterator rfit = fitMap.rbegin();
 
-            //**************************************************************//
+    for (; rfit != fitMap.rend(); rfit++) {
+        itsGaussFitSet.push_back(fit.gaussian(rfit->second));
+    }
+}
+//**************************************************************//
 
-            FitResults& FitResults::operator= (const FitResults& f)
-            {
-                if (this == &f) return *this;
+void FitResults::saveGuess(std::vector<SubComponent> cmpntList)
+{
 
-                this->itsFitIsGood = f.itsFitIsGood;
-                this->itsChisq = f.itsChisq;
-                this->itsRedChisq = f.itsRedChisq;
-                this->itsRMS = f.itsRMS;
-                this->itsNumDegOfFreedom = f.itsNumDegOfFreedom;
-                this->itsNumFreeParam = f.itsNumFreeParam;
-		this->itsNumPix = f.itsNumPix;
-                this->itsNumGauss = f.itsNumGauss;
-                this->itsGaussFitSet = f.itsGaussFitSet;
-		this->itsFlagFitIsGuess = f.itsFlagFitIsGuess;
-                return *this;
-            }
+    itsFitIsGood = false;
+    itsFlagFitIsGuess = true;
+    itsChisq = 999.;
+    itsRedChisq = 999.;
+    itsRMS = 0.;
+    itsNumDegOfFreedom = 0;
+    itsNumFreeParam = 0;
+    itsNumGauss = cmpntList.size();
+    itsNumPix = 0;
+    // Make a map so that we can output the fitted components in order of peak flux
+    std::multimap<double, int> fitMap;
+    for (unsigned int i = 0; i < itsNumGauss; i++) {
+        fitMap.insert(std::pair<double, int>(cmpntList[i].peak(), i));
+    }
+    // Need to use reverse_iterator so that brightest component's listed first
+    std::multimap<double, int>::reverse_iterator rfit = fitMap.rbegin();
 
-            //**************************************************************//
+    for (; rfit != fitMap.rend(); rfit++) {
+        itsGaussFitSet.push_back(cmpntList[rfit->second].asGauss());
+    }
+}
 
-            void FitResults::saveResults(Fitter &fit)
-            {
-                /// @details This stores the results of a Gaussian fit,
-                /// extracting all relevant parameters and Gaussian
-                /// components.
-                /// @param fit A Fitter object that has performed a
-                /// Gaussian fit to data.
+//**************************************************************//
 
-                this->itsFitIsGood = true;
-		this->itsFlagFitIsGuess = false;
-                this->itsChisq = fit.chisq();
-                this->itsRedChisq = fit.redChisq();
-                this->itsRMS = fit.RMS();
-                this->itsNumDegOfFreedom = fit.ndof();
-                this->itsNumFreeParam = fit.params().numFreeParam();
-                this->itsNumGauss = fit.numGauss();
-		this->itsNumPix = this->itsNumDegOfFreedom + this->itsNumGauss*this->itsNumFreeParam + 1;
-                // Make a map so that we can output the fitted components in order of peak flux
-                std::multimap<double, int> fitMap = fit.peakFluxList();
-                // Need to use reverse_iterator so that brightest component's listed first
-                std::multimap<double, int>::reverse_iterator rfit = fitMap.rbegin();
+std::vector<SubComponent> FitResults::getCmpntList()
+{
+    std::vector<SubComponent> output(itsGaussFitSet.size());
+    std::vector<casa::Gaussian2D<Double> >::iterator gauss = itsGaussFitSet.begin();
+    int comp = 0;
 
-                for (; rfit != fitMap.rend(); rfit++)
-                    this->itsGaussFitSet.push_back(fit.gaussian(rfit->second));
-            }
-            //**************************************************************//
+    for (; gauss < itsGaussFitSet.end(); gauss++) {
+        output[comp].setX(gauss->xCenter());
+        output[comp].setY(gauss->yCenter());
+        output[comp].setPeak(gauss->height());
+        output[comp].setMajor(gauss->majorAxis());
+        output[comp].setMinor(gauss->minorAxis());
+        output[comp].setPA(gauss->PA());
+        comp++;
+    }
 
-            void FitResults::saveGuess(std::vector<SubComponent> cmpntList)
-            {
-                /// @details This stores the results of a Gaussian fit,
-                /// extracting all relevant parameters and Gaussian
-                /// components.
-                /// @param fit A Fitter object that has performed a
-                /// Gaussian fit to data.
-
-                this->itsFitIsGood = false;
-		this->itsFlagFitIsGuess = true;
-                this->itsChisq = 999.;
-                this->itsRedChisq = 999.;
-                this->itsRMS = 0.;
-                this->itsNumDegOfFreedom = 0;
-                this->itsNumFreeParam = 0;
-                this->itsNumGauss = cmpntList.size();
-		this->itsNumPix = 0;
-                // Make a map so that we can output the fitted components in order of peak flux
-                std::multimap<double, int> fitMap;
-		for (unsigned int i = 0; i < this->itsNumGauss; i++) fitMap.insert(std::pair<double, int>(cmpntList[i].peak(), i));
-                // Need to use reverse_iterator so that brightest component's listed first
-                std::multimap<double, int>::reverse_iterator rfit = fitMap.rbegin();
-
-                for (; rfit != fitMap.rend(); rfit++)
-		  this->itsGaussFitSet.push_back(cmpntList[rfit->second].asGauss());
-            }
-
-            //**************************************************************//
-
-            std::vector<SubComponent> FitResults::getCmpntList()
-            {
-                /// @details This function converts the set of Gaussian
-                /// components in itsGaussFitSet and returns them as a
-                /// vector list of SubComponent objects.
-                std::vector<SubComponent> output(this->itsGaussFitSet.size());
-                std::vector<casa::Gaussian2D<Double> >::iterator gauss = this->itsGaussFitSet.begin();
-                int comp = 0;
-
-                for (; gauss < this->itsGaussFitSet.end(); gauss++) {
-                    output[comp].setX(gauss->xCenter());
-                    output[comp].setY(gauss->yCenter());
-                    output[comp].setPeak(gauss->height());
-                    output[comp].setMajor(gauss->majorAxis());
-                    output[comp].setMinor(gauss->minorAxis());
-                    output[comp].setPA(gauss->PA());
-                    comp++;
-                }
-
-                return output;
-            }
+    return output;
+}
 
 
-	  void FitResults::logIt(std::string loc)
-	  {
-	    std::vector<casa::Gaussian2D<Double> >::iterator gauss;
-	    for(gauss=this->itsGaussFitSet.begin();gauss<this->itsGaussFitSet.end();gauss++){
-	      std::stringstream outmsg;
-	      outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
-	      outmsg.precision(8);
-	      outmsg.setf(ios::fixed);
-	      //	      outmsg << gauss->flux() << ", ";
-	      outmsg << gauss->height() << ", ";
-	      outmsg.precision(3);
-	      outmsg.setf(ios::fixed);
-	      outmsg << gauss->xCenter() << ", " << gauss->yCenter() << ", "
-		     << gauss->majorAxis() << ", " << gauss->minorAxis() << ", " << gauss->PA();
-	      if(loc=="DEBUG") ASKAPLOG_DEBUG_STR(logger, outmsg.str());
-	      else if(loc=="INFO") ASKAPLOG_INFO_STR(logger, outmsg.str());
-	      
-	     
-	    }
-	  }
-
-
-
+void FitResults::logIt(std::string loc)
+{
+    std::vector<casa::Gaussian2D<Double> >::iterator gauss;
+    for (gauss = itsGaussFitSet.begin(); gauss < itsGaussFitSet.end(); gauss++) {
+        std::stringstream outmsg;
+        outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
+        outmsg.precision(8);
+        outmsg.setf(ios::fixed);
+        outmsg << gauss->height() << ", ";
+        outmsg.precision(3);
+        outmsg.setf(ios::fixed);
+        outmsg << gauss->xCenter() << ", " << gauss->yCenter() << ", "
+               << gauss->majorAxis() << ", " << gauss->minorAxis() << ", " << gauss->PA();
+        if (loc == "DEBUG") {
+            ASKAPLOG_DEBUG_STR(logger, outmsg.str());
+        } else if (loc == "INFO") {
+            ASKAPLOG_INFO_STR(logger, outmsg.str());
         }
 
     }
+}
+
+
+
+}
+
+}
 
 }

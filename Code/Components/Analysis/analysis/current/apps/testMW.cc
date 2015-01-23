@@ -60,11 +60,14 @@ std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms)
 {
     std::stringstream ss;
     if (comms.isParallel()) {
-        if (comms.isMaster())
-	    ss << "MASTER: ";
-        else if (comms.isWorker())
-	    ss << "Worker #" << comms.rank() << ": ";
-    } else ss << "";
+        if (comms.isMaster()) {
+            ss << "MASTER: ";
+        } else if (comms.isWorker()) {
+            ss << "Worker #" << comms.rank() << ": ";
+        }
+    } else {
+        ss << "";
+    }
     return ss.str();
 }
 
@@ -73,7 +76,7 @@ int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
     askap::askapparallel::AskapParallel comms(argc, argv);
-    try{
+    try {
         ASKAPLOG_INFO_STR(logger,
                           printWorkerPrefix(comms) << "rank = " << comms.rank());
         ASKAPLOG_INFO_STR(logger,

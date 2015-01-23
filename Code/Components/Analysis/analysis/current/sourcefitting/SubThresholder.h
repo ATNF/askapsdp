@@ -41,45 +41,47 @@
 #include <vector>
 
 namespace askap {
-	
-    namespace analysis {
-		
-	namespace sourcefitting {
-		
-	    class SubThresholder {
-	    public:
-		SubThresholder(){};
-		virtual ~SubThresholder();
-		SubThresholder(const SubThresholder &s);
-		SubThresholder& operator=(const SubThresholder &s);
-				
-		void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
-		void define(RadioSource *r);
-		void setFirstGuess(RadioSource *src);
-		std::vector<SubComponent> find();
-		void incrementThreshold();
 
-		void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
-		void keepObject(PixelInfo::Object2D &obj);
+namespace analysis {
 
-				
-	    protected:
-		SubComponent itsFirstGuess;
-		std::vector<float> itsFluxArray;
-		std::vector<size_t> itsDim;
-		casa::Slicer itsSourceBox;
-		float itsBaseThreshold;
-		float itsThreshIncrement;
-		float itsPeakFlux;
-		float itsCurrentThreshold;
-		int itsSourceSize;
-		FittingParameters itsFitParams;
-	    };
-		
-	}
-		
-    }
-	
+namespace sourcefitting {
+
+class SubThresholder {
+    public:
+        SubThresholder() {};
+        virtual ~SubThresholder();
+
+        void define(RadioSource &r,
+                    casa::Matrix<casa::Double> pos,
+                    casa::Vector<casa::Double> &array);
+        void define(RadioSource &r);
+        void setFirstGuess(RadioSource &src);
+        std::vector<SubComponent> find();
+        void incrementThreshold();
+
+        void saveArray(RadioSource &src,
+                       casa::Matrix<casa::Double> pos,
+                       casa::Vector<casa::Double> &f);
+        void keepObject(PixelInfo::Object2D &obj);
+
+
+    protected:
+        SubComponent itsFirstGuess;
+        std::vector<float> itsFluxArray;
+        std::vector<size_t> itsDim;
+        casa::Slicer itsSourceBox;
+        float itsBaseThreshold;
+        float itsThreshIncrement;
+        float itsPeakFlux;
+        float itsCurrentThreshold;
+        int itsSourceSize;
+        FittingParameters itsFitParams;
+};
+
+}
+
+}
+
 }
 
 

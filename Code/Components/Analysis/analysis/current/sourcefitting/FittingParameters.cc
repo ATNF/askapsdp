@@ -58,236 +58,172 @@ using namespace duchamp;
 
 namespace askap {
 
-    namespace analysis {
+namespace analysis {
 
-        namespace sourcefitting {
+namespace sourcefitting {
 
-            bool isFitTypeValid(std::string type)
-            {
-                if (type == "full") return true;
+bool isFitTypeValid(std::string type)
+{
+    if (type == "full") return true;
+    if (type == "psf")  return true;
+    if (type == "shape")  return true;
+    if (type == "height")  return true;
 
-                if (type == "psf")  return true;
-
-                if (type == "shape")  return true;
-                if (type == "height")  return true;
-
-                return false;
-            }
-	  
-	  
-
-            FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
-            {
-	      //	      ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
-	      this->itsFlagDoFit = parset.getBool("doFit", false);
-                this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
-                this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
-                this->itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
-                this->itsChisqConfidence = parset.getFloat("chisqConfidence", defaultChisqConfidence);
-                this->itsMaxReducedChisq = parset.getFloat("maxReducedChisq", defaultMaxReducedChisq);
-                this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
-                this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
-                this->itsNumSubThresholds = parset.getInt32("numSubThresholds", defaultNumSubThresholds);
-		this->itsFlagLogarithmicIncrements = parset.getBool("logarithmicThresholds",true);
-		this->itsFlagUseCurvature = parset.getBool("useCurvature",false);
-		this->itsCurvatureImage = parset.getString("curvatureImage", "");
-                this->itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
-                this->itsCriterium = parset.getDouble("criterium", 0.0001);
-                this->itsMaxIter = parset.getUint32("maxIter", 1024);
-                this->itsUseNoise = parset.getBool("useNoise", true);
-		this->itsNoiseLevel = parset.getFloat("noiseLevel",1.);
-		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", true);
-		this->itsFlagNumGaussFromGuess = parset.getBool("numGaussFromGuess",true);
-		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
-                this->itsFlagFitThisParam = std::vector<bool>(6, true);
-		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", true);
-
-                if (parset.isDefined("flagFitParam"))
-                    ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
-
-                this->itsFitTypes = parset.getStringVector("fitTypes", defaultFitTypes);
-                std::stringstream ss;
-
-                std::vector<std::string>::iterator type = this->itsFitTypes.begin();
-
-                while (type < this->itsFitTypes.end()) {
-                    if (!isFitTypeValid(*type)) {
-                        ASKAPLOG_WARN_STR(logger, "Fit type " << *type << " is not valid. Removing from list.");
-                        this->itsFitTypes.erase(type);
-                    } else {
-                        ss << *type << " ";
-                        type++;
-                    }
-                }
-
-		if(this->itsFlagDoFit && this->itsFitTypes.size()==0) this->itsFlagDoFit=false;
-
-            }
-
-            //**************************************************************//
-
-            FittingParameters::FittingParameters(const FittingParameters& f)
-            {
-                operator=(f);
-            }
-
-            //**************************************************************//
-
-            FittingParameters& FittingParameters::operator= (const FittingParameters& f)
-            {
-                if (this == &f) return *this;
-
-		this->itsFlagDoFit = f.itsFlagDoFit;
-                this->itsBoxPadSize = f.itsBoxPadSize;
-                this->itsMaxRMS = f.itsMaxRMS;
-                this->itsMaxNumGauss = f.itsMaxNumGauss;
-                this->itsChisqConfidence = f.itsChisqConfidence;
-                this->itsMaxReducedChisq = f.itsMaxReducedChisq;
-                this->itsNoiseBoxSize = f.itsNoiseBoxSize;
-                this->itsMinFitSize = f.itsMinFitSize;
-                this->itsBoxFlux = f.itsBoxFlux;
-		this->itsFlagFitJustDetection = f.itsFlagFitJustDetection;
-                this->itsXmin = f.itsXmin;
-                this->itsYmin = f.itsYmin;
-                this->itsXmax = f.itsXmax;
-                this->itsYmax = f.itsYmax;
-                this->itsSrcPeak = f.itsSrcPeak;
-                this->itsDetectThresh = f.itsDetectThresh;
-                this->itsNumSubThresholds = f.itsNumSubThresholds;
-		this->itsFlagLogarithmicIncrements = f.itsFlagLogarithmicIncrements;
-		this->itsFlagUseCurvature = f.itsFlagUseCurvature;
-		this->itsSigmaCurv = f.itsSigmaCurv;
-		this->itsCurvatureImage = f.itsCurvatureImage;
-		this->itsFlagNumGaussFromGuess = f.itsFlagNumGaussFromGuess;
-                this->itsBeamSize = f.itsBeamSize;
-                this->itsMaxRetries = f.itsMaxRetries;
-                this->itsCriterium = f.itsCriterium;
-                this->itsMaxIter = f.itsMaxIter;
-                this->itsUseNoise = f.itsUseNoise;
-		this->itsNoiseLevel = f.itsNoiseLevel;
-		this->itsStopAfterFirstGoodFit = f.itsStopAfterFirstGoodFit;
-		this->itsUseGuessIfBad = f.itsUseGuessIfBad;
-                this->itsFlagFitThisParam = f.itsFlagFitThisParam;
-                this->itsFitTypes = f.itsFitTypes;
-                return *this;
-            }
-
-            //**************************************************************//
-
-	    void FittingParameters::setBoxFlux(casa::Vector<casa::Double> f)
-	    {
-	      
-	      this->itsBoxFlux = 0.;
-	      for (uint i = 0; i < f.size(); i++) 
-		this->itsBoxFlux += f(i);
-
-	    } 
-
-            //**************************************************************//
-
-            void FittingParameters::setFlagFitThisParam(std::string type)
-            {
-                /// @details For a given type of fit, set the flags for
-                /// each parameter. The types that are possible are:
-                /// @li full: All parameters are fitted
-                /// @li psf: The shape of the Gaussian is kept fixed,
-                /// but the height & location are fitted
-                /// @li shape: The height is kept fixed, and the shape
-                /// and location are fitted
-                /// @li height: The height alone is fitted. All other
-                /// parameters, **including position**, are kept fixed.
-                /// @param type The string indicating the type of fit. A
-                /// warning is given if a different value is provided
-                /// and no flags are set.
-
-                if (type == "full") {
-                    for (int i = 0; i < 6; i++) this->itsFlagFitThisParam[i] = true;
-                } else if (type == "psf") {
-                    for (int i = 0; i < 3; i++) this->itsFlagFitThisParam[i] = true;
-
-                    for (int i = 3; i < 6; i++) this->itsFlagFitThisParam[i] = false;
-                } else if (type == "shape") {
-                    this->itsFlagFitThisParam[0] = false;
-
-                    for (int i = 1; i < 6; i++) this->itsFlagFitThisParam[i] = true;
-
-                } else if (type == "height") {
-                    this->itsFlagFitThisParam[0] = true;
-
-                    for (int i = 1; i < 6; i++) this->itsFlagFitThisParam[i] = false;
-
-                } else {
-                    ASKAPLOG_WARN_STR(logger, "Fit type " << type << " is not valid, so can't set parameter flags");
-                }
-            }
-
-            //**************************************************************//
-
-            int FittingParameters::numFreeParam()
-            {
-                /// @details Returns the number of parameters that are to be
-                /// fitted by the fitting function. This is determined by the
-                /// FittingParameters::flagFitThisParam() function, where only
-                /// those parameters where the corresponding value of
-                /// FittingParameters::itsFlagFitThisParam is true.
-                /// @return The number of free parameters in the fit.
-                int nparam = 0;
-
-                for (unsigned int p = 0; p < 6; p++)
-                    if (this->itsFlagFitThisParam[p]) nparam++;
-
-                return nparam;
-            }
-
-            //**************************************************************//
-
-            bool FittingParameters::hasType(std::string type)
-            {
-                /// @details Whether the given type is one of the fit
-                /// types stored in this FittingParameters object.
-                /// @param type Fit type under question
-                /// @return True if the given type is recorded. False otherwise.
-
-                bool haveIt = false;
-
-                for (unsigned int i = 0; i < this->itsFitTypes.size() && !haveIt; i++) {
-                    haveIt = (this->itsFitTypes[i] == type);
-                }
-
-                return haveIt;
-            }
-
-            //**************************************************************//
-
-            std::string convertSummaryFile(std::string baseName, std::string type)
-            {
-                /// @details Creates an output file name that indicates
-                /// the fit type being used. A string "_<type>" is added
-                /// before any suffix in the base name provided
-                /// (ie. "_full" or "_psf" or "_shape" or "_height").
-                /// @param baseName The name of the overall summary file
-                /// @param type The type of fit being done. If it is not
-                /// one of "full", "psf", "shape" or "height", the baseName is
-                /// returned.
-                /// @return The edited filename.
-
-                std::string suffix;
-                size_t loc = baseName.rfind(".");
-                suffix = baseName.substr(loc, baseName.length());
-                std::string outName = baseName;
-
-                if (type == "full") outName.replace(loc, suffix.length(), "_full" + suffix);
-                else if (type == "psf") outName.replace(loc, suffix.length(), "_psf" + suffix);
-                else if (type == "shape") outName.replace(loc, suffix.length(), "_shape" + suffix);
-                else if (type == "height") outName.replace(loc, suffix.length(), "_height" + suffix);
-
-                return outName;
-            }
+    return false;
+}
 
 
-	  
+
+FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
+{
+    //          ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
+    itsFlagDoFit = parset.getBool("doFit", false);
+    itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
+    itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
+    itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
+    itsChisqConfidence = parset.getFloat("chisqConfidence", defaultChisqConfidence);
+    itsMaxReducedChisq = parset.getFloat("maxReducedChisq", defaultMaxReducedChisq);
+    itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
+    itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
+    itsNumSubThresholds = parset.getInt32("numSubThresholds", defaultNumSubThresholds);
+    itsFlagLogarithmicIncrements = parset.getBool("logarithmicThresholds", true);
+    itsFlagUseCurvature = parset.getBool("useCurvature", false);
+    itsCurvatureImage = parset.getString("curvatureImage", "");
+    itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
+    itsCriterium = parset.getDouble("criterium", 0.0001);
+    itsMaxIter = parset.getUint32("maxIter", 1024);
+    itsUseNoise = parset.getBool("useNoise", true);
+    itsNoiseLevel = parset.getFloat("noiseLevel", 1.);
+    itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", true);
+    itsFlagNumGaussFromGuess = parset.getBool("numGaussFromGuess", true);
+    itsUseGuessIfBad = parset.getBool("useGuessIfBad", true);
+    itsFlagFitThisParam = std::vector<bool>(6, true);
+    itsFlagFitJustDetection = parset.getBool("fitJustDetection", true);
+
+    if (parset.isDefined("flagFitParam"))
+        ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. " <<
+                          "Please use fitTypes to specify a list of types of fits.");
+
+    itsFitTypes = parset.getStringVector("fitTypes", defaultFitTypes);
+    std::stringstream ss;
+
+    std::vector<std::string>::iterator type = itsFitTypes.begin();
+
+    while (type < itsFitTypes.end()) {
+        if (!isFitTypeValid(*type)) {
+            ASKAPLOG_WARN_STR(logger, "Fit type " << *type <<
+                              " is not valid. Removing from list.");
+            itsFitTypes.erase(type);
+        } else {
+            ss << *type << " ";
+            type++;
         }
-
     }
+
+    if (itsFlagDoFit && itsFitTypes.size() == 0) {
+        itsFlagDoFit = false;
+    }
+
+}
+
+//**************************************************************//
+
+void FittingParameters::setBoxFlux(casa::Vector<casa::Double> f)
+{
+
+    itsBoxFlux = 0.;
+    for (uint i = 0; i < f.size(); i++)
+        itsBoxFlux += f(i);
+
+}
+
+//**************************************************************//
+
+void FittingParameters::setFlagFitThisParam(std::string type)
+{
+
+    if (type == "full") {
+        for (int i = 0; i < 6; i++) {
+            itsFlagFitThisParam[i] = true;
+        }
+    } else if (type == "psf") {
+        for (int i = 0; i < 3; i++) {
+            itsFlagFitThisParam[i] = true;
+        }
+        for (int i = 3; i < 6; i++) {
+            itsFlagFitThisParam[i] = false;
+        }
+    } else if (type == "shape") {
+        itsFlagFitThisParam[0] = false;
+        for (int i = 1; i < 6; i++) {
+            itsFlagFitThisParam[i] = true;
+        }
+    } else if (type == "height") {
+        itsFlagFitThisParam[0] = true;
+        for (int i = 1; i < 6; i++) {
+            itsFlagFitThisParam[i] = false;
+        }
+    } else {
+        ASKAPLOG_WARN_STR(logger, "Fit type " << type <<
+                          " is not valid, so can't set parameter flags");
+    }
+}
+
+//**************************************************************//
+
+int FittingParameters::numFreeParam()
+{
+    int nparam = 0;
+
+    for (unsigned int p = 0; p < 6; p++) {
+        if (itsFlagFitThisParam[p]) nparam++;
+    }
+
+    return nparam;
+}
+
+//**************************************************************//
+
+bool FittingParameters::hasType(std::string type)
+{
+
+    bool haveIt = false;
+
+    for (unsigned int i = 0; i < itsFitTypes.size() && !haveIt; i++) {
+        haveIt = (itsFitTypes[i] == type);
+    }
+
+    return haveIt;
+}
+
+//**************************************************************//
+
+std::string convertSummaryFile(std::string baseName, std::string type)
+{
+    std::string suffix;
+    size_t loc = baseName.rfind(".");
+    suffix = baseName.substr(loc, baseName.length());
+    std::string outName = baseName;
+
+    if (type == "full") {
+        outName.replace(loc, suffix.length(), "_full" + suffix);
+    } else if (type == "psf") {
+        outName.replace(loc, suffix.length(), "_psf" + suffix);
+    } else if (type == "shape") {
+        outName.replace(loc, suffix.length(), "_shape" + suffix);
+    } else if (type == "height") {
+        outName.replace(loc, suffix.length(), "_height" + suffix);
+    } else {
+        ASKAPLOG_WARN_STR(logger, "Fit type " << type <<
+                          " is not valid, so can't set parameter flags");
+    }
+    return outName;
+}
+
+
+
+}
+
+}
 
 }

@@ -58,8 +58,10 @@ namespace askap {
 namespace analysis {
 
 ResultsWriter::ResultsWriter(DuchampParallel *finder):
-    itsParset(finder->parset()), itsCube(finder->cube()),
-    itsSourceList(finder->rSourceList()), itsFitParams(*finder->fitParams()),
+    itsParset(finder->parset()),
+    itsCube(finder->cube()),
+    itsSourceList(finder->rSourceList()),
+    itsFitParams(finder->fitParams()),
     itsFlag2D(finder->is2D())
 {
 }
@@ -218,13 +220,14 @@ void ResultsWriter::writeFitResults()
 {
     if (itsFitParams.doFit()) {
 
-        std::vector<std::string> outtypes = this->itsFitParams.fitTypes();
+        std::vector<std::string> outtypes = itsFitParams.fitTypes();
         outtypes.push_back("best");
 
         for (size_t t = 0; t < outtypes.size(); t++) {
 
             duchamp::Catalogues::CatalogueSpecification columns =
                 fullCatalogue(itsCube.getFullCols(), itsCube.header());
+            
             setupCols(columns, itsSourceList, outtypes[t]);
 
             std::string filename = itsParset.getString("fitResultsFile", "selavy-fitResults.txt");
@@ -278,14 +281,14 @@ void ResultsWriter::writeFitAnnotations()
         bool doBoxAnnot = !itsFitParams.fitJustDetection() &&
                           (fitAnnotationFile != fitBoxAnnotationFile);
 
-        if (this->itsSourceList.size() > 0) {
+        if (itsSourceList.size() > 0) {
 
             for (int i = 0; i < 3; i++) {
                 boost::shared_ptr<duchamp::AnnotationWriter> writerFit;
                 boost::shared_ptr<duchamp::AnnotationWriter> writerBox;
                 switch (i) {
                     case 0: //Karma
-                        if (this->itsCube.pars().getFlagKarma()) {
+                        if (itsCube.pars().getFlagKarma()) {
                             writerFit = boost::shared_ptr<KarmaAnnotationWriter>(
                                             new KarmaAnnotationWriter(fitAnnotationFile));
                             ASKAPLOG_INFO_STR(logger,
@@ -297,7 +300,7 @@ void ResultsWriter::writeFitAnnotations()
                                                 new KarmaAnnotationWriter(fitBoxAnnotationFile));
                             break;
                         case 1://DS9
-                            if (this->itsCube.pars().getFlagDS9()) {
+                            if (itsCube.pars().getFlagDS9()) {
                                 std::string filename = fitAnnotationFile;
                                 size_t loc = filename.rfind(".ann");
                                 if (loc == std::string::npos) filename += ".reg";
@@ -319,7 +322,7 @@ void ResultsWriter::writeFitAnnotations()
                             }
                             break;
                         case 2://CASA
-                            if (this->itsCube.pars().getFlagCasa()) {
+                            if (itsCube.pars().getFlagCasa()) {
                                 std::string filename = fitAnnotationFile;
                                 size_t loc = filename.rfind(".ann");
                                 if (loc == std::string::npos) filename += ".crf";
@@ -345,7 +348,7 @@ void ResultsWriter::writeFitAnnotations()
                 }
 
                 if (writerFit.get() != 0) {
-                    writerFit->setup(&this->itsCube);
+                    writerFit->setup(&itsCube);
                     writerFit->openCatalogue();
                     writerFit->setColourString("BLUE");
                     writerFit->writeHeader();
@@ -355,7 +358,7 @@ void ResultsWriter::writeFitAnnotations()
                     // writer->writeEntries();
 
                     if (writerBox.get() != 0) {
-                        writerBox->setup(&this->itsCube);
+                        writerBox->setup(&itsCube);
                         writerBox->openCatalogue();
                         writerBox->setColourString("BLUE");
                         writerBox->writeHeader();
@@ -366,12 +369,14 @@ void ResultsWriter::writeFitAnnotations()
 
                     std::vector<sourcefitting::RadioSource>::iterator src;
                     int num = 1;
-                    for (src = this->itsSourceList.begin();
-                            src < this->itsSourceList.end(); src++) {
-                        src->writeFitToAnnotationFile(writerFit.get(), num, true,
-                                                      (fitAnnotationFile == fitBoxAnnotationFile));
-                        if (doBoxAnnot && writerBox != 0)
-                            src->writeFitToAnnotationFile(writerBox.get(), num, false, true);
+                    for (src = itsSourceList.begin();
+                         src < itsSourceList.end();
+                         src++) {
+                        bool boxesWithFits = (fitAnnotationFile == fitBoxAnnotationFile);
+                        src->writeFitToAnnotationFile(writerFit, num, true, boxesWithFits);
+                        if (doBoxAnnot && writerBox != 0) {
+                            src->writeFitToAnnotationFile(writerBox, num, false, true);
+                        }
                         num++;
                     }
 

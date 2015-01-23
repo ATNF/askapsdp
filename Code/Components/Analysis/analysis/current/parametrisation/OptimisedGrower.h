@@ -1,7 +1,7 @@
 /// @file
 ///
 /// Implementation of WALLABY's recommended algorithms for optimising
-/// the mask
+/// the mask of a detected source.
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -42,36 +42,45 @@ using namespace duchamp;
 
 namespace askap {
 
-  namespace analysis {
+namespace analysis {
 
-    class OptimisedGrower : public duchamp::ObjectGrower
-    {
+class OptimisedGrower : public duchamp::ObjectGrower {
     public:
-      OptimisedGrower();
-      OptimisedGrower(const LOFAR::ParameterSet &parset);
-      virtual ~OptimisedGrower(){};
-  
-      void grow(duchamp::Detection *object);
+        OptimisedGrower();
+        OptimisedGrower(const LOFAR::ParameterSet &parset);
+        virtual ~OptimisedGrower() {};
 
-      void setFlag(int x, int y, int z, duchamp::STATE newstate);
-      void setFlag(size_t pos, duchamp::STATE newstate){itsFlagArray[pos] = newstate;};
-      void setFlag(Voxel vox, duchamp::STATE newstate){setFlag(vox.getX(),vox.getY(),vox.getZ(),newstate);};
-      void setMaxIter(int i){maxIterations=i;};
-      void setMaxMinZ(int max, int min){zmin=std::min(min,max);zmax=std::max(min,max);};
-      void setClobber(bool b){clobberPrevious=b;};
-      void findEllipse();
-      duchamp::Detection growMask();
+        void grow(duchamp::Detection *object);
+
+        void setFlag(int x, int y, int z, duchamp::STATE newstate);
+        void setFlag(size_t pos, duchamp::STATE newstate)
+        {
+            itsFlagArray[pos] = newstate;
+        };
+        void setFlag(Voxel vox, duchamp::STATE newstate)
+        {
+            setFlag(vox.getX(), vox.getY(), vox.getZ(), newstate);
+        };
+        void setMaxIter(int i) {maxIterations = i;};
+        void setMaxMinZ(int max, int min)
+        {
+            zmin = std::min(min, max);
+            zmax = std::max(min, max);
+        };
+        void setClobber(bool b) {clobberPrevious = b;};
+        void findEllipse();
+        duchamp::Detection growMask();
 
     protected:
-      double ell_a,ell_b,ell_theta;
-      int maxIterations;
-      float totalFlux, maxFlux;
-      duchamp::Detection *itsObj;
-      int xObj, yObj, zmin, zmax;
-      bool clobberPrevious;
-    };
+        double ell_a, ell_b, ell_theta;
+        int maxIterations;
+        float totalFlux, maxFlux;
+        duchamp::Detection *itsObj;
+        int xObj, yObj, zmin, zmax;
+        bool clobberPrevious;
+};
 
-  }
+}
 
 }
 

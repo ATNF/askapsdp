@@ -34,32 +34,32 @@
 
 namespace askap {
 
-    namespace analysis { 
+namespace analysis {
 
 
-	class CubeletExtractor : public SourceDataExtractor
-	{
-	public:
-	    CubeletExtractor(){};
-	    CubeletExtractor(const CubeletExtractor& other);
-	    CubeletExtractor(const LOFAR::ParameterSet& parset);
-	    CubeletExtractor& operator= (const CubeletExtractor& other);
-	    virtual ~CubeletExtractor(){};
+class CubeletExtractor : public SourceDataExtractor {
+    public:
+        CubeletExtractor() {};
+        CubeletExtractor(const CubeletExtractor& other);
+        CubeletExtractor(const LOFAR::ParameterSet& parset);
+        CubeletExtractor& operator= (const CubeletExtractor& other);
+        virtual ~CubeletExtractor() {};
 
-	    void extract();
-	    void writeImage();
+        void extract();
+        void writeImage();
 
-	protected:
-	    void defineSlicer();
-	    void initialiseArray();
+    protected:
+        void defineSlicer();
+        void initialiseArray();
 
-	    /// For the box method, how many pixels to pad around the source?
-	    unsigned int itsSpatialPad;
-	    unsigned int itsSpectralPad;
+        /// For the box method, how many pixels to pad around the
+        /// source?
+        unsigned int itsSpatialPad;
+        unsigned int itsSpectralPad;
 
-	};
+};
 
-    }
+}
 
 }
 

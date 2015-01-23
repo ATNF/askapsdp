@@ -74,9 +74,13 @@ int main(int argc, const char** argv)
         std::ifstream fg(guptaFile.c_str());
         std::ifstream fd(deboerFile.c_str());
 
-        if (!fg.is_open()) ASKAPTHROW(AskapError, "Could not open " << guptaFile);
+        if (!fg.is_open()) {
+            ASKAPTHROW(AskapError, "Could not open " << guptaFile);
+        }
 
-        if (!fd.is_open()) ASKAPTHROW(AskapError, "Could not open " << deboerFile);
+        if (!fd.is_open()) {
+            ASKAPTHROW(AskapError, "Could not open " << deboerFile);
+        }
 
         double x, y;
         int id = 1;
@@ -84,7 +88,7 @@ int main(int argc, const char** argv)
         while (fg >> x >> y, !fg.eof()) {
             std::stringstream ss;
             ss << id++;
-	    //            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
+            //            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
             Point p(x, y, 1., ss.str());
             gupta.push_back(p);
         }
@@ -94,12 +98,13 @@ int main(int argc, const char** argv)
         while (fd >> x >> y, !fd.eof()) {
             std::stringstream ss;
             ss << id++;
-	    //            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
+            //            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
             Point p(x, y, 1., ss.str());
             deboer.push_back(p);
         }
 
-        ASKAPLOG_INFO_STR(logger, "Sizes of lists: gupta=" << gupta.size() << ", deBoer=" << deboer.size());
+        ASKAPLOG_INFO_STR(logger, "Sizes of lists: gupta=" << gupta.size() <<
+                          ", deBoer=" << deboer.size());
 
         LOFAR::ParameterSet nullset;
         Matcher matcher(nullset);

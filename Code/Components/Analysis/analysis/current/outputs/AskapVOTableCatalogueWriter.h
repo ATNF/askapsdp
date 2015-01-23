@@ -88,7 +88,7 @@ class AskapVOTableCatalogueWriter : public duchamp::VOTableCatalogueWriter {
         /// source and treat it either as an island (if
         /// itsEntryType==ISLAND) or as a collection of one or more
         /// components (itsEntryType==COMPONENT).
-        void writeEntry(RadioSource *source);
+        void writeEntry(RadioSource &source);
 
     protected:
         std::vector<RadioSource> *itsSourceList;

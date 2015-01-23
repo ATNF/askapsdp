@@ -64,7 +64,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
             std::string argument = std::string(argv[arg]);
 
             if (argument == key) {
-                return std::string(argv[arg+1]);
+                return std::string(argv[arg + 1]);
             }
         }
     }
@@ -91,7 +91,7 @@ int main(int argc, const char** argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.readData();
         image.setupLogfile(argc, argv);
-	image.preprocess();
+        image.preprocess();
         image.gatherStats();
         image.setThreshold();
         image.findSources();
@@ -104,22 +104,26 @@ int main(int argc, const char** argv)
         if (comms.isMaster()) { // only do the cross matching on the master node.
             LOFAR::ParameterSet subsetCrossmatch(parset.makeSubset("Crossmatch."));
             CatalogueMatcher matcher(subsetCrossmatch);
-	    if(matcher.read()){
-	      matcher.findMatches();
-	      matcher.findOffsets();
-	      matcher.addNewMatches();
-	      matcher.findOffsets();
-	      matcher.outputLists();
-	      matcher.outputSummary();
-	    } else{
-	      if (matcher.srcListSize()==0) 
-		ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
-	      if (matcher.refListSize()==0) 
-		ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
-	    }
+            if (matcher.read()) {
+                matcher.findMatches();
+                matcher.findOffsets();
+                matcher.addNewMatches();
+                matcher.findOffsets();
+                matcher.outputLists();
+                matcher.outputSummary();
+            } else {
+                if (matcher.srcListSize() == 0) {
+                    ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
+                }
+                if (matcher.refListSize() == 0) {
+                    ASKAPLOG_WARN_STR(logger,
+                                      "Reference list has zero length - no matching done.");
+                }
+            }
         }
 
-        ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
+        ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " <<
+                          timer.real() << " sec");
         ///==============================================================================
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

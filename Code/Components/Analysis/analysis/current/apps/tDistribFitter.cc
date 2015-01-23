@@ -80,138 +80,125 @@ int main(int argc, const char *argv[])
 {
     try {
 
-      AskapParallel parl(argc, argv);
+        AskapParallel parl(argc, argv);
 
-      if (!parl.isParallel()) {
-	ASKAPLOG_ERROR_STR(logger, "This needs to be run in parallel!");
-	exit(1);
-      }
+        if (!parl.isParallel()) {
+            ASKAPLOG_ERROR_STR(logger, "This needs to be run in parallel!");
+            exit(1);
+        }
 
-      if(parl.isMaster()) {
-	const int size=20;
-	std::vector<int> mylist(size);
-	for(int i=0;i<size;i++) mylist[i]=i;
+        if (parl.isMaster()) {
+            const int size = 20;
+            std::vector<int> mylist(size);
+            for (int i = 0; i < size; i++) mylist[i] = i;
 
-	int16 rank;
-	LOFAR::BlobString bs;
-	for(int i=0;i<size;i++){
-	  // loop over the list of numbers, find a free worker and send a number to it
-	  // parl.receiveBlob(bs, 0);
-	  // LOFAR::BlobIBufString bib(bs);
-	  // LOFAR::BlobIStream in(bib);
-	  // int version = in.getStart("fitready");
-	  // ASKAPASSERT(version == 1);
-	  // in >> rank;
-	  // in.getEnd();
+            int16 rank;
+            LOFAR::BlobString bs;
+            for (int i = 0; i < size; i++) {
 
-	  // int size;
-	  // MPI_Status status;
-	  // const int type = 0;
-	  // receive(&size, sizeof(int), MPI_ANY_SOURCE, type, status);
-	  // rank = status.MPI_SOURCE;
+                rank = i % (parl.nProcs() - 1);
+                ASKAPLOG_INFO_STR(logger, "Master about to send number " << mylist[i] <<
+                                  " to worker #" << rank + 1);
+                bs.resize(0);
+                LOFAR::BlobOBufString bob(bs);
+                LOFAR::BlobOStream out(bob);
+                out.putStart("fitsrc", 1);
+                out << true << mylist[i];
+                out.putEnd();
+                parl.sendBlob(bs, rank + 1);
+                ASKAPLOG_INFO_STR(logger, "Done");
+            }
+            // now notify all workers that we're finished.
+            bs.resize(0);
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            out.putStart("fitsrc", 1);
+            // sourcefitting::RadioSource dudSrc;
+            // out << false << dudSrc;
+            // out.putEnd();
+            //for (int i = 1; i < parl.nProcs(); ++i) {
+            //    parl.sendBlob(bs, i);
+            //}
+            out << false << -1;
+            out.putEnd();
+            for (int i = 1; i < parl.nProcs(); ++i) {
+                parl.sendBlob(bs, i);
+            }
+
+            // read data back from workers
+            std::vector<int> newlist;
+            for (int n = 0; n < parl.nProcs() - 1; n++) {
+                int size, num;
+                ASKAPLOG_INFO_STR(logger, "Master about to read from worker #" << n);
+                parl.receiveBlob(bs, n + 1);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("final");
+                ASKAPASSERT(version == 1);
+                in >> size;
+                ASKAPLOG_INFO_STR(logger, "The list from worker #" << n <<
+                                  " is of size " << size);
+                for (int i = 0; i < size; i++) {
+                    in >> num;
+                    newlist.push_back(num);
+                }
+                in.getEnd();
+            }
+            std::stringstream ss;
+            for (size_t i = 0; i < newlist.size(); i++) ss << newlist[i] << " ";
+            ASKAPLOG_INFO_STR(logger, "Master has : " << ss.str());
+
+        } else if (parl.isWorker()) {
+            LOFAR::BlobString bs;
+            bool isOK = true;
+            int num;
+            std::vector<int> numbers;
+
+            while (isOK) {
+                // bs.resize(0);
+                // LOFAR::BlobOBufString bob(bs);
+                // LOFAR::BlobOStream out(bob);
+                // out.putStart("fitready", 1);
+                // out << true;
+                // out.putEnd();
+                // parl.sendBlob(bs, 0);
+
+                // const unsigned long size = 0;
+                // const int dest=0;
+                // send(&size, sizeof(long), dest, 0);
+
+                parl.receiveBlob(bs, 0);
+                LOFAR::BlobIBufString bib(bs);
+                LOFAR::BlobIStream in(bib);
+                int version = in.getStart("fitsrc");
+                ASKAPASSERT(version == 1);
+                in >> isOK >> num;
+                in.getEnd();
+                if (isOK) {
+                    ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() <<
+                                      " has number " << num);
+                    numbers.push_back(num);
+                }
+            }
+
+            std::stringstream ss;
+            for (size_t i = 0; i < numbers.size(); i++) ss << numbers[i] << " ";
+            ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << " has : " << ss.str());
+            for (size_t i = 0; i < numbers.size(); i++) numbers[i] += 100;
+            // send numbers back to master
+            bs.resize(0);
+            LOFAR::BlobOBufString bob(bs);
+            LOFAR::BlobOStream out(bob);
+            out.putStart("final", 1);
+            out << int(numbers.size());
+            for (size_t i = 0; i < numbers.size(); i++) out << numbers[i];
+            out.putEnd();
+            parl.sendBlob(bs, 0);
 
 
-	  rank = i%(parl.nProcs()-1);
-	  ASKAPLOG_INFO_STR(logger, "Master about to send number " << mylist[i] << " to worker #"<< rank+1);
-	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-	  LOFAR::BlobOStream out(bob);
-	  out.putStart("fitsrc", 1);
-	  out << true << mylist[i];
-	  out.putEnd();
-	  parl.sendBlob(bs, rank + 1);
-	  ASKAPLOG_INFO_STR(logger, "Done");
-	}
-	// now notify all workers that we're finished.
-	bs.resize(0);
-	LOFAR::BlobOBufString bob(bs);
-	LOFAR::BlobOStream out(bob);
-	out.putStart("fitsrc", 1);
-	// sourcefitting::RadioSource dudSrc;
-	// out << false << dudSrc;
-	// out.putEnd();
-    //for (int i = 1; i < parl.nProcs(); ++i) {
-	//    parl.sendBlob(bs, i);
-    //}
-	out << false << -1;
-	out.putEnd();
-    for (int i = 1; i < parl.nProcs(); ++i) {
-	    parl.sendBlob(bs, i);
-    }
+        }
 
-	// read data back from workers
-	std::vector<int> newlist;
-	for (int n=0;n<parl.nProcs()-1;n++){
-	  int size,num;
-	  ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n);
-	  parl.receiveBlob(bs, n + 1);
-	  LOFAR::BlobIBufString bib(bs);
-	  LOFAR::BlobIStream in(bib);
-	  int version = in.getStart("final");
-	  ASKAPASSERT(version == 1);
-	  in >> size;
-	  ASKAPLOG_INFO_STR(logger, "The list from worker #"<< n << " is of size " << size);
-	  for(int i=0;i<size;i++){
-	    in >> num;
-	    newlist.push_back(num);
-	  }
-	  in.getEnd();
-	}
- 	std::stringstream ss;
-	for(size_t i=0;i<newlist.size();i++) ss<<newlist[i]<<" ";
-	ASKAPLOG_INFO_STR(logger, "Master has : " << ss.str());
-
-     }
-      else if(parl.isWorker()){
-	LOFAR::BlobString bs;
-	bool isOK=true;
-	int num;
-	std::vector<int> numbers;
-
-	while(isOK) {
-	  // bs.resize(0);
-	  // LOFAR::BlobOBufString bob(bs);
-	  // LOFAR::BlobOStream out(bob);
-	  // out.putStart("fitready", 1);
-	  // out << true;
-	  // out.putEnd();
-	  // parl.sendBlob(bs, 0);
-
-	  // const unsigned long size = 0;
-	  // const int dest=0;
-	  // send(&size, sizeof(long), dest, 0);
-	    
-	  parl.receiveBlob(bs, 0);
-	  LOFAR::BlobIBufString bib(bs);
-	  LOFAR::BlobIStream in(bib);
-	  int version = in.getStart("fitsrc");
-	  ASKAPASSERT(version == 1);
-	  in >> isOK >> num;
-	  in.getEnd();
-	  if(isOK){
-	    ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has number " << num);
-	    numbers.push_back(num);
-	  }
-	}
-	
-	std::stringstream ss;
-	for(size_t i=0;i<numbers.size();i++) ss<<numbers[i]<<" ";
-	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has : " << ss.str());
-	for(size_t i=0;i<numbers.size();i++) numbers[i]+=100;
-	// send numbers back to master
-	bs.resize(0);
-	LOFAR::BlobOBufString bob(bs);
-	LOFAR::BlobOStream out(bob);
-	out.putStart("final", 1);
-	out << int(numbers.size());
-	for(size_t i=0;i<numbers.size();i++) out << numbers[i];
-	out.putEnd();
-	parl.sendBlob(bs, 0);
-	
-
-      }
-
-   } catch (askap::AskapError& x) {
+    } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
