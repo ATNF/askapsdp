@@ -282,9 +282,9 @@ DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
 
     if (itsComms.isParallel()) {
         itsSubimageDef = SubimageDef(itsParset);
-        int ovx = itsSubimageDef.overlapx();
-        int ovy = itsSubimageDef.overlapy();
-        int ovz = itsSubimageDef.overlapz();
+        unsigned int ovx = itsSubimageDef.overlapx();
+        unsigned int ovy = itsSubimageDef.overlapy();
+        unsigned int ovz = itsSubimageDef.overlapz();
 
         // Need the overlap to be at least the boxPadSize that is used
         // by the fitting

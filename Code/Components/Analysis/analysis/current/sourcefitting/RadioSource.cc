@@ -321,9 +321,9 @@ void RadioSource::setAtEdge(duchamp::Cube &cube,
     } else {
         std::vector<unsigned int> nsub = subimage.nsub();
         std::vector<unsigned int> overlap = subimage.overlap();
-        int colnum = workerNum % nsub[0];
-        int rownum = workerNum / nsub[0];
-        int znum = workerNum / (nsub[0] * nsub[1]);
+        unsigned int colnum = workerNum % nsub[0];
+        unsigned int rownum = workerNum / nsub[0];
+        unsigned int znum = workerNum / (nsub[0] * nsub[1]);
         xminEdge = (colnum == 0) ? 0 : overlap[0];
         xmaxEdge = (colnum == nsub[0] - 1) ?
                    cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
@@ -393,7 +393,6 @@ void RadioSource::setNoiseLevel(std::vector<float> &array,
 
     unsigned int npix = (xmax - xmin + 1) * (ymax - ymin + 1);
     ASKAPASSERT(npix <= boxSize * boxSize);
-    size_t size = 0;
 
     for (int x = xmin; x <= xmax; x++) {
         for (int y = ymin; y <= ymax; y++) {
@@ -401,7 +400,6 @@ void RadioSource::setNoiseLevel(std::vector<float> &array,
             localArray.push_back(array[pos]);
         }
     }
-    size = localArray.size();
 
     itsNoiseLevel = analysisutilities::findSpread(true, localArray);
 
@@ -1002,7 +1000,7 @@ bool RadioSource::fitGauss(casa::Matrix<casa::Double> &pos,
 
             bool fitPossible = true;
             bool stopNow = false;
-            for (int g = minGauss; g <= maxGauss && fitPossible && !stopNow; g++) {
+            for (unsigned int g = minGauss; g <= maxGauss && fitPossible && !stopNow; g++) {
                 ASKAPLOG_DEBUG_STR(logger, "Number of Gaussian components = " << g);
 
                 fit[ctr].setParams(itsFitParams);
