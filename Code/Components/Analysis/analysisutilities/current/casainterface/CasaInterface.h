@@ -60,6 +60,9 @@ namespace analysisutilities {
 /// Return the dimensions of a given image.
 std::vector<size_t> getDim(const boost::shared_ptr<ImageInterface<Float> > imagePtr);
 
+/// Check whether an image is able to be opened.
+bool imageExists(std::string imagename);
+
 /// Open an image and return an ImageInterface object
 const boost::shared_ptr<ImageInterface<Float> > openImage(std::string imagename);
 

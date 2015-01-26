@@ -82,10 +82,18 @@ VariableThresholder::VariableThresholder(askap::askapparallel::AskapParallel& co
     itsCube = 0;
     itsFlagRobustStats = true;
     itsFlagReuse = parset.getBool("reuse", false);
+    // User wants to reuse, but have they provided an SNR image?
     if (itsSNRimageName == "") {
         ASKAPLOG_WARN_STR(logger,
                           "Variable Thresholder: reuse=true, but no SNR image name given. " <<
                           "Turning reuse off.");
+        itsFlagReuse = false;
+    }
+    // If so, does that image exist?
+    if (! analysisutilities::imageExists(itsSNRimageName)) {
+        ASKAPLOG_WARN_STR(logger,
+                          "Variable Thresholder: reuse=tru, but SNR image " << itsSNRimageName <<
+                          " can not be opened. Turning reuse off.");
         itsFlagReuse = false;
     }
 }

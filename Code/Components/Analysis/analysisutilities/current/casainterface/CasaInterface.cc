@@ -42,6 +42,7 @@
 
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
 #include <images/Images/MIRIADImage.h>
@@ -96,6 +97,15 @@ std::vector<size_t> getDim(const boost::shared_ptr<ImageInterface<Float> > image
     }
 
     return dim;
+}
+
+bool imageExists(std::string imagename)
+{
+    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+    const boost::scoped_ptr<LatticeBase> lattPtr(ImageOpener::openImage(imagename));
+    bool imageExists = (lattPtr.get() != 0);
+    return imageExists;
 }
 
 const boost::shared_ptr<ImageInterface<Float> > openImage(std::string imagename)
