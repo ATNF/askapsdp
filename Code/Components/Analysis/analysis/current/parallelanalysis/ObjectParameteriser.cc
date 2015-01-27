@@ -193,6 +193,7 @@ void ObjectParameteriser::parameterise()
                                    " out of " << itsInputList.size());
 
                 // get bounding subsection & transform into a Subsection string
+                itsInputList[i].setHeader(itsDP->cube().header());
                 std::string subsection = itsInputList[i].boundingSubsection(dim, true);
                 parset.replace("subsection", subsection);
                 // turn off the subimaging, so we read the whole lot.

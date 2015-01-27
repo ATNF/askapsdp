@@ -258,35 +258,41 @@ std::string RadioSource::boundingSubsection(std::vector<size_t> dim,
     const int lat = itsHeader.getWCS()->lat;
     const int spec = itsHeader.getWCS()->spec;
     std::vector<std::string> sectionlist(dim.size(), "1:1");
-    long min, max;
+    long first,last;
     for (int ax = 0; ax < int(dim.size()); ax++) {
         std::stringstream ss;
         if (ax == spec) {
             if (fullSpectralRange) {
-                ss << "1:" << dim[ax] + 1;
+                first = 1;
+                last = dim[ax];
             } else {
-                ss << std::max(1L, this->zmin - itsFitParams.boxPadSize() + 1) << ":"
-                   << std::min(long(dim[ax]), this->zmax + itsFitParams.boxPadSize() + 1);
+                first = std::max(1L, this->zmin - itsFitParams.boxPadSize() + 1);
+                last = std::min(long(dim[ax]), this->zmax + itsFitParams.boxPadSize() + 1);
             }
         } else if (ax == lng) {
-            min = this->xmin - itsFitParams.boxPadSize() + 1;
-            max = this->xmax + itsFitParams.boxPadSize() + 1;
+            first = this->xmin - itsFitParams.boxPadSize() + 1;
+            last = this->xmax + itsFitParams.boxPadSize() + 1;
             if (itsFitParams.useNoise()) {
-                min = std::min(min, this->xpeak - itsFitParams.noiseBoxSize() / 2);
-                max = std::max(max, this->xpeak + itsFitParams.noiseBoxSize() / 2);
+                first = std::min(first, this->xpeak - itsFitParams.noiseBoxSize() / 2);
+                last = std::max(last, this->xpeak + itsFitParams.noiseBoxSize() / 2);
             }
-            ss << std::max(1L, min) << ":" << std::min(long(dim[ax]), max);
+            first = std::max(first,1L);
+            last = std::min(last, long(dim[ax]));
+
         } else if (ax == lat) {
-            min = this->ymin - itsFitParams.boxPadSize() + 1;
-            max = this->ymax + itsFitParams.boxPadSize() + 1;
+            first = this->ymin - itsFitParams.boxPadSize() + 1;
+            last = this->ymax + itsFitParams.boxPadSize() + 1;
             if (itsFitParams.useNoise()) {
-                min = std::min(min, this->ypeak - itsFitParams.noiseBoxSize() / 2);
-                max = std::max(max, this->ypeak + itsFitParams.noiseBoxSize() / 2);
+                first = std::min(first, this->ypeak - itsFitParams.noiseBoxSize() / 2);
+                last = std::max(last, this->ypeak + itsFitParams.noiseBoxSize() / 2);
             }
-            ss << std::max(1L, min) << ":" << std::min(long(dim[ax]), max);
+            first = std::max(first,1L);
+            last = std::min(last, long(dim[ax]));
+
         } else {
-            ss << "1:1";
+            first = last = 1;
         }
+        ss << first << ":" << last;
         sectionlist[ax] = ss.str();
     }
     std::stringstream secstr;
