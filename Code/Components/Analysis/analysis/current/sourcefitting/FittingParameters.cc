@@ -119,8 +119,8 @@ FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
 
     while (type < itsFitTypes.end()) {
         if (!isFitTypeValid(*type)) {
-            ASKAPLOG_WARN_STR(logger, "Fit type " << *type <<
-                              " is not valid. Removing from list.");
+            ASKAPLOG_ERROR_STR(logger, "Fit type " << *type <<
+                               " is not valid. Removing from list.");
             itsFitTypes.erase(type);
         } else {
             ss << *type << " ";
@@ -130,6 +130,14 @@ FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
 
     if (itsFlagDoFit && itsFitTypes.size() == 0) {
         itsFlagDoFit = false;
+    }
+
+    if (itsFlagUseCurvature && 
+        itsCurvatureImage == ""){
+        ASKAPLOG_ERROR_STR(logger, 
+                           "No curvature image has been set via the curvatureImage parameter. " <<
+                           " Setting useCurvature=false.");
+        itsFlagUseCurvature = false;
     }
 
 }
