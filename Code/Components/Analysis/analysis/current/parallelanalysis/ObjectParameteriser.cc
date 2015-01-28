@@ -52,7 +52,13 @@ namespace askap {
 namespace analysis {
 
 ObjectParameteriser::ObjectParameteriser(askap::askapparallel::AskapParallel& comms):
-    itsComms(&comms), itsDP(), itsInputList(), itsOutputList(), itsTotalListSize(0)
+    itsComms(&comms),
+    itsHeader(),
+    itsReferenceParams(),
+    itsReferenceParset(),
+    itsInputList(),
+    itsOutputList(),
+    itsTotalListSize(0)
 {
 }
 
@@ -62,14 +68,21 @@ ObjectParameteriser::~ObjectParameteriser()
 
 void ObjectParameteriser::initialise(DuchampParallel *dp)
 {
-    itsDP = dp;
-    itsDP->cube().pars().setSubsection(itsDP->baseSubsection());
-    itsDP->cube().pars().verifySubsection();
-    itsDP->cube().pars().setOffsets(itsDP->cube().header().getWCS());
+    itsHeader = dp->cube().header();
+
+    itsReferenceParams = dp->cube().pars();
+    itsReferenceParams.setSubsection(dp->baseSubsection());
+    std::vector<size_t> dim =
+        analysisutilities::getCASAdimensions(itsReferenceParams.getImageFile());
+    itsReferenceParams.parseSubsections(dim);
+    itsReferenceParams.setOffsets(itsHeader.getWCS());
+
+    itsReferenceParset = dp->parset();
+
     if (itsComms->isMaster()) {
         std::vector<sourcefitting::RadioSource>::iterator src;
-        for (src = itsDP->pEdgeList()->begin();
-                src != itsDP->pEdgeList()->end();
+        for (src = dp->pEdgeList()->begin();
+                src != dp->pEdgeList()->end();
                 src++) {
             itsInputList.push_back(*src);
         }
@@ -185,32 +198,33 @@ void ObjectParameteriser::parameterise()
 
         if (itsInputList.size() > 0) {
 
-            std::string image = itsDP->cube().pars().getImageFile();
+            std::string image = itsReferenceParams.getImageFile();
             std::vector<size_t> dim = analysisutilities::getCASAdimensions(image);
-            LOFAR::ParameterSet parset = itsDP->parset();
-            parset.replace("flagsubsection", "true");
+            itsReferenceParset.replace("flagsubsection", "true");
 
             for (size_t i = 0; i < itsInputList.size(); i++) {
 
-                ASKAPLOG_DEBUG_STR(logger, "Parameterising object #" << i+1 <<
+                ASKAPLOG_DEBUG_STR(logger, "Parameterising object #" << i + 1 <<
                                    " out of " << itsInputList.size());
 
                 // get bounding subsection & transform into a Subsection string
-                itsInputList[i].setHeader(itsDP->cube().header());
+                itsInputList[i].setHeader(itsHeader);
 
                 // add the offsets, so that we are in global-pixel-coordinates
                 itsInputList[i].addOffsets();
                 std::string subsection = itsInputList[i].boundingSubsection(dim, true);
 
-                parset.replace("subsection", subsection);
+                itsReferenceParset.replace("subsection", subsection);
                 // turn off the subimaging, so we read the whole lot.
-                parset.replace("nsubx", "1");
-                parset.replace("nsuby", "1");
-                parset.replace("nsubz", "1");
+                itsReferenceParset.replace("nsubx", "1");
+                itsReferenceParset.replace("nsuby", "1");
+                itsReferenceParset.replace("nsubz", "1");
 
-                // define a duchamp Cube using the filename from the itsDP->cube()
+                // define a duchamp Cube using the filename from the
+                // itsReferenceParams
+
                 // set the subsection
-                DuchampParallel tempDP(*itsComms, parset);
+                DuchampParallel tempDP(*itsComms, itsReferenceParset);
                 // set this to false to stop anything trying to access
                 // the recon array
                 tempDP.cube().setReconFlag(false);
@@ -220,7 +234,9 @@ void ObjectParameteriser::parameterise()
 
                 // set the offsets to those from the local subsection
                 itsInputList[i].setOffsets(tempDP.cube().pars());
-                // remove those offsets, so we are in local-pixel-coordinates (as if we just did the searching)
+                // remove those offsets, so we are in
+                // local-pixel-coordinates (as if we just did the
+                // searching)
                 itsInputList[i].removeOffsets();
                 itsInputList[i].setFlagText("");
 
@@ -240,7 +256,7 @@ void ObjectParameteriser::parameterise()
                     src.setDetectionThreshold(tempDP.cube(),
                                               tempDP.getFlagVariableThreshold(),
                                               tempDP.varThresher()->snrImage());
-                                              
+
                     src.prepareForFit(tempDP.cube(), true);
                     src.setAtEdge(false);
 
@@ -252,7 +268,7 @@ void ObjectParameteriser::parameterise()
                 src.addOffsets();
 
                 // set the offsets to those from the base subsection
-                src.setOffsets(itsDP->cube().pars());
+                src.setOffsets(itsReferenceParams);
                 // and remove them, so that we're in subsection coordinates
                 src.removeOffsets();
 
@@ -278,7 +294,6 @@ void ObjectParameteriser::gather()
                 // for each worker, read completed objects until we get a 'finished' signal
 
                 // now read back the sources from the workers
-                itsDP->pEdgeList()->clear();
                 LOFAR::BlobString bs;
                 for (int n = 0; n < itsComms->nProcs() - 1; n++) {
                     int numSrc;
@@ -297,16 +312,14 @@ void ObjectParameteriser::gather()
                         ASKAPLOG_DEBUG_STR(logger, "Read parameterised object " <<
                                            src.getName() << ", ID=" << src.getID());
                         // make sure we have the right WCS etc information
-                        src.setHeader(itsDP->cube().header());
-                        src.setOffsets(itsDP->cube().pars());
+                        src.setHeader(itsHeader);
+                        src.setOffsets(itsReferenceParams);
                         itsOutputList.push_back(src);
-                        itsDP->pEdgeList()->push_back(src);
                     }
                     in.getEnd();
                 }
 
                 ASKAPASSERT(itsOutputList.size() == itsInputList.size());
-                ASKAPASSERT(itsOutputList.size() == itsDP->pEdgeList()->size());
 
             } else { // WORKER
                 // for each object in itsOutputList, send to master
@@ -318,7 +331,9 @@ void ObjectParameteriser::gather()
                 LOFAR::BlobOStream out(bob);
                 out.putStart("OPfinal", 1);
                 out << int(itsOutputList.size());
-                for (size_t i = 0; i < itsOutputList.size(); i++) out << itsOutputList[i];
+                for (size_t i = 0; i < itsOutputList.size(); i++) {
+                    out << itsOutputList[i];
+                }
                 out.putEnd();
                 itsComms->sendBlob(bs, 0);
             }
@@ -327,8 +342,7 @@ void ObjectParameteriser::gather()
             // serial case - need to put output sources into the DP edgelist
             for (size_t i = 0; i < itsOutputList.size(); i++) {
                 // make sure we have the right WCS etc information
-                itsOutputList[i].setHeader(itsDP->cube().header());
-                itsDP->pEdgeList()->push_back(itsOutputList[i]);
+                itsOutputList[i].setHeader(itsHeader);
             }
 
         }

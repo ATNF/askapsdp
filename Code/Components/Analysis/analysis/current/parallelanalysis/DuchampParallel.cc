@@ -1129,6 +1129,7 @@ void DuchampParallel::cleanup()
         objParam.distribute();
         objParam.parameterise();
         objParam.gather();
+        itsEdgeSourceList = objParam.finalList();
 
         ASKAPLOG_INFO_STR(logger, "Finished parameterising " << itsEdgeSourceList.size()
                           << " edge sources");
@@ -1181,7 +1182,7 @@ void DuchampParallel::printResults()
                 for (size_t t = 0; t < outtypes.size(); t++) {
                     for (size_t i = 0; i < src->numFits(outtypes[t]); i++) {
                         Double f = src->fitset(outtypes[t])[i].flux();
-                        src->fitset(outtypes[t])[i].setFlux(f * -1);
+                        src->fitset(outtypes[t])[i].setFlux(f * -1.);
                     }
                 }
             }
@@ -1219,6 +1220,8 @@ void DuchampParallel::extract()
     extractor.extract();
 
 }
+
+//**************************************************************//
 
 void DuchampParallel::writeToFITS()
 {
@@ -1280,8 +1283,7 @@ void DuchampParallel::gatherStats()
         itsCube.pars().setFlagUserThreshold(true);
         ASKAPLOG_INFO_STR(logger, "Threshold = " << itsCube.stats().getThreshold());
     } else if (!itsCube.pars().getFlagUserThreshold() ||
-                (itsCube.pars().getFlagGrowth() &&
-                 !itsCube.pars().getFlagUserGrowthThreshold())) {
+               (itsCube.pars().getFlagGrowth() && !itsCube.pars().getFlagUserGrowthThreshold())) {
 
         ParallelStats parstats(itsComms, &itsCube);
         parstats.findDistributedStats();
