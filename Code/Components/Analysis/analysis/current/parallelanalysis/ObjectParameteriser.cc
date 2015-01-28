@@ -63,6 +63,9 @@ ObjectParameteriser::~ObjectParameteriser()
 void ObjectParameteriser::initialise(DuchampParallel *dp)
 {
     itsDP = dp;
+    itsDP->cube().pars().setSubsection(itsDP->baseSubsection());
+    itsDP->cube().pars().verifySubsection();
+    itsDP->cube().pars().setOffsets(itsDP->cube().header().getWCS());
     if (itsComms->isMaster()) {
         std::vector<sourcefitting::RadioSource>::iterator src;
         for (src = itsDP->pEdgeList()->begin();
@@ -189,12 +192,16 @@ void ObjectParameteriser::parameterise()
 
             for (size_t i = 0; i < itsInputList.size(); i++) {
 
-                ASKAPLOG_DEBUG_STR(logger, "Parameterising object #" << i <<
+                ASKAPLOG_DEBUG_STR(logger, "Parameterising object #" << i+1 <<
                                    " out of " << itsInputList.size());
 
                 // get bounding subsection & transform into a Subsection string
                 itsInputList[i].setHeader(itsDP->cube().header());
+
+                // add the offsets, so that we are in global-pixel-coordinates
+                itsInputList[i].addOffsets();
                 std::string subsection = itsInputList[i].boundingSubsection(dim, true);
+
                 parset.replace("subsection", subsection);
                 // turn off the subimaging, so we read the whole lot.
                 parset.replace("nsubx", "1");
@@ -211,7 +218,9 @@ void ObjectParameteriser::parameterise()
                 // open the image
                 tempDP.readData();
 
+                // set the offsets to those from the local subsection
                 itsInputList[i].setOffsets(tempDP.cube().pars());
+                // remove those offsets, so we are in local-pixel-coordinates (as if we just did the searching)
                 itsInputList[i].removeOffsets();
                 itsInputList[i].setFlagText("");
 
@@ -239,7 +248,13 @@ void ObjectParameteriser::parameterise()
 
                 }
 
+                // put back onto the global grid
                 src.addOffsets();
+
+                // set the offsets to those from the base subsection
+                src.setOffsets(itsDP->cube().pars());
+                // and remove them, so that we're in subsection coordinates
+                src.removeOffsets();
 
                 // get the parameterised object and store to itsOutputList
                 itsOutputList.push_back(src);

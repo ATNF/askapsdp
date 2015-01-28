@@ -59,6 +59,26 @@ SubThresholder::~SubThresholder()
 {
 }
 
+// SubThresholder::SubThresholder(const SubThresholder &s) {
+//     operator=(s);
+// }
+		  
+// SubThresholder& SubThresholder::operator=(const SubThresholder &s) {
+//     if(this == &s) return *this;
+//     this->itsFirstGuess = s.itsFirstGuess;
+//     this->itsSourceBox = s.itsSourceBox;
+//     this->itsBaseThreshold = s.itsBaseThreshold;
+//     this->itsThreshIncrement = s.itsThreshIncrement;
+//     this->itsPeakFlux = s.itsPeakFlux;
+//     this->itsSourceSize = s.itsSourceSize;
+//     this->itsDim = s.itsDim;
+//     this->itsFluxArray = s.itsFluxArray;
+//     this->itsCurrentThreshold = s.itsCurrentThreshold;
+//     this->itsFitParams = s.itsFitParams;
+//     return *this;
+
+// }
+
 void SubThresholder::define(RadioSource &src,
                             casa::Matrix<casa::Double> pos,
                             casa::Vector<casa::Double> &array)
@@ -194,9 +214,11 @@ std::vector<SubComponent> SubThresholder::find()
         theImage->saveArray(&(itsFluxArray[0]), itsFluxArray.size());
     }
     theImage->setMinSize(1);
+    theImage->pars().setFlagUserThreshold(true);
 
     while (itsCurrentThreshold <= itsPeakFlux && keepGoing) {
         theImage->stats().setThreshold(itsCurrentThreshold);
+        theImage->pars().setThreshold(itsCurrentThreshold);
         objlist = theImage->findSources2D();
         keepGoing = (objlist.size() == 1);
         this->incrementThreshold();

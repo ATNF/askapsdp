@@ -50,6 +50,8 @@ class SubThresholder {
     public:
         SubThresholder() {};
         virtual ~SubThresholder();
+        // SubThresholder(const SubThresholder &s);
+        // SubThresholder& operator=(const SubThresholder &s);
 
         void define(RadioSource &r,
                     casa::Matrix<casa::Double> pos,
