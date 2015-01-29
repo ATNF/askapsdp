@@ -96,7 +96,7 @@ const double dmsToDec(const std::string input)
 }
 
 const std::string decToDMS(const double input, const std::string type,
-                           const int secondPrecision, const std::string separator)
+                           const int secondPrecision, std::string separator)
 {
     double normalisedInput = input;
     int degSize = 2; // number of figures in the degrees part of the output.

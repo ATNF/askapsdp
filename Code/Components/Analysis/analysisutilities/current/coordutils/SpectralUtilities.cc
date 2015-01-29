@@ -54,7 +54,8 @@ const double redshiftToDist(const double z, const Cosmology cosmology)
     /// @param cosmology The set of cosmological parameters to use.
     /// @return The luminosity distance in Mpc
 
-    return cosmology.dlum(z);
+    double dl=cosmology.dlum(z);
+    return dl;
 }
 
 const double redshiftToVel(const double z)

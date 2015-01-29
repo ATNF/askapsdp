@@ -66,7 +66,7 @@ const double dmsToDec(const std::string input);
 /// for separator will output RA in the format 19h39m25.03 and Dec as
 /// -63.42.45.63
 const std::string decToDMS(const double input, const std::string type = "DEC",
-                           const int secondPrecision = 2, const std::string separator = ":");
+                           const int secondPrecision = 2, std::string separator = ":");
 
 /// Convert a string position to a decimal value. The string can
 /// either be HMS/DMS formatted, or a decimal value (if HMS/DMS, it

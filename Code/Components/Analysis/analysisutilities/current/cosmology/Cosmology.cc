@@ -48,7 +48,7 @@ Cosmology::Cosmology(const double hubble, const double omegaM, const double omeg
 }
 
 
-const double Cosmology::dlum(const double z)
+const double Cosmology::dlum(const double z) const
 {
     double dz = z / double(NUMINT);
     double rr = 0.;
@@ -68,7 +68,7 @@ const double Cosmology::dlum(const double z)
 
 }
 
-const double Cosmology::lum(const double z, const double flux)
+const double Cosmology::lum(const double z, const double flux) const
 {
     return log10(4.*M_PI) + 2.*this->dlum(z) + flux;
 }

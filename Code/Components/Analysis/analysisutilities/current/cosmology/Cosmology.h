@@ -50,9 +50,9 @@ class Cosmology {
         Cosmology(const double hubble, const double omegaM, const double omegaL);
         virtual ~Cosmology() {};
 
-        const double dlum(const double z);
+        const double dlum(const double z) const ;
 
-        const double lum(const double z, const double flux);
+        const double lum(const double z, const double flux) const;
 
     private:
         double itsHubble;
