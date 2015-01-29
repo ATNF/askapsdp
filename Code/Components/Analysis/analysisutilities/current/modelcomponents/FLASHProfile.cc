@@ -51,20 +51,25 @@ namespace analysisutilities {
 FLASHProfile::FLASHProfile():
     GaussianProfile()
 {
-    this->itsAxisType = FREQUENCY;
 }
 
-FLASHProfile::FLASHProfile(float restfreq):
+FLASHProfile::FLASHProfile(const float restfreq):
     GaussianProfile(restfreq)
 {
-    this->itsRestFreq = restfreq;
-    this->itsAxisType = FREQUENCY;
 }
 
-FLASHProfile::FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type):
+FLASHProfile::FLASHProfile(const double &height,
+                           const double &centre,
+                           const double &width,
+                           const AXISTYPE &type):
     GaussianProfile(height, centre, width, type)
 {
-    this->itsAxisType = FREQUENCY;
+}
+
+FLASHProfile::FLASHProfile(const std::string &line, const float restfreq)
+{
+    itsRestFreq = restfreq;
+    this->define(line);
 }
 
 FLASHProfile::FLASHProfile(const FLASHProfile& h):
@@ -78,10 +83,10 @@ FLASHProfile& FLASHProfile::operator= (const FLASHProfile& h)
     if (this == &h) return *this;
 
     ((GaussianProfile &) *this) = h;
-    this->itsContinuumFlux = h.itsContinuumFlux;
-    this->itsPeakOpticalDepth = h.itsPeakOpticalDepth;
-    this->itsCentreRedshift = h.itsCentreRedshift;
-    this->itsVelocityWidth = h.itsVelocityWidth;
+    itsContinuumFlux = h.itsContinuumFlux;
+    itsPeakOpticalDepth = h.itsPeakOpticalDepth;
+    itsCentreRedshift = h.itsCentreRedshift;
+    itsVelocityWidth = h.itsVelocityWidth;
     return *this;
 }
 
@@ -89,50 +94,50 @@ void FLASHProfile::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsComponentNum >> this->itsRA >> this->itsDec
-       >> this->itsContinuumFlux >> this->itsMaj >> this->itsMin >> this->itsPA
-       >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
-    this->itsFlux = this->itsContinuumFlux;
+    ss >> itsComponentNum >> itsRA >> itsDec
+       >> itsContinuumFlux >> itsMaj >> itsMin >> itsPA
+       >> itsPeakOpticalDepth >> itsCentreRedshift >> itsVelocityWidth;
+    itsFlux = itsContinuumFlux;
     this->checkShape();
     std::stringstream idstring;
-    idstring << this->itsComponentNum;
-    this->itsID = idstring.str();
+    idstring << itsComponentNum;
+    itsID = idstring.str();
 
     // ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
-    // ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);
+    // ASKAPLOG_DEBUG_STR(logger, "Defined source " << itsComponentNum << " with continuum flux="<<itsContinuumFlux<<", Component: " << itsComponent << " and Gaussian " << itsGaussian);
 
 }
 
 void FLASHProfile::prepareForUse()
 {
 
-    double depth = (exp(-1.*this->itsPeakOpticalDepth) - 1.) * this->itsContinuumFlux;
-    this->itsGaussian.setHeight(depth);
+    double depth = (exp(-1.*itsPeakOpticalDepth) - 1.) * itsContinuumFlux;
+    itsGaussian.setHeight(depth);
 
-    double centreFreq = redshiftToFreq(this->itsCentreRedshift, this->itsRestFreq);
-    this->itsGaussian.setCenter(centreFreq);
+    double centreFreq = redshiftToFreq(itsCentreRedshift, itsRestFreq);
+    itsGaussian.setCenter(centreFreq);
 
-    double zAsVel = redshiftToVel(this->itsCentreRedshift);
+    double zAsVel = redshiftToVel(itsCentreRedshift);
 
-    double freqmax = velToFreq(zAsVel - this->itsVelocityWidth / 2., this->itsRestFreq);
-    double freqmin = velToFreq(zAsVel + this->itsVelocityWidth / 2., this->itsRestFreq);
-    this->itsGaussian.setWidth(fabs(freqmax - freqmin));
+    double freqmax = velToFreq(zAsVel - itsVelocityWidth / 2., itsRestFreq);
+    double freqmin = velToFreq(zAsVel + itsVelocityWidth / 2., itsRestFreq);
+    itsGaussian.setWidth(fabs(freqmax - freqmin));
 
     this->setFreqLimits();
 
 }
 
 
-void FLASHProfile::print(std::ostream& theStream)
+void FLASHProfile::print(std::ostream& theStream) const
 {
-    theStream << this->itsComponentNum << "\t" << this->itsRA << "\t" << this->itsDec << "\t"
-              << this->itsContinuumFlux << "\t"
-              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t"
-              << this->itsPeakOpticalDepth << "\t" << this->itsCentreRedshift << "\t"
-              << this->itsVelocityWidth << "\n";
+    theStream << itsComponentNum << "\t" << itsRA << "\t" << itsDec << "\t"
+              << itsContinuumFlux << "\t"
+              << itsMaj << "\t" << itsMin << "\t" << itsPA << "\t"
+              << itsPeakOpticalDepth << "\t" << itsCentreRedshift << "\t"
+              << itsVelocityWidth << "\n";
 }
 
-std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof)
+std::ostream& operator<< (std::ostream& theStream, const FLASHProfile &prof)
 {
 
     prof.print(theStream);

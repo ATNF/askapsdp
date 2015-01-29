@@ -62,8 +62,8 @@ namespace analysisutilities {
 
 BeamCorrector::BeamCorrector()
 {
-    this->itsBeam = duchamp::Beam(1., 1., 0.);
-    this->itsFilename = "";
+    itsBeam = duchamp::Beam(1., 1., 0.);
+    itsFilename = "";
 }
 
 BeamCorrector::BeamCorrector(const BeamCorrector& other)
@@ -74,19 +74,19 @@ BeamCorrector::BeamCorrector(const BeamCorrector& other)
 BeamCorrector& BeamCorrector::operator= (const BeamCorrector& other)
 {
     if (this == &other) return *this;
-    this->itsFilename = other.itsFilename;
-    this->itsBeam = other.itsBeam;
-    this->itsPixelScale = other.itsPixelScale;
-    this->itsDirUnits = other.itsDirUnits;
+    itsFilename = other.itsFilename;
+    itsBeam = other.itsBeam;
+    itsPixelScale = other.itsPixelScale;
+    itsDirUnits = other.itsDirUnits;
     return *this;
 }
 
 BeamCorrector::BeamCorrector(const LOFAR::ParameterSet& parset)
 {
-    this->itsFilename = "";
+    itsFilename = "";
     if (parset.isDefined("image")) {
-        this->itsFilename = parset.getString("image");
-        if (this->itsFilename != "") this->findBeam();
+        itsFilename = parset.getString("image");
+        if (itsFilename != "") this->findBeam();
     } else {
         // Do not have BeamCorrector defined, so read beam and pixel info separately
         std::vector<float> beam;
@@ -97,42 +97,42 @@ BeamCorrector::BeamCorrector(const LOFAR::ParameterSet& parset)
                                " in the beam correction parset:\n" << parset);
         }
         ASKAPASSERT(beam.size() == 3);
-        this->itsPixelScale = parset.getFloat("pixscale");
-        this->itsDirUnits = parset.getString("dirunits");
-        this->itsBeam.define(beam[0], beam[1], beam[2]);
+        itsPixelScale = parset.getFloat("pixscale");
+        itsDirUnits = parset.getString("dirunits");
+        itsBeam.define(beam[0], beam[1], beam[2]);
     }
 }
 
 void BeamCorrector::findBeam()
 {
-    const boost::shared_ptr<ImageInterface<Float> > imagePtr = openImage(this->itsFilename);
+    const boost::shared_ptr<ImageInterface<Float> > imagePtr = openImage(itsFilename);
 
     casa::Vector<casa::Quantum<casa::Double> > beam = imagePtr->imageInfo().restoringBeam();
-    ASKAPLOG_DEBUG_STR(logger, "Read beam from " << this->itsFilename << " of " << beam);
+    ASKAPLOG_DEBUG_STR(logger, "Read beam from " << itsFilename << " of " << beam);
     casa::CoordinateSystem csys = imagePtr->coordinates();
     int dirCoord = csys.findCoordinate(casa::Coordinate::DIRECTION);
     casa::Vector<casa::Double> increment = csys.directionCoordinate(dirCoord).increment();
     casa::Vector<casa::String> dirUnits = csys.directionCoordinate(dirCoord).worldAxisUnits();
     ASKAPASSERT(increment.size() == 2);
-    this->itsPixelScale = sqrt(fabs(increment[0] * increment[1]));
+    itsPixelScale = sqrt(fabs(increment[0] * increment[1]));
     ASKAPLOG_DEBUG_STR(logger, "Read direction axis increment of " << increment <<
                        " with units " << dirUnits << " and got pixel scale of " <<
-                       this->itsPixelScale);
+                       itsPixelScale);
     ASKAPASSERT(dirUnits[0] == dirUnits[1]);
-    this->itsDirUnits = dirUnits[0];
+    itsDirUnits = dirUnits[0];
 
     if (beam.size() == 0)
-        this->itsBeam.setArea(1.);
+        itsBeam.setArea(1.);
     else {
-        double bmaj = beam[0].getValue(this->itsDirUnits) / this->itsPixelScale;
-        double bmin = beam[1].getValue(this->itsDirUnits) / this->itsPixelScale;
+        double bmaj = beam[0].getValue(itsDirUnits) / itsPixelScale;
+        double bmin = beam[1].getValue(itsDirUnits) / itsPixelScale;
         double bpa = beam[2].getValue("deg");
-        this->itsBeam.define(bmaj, bmin, bpa);
+        itsBeam.define(bmaj, bmin, bpa);
         ASKAPLOG_DEBUG_STR(logger,
-                           "Defined BeamCorrector beam with maj=" << this->itsBeam.maj() <<
-                           ", min=" << this->itsBeam.min() <<
-                           ", pa=" << this->itsBeam.pa() <<
-                           " and area=" << this->itsBeam.area());
+                           "Defined BeamCorrector beam with maj=" << itsBeam.maj() <<
+                           ", min=" << itsBeam.min() <<
+                           ", pa=" << itsBeam.pa() <<
+                           " and area=" << itsBeam.area());
     }
 
 }
@@ -140,7 +140,7 @@ void BeamCorrector::findBeam()
 void BeamCorrector::convertSource(boost::shared_ptr<Spectrum> src)
 {
 
-    src->setFluxZero(src->fluxZero() * this->itsBeam.area());
+    src->setFluxZero(src->fluxZero() * itsBeam.area());
 
 }
 
@@ -148,11 +148,11 @@ std::vector<float> BeamCorrector::beam()
 {
 
     std::vector<float> outputbeam(3);
-    outputbeam[0] = casa::Quantity(this->itsBeam.maj() * this->itsPixelScale,
-                                   this->itsDirUnits).getValue("deg");
-    outputbeam[1] = casa::Quantity(this->itsBeam.min() * this->itsPixelScale,
-                                   this->itsDirUnits).getValue("deg");
-    outputbeam[2] = this->itsBeam.pa();
+    outputbeam[0] = casa::Quantity(itsBeam.maj() * itsPixelScale,
+                                   itsDirUnits).getValue("deg");
+    outputbeam[1] = casa::Quantity(itsBeam.min() * itsPixelScale,
+                                   itsDirUnits).getValue("deg");
+    outputbeam[2] = itsBeam.pa();
     return outputbeam;
 }
 

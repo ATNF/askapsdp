@@ -74,19 +74,19 @@ ModelFactory::ModelFactory()
 
 ModelFactory::ModelFactory(const LOFAR::ParameterSet& parset)
 {
-    this->itsDatabaseOrigin = parset.getString("database", "Continuum");
-    if (!this->checkType())
-        ASKAPLOG_ERROR_STR(logger, "Database type '" << this->itsDatabaseOrigin <<
-                           "' is not valid.");
-    this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
-    this->itsBaseFreq = parset.getFloat("baseFreq", 1400.);
-    this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
-    this->itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes", false);
-    this->itsFlagCorrectForBeam = parset.getBool("correctForBeam", false) &&
-                                  !this->itsFlagUseDeconvolvedSizes;
-    if (this->itsFlagCorrectForBeam) {
+    itsDatabaseOrigin = parset.getString("database", "Continuum");
+    if (!this->checkType()) {
+        ASKAPLOG_ERROR_STR(logger, "Database type '" << itsDatabaseOrigin << "' is not valid.");
+    }
+    itsSourceListType = parset.getString("sourcelisttype", "continuum");
+    itsBaseFreq = parset.getFloat("baseFreq", 1400.);
+    itsRestFreq = parset.getFloat("restFreq", nu0_HI);
+    itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes", false);
+    itsFlagCorrectForBeam = parset.getBool("correctForBeam", false) &&
+                            !itsFlagUseDeconvolvedSizes;
+    if (itsFlagCorrectForBeam) {
         LOFAR::ParameterSet subset = parset.makeSubset("correctForBeam.");
-        this->itsBeamCorrector = BeamCorrector(subset);
+        itsBeamCorrector = BeamCorrector(subset);
     }
 }
 
@@ -98,7 +98,7 @@ bool ModelFactory::checkType()
 {
     bool isOK = false;
     for (size_t i = 0; i < numModelTypes; i++) {
-        isOK = isOK || (this->itsDatabaseOrigin == allowedModelTypes[i]);
+        isOK = isOK || (itsDatabaseOrigin == allowedModelTypes[i]);
     }
     return isOK;
 }
@@ -122,73 +122,39 @@ boost::shared_ptr<Spectrum> ModelFactory::read(std::string line)
     if (line[0] != '#') {  // ignore commented lines
 
         if (!this->checkType()) {
-            ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
-                       << this->itsDatabaseOrigin
-                       << "' - needs to be one of: " << typeListing());
-        } else if (this->itsDatabaseOrigin == "Continuum") {
-            boost::shared_ptr<Continuum> cont(new Continuum);
-            cont->setNuZero(this->itsBaseFreq);
-            cont->define(line);
-            src = boost::shared_ptr<Spectrum>(cont.get());
-        } else if (this->itsDatabaseOrigin == "ContinuumID") {
-            boost::shared_ptr<ContinuumID> cont(new ContinuumID);
-            cont->setNuZero(this->itsBaseFreq);
-            cont->define(line);
-            src = boost::shared_ptr<Spectrum>(cont.get());
-        } else if (this->itsDatabaseOrigin == "Selavy") {
-            boost::shared_ptr<ContinuumSelavy>
-            sel(new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes));
-            sel->setNuZero(this->itsBaseFreq);
-            sel->define(line);
-            src = boost::shared_ptr<Spectrum>(sel.get());
-        } else if (this->itsDatabaseOrigin == "POSSUM") {
-            boost::shared_ptr<FullStokesContinuum> stokes(new FullStokesContinuum);
-            stokes->setNuZero(this->itsBaseFreq);
-            stokes->define(line);
-            src = boost::shared_ptr<Spectrum>(stokes.get());
-        } else if (this->itsDatabaseOrigin == "POSSUMHI") {
-            boost::shared_ptr<FullStokesContinuumHI> stokesHI(new FullStokesContinuumHI);
-            stokesHI->setNuZero(this->itsBaseFreq);
-            stokesHI->define(line);
-            src = boost::shared_ptr<Spectrum>(stokesHI.get());
-        } else if (this->itsDatabaseOrigin == "NVSS") {
-            boost::shared_ptr<ContinuumNVSS> nvss(new ContinuumNVSS);
-            nvss->setNuZero(this->itsBaseFreq);
-            nvss->define(line);
-            src = boost::shared_ptr<Spectrum>(nvss.get());
-        } else if (this->itsDatabaseOrigin == "SUMSS") {
-            boost::shared_ptr<ContinuumSUMSS> sumss(new ContinuumSUMSS);
-            sumss->setNuZero(this->itsBaseFreq);
-            sumss->define(line);
-            src = boost::shared_ptr<Spectrum>(sumss.get());
-        } else if (this->itsDatabaseOrigin == "S3SEX") {
-            if (this->itsSourceListType == "continuum") {
-                boost::shared_ptr<ContinuumS3SEX> contS3SEX(new ContinuumS3SEX);
-                contS3SEX->setNuZero(this->itsBaseFreq);
-                contS3SEX->define(line);
-                src = boost::shared_ptr<Spectrum>(contS3SEX.get());
-            } else if (this->itsSourceListType == "spectralline") {
-                boost::shared_ptr<HIprofileS3SEX> profSEX(new HIprofileS3SEX);
-                profSEX->define(line);
-                src = boost::shared_ptr<Spectrum>(profSEX.get());
+            ASKAPTHROW(AskapError, "'itsDatabase' parameter has incompatible value '"
+                       << itsDatabaseOrigin << "' - needs to be one of: " << typeListing());
+        } else if (itsDatabaseOrigin == "Continuum") {
+            src.reset(new Continuum(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "ContinuumID") {
+            src.reset(new ContinuumID(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "Selavy") {
+            src.reset(new ContinuumSelavy(line, itsBaseFreq, itsFlagUseDeconvolvedSizes));
+        } else if (itsDatabaseOrigin == "POSSUM") {
+            src.reset(new FullStokesContinuum(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "POSSUMHI") {
+            src.reset(new FullStokesContinuumHI(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "NVSS") {
+            src.reset(new ContinuumNVSS(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "SUMSS") {
+            src.reset(new ContinuumSUMSS(line, itsBaseFreq));
+        } else if (itsDatabaseOrigin == "S3SEX") {
+            if (itsSourceListType == "continuum") {
+                src.reset(new ContinuumS3SEX(line, itsBaseFreq));
+            } else if (itsSourceListType == "spectralline") {
+                src.reset(new HIprofileS3SEX(line));
             }
-        } else if (this->itsDatabaseOrigin == "S3SAX") {
-            boost::shared_ptr<HIprofileS3SAX> profSAX(new HIprofileS3SAX);
-            profSAX->define(line);
-            src = boost::shared_ptr<Spectrum>(profSAX.get());
-        } else if (this->itsDatabaseOrigin == "Gaussian") {
-            boost::shared_ptr<GaussianProfile> profGauss(new GaussianProfile(this->itsRestFreq));
-            profGauss->define(line);
-            src = boost::shared_ptr<Spectrum>(profGauss.get());
-        } else if (this->itsDatabaseOrigin == "FLASH") {
-            boost::shared_ptr<FLASHProfile> profFLASH(new FLASHProfile(this->itsRestFreq));
-            profFLASH->define(line);
-            src = boost::shared_ptr<Spectrum>(profFLASH.get());
+        } else if (itsDatabaseOrigin == "S3SAX") {
+            src.reset(new HIprofileS3SAX(line));
+        } else if (itsDatabaseOrigin == "Gaussian") {
+            src.reset(new GaussianProfile(line, itsRestFreq));
+        } else if (itsDatabaseOrigin == "FLASH") {
+            src.reset(new FLASHProfile(line, itsRestFreq));
         }
     }
 
-    if (this->itsFlagCorrectForBeam)
-        this->itsBeamCorrector.convertSource(src);
+    if (itsFlagCorrectForBeam)
+        itsBeamCorrector.convertSource(src);
 
     return src;
 

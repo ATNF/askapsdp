@@ -42,39 +42,39 @@ namespace analysisutilities {
 DiscPixel::DiscPixel(double x, double y):
     itsX(x), itsY(y)
 {
-    this->itsTmin = -1.;
-    this->itsTmax = -1.;
-    this->itsWidth = 1.;
-    this->itsIsEdge = false;
-    this->itsResolutionLimit = defaultResolution;
-    this->itsDecimationFactor = defaultDecimationFactor;
+    itsTmin = -1.;
+    itsTmax = -1.;
+    itsWidth = 1.;
+    itsIsEdge = false;
+    itsResolutionLimit = defaultResolution;
+    itsDecimationFactor = defaultDecimationFactor;
 }
 
 
 DiscPixel& DiscPixel::operator=(const DiscPixel& other)
 {
     if (this == &other) return *this;
-    this->itsX = other.itsX;
-    this->itsY = other.itsY;
-    this->itsWidth = other.itsWidth;
-    this->itsTmin = other.itsTmin;
-    this->itsTmax = other.itsTmax;
-    this->itsEllipse = other.itsEllipse;
-    this->itsResolutionLimit = other.itsResolutionLimit;
-    this->itsIsEdge = other.itsIsEdge;
-    this->itsDecimationFactor = other.itsDecimationFactor;
+    itsX = other.itsX;
+    itsY = other.itsY;
+    itsWidth = other.itsWidth;
+    itsTmin = other.itsTmin;
+    itsTmax = other.itsTmax;
+    itsEllipse = other.itsEllipse;
+    itsResolutionLimit = other.itsResolutionLimit;
+    itsIsEdge = other.itsIsEdge;
+    itsDecimationFactor = other.itsDecimationFactor;
     return *this;
 }
 
 std::vector<DiscPixel> DiscPixel::decimate()
 {
-    int num = this->itsDecimationFactor * this->itsDecimationFactor;
+    int num = itsDecimationFactor * itsDecimationFactor;
     std::vector<DiscPixel> outlist(num, *this);
     double xmin = itsX - itsWidth / 2., ymin = itsY - itsWidth / 2.;
     for (int i = 0; i < num; i++) {
-        outlist[i].itsWidth /= this->itsDecimationFactor;
-        outlist[i].itsX = xmin + (i % this->itsDecimationFactor + 0.5) * outlist[i].itsWidth;
-        outlist[i].itsY = ymin + (i / this->itsDecimationFactor + 0.5) * outlist[i].itsWidth;
+        outlist[i].itsWidth /= itsDecimationFactor;
+        outlist[i].itsX = xmin + (i % itsDecimationFactor + 0.5) * outlist[i].itsWidth;
+        outlist[i].itsY = ymin + (i / itsDecimationFactor + 0.5) * outlist[i].itsWidth;
         outlist[i].itsIsEdge = false;
         outlist[i].itsTmin = -1.;
         outlist[i].itsTmax = -1.;
@@ -86,25 +86,25 @@ std::vector<DiscPixel> DiscPixel::decimate()
 double DiscPixel::flux()
 {
 
-    if (!this->itsIsEdge) {
-        if (this->itsEllipse->isIn(this->itsX, this->itsY)) return this->itsWidth * this->itsWidth;
+    if (!itsIsEdge) {
+        if (itsEllipse->isIn(itsX, itsY)) return itsWidth * itsWidth;
         else return 0.;
     } else {
-        if (this->itsWidth < this->itsResolutionLimit) { // stopping condition
+        if (itsWidth < itsResolutionLimit) { // stopping condition
             int nVerticesGood = 0;
-            if (this->itsEllipse->isIn(this->itsX + this->itsWidth / 2.,
-                                       this->itsY + this->itsWidth / 2.))
+            if (itsEllipse->isIn(itsX + itsWidth / 2.,
+                                 itsY + itsWidth / 2.))
                 nVerticesGood++;
-            if (this->itsEllipse->isIn(this->itsX - this->itsWidth / 2.,
-                                       this->itsY + this->itsWidth / 2.))
+            if (itsEllipse->isIn(itsX - itsWidth / 2.,
+                                 itsY + itsWidth / 2.))
                 nVerticesGood++;
-            if (this->itsEllipse->isIn(this->itsX + this->itsWidth / 2.,
-                                       this->itsY - this->itsWidth / 2.))
+            if (itsEllipse->isIn(itsX + itsWidth / 2.,
+                                 itsY - itsWidth / 2.))
                 nVerticesGood++;
-            if (this->itsEllipse->isIn(this->itsX - this->itsWidth / 2.,
-                                       this->itsY - this->itsWidth / 2.))
+            if (itsEllipse->isIn(itsX - itsWidth / 2.,
+                                 itsY - itsWidth / 2.))
                 nVerticesGood++;
-            return nVerticesGood * this->itsWidth * this->itsWidth / 4.;
+            return nVerticesGood * itsWidth * itsWidth / 4.;
         } else {
             std::vector<DiscPixel> subpixels = this->processedSublist();
             // ASKAPLOG_DEBUG_STR(logger, "Got list of subpixels of length " << subpixels.size());
@@ -122,26 +122,26 @@ std::vector<DiscPixel> DiscPixel::processedSublist()
 {
 
     std::vector<DiscPixel> subpixels = this->decimate();
-    if (this->itsTmin > this->itsTmax) this->itsTmax += 2.*M_PI;
+    if (itsTmin > itsTmax) itsTmax += 2.*M_PI;
 
     // min & max values for x & y for this pixel
-    double xmin = this->itsX - this->itsWidth / 2.;
-    double ymin = this->itsY - this->itsWidth / 2.;
-    double xmax = this->itsX + this->itsWidth / 2.;
-    double ymax = this->itsY + this->itsWidth / 2.;
+    double xmin = itsX - itsWidth / 2.;
+    double ymin = itsY - itsWidth / 2.;
+    double xmax = itsX + itsWidth / 2.;
+    double ymax = itsY + itsWidth / 2.;
     double pixstep = subpixels[0].itsWidth;
     int oldx = 0, oldy = 0;
     size_t oldpos = 0;
-    double tstep = (this->itsTmax - this->itsTmin) / defaultTresolution;
+    double tstep = (itsTmax - itsTmin) / defaultTresolution;
     for (int it = 0; it < int(defaultTresolution) + 1; it++) {
-        double t = this->itsTmin + it * tstep;
-        std::pair<double, double> pos = this->itsEllipse->parametric(t);
+        double t = itsTmin + it * tstep;
+        std::pair<double, double> pos = itsEllipse->parametric(t);
         // only consider points within the pixel. Ignore those on the border.
         if (pos.first > xmin && pos.second > ymin && pos.first < xmax && pos.second < ymax) {
             int xloc = lround((pos.first - xmin - pixstep / 2.) / pixstep);
             int yloc = lround((pos.second - ymin - pixstep / 2.) / pixstep);
-            oldpos = oldx + oldy * this->itsDecimationFactor;
-            size_t newpos = xloc + yloc * this->itsDecimationFactor;
+            oldpos = oldx + oldy * itsDecimationFactor;
+            size_t newpos = xloc + yloc * itsDecimationFactor;
             ASKAPCHECK(newpos < subpixels.size(),
                        "DiscPixel::processedSublist: current position " << newpos <<
                        " out of range (" << subpixels.size() << "). Have xloc=" <<
@@ -158,7 +158,7 @@ std::vector<DiscPixel> DiscPixel::processedSublist()
             subpixels[newpos].itsIsEdge = true;
         }
     }
-    subpixels[oldpos].addTmax(this->itsTmax);
+    subpixels[oldpos].addTmax(itsTmax);
 
     return subpixels;
 

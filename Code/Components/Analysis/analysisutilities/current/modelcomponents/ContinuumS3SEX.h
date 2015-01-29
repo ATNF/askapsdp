@@ -54,24 +54,23 @@ class ContinuumS3SEX : public Continuum {
         /// @brief Default constructor
         ContinuumS3SEX();
         /// @brief Constructor from Spectrum object
-        ContinuumS3SEX(Spectrum &s);
+        ContinuumS3SEX(const Spectrum &s);
         /// @brief Constructor from Continuum object
-        ContinuumS3SEX(Continuum &c);
+        ContinuumS3SEX(const Continuum &c);
         /// @brief Set up parameters using a line of input from an ascii file
         /// @details Constructs a Continuum object from a line of
         /// text from an ascii file. Uses the ContinuumS3SEX::define()
         /// function.
-        ContinuumS3SEX(std::string &line);
+        ContinuumS3SEX(const std::string &line, const float nuZero = defaultFreq);
         /// @brief Define parameters directly
-        ContinuumS3SEX(float alpha, float beta, float nuZero)
-        {
-            defineSource(alpha, beta, nuZero);
-        };
+        ContinuumS3SEX(const float alpha,
+                       const float beta,
+                       const float nuZero);
         /// @brief Define parameters directly
-        ContinuumS3SEX(float alpha, float beta, float nuZero, float fluxZero)
-        {
-            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
-        };
+        ContinuumS3SEX(const float alpha,
+                       const float beta,
+                       const float nuZero,
+                       const float fluxZero);
         /// @brief Destructor
         virtual ~ContinuumS3SEX() {};
         /// @brief Copy constructor for ContinuumS3SEX.
@@ -97,21 +96,21 @@ class ContinuumS3SEX : public Continuum {
         /// @brief Return the component type. Discs for
         /// structure=lobe(2) or SF disc (4). Point source for
         /// structure=core(1) or hotspot(3)
-        virtual ComponentType type()
+        virtual const ComponentType type()
         {
             if (itsStructure == 2 || itsStructure == 4) return DISC;
             else return POINT;
         };
 
         /// @brief Set the type of SED to apply
-        void setSEDtype(SEDTYPE type) {itsSEDtype = type;};
+        void setSEDtype(const SEDTYPE type) {itsSEDtype = type;};
         void defaultSEDtype() {itsSEDtype = FIT;};
 
-        double I151() {return itsI151;};
-        double I610() {return itsI610;};
-        double I1400() {return itsI1400;};
-        double I4860() {return itsI4860;};
-        double I18000() {return itsI18000;};
+        const double I151() {return itsI151;};
+        const double I610() {return itsI610;};
+        const double I1400() {return itsI1400;};
+        const double I4860() {return itsI4860;};
+        const double I18000() {return itsI18000;};
 
         /// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
         /// @details Define the values of the flux, the spectral
@@ -119,6 +118,7 @@ class ContinuumS3SEX : public Continuum {
         /// flux values provided.
         void prepareForUse();
 
+        using Continuum::print;
         void print(std::ostream& theStream);
         /// @brief Output the parameters for the source
         /// @details Prints a summary of the parameters to the stream

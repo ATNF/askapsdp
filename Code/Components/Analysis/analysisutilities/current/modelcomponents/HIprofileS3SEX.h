@@ -39,7 +39,9 @@ namespace askap {
 namespace analysisutilities {
 
 /// @brief Enumeration describing different parameters
-enum SHAPEPARS {EDGE_SIG_MEAN, EDGE_SIG_SD, EDGE_SIG_MIN, EDGE_SIG_MAX, DIP_MIN, DIP_MAX, DIP_SIG_SCALE};
+enum SHAPEPARS {EDGE_SIG_MEAN, EDGE_SIG_SD, EDGE_SIG_MIN, EDGE_SIG_MAX,
+                DIP_MIN, DIP_MAX, DIP_SIG_SCALE
+               };
 /// @brief The default values of the shape parameters
 const double doubleHornShape[7] = {12.0, 6.0, 5., 20., 0.0, 0.3, 0.3};
 /// @brief Enumeration describing types of galaxies in the S3SEX database
@@ -49,7 +51,8 @@ const double vrotMin[5] = {0., 0., 0., 20., 40.};
 /// @brief Maximum rotational velocity for different galaxy types
 const double vrotMax[5] = {0., 0., 0., 70., 140.};
 
-const double rootTwoPi = 4. * M_SQRT1_2 / M_2_SQRTPI;  // sqrt(2pi), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
+// sqrt(2pi), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
+const double rootTwoPi = 4. * M_SQRT1_2 / M_2_SQRTPI;
 
 /// @brief The spectral profile of an HI emission line from the S3SEX database
 /// @details This class holds all information required to
@@ -65,11 +68,20 @@ class HIprofileS3SEX : public HIprofile {
         /// @details Constructs a HIprofileS3SEX object from a
         /// line of text from an ascii file. Uses the
         /// HIprofileS3SEX::define() function.
-        HIprofileS3SEX(std::string &line);
+        HIprofileS3SEX(const std::string &line);
         /// @brief Set up parameters using the setup() function
-        HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min);
-        HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min,
-                       long componentNum, long galaxyNum);
+        HIprofileS3SEX(const GALTYPE type,
+                       const double z,
+                       const double mhi,
+                       const double maj,
+                       const double min);
+        HIprofileS3SEX(const GALTYPE type,
+                       const double z,
+                       const double mhi,
+                       const double maj,
+                       const double min,
+                       const long componentNum,
+                       const long galaxyNum);
         /// @brief Destructor
         virtual ~HIprofileS3SEX() {};
         /// @brief Copy constructor
@@ -96,10 +108,10 @@ class HIprofileS3SEX : public HIprofile {
         void init();
         void setup();
         void prepareForUse();
-        void prepareForUse(long num1, long num2);
+        void prepareForUse(const long num1, const long num2);
 
         /// @brief What source type is this?
-        GALTYPE galtype() {return itsSourceType;};
+        const GALTYPE galtype() {return itsSourceType;};
 
         /// @brief Return the flux at a given frequency
         /// @details This function returns the flux value at a
@@ -109,7 +121,7 @@ class HIprofileS3SEX : public HIprofile {
         /// @param nu The frequency, in Hz.
         /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
         /// @return The flux, in Jy.
-        double flux(double nu, int istokes = 0);
+        const double flux(const double nu, const int istokes = 0);
 
         /// @brief Return the flux integrated between two frequencies
         /// @details This function returns the flux integrated between
@@ -120,17 +132,18 @@ class HIprofileS3SEX : public HIprofile {
         /// @param nu2 The second frequency, in Hz.
         /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
         /// @return The flux, in Jy.
-        double fluxInt(double nu1, double nu2, int istokes = 0);
+        const double fluxInt(const double nu1, const double nu2, const int istokes = 0);
 
         /// @brief Output the parameters for the source
         void diagnostic(std::ostream& theStream);
-        void print(std::ostream& theStream);
+        using HIprofile::print;
+        void print(std::ostream& theStream) const;
 
         /// @details Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof);
+        friend std::ostream& operator<< (std::ostream& theStream, const HIprofileS3SEX &prof);
 
     private:
         void prepareForUse(double n1, double n2);

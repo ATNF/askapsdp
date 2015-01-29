@@ -65,7 +65,7 @@ class HIprofileS3SAX : public HIprofile {
         /// @details Constructs a HIprofileS3SAX object from a
         /// line of text from an ascii file. Uses the
         /// HIprofileS3SAX::define() function.
-        HIprofileS3SAX(std::string &line);
+        HIprofileS3SAX(const std::string &line);
         /// @brief Destructor
         virtual ~HIprofileS3SAX() {};
         /// @brief Copy constructor
@@ -96,7 +96,7 @@ class HIprofileS3SAX : public HIprofile {
         void prepareForUse();
 
         /// @brief Return the integrated flux of the profile
-        double intFlux() {return itsIntFlux;};
+        const double intFlux() {return itsIntFlux;};
 
         /// @brief Return the flux at a given frequency
         /// @details This function returns the flux value at a
@@ -106,7 +106,7 @@ class HIprofileS3SAX : public HIprofile {
         /// @param nu The frequency, in Hz.
         /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
         /// @return The flux, in Jy.
-        double flux(double nu, int istokes = 0);
+        const double flux(const double nu, const int istokes = 0);
 
         /// @brief Return the flux integrated between two frequencies - not used for the base class
         /// @details This function returns the flux integrated between
@@ -117,7 +117,7 @@ class HIprofileS3SAX : public HIprofile {
         /// @param nu2 The second frequency, in Hz.
         /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
         /// @return The flux, in Jy.
-        double fluxInt(double nu1, double nu2, int istokes = 0);
+        const double fluxInt(const double nu1, const double nu2, const int istokes = 0);
 
         /// @brief Return the minimum & maximum frequencies affected by this source
         /// @details This function returns the minimum & maximum
@@ -128,17 +128,18 @@ class HIprofileS3SAX : public HIprofile {
         /// @return A std::pair<double,double>, where the first value
         /// is the maximum velocity, and the second is the minimum
         /// velocity.
-        std::pair<double, double> freqLimits();
+        const std::pair<double, double> freqLimits() const;
 
         /// @brief Output the parameters for the source
-        void diagnostic(std::ostream& theStream);
-        void print(std::ostream& theStream);
+        void diagnostic(std::ostream& theStream) const;
+        using HIprofile::print;
+        void print(std::ostream& theStream) const;
 
         /// @details Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof);
+        friend std::ostream& operator<< (std::ostream& theStream, const HIprofileS3SAX &prof);
 
     private:
         /// @brief The flux of the two peaks, \f$f_p\f$

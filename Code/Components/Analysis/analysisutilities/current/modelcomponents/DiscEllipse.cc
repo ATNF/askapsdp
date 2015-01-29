@@ -59,10 +59,10 @@ DiscEllipse& DiscEllipse::operator= (const DiscEllipse& other)
 {
     if (this == &other) return *this;
     ((Ellipse &) *this) = other;
-    this->itsXmin = other.itsXmin;
-    this->itsXmax = other.itsXmax;
-    this->itsYmin = other.itsYmin;
-    this->itsYmax = other.itsYmax;
+    itsXmin = other.itsXmin;
+    itsXmax = other.itsXmax;
+    itsYmin = other.itsYmin;
+    itsYmax = other.itsYmax;
     return *this;
 }
 
@@ -70,13 +70,13 @@ DiscEllipse& DiscEllipse::operator= (const DiscEllipse& other)
 std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
 {
     std::vector<DiscPixel> pixlist;
-    this->itsXmin = lround(this->itsX0 - this->itsMaj);
-    this->itsXmax = lround(this->itsX0 + this->itsMaj);
-    this->itsYmin = lround(this->itsY0 - this->itsMaj);
-    this->itsYmax = lround(this->itsY0 + this->itsMaj);
+    itsXmin = lround(itsX0 - itsMaj);
+    itsXmax = lround(itsX0 + itsMaj);
+    itsYmin = lround(itsY0 - itsMaj);
+    itsYmax = lround(itsY0 + itsMaj);
 
-    for (int y = this->itsYmin; y <= this->itsYmax; y++) {
-        for (int x = this->itsXmin; x <= this->itsXmax; x++) {
+    for (int y = itsYmin; y <= itsYmax; y++) {
+        for (int x = itsXmin; x <= itsXmax; x++) {
 
             DiscPixel pix(x, y);
             pix.setEllipse(this);
@@ -85,7 +85,7 @@ std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
         }
     }
 
-    int dimx = this->itsXmax - this->itsXmin + 1;
+    int dimx = itsXmax - itsXmin + 1;
     int oldx = 0, oldy = 0;
     size_t oldpos = 0;
     double tstep = 2.*M_PI / double(numberOfSteps);
@@ -94,8 +94,8 @@ std::vector<DiscPixel> DiscEllipse::boundingSet(unsigned int numberOfSteps)
         std::pair<double, double> pos = this->parametric(t);
         int xloc = lround(pos.first);
         int yloc = lround(pos.second);
-        oldpos = (oldx - this->itsXmin) + (oldy - this->itsYmin) * dimx;
-        size_t newpos = (xloc - this->itsXmin) + (yloc - this->itsYmin) * dimx;
+        oldpos = (oldx - itsXmin) + (oldy - itsYmin) * dimx;
+        size_t newpos = (xloc - itsXmin) + (yloc - itsYmin) * dimx;
         if (xloc != oldx || yloc != oldy || i == 0) {
             if (i > 0) pixlist[oldpos].addTmax(t);
             oldx = xloc;

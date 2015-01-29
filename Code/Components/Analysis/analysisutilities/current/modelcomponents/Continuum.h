@@ -35,6 +35,8 @@ namespace askap {
 
 namespace analysisutilities {
 
+const float defaultFreq = 1400.;
+
 /// @brief A class to hold spectral information for a continuum spectrum.
 /// @details This class holds information on the continuum
 /// properties of a spectral profile. The information kept is the spectral
@@ -50,27 +52,21 @@ class Continuum : public Spectrum {
         Continuum();
 
         /// @brief Constructor from Spectrum object
-        Continuum(Spectrum &s);
+        Continuum(const Spectrum &s);
 
         /// @brief Set up parameters using a line of input from an ascii file
         /// @details Constructs a Continuum object from a line of text
         /// from an ascii file. Uses the Continuum::define() function.
-        Continuum(std::string &line);
+        Continuum(const std::string &line, const float nuZero = defaultFreq);
 
         /// @brief Define parameters directly
         /// @param alpha The spectral index
         /// @param beta The spectral curvature
         /// @param nuZero The normalisation frequency
-        Continuum(float alpha, float beta, float nuZero)
-        {
-            defineSource(alpha, beta, nuZero);
-        };
+        Continuum(const float alpha, const float beta, const float nuZero);
 
         /// @brief Define parameters directly, with flux
-        Continuum(float alpha, float beta, float nuZero, float fluxZero)
-        {
-            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
-        };
+        Continuum(const float alpha, const float beta, const float nuZero, const float fluxZero);
 
         /// @brief Destructor
         virtual ~Continuum() {};
@@ -92,40 +88,41 @@ class Continuum : public Spectrum {
         /// DEC - Flux - Alpha - Beta - Major axis - Minor axis -
         /// Pos.Angle (Alpha & Beta are the spectral index & spectral
         /// curvature). *** The Flux provided in the text file is no
-        /// longer assumed to be in log space.*** @param line A line from
-        /// the ascii input file
+        /// longer assumed to be in log space.***
+        /// @param line A line from the ascii input file
         void define(const std::string &line);
 
         /// @brief Set up the profile's parameters
         /// @param alpha The spectral index
         /// @param beta The spectral curvature
         /// @param nuZero The normalisation frequency
-        void defineSource(float alpha, float beta, float nuZero);
+        void defineSource(const float alpha, const float beta, const float nuZero);
 
         /// @brief Set the normalisation frequency
-        void setNuZero(float n) {itsNuZero = n;};
+        void setNuZero(const float n) {itsNuZero = n;};
 
         /// @brief Return the spectral index
-        double alpha() {return itsAlpha;};
+        const double alpha() {return itsAlpha;};
 
         /// @brief Return the spectral curvature
-        double beta() {return itsBeta;};
+        const double beta() {return itsBeta;};
 
         /// @brief Return the normalisation frequency
-        double nuZero() {return itsNuZero;};
+        const double nuZero() {return itsNuZero;};
 
         /// @brief Return the flux at a given frequency
         /// @details Returns the flux at a given frequency.
         /// @param freq The frequency, in Hz
         /// @return The flux, in Jy
-        double flux(double freq, int istokes = 0);
+        const double flux(const double freq, const int istokes = 0);
 
         /// @brief Return the flux integrated between two frequencies
-        double fluxInt(double freq1, double freq2, int istokes = 0);
+        const double fluxInt(const double freq1, const double freq2, const int istokes = 0);
 
         /// @brief Output the parameters for the source
+        using Spectrum::print;
         void print(std::ostream& theStream);
-        friend std::ostream& operator<< (std::ostream& theStream, Continuum &cont);
+        friend std::ostream& operator<< (std::ostream& theStream, const Continuum &cont);
 
     protected:
         /// @brief The spectral index

@@ -31,6 +31,7 @@
 
 #include <modelcomponents/Spectrum.h>
 #include <scimath/Functionals/Gaussian1D.h>
+#include <coordutils/SpectralUtilities.h>
 #include <iostream>
 
 namespace askap {
@@ -39,6 +40,9 @@ namespace analysisutilities {
 
 /// @brief An enumeration describing what the x-axis of the Gaussian function is defined as.
 enum AXISTYPE {PIXEL, FREQUENCY, VELOCITY, REDSHIFT};
+
+const float defaultRestFreq = nu0_HI;
+const AXISTYPE defaultAxisType = FREQUENCY;
 
 /// @brief A base class for Gaussian spectral-line profiles
 /// @details This holds information about a spectral-line profile
@@ -51,9 +55,14 @@ class GaussianProfile : public Spectrum {
         /// @brief Default constructor
         GaussianProfile();
         /// @brief Default constructor with rest freq
-        GaussianProfile(float restFreq);
+        GaussianProfile(const float restFreq);
         /// @brief Specific constructor
-        GaussianProfile(double &height, double &centre, double &width, AXISTYPE &type);
+        GaussianProfile(const double &height,
+                        const double &centre,
+                        const double &width,
+                        const AXISTYPE &type);
+        /// @brief Constructor from line of input, with rest frequency
+        GaussianProfile(const std::string &line, const float restfreq = defaultRestFreq);
         /// @brief Destructor
         virtual ~GaussianProfile() {};
         /// @brief Copy constructor
@@ -70,22 +79,22 @@ class GaussianProfile : public Spectrum {
         virtual void define(const std::string &line);
 
         void setFreqLimits();
-        virtual bool freqRangeOK(double freq1, double freq2);
+        virtual const bool freqRangeOK(const double freq1, const double freq2);
 
-        void setAxisType(AXISTYPE type) {itsAxisType = type;};
-        void setRestFreq(double freq) {itsRestFreq = freq;};
+        void setAxisType(const AXISTYPE type) {itsAxisType = type;};
+        void setRestFreq(const double freq) {itsRestFreq = freq;};
 
         /// @brief Return the flux at a given frequency
-        virtual double flux(double nu, int istokes = 0);
+        virtual const double flux(const double nu, const int istokes = 0);
         /// @brief Return the flux integrated between two frequencies
-        virtual double fluxInt(double nu1, double nu2, int istokes = 0);
+        virtual const double fluxInt(const double nu1, const double nu2, const int istokes = 0);
 
         /// @brief Output the parameters for the source
         /// @details Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof);
+        friend std::ostream& operator<< (std::ostream& theStream, const GaussianProfile &prof);
 
     protected:
         casa::Gaussian1D<double> itsGaussian;

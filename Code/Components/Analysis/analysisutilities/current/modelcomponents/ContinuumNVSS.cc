@@ -58,71 +58,72 @@ ContinuumNVSS::ContinuumNVSS():
     this->defineSource(0., 0., 1400.);
 }
 
-ContinuumNVSS::ContinuumNVSS(Spectrum &s):
+ContinuumNVSS::ContinuumNVSS(const Spectrum &s):
     Continuum(s)
 {
     this->defineSource(0., 0., 1400.);
 }
 
-ContinuumNVSS::ContinuumNVSS(std::string &line)
+ContinuumNVSS::ContinuumNVSS(const std::string &line, const float nuZero)
 {
+    setNuZero(nuZero);
     this->define(line);
 }
 
 void ContinuumNVSS::define(const std::string &line)
 {
-    this->itsInputLine      = line;
-    this->itsRadius         = atof(line.substr(0, 9).c_str());
-    this->itsXoff           = atof(line.substr(9, 10).c_str());
-    this->itsYoff           = atof(line.substr(19, 10).c_str());
-    this->itsRecno          = atoi(line.substr(30, 8).c_str());
-    this->itsField          = line.substr(38, 8);
-    this->itsFieldXpos      = atof(line.substr(47, 7).c_str());
-    this->itsFieldYpos      = atof(line.substr(55, 7).c_str());
-    this->itsName           = line.substr(63, 14);
-    this->itsRAstring       = line.substr(78, 11);
-    this->itsDecstring      = line.substr(90, 11);
-    this->itsRA_err         = atof(line.substr(102, 5).c_str());
-    this->itsDec_err        = atof(line.substr(107, 4).c_str());
-    this->itsS1400          = atof(line.substr(113, 8).c_str());
-    this->itsS1400_err      = atof(line.substr(122, 7).c_str());
-    this->itsMajorAxisLimit = line[130];
-    this->itsMajorAxis      = atof(line.substr(132, 5).c_str());
-    this->itsMinorAxisLimit = line[138];
-    this->itsMinorAxis      = atof(line.substr(140, 5).c_str());
-    this->itsPA_input       = atof(line.substr(146, 5).c_str());
-    this->itsMajorAxis_err  = atof(line.substr(152, 4).c_str());
-    this->itsMinorAxis_err  = atof(line.substr(157, 4).c_str());
-    this->itsPA_err         = atof(line.substr(161, 4).c_str());
-    this->itsFlagResidual   = line.substr(167, 2);
-    this->itsResidualFlux   = atoi(line.substr(170, 4).c_str());
-    this->itsPolFlux        = atof(line.substr(175, 6).c_str());
-    this->itsPolPA          = atof(line.substr(182, 5).c_str());
-    this->itsPolFlux_err    = atof(line.substr(188, 5).c_str());
-    this->itsPolPA_err      = atof(line.substr(194, 4).c_str());
+    itsInputLine      = line;
+    itsRadius         = atof(line.substr(0, 9).c_str());
+    itsXoff           = atof(line.substr(9, 10).c_str());
+    itsYoff           = atof(line.substr(19, 10).c_str());
+    itsRecno          = atoi(line.substr(30, 8).c_str());
+    itsField          = line.substr(38, 8);
+    itsFieldXpos      = atof(line.substr(47, 7).c_str());
+    itsFieldYpos      = atof(line.substr(55, 7).c_str());
+    itsName           = line.substr(63, 14);
+    itsRAstring       = line.substr(78, 11);
+    itsDecstring      = line.substr(90, 11);
+    itsRA_err         = atof(line.substr(102, 5).c_str());
+    itsDec_err        = atof(line.substr(107, 4).c_str());
+    itsS1400          = atof(line.substr(113, 8).c_str());
+    itsS1400_err      = atof(line.substr(122, 7).c_str());
+    itsMajorAxisLimit = line[130];
+    itsMajorAxis      = atof(line.substr(132, 5).c_str());
+    itsMinorAxisLimit = line[138];
+    itsMinorAxis      = atof(line.substr(140, 5).c_str());
+    itsPA_input       = atof(line.substr(146, 5).c_str());
+    itsMajorAxis_err  = atof(line.substr(152, 4).c_str());
+    itsMinorAxis_err  = atof(line.substr(157, 4).c_str());
+    itsPA_err         = atof(line.substr(161, 4).c_str());
+    itsFlagResidual   = line.substr(167, 2);
+    itsResidualFlux   = atoi(line.substr(170, 4).c_str());
+    itsPolFlux        = atof(line.substr(175, 6).c_str());
+    itsPolPA          = atof(line.substr(182, 5).c_str());
+    itsPolFlux_err    = atof(line.substr(188, 5).c_str());
+    itsPolPA_err      = atof(line.substr(194, 4).c_str());
 
-    this->itsRA = this->itsRAstring;
-    for (size_t i = 0; i < this->itsRA.size(); i++) {
-        if (this->itsRA[i] == ' ') {
-            this->itsRA[i] = ':';
+    itsRA = itsRAstring;
+    for (size_t i = 0; i < itsRA.size(); i++) {
+        if (itsRA[i] == ' ') {
+            itsRA[i] = ':';
         }
     }
-    this->itsDec = this->itsDecstring;
-    for (size_t i = 0; i < this->itsDec.size(); i++) {
-        if (this->itsDec[i] == ' ') {
-            this->itsDec[i] = ':';
+    itsDec = itsDecstring;
+    for (size_t i = 0; i < itsDec.size(); i++) {
+        if (itsDec[i] == ' ') {
+            itsDec[i] = ':';
         }
     }
 
-    this->itsID = this->itsName;
+    itsID = itsName;
 
-    this->itsFlux = this->itsS1400 / 1.e3; // put into Jy
-    this->itsMaj = this->itsMajorAxisLimit == '<' ? 0. : this->itsMajorAxis;
-    this->itsMin = this->itsMinorAxisLimit == '<' ? 0. : this->itsMinorAxis;
-    this->itsPA = this->itsPA_input;
+    itsFlux = itsS1400 / 1.e3; // put into Jy
+    itsMaj = itsMajorAxisLimit == '<' ? 0. : itsMajorAxis;
+    itsMin = itsMinorAxisLimit == '<' ? 0. : itsMinorAxis;
+    itsPA = itsPA_input;
 
-    this->itsAlpha = 0.;
-    this->itsBeta = 0.;
+    itsAlpha = 0.;
+    itsBeta = 0.;
 
     this->checkShape();
 
@@ -139,9 +140,9 @@ ContinuumNVSS& ContinuumNVSS::operator= (const ContinuumNVSS& c)
     if (this == &c) return *this;
 
     ((Continuum &) *this) = c;
-    this->itsAlpha      = c.itsAlpha;
-    this->itsBeta       = c.itsBeta;
-    this->itsNuZero     = c.itsNuZero;
+    itsAlpha      = c.itsAlpha;
+    itsBeta       = c.itsBeta;
+    itsNuZero     = c.itsNuZero;
     return *this;
 }
 
@@ -155,54 +156,54 @@ ContinuumNVSS& ContinuumNVSS::operator= (const Spectrum& c)
 }
 
 
-void ContinuumNVSS::print(std::ostream& theStream)
+void ContinuumNVSS::print(std::ostream& theStream) const
 {
-    theStream << this->itsInputLine << "\n";
+    theStream << itsInputLine << "\n";
     // theStream.setf(std::ios::showpoint);
-    // theStream << std::setw(11) << this->itsComponentNum << " "
-    //    << std::setw(9) << this->itsGalaxyNum << " "
-    //    << std::setw(9)  << this->itsStructure << " "
-    //    << std::setw(15) << std::setprecision(5) << this->itsRA << " "
-    //    << std::setw(11) << std::setprecision(5) << this->itsDec << " "
-    //    << std::setw(14) << std::setprecision(3) << this->itsPA() << " "
-    //    << std::setw(10) << std::setprecision(3) << this->itsMaj() << " "
-    //    << std::setw(10) << std::setprecision(3) << this->itsMin() << " "
-    //    << std::setw(7) << std::setprecision(4) << this->itsI151 << " "
-    //    << std::setw(7) << std::setprecision(4) << this->itsI610 << " "
-    //    << std::setw(7) << std::setprecision(4) << this->itsI1400 << " "
-    //    << std::setw(7) << std::setprecision(4) << this->itsI4860 << " "
-    //    << std::setw(7) << std::setprecision(4) << this->itsI18000 << "\n";
+    // theStream << std::setw(11) << itsComponentNum << " "
+    //    << std::setw(9) << itsGalaxyNum << " "
+    //    << std::setw(9)  << itsStructure << " "
+    //    << std::setw(15) << std::setprecision(5) << itsRA << " "
+    //    << std::setw(11) << std::setprecision(5) << itsDec << " "
+    //    << std::setw(14) << std::setprecision(3) << itsPA() << " "
+    //    << std::setw(10) << std::setprecision(3) << itsMaj() << " "
+    //    << std::setw(10) << std::setprecision(3) << itsMin() << " "
+    //    << std::setw(7) << std::setprecision(4) << itsI151 << " "
+    //    << std::setw(7) << std::setprecision(4) << itsI610 << " "
+    //    << std::setw(7) << std::setprecision(4) << itsI1400 << " "
+    //    << std::setw(7) << std::setprecision(4) << itsI4860 << " "
+    //    << std::setw(7) << std::setprecision(4) << itsI18000 << "\n";
 }
-std::ostream& operator<< (std::ostream& theStream, ContinuumNVSS &cont)
+std::ostream& operator<< (std::ostream& theStream, const ContinuumNVSS &cont)
 {
     cont.print(theStream);
     return theStream;
 }
 
-void ContinuumNVSS::printDetails(std::ostream& theStream)
+void ContinuumNVSS::printDetails(std::ostream& theStream) const
 {
-    theStream << "radius = " << this->itsRadius
-              << "\nXoff = " << this->itsXoff
-              << "\nYoff = " << this->itsYoff
-              << "\nRecno = " << this->itsRecno
-              << "\nField = " << this->itsField
-              << "\nXpos = " << this->itsFieldXpos
-              << "\nYpos = " << this->itsFieldYpos
-              << "\nName = " << this->itsName
-              << "\nRA = " << this->itsRAstring << " +- " << this->itsRA_err
-              << "\nDec = " << this->itsDecstring << " +- " << this->itsDec_err
-              << "\nFlux = " << this->itsS1400 << " +- " << this->itsS1400_err
-              << "\nMajor axis = " << this->itsMajorAxisLimit << " "
-              << this->itsMajorAxis << " +- " << this->itsMajorAxis_err
-              << "\nMinor axis = " << this->itsMinorAxisLimit << " "
-              << this->itsMinorAxis << " +- " << this->itsMinorAxis_err
-              << "\nPA = " << this->itsPA << " +- " << this->itsPA_err
-              << "\nResidual = " << this->itsFlagResidual << " " << this->itsResidualFlux
-              << "\nPol flux = " << this->itsPolFlux << " +- " << this->itsPolFlux_err
-              << "\nPol PA = " << this->itsPolPA << " +- " << this->itsPolPA_err
+    theStream << "radius = " << itsRadius
+              << "\nXoff = " << itsXoff
+              << "\nYoff = " << itsYoff
+              << "\nRecno = " << itsRecno
+              << "\nField = " << itsField
+              << "\nXpos = " << itsFieldXpos
+              << "\nYpos = " << itsFieldYpos
+              << "\nName = " << itsName
+              << "\nRA = " << itsRAstring << " +- " << itsRA_err
+              << "\nDec = " << itsDecstring << " +- " << itsDec_err
+              << "\nFlux = " << itsS1400 << " +- " << itsS1400_err
+              << "\nMajor axis = " << itsMajorAxisLimit << " "
+              << itsMajorAxis << " +- " << itsMajorAxis_err
+              << "\nMinor axis = " << itsMinorAxisLimit << " "
+              << itsMinorAxis << " +- " << itsMinorAxis_err
+              << "\nPA = " << itsPA << " +- " << itsPA_err
+              << "\nResidual = " << itsFlagResidual << " " << itsResidualFlux
+              << "\nPol flux = " << itsPolFlux << " +- " << itsPolFlux_err
+              << "\nPol PA = " << itsPolPA << " +- " << itsPolPA_err
               << "\n"
-              << "\nRA = " << this->itsRA
-              << "\nDec = " << this->itsDec
+              << "\nRA = " << itsRA
+              << "\nDec = " << itsDec
               << "\n";
 }
 

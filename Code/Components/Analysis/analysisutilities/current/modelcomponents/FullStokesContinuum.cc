@@ -58,26 +58,27 @@ FullStokesContinuum::FullStokesContinuum():
     this->defineSource(0., 0., POLREFFREQ);
 }
 
-FullStokesContinuum::FullStokesContinuum(ContinuumS3SEX &c):
+FullStokesContinuum::FullStokesContinuum(const ContinuumS3SEX &c):
     ContinuumS3SEX(c)
 {
     this->defineSource(0., 0., POLREFFREQ);
 }
 
-FullStokesContinuum::FullStokesContinuum(Continuum &c):
+FullStokesContinuum::FullStokesContinuum(const Continuum &c):
     ContinuumS3SEX(c)
 {
     this->defineSource(0., 0., POLREFFREQ);
 }
 
-FullStokesContinuum::FullStokesContinuum(Spectrum &s):
+FullStokesContinuum::FullStokesContinuum(const Spectrum &s):
     ContinuumS3SEX(s)
 {
     this->defineSource(0., 0., POLREFFREQ);
 }
 
-FullStokesContinuum::FullStokesContinuum(std::string &line)
+FullStokesContinuum::FullStokesContinuum(const std::string &line, const float nuZero)
 {
+    setNuZero(nuZero);
     this->define(line);
 }
 
@@ -85,75 +86,75 @@ void FullStokesContinuum::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsComponentNum >> this->itsClusterID >> this->itsGalaxyNum
-       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure
-       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift
-       >> this->itsPA >> this->itsMaj >> this->itsInputMin
-       >> this->itsI151 >> this->itsI610 >> this->itsStokesIref
-       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef
-       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
+    ss >> itsComponentNum >> itsClusterID >> itsGalaxyNum
+       >> itsSFtype >> itsAGNtype >> itsStructure
+       >> itsRA >> itsDec >> itsDistance >> itsRedshift
+       >> itsPA >> itsMaj >> itsInputMin
+       >> itsI151 >> itsI610 >> itsStokesIref
+       >> itsStokesQref >> itsStokesUref >> itsPolFluxRef >> itsPolFracRef
+       >> itsI4860 >> itsI18000 >> itsCosVA >> itsRM >> itsRMflag;
 
     std::stringstream idstring;
-    idstring << this->itsComponentNum;
-    this->itsID = idstring.str();
+    idstring << itsComponentNum;
+    itsID = idstring.str();
 
-    if (this->itsStructure == 4) this->itsMin = this->itsMaj * this->itsCosVA;
-    else this->itsMin = this->itsInputMin;
+    if (itsStructure == 4) itsMin = itsMaj * itsCosVA;
+    else itsMin = itsInputMin;
 
-    this->itsFreqValues = std::vector<float>(5);
-    for (int i = 0; i < 5; i++) this->itsFreqValues[i] = freqValuesS3SEX[i];
-    this->itsFreqValues[2] = POLREFFREQ;
+    itsFreqValues = std::vector<float>(5);
+    for (int i = 0; i < 5; i++) itsFreqValues[i] = freqValuesS3SEX[i];
+    itsFreqValues[2] = POLREFFREQ;
 
-    this->itsI1400 = log10(this->itsStokesIref);
+    itsI1400 = log10(itsStokesIref);
 // Set the reference flux here, but should properly call prepareForUse() to get it right.
-    this->itsFlux = this->itsStokesIref;
-    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1420<<" and itsI1400="<<this->itsI1400);
+    itsFlux = itsStokesIref;
+    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1420<<" and itsI1400="<<itsI1400);
     this->checkShape();
 
-    //    ASKAPLOG_DEBUG_STR(logger, "POSSUM source #" << this->itsComponentNum<<": " << this->itsRA << " " << this->itsDec << " " << this->itsI1400 << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
+    //    ASKAPLOG_DEBUG_STR(logger, "POSSUM source #" << itsComponentNum<<": " << itsRA << " " << itsDec << " " << itsI1400 << " " << itsMaj << " " << itsMin << " " << itsPA);
 
-    this->itsStokesRefFreq = POLREFFREQ;
-    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
-    if (this->itsPolFluxRef > 0.)
-        this->itsPolAngleRef = 0.5 * acos(this->itsStokesQref / this->itsPolFluxRef);
+    itsStokesRefFreq = POLREFFREQ;
+    itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
+    if (itsPolFluxRef > 0.)
+        itsPolAngleRef = 0.5 * acos(itsStokesQref / itsPolFluxRef);
     else
-        this->itsPolAngleRef = 0.;
-//      this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
+        itsPolAngleRef = 0.;
+//      itsAlpha = (log10(itsFlux)-itsI610)/log10(1400./610.);
 }
 
-void FullStokesContinuum::print(std::ostream &theStream)
+void FullStokesContinuum::print(std::ostream &theStream) const
 {
     theStream.setf(std::ios::showpoint);
-    theStream << this->itsComponentNum << std::setw(7) << this->itsClusterID
-              << std::setw(11) << this->itsGalaxyNum
-              << std::setw(3) << this->itsSFtype << std::setw(3) << this->itsAGNtype
-              << std::setw(3) << this->itsStructure;
-    theStream << std::setw(12) << this->itsRA << std::setw(12) << this->itsDec;
+    theStream << itsComponentNum << std::setw(7) << itsClusterID
+              << std::setw(11) << itsGalaxyNum
+              << std::setw(3) << itsSFtype << std::setw(3) << itsAGNtype
+              << std::setw(3) << itsStructure;
+    theStream << std::setw(12) << itsRA << std::setw(12) << itsDec;
     theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-    theStream << std::setprecision(3) << std::setw(11) << this->itsDistance
-              << std::setprecision(6) << std::setw(11) << this->itsRedshift;
+    theStream << std::setprecision(3) << std::setw(11) << itsDistance
+              << std::setprecision(6) << std::setw(11) << itsRedshift;
     theStream.precision(3);
-    theStream << std::setw(10) << this->itsPA
-              << std::setw(10) << this->itsMaj
-              << std::setw(10) << this->itsInputMin;
+    theStream << std::setw(10) << itsPA
+              << std::setw(10) << itsMaj
+              << std::setw(10) << itsInputMin;
     theStream.precision(4);
-    theStream << std::setw(10) << this->itsI151 << std::setw(10) << this->itsI610;
+    theStream << std::setw(10) << itsI151 << std::setw(10) << itsI610;
     theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed);
-    theStream << std::setw(12) << this->itsStokesIref
-              << std::setw(12) << this->itsStokesQref
-              << std::setw(12) << this->itsStokesUref
-              << std::setw(12) << this->itsPolFluxRef;
+    theStream << std::setw(12) << itsStokesIref
+              << std::setw(12) << itsStokesQref
+              << std::setw(12) << itsStokesUref
+              << std::setw(12) << itsPolFluxRef;
     theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-    theStream << std::setw(10) << this->itsPolFracRef
-              << std::setw(10) << this->itsI4860
-              << std::setw(10) << this->itsI18000
-              << std::setw(10) << this->itsCosVA
-              << std::setw(11) << this->itsRM
-              << std::setw(11) << this->itsRMflag;
+    theStream << std::setw(10) << itsPolFracRef
+              << std::setw(10) << itsI4860
+              << std::setw(10) << itsI18000
+              << std::setw(10) << itsCosVA
+              << std::setw(11) << itsRM
+              << std::setw(11) << itsRMflag;
     theStream << "\n";
 }
 
-std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes)
+std::ostream& operator<<(std::ostream &theStream, const FullStokesContinuum &stokes)
 {
     stokes.print(theStream);
     return theStream;
@@ -171,22 +172,22 @@ FullStokesContinuum& FullStokesContinuum::operator= (const FullStokesContinuum& 
     if (this == &c) return *this;
 
     ((ContinuumS3SEX &) *this) = c;
-    this->itsClusterID = c.itsClusterID;
-    this->itsSFtype = c.itsSFtype;
-    this->itsAGNtype = c.itsAGNtype;
-    this->itsDistance = c.itsDistance;
-    this->itsRedshift = c.itsRedshift;
-    this->itsCosVA = c.itsCosVA;
-    this->itsInputMin = c.itsInputMin;
-    this->itsStokesRefFreq = c.itsStokesRefFreq;
-    this->itsStokesQref = c.itsStokesQref;
-    this->itsStokesUref = c.itsStokesUref;
-    this->itsStokesVref = c.itsStokesVref;
-    this->itsPolFluxRef = c.itsPolFluxRef;
-    this->itsPolFracRef = c.itsPolFracRef;
-    this->itsPolAngleRef = c.itsPolAngleRef;
-    this->itsRM = c.itsRM;
-    this->itsRMflag = c.itsRMflag;
+    itsClusterID = c.itsClusterID;
+    itsSFtype = c.itsSFtype;
+    itsAGNtype = c.itsAGNtype;
+    itsDistance = c.itsDistance;
+    itsRedshift = c.itsRedshift;
+    itsCosVA = c.itsCosVA;
+    itsInputMin = c.itsInputMin;
+    itsStokesRefFreq = c.itsStokesRefFreq;
+    itsStokesQref = c.itsStokesQref;
+    itsStokesUref = c.itsStokesUref;
+    itsStokesVref = c.itsStokesVref;
+    itsPolFluxRef = c.itsPolFluxRef;
+    itsPolFracRef = c.itsPolFracRef;
+    itsPolAngleRef = c.itsPolAngleRef;
+    itsRM = c.itsRM;
+    itsRMflag = c.itsRMflag;
     return *this;
 }
 
@@ -217,28 +218,28 @@ FullStokesContinuum& FullStokesContinuum::operator= (const Spectrum& c)
     return *this;
 }
 
-double FullStokesContinuum::flux(double freq, int istokes)
+const double FullStokesContinuum::flux(const double freq, const int istokes)
 {
 
     double lambda2, lambdaRef2, angle = 0., flux;
     if (istokes > 0) {
         lambda2 = C * C / (freq * freq);
-        lambdaRef2 = C * C / (this->itsStokesRefFreq * this->itsStokesRefFreq);
-        angle = (lambda2 - lambdaRef2) * this->itsRM;
+        lambdaRef2 = C * C / (itsStokesRefFreq * itsStokesRefFreq);
+        angle = (lambda2 - lambdaRef2) * itsRM;
     }
 
     double stokesIFlux =  this->Continuum::flux(freq);
-    double polFlux = stokesIFlux * this->itsPolFracRef; // Assume constant fractional polarisation
+    double polFlux = stokesIFlux * itsPolFracRef; // Assume constant fractional polarisation
 
     switch (istokes) {
         case 0: // Stokes I
             flux = stokesIFlux;
             break;
         case 1: // Stokes Q
-            flux = polFlux * cos(2. * (this->itsPolAngleRef + angle));
+            flux = polFlux * cos(2. * (itsPolAngleRef + angle));
             break;
         case 2: // Stokes U
-            flux = polFlux * sin(2. * (this->itsPolAngleRef + angle));
+            flux = polFlux * sin(2. * (itsPolAngleRef + angle));
             break;
         case 3: // Stokes V
             flux = 0.;   // Setting stokes V to zero!

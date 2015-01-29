@@ -56,23 +56,39 @@ ContinuumID::ContinuumID():
 {
 }
 
-ContinuumID::ContinuumID(Spectrum &s):
+ContinuumID::ContinuumID(const Spectrum &s):
     Continuum(s)
 {
 }
 
-ContinuumID::ContinuumID(std::string &line)
+ContinuumID::ContinuumID(const std::string &line, const float nuZero)
 {
+    setNuZero(nuZero);
     this->define(line);
+}
+
+ContinuumID::ContinuumID(const float alpha,
+                         const float beta,
+                         const float nuZero):
+    Continuum(alpha, beta, nuZero)
+{
+}
+
+ContinuumID::ContinuumID(const float alpha,
+                         const float beta,
+                         const float nuZero,
+                         const float fluxZero):
+    Continuum(alpha, beta, nuZero, fluxZero)
+{
 }
 
 void ContinuumID::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsID >> this->itsRA >> this->itsDec
-       >> this->itsFlux >> this->itsAlpha >> this->itsBeta
-       >> this->itsMaj >> this->itsMin >> this->itsPA;
+    ss >> itsID >> itsRA >> itsDec
+       >> itsFlux >> itsAlpha >> itsBeta
+       >> itsMaj >> itsMin >> itsPA;
     this->checkShape();
 
 }
@@ -105,14 +121,14 @@ ContinuumID& ContinuumID::operator= (const Spectrum& c)
     return *this;
 }
 
-void ContinuumID::print(std::ostream& theStream)
+void ContinuumID::print(std::ostream& theStream) const
 {
-    theStream << this->itsID << "\t" << this->itsRA << "\t" << this->itsDec << "\t"
-              << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t"
-              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
+    theStream << itsID << "\t" << itsRA << "\t" << itsDec << "\t"
+              << itsFlux << "\t" << itsAlpha << "\t" << itsBeta << "\t"
+              << itsMaj << "\t" << itsMin << "\t" << itsPA << "\n";
 }
 
-std::ostream& operator<< (std::ostream& theStream, ContinuumID &cont)
+std::ostream& operator<< (std::ostream& theStream, const ContinuumID &cont)
 {
     cont.print(theStream);
     return theStream;

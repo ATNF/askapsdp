@@ -44,7 +44,7 @@ namespace askap {
 
 namespace analysisutilities {
 
-Spectrum::Spectrum(std::string &line)
+Spectrum::Spectrum(const std::string &line)
 {
     this->define(line);
 }
@@ -53,91 +53,91 @@ void Spectrum::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsRA >> this->itsDec >> this->itsFlux >>
-       this->itsMaj >> this->itsMin >> this->itsPA;
+    ss >> itsRA >> itsDec >> itsFlux >>
+       itsMaj >> itsMin >> itsPA;
     this->PosToID();
     this->checkShape();
 }
 
 void Spectrum::PosToID()
 {
-    this->itsID = this->itsRA + "_" + this->itsDec;
+    itsID = itsRA + "_" + itsDec;
 }
 
 void Spectrum::checkShape()
 {
-    if (this->itsMaj < this->itsMin) {
-        float t = this->itsMaj;
-        this->itsMaj = this->itsMin;
-        this->itsMin = t;
+    if (itsMaj < itsMin) {
+        float t = itsMaj;
+        itsMaj = itsMin;
+        itsMin = t;
     }
 }
 
 
 Spectrum::Spectrum(const Spectrum& s)
 {
-    this->itsID = s.itsID;
-    this->itsRA = s.itsRA;
-    this->itsDec = s.itsDec;
-    this->itsFlux = s.itsFlux;
-    this->itsMaj = s.itsMaj;
-    this->itsMin = s.itsMin;
-    this->itsPA = s.itsPA;
+    itsID = s.itsID;
+    itsRA = s.itsRA;
+    itsDec = s.itsDec;
+    itsFlux = s.itsFlux;
+    itsMaj = s.itsMaj;
+    itsMin = s.itsMin;
+    itsPA = s.itsPA;
 }
 
-void Spectrum::setRA(double r, int prec)
+void Spectrum::setRA(const double r, const int prec)
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(prec) << r;
-    this->itsRA = ss.str();
+    itsRA = ss.str();
 }
 
-void Spectrum::setDec(double d, int prec)
+void Spectrum::setDec(const double d, const int prec)
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(prec) << d;
-    this->itsDec = ss.str();
+    itsDec = ss.str();
 }
 
-double Spectrum::raD()
+const double Spectrum::raD()
 {
-    return raToDouble(this->itsRA);
+    return raToDouble(itsRA);
 }
 
-double Spectrum::decD()
+const double Spectrum::decD()
 {
-    return decToDouble(this->itsDec);
+    return decToDouble(itsDec);
 }
 
 
-void Spectrum::print(std::ostream& theStream, std::string ra, std::string dec)
+void Spectrum::print(std::ostream& theStream, const std::string ra, const std::string dec)
 {
-    std::string oldRA = this->itsRA;
-    std::string oldDec = this->itsDec;
-    this->itsRA = ra;
-    this->itsDec = dec;
+    std::string oldRA = itsRA;
+    std::string oldDec = itsDec;
+    itsRA = ra;
+    itsDec = dec;
     this->print(theStream);
-    this->itsRA = oldRA;
-    this->itsDec = oldDec;
+    itsRA = oldRA;
+    itsDec = oldDec;
 }
 
-void Spectrum::print(std::ostream& theStream, double ra, double dec, int prec)
+void Spectrum::print(std::ostream& theStream, const double ra, const double dec, const int prec)
 {
-    std::string oldRA = this->itsRA;
-    std::string oldDec = this->itsDec;
+    std::string oldRA = itsRA;
+    std::string oldDec = itsDec;
     this->setRA(ra);
     this->setDec(dec);
     this->print(theStream);
-    this->itsRA = oldRA;
-    this->itsDec = oldDec;
+    itsRA = oldRA;
+    itsDec = oldDec;
 }
-void Spectrum::print(std::ostream& theStream)
+void Spectrum::print(std::ostream& theStream) const
 {
-    theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsFlux << "\t"
-              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
+    theStream << itsRA << "\t" << itsDec << "\t" << itsFlux << "\t"
+              << itsMaj << "\t" << itsMin << "\t" << itsPA << "\n";
 }
 
-std::ostream& operator<< (std::ostream& theStream, Spectrum &spec)
+std::ostream& operator<< (std::ostream& theStream, const Spectrum &spec)
 {
     spec.print(theStream);
     return theStream;

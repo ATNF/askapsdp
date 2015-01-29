@@ -57,7 +57,7 @@ namespace askap {
 
 namespace analysisutilities {
 
-GALTYPE getGaltype(int sftype, int agntype)
+const GALTYPE getGaltype(const int sftype, const int agntype)
 {
     GALTYPE type = UNKNOWN;
     switch (sftype) {
@@ -95,23 +95,24 @@ FullStokesContinuumHI::FullStokesContinuumHI():
 {
 }
 
-FullStokesContinuumHI::FullStokesContinuumHI(ContinuumS3SEX &c):
+FullStokesContinuumHI::FullStokesContinuumHI(const ContinuumS3SEX &c):
     FullStokesContinuum(c), itsHIprofile()
 {
 }
 
-FullStokesContinuumHI::FullStokesContinuumHI(Continuum &c):
+FullStokesContinuumHI::FullStokesContinuumHI(const Continuum &c):
     FullStokesContinuum(c), itsHIprofile()
 {
 }
 
-FullStokesContinuumHI::FullStokesContinuumHI(Spectrum &s):
+FullStokesContinuumHI::FullStokesContinuumHI(const Spectrum &s):
     FullStokesContinuum(s), itsHIprofile()
 {
 }
 
-FullStokesContinuumHI::FullStokesContinuumHI(std::string &line)
+FullStokesContinuumHI::FullStokesContinuumHI(const std::string &line, const float nuZero)
 {
+    setNuZero(nuZero);
     this->define(line);
 }
 
@@ -121,69 +122,69 @@ void FullStokesContinuumHI::define(const std::string &line)
     this->FullStokesContinuum::define(line);
 
     double HImass = 0.;
-    GALTYPE type = getGaltype(this->itsSFtype, this->itsAGNtype);
+    GALTYPE type = getGaltype(itsSFtype, itsAGNtype);
     if (type == SFG || type == SBG) {
         cosmology::Cosmology cosmo;
-        double lum = cosmo.lum(this->itsRedshift, this->itsI1400 - 26.);
+        double lum = cosmo.lum(itsRedshift, itsI1400 - 26.);
         lum *= M_LN10; // convert to natural log from log_10
 
         // Want to add some dispersion to HImass, a la Wilman et al
         // Calculate the delta by converting the component number
         // (modulo 1000) to a probability, then interpret that as a
         // normal prob
-        double prob = (this->itsComponentNum % 1000 + 0.5) / 1000.;
+        double prob = (itsComponentNum % 1000 + 0.5) / 1000.;
         double z = probToZvalue(prob);
         HImass = 0.44 * lum  + 0.48 + z * 0.3;
 
-//      ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< this->itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
+//      ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
 
         HImass = exp(HImass);
-//      ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
+//      ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<itsI1400<<" to get a lum of " << lum);
     }
 
-    this->itsHIprofile = HIprofileS3SEX(type, this->itsRedshift, HImass, this->itsMaj, this->itsMin, this->itsComponentNum, this->itsGalaxyNum);
-//    this->itsHIprofile.diagnostic(std::cout);
+    itsHIprofile = HIprofileS3SEX(type, itsRedshift, HImass, itsMaj, itsMin, itsComponentNum, itsGalaxyNum);
+//    itsHIprofile.diagnostic(std::cout);
 
 }
 
-void FullStokesContinuumHI::print(std::ostream &theStream)
+void FullStokesContinuumHI::print(std::ostream &theStream) const
 {
 
     theStream.setf(std::ios::showpoint);
-    theStream << this->itsComponentNum << std::setw(7) << this->itsClusterID
-              << std::setw(11) << this->itsGalaxyNum
-              << std::setw(3) << this->itsSFtype
-              << std::setw(3) << this->itsAGNtype
-              << std::setw(3) << this->itsStructure;
-    theStream << std::setw(12) << this->itsRA << std::setw(12) << this->itsDec;
+    theStream << itsComponentNum << std::setw(7) << itsClusterID
+              << std::setw(11) << itsGalaxyNum
+              << std::setw(3) << itsSFtype
+              << std::setw(3) << itsAGNtype
+              << std::setw(3) << itsStructure;
+    theStream << std::setw(12) << itsRA << std::setw(12) << itsDec;
     theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-    theStream << std::setprecision(3) << std::setw(11) << this->itsDistance
-              << std::setprecision(6) << std::setw(11) << this->itsRedshift;
+    theStream << std::setprecision(3) << std::setw(11) << itsDistance
+              << std::setprecision(6) << std::setw(11) << itsRedshift;
     theStream.precision(3);
-    theStream << std::setw(10) << this->itsPA
-              << std::setw(10) << this->itsMaj
-              << std::setw(10) << this->itsMin;
+    theStream << std::setw(10) << itsPA
+              << std::setw(10) << itsMaj
+              << std::setw(10) << itsMin;
     theStream.precision(4);
-    theStream << std::setw(10) << this->itsI151
-              << std::setw(10) << this->itsI610;
+    theStream << std::setw(10) << itsI151
+              << std::setw(10) << itsI610;
     theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed);
-    theStream << std::setw(12) << this->itsFlux
-              << std::setw(12) << this->itsStokesQref
-              << std::setw(12) << this->itsStokesUref
-              << std::setw(12) << this->itsPolFluxRef;
+    theStream << std::setw(12) << itsFlux
+              << std::setw(12) << itsStokesQref
+              << std::setw(12) << itsStokesUref
+              << std::setw(12) << itsPolFluxRef;
     theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-    theStream << std::setw(10) << this->itsPolFracRef
-              << std::setw(10) << this->itsI4860
-              << std::setw(10) << this->itsI18000
-              << std::setw(10) << this->itsCosVA
-              << std::setw(11) << this->itsRM
-              << std::setw(11) << this->itsRMflag;
+    theStream << std::setw(10) << itsPolFracRef
+              << std::setw(10) << itsI4860
+              << std::setw(10) << itsI18000
+              << std::setw(10) << itsCosVA
+              << std::setw(11) << itsRM
+              << std::setw(11) << itsRMflag;
     theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed);
-    theStream << std::setw(13) << std::setprecision(6) << this->itsHIprofile.mHI();
+    theStream << std::setw(13) << std::setprecision(6) << itsHIprofile.mHI();
     theStream << "\n";
 }
 
-std::ostream& operator<<(std::ostream &theStream, FullStokesContinuumHI &stokes)
+std::ostream& operator<<(std::ostream &theStream, const FullStokesContinuumHI &stokes)
 {
     stokes.print(theStream);
     return theStream;
@@ -201,7 +202,7 @@ FullStokesContinuumHI& FullStokesContinuumHI::operator= (const FullStokesContinu
     if (this == &c) return *this;
 
     ((FullStokesContinuum &) *this) = c;
-    this->itsHIprofile = c.itsHIprofile;
+    itsHIprofile = c.itsHIprofile;
     return *this;
 }
 

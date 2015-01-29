@@ -63,23 +63,23 @@ class HIprofile : public Spectrum {
         /// @param z The redshift
         /// @param mhi The HI mass in solar masses
         /// @return The integrated flux in Jy km/s
-        double integratedFlux(double z, double mhi);
+        const double integratedFlux(const double z, const double mhi);
 
         /// @brief Return the redshift
-        double redshift() {return itsRedshift;};
+        const double redshift() const {return itsRedshift;};
         /// @brief Return the HI mass
-        double mHI() {return itsMHI;};
+        const double mHI() const {return itsMHI;};
 
-        bool freqRangeOK(double freq1, double freq2);
+        const bool freqRangeOK(const double freq1, const double freq2);
 
         /// @brief Return the flux at a given frequency - not used for the base class
-        virtual double flux(double nu, int istokes = 0)
+        virtual const double flux(const double nu, const int istokes = 0)
         {
             return -177.;
         };
         /// @brief Return the flux integrated between two frequencies
         /// - not used for the base class
-        virtual double flux(double nu1, double nu2, int istokes = 0)
+        virtual const double flux(const double nu1, const double nu2, const int istokes = 0)
         {
             return -179.;
         };
@@ -89,7 +89,7 @@ class HIprofile : public Spectrum {
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, HIprofile &prof);
+        friend std::ostream& operator<< (std::ostream& theStream, const HIprofile &prof);
 
     protected:
         /// @brief The redshift of the source

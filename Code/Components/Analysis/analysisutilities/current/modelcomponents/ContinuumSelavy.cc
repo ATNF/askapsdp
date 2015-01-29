@@ -51,21 +51,40 @@ namespace askap {
 
 namespace analysisutilities {
 
-ContinuumSelavy::ContinuumSelavy(bool flagUseDeconvolvedSizes):
-    Continuum(), itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
-{
-    this->defineSource(0., 0., 1400.);
-}
-
-ContinuumSelavy::ContinuumSelavy(Spectrum &s, bool flagUseDeconvolvedSizes):
-    Continuum(s), itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
-{
-    this->defineSource(0., 0., 1400.);
-}
-
-ContinuumSelavy::ContinuumSelavy(std::string &line, bool flagUseDeconvolvedSizes):
+ContinuumSelavy::ContinuumSelavy(const bool flagUseDeconvolvedSizes):
+    Continuum(),
     itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
 {
+}
+
+ContinuumSelavy::ContinuumSelavy(const Spectrum &s, const bool flagUseDeconvolvedSizes):
+    Continuum(s),
+    itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
+{
+}
+
+ContinuumSelavy::ContinuumSelavy(const float alpha,
+                                 const float beta,
+                                 const float nuZero):
+    Continuum(alpha, beta, nuZero),
+    itsFlagUseDeconvolvedSizes(defaultDeconvFlag)
+{
+}
+
+ContinuumSelavy::ContinuumSelavy(const float alpha,
+                                 const float beta,
+                                 const float nuZero,
+                                 const float fluxZero):
+    Continuum(alpha, beta, nuZero, fluxZero)
+{
+}
+
+ContinuumSelavy::ContinuumSelavy(const std::string &line,
+                                 const float nuZero,
+                                 const bool flagUseDeconvolvedSizes):
+    itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
+{
+    setNuZero(nuZero);
     this->define(line);
 }
 
@@ -74,28 +93,28 @@ void ContinuumSelavy::define(const std::string &line)
 
     std::stringstream ss(line);
     int flag;
-    ss >> this->itsID >> this->itsName >> this->itsRA >> this->itsDec
-       >> this->itsX >> this->itsY
-       >> this->itsFint >> this->itsFpeak >> this->itsFintFIT >> this->itsFpeakFIT
-       >> this->itsMajFIT >> this->itsMinFIT >> this->itsPAFIT
-       >> this->itsMajDECONV >> this->itsMinDECONV >> this->itsPADECONV
-       >> this->itsAlpha >> this->itsBeta
-       >> this->itsChisq >> this->itsRMSimage >> this->itsRMSfit
-       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj >> flag;
+    ss >> itsID >> itsName >> itsRA >> itsDec
+       >> itsX >> itsY
+       >> itsFint >> itsFpeak >> itsFintFIT >> itsFpeakFIT
+       >> itsMajFIT >> itsMinFIT >> itsPAFIT
+       >> itsMajDECONV >> itsMinDECONV >> itsPADECONV
+       >> itsAlpha >> itsBeta
+       >> itsChisq >> itsRMSimage >> itsRMSfit
+       >> itsNfree >> itsNdof >> itsNpixFIT >> itsNpixObj >> flag;
 
-    if (this->itsFlagUseDeconvolvedSizes) {
-        this->setMaj(std::max(this->itsMajDECONV, this->itsMinDECONV));
-        this->setMin(std::min(this->itsMajDECONV, this->itsMinDECONV));
-        this->setPA(this->itsPADECONV);
+    if (itsFlagUseDeconvolvedSizes) {
+        this->setMaj(std::max(itsMajDECONV, itsMinDECONV));
+        this->setMin(std::min(itsMajDECONV, itsMinDECONV));
+        this->setPA(itsPADECONV);
     } else {
-        this->setMaj(std::max(this->itsMajFIT, this->itsMinFIT));
-        this->setMin(std::min(this->itsMajFIT, this->itsMinFIT));
-        this->setPA(this->itsPAFIT);
+        this->setMaj(std::max(itsMajFIT, itsMinFIT));
+        this->setMin(std::min(itsMajFIT, itsMinFIT));
+        this->setPA(itsPAFIT);
     }
-    this->setFluxZero(this->itsFintFIT);
-    this->itsFlagGuess = (flag == 1);
+    this->setFluxZero(itsFintFIT);
+    itsFlagGuess = (flag == 1);
 
-    //ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << this->itsID <<": " << this->itsRA << " " << this->itsDec << " " << this->itsFintFIT << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
+    //ASKAPLOG_DEBUG_STR(logger, "Selavy source #" << itsID <<": " << itsRA << " " << itsDec << " " << itsFintFIT << " " << itsMaj << " " << itsMin << " " << itsPA);
 
 }
 
@@ -110,28 +129,28 @@ ContinuumSelavy& ContinuumSelavy::operator= (const ContinuumSelavy& c)
     if (this == &c) return *this;
 
     ((Continuum &) *this) = c;
-    this->itsName = c.itsName;
-    this->itsX = c.itsX;
-    this->itsY = c.itsY;
-    this->itsFint = c.itsFint;
-    this->itsFpeak = c.itsFpeak;
-    this->itsFintFIT = c.itsFintFIT;
-    this->itsFpeakFIT = c.itsFpeakFIT;
-    this->itsMajFIT = c.itsMajFIT;
-    this->itsMinFIT = c.itsMinFIT;
-    this->itsPAFIT = c.itsPAFIT;
-    this->itsMajDECONV = c.itsMajDECONV;
-    this->itsMinDECONV = c.itsMinDECONV;
-    this->itsPADECONV = c.itsPADECONV;
-    this->itsChisq = c.itsChisq;
-    this->itsRMSimage = c.itsRMSimage;
-    this->itsRMSfit = c.itsRMSfit;
-    this->itsNfree = c.itsNfree;
-    this->itsNdof = c.itsNdof;
-    this->itsNpixFIT = c.itsNpixFIT;
-    this->itsNpixObj = c.itsNpixObj;
-    this->itsFlagGuess = c.itsFlagGuess;
-    this->itsFlagUseDeconvolvedSizes = c.itsFlagUseDeconvolvedSizes;
+    itsName = c.itsName;
+    itsX = c.itsX;
+    itsY = c.itsY;
+    itsFint = c.itsFint;
+    itsFpeak = c.itsFpeak;
+    itsFintFIT = c.itsFintFIT;
+    itsFpeakFIT = c.itsFpeakFIT;
+    itsMajFIT = c.itsMajFIT;
+    itsMinFIT = c.itsMinFIT;
+    itsPAFIT = c.itsPAFIT;
+    itsMajDECONV = c.itsMajDECONV;
+    itsMinDECONV = c.itsMinDECONV;
+    itsPADECONV = c.itsPADECONV;
+    itsChisq = c.itsChisq;
+    itsRMSimage = c.itsRMSimage;
+    itsRMSfit = c.itsRMSfit;
+    itsNfree = c.itsNfree;
+    itsNdof = c.itsNdof;
+    itsNpixFIT = c.itsNpixFIT;
+    itsNpixObj = c.itsNpixObj;
+    itsFlagGuess = c.itsFlagGuess;
+    itsFlagUseDeconvolvedSizes = c.itsFlagUseDeconvolvedSizes;
     return *this;
 }
 
@@ -140,7 +159,7 @@ ContinuumSelavy& ContinuumSelavy::operator= (const Spectrum& c)
     if (this == &c) return *this;
 
     ((Continuum &) *this) = c;
-    this->itsFlagUseDeconvolvedSizes = false;
+    itsFlagUseDeconvolvedSizes = false;
     this->defineSource(0., 0., 1400.);
     return *this;
 }
@@ -149,32 +168,32 @@ ContinuumSelavy& ContinuumSelavy::operator= (const Spectrum& c)
 void ContinuumSelavy::print(std::ostream& theStream)
 {
     theStream.setf(std::ios::showpoint);
-    theStream << std::setw(6) << this->itsID << " "
-              << std::setw(14) << this->itsName << " "
-              << std::setw(15) << std::setprecision(5) << this->itsRA << " "
-              << std::setw(11) << std::setprecision(5) << this->itsDec << " "
-              << std::setw(8) << std::setprecision(1) << this->itsX << " "
-              << std::setw(8) << std::setprecision(1) << this->itsY << " "
-              << std::setw(10) << std::setprecision(8) << this->itsFint << " "
-              << std::setw(10) << std::setprecision(8) << this->itsFpeak << " "
-              << std::setw(10) << std::setprecision(8) << this->itsFintFIT << " "
-              << std::setw(10) << std::setprecision(8) << this->itsFpeakFIT << " "
-              << std::setw(8) << std::setprecision(3) << this->itsMajFIT << " "
-              << std::setw(8) << std::setprecision(3) << this->itsMinFIT << " "
-              << std::setw(8) << std::setprecision(3) << this->itsPAFIT << " "
-              << std::setw(8) << std::setprecision(3) << this->itsMajDECONV << " "
-              << std::setw(8) << std::setprecision(3) << this->itsMinDECONV << " "
-              << std::setw(8) << std::setprecision(3) << this->itsPADECONV << " "
-              << std::setw(6) << std::setprecision(3) << this->itsAlpha << " "
-              << std::setw(6) << std::setprecision(3) << this->itsBeta << " "
-              << std::setw(27) << std::setprecision(9) << this->itsChisq << " "
-              << std::setw(10) << std::setprecision(8) << this->itsRMSimage << " "
-              << std::setw(15) << std::setprecision(6) << this->itsRMSfit << " "
-              << std::setw(11) << this->itsNfree << " "
-              << std::setw(10) << this->itsNdof << " "
-              << std::setw(10) << this->itsNpixFIT << " "
-              << std::setw(10) << this->itsNpixObj << " "
-              << std::setw(7)  << this->itsFlagGuess << "\n";
+    theStream << std::setw(6) << itsID << " "
+              << std::setw(14) << itsName << " "
+              << std::setw(15) << std::setprecision(5) << itsRA << " "
+              << std::setw(11) << std::setprecision(5) << itsDec << " "
+              << std::setw(8) << std::setprecision(1) << itsX << " "
+              << std::setw(8) << std::setprecision(1) << itsY << " "
+              << std::setw(10) << std::setprecision(8) << itsFint << " "
+              << std::setw(10) << std::setprecision(8) << itsFpeak << " "
+              << std::setw(10) << std::setprecision(8) << itsFintFIT << " "
+              << std::setw(10) << std::setprecision(8) << itsFpeakFIT << " "
+              << std::setw(8) << std::setprecision(3) << itsMajFIT << " "
+              << std::setw(8) << std::setprecision(3) << itsMinFIT << " "
+              << std::setw(8) << std::setprecision(3) << itsPAFIT << " "
+              << std::setw(8) << std::setprecision(3) << itsMajDECONV << " "
+              << std::setw(8) << std::setprecision(3) << itsMinDECONV << " "
+              << std::setw(8) << std::setprecision(3) << itsPADECONV << " "
+              << std::setw(6) << std::setprecision(3) << itsAlpha << " "
+              << std::setw(6) << std::setprecision(3) << itsBeta << " "
+              << std::setw(27) << std::setprecision(9) << itsChisq << " "
+              << std::setw(10) << std::setprecision(8) << itsRMSimage << " "
+              << std::setw(15) << std::setprecision(6) << itsRMSfit << " "
+              << std::setw(11) << itsNfree << " "
+              << std::setw(10) << itsNdof << " "
+              << std::setw(10) << itsNpixFIT << " "
+              << std::setw(10) << itsNpixObj << " "
+              << std::setw(7)  << itsFlagGuess << "\n";
 }
 std::ostream& operator<< (std::ostream& theStream, ContinuumSelavy &cont)
 {

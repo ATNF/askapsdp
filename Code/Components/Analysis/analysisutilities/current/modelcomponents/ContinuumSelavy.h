@@ -36,6 +36,9 @@ namespace askap {
 
 namespace analysisutilities {
 
+/// Default value for the flag indicating whether to use the deconvolved sizes
+const bool defaultDeconvFlag = false;
+
 /// @brief A class to hold spectral information for a
 /// continuum spectrum.  @details This class holds information
 /// on the continuum properties of a spectral profile. The
@@ -49,25 +52,28 @@ namespace analysisutilities {
 class ContinuumSelavy : public Continuum {
     public:
         /// @brief Default constructor
-        ContinuumSelavy(bool flagUseDeconvolvedSizes = false);
+        ContinuumSelavy(const bool flagUseDeconvolvedSizes = defaultDeconvFlag);
         /// @brief Constructor from Spectrum object
-        ContinuumSelavy(Spectrum &s, bool flagUseDeconvolvedSizes = false);
+        ContinuumSelavy(const Spectrum &s, const bool flagUseDeconvolvedSizes = defaultDeconvFlag);
         /// @brief Constructor from Continuum object
         ContinuumSelavy(Continuum &c);
         /// Constructs a Continuum object from a line of
         /// text from an ascii file. Uses the ContinuumSelavy::define()
         /// function.
-        ContinuumSelavy(std::string &line, bool flagUseDeconvolvedSizes = false);
+        ContinuumSelavy(const std::string &line,
+                        const float nuZero = defaultFreq,
+                        const bool flagUseDeconvolvedSizes = defaultDeconvFlag);
         /// @brief Define parameters directly
-        ContinuumSelavy(float alpha, float beta, float nuZero)
-        {
-            defineSource(alpha, beta, nuZero);
-        };
+        ContinuumSelavy(const float alpha,
+                        const float beta,
+                        const float nuZero);
+
         /// @brief Define parameters directly
-        ContinuumSelavy(float alpha, float beta, float nuZero, float fluxZero)
-        {
-            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
-        };
+        ContinuumSelavy(const float alpha,
+                        const float beta,
+                        const float nuZero,
+                        const float fluxZero);
+
         /// @brief Destructor
         virtual ~ContinuumSelavy() {};
         /// @brief Copy constructor for ContinuumSelavy.

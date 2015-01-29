@@ -44,12 +44,12 @@ namespace askap {
 namespace analysisutilities {
 
 HIprofile::HIprofile():
-    Spectrum()
+    Spectrum(),
+    itsRedshift(0.),
+    itsMHI(0.),
+    itsMinFreq(0.),
+    itsMaxFreq(0.)
 {
-    this->itsRedshift = 0.;
-    this->itsMHI = 0.;
-    this->itsMinFreq = 0.;
-    this->itsMaxFreq = 0.;
 }
 
 HIprofile::HIprofile(const HIprofile& h):
@@ -63,31 +63,31 @@ HIprofile& HIprofile::operator= (const HIprofile& h)
     if (this == &h) return *this;
 
     ((Spectrum &) *this) = h;
-    this->itsRedshift = h.itsRedshift;
-    this->itsMHI = h.itsMHI;
-    this->itsMinFreq = h.itsMinFreq;
-    this->itsMaxFreq = h.itsMaxFreq;
+    itsRedshift = h.itsRedshift;
+    itsMHI = h.itsMHI;
+    itsMinFreq = h.itsMinFreq;
+    itsMaxFreq = h.itsMaxFreq;
     return *this;
 }
 
-bool HIprofile::freqRangeOK(double freq1, double freq2)
+const bool HIprofile::freqRangeOK(const double freq1, const double freq2)
 {
     double lowfreq = std::min(freq1, freq2);
     double highfreq = std::max(freq1, freq2);
-    return (lowfreq < this->itsMaxFreq) && (highfreq > this->itsMinFreq);
+    return (lowfreq < itsMaxFreq) && (highfreq > itsMinFreq);
 }
 
-double HIprofile::integratedFlux(double z, double mhi)
+const double HIprofile::integratedFlux(const double z, const double mhi)
 {
 
-    this->itsRedshift = z;
-    this->itsMHI = mhi;
+    itsRedshift = z;
+    itsMHI = mhi;
     double dist = redshiftToDist(z); // in Mpc
     double intFlux = 4.24e-6 * mhi / (dist * dist);
     return intFlux;
 }
 
-std::ostream& operator<< (std::ostream& theStream, HIprofile &prof)
+std::ostream& operator<< (std::ostream& theStream, const HIprofile &prof)
 {
 
     theStream << "HI profile summary:\n";

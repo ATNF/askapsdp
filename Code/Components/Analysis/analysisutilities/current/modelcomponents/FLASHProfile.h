@@ -47,9 +47,14 @@ class FLASHProfile : public GaussianProfile {
         /// @brief Default constructor
         FLASHProfile();
         /// @brief Default constructor with rest freq
-        FLASHProfile(float restFreq);
+        FLASHProfile(const float restFreq);
         /// @brief Specific constructor
-        FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type);
+        FLASHProfile(const double &height,
+                     const double &centre,
+                     const double &width,
+                     const AXISTYPE &type);
+        /// @brief Constructor from line of input, with rest frequency
+        FLASHProfile(const std::string &line, const float restfreq = defaultRestFreq);
         /// @brief Destructor
         virtual ~FLASHProfile() {};
         /// @brief Copy constructor
@@ -73,14 +78,15 @@ class FLASHProfile : public GaussianProfile {
 
         void prepareForUse();
 
-        void print(std::ostream& theStream);
+        using Spectrum::print;
+        void print(std::ostream& theStream) const;
 
         /// @brief Output the parameters for the source
         /// @details Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof);
+        friend std::ostream& operator<< (std::ostream& theStream, const FLASHProfile &prof);
 
     protected:
         bool   itsFlagContinuumSubtracted;

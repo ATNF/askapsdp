@@ -48,21 +48,21 @@ class ContinuumNVSS : public Continuum {
         /// @brief Default constructor
         ContinuumNVSS();
         /// @brief Constructor from Spectrum object
-        ContinuumNVSS(Spectrum &s);
+        ContinuumNVSS(const Spectrum &s);
         /// @brief Constructor from Continuum object
-        ContinuumNVSS(Continuum &c);
+        ContinuumNVSS(const Continuum &c);
         /// @brief Set up parameters using a line of input from an ascii file
         /// @details Constructs a Continuum object from a line of
         /// text from an ascii file. Uses the ContinuumNVSS::define()
         /// function.
-        ContinuumNVSS(std::string &line);
+        ContinuumNVSS(const std::string &line, const float nuZero = defaultFreq);
         /// @brief Define parameters directly
-        ContinuumNVSS(float alpha, float beta, float nuZero)
+        ContinuumNVSS(const float alpha, const float beta, const float nuZero)
         {
             defineSource(alpha, beta, nuZero);
         };
         /// @brief Define parameters directly
-        ContinuumNVSS(float alpha, float beta, float nuZero, float fluxZero)
+        ContinuumNVSS(const float alpha, const float beta, const float nuZero, const float fluxZero)
         {
             defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
         };
@@ -85,15 +85,16 @@ class ContinuumNVSS : public Continuum {
         /// @param line A line from the ascii input file
         void define(const std::string &line);
 
-        void print(std::ostream& theStream);
+        using Continuum::print;
+        void print(std::ostream& theStream) const;
 
         /// Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, ContinuumNVSS &cont);
+        friend std::ostream& operator<< (std::ostream& theStream, const ContinuumNVSS &cont);
 
-        void printDetails(std::ostream& theStream);
+        void printDetails(std::ostream& theStream) const;
 
     protected:
 

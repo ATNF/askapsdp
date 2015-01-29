@@ -59,7 +59,7 @@ class ContinuumSUMSS : public Continuum {
         /// @details Constructs a Continuum object from a line of
         /// text from an ascii file. Uses the ContinuumSUMSS::define()
         /// function.
-        ContinuumSUMSS(std::string &line);
+        ContinuumSUMSS(std::string &line, float nuZero);
         /// @brief Define parameters directly
         ContinuumSUMSS(float alpha, float beta, float nuZero)
         {

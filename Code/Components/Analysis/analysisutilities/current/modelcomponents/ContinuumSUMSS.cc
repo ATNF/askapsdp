@@ -64,38 +64,42 @@ ContinuumSUMSS::ContinuumSUMSS(Spectrum &s):
     this->defineSource(0., 0., 1400.);
 }
 
-ContinuumSUMSS::ContinuumSUMSS(std::string &line)
+ContinuumSUMSS::ContinuumSUMSS(std::string &line, float nuZero)
 {
+    this->setNuZero(nuZero);
     this->define(line);
 }
 
 void ContinuumSUMSS::define(const std::string &line)
 {
 
-    this->itsInputLine      = line;
+    itsInputLine      = line;
     std::stringstream ss(line);
-    ss >> this->itsRAh >> this->itsRAm >> this->itsRAs
-       >> this->itsDECd >> this->itsDECm >> this->itsDECs
-       >> this->itsRAerr >> this->itsDECerr
-       >> this->itsPeakFlux >> this->itsPeakFluxErr
-       >> this->itsTotalFlux >> this->itsTotalFluxErr
-       >> this->itsFittedMajorAxis >> this->itsFittedMinorAxis >> this->itsFittedPositionAngle
-       >> this->itsDeconvMajorAxis >> this->itsDeconvMinorAxis
-       >> this->itsDeconvPositionAngleString
-       >> this->itsMosaicName >> this->itsNumMosaics >> this->itsXpos >> this->itsYpos;
+    ss >> itsRAh >> itsRAm >> itsRAs
+       >> itsDECd >> itsDECm >> itsDECs
+       >> itsRAerr >> itsDECerr
+       >> itsPeakFlux >> itsPeakFluxErr
+       >> itsTotalFlux >> itsTotalFluxErr
+       >> itsFittedMajorAxis >> itsFittedMinorAxis >> itsFittedPositionAngle
+       >> itsDeconvMajorAxis >> itsDeconvMinorAxis
+       >> itsDeconvPositionAngleString
+       >> itsMosaicName >> itsNumMosaics >> itsXpos >> itsYpos;
 
-    this->itsRA = this->itsRAh + ":" + this->itsRAm + ":" + this->itsRAs;
-    this->itsDec = this->itsDECd + ":" + this->itsDECm + ":" + this->itsDECs;
-    this->PosToID();
+    itsRA = itsRAh + ":" + itsRAm + ":" + itsRAs;
+    itsDec = itsDECd + ":" + itsDECm + ":" + itsDECs;
+//    this->PosToID();
+    std::stringstream sID;
+    sID << "J" << itsRAh << itsRAm << itsDECd << itsDECm;
+    itsID = sID.str();
 
-    this->itsFlux = this->itsTotalFlux / 1.e3;  //convert to Jy
-    this->itsMaj = this->itsDeconvMajorAxis;
-    this->itsMin = this->itsDeconvMinorAxis;
-    this->itsPA = (this->itsDeconvPositionAngleString == "---") ? 0. :
-                  atof(this->itsDeconvPositionAngleString.c_str());
+    itsFlux = itsTotalFlux / 1.e3;  //convert to Jy
+    itsMaj = itsDeconvMajorAxis;
+    itsMin = itsDeconvMinorAxis;
+    itsPA = (itsDeconvPositionAngleString == "---") ? 0. :
+            atof(itsDeconvPositionAngleString.c_str());
 
-    this->itsAlpha = 0.;
-    this->itsBeta = 0.;
+    itsAlpha = 0.;
+    itsBeta = 0.;
 
     this->checkShape();
 
@@ -112,9 +116,9 @@ ContinuumSUMSS& ContinuumSUMSS::operator= (const ContinuumSUMSS& c)
     if (this == &c) return *this;
 
     ((Continuum &) *this) = c;
-    this->itsAlpha      = c.itsAlpha;
-    this->itsBeta       = c.itsBeta;
-    this->itsNuZero     = c.itsNuZero;
+    itsAlpha      = c.itsAlpha;
+    itsBeta       = c.itsBeta;
+    itsNuZero     = c.itsNuZero;
     return *this;
 }
 
@@ -130,7 +134,7 @@ ContinuumSUMSS& ContinuumSUMSS::operator= (const Spectrum& c)
 
 void ContinuumSUMSS::print(std::ostream& theStream)
 {
-    theStream << this->itsInputLine << "\n";
+    theStream << itsInputLine << "\n";
 }
 
 std::ostream& operator<< (std::ostream& theStream, ContinuumSUMSS &cont)

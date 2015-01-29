@@ -56,16 +56,16 @@ class FullStokesContinuum : public ContinuumS3SEX {
         /// @brief Default constructor
         FullStokesContinuum();
         /// @brief Constructor from ContinuumS3SEX object
-        FullStokesContinuum(ContinuumS3SEX &s);
+        FullStokesContinuum(const ContinuumS3SEX &s);
         /// @brief Constructor from Continuum object
-        FullStokesContinuum(Continuum &s);
+        FullStokesContinuum(const Continuum &s);
         /// @brief Constructor from Spectrum object
-        FullStokesContinuum(Spectrum &s);
+        FullStokesContinuum(const Spectrum &s);
         /// @brief Set up parameters using a line of input from an ascii file
         /// @details Constructs a FullStokesContinuum object from a line of
         /// text from an ascii file. Uses the FullStokesContinuum::define()
         /// function.
-        FullStokesContinuum(std::string &line);
+        FullStokesContinuum(const std::string &line, const float nuZero = defaultFreq);
         /// @brief Destructor
         virtual ~FullStokesContinuum() {};
         /// @brief Copy constructor for FullStokesContinuum.
@@ -86,13 +86,15 @@ class FullStokesContinuum : public ContinuumS3SEX {
         /// @param line A line from the ascii input file
         void define(const std::string &line);
 
-        double flux(double freq, int istokes);
+        const double flux(const double freq, const int istokes);
         //      double flux(double freq1, double freq2, int istokes);
 
-        double polAngle() {return itsPolAngleRef;};
+        const double polAngle() {return itsPolAngleRef;};
 
-        void print(std::ostream& theStream);
-        friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes);
+        using ContinuumS3SEX::print;
+        void print(std::ostream& theStream) const;
+        friend std::ostream& operator<<(std::ostream &theStream,
+                                        const FullStokesContinuum &stokes);
 
     protected:
 

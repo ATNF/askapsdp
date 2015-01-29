@@ -53,7 +53,7 @@ class Spectrum {
         /// @details Constructs a Spectrum object from a line of
         /// text from an ascii file. Uses the Spectrum::define()
         /// function.
-        Spectrum(std::string &line);
+        Spectrum(const std::string &line);
         /// @brief Destructor
         virtual ~Spectrum() {};
         /// @brief Copy constructor
@@ -69,68 +69,83 @@ class Spectrum {
         virtual void define(const std::string &line);
 
         /// @brief Return the component type
-        virtual ComponentType type() {if (itsMaj > 0.) return GAUSSIAN; else return POINT;};
+        virtual const ComponentType type()
+        {
+            if (itsMaj > 0.) {
+                return GAUSSIAN;
+            } else {
+                return POINT;
+            }
+        };
 
         /// @brief Return the ID
-        std::string id() {return itsID;};
+        const std::string id() {return itsID;};
         /// @brief Return the right ascension
-        std::string ra() {return itsRA;};
+        const std::string ra() {return itsRA;};
         /// @brief Return the declination
-        std::string dec() {return itsDec;};
+        const std::string dec() {return itsDec;};
         /// @brief Return the right ascension in degrees
-        double raD();
+        const double raD();
         /// @brief Return the declination in degrees
-        double decD();
+        const double decD();
         /// @brief Return the flux normalisation
-        double fluxZero() {return itsFlux;};
+        const double fluxZero() {return itsFlux;};
         /// @brief Return the major axis
-        double maj() {return itsMaj;};
+        const double maj() {return itsMaj;};
         /// @brief Return the minor axis
-        double min() {return itsMin;};
+        const double min() {return itsMin;};
         /// @brief Return the position angle
-        double pa() {return itsPA;};
+        const double pa() {return itsPA;};
 
-        void setID(std::string s) {itsID = s;};
+        void setID(const std::string s) {itsID = s;};
 
         ///@details This creates an ID string by combining the RA & Dec
         ///strings, separated by an underscore.
         void PosToID();
 
-        virtual void setRA(double r, int prec = 5);
-        virtual void setRA(std::string r) {itsRA = r;};
-        virtual void setDec(double d, int prec = 5);
-        virtual void setDec(std::string d) {itsDec = d;};
+        virtual void setRA(const double r, const int prec = 5);
+        virtual void setRA(const std::string r) {itsRA = r;};
+        virtual void setDec(const double d, const int prec = 5);
+        virtual void setDec(const std::string d) {itsDec = d;};
         /// @brief Set the flux normalisation
-        void setFluxZero(float f) {itsFlux = f;};
+        void setFluxZero(const float f) {itsFlux = f;};
         /// @brief Set the major axis
-        void setMaj(float f) {itsMaj = f;};
+        void setMaj(const float f) {itsMaj = f;};
         /// @brief Set the minor axis
-        void setMin(float f) {itsMin = f;};
+        void setMin(const float f) {itsMin = f;};
         /// @brief Set the position angle
-        void setPA(float f) {itsPA = f;};
+        void setPA(const float f) {itsPA = f;};
         /// @brief Make sure the major axis is the bigger
         void checkShape();
 
         /// @brief Calculate any parameters that are needed before making use of the class
         virtual void prepareForUse() {};
 
-        virtual bool freqRangeOK(double freq1, double freq2) {return true;};
+        virtual const bool freqRangeOK(const double freq1, const double freq2) {return true;};
 
         /// @brief Return the flux at a given frequency - not used for the base class
-        virtual double flux(double freq, int istokes = 0) = 0;
+        virtual const double flux(const double freq,
+                                  const int istokes = 0) = 0;
         /// @brief Return the flux integrated between two frequencies
         /// - not used for the base class
-        virtual double fluxInt(double freq1, double freq2, int istokes = 0) = 0;
+        virtual const double fluxInt(const double freq1,
+                                     const double freq2,
+                                     const int istokes = 0) = 0;
 
-        virtual void print(std::ostream& theStream, double ra, double dec, int prec = 5);
-        virtual void print(std::ostream& theStream, std::string ra, std::string dec);
-        virtual void print(std::ostream& theStream);
+        virtual void print(std::ostream& theStream,
+                           const double ra,
+                           const double dec,
+                           const int prec = 5);
+        virtual void print(std::ostream& theStream,
+                           const std::string ra,
+                           const std::string dec);
+        virtual void print(std::ostream& theStream) const;
 
         /// @details Prints a summary of the parameters to the stream
         /// @param theStream The destination stream
         /// @param prof The profile object
         /// @return A reference to the stream
-        friend std::ostream& operator<< (std::ostream& theStream, Spectrum &spec);
+        friend std::ostream& operator<< (std::ostream& theStream, const Spectrum &spec);
 
     protected:
         /// @brief A uniqe ID number or name

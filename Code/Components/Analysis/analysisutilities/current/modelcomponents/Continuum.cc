@@ -51,29 +51,55 @@ namespace askap {
 namespace analysisutilities {
 
 Continuum::Continuum():
-    Spectrum()
+    Spectrum(),
+    itsAlpha(0),
+    itsBeta(0),
+    itsNuZero(defaultFreq)
 {
-    this->defineSource(0., 0., 1400.);
 }
 
-Continuum::Continuum(Spectrum &s):
-    Spectrum(s)
+Continuum::Continuum(const Spectrum &s):
+    Spectrum(s),
+    itsAlpha(0),
+    itsBeta(0),
+    itsNuZero(defaultFreq)
 {
-    this->defineSource(0., 0., 1400.);
 }
 
-Continuum::Continuum(std::string &line)
+Continuum::Continuum(const std::string &line, const float nuZero):
+    itsNuZero(nuZero)
 {
     this->define(line);
 }
+
+Continuum::Continuum(const float alpha, const float beta, const float nuZero):
+    Spectrum(),
+    itsAlpha(alpha),
+    itsBeta(beta),
+    itsNuZero(nuZero)
+{
+}
+
+Continuum::Continuum(const float alpha,
+                     const float beta,
+                     const float nuZero,
+                     const float fluxZero):
+    Spectrum(),
+    itsAlpha(alpha),
+    itsBeta(beta),
+    itsNuZero(nuZero)
+{
+    setFluxZero(fluxZero);
+}
+
 
 void Continuum::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsRA >> this->itsDec >> this->itsFlux
-       >> this->itsAlpha >> this->itsBeta
-       >> this->itsMaj >> this->itsMin >> this->itsPA;
+    ss >> itsRA >> itsDec >> itsFlux
+       >> itsAlpha >> itsBeta
+       >> itsMaj >> itsMin >> itsPA;
     this->PosToID();
     this->checkShape();
 
@@ -90,9 +116,9 @@ Continuum& Continuum::operator= (const Continuum& c)
     if (this == &c) return *this;
 
     ((Spectrum &) *this) = c;
-    this->itsAlpha      = c.itsAlpha;
-    this->itsBeta       = c.itsBeta;
-    this->itsNuZero     = c.itsNuZero;
+    itsAlpha      = c.itsAlpha;
+    itsBeta       = c.itsBeta;
+    itsNuZero     = c.itsNuZero;
     return *this;
 }
 
@@ -101,15 +127,15 @@ Continuum& Continuum::operator= (const Spectrum& c)
     if (this == &c) return *this;
 
     ((Spectrum &) *this) = c;
-    this->defineSource(0., 0., 1400.);
+    this->defineSource(0., 0., defaultFreq);
     return *this;
 }
 
 void Continuum::print(std::ostream& theStream)
 {
-    theStream << this->itsRA << "\t" << this->itsDec << "\t"
-              << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t"
-              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
+    theStream << itsRA << "\t" << itsDec << "\t"
+              << itsFlux << "\t" << itsAlpha << "\t" << itsBeta << "\t"
+              << itsMaj << "\t" << itsMin << "\t" << itsPA << "\n";
 }
 
 std::ostream& operator<< (std::ostream& theStream, Continuum &cont)
@@ -118,36 +144,38 @@ std::ostream& operator<< (std::ostream& theStream, Continuum &cont)
     return theStream;
 }
 
-void Continuum::defineSource(float alpha, float beta, float nuZero)
+void Continuum::defineSource(const float alpha, const float beta, const float nuZero)
 {
-    this->itsAlpha = alpha;
-    this->itsBeta = beta;
-    this->itsNuZero = nuZero;
+    itsAlpha = alpha;
+    itsBeta = beta;
+    itsNuZero = nuZero;
 }
 
 
-double Continuum::flux(double freq, int istokes)
+const double Continuum::flux(const double freq, const int istokes)
 {
-    if (istokes > 0) return 0.;
-    else {
-        double powerTerm = this->itsAlpha + this->itsBeta * log(freq / this->itsNuZero);
-        return this->fluxZero() * pow(freq / this->itsNuZero, powerTerm);
+    if (istokes > 0) {
+        return 0.;
+    } else {
+        double powerTerm = itsAlpha + itsBeta * log(freq / itsNuZero);
+        return this->fluxZero() * pow(freq / itsNuZero, powerTerm);
     }
 }
 
-double Continuum::fluxInt(double freq1, double freq2, int istokes)
+const double Continuum::fluxInt(const double freq1, const double freq2, const int istokes)
 {
-    if (istokes > 0) return 0.;
-    else {
-        if (fabs(this->itsBeta) > 0) {
+    if (istokes > 0) {
+        return 0.;
+    } else {
+        if (fabs(itsBeta) > 0) {
             ASKAPLOG_ERROR_STR(logger, "Cannot yet integrate with non-zero curvature.");
         }
 
-        double powerTerm = this->itsAlpha;
+        double powerTerm = itsAlpha;
 
         double flux = this->fluxZero() * (pow(std::max(freq1, freq2), powerTerm + 1) -
                                           pow(std::min(freq1, freq2), powerTerm + 1)) /
-                      ((powerTerm + 1) * pow(this->itsNuZero, powerTerm));
+                      ((powerTerm + 1) * pow(itsNuZero, powerTerm));
 
         return flux;
     }

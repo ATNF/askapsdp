@@ -53,24 +53,23 @@ class ContinuumID : public Continuum {
         ContinuumID();
 
         /// @brief Constructor from Spectrum object
-        ContinuumID(Spectrum &s);
+        ContinuumID(const Spectrum &s);
 
         ///Constructs a ContinuumID object from a line of
         /// text from an ascii file. Uses the ContinuumID::define()
         /// function.
-        ContinuumID(std::string &line);
+        ContinuumID(const std::string &line, const float nuZero = defaultFreq);
 
         /// @brief Define parameters directly
-        ContinuumID(float alpha, float beta, float nuZero)
-        {
-            defineSource(alpha, beta, nuZero);
-        };
+        ContinuumID(const float alpha,
+                    const float beta,
+                    const float nuZero);
 
         /// @brief Define parameters directly
-        ContinuumID(float alpha, float beta, float nuZero, float fluxZero)
-        {
-            defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);
-        };
+        ContinuumID(const float alpha,
+                    const float beta,
+                    const float nuZero,
+                    const float fluxZero);
 
         /// @brief Destructor
         virtual ~ContinuumID() {};
@@ -95,8 +94,9 @@ class ContinuumID : public Continuum {
         void define(const std::string &line);
 
         /// @brief Output the parameters for the source
-        void print(std::ostream& theStream);
-        friend std::ostream& operator<< (std::ostream& theStream, ContinuumID &cont);
+        using Continuum::print;
+        void print(std::ostream& theStream) const;
+        friend std::ostream& operator<< (std::ostream& theStream, const ContinuumID &cont);
 
     protected:
 

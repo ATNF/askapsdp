@@ -44,16 +44,16 @@ namespace analysisutilities {
 
 Disc::Disc()
 {
-    this->itsResolutionLimit = defaultResolution;
-    this->itsTresolution = defaultTresolution;
-    this->itsDecimationFactor = defaultDecimationFactor;
+    itsResolutionLimit = defaultResolution;
+    itsTresolution = defaultTresolution;
+    itsDecimationFactor = defaultDecimationFactor;
 }
 
 Disc::Disc(const LOFAR::ParameterSet &parset)
 {
-    this->itsResolutionLimit = parset.getDouble("resolutionLimit", defaultResolution);
-    this->itsTresolution = parset.getDouble("tResolution", defaultTresolution);
-    this->itsDecimationFactor = parset.getUint("decimationFactor", defaultDecimationFactor);
+    itsResolutionLimit = parset.getDouble("resolutionLimit", defaultResolution);
+    itsTresolution = parset.getDouble("tResolution", defaultTresolution);
+    itsDecimationFactor = parset.getUint("decimationFactor", defaultDecimationFactor);
 }
 
 Disc::Disc(const Disc& other)
@@ -64,21 +64,21 @@ Disc::Disc(const Disc& other)
 Disc& Disc::operator= (const Disc& other)
 {
     if (this == &other) return *this;
-    this->itsEllipse = other.itsEllipse;
-    this->itsPixelSet = other.itsPixelSet;
-    this->itsResolutionLimit = other.itsResolutionLimit;
-    this->itsTresolution = other.itsTresolution;
-    this->itsDecimationFactor = other.itsDecimationFactor;
+    itsEllipse = other.itsEllipse;
+    itsPixelSet = other.itsPixelSet;
+    itsResolutionLimit = other.itsResolutionLimit;
+    itsTresolution = other.itsTresolution;
+    itsDecimationFactor = other.itsDecimationFactor;
     return *this;
 }
 
 void Disc::setup(double x0, double y0, double maj, double min, double pa)
 {
-    this->itsEllipse = DiscEllipse(x0, y0, maj, min, pa);
-    this->itsPixelSet = this->itsEllipse.boundingSet(this->itsTresolution);
-    for (size_t i = 0; i < this->itsPixelSet.size(); i++) {
-        this->itsPixelSet[i].setResolutionLimit(this->itsResolutionLimit);
-        this->itsPixelSet[i].setDecimationFactor(this->itsDecimationFactor);
+    itsEllipse = DiscEllipse(x0, y0, maj, min, pa);
+    itsPixelSet = itsEllipse.boundingSet(itsTresolution);
+    for (size_t i = 0; i < itsPixelSet.size(); i++) {
+        itsPixelSet[i].setResolutionLimit(itsResolutionLimit);
+        itsPixelSet[i].setDecimationFactor(itsDecimationFactor);
     }
 }
 
@@ -98,11 +98,11 @@ double Disc::flux(int x, int y)
                        y >= this->ymin() && y <= this->ymax());
 
     if (pixIsValid) {
-        if (this->itsPixelSet.size() == 1) return 1.;
+        if (itsPixelSet.size() == 1) return 1.;
         else {
             size_t dimx = this->xmax() - this->xmin() + 1;
             size_t pix = (x - this->xmin()) + dimx * (y - this->ymin());
-            return this->itsPixelSet[pix].flux() / this->itsEllipse.area();
+            return itsPixelSet[pix].flux() / itsEllipse.area();
         }
     } else return 0.;
 }

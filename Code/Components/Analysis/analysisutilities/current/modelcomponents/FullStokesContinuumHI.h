@@ -37,7 +37,7 @@ namespace askap {
 namespace analysisutilities {
 
 
-GALTYPE getGaltype(int sftype, int agntype);
+const GALTYPE getGaltype(const int sftype, const int agntype);
 
 /// @brief A class to hold spectral information for a continuum spectrum with polarisation.
 /// @details This class holds information on the continuum
@@ -51,19 +51,17 @@ class FullStokesContinuumHI : public FullStokesContinuum {
 
         /// @brief Default constructor
         FullStokesContinuumHI();
-        /// @brief Constructor from FullStokesContinuumHI object
-        FullStokesContinuumHI(FullStokesContinuumHI &s);
         /// @brief Constructor from ContinuumS3SEX object
-        FullStokesContinuumHI(ContinuumS3SEX &s);
+        FullStokesContinuumHI(const ContinuumS3SEX &s);
         /// @brief Constructor from Continuum object
-        FullStokesContinuumHI(Continuum &s);
+        FullStokesContinuumHI(const Continuum &s);
         /// @brief Constructor from Spectrum object
-        FullStokesContinuumHI(Spectrum &s);
+        FullStokesContinuumHI(const Spectrum &s);
         /// @brief Set up parameters using a line of input from an ascii file
         /// @details Constructs a FullStokesContinuumHI object from a line of
         /// text from an ascii file. Uses the FullStokesContinuumHI::define()
         /// function.
-        FullStokesContinuumHI(std::string &line);
+        FullStokesContinuumHI(const std::string &line, const float nuZero = defaultFreq);
         /// @brief Destructor
         virtual ~FullStokesContinuumHI() {};
         /// @brief Copy constructor for FullStokesContinuumHI.
@@ -97,22 +95,24 @@ class FullStokesContinuumHI : public FullStokesContinuum {
         /// @param line A line from the ascii input file
         void define(const std::string &line);
 
-        bool freqRangeOK(double freq1, double freq2)
+        const bool freqRangeOK(const double freq1, const double freq2)
         {
             return itsHIprofile.freqRangeOK(freq1, freq2);
         }
 
-        double flux(double freq, int istokes)
+        const double flux(const double freq, const int istokes)
         {
             return itsHIprofile.flux(freq, istokes);
         };
-        double fluxInt(double freq1, double freq2, int istokes)
+        const double fluxInt(const double freq1, const double freq2, const int istokes)
         {
             return itsHIprofile.fluxInt(freq1, freq2, istokes);
         };
 
-        void print(std::ostream& theStream);
-        friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuumHI &stokes);
+        using FullStokesContinuum::print;
+        void print(std::ostream& theStream) const;
+        friend std::ostream& operator<<(std::ostream &theStream,
+                                        const FullStokesContinuumHI &stokes);
 
     protected:
 

@@ -68,18 +68,18 @@ Ellipse::Ellipse(const Ellipse& other)
 Ellipse& Ellipse::operator= (const Ellipse& other)
 {
     if (this == &other) return *this;
-    this->itsX0 =      other.itsX0;
-    this->itsY0 =      other.itsY0;
-    this->itsMaj =     other.itsMaj;
-    this->itsMin =     other.itsMin;
-    this->itsAngle =   other.itsAngle;
-    this->itsCos =     other.itsCos;
-    this->itsSin =     other.itsSin;
-    this->itsMajCos =  other.itsMajCos;
-    this->itsMajSin =  other.itsMajSin;
-    this->itsMinCos =  other.itsMinCos;
-    this->itsMinSin =  other.itsMinSin;
-    this->itsArea =    other.itsArea;
+    itsX0 =      other.itsX0;
+    itsY0 =      other.itsY0;
+    itsMaj =     other.itsMaj;
+    itsMin =     other.itsMin;
+    itsAngle =   other.itsAngle;
+    itsCos =     other.itsCos;
+    itsSin =     other.itsSin;
+    itsMajCos =  other.itsMajCos;
+    itsMajSin =  other.itsMajSin;
+    itsMinCos =  other.itsMinCos;
+    itsMinSin =  other.itsMinSin;
+    itsArea =    other.itsArea;
     return *this;
 }
 

@@ -60,43 +60,57 @@ ContinuumS3SEX::ContinuumS3SEX():
     this->defaultSEDtype();
 }
 
-ContinuumS3SEX::ContinuumS3SEX(Continuum &c):
+ContinuumS3SEX::ContinuumS3SEX(const Continuum &c):
     Continuum(c)
 {
     this->defineSource(0., 0., 1400.);
     this->defaultSEDtype();
 }
 
-ContinuumS3SEX::ContinuumS3SEX(Spectrum &s):
+ContinuumS3SEX::ContinuumS3SEX(const Spectrum &s):
     Continuum(s)
 {
     this->defineSource(0., 0., 1400.);
     this->defaultSEDtype();
 }
 
-ContinuumS3SEX::ContinuumS3SEX(std::string &line)
+ContinuumS3SEX::ContinuumS3SEX(const std::string &line, const float nuZero)
 {
+    setNuZero(nuZero);
     this->define(line);
     this->defaultSEDtype();
+}
+
+ContinuumS3SEX::ContinuumS3SEX(const float alpha, const float beta, const float nuZero):
+    Continuum(alpha, beta, nuZero)
+{
+}
+
+ContinuumS3SEX::ContinuumS3SEX(const float alpha,
+                               const float beta,
+                               const float nuZero,
+                               const float fluxZero):
+    Continuum(alpha, beta, nuZero, fluxZero)
+{
 }
 
 void ContinuumS3SEX::define(const std::string &line)
 {
 
     std::stringstream ss(line);
-    ss >> this->itsComponentNum >> this->itsGalaxyNum >> this->itsStructure
-       >> this->itsRA >> this->itsDec >> this->itsPA >> this->itsMaj >> this->itsMin
-       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
+    ss >> itsComponentNum >> itsGalaxyNum >> itsStructure
+       >> itsRA >> itsDec >> itsPA >> itsMaj >> itsMin
+       >> itsI151 >> itsI610 >> itsI1400 >> itsI4860 >> itsI18000;
 
     std::stringstream idstring;
-    idstring << this->itsComponentNum;
-    this->itsID = idstring.str();
+    idstring << itsComponentNum;
+    itsID = idstring.str();
 
-    this->itsFreqValues = std::vector<float>(5);
-    for (int i = 0; i < 5; i++) this->itsFreqValues[i] = freqValuesS3SEX[i];
+    itsFreqValues = std::vector<float>(5);
+    for (int i = 0; i < 5; i++) itsFreqValues[i] = freqValuesS3SEX[i];
 
     // set the flux for now to be the reference one. Need to set properly using prepareForUse()
-    this->itsFlux = pow(10, this->itsI1400);
+    itsFlux = pow(10, itsI1400);
 
     this->checkShape();
 
@@ -106,39 +120,39 @@ void ContinuumS3SEX::prepareForUse()
 {
 
     double flux;
-    if (this->itsSEDtype == SIMPLE_POWERLAW) {
-        this->itsFlux = pow(10., this->itsI1400);
-        this->itsAlpha = (log10(this->itsFlux) - this->itsI610) / log10(1400. / 610.);
-        this->itsBeta = 0.;
-    } else if (this->itsSEDtype == POWERLAW) {
-        if (this->itsNuZero < 610.e6) {
-            this->itsAlpha = (this->itsI610 - this->itsI151) / log10(610. / 151.);
-            flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero / 151.e6);
-        } else if (this->itsNuZero < 1400.e6) {
-            this->itsAlpha = (this->itsI1400 - this->itsI610) / log10(1400. / 610.);
-            flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero / 610.e6);
-        } else if (this->itsNuZero < 4.86e9) {
-            this->itsAlpha = (this->itsI4860 - this->itsI1400) / log10(4860. / 1400.);
-            flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero / 1400.e6);
+    if (itsSEDtype == SIMPLE_POWERLAW) {
+        itsFlux = pow(10., itsI1400);
+        itsAlpha = (log10(itsFlux) - itsI610) / log10(1400. / 610.);
+        itsBeta = 0.;
+    } else if (itsSEDtype == POWERLAW) {
+        if (itsNuZero < 610.e6) {
+            itsAlpha = (itsI610 - itsI151) / log10(610. / 151.);
+            flux = itsI151 + itsAlpha * log10(itsNuZero / 151.e6);
+        } else if (itsNuZero < 1400.e6) {
+            itsAlpha = (itsI1400 - itsI610) / log10(1400. / 610.);
+            flux = itsI610 + itsAlpha * log10(itsNuZero / 610.e6);
+        } else if (itsNuZero < 4.86e9) {
+            itsAlpha = (itsI4860 - itsI1400) / log10(4860. / 1400.);
+            flux = itsI1400 + itsAlpha * log10(itsNuZero / 1400.e6);
         } else {
-            this->itsAlpha = (this->itsI18000 - this->itsI4860) / log10(18000. / 4860.);
-            flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero / 4860.e6);
+            itsAlpha = (itsI18000 - itsI4860) / log10(18000. / 4860.);
+            flux = itsI4860 + itsAlpha * log10(itsNuZero / 4860.e6);
         }
-        this->itsFlux = pow(10., flux);
-        this->itsBeta = 0.;
-    } else if (this->itsSEDtype == FIT) {
+        itsFlux = pow(10., flux);
+        itsBeta = 0.;
+    } else if (itsSEDtype == FIT) {
         std::vector<float> xdat(5), ydat(5), fit;
         // Set the frequency values, normalised by the reference frequency nuZero.
         // Note that the fitting is done in log-space (and **NOT** log10-space!!)
         for (int i = 0; i < 5; i++) {
-            xdat[i] = log(this->itsFreqValues[i] / this->itsNuZero);
+            xdat[i] = log(itsFreqValues[i] / itsNuZero);
         }
         // Convert the flux values to log-space for fitting.
-        ydat[0] = log(pow(10, this->itsI151));
-        ydat[1] = log(pow(10, this->itsI610));
-        ydat[2] = log(pow(10, this->itsI1400));
-        ydat[3] = log(pow(10, this->itsI4860));
-        ydat[4] = log(pow(10, this->itsI18000));
+        ydat[0] = log(pow(10, itsI151));
+        ydat[1] = log(pow(10, itsI610));
+        ydat[2] = log(pow(10, itsI1400));
+        ydat[3] = log(pow(10, itsI4860));
+        ydat[4] = log(pow(10, itsI18000));
 
         int ndata = 5, nterms = 5;
         double chisq;
@@ -170,9 +184,9 @@ void ContinuumS3SEX::prepareForUse()
         //             <<" [4]="<<gsl_vector_get(c,4));
 
         flux = gsl_vector_get(c, 0);
-        this->itsFlux = exp(flux);
-        this->itsAlpha = gsl_vector_get(c, 1);
-        this->itsBeta = gsl_vector_get(c, 2);
+        itsFlux = exp(flux);
+        itsAlpha = gsl_vector_get(c, 1);
+        itsBeta = gsl_vector_get(c, 2);
 
         gsl_matrix_free(x);
         gsl_vector_free(y);
@@ -180,14 +194,14 @@ void ContinuumS3SEX::prepareForUse()
         gsl_vector_free(c);
         gsl_matrix_free(cov);
 
-        ASKAPLOG_DEBUG_STR(logger, "From Fit::  S3SEX source: ID=" << this->itsComponentNum
-                           << ", RA,DEC=" << this->itsRA << "," << this->itsDec
+        ASKAPLOG_DEBUG_STR(logger, "From Fit::  S3SEX source: ID=" << itsComponentNum
+                           << ", RA,DEC=" << itsRA << "," << itsDec
                            << ", I151=" << itsI151 << ", I610=" << itsI610
                            << ", I1400=" << itsI1400 << ", I4860=" << itsI4860
                            << ", I18000=" << itsI18000 << ", nu0=" << itsNuZero
-                           << ", flux=" << log10(this->itsFlux)
-                           << ", alpha=" << this->itsAlpha
-                           << ", beta=" << this->itsBeta);
+                           << ", flux=" << log10(itsFlux)
+                           << ", alpha=" << itsAlpha
+                           << ", beta=" << itsBeta);
     } else {
         ASKAPLOG_ERROR_STR(logger, "Unknown SED type in ContinuumS3SEX");
     }
@@ -204,10 +218,10 @@ ContinuumS3SEX& ContinuumS3SEX::operator= (const ContinuumS3SEX& c)
     if (this == &c) return *this;
 
     ((Continuum &) *this) = c;
-    this->itsAlpha      = c.itsAlpha;
-    this->itsBeta       = c.itsBeta;
-    this->itsNuZero     = c.itsNuZero;
-    this->itsFreqValues = c.itsFreqValues;
+    itsAlpha      = c.itsAlpha;
+    itsBeta       = c.itsBeta;
+    itsNuZero     = c.itsNuZero;
+    itsFreqValues = c.itsFreqValues;
     return *this;
 }
 
@@ -225,19 +239,19 @@ void ContinuumS3SEX::print(std::ostream& theStream)
 {
     theStream.setf(std::ios::showpoint);
     theStream.setf(std::ios::fixed);
-    theStream << std::setw(11) << this->itsComponentNum << " "
-              << std::setw(9) << this->itsGalaxyNum << " "
-              << std::setw(9)  << this->itsStructure << " "
-              << std::setw(15) << std::setprecision(6) << this->itsRA << " "
-              << std::setw(11) << std::setprecision(6) << this->itsDec << " "
-              << std::setw(14) << std::setprecision(3) << this->itsPA << " "
-              << std::setw(10) << std::setprecision(3) << this->itsMaj << " "
-              << std::setw(10) << std::setprecision(3) << this->itsMin << " "
-              << std::setw(7) << std::setprecision(4) << this->itsI151 << " "
-              << std::setw(7) << std::setprecision(4) << this->itsI610 << " "
-              << std::setw(7) << std::setprecision(4) << this->itsI1400 << " "
-              << std::setw(7) << std::setprecision(4) << this->itsI4860 << " "
-              << std::setw(7) << std::setprecision(4) << this->itsI18000 << "\n";
+    theStream << std::setw(11) << itsComponentNum << " "
+              << std::setw(9) << itsGalaxyNum << " "
+              << std::setw(9)  << itsStructure << " "
+              << std::setw(15) << std::setprecision(6) << itsRA << " "
+              << std::setw(11) << std::setprecision(6) << itsDec << " "
+              << std::setw(14) << std::setprecision(3) << itsPA << " "
+              << std::setw(10) << std::setprecision(3) << itsMaj << " "
+              << std::setw(10) << std::setprecision(3) << itsMin << " "
+              << std::setw(7) << std::setprecision(4) << itsI151 << " "
+              << std::setw(7) << std::setprecision(4) << itsI610 << " "
+              << std::setw(7) << std::setprecision(4) << itsI1400 << " "
+              << std::setw(7) << std::setprecision(4) << itsI4860 << " "
+              << std::setw(7) << std::setprecision(4) << itsI18000 << "\n";
 }
 std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont)
 {

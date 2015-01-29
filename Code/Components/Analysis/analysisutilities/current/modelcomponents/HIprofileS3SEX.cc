@@ -56,62 +56,71 @@ HIprofileS3SEX& HIprofileS3SEX::operator= (const HIprofileS3SEX& h)
     if (this == &h) return *this;
 
     ((HIprofile &) *this) = h;
-    this->itsSourceType = h.itsSourceType;
-    this->itsVelZero = h.itsVelZero;
-    this->itsVRot = h.itsVRot;
-    this->itsDeltaVel = h.itsDeltaVel;
-    this->itsDipAmp = h.itsDipAmp;
-    this->itsSigmaEdge = h.itsSigmaEdge;
-    this->itsSigmaDip = h.itsSigmaDip;
-    this->itsMaxVal = h.itsMaxVal;
-    this->itsIntFlux = h.itsIntFlux;
-    this->itsEdgeFlux = h.itsEdgeFlux;
-    this->itsMiddleFlux = h.itsMiddleFlux;
-    this->itsProfileFlux = h.itsProfileFlux;
+    itsSourceType = h.itsSourceType;
+    itsVelZero = h.itsVelZero;
+    itsVRot = h.itsVRot;
+    itsDeltaVel = h.itsDeltaVel;
+    itsDipAmp = h.itsDipAmp;
+    itsSigmaEdge = h.itsSigmaEdge;
+    itsSigmaDip = h.itsSigmaDip;
+    itsMaxVal = h.itsMaxVal;
+    itsIntFlux = h.itsIntFlux;
+    itsEdgeFlux = h.itsEdgeFlux;
+    itsMiddleFlux = h.itsMiddleFlux;
+    itsProfileFlux = h.itsProfileFlux;
     return *this;
 }
 
 void HIprofileS3SEX::init()
 {
-    this->itsVelZero = 0.;
-    this->itsVRot = 0.;
-    this->itsDeltaVel = 0.;
-    this->itsDipAmp = 0.;
-    this->itsSigmaEdge = 0.;
-    this->itsSigmaDip = 0.;
-    this->itsMaxVal = 0.;
-    this->itsIntFlux = 0.;
-    this->itsEdgeFlux = 0.;
-    this->itsMiddleFlux = 0.;
-    this->itsProfileFlux = 0.;
+    itsVelZero = 0.;
+    itsVRot = 0.;
+    itsDeltaVel = 0.;
+    itsDipAmp = 0.;
+    itsSigmaEdge = 0.;
+    itsSigmaDip = 0.;
+    itsMaxVal = 0.;
+    itsIntFlux = 0.;
+    itsEdgeFlux = 0.;
+    itsMiddleFlux = 0.;
+    itsProfileFlux = 0.;
 }
 
-HIprofileS3SEX::HIprofileS3SEX(std::string &line)
+HIprofileS3SEX::HIprofileS3SEX(const std::string &line)
 {
     this->define(line);
 }
 
-HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min):
+HIprofileS3SEX::HIprofileS3SEX(const GALTYPE type,
+                               const double z,
+                               const double mhi,
+                               const double maj,
+                               const double min):
     itsSourceType(type)
 {
     this->init();
-    this->itsRedshift = z;
-    this->itsMHI = mhi;
-    this->itsMaj = maj;
-    this->itsMin = min;
+    itsRedshift = z;
+    itsMHI = mhi;
+    itsMaj = maj;
+    itsMin = min;
     this->prepareForUse();
 }
 
 
-HIprofileS3SEX::HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min,
-                               long componentNum, long galaxyNum):
+HIprofileS3SEX::HIprofileS3SEX(const GALTYPE type,
+                               const double z,
+                               const double mhi,
+                               const double maj,
+                               const double min,
+                               const long componentNum,
+                               const long galaxyNum):
     itsSourceType(type)
 {
     this->init();
-    this->itsRedshift = z;
-    this->itsMHI = mhi;
-    this->itsMaj = maj;
-    this->itsMin = min;
+    itsRedshift = z;
+    itsMHI = mhi;
+    itsMaj = maj;
+    itsMin = min;
     this->prepareForUse(componentNum, galaxyNum);
 }
 
@@ -121,11 +130,11 @@ void HIprofileS3SEX::define(const std::string &line)
 
     int type;
     std::stringstream ss(line);
-    ss >> this->itsRA >> this->itsDec >> this->itsFlux
-       >> this->itsAlpha >> this->itsBeta
-       >> this->itsMaj >> this->itsMin >> this->itsPA
-       >> this->itsRedshift >> this->itsMHI >> type;
-    this->itsSourceType = GALTYPE(type);
+    ss >> itsRA >> itsDec >> itsFlux
+       >> itsAlpha >> itsBeta
+       >> itsMaj >> itsMin >> itsPA
+       >> itsRedshift >> itsMHI >> type;
+    itsSourceType = GALTYPE(type);
     this->PosToID();
     this->checkShape();
     this->prepareForUse();
@@ -134,34 +143,34 @@ void HIprofileS3SEX::define(const std::string &line)
 void HIprofileS3SEX::diagnostic(std::ostream& theStream)
 {
     theStream << "HI profile summary:\n";
-    theStream << "z=" << this->itsRedshift << "\n";
-    theStream << "M_HI=" << this->itsMHI << "\n";
-    theStream << "V_0=" << this->itsVelZero << "\n";
-    theStream << "Vrot=" << this->itsVRot << "\n";
-    theStream << "Vwidth=" << this->itsDeltaVel << "\n";
-    theStream << "Dip Amplitude=" << this->itsDipAmp << "\n";
-    theStream << "Sigma_edge=" << this->itsSigmaEdge << "\n";
-    theStream << "Sigma_dip=" << this->itsSigmaDip << "\n";
-    theStream << "Peak value=" << this->itsMaxVal << "\n";
-    theStream << "Integrated Flux=" << this->itsIntFlux << "\n";
-    theStream << "Edge int. flux=" << this->itsEdgeFlux << "\n";
-    theStream << "Middle int. flux=" << this->itsMiddleFlux << "\n";
-    theStream << "Profile int. flux=" << this->itsProfileFlux << "\n";
-    theStream << "Min Freq=" << this->itsMinFreq << "\n";
-    theStream << "Max Freq=" << this->itsMaxFreq << "\n";
+    theStream << "z=" << itsRedshift << "\n";
+    theStream << "M_HI=" << itsMHI << "\n";
+    theStream << "V_0=" << itsVelZero << "\n";
+    theStream << "Vrot=" << itsVRot << "\n";
+    theStream << "Vwidth=" << itsDeltaVel << "\n";
+    theStream << "Dip Amplitude=" << itsDipAmp << "\n";
+    theStream << "Sigma_edge=" << itsSigmaEdge << "\n";
+    theStream << "Sigma_dip=" << itsSigmaDip << "\n";
+    theStream << "Peak value=" << itsMaxVal << "\n";
+    theStream << "Integrated Flux=" << itsIntFlux << "\n";
+    theStream << "Edge int. flux=" << itsEdgeFlux << "\n";
+    theStream << "Middle int. flux=" << itsMiddleFlux << "\n";
+    theStream << "Profile int. flux=" << itsProfileFlux << "\n";
+    theStream << "Min Freq=" << itsMinFreq << "\n";
+    theStream << "Max Freq=" << itsMaxFreq << "\n";
 
 }
 
-void HIprofileS3SEX::print(std::ostream& theStream)
+void HIprofileS3SEX::print(std::ostream& theStream) const
 {
-    theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsFlux << "\t"
-              << this->itsAlpha << "\t" << this->itsBeta << "\t"
-              << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t"
-              << this->itsRedshift << "\t" << this->itsMHI
-              << "\t" << int(this->itsSourceType) << "\n";
+    theStream << itsRA << "\t" << itsDec << "\t" << itsFlux << "\t"
+              << itsAlpha << "\t" << itsBeta << "\t"
+              << itsMaj << "\t" << itsMin << "\t" << itsPA << "\t"
+              << itsRedshift << "\t" << itsMHI
+              << "\t" << int(itsSourceType) << "\n";
 }
 
-std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
+std::ostream& operator<< (std::ostream& theStream, const HIprofileS3SEX &prof)
 {
 
     prof.print(theStream);
@@ -184,11 +193,11 @@ std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
 //     /// @param maj The major axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
 //     /// @param min The minor axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
 
-//   this->itsSourceType = type;
-//   this->itsRedshift = z;
-//   this->itsMHI = mhi;
-//   this->itsMaj = maj;
-//   this->itsMin = min;
+//   itsSourceType = type;
+//   itsRedshift = z;
+//   itsMHI = mhi;
+//   itsMaj = maj;
+//   itsMin = min;
 
 //   this->prepareForUse();
 
@@ -196,7 +205,7 @@ std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
 
 void HIprofileS3SEX::prepareForUse()
 {
-    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+    if (itsSourceType == SBG || itsSourceType == SFG) {
 
         double n1 = random() / (RAND_MAX + 1.0);
         double n2 = random() / (RAND_MAX + 1.0);
@@ -205,9 +214,9 @@ void HIprofileS3SEX::prepareForUse()
     }
 }
 
-void HIprofileS3SEX::prepareForUse(long num1, long num2)
+void HIprofileS3SEX::prepareForUse(const long num1, const long num2)
 {
-    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+    if (itsSourceType == SBG || itsSourceType == SFG) {
         double n1 = (num1 % 1000 + 0.5) / 1000.;
         double n2 = (num2 % 1000 + 0.5) / 1000.;
 
@@ -215,20 +224,20 @@ void HIprofileS3SEX::prepareForUse(long num1, long num2)
     }
 }
 
-void HIprofileS3SEX::prepareForUse(double n1, double n2)
+void HIprofileS3SEX::prepareForUse(const double n1, const double n2)
 {
-    if (this->itsSourceType == SBG || this->itsSourceType == SFG) {
+    if (itsSourceType == SBG || itsSourceType == SFG) {
 
-        this->itsVRot = vrotMin[this->itsSourceType] +
-                        (vrotMax[this->itsSourceType] - vrotMin[this->itsSourceType]) * n1;
-        this->itsSigmaEdge = normalRandomVariable(doubleHornShape[EDGE_SIG_MEAN],
-                             doubleHornShape[EDGE_SIG_SD]);
-        this->itsSigmaEdge = std::max(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);
-        this->itsSigmaEdge = std::min(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MAX]);
-        this->itsMaxVal = 1. / (rootTwoPi * this->itsSigmaEdge);
-        this->itsDipAmp = (doubleHornShape[DIP_MIN] +
-                           (doubleHornShape[DIP_MAX] - doubleHornShape[DIP_MIN]) * n2) *
-                          this->itsMaxVal;
+        itsVRot = vrotMin[itsSourceType] +
+                  (vrotMax[itsSourceType] - vrotMin[itsSourceType]) * n1;
+        itsSigmaEdge = normalRandomVariable(doubleHornShape[EDGE_SIG_MEAN],
+                                            doubleHornShape[EDGE_SIG_SD]);
+        itsSigmaEdge = std::max(itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);
+        itsSigmaEdge = std::min(itsSigmaEdge, doubleHornShape[EDGE_SIG_MAX]);
+        itsMaxVal = 1. / (rootTwoPi * itsSigmaEdge);
+        itsDipAmp = (doubleHornShape[DIP_MIN] +
+                     (doubleHornShape[DIP_MAX] - doubleHornShape[DIP_MIN]) * n2) *
+                    itsMaxVal;
 
         this->setup();
     }
@@ -238,79 +247,79 @@ void HIprofileS3SEX::setup()
 {
     // must have run one of the prepareForUse functions first.
 
-    this->itsIntFlux = this->integratedFlux(this->itsRedshift, this->itsMHI);
+    itsIntFlux = this->integratedFlux(itsRedshift, itsMHI);
 
-    if (this->itsMaj == this->itsMin) {
-        this->itsDeltaVel = 0.01 * this->itsVRot;
+    if (itsMaj == itsMin) {
+        itsDeltaVel = 0.01 * itsVRot;
     } else {
-        this->itsDeltaVel = this->itsVRot * sin(acos(this->itsMin / this->itsMaj));
+        itsDeltaVel = itsVRot * sin(acos(itsMin / itsMaj));
     }
 
-    this->itsVelZero = redshiftToVel(this->itsRedshift);
+    itsVelZero = redshiftToVel(itsRedshift);
 
-    this->itsSigmaDip = doubleHornShape[DIP_SIG_SCALE] * this->itsDeltaVel;
+    itsSigmaDip = doubleHornShape[DIP_SIG_SCALE] * itsDeltaVel;
 
-    this->itsEdgeFlux = 0.5 * this->itsMaxVal * rootTwoPi * this->itsSigmaEdge;
-    double exponent = this->itsDeltaVel * this->itsDeltaVel /
-                      (2.*this->itsSigmaDip * this->itsSigmaDip);
-    this->itsMiddleFlux = 2. * this->itsDeltaVel *
-                          (this->itsMaxVal + this->itsDipAmp / exp(exponent)) -
-                          this->itsDipAmp * rootTwoPi * this->itsSigmaDip *
-                          erf(this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip));
+    itsEdgeFlux = 0.5 * itsMaxVal * rootTwoPi * itsSigmaEdge;
+    double exponent = itsDeltaVel * itsDeltaVel /
+                      (2.*itsSigmaDip * itsSigmaDip);
+    itsMiddleFlux = 2. * itsDeltaVel *
+                    (itsMaxVal + itsDipAmp / exp(exponent)) -
+                    itsDipAmp * rootTwoPi * itsSigmaDip *
+                    erf(itsDeltaVel / (M_SQRT2 * itsSigmaDip));
 
-    this->itsProfileFlux = 2.*this->itsEdgeFlux + this->itsMiddleFlux;
+    itsProfileFlux = 2.*itsEdgeFlux + itsMiddleFlux;
 
-    this->itsMinFreq =  HIVelToFreq(this->itsVelZero - this->itsDeltaVel -
-                                    this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
-                                            this->itsMaxVal)));
-    this->itsMaxFreq =  HIVelToFreq(this->itsVelZero + this->itsDeltaVel +
-                                    this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
-                                            this->itsMaxVal)));
+    itsMinFreq =  HIVelToFreq(itsVelZero - itsDeltaVel -
+                              itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
+                                      itsMaxVal)));
+    itsMaxFreq =  HIVelToFreq(itsVelZero + itsDeltaVel +
+                              itsSigmaEdge * sqrt(2.*log(MAXFLOAT *
+                                      itsMaxVal)));
 
-    if (this->itsMinFreq > this->itsMaxFreq) {
-        std::swap(this->itsMinFreq, this->itsMaxFreq);
+    if (itsMinFreq > itsMaxFreq) {
+        std::swap(itsMinFreq, itsMaxFreq);
     }
 
 }
 
-double HIprofileS3SEX::flux(double nu, int istokes)
+const double HIprofileS3SEX::flux(const double nu, const int istokes)
 {
 
     if (istokes > 0) return 0.;
     else {
-        if (this->itsMHI > 0.) {
+        if (itsMHI > 0.) {
             double flux;
-            double vdiff = freqToHIVel(nu) - this->itsVelZero;
+            double vdiff = freqToHIVel(nu) - itsVelZero;
 
-            if (vdiff < (-this->itsDeltaVel)) {
-                double v = vdiff + this->itsDeltaVel;
-                double exponent = -(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge);
-                flux = this->itsMaxVal * exp(exponent);
-            } else if (vdiff > this->itsDeltaVel) {
-                double v = vdiff - this->itsDeltaVel;
-                double exponent = -(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge);
-                flux = this->itsMaxVal * exp(exponent);
+            if (vdiff < (-itsDeltaVel)) {
+                double v = vdiff + itsDeltaVel;
+                double exponent = -(v * v) / (2.*itsSigmaEdge * itsSigmaEdge);
+                flux = itsMaxVal * exp(exponent);
+            } else if (vdiff > itsDeltaVel) {
+                double v = vdiff - itsDeltaVel;
+                double exponent = -(v * v) / (2.*itsSigmaEdge * itsSigmaEdge);
+                flux = itsMaxVal * exp(exponent);
             } else {
-                double exponent1 = -(vdiff * vdiff) / (2.*this->itsSigmaDip * this->itsSigmaDip);
-                double exponent2 = -(this->itsDeltaVel * this->itsDeltaVel) /
-                                   (2.*this->itsSigmaDip * this->itsSigmaDip);
-                flux = this->itsMaxVal - this->itsDipAmp * exp(exponent1) +
-                       this->itsDipAmp * exp(exponent2);
+                double exponent1 = -(vdiff * vdiff) / (2.*itsSigmaDip * itsSigmaDip);
+                double exponent2 = -(itsDeltaVel * itsDeltaVel) /
+                                   (2.*itsSigmaDip * itsSigmaDip);
+                flux = itsMaxVal - itsDipAmp * exp(exponent1) +
+                       itsDipAmp * exp(exponent2);
             }
 
-            return flux * this->itsIntFlux / this->itsProfileFlux;
+            return flux * itsIntFlux / itsProfileFlux;
 
         } else return 0.;
     }
 }
 
 
-double HIprofileS3SEX::fluxInt(double nu1, double nu2, int istokes)
+const double HIprofileS3SEX::fluxInt(const double nu1, const double nu2, const int istokes)
 {
 
     if (istokes > 0) return 0.;
     else {
-        if (this->itsMHI > 0.) {
+        if (itsMHI > 0.) {
 
             // sqrt(pi/2), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
             const double rootPiOnTwo = 2.* M_SQRT1_2 / M_2_SQRTPI;
@@ -320,40 +329,40 @@ double HIprofileS3SEX::fluxInt(double nu1, double nu2, int istokes)
             v[1] = freqToHIVel(std::min(nu1, nu2)); // highest velocity
             f[0] = f[1] = 0.;
 
-            double minPeak = this->itsVelZero - this->itsDeltaVel;
-            double maxPeak = this->itsVelZero + this->itsDeltaVel;
+            double minPeak = itsVelZero - itsDeltaVel;
+            double maxPeak = itsVelZero + itsDeltaVel;
 
             for (int i = 0; i < 2; i++) {
                 if (v[i] < minPeak) {
-                    f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge *
-                            erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
+                    f[i] += rootPiOnTwo * itsMaxVal * itsSigmaEdge *
+                            erfc((minPeak - v[i]) / (M_SQRT2 * itsSigmaEdge));
                 } else {
-                    f[i] += this->itsEdgeFlux;
+                    f[i] += itsEdgeFlux;
 
                     if (v[i] < maxPeak) {
-                        double exponent = this->itsDeltaVel * this->itsDeltaVel /
-                                          (2.*this->itsSigmaDip * this->itsSigmaDip);
+                        double exponent = itsDeltaVel * itsDeltaVel /
+                                          (2.*itsSigmaDip * itsSigmaDip);
                         double norm = (v[i] - minPeak) *
-                                      (this->itsMaxVal + this->itsDipAmp / exp(exponent));
+                                      (itsMaxVal + itsDipAmp / exp(exponent));
 
-                        double err1 = erfc(-1.*this->itsDeltaVel /
-                                           (M_SQRT2 * this->itsSigmaDip));
-                        double err2 = erfc((v[i] - this->itsVelZero) /
-                                           (M_SQRT2 * this->itsSigmaDip));
+                        double err1 = erfc(-1.*itsDeltaVel /
+                                           (M_SQRT2 * itsSigmaDip));
+                        double err2 = erfc((v[i] - itsVelZero) /
+                                           (M_SQRT2 * itsSigmaDip));
 
-                        double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip *
+                        double dip = rootPiOnTwo * itsDipAmp * itsSigmaDip *
                                      (err1 - err2);
                         f[i] += (norm - dip);
                     } else {
-                        f[i] += this->itsMiddleFlux;
-                        f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge *
-                                erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
+                        f[i] += itsMiddleFlux;
+                        f[i] += rootPiOnTwo * itsMaxVal * itsSigmaEdge *
+                                erf((v[i] - maxPeak) / (M_SQRT2 * itsSigmaEdge));
                     }
                 }
             }
 
             double flux = (f[1] - f[0]) / (v[1] - v[0]);
-            return flux * this->itsIntFlux / this->itsProfileFlux;
+            return flux * itsIntFlux / itsProfileFlux;
         } else return 0.;
     }
 }
