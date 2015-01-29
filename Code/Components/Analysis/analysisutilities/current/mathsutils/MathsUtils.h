@@ -46,8 +46,8 @@ namespace askap {
 namespace analysisutilities {
 
 /// @brief Convert between a Gaussian's sigma and its FWHM
-inline double FWHMtoSIGMA(double f) {return f / (2. * M_SQRT2 * sqrt(M_LN2));};
-inline double SIGMAtoFWHM(double s) {return s * (2. * M_SQRT2 * sqrt(M_LN2));};
+inline const double FWHMtoSIGMA(const double f) {return f / (2. * M_SQRT2 * sqrt(M_LN2));};
+inline const double SIGMAtoFWHM(const double s) {return s * (2. * M_SQRT2 * sqrt(M_LN2));};
 
 /// @brief Return a normal random variable
 /// @details Simulate a normal random variable from a
@@ -57,21 +57,23 @@ inline double SIGMAtoFWHM(double s) {return s * (2. * M_SQRT2 * sqrt(M_LN2));};
 /// @param mean The mean of the normal distribution
 /// @param sigma The standard deviation of the normal distribution
 /// @return A random variable.
-float normalRandomVariable(float mean, float rms);
+const float normalRandomVariable(const float mean, const float rms);
 
 /// @brief Return the standard normal z-score corresponding to a probability (integrated from -infinity)
-double probToZvalue(double prob);
+const double probToZvalue(const double prob);
 
-double atanCircular(double sinTerm, double cosTerm);
+const double atanCircular(const double sinTerm, const double cosTerm);
 
 /// Use the parametric equation for an ellipse (u = a cos(t), v = b
 /// sin(t)) to find the limits of x and y once converted from u & v.
-void findEllipseLimits(double major, double minor, double pa, float &xmin, float &xmax, float &ymin, float &ymax);
+void findEllipseLimits(const double major, const double minor, const double pa,
+                       float &xmin, float &xmax, float &ymin, float &ymax);
 
 /// Find the mean or robust estimate thereof for an array.  Finds the
 /// "middle" (ie. the mean) of an array of values. The option exists
 /// to use the mean, or, by setting robust=true, the median.
-double findMiddle(bool robust, std::vector<float> &array);
+const double findMiddle(const bool robust,
+                        const std::vector<float> &array);
 
 /// Find an rms or robust estimate thereof for an array given a mean value.
 /// Finds the "spread" (ie. the rms or standard deviation) of an
@@ -82,19 +84,24 @@ double findMiddle(bool robust, std::vector<float> &array);
 /// and the returned value is the median absolute difference of
 /// the data values from the median.
 /// @ingroup analysisutilities
-double findSpread(bool robust, double middle, std::vector<float> &array);
+const double findSpread(const bool robust,
+                        const double middle,
+                        const std::vector<float> &array);
 
 /// Find an rms robust estimate thereof for an array.  Calls
 /// findMiddle first, then uses that value to call
 /// findSpread(bool,double,std::vector<float>&).
-double findSpread(bool robust, std::vector<float> &array);
+const double findSpread(const bool robust,
+                        const std::vector<float> &array);
 
 /// Find the mean or robust estimate thereof for an array, with
 /// masking of pixels.  Finds the "middle" (ie. the mean) of an array
 /// of values. The option exists to use the mean, or, by setting
 /// robust=true, the median. Only pixels where the mask is true are
 /// used.
-double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mask);
+const double findMiddle(const bool robust,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask);
 
 /// Find an rms for an array given a mean value, with masking of
 /// pixels.  Finds the "spread" (ie. the rms or standard deviation) of
@@ -104,15 +111,20 @@ double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mas
 /// value given is assumed to be the median, and the returned value is
 /// the median absolute difference of the data values from the
 /// median. Only pixels where the mask is true are used.
-double findSpread(bool robust, double middle, std::vector<float> &array, std::vector<bool> &mask);
+const double findSpread(const bool robust,
+                        const double middle,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask);
 
 /// Find an rms robust estimate thereof for an array, with masking of
 /// pixels.  Calls findMiddle first, then uses that value to call
 /// findSpread(bool,double,std::vector<float>&,std::vector<bool>&).
-double findSpread(bool robust, std::vector<float> &array, std::vector<bool> &mask);
+const double findSpread(const bool robust,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask);
 
 /// @brief Return the probability of obtaining a chisq value by
-///        chance, for a certain number of degrees of freedom.
+/// chance, for a certain number of degrees of freedom.
 /// @ingroup analysisutilities
 /// @details Returns the probability of exceeding the given
 /// value of chisq by chance. If it comes from a fit, this
@@ -126,7 +138,7 @@ double findSpread(bool robust, std::vector<float> &array, std::vector<bool> &mas
 /// chisq value that high), you would reject that fit (since
 /// 0.0347878 < 0.05), but if it is 99%, you would accept it
 /// (since 0.0347878 > 0.01).
-float chisqProb(float ndof, float chisq);
+const float chisqProb(const float ndof, const float chisq);
 
 /// @brief Return the Gaussian after deconvolution with the given beam
 /// @details Deconvolution of a Gaussian shape, assuming it
@@ -137,7 +149,8 @@ float chisqProb(float ndof, float chisq);
 /// @param beam Beam shape of image
 /// @return A vector containing (in order), the major & minor
 /// axes, and the position angle (in radians).
-std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam);
+const std::vector<Double>
+deconvolveGaussian(const casa::Gaussian2D<Double> &measured, duchamp::Beam beam);
 
 }
 

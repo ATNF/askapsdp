@@ -50,7 +50,7 @@ namespace askap {
 
 namespace analysisutilities {
 
-std::string removeLeadingBlanks(std::string s)
+const std::string removeLeadingBlanks(const std::string s)
 {
     int i = 0;
 
@@ -60,12 +60,14 @@ std::string removeLeadingBlanks(std::string s)
 
     std::string newstring;
 
-    for (unsigned int j = i; j < s.size(); j++) newstring += s[j];
+    for (unsigned int j = i; j < s.size(); j++) {
+        newstring += s[j];
+    }
 
     return newstring;
 }
 
-double dmsToDec(std::string input)
+const double dmsToDec(const std::string input)
 {
     std::string dms = removeLeadingBlanks(input);
     bool isNeg = false;
@@ -93,8 +95,8 @@ double dmsToDec(std::string input)
     return dec;
 }
 
-std::string decToDMS(const double input, std::string type, int secondPrecision,
-                     std::string separator)
+const std::string decToDMS(const double input, const std::string type,
+                           const int secondPrecision, const std::string separator)
 {
     double normalisedInput = input;
     int degSize = 2; // number of figures in the degrees part of the output.
@@ -212,7 +214,7 @@ std::string decToDMS(const double input, std::string type, int secondPrecision,
     return outstring;
 }
 
-double positionToDouble(std::string position)
+const double positionToDouble(const std::string position)
 {
     size_t pos = position.find(':');
     if (pos == std::string::npos) {
@@ -224,7 +226,7 @@ double positionToDouble(std::string position)
     }
 }
 
-double raToDouble(std::string position)
+const double raToDouble(const std::string position)
 {
     double dpos = positionToDouble(position);
     if (position.find(':') != std::string::npos) {
@@ -235,14 +237,14 @@ double raToDouble(std::string position)
     return dpos;
 }
 
-double decToDouble(std::string position)
+const double decToDouble(const std::string position)
 {
     return positionToDouble(position);
 }
 
 
-double angularSeparation(const std::string ra1, const std::string dec1,
-                         const std::string ra2, const std::string dec2)
+const double angularSeparation(const std::string ra1, const std::string dec1,
+                               const std::string ra2, const std::string dec2)
 {
     if ((ra1 == ra2) && (dec1 == dec2)) {
         return 0.;
@@ -253,7 +255,8 @@ double angularSeparation(const std::string ra1, const std::string dec1,
     }
 }
 
-double angularSeparation(double ra1, double dec1, double ra2, double dec2)
+const double angularSeparation(const double ra1, const double dec1,
+                               const double ra2, const double dec2)
 {
     double r1, d1, r2, d2;
     r1 = ra1  * M_PI / 180.;
@@ -265,7 +268,7 @@ double angularSeparation(double ra1, double dec1, double ra2, double dec2)
 }
 
 
-void equatorialToGalactic(double ra, double dec, double &gl, double &gb)
+void equatorialToGalactic(const double ra, const double dec, double &gl, double &gb)
 {
     const double NGP_RA = 192.859508 * M_PI / 180.;
     const double NGP_DEC = 27.128336 * M_PI / 180.;

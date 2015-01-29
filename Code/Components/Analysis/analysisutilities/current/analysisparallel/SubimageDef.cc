@@ -62,18 +62,13 @@ ASKAP_LOGGER(logger, ".subimagedef");
 namespace askap {
 namespace analysisutilities {
 
-SubimageDef::SubimageDef()
+SubimageDef::SubimageDef():
+    itsNSubX(1), itsNSubY(1), itsNSubZ(1),
+    itsOverlapX(0), itsOverlapY(0), itsOverlapZ(0),
+    itsNSub(), itsOverlap(), itsNAxis(0),
+    itsImageName(""), itsInputSection(""), itsSectionList(),
+    itsLng(-1), itsLat(-1), itsSpec(-1), itsAnnotationFile("")
 {
-    itsNAxis = 0;
-    itsNSubX = 1;
-    itsNSubY = 1;
-    itsNSubZ = 1;
-    itsOverlapX = itsOverlapY = itsOverlapZ = 0;
-    itsImageName = "";
-    itsInputSection = "";
-    itsNSub = std::vector<unsigned int>();
-    itsOverlap = std::vector<unsigned int>();
-    itsSectionList = std::vector<duchamp::Section>();
 }
 
 SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
@@ -100,7 +95,7 @@ SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
 
 }
 
-void SubimageDef::setImageDim(std::vector<int> dim)
+void SubimageDef::setImageDim(const std::vector<int> &dim)
 {
     itsFullImageDim = std::vector<long>(dim.size());
     for (size_t i = 0; i < dim.size(); i++) {
@@ -108,12 +103,12 @@ void SubimageDef::setImageDim(std::vector<int> dim)
     }
 }
 
-void SubimageDef::setImageDim(std::vector<long> dim)
+void SubimageDef::setImageDim(const std::vector<long> &dim)
 {
     itsFullImageDim = dim;
 }
 
-void SubimageDef::setImageDim(std::vector<size_t> dim)
+void SubimageDef::setImageDim(const std::vector<size_t> &dim)
 {
     itsFullImageDim = std::vector<long>(dim.size());
     for (size_t i = 0; i < dim.size(); i++) {
@@ -121,7 +116,7 @@ void SubimageDef::setImageDim(std::vector<size_t> dim)
     }
 }
 
-void SubimageDef::setImageDim(long *dim, size_t size)
+void SubimageDef::setImageDim(const long *dim, const size_t size)
 {
     itsFullImageDim = std::vector<long>(size);
     for (size_t i = 0; i < size; i++) {
@@ -129,7 +124,7 @@ void SubimageDef::setImageDim(long *dim, size_t size)
     }
 }
 
-void SubimageDef::setImageDim(size_t *dim, size_t size)
+void SubimageDef::setImageDim(const size_t *dim, const size_t size)
 {
     itsFullImageDim = std::vector<long>(size);
     for (size_t i = 0; i < size; i++) {
@@ -137,7 +132,7 @@ void SubimageDef::setImageDim(size_t *dim, size_t size)
     }
 }
 
-void SubimageDef::define(int numDim)
+void SubimageDef::define(const int numDim)
 {
 
     struct wcsprm *wcs;
@@ -152,19 +147,8 @@ void SubimageDef::define(int numDim)
 
 }
 
-void SubimageDef::define(wcsprm *wcs)
+void SubimageDef::define(const wcsprm *wcs)
 {
-    /// @details Define all the necessary variables within the
-    /// SubimageDef class. The image (given by the parameter "image"
-    /// in the parset) is to be split up according to the nsubx/y/z
-    /// parameters, with overlaps in each direction given by the
-    /// overlapx/y/z parameters (these are in pixels).
-    ///
-    /// The WCS parameters in wcs determine which axes are the x, y and z
-    /// axes. The number of axes is also determined from the WCS
-    /// parameter set.
-    ///
-    /// @param wcs The WCSLIB definition of the world coordinate system
     itsNAxis = wcs->naxis;
     itsLng  = wcs->lng;
     itsLat  = wcs->lat;
@@ -191,21 +175,8 @@ void SubimageDef::define(wcsprm *wcs)
 
 }
 
-void SubimageDef::defineFITS(std::string FITSfilename)
+void SubimageDef::defineFITS(const std::string &FITSfilename)
 {
-    /// @details Define all the necessary variables within the
-    /// SubimageDef class. The image (given by the parameter "image"
-    /// in the parset) is to be split up according to the nsubx/y/z
-    /// parameters, with overlaps in each direction given by the
-    /// overlapx/y/z parameters (these are in pixels).
-    ///
-    /// This version is designed for FITS files. The Duchamp
-    /// function duchamp::FitsHeader::defineWCS() is used to extract
-    /// the WCS parameters from the FITS header. This is then sent
-    /// to SubimageDef::define(wcsprm *) to define everything.
-    ///
-    /// @param FITSfilename The name of the FITS file.
-
     // This is needed for defineWCS(), but we don't care about the contents.
     duchamp::Param tempPar;
     duchamp::FitsHeader imageHeader;
@@ -239,21 +210,15 @@ void SubimageDef::defineAllSections()
 
 }
 
-casa::IPosition SubimageDef::blc(int workerNum)
+const casa::IPosition SubimageDef::blc(const int workerNum)
 {
     duchamp::Section subsection = section(workerNum);
     casa::IPosition blc(subsection.getStartList());
     return blc;
 }
 
-duchamp::Section SubimageDef::section(int workerNum)
+duchamp::Section SubimageDef::section(const int workerNum)
 {
-    /// @details Return the subsection object for the given worker
-    /// number. (These start at 0). The subimages are tiled across
-    /// the cube with the x-direction varying quickest, then y, then
-    /// z.
-    /// @return A duchamp::Section object containing all information
-    /// on the subsection.
 
     if (itsFullImageDim.size() == 0) {
         ASKAPTHROW(AskapError, "SubimageDef::section : " <<
@@ -306,13 +271,11 @@ duchamp::Section SubimageDef::section(int workerNum)
 void SubimageDef::writeAnnotationFile(duchamp::FitsHeader &head,
                                       askap::askapparallel::AskapParallel& comms)
 {
-    /// @details This creates a Karma annotation file that simply has
-    /// the borders of the subimages plotted on it.
 
     if (itsInputSection == "") {
         ASKAPLOG_WARN_STR(logger,
-                          "SubimageDef::defineAllSections : \
-input subsection not defined! Setting to null subsection");
+                          "SubimageDef::defineAllSections : " <<
+                          "input subsection not defined! Setting to null subsection");
         itsInputSection = duchamp::nullSection(itsFullImageDim.size());
     }
     std::stringstream dimss;
@@ -337,8 +300,8 @@ input subsection not defined! Setting to null subsection");
     writer.setColourString("YELLOW");
     writer.writeTableHeader();
 
-    double *pix = new double[12];
-    double *wld = new double[12];
+    std::vector<double> pix(12, 0.);
+    std::vector<double> wld(12, 0.);
     float xcentre, ycentre;
 
     for (int i = 0; i < 4; i++) {
@@ -358,7 +321,7 @@ input subsection not defined! Setting to null subsection");
         // y-end :
         pix[7] = pix[10] = workerSection.getEnd(1)  + 0.5 - fullImageSubsection.getStart(1);
 
-        head.pixToWCS(pix, wld, 4);
+        head.pixToWCS(pix.data(), wld.data(), 4);
         xcentre = (wld[0] + wld[3] + wld[6] + wld[9]) / 4.;
         ycentre = (wld[1] + wld[4] + wld[7] + wld[10]) / 4.;
 
@@ -373,20 +336,19 @@ input subsection not defined! Setting to null subsection");
         writer.text(xcentre, ycentre, ss.str());
     }
 
-    delete [] pix;
-    delete [] wld;
-
     writer.closeCatalogue();
 
 }
 
-std::set<int> SubimageDef::affectedWorkers(int x, int y, int z)
+const std::set<int> SubimageDef::affectedWorkers(const int x, const int y, const int z)
 {
     if (itsFullImageDim.size() == 0) {
-        ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : image dimensions have not been set!");
+        ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : " <<
+                   "image dimensions have not been set!");
     }
     if (itsSectionList.size() == 0) {
-        ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : worker sections have not been defined!");
+        ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : " <<
+                   "worker sections have not been defined!");
     }
 
     int ref[3] = {x, y, z};
@@ -408,18 +370,18 @@ std::set<int> SubimageDef::affectedWorkers(int x, int y, int z)
     return goodNodes;
 }
 
-std::set<int> SubimageDef::affectedWorkers(float x, float y, float z)
+const std::set<int> SubimageDef::affectedWorkers(const float x, const float y, const float z)
 {
     return affectedWorkers(int(floor(x)), int(floor(y)), int(floor(z)));
 }
 
-std::set<int> SubimageDef::affectedWorkers(casa::IPosition pos)
+const std::set<int> SubimageDef::affectedWorkers(const casa::IPosition &pos)
 {
     ASKAPASSERT(pos.size() >= 3);
     return affectedWorkers(int(pos[0]), int(pos[1]), int(pos[2]));
 }
 
-std::set<int> SubimageDef::affectedWorkers(casa::Slicer &slice)
+const std::set<int> SubimageDef::affectedWorkers(const casa::Slicer &slice)
 {
 
     IPosition blc = slice.start();

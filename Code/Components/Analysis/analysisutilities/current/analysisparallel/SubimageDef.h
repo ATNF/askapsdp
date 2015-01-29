@@ -64,72 +64,112 @@ class SubimageDef {
         /// @brief Default destructor
         virtual ~SubimageDef() {};
 
-        /// @brief Set up the definition for a given number of dimensions
-        void define(int numDim);
+        /// @brief Set up the definition for a given number of
+        /// dimensions
+        void define(const int numDim);
+
         /// @brief Set up the definition using a WCSLIB definition
-        void define(wcsprm *wcs);
+        /// @details Define all the necessary variables within the
+        /// SubimageDef class. The image (given by the parameter
+        /// "image" in the parset) is to be split up according to the
+        /// nsubx/y/z parameters, with overlaps in each direction
+        /// given by the overlapx/y/z parameters (these are in
+        /// pixels).
+        ///
+        /// The WCS parameters in wcs determine which axes are the x,
+        /// y and z axes. The number of axes is also determined from
+        /// the WCS parameter set.
+        ///
+        /// @param wcs The WCSLIB definition of the world coordinate
+        /// system
+        void define(const wcsprm *wcs);
+
         /// @brief Set up the definition for a FITS file.
-        void defineFITS(std::string FITSfilename);
+        /// @details Define all the necessary variables within the
+        /// SubimageDef class. The image (given by the parameter
+        /// "image" in the parset) is to be split up according to the
+        /// nsubx/y/z parameters, with overlaps in each direction
+        /// given by the overlapx/y/z parameters (these are in
+        /// pixels).
+        ///
+        /// This version is designed for FITS files. The Duchamp
+        /// function duchamp::FitsHeader::defineWCS() is used to
+        /// extract the WCS parameters from the FITS header. This is
+        /// then sent to SubimageDef::define(wcsprm *) to define
+        /// everything.
+        ///
+        /// @param FITSfilename The name of the FITS file.
+        void defineFITS(const std::string &FITSfilename);
 
         /// @brief Set the array of image dimensions
         /// @{
-        void setImageDim(std::vector<int> dim);
-        void setImageDim(std::vector<long> dim);
-        void setImageDim(std::vector<size_t> dim);
-        void setImageDim(long *dim, size_t size);
-        void setImageDim(size_t *dim, size_t size);
-        std::vector<long> getImageDim() {return itsFullImageDim;};
+        void setImageDim(const std::vector<int> &dim);
+        void setImageDim(const std::vector<long> &dim);
+        void setImageDim(const std::vector<size_t> &dim);
+        void setImageDim(const long *dim, const size_t size);
+        void setImageDim(const size_t *dim, const size_t size);
+        const std::vector<long> getImageDim() {return itsFullImageDim;};
         ///@}
 
         /// @brief Set the image name.
-        void setImage(std::string imageName) {itsImageName = imageName;};
+        void setImage(const std::string &imageName) {itsImageName = imageName;};
 
         /// @brief Set the input subsection
-        void setInputSubsection(std::string section) {itsInputSection = section;};
+        void setInputSubsection(const std::string &section) {itsInputSection = section;};
 
         /// @brief Return a subsection specification for a given worker
-        //                duchamp::Section section(int workerNum, std::string inputSection);
-        duchamp::Section section(int workerNum);
+        /// @details Return the subsection object for the given worker
+        /// number. (These start at 0). The subimages are tiled across
+        /// the cube with the x-direction varying quickest, then y, then
+        /// z.
+        /// @return A duchamp::Section object containing all information
+        /// on the subsection.
+        duchamp::Section section(const int workerNum);
+
         /// @brief Define the subsection specification for *every* worker
         void defineAllSections();
 
         /// @brief Return the bottom-left-corner of a worker's subsection
-        casa::IPosition blc(int workerNum);
+        const casa::IPosition blc(const int workerNum);
 
         /// @brief Return the number of subimages.
-        unsigned int numSubs() {return itsNSubX * itsNSubY * itsNSubZ;};
+        const unsigned int numSubs() {return itsNSubX * itsNSubY * itsNSubZ;};
         /// @brief The number of axes
-        unsigned int naxis() {return itsNAxis;};
+        const unsigned int naxis() {return itsNAxis;};
 
         /// @brief Return the number of subdivisions in given directions
         /// @{
-        unsigned int nsubx() {return itsNSubX;};
-        unsigned int nsuby() {return itsNSubY;};
-        unsigned int nsubz() {return itsNSubZ;};
-        std::vector<unsigned int> nsub() {return itsNSub;}
+        const unsigned int nsubx() {return itsNSubX;};
+        const unsigned int nsuby() {return itsNSubY;};
+        const unsigned int nsubz() {return itsNSubZ;};
+        const std::vector<unsigned int> nsub() {return itsNSub;}
         /// @}
 
         /// @brief Return the size of the overlap in given directions
         /// @{
-        unsigned int overlapx() {return itsOverlapX;};
+        const unsigned int overlapx() {return itsOverlapX;};
         void setOverlapX(int o) {itsOverlapX = o;};
-        unsigned int overlapy() {return itsOverlapY;};
+        const unsigned int overlapy() {return itsOverlapY;};
         void setOverlapY(int o) {itsOverlapY = o;};
-        unsigned int overlapz() {return itsOverlapZ;};
+        const unsigned int overlapz() {return itsOverlapZ;};
         void setOverlapZ(int o) {itsOverlapZ = o;};
-        std::vector<unsigned int> overlap() {return itsOverlap;};
+        const std::vector<unsigned int> overlap() {return itsOverlap;};
         /// @}
 
-        /// @brief Create a Karma annotation file showing the borders of the subimages.
+        /// @brief Create a Karma annotation file showing the borders
+        /// of the subimages.
+        /// @details This creates a Karma annotation file that simply has
+        /// the borders of the subimages plotted on it, along with the
+        /// worker number at the centre of each subimage.
         void writeAnnotationFile(duchamp::FitsHeader &head,
                                  askap::askapparallel::AskapParallel& comms);
 
         /// @brief Which worker(s) does a given location fall in?
-        std::set<int> affectedWorkers(int x, int y, int z);
-        std::set<int> affectedWorkers(float x, float y, float z);
-        std::set<int> affectedWorkers(casa::IPosition pos);
+        const std::set<int> affectedWorkers(const int x, const int y, const int z);
+        const std::set<int> affectedWorkers(const float x, const float y, const float z);
+        const std::set<int> affectedWorkers(const casa::IPosition &pos);
         /// @brief Which workers does a given slice overlap with?
-        std::set<int> affectedWorkers(casa::Slicer &slice);
+        const std::set<int> affectedWorkers(const casa::Slicer &slice);
 
     protected:
         /// @brief Number of subdivisions in the x-direction

@@ -46,7 +46,7 @@ namespace analysisutilities {
 
 using namespace cosmology;
 
-double redshiftToDist(double z, Cosmology cosmology)
+const double redshiftToDist(const double z, const Cosmology cosmology)
 {
     /// @details Converts redshift to a distance. Currently just a
     /// front-end to the Cosmology::dlum() function.
@@ -57,7 +57,7 @@ double redshiftToDist(double z, Cosmology cosmology)
     return cosmology.dlum(z);
 }
 
-double redshiftToVel(double z)
+const double redshiftToVel(const double z)
 {
     /// @details Converts a redshift to a recessional velocity,
     /// using the relativistic equation.
@@ -68,7 +68,7 @@ double redshiftToVel(double z)
     return C_kms * v;
 }
 
-double velToRedshift(double vel)
+const double velToRedshift(const double vel)
 {
     /// @details Converts a recessional velocity to a redshift
     /// using the relativistic equation.
@@ -80,7 +80,7 @@ double velToRedshift(double vel)
     return z;
 }
 
-double redshiftToHIFreq(double z)
+const double redshiftToHIFreq(const double z)
 {
     /// @details Converts a redshift to the observed frequency of an HI line.
     /// @param z The redshift
@@ -89,7 +89,7 @@ double redshiftToHIFreq(double z)
     return redshiftToFreq(z, nu0_HI);
 }
 
-double redshiftToFreq(double z, double restfreq)
+const double redshiftToFreq(const double z, const double restfreq)
 {
     /// @details Converts a redshift to the observed frequency of a spectral line with rest frequency as specified.
     /// @param z The redshift
@@ -100,7 +100,7 @@ double redshiftToFreq(double z, double restfreq)
 }
 
 
-double HIFreqToRedshift(double freq)
+const double HIFreqToRedshift(const double freq)
 {
     /// @details Converts the observed frequency of an HI line to a redshift.
     /// @param freq The frequency in Hz
@@ -109,7 +109,7 @@ double HIFreqToRedshift(double freq)
     return freqToRedshift(freq, nu0_HI);
 }
 
-double freqToRedshift(double freq, double restfreq)
+const double freqToRedshift(const double freq, const double restfreq)
 {
     /// @details Convertsthe observed frequency of a spectral line, with rest frequency as specified, to a redshift. Note both frequencies need to be in the same units
     /// @param freq The frequency
@@ -120,7 +120,7 @@ double freqToRedshift(double freq, double restfreq)
 }
 
 
-double freqToVel(double nu, double restfreq)
+const double freqToVel(const double nu, const double restfreq)
 {
     /// @details Converts a frequency to the velocity of a line with given rest frequency
     /// @param nu The frequency in Hz
@@ -131,7 +131,7 @@ double freqToVel(double nu, double restfreq)
     return redshiftToVel(z);
 }
 
-double freqToHIVel(double nu)
+const double freqToHIVel(const double nu)
 {
     /// @details Converts a frequency to the velocity of HI.
     /// @param nu The frequency in Hz
@@ -140,7 +140,7 @@ double freqToHIVel(double nu)
     return freqToVel(nu, nu0_HI);
 }
 
-double velToFreq(double vel, double restfreq)
+const double velToFreq(const double vel, const double restfreq)
 {
     /// @details Converts a velocity of a spectral line to a frequency.
     /// @param vel The velocity in km/s
@@ -151,7 +151,7 @@ double velToFreq(double vel, double restfreq)
     return redshiftToFreq(z, restfreq);
 }
 
-double HIVelToFreq(double vel)
+const double HIVelToFreq(const double vel)
 {
     /// @details Converts a velocity of HI to a frequency.
     /// @param vel The velocity in km/s

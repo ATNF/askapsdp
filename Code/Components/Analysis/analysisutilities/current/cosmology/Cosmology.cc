@@ -42,33 +42,33 @@ Cosmology::Cosmology():
 {
 }
 
-Cosmology::Cosmology(double hubble, double omegaM, double omegaL):
+Cosmology::Cosmology(const double hubble, const double omegaM, const double omegaL):
     itsHubble(hubble), itsOmegaM(omegaM), itsOmegaL(omegaL)
 {
 }
 
 
-double Cosmology::dlum(double z)
+const double Cosmology::dlum(const double z)
 {
     double dz = z / double(NUMINT);
     double rr = 0.;
     for (int i = 0; i < NUMINT; i++) {
         double zp1 = (i + 0.5) * dz + 1;
-        double temp = this->itsOmegaL +
-                      ((1. - this->itsOmegaL - this->itsOmegaM) * (zp1 * zp1)) +
-                      (this->itsOmegaM * (zp1 * zp1 * zp1));
+        double temp = itsOmegaL +
+                      ((1. - itsOmegaL - itsOmegaM) * (zp1 * zp1)) +
+                      (itsOmegaM * (zp1 * zp1 * zp1));
         double drdz = 1. / sqrt(temp);
         rr = rr + drdz * dz;
     }
 
-    double dl = rr * (1. + z) * (C_ms / 1000.) / this->itsHubble; /* dlum in Mpc */
-    dl = dl * MPC_m;                                             /* dlum in metres */
+    double dl = rr * (1. + z) * (C_ms / 1000.) / itsHubble; /* dlum in Mpc */
+    dl = dl * MPC_m;                                        /* dlum in metres */
 
     return log10(dl);
 
 }
 
-double Cosmology::lum(double z, double flux)
+const double Cosmology::lum(const double z, const double flux)
 {
     return log10(4.*M_PI) + 2.*this->dlum(z) + flux;
 }

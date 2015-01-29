@@ -41,27 +41,28 @@ namespace analysisutilities {
 const double nu0_HI = 1420405751.786;
 
 /// @brief Convert a redshift to a distance for a given cosmology
-double redshiftToDist(double z, cosmology::Cosmology cosmology = cosmology::Cosmology());
+const double redshiftToDist(const double z,
+                            const cosmology::Cosmology cosmology = cosmology::Cosmology());
 /// @brief Convert a redshift to a line-of-sight velocity
-double redshiftToVel(double z);
+const double redshiftToVel(const double z);
 /// @brief Convert a line-of-sight velocity to a redshift
-double velToRedshift(double vel);
+const double velToRedshift(const double vel);
 /// @brief Convert a redshift to an observed frequency for a spectral-line
-double redshiftToFreq(double z, double restfreq);
+const double redshiftToFreq(const double z, const double restfreq);
 /// @brief Convert a redshift to an observed HI frequency
-double redshiftToHIFreq(double z);
+const double redshiftToHIFreq(const double z);
 /// @brief Convert an observed frequency of a spectral-line to a redshift
-double freqToRedshift(double freq, double restfreq);
+const double freqToRedshift(const double freq, const double restfreq);
 /// @brief Convert an observed frequency of an HI spectral-line to a redshift
-double HIFreqToRedshift(double freq);
+const double HIFreqToRedshift(const double freq);
 /// @brief Convert an observed spectral-line frequency to a recessional velocity
-double freqToVel(double nu, double restfreq);
+const double freqToVel(const double nu, const double restfreq);
 /// @brief Convert an observed HI frequency to a recessional velocity
-double freqToHIVel(double nu);
+const double freqToHIVel(const double nu);
 /// @brief Convert a recessional velocity to an observed frequency
-double velToFreq(double vel, double restfreq);
+const double velToFreq(const double vel, const double restfreq);
 /// @brief Convert a recessional velocity to an observed HI frequency
-double HIVelToFreq(double vel);
+const double HIVelToFreq(const double vel);
 
 }
 

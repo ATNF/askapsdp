@@ -47,12 +47,12 @@ const int NUMINT = 10000;
 class Cosmology {
     public:
         Cosmology();
-        Cosmology(double hubble, double omegaM, double omegaL);
+        Cosmology(const double hubble, const double omegaM, const double omegaL);
         virtual ~Cosmology() {};
 
-        double dlum(double z);
+        const double dlum(const double z);
 
-        double lum(double z, double flux);
+        const double lum(const double z, const double flux);
 
     private:
         double itsHubble;

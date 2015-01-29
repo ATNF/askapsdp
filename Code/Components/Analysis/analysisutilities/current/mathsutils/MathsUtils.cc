@@ -56,7 +56,7 @@ namespace askap {
 namespace analysisutilities {
 
 
-float normalRandomVariable(float mean, float sigma)
+const float normalRandomVariable(const float mean, const float sigma)
 {
     float v1, v2, s;
 
@@ -71,7 +71,7 @@ float normalRandomVariable(float mean, float sigma)
     return z * sigma + mean;
 }
 
-double probToZvalue(double prob)
+const double probToZvalue(const double prob)
 {
 
     double z = 0, deltaz = 0.1, tolerance = 1.e-6;
@@ -89,7 +89,7 @@ double probToZvalue(double prob)
 }
 
 
-double atanCircular(double sinTerm, double cosTerm)
+const double atanCircular(const double sinTerm, const double cosTerm)
 {
     double epsilon = 1.e-10;
     double angle;
@@ -125,7 +125,8 @@ double atanCircular(double sinTerm, double cosTerm)
 }
 
 
-void findEllipseLimits(double major, double minor, double pa, float &xmin, float &xmax, float &ymin, float &ymax)
+void findEllipseLimits(const double major, const double minor, const double pa,
+                       float &xmin, float &xmax, float &ymin, float &ymax)
 {
     double cospa = cos(pa);
     double sinpa = sin(pa);
@@ -160,7 +161,7 @@ void findEllipseLimits(double major, double minor, double pa, float &xmin, float
 
 }
 
-double findMiddle(bool robust, std::vector<float> &array)
+const double findMiddle(const bool robust, const std::vector<float> &array)
 {
     double middle = 0.;
     size_t size = array.size();
@@ -193,13 +194,13 @@ double findMiddle(bool robust, std::vector<float> &array)
 
 }
 
-double findSpread(bool robust, std::vector<float> &array)
+const double findSpread(const bool robust, const std::vector<float> &array)
 {
     double middle = findMiddle(robust, array);
     return findSpread(robust, middle, array);
 }
 
-double findSpread(bool robust, double middle, std::vector<float> &array)
+const double findSpread(const bool robust, const double middle, const std::vector<float> &array)
 {
     double spread = 0.;
     size_t size = array.size();
@@ -237,7 +238,9 @@ double findSpread(bool robust, double middle, std::vector<float> &array)
     return spread;
 }
 
-double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mask)
+const double findMiddle(const bool robust,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask)
 {
     double middle = 0.;
     size_t size = array.size(), goodSize = 0;
@@ -284,13 +287,18 @@ double findMiddle(bool robust, std::vector<float> &array, std::vector<bool> &mas
 
 }
 
-double findSpread(bool robust, std::vector<float> &array, std::vector<bool> &mask)
+const double findSpread(const bool robust,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask)
 {
     double middle = findMiddle(robust, array, mask);
     return findSpread(robust, middle, array, mask);
 }
 
-double findSpread(bool robust, double middle, std::vector<float> &array, std::vector<bool> &mask)
+const double findSpread(const bool robust,
+                        const double middle,
+                        const std::vector<float> &array,
+                        const std::vector<bool> &mask)
 {
 
     size_t size = array.size(), goodSize = 0;
@@ -341,12 +349,13 @@ double findSpread(bool robust, double middle, std::vector<float> &array, std::ve
     return spread;
 }
 
-float chisqProb(float ndof, float chisq)
+const float chisqProb(const float ndof, const float chisq)
 {
     return gsl_sf_gamma_inc(ndof / 2., chisq / 2.) / gsl_sf_gamma(ndof / 2.);
 }
 
-std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam)
+const std::vector<Double>
+deconvolveGaussian(const casa::Gaussian2D<Double> &measured, duchamp::Beam beam)
 {
     double a2 = beam.maj(), b2 = beam.min(), pa2 = beam.pa() * M_PI / 180.;
     double a0 = measured.majorAxis(), b0 = measured.minorAxis(), pa0 = measured.PA();
