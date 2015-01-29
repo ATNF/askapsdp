@@ -52,11 +52,6 @@ namespace analysisutilities {
 
 std::string removeLeadingBlanks(std::string s)
 {
-    /// @brief Remove blank spaces from the beginning of a string
-    /// @details
-    /// All blank spaces from the start of the string to the first
-    /// non-blank-space character are deleted.
-    ///
     int i = 0;
 
     while (s[i] == ' ') {
@@ -72,18 +67,18 @@ std::string removeLeadingBlanks(std::string s)
 
 double dmsToDec(std::string input)
 {
-    /// @details
-    ///  Assumes the angle given is in degrees, so if passing RA as
-    ///  the argument, need to multiply by 15 to get the result in
-    ///  degrees rather than hours.  The sign of the angle is
-    ///  preserved, if present.
-    ///
     std::string dms = removeLeadingBlanks(input);
     bool isNeg = false;
 
-    if (dms[0] == '-') isNeg = true;
+    if (dms[0] == '-') {
+        isNeg = true;
+    }
 
-    for (unsigned int i = 0; i < dms.size(); i++) if (dms[i] == ':') dms[i] = ' ';
+    for (unsigned int i = 0; i < dms.size(); i++) {
+        if (dms[i] == ':') {
+            dms[i] = ' ';
+        }
+    }
 
     std::stringstream ss;
     ss.str(dms);
@@ -91,7 +86,9 @@ double dmsToDec(std::string input)
     ss >> d >> m >> s;
     double dec = fabs(d) + m / 60. + s / 3600.;
 
-    if (isNeg) dec = dec * -1.;
+    if (isNeg) {
+        dec = dec * -1.;
+    }
 
     return dec;
 }
@@ -99,23 +96,6 @@ double dmsToDec(std::string input)
 std::string decToDMS(const double input, std::string type, int secondPrecision,
                      std::string separator)
 {
-    /// @details
-    ///  This is the general form, where one can specify the degree of
-    ///  precision of the seconds, and the separating character.
-    ///  The format reflects the axis type:
-    ///  @li RA   (right ascension):     hh:mm:ss.ss, with dec modulo 360. (24hrs)
-    ///  @li DEC  (declination):        sdd:mm:ss.ss  (with sign, either + or -)
-    ///  @li GLON (galactic longitude): ddd:mm:ss.ss, with dec made modulo 360.
-    ///  @li GLAT (galactic latitude):  sdd:mm:ss.ss  (with sign, either + or -)
-    ///    Any other type defaults to RA, and prints warning.
-    /// @param input Angle in decimal degrees.
-    /// @param type Axis type to be used
-    /// @param secondPrecision How many decimal places to quote the seconds to.
-    /// @param separator The character (or string) to use as a
-    /// separator between hh and mm, and mm and ss.sss. A special
-    /// value of 'parset' for separator will output RA in the format
-    /// 19h39m25.03 and Dec as -63.42.45.63
-    ///
     double normalisedInput = input;
     int degSize = 2; // number of figures in the degrees part of the output.
     std::string sign = "";
@@ -131,21 +111,34 @@ std::string decToDMS(const double input, std::string type, int secondPrecision,
         if (type == "GLON")  degSize = 3; // longitude has three figures in degrees.
 
         // Make these modulo 360.;
-        while (normalisedInput < 0.) { normalisedInput += 360.; }
+        while (normalisedInput < 0.) {
+            normalisedInput += 360.;
+        }
 
-        while (normalisedInput > 360.) { normalisedInput -= 360.; }
+        while (normalisedInput > 360.) {
+            normalisedInput -= 360.;
+        }
 
-        if (type == "RA") normalisedInput /= 15.;  // Convert to hours.
+        if (type == "RA") {
+            normalisedInput /= 15.;  // Convert to hours.
+        }
     } else if ((type == "DEC") || (type == "GLAT")) {
-        if (normalisedInput < 0.) sign = "-";
-        else sign = "+";
+        if (normalisedInput < 0.) {
+            sign = "-";
+        } else {
+            sign = "+";
+        }
     } else { // UNKNOWN TYPE -- DEFAULT TO RA.
-        std::cerr << "WARNING <decToDMS> : Unknown axis type ("
-                  << type << "). Defaulting to using RA.\n";
+        ASKAPLOG_ERROR_STR(logger, "WARNING <decToDMS> : Unknown axis type (" <<
+                           type << "). Defaulting to using RA.\n");
 
-        while (normalisedInput < 0.) { normalisedInput += 360.; }
+        while (normalisedInput < 0.) {
+            normalisedInput += 360.;
+        }
 
-        while (normalisedInput > 360.) { normalisedInput -= 360.; }
+        while (normalisedInput > 360.) {
+            normalisedInput -= 360.;
+        }
 
         normalisedInput /= 15.;
     }
@@ -154,7 +147,9 @@ std::string decToDMS(const double input, std::string type, int secondPrecision,
 
     int secondWidth = 2;
 
-    if (secondPrecision > 0) secondWidth += 1 + secondPrecision;
+    if (secondPrecision > 0) {
+        secondWidth += 1 + secondPrecision;
+    }
 
     double dec_abs = normalisedInput;
     int hourOrDeg = int(dec_abs);
@@ -175,9 +170,18 @@ std::string decToDMS(const double input, std::string type, int secondPrecision,
         hourOrDeg++;
     }
 
-    if (type == "RA") hourOrDeg = hourOrDeg % 24;
-    else if (type == "GLON") hourOrDeg = hourOrDeg % 360;
-    else if (type == "GLAT" || type == "DEC") hourOrDeg = ((hourOrDeg + 90) % 180) - 90;
+    if (type == "RA") {
+        hourOrDeg = hourOrDeg % 24;
+    } else if (type == "GLON") {
+        hourOrDeg = hourOrDeg % 360;
+    } else if (type == "GLAT" || type == "DEC") {
+        hourOrDeg = ((hourOrDeg + 90) % 180) - 90;
+    } else {
+        // UNKNOWN TYPE -- DEFAULT TO RA.
+        ASKAPLOG_ERROR_STR(logger, "WARNING <decToDMS> : Unknown axis type (" <<
+                           type << "). Defaulting to using RA.\n");
+        hourOrDeg = hourOrDeg % 24;
+    }
 
     std::stringstream output;
     output.setf(std::ios::fixed);
@@ -211,10 +215,13 @@ std::string decToDMS(const double input, std::string type, int secondPrecision,
 double positionToDouble(std::string position)
 {
     size_t pos = position.find(':');
-    if (pos == std::string::npos) // Position doesn't have : in it => it is a position in decimal degrees.
+    if (pos == std::string::npos) {
+        // Position doesn't have : in it => it is a position in decimal degrees.
         return atof(position.c_str());
-    else // need to convert from dms to dec
+    } else {
+        // need to convert from dms to dec
         return dmsToDec(position);
+    }
 }
 
 double raToDouble(std::string position)
@@ -237,36 +244,17 @@ double decToDouble(std::string position)
 double angularSeparation(const std::string ra1, const std::string dec1,
                          const std::string ra2, const std::string dec2)
 {
-    /// @details
-    /// Calculates the angular separation between two sky positions,
-    /// given as strings for RA and DEC. Uses the function
-    /// angularSeparation(double,double,double,double).
-    /// @param ra1 The right ascension for the first position.
-    /// @param dec1 The declination for the first position.
-    /// @param ra2 The right ascension for the second position.
-    /// @param dec2 The declination for the second position.
-    /// @return The angular separation in degrees.
-    ///
-    if ((ra1 == ra2) && (dec1 == dec2))
+    if ((ra1 == ra2) && (dec1 == dec2)) {
         return 0.;
-    else {
-        double sep = angularSeparation(dmsToDec(ra1) * 15.,dmsToDec(dec1),
-                                       dmsToDec(ra2) * 15.,dmsToDec(dec2));
+    } else {
+        double sep = angularSeparation(dmsToDec(ra1) * 15., dmsToDec(dec1),
+                                       dmsToDec(ra2) * 15., dmsToDec(dec2));
         return sep;
     }
 }
 
 double angularSeparation(double ra1, double dec1, double ra2, double dec2)
 {
-    /// @details
-    /// Calculates the angular separation between two sky positions,
-    /// where RA and DEC are given in decimal degrees.
-    /// @param ra1 The right ascension for the first position.
-    /// @param dec1 The declination for the first position.
-    /// @param ra2 The right ascension for the second position.
-    /// @param dec2 The declination for the second position.
-    /// @return The angular separation in degrees.
-    ///
     double r1, d1, r2, d2;
     r1 = ra1  * M_PI / 180.;
     d1 = dec1 * M_PI / 180.;
@@ -279,15 +267,6 @@ double angularSeparation(double ra1, double dec1, double ra2, double dec2)
 
 void equatorialToGalactic(double ra, double dec, double &gl, double &gb)
 {
-    /// @details
-    /// Converts an equatorial (ra,dec) position to galactic
-    /// coordinates. The equatorial position is assumed to be J2000.0.
-    ///
-    /// @param ra Right Ascension, J2000.0
-    /// @param dec Declination, J2000.0
-    /// @param gl Galactic Longitude. Returned value.
-    /// @param gb Galactic Latitude. Returned value.
-    ///
     const double NGP_RA = 192.859508 * M_PI / 180.;
     const double NGP_DEC = 27.128336 * M_PI / 180.;
     const double ASC_NODE = 32.932;
