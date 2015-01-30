@@ -202,6 +202,20 @@ if __name__ == '__main__':
             plt.title(sourceCatFile)
             plt.savefig('fluxDiff.png')
             
+		############################
+		# Relative Flux difference vs reference flux
+        # Only for individual plots
+        if not doSinglePlot:
+            print "Relative Flux diff vs flux"
+            plt.cla()
+            plt.semilogx()
+            plt.plot(refFlux,fluxdiff/refFlux,dot)
+            plt.xlim(themin,themax)
+            plt.xlabel('Reference flux')
+            plt.ylabel('(Source flux - Reference flux)/Reference flux')
+            plt.title(sourceCatFile)
+            plt.savefig('fluxDiffRelative.png')
+            
 	    ############################
 	    # Major axis ratio vs flux plot
         if doSinglePlot:

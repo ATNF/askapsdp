@@ -143,7 +143,8 @@ class SUMSSObject:
             self.dec=abs(float(cols[3]))+float(cols[4])/60.+float(cols[5])/3600.
             if cols[3][0]=='-':
                 self.dec = -1. * self.dec
-            self.id = cols[0]+":"+cols[1]+":"+cols[2]+"_"+cols[3]+":"+cols[4]+":"+cols[5]
+            #self.id = cols[0]+":"+cols[1]+":"+cols[2]+"_"+cols[3]+":"+cols[4]+":"+cols[5]
+            self.id = "J"+cols[0]+cols[1]+cols[3]+cols[4]
             self.raErr = float(cols[6])
             self.decErr = float(cols[7])
             self.Fpeak = float(cols[8])/1000.
