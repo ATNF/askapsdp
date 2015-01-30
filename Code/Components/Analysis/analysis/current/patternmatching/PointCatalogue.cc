@@ -136,14 +136,15 @@ bool PointCatalogue::read()
             if (line[0] != '#') {  // ignore commented lines
                 boost::shared_ptr<analysisutilities::Spectrum> spec = itsFactory.read(line);
                 size_t listSize = itsFullPointList.size();
+                Point newpoint(spec);
                 if (itsFlagOffsetPositions) {
                     double radius =
                         analysisutilities::angularSeparation(itsRAref, itsDECref,
                                 spec->raD(), spec->decD());
                     if (itsRadius < 0. || radius < itsRadius) {
-                        itsFullPointList.push_back(spec);
+                        itsFullPointList.push_back(newpoint);
                     }
-                } else itsFullPointList.push_back(spec);
+                } else itsFullPointList.push_back(newpoint);
                 if (itsFullPointList.size() > listSize && itsReferenceImage != "") {
                     casa::Vector<double> pix(ndim, 0), world(ndim, 0);
                     casa::Quantity ra(spec->raD(), "deg"), dec(spec->decD(), "deg");
