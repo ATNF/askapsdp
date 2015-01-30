@@ -74,11 +74,13 @@ void getResultsParams(casa::Gaussian2D<Double> &gauss,
 {
     deconvShape = analysisutilities::deconvolveGaussian(gauss, head.getBeam());
     double zworld;
-    if (head.pixToWCS(gauss.xCenter(), gauss.yCenter(), zval, ra, dec, zworld) != 0)
+    if (head.pixToWCS(gauss.xCenter(), gauss.yCenter(), zval, ra, dec, zworld) != 0) {
         ASKAPLOG_ERROR_STR(logger, "Error with pixToWCS conversion");
+    }
     intFluxFit = gauss.flux();
-    if (head.needBeamSize())
+    if (head.needBeamSize()) {
         intFluxFit /= head.beam().area(); // Convert from Jy/beam to Jy
+    }
 }
 
 
@@ -339,13 +341,14 @@ void setupCols(CatalogueSpecification &spec,
 
     std::vector<sourcefitting::RadioSource>::iterator src;
     for (src = srclist.begin(); src != srclist.end(); src++) {
+//        src->addOffsets();
         sourcefitting::FitResults results = src->fitResults(fitType);
         for (unsigned int n = 0; n < results.numFits(); n++) {
             casa::Gaussian2D<Double> gauss = results.gaussian(n);
             std::vector<Double> deconvShape;
             double ra, dec, intFluxFit;
-            getResultsParams(gauss, src->header(), src->getZcentre(), deconvShape,
-                             ra, dec, intFluxFit);
+            getResultsParams(gauss, src->header(), src->getZcentre(),
+                             deconvShape, ra, dec, intFluxFit);
             float cdelt = src->header().WCS().cdelt[src->header().WCS().lng];
             int precision = -int(log10(fabs(cdelt * 3600. / 10.)));
             std::string raS  = decToDMS(ra, src->header().lngtype(), precision);
