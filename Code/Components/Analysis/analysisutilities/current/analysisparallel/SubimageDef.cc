@@ -158,7 +158,7 @@ void SubimageDef::define(const wcsprm *wcs)
         itsNSub = std::vector<unsigned int>(itsNAxis, 1);
         itsOverlap = std::vector<unsigned int>(itsNAxis, 0);
 
-        for (int i = 0; i < itsNAxis; i++) {
+        for (int i = 0; i < int(itsNAxis); i++) {
             if (i == itsLng) {
                 itsNSub[i] = itsNSubX;
                 itsOverlap[i] = itsOverlapX;
@@ -244,7 +244,7 @@ duchamp::Section SubimageDef::section(const int workerNum)
             sub[itsSpec] = workerNum / (itsNSub[0] * itsNSub[1]);
         std::stringstream section;
 
-        for (int i = 0; i < itsNAxis; i++) {
+        for (unsigned int i = 0; i < itsNAxis; i++) {
             if (itsNSub[i] > 1) {
                 int length = inputSec.getDim(i);
                 float sublength = float(length) / float(itsNSub[i]);
