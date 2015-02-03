@@ -1093,7 +1093,8 @@ void DuchampParallel::cleanup()
             for (src = itsEdgeSourceList.begin();
                     src < itsEdgeSourceList.end();
                     src++) {
-                itsCube.addObject(*src);
+                //               itsCube.addObject(*src);
+                mergeIntoList(*src, itsCube.ObjectList(),itsCube.pars());
             }
 
             ASKAPLOG_INFO_STR(logger, "num edge sources in cube = " << itsCube.getNumObj());
