@@ -18,7 +18,7 @@ In order for the ASKAP specific modules to appear in this list you must have alr
 executed the following command. However this command should have been added to your
 *.bashrc* file per the instructions in the section :doc:`processing`::
 
-    module use /ivec/askap/modulefiles
+    module use /group/askap/modulefiles
 
 The ASKAP modules appear in their own section in the output from the *module avail*
 command::

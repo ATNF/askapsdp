@@ -60,7 +60,7 @@ Add the following to your ~/.bashrc
 .. code-block:: bash
 
     # Use the ASKAP environment modules collection
-    module use /ivec/askap/modulefiles
+    module use /group/askap/modulefiles
 
     # Load the ASKAPsoft module
     module load askapsoft
