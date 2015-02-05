@@ -92,10 +92,10 @@ int main(int argc, const char *argv[])
         ASKAPLOG_INFO_STR(logger, "Max of FDF is at pixel " << locMax);
         ASKAPLOG_INFO_STR(logger, "Max of FDF is at phi=" << phi_rmsynth(locMax) << " rad/m2");
         ASKAPLOG_INFO_STR(logger, "Middle of phi & FDF follows:");
-        int chanwidth=20;
-        int minchan=std::max(0,numPhiChan / 2 - chanwidth/2);
-        int maxchan=std::min(numPhiChan-1, numPhiChan / 2 + chanwidth/2);
-        for (int i = minchan; i < maxchan; i++){
+        int chanwidth = 20;
+        int minchan = std::max(0, numPhiChan / 2 - chanwidth / 2);
+        int maxchan = std::min(numPhiChan - 1, numPhiChan / 2 + chanwidth / 2);
+        for (int i = minchan; i < maxchan; i++) {
             std::cout << phi_rmsynth[i] << "\t" << fdf_p[i] << std::endl;
         }
 
@@ -105,21 +105,21 @@ int main(int argc, const char *argv[])
         const casa::Vector<float> phi_rmsynth_rmsf = rmsynth.phi_rmsf();
         ASKAPLOG_INFO_STR(logger, "Middle of phi & RMSF follows:");
 
-        minchan=std::max(0,numPhiChan - chanwidth/2);
-        maxchan=std::min(2*numPhiChan-1, numPhiChan + chanwidth/2);
+        minchan = std::max(0, numPhiChan - chanwidth / 2);
+        maxchan = std::min(2 * numPhiChan - 1, numPhiChan + chanwidth / 2);
         for (int i = minchan; i < maxchan; i++) {
             std::cout << phi_rmsynth_rmsf[i] << "\t" << rmsf_p[i] << std::endl;
         }
 
         ASKAPLOG_INFO_STR(logger, "RMSF width = " << rmsynth.rmsf_width());
         ASKAPLOG_INFO_STR(logger, "Expected : " << 2. * sqrt(3) / (lamsq[0] - lamsq[nchan - 1])
-                          << " based on lamsq[0]=" << lamsq[0] << 
+                          << " based on lamsq[0]=" << lamsq[0] <<
                           " and lamsq[" << nchan - 1 << "]=" << lamsq[nchan - 1]);
 
         std::ofstream fout("rmsynth.out");
         for (int i = 0; i < numPhiChan; i++) {
             fout << phi_rmsynth[i] << " "
-                 << fdf_p[i] << " " 
+                 << fdf_p[i] << " "
                  << rmsf_p[i + numPhiChan / 2] << std::endl;
         }
         fout.close();

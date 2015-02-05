@@ -119,11 +119,11 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             rmsynthV.calculate(lamsq, q, u, noise);
             float varianceNorm = 0.;
             for (int i = 0; i < nchan; i++) {
-                if(noise[i]>0.){
+                if (noise[i] > 0.) {
                     varianceNorm += 1. / (noise[i] * noise[i]);
                 }
             }
-            ASKAPASSERT(varianceNorm>0.);
+            ASKAPASSERT(varianceNorm > 0.);
             varianceNorm = 1. / varianceNorm;
             ASKAPLOG_DEBUG_STR(logger, "Normalisation for variance case = " <<
                                rmsynthV.normalisation() <<
@@ -131,7 +131,7 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(varianceNorm, rmsynthV.normalisation(), 1.e-5);
 
             float fdfnoise = 0.;
-            for (int i = 0; i < nchan; i++){
+            for (int i = 0; i < nchan; i++) {
                 fdfnoise += noise[i];
             }
             fdfnoise = (fdfnoise / nchan) / sqrt(nchan);
@@ -139,15 +139,17 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(fdfnoise, rmsynthV.fdf_noise(), 1.e-5);
 
             float uniformLamSqRef = 0.;
-            for (int i = 0; i < nchan; i++){
+            for (int i = 0; i < nchan; i++) {
                 uniformLamSqRef += lamsq[i];
             }
             uniformLamSqRef = uniformLamSqRef * uniformNorm;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(uniformLamSqRef, rmsynthU.refLambdaSq(), 1.e-5);
 
             float varianceLamSqRef = 0.;
-            for (int i = 0; i < nchan; i++){
-                varianceLamSqRef += lamsq[i] / (noise[i] * noise[i]);
+            for (int i = 0; i < nchan; i++) {
+                if (noise[i] > 0.) {
+                    varianceLamSqRef += lamsq[i] / (noise[i] * noise[i]);
+                }
             }
             varianceLamSqRef = varianceLamSqRef * varianceNorm;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(varianceLamSqRef, rmsynthV.refLambdaSq(), 1.e-5);

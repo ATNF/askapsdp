@@ -132,7 +132,7 @@ void RMSynthesis::calculate(const casa::Vector<float> &lsq,
 
     if (itsWeightType == "variance") {
         itsWeights = casa::Vector<float>(noise.size(), 0.);
-        itsWeights = casa::pow(noise(noise>0.F), -2.);
+        itsWeights = casa::pow(noise(noise > 0.F), -2.);
     } else {
         itsWeights = casa::Vector<float>(noise.size(), 1.);
     }
@@ -180,17 +180,17 @@ void RMSynthesis::fitRMSF()
 
     // move left
     int limitLower = locMax[0];
-    bool keepGoing=true;
-    for(; limitLower>0 && keepGoing; limitLower--){
-        keepGoing = (rmsf_p[limitLower] > rmsf_p[limitLower-1]);
+    bool keepGoing = true;
+    for (; limitLower > 0 && keepGoing; limitLower--) {
+        keepGoing = (rmsf_p[limitLower] > rmsf_p[limitLower - 1]);
     }
 
     // move right
     int limitUpper = locMax[0];
-    int max=rmsf_p.size()-1;
-    keepGoing=true;
-    for(; limitUpper<max && keepGoing; limitUpper++){
-        keepGoing = (rmsf_p[limitUpper] > rmsf_p[limitUpper+1]);
+    int max = rmsf_p.size() - 1;
+    keepGoing = true;
+    for (; limitUpper < max && keepGoing; limitUpper++) {
+        keepGoing = (rmsf_p[limitUpper] > rmsf_p[limitUpper + 1]);
     }
 
     ASKAPLOG_DEBUG_STR(logger, "Fitting to peak of RMSF between phi channels " <<
