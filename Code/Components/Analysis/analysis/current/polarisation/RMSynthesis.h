@@ -40,9 +40,6 @@ namespace askap {
 
 namespace analysis {
 
-/// The default type of weighting, if not specified in the parset.
-const std::string defaultWeight = "variance";
-
 class RMSynthesis {
     public:
         /// @details Initialises the Farady Depth arrays (phi,

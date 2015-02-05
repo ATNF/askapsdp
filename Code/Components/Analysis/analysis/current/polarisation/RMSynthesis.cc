@@ -51,6 +51,8 @@ namespace askap {
 
 namespace analysis {
 
+/// The default type of weighting, if not specified in the parset.
+static const std::string defaultWeight = "variance";
 
 RMSynthesis::RMSynthesis(const LOFAR::ParameterSet &parset):
     itsWeightType(parset.getString("weightType", defaultWeight)),
@@ -82,21 +84,21 @@ RMSynthesis::RMSynthesis(const LOFAR::ParameterSet &parset):
 
 void RMSynthesis::defineVectors()
 {
-    // if(itsPhi.size()>0){
-    //     itsPhi.
-    itsPhi = casa::Vector<float>(itsNumPhiChan, 0.);
+    itsPhi.resize(itsNumPhiChan);
     casa::indgen<float>(itsPhi,
                         -0.5 * itsNumPhiChan * itsDeltaPhi,
                         itsDeltaPhi);
 
-    itsPhiForRMSF = casa::Vector<float>(2 * itsNumPhiChan, 0.);
+    itsPhiForRMSF.resize(2 * itsNumPhiChan);
     casa::indgen<float>(itsPhiForRMSF,
                         -1.*itsNumPhiChan * itsDeltaPhi,
                         itsDeltaPhi);
 
-    itsFaradayDF = casa::Vector<casa::Complex>(itsNumPhiChan, 0.);
+    itsFaradayDF.resize(itsNumPhiChan);
+    itsFaradayDF = 0.;
 
-    itsRMSF = casa::Vector<casa::Complex>(2 * itsNumPhiChan, 0.);
+    itsRMSF.resize(2 * itsNumPhiChan);
+    itsRMSF = 0.;
 
 }
 
