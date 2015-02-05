@@ -94,13 +94,13 @@ class RMSynthesisTest : public CppUnit::TestFixture {
 
             RMSynthesis rmsynthU(parset_uniform);
             CPPUNIT_ASSERT(rmsynthU.weightType() == "uniform");
-            CPPUNIT_ASSERT(rmsynthU.numPhiChan() == numPhiChan);
-            CPPUNIT_ASSERT(rmsynthU.deltaPhi() == deltaPhi);
+            CPPUNIT_ASSERT_EQUAL(rmsynthU.numPhiChan(), numPhiChan);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthU.deltaPhi(), deltaPhi, 1.e-5);
 
             RMSynthesis rmsynthV(parset_variance);
             CPPUNIT_ASSERT(rmsynthV.weightType() == "variance");
-            CPPUNIT_ASSERT(rmsynthV.numPhiChan() == numPhiChan);
-            CPPUNIT_ASSERT(rmsynthV.deltaPhi() == deltaPhi);
+            CPPUNIT_ASSERT_EQUAL(rmsynthV.numPhiChan(), numPhiChan);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthV.deltaPhi(), deltaPhi, 1.e-5);
 
         }
 
@@ -113,41 +113,44 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             ASKAPLOG_DEBUG_STR(logger, "Normalisation for uniform case = " <<
                                rmsynthU.normalisation() <<
                                ", should be " << uniformNorm);
-            CPPUNIT_ASSERT(fabs(rmsynthU.normalisation() - uniformNorm) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthU.normalisation(), uniformNorm, 1.e-5);
 
             RMSynthesis rmsynthV(parset_variance);
             rmsynthV.calculate(lamsq, q, u, noise);
             float varianceNorm = 0.;
             for (int i = 0; i < nchan; i++) {
-                varianceNorm += 1. / (noise[i] * noise[i]);
+                if(noise[i]>0.){
+                    varianceNorm += 1. / (noise[i] * noise[i]);
+                }
             }
+            ASKAPASSERT(varianceNorm>0.);
             varianceNorm = 1. / varianceNorm;
             ASKAPLOG_DEBUG_STR(logger, "Normalisation for variance case = " <<
                                rmsynthV.normalisation() <<
                                ", should be " << varianceNorm);
-            CPPUNIT_ASSERT(fabs(rmsynthV.normalisation() - varianceNorm) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthV.normalisation(), varianceNorm, 1.e-5);
 
             float fdfnoise = 0.;
             for (int i = 0; i < nchan; i++){
                 fdfnoise += noise[i];
             }
             fdfnoise = (fdfnoise / nchan) / sqrt(nchan);
-            CPPUNIT_ASSERT(fabs(rmsynthU.fdf_noise() - fdfnoise) < 1.e-5);
-            CPPUNIT_ASSERT(fabs(rmsynthV.fdf_noise() - fdfnoise) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthU.fdf_noise(), fdfnoise, 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthV.fdf_noise(), fdfnoise, 1.e-5);
 
             float uniformLamSqRef = 0.;
             for (int i = 0; i < nchan; i++){
                 uniformLamSqRef += lamsq[i];
             }
             uniformLamSqRef = uniformLamSqRef * uniformNorm;
-            CPPUNIT_ASSERT(fabs(rmsynthU.refLambdaSq() - uniformLamSqRef) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthU.refLambdaSq(), uniformLamSqRef, 1.e-5);
 
             float varianceLamSqRef = 0.;
             for (int i = 0; i < nchan; i++){
                 varianceLamSqRef += lamsq[i] / (noise[i] * noise[i]);
             }
             varianceLamSqRef = varianceLamSqRef * varianceNorm;
-            CPPUNIT_ASSERT(fabs(rmsynthV.refLambdaSq() - varianceLamSqRef) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(rmsynthV.refLambdaSq(), varianceLamSqRef, 1.e-5);
 
 
         }
@@ -167,17 +170,20 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             float minFDF, maxFDF;
             casa::IPosition locMin, locMax;
             casa::minMax<float>(minFDF, maxFDF, locMin, locMax, fdf_p);
+
             float expectedMax = 1.0;
             ASKAPLOG_DEBUG_STR(logger, "Expect max of FDF to be " << expectedMax <<
                                " and got " << maxFDF);
-            CPPUNIT_ASSERT(fabs(maxFDF - expectedMax) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(maxFDF, expectedMax, 1.e-5);
+
             casa::IPosition expectedLoc(1, int(RM / deltaPhi + 0.5 * numPhiChan));
             ASKAPLOG_DEBUG_STR(logger, "Expect max of FDF to be at " << expectedLoc <<
                                " and got " << locMax);
-            CPPUNIT_ASSERT(abs(locMax[0] - expectedLoc[0]) == 0);
+            CPPUNIT_ASSERT_EQUAL(locMax[0], expectedLoc[0]);
+
             ASKAPLOG_DEBUG_STR(logger, "Expect max of FDF to be at " << RM <<
                                " rad/m2 and got " << phi_rmsynth(locMax));
-            CPPUNIT_ASSERT(fabs(phi_rmsynth(locMax) - RM) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(phi_rmsynth(locMax), RM, 1.e-5);
         }
 
         void testRMSF()
@@ -194,16 +200,19 @@ class RMSynthesisTest : public CppUnit::TestFixture {
             casa::IPosition locMin, locMax;
             casa::minMax<float>(minRMSF, maxRMSF, locMin, locMax, rmsf_p);
             float expectedMax = 1.0;
+
             ASKAPLOG_DEBUG_STR(logger, "Expect max of RMSF to be " << expectedMax <<
                                " and got " << maxRMSF);
-            CPPUNIT_ASSERT(fabs(maxRMSF - expectedMax) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(maxRMSF, expectedMax, 1.e-5);
+
             casa::IPosition expectedLoc(1, numPhiChan);
             ASKAPLOG_DEBUG_STR(logger, "Expect max of RMSF to be at " << expectedLoc <<
                                " and got " << locMax);
-            CPPUNIT_ASSERT(abs(locMax[0] - expectedLoc[0]) == 0);
+            CPPUNIT_ASSERT_EQUAL(locMax[0], expectedLoc[0]);
+
             ASKAPLOG_DEBUG_STR(logger, "Expect max of RMSF to be at 0. rad/m2 and got " <<
                                phi_rmsynth_rmsf(locMax));
-            CPPUNIT_ASSERT(fabs(phi_rmsynth_rmsf(locMax)) < 1.e-5);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(phi_rmsynth_rmsf(locMax), 0., 1.e-5);
 
         }
 

@@ -37,6 +37,7 @@
 #include <casa/Arrays/ArrayMath.h>
 #include <complex.h>
 #include <casa/BasicSL/Complex.h>
+#include <casa/BasicSL/Constants.h>
 
 #include <Common/ParameterSet.h>
 
@@ -61,12 +62,12 @@ int main(int argc, const char *argv[])
         RMSynthesis rmsynth(parset);
 
         const int nchan = 300;
-        const float C_ms = 299792458.0;
+        const float C_ms = casa::C::c;
         casa::IPosition shape(1, nchan);
         casa::Vector<float> freq(nchan);
         casa::indgen<float>(freq, 1150.e6, 1.e6);
         casa::Vector<float> wl = C_ms / freq;
-        casa::Vector<float> lamsq = wl * wl;
+        casa::Vector<float> lamsq = casa::square(wl);
 
         //std::cout << freq << "\n" << lamsq << "\n";
 
@@ -79,9 +80,9 @@ int main(int argc, const char *argv[])
 
         rmsynth.calculate(lamsq, q, u, noise);
 
-        casa::Vector<casa::Complex> fdf = rmsynth.fdf();
+        const casa::Vector<casa::Complex> fdf = rmsynth.fdf();
         casa::Vector<float> fdf_p = casa::amplitude(fdf);
-        casa::Vector<float> phi_rmsynth = rmsynth.phi();
+        const casa::Vector<float> phi_rmsynth = rmsynth.phi();
         // std::cout << fdf_p << "\n";
         ASKAPLOG_INFO_STR(logger, "Size of FDF = " << fdf_p.size());
         float minFDF, maxFDF;
@@ -91,21 +92,35 @@ int main(int argc, const char *argv[])
         ASKAPLOG_INFO_STR(logger, "Max of FDF is at pixel " << locMax);
         ASKAPLOG_INFO_STR(logger, "Max of FDF is at phi=" << phi_rmsynth(locMax) << " rad/m2");
         ASKAPLOG_INFO_STR(logger, "Middle of phi & FDF follows:");
-        for (int i = numPhiChan / 2 - 10; i < numPhiChan / 2 + 10; i++) std::cout << phi_rmsynth[i] << "\t" << fdf_p[i] << "\n";
-        casa::Vector<casa::Complex> rmsf = rmsynth.rmsf();
+        int chanwidth=20;
+        int minchan=std::max(0,numPhiChan / 2 - chanwidth/2);
+        int maxchan=std::min(numPhiChan-1, numPhiChan / 2 + chanwidth/2);
+        for (int i = minchan; i < maxchan; i++){
+            std::cout << phi_rmsynth[i] << "\t" << fdf_p[i] << std::endl;
+        }
+
+        const casa::Vector<casa::Complex> rmsf = rmsynth.rmsf();
         casa::Vector<float> rmsf_p = casa::amplitude(rmsf);
         ASKAPLOG_INFO_STR(logger, "Size of RMSF = " << rmsf_p.size());
-        casa::Vector<float> phi_rmsynth_rmsf = rmsynth.phi_rmsf();
+        const casa::Vector<float> phi_rmsynth_rmsf = rmsynth.phi_rmsf();
         ASKAPLOG_INFO_STR(logger, "Middle of phi & RMSF follows:");
-        for (int i = numPhiChan - 10; i < numPhiChan + 10; i++) std::cout << phi_rmsynth_rmsf[i] << "\t" << rmsf_p[i] << "\n";
+
+        minchan=std::max(0,numPhiChan - chanwidth/2);
+        maxchan=std::min(2*numPhiChan-1, numPhiChan + chanwidth/2);
+        for (int i = minchan; i < maxchan; i++) {
+            std::cout << phi_rmsynth_rmsf[i] << "\t" << rmsf_p[i] << std::endl;
+        }
 
         ASKAPLOG_INFO_STR(logger, "RMSF width = " << rmsynth.rmsf_width());
         ASKAPLOG_INFO_STR(logger, "Expected : " << 2. * sqrt(3) / (lamsq[0] - lamsq[nchan - 1])
-                          << " based on lamsq[0]=" << lamsq[0] << " and lamsq[" << nchan - 1 << "]=" << lamsq[nchan - 1]);
+                          << " based on lamsq[0]=" << lamsq[0] << 
+                          " and lamsq[" << nchan - 1 << "]=" << lamsq[nchan - 1]);
 
         std::ofstream fout("rmsynth.out");
         for (int i = 0; i < numPhiChan; i++) {
-            fout << phi_rmsynth[i] << " " << fdf_p[i] << " " << rmsf_p[i + numPhiChan / 2] << "\n";
+            fout << phi_rmsynth[i] << " "
+                 << fdf_p[i] << " " 
+                 << rmsf_p[i + numPhiChan / 2] << std::endl;
         }
         fout.close();
 

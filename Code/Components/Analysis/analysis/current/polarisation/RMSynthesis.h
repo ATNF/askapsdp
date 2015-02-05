@@ -40,12 +40,16 @@ namespace askap {
 
 namespace analysis {
 
+/// The default type of weighting, if not specified in the parset.
+const std::string defaultWeight = "variance";
+
 class RMSynthesis {
     public:
-        /// @details Initialises the Farady Depth array (phi)
-        /// according to the parset specification (which gives the
-        /// number of phi channels, their spacing and the centre RM.
-        RMSynthesis(const LOFAR::ParameterSet &parset);
+        /// @details Initialises the Farady Depth arrays (phi,
+        /// phiForRMSF) according to the parset specification (which
+        /// gives the number of phi channels, their spacing and the
+        /// centre RM), and sets the FDF and RMSF arrays to zero.
+        explicit RMSynthesis(const LOFAR::ParameterSet &parset);
         virtual ~RMSynthesis() {};
 
 // **not yet implemented fully**
@@ -62,10 +66,10 @@ class RMSynthesis {
         /// lambda-squared value. It then performs RM Synthesis,
         /// creating the FDF and RMSF arrays. Also calls the fitRMSF
         /// function to obtain the FWHM of the main RMSF lobe.
-        void calculate(casa::Vector<float> &lsq,
-                       casa::Vector<float> &q,
-                       casa::Vector<float> &u,
-                       casa::Vector<float> &noise);
+        void calculate(const casa::Vector<float> &lsq,
+                       const casa::Vector<float> &q,
+                       const casa::Vector<float> &u,
+                       const casa::Vector<float> &noise);
 
         /// Fit to the RM Spread Function. Find extent of peak of RMSF
         /// by starting at peak and finding where slope changes -
@@ -75,25 +79,25 @@ class RMSynthesis {
         /// To that range alone, fit a Gaussian - fitGaussian should be
         /// fine.
         ///
-        /// Report the FWHM of the fitted Gaussian
+        /// Records the FWHM of the fitted Gaussian
         void fitRMSF();
 
-        std::string weightType() {return itsWeightType;};
-        unsigned int numPhiChan() {return itsNumPhiChan;};
-        float deltaPhi() {return itsDeltaPhi;};
+        const std::string weightType() {return itsWeightType;};
+        const unsigned int numPhiChan() {return itsNumPhiChan;};
+        const float deltaPhi() {return itsDeltaPhi;};
 
-        casa::Vector<casa::Complex> fdf() {return itsFaradayDF;};
-        casa::Vector<float> phi() {return itsPhi;};
-        casa::Vector<casa::Complex> rmsf() {return itsRMSF;};
-        casa::Vector<float> phi_rmsf() {return itsPhiForRMSF;};
-        float rmsf_width() {return itsRMSFwidth;};
-        float refLambdaSq() {return itsRefLambdaSquared;};
+        const casa::Vector<casa::Complex> &fdf() {return itsFaradayDF;};
+        const casa::Vector<float> &phi() {return itsPhi;};
+        const casa::Vector<casa::Complex> &rmsf() {return itsRMSF;};
+        const casa::Vector<float> &phi_rmsf() {return itsPhiForRMSF;};
+        const float rmsf_width() {return itsRMSFwidth;};
+        const float refLambdaSq() {return itsRefLambdaSquared;};
 
-        float normalisation() {return itsNormalisation;};
-        float fdf_noise() {return itsFDFnoise;};
+        const float normalisation() {return itsNormalisation;};
+        const float fdf_noise() {return itsFDFnoise;};
 
-        unsigned int numFreqChan() {return itsWeights.size();};
-        float lsqVariance() {return itsLambdaSquaredVariance;};
+        const unsigned int numFreqChan() {return itsWeights.size();};
+        const float lsqVariance() {return itsLambdaSquaredVariance;};
 
     private:
 
