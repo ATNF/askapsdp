@@ -106,7 +106,7 @@ CatalogueSpecification IslandCatalogue(duchamp::FitsHeader &header)
                       "pos.eq.ra;meta.main", "float", "col_rajd", "J2000");
     newSpec.addColumn("DECJD", "dec_deg_cont", "[deg]", 11, prPos,
                       "pos.eq.dec;meta.main", "float", "col_decjd", "J2000");
-    newSpec.addColumn("VEL", "freq", "[" + header.getSpectralUnits() + "]", 11, prVel,
+    newSpec.addColumn("VEL", "freq", "[MHz]", 11, prVel,
                       "em.freq", "float", "col_freq", "");
     newSpec.addColumn("MAJ", "maj_axis", "[arcsec]", 6, prWpos,
                       "phys.angSize.smajAxis;em.radio", "float", "col_maj", "");
@@ -114,9 +114,9 @@ CatalogueSpecification IslandCatalogue(duchamp::FitsHeader &header)
                       "phys.angSize.sminAxis;em.radio", "float", "col_min", "");
     newSpec.addColumn("PA", "pos_ang", "[deg]", 7, prWpos,
                       "phys.angSize;pos.posAng;em.radio", "float", "col_pa", "");
-    newSpec.addColumn("FINT", "flux_int", "[" + header.getIntFluxUnits() + "]", 10, prFlux,
+    newSpec.addColumn("FINT", "flux_int", "[mJy]", 10, prFlux,
                       "phot.flux.density.integrated;em.radio", "float", "col_fint", "");
-    newSpec.addColumn("FPEAK", "flux_peak", "[" + header.getFluxUnits() + "]", 9, prFlux,
+    newSpec.addColumn("FPEAK", "flux_peak", "[mJy/beam]", 9, prFlux,
                       "phot.flux.density;stat.max;em.radio", "float", "col_fpeak", "");
     newSpec.addColumn("X1", "x_min", "", 4, 0,
                       "pos.cartesian.x;stat.min", "int", "col_x1", "");
@@ -183,19 +183,19 @@ CatalogueSpecification ComponentCatalogue(duchamp::FitsHeader &header)
                       "stat.error;pos.eq.dec", "float", "col_decerr", "J2000");
     newSpec.addColumn("VEL", "freq", "[" + header.getSpectralUnits() + "]", 11, prVel,
                       "em.freq", "float", "col_freq", "");
-    newSpec.addColumn("FPEAKFIT", "flux_peak", "[" + header.getFluxUnits() + "]",
+    newSpec.addColumn("FPEAKFIT", "flux_peak", "[mJy/beam]",
                       9, prFlux,
                       "phot.flux.density;stat.max;em.radio;stat.fit",
                       "float", "col_fpeak", "");
-    newSpec.addColumn("FPEAKFITERR", "flux_peak_err", "[" + header.getFluxUnits() + "]",
+    newSpec.addColumn("FPEAKFITERR", "flux_peak_err", "[mJy/beam]",
                       9, prFlux,
                       "stat.error;phot.flux.density;stat.max;em.radio;stat.fit",
                       "float", "col_fpeak_err", "");
-    newSpec.addColumn("FINTFIT", "flux_int", "[" + header.getIntFluxUnits() + "]",
+    newSpec.addColumn("FINTFIT", "flux_int", "[mJy]",
                       9, prFlux,
                       "phot.flux.density;em.radio;stat.fit",
                       "float", "col_fint", "");
-    newSpec.addColumn("FINTFITERR", "flux_int_err", "[" + header.getIntFluxUnits() + "]",
+    newSpec.addColumn("FINTFITERR", "flux_int_err", "[mJy]",
                       9, prFlux,
                       "stat.error;phot.flux.density;em.radio;stat.fit",
                       "float", "col_fint_err", "");
@@ -228,13 +228,13 @@ CatalogueSpecification ComponentCatalogue(duchamp::FitsHeader &header)
                       "float", "col_pa_deconv", "");
     newSpec.addColumn("CHISQFIT", "chi_squared_fit", "--", 10, 3,
                       "stat.fit.chi2", "float", "col_chisqfit", "");
-    newSpec.addColumn("RMSFIT", "rms_fit_gauss", "[" + header.getFluxUnits() + "]", 10, 3,
+    newSpec.addColumn("RMSFIT", "rms_fit_gauss", "[mJy/beam]", 10, 3,
                       "stat.stdev;stat.fit", "float", "col_rmsfit", "");
     newSpec.addColumn("ALPHA", "spectral_index", "--", 8, 3,
                       "spect.index;em.radio", "float", "col_alpha", "");
     newSpec.addColumn("BETA", "spectral_curvature", "--", 8, 3,
                       "askap:spect.curvature;em.radio", "float", "col_beta", "");
-    newSpec.addColumn("RMSIMAGE", "rms_image", "[" + header.getFluxUnits() + "]", 10, 3,
+    newSpec.addColumn("RMSIMAGE", "rms_image", "[mJy/beam]", 10, 3,
                       "stat.stdev;phot.flux.density", "float", "col_rmsimage", "");
     newSpec.addColumn("FLAG1", "flag_c1", "", 5, 0,
                       "meta.code", "int", "col_flag1", "");

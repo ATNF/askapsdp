@@ -62,6 +62,7 @@
 #include <casa/namespace.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Slicer.h>
+#include <casa/Quanta/Quantum.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -258,7 +259,7 @@ std::string RadioSource::boundingSubsection(std::vector<size_t> dim,
     const int lat = itsHeader.getWCS()->lat;
     const int spec = itsHeader.getWCS()->spec;
     std::vector<std::string> sectionlist(dim.size(), "1:1");
-    long first,last;
+    long first, last;
     for (int ax = 0; ax < int(dim.size()); ax++) {
         std::stringstream ss;
         if (ax == spec) {
@@ -276,7 +277,7 @@ std::string RadioSource::boundingSubsection(std::vector<size_t> dim,
                 first = std::min(first, this->xpeak - itsFitParams.noiseBoxSize() / 2);
                 last = std::max(last, this->xpeak + itsFitParams.noiseBoxSize() / 2);
             }
-            first = std::max(first,1L);
+            first = std::max(first, 1L);
             last = std::min(last, long(dim[ax]));
 
         } else if (ax == lat) {
@@ -286,7 +287,7 @@ std::string RadioSource::boundingSubsection(std::vector<size_t> dim,
                 first = std::min(first, this->ypeak - itsFitParams.noiseBoxSize() / 2);
                 last = std::max(last, this->ypeak + itsFitParams.noiseBoxSize() / 2);
             }
-            first = std::max(first,1L);
+            first = std::max(first, 1L);
             last = std::min(last, long(dim[ax]));
 
         } else {
@@ -1251,6 +1252,18 @@ void RadioSource::printTableRow(std::ostream &stream,
 
 //**************************************************************//
 
+casa::Unit getUnit(duchamp::Catalogues::Column &column)
+{
+    std::string desiredUnitsStr = column.getUnits();
+    if (desiredUnitsStr[0] == '[') {
+        // may have units in square brackets, eg. Jy/beam
+        desiredUnitsStr = desiredUnitsStr.substr(1, desiredUnitsStr.size() - 2);
+    }
+    casa::Unit desiredUnits(desiredUnitsStr);
+    return desiredUnits;
+
+}
+
 void RadioSource::printTableEntry(std::ostream &stream,
                                   duchamp::Catalogues::Column column,
                                   size_t fitNum,
@@ -1290,6 +1303,9 @@ void RadioSource::printTableEntry(std::ostream &stream,
     int flagGuess = results.fitIsGuess() ? 1 : 0;
     int flagSiblings = itsBestFitMap[fitType].numFits() > 1 ? 1 : 0;
 
+    casa::Unit fluxUnits(itsHeader.getFluxUnits());
+    casa::Unit intFluxUnits(itsHeader.getIntFluxUnits());
+
     std::string type = column.type();
     if (type == "ISLAND") {
         column.printEntry(stream, this->getID());
@@ -1314,17 +1330,23 @@ void RadioSource::printTableEntry(std::ostream &stream,
     } else if (type == "Y") {
         column.printEntry(stream, gauss.yCenter());
     } else if (type == "FINT") {
-        column.printEntry(stream, this->getIntegFlux());
+        double fluxscale = casa::Quantity(1., intFluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, this->getIntegFlux()*fluxscale);
     } else if (type == "FPEAK") {
-        column.printEntry(stream, this->getPeakFlux());
+        double fluxscale = casa::Quantity(1., fluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, this->getPeakFlux()*fluxscale);
     } else if (type == "FINTFIT") {
-        column.printEntry(stream, intfluxfit);
+        double fluxscale = casa::Quantity(1., intFluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, intfluxfit * fluxscale);
     } else if (type == "FINTFITERR") {
-        column.printEntry(stream, 0.);
+        double fluxscale = casa::Quantity(1., intFluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, 0.*fluxscale);
     } else if (type == "FPEAKFIT") {
-        column.printEntry(stream, gauss.height());
+        double fluxscale = casa::Quantity(1., fluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, gauss.height()*fluxscale);
     } else if (type == "FPEAKFITERR") {
-        column.printEntry(stream, 0.);
+        double fluxscale = casa::Quantity(1., fluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, 0.*fluxscale);
     } else if (type == "MAJFIT") {
         column.printEntry(stream, gauss.majorAxis()*pixscale);
     } else if (type == "MINFIT") {
@@ -1350,9 +1372,11 @@ void RadioSource::printTableEntry(std::ostream &stream,
     } else if (type == "CHISQFIT") {
         column.printEntry(stream, results.chisq());
     } else if (type == "RMSIMAGE") {
-        column.printEntry(stream, itsNoiseLevel);
+        double fluxscale = casa::Quantity(1., fluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, itsNoiseLevel * fluxscale);
     } else if (type == "RMSFIT") {
-        column.printEntry(stream, results.RMS());
+        double fluxscale = casa::Quantity(1., fluxUnits).getValue(getUnit(column));
+        column.printEntry(stream, results.RMS()*fluxscale);
     } else if (type == "NFREEFIT") {
         column.printEntry(stream, results.numFreeParam());
     } else if (type == "NDOFFIT") {
