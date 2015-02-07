@@ -1,4 +1,3 @@
-# @file
 # SConstruct build script for this module.
 #
 # @author Matthew Whiting matthew.whiting@csiro.au
@@ -6,8 +5,16 @@
 
 # Always import this
 from askapenv import env
+import askapdev.rbuild.utils as utils
 
 env.Append(CCFLAGS=['-DHAVE_LONG_LONG'])
+
+# NOTE: This is a temporary workaround for the issue described in Jira issue
+# ASKAPSDP-1628. Currently the only platform known to need this is Ubuntu
+# 14.04. Ubuntu 14.10 (i.e. the following release) does not require this.
+platform = utils.get_platform()
+if platform['distribution'] == 'Ubuntu' and platform['version'] == '14.04':
+    env.Append(LINKFLAGS=['-Wl,--no-as-needed'])
 
 # create build object with library name
 pkg = env.AskapPackage("simulations")
