@@ -148,7 +148,7 @@ void VOTable::toXMLImpl(xercesc::XMLFormatTarget& target) const
 
     DOMLSOutput* output = ((DOMImplementationLS*)impl)->createLSOutput();
     output->setByteStream(&target);
-    writer->write(root, output);
+    writer->write(doc, output);
 
     // Cleanup
     output->release();
