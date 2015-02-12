@@ -12,6 +12,7 @@ pkg.AddSubPackage("cmodel")
 pkg.AddSubPackage("cflag")
 pkg.AddSubPackage("makecube")
 pkg.AddSubPackage("mssplit")
+pkg.AddSubPackage("casdaupload")
 
 env.Append(CCFLAGS=['-O2'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])

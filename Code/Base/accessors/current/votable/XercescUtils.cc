@@ -102,3 +102,13 @@ std::string XercescUtils::getDescription(const xercesc::DOMElement& element)
     return "";
 }
 
+xercesc::DOMElement* XercescUtils::addTextElement(xercesc::DOMElement& parent,
+        const std::string& tag, const std::string& value)
+{
+    DOMDocument* doc = parent.getOwnerDocument();
+    DOMElement* child = doc->createElement(XercescString(tag));
+    DOMText* text = doc->createTextNode(XercescString(value));
+    child->appendChild(text);
+    parent.appendChild(child);
+    return child;
+}

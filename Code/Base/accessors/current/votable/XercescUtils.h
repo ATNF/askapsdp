@@ -59,6 +59,10 @@ namespace askap {
                 /// @brief Returns the string from an element with the
                 ///  tag DESCRIPTION.
                 static std::string getDescription(const xercesc::DOMElement& element);
+
+                /// Adds a text element child to a DOMElement
+                static xercesc::DOMElement* addTextElement(xercesc::DOMElement& parent,
+                        const std::string& tag, const std::string& value);
         };
 
     }
