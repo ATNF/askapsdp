@@ -3,7 +3,7 @@ ASKAPsoft Science Data Processor
 
 These notes provide just a brief outline for building the ASKAPsoft Science Data
 Processor codebase. More detailed instructions exist on the ASKAP Computing
-Redmine site.
+Wiki.
 
 Software Requirements
 =====================
@@ -15,9 +15,23 @@ environment. The current official supported environments are:
 * Cray Linux Environment (XC30 platform)
 
 Core dependencies must be fulfilled by the platform. These include, but are not
-limited to, GNU C/C++/Fortran compiler, Make, Scons, Python, and MPI. More
+limited to, a C/C++/Fortran compiler, Make, Python 2.7, Java 7 and MPI. More
 specific dependencies are downloaded by the ASKAPsoft build system and are
 installed within the ASKAPsoft development tree.
+
+Specific to the Debian platform, after a standard installation of Debian Wheezy
+(7.x) the following packages will need to be installed with apt-get:
+
+* g++
+* gfortran
+* openjdk-7-jdk
+* python-dev
+* flex
+* bison
+* openmpi-bin
+* libopenmpi-dev
+* libfreetype6-dev
+* libpng12-dev
 
 Checkout & Bootstrap
 ====================
