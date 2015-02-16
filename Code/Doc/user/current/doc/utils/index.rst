@@ -8,4 +8,5 @@ General utilities
 .. toctree::
    :maxdepth: 1
 
+   casdaupload.rst
    delaysolver.rst
