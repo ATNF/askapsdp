@@ -200,7 +200,7 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
    ASKAPDEBUGASSERT(acc.nPol()>0);
    ASKAPDEBUGASSERT(acc.nRow() == re.size());
    // the following assumes averaging down to 1 MHz
-   const double effectiveLO = 1e6*(acc.frequency()[0] - 343 - 0.018518518/2.);
+   //const double effectiveLO = 1e6*(acc.frequency()[0] - 343 - 0.018518518/2.);
    scimath::DelayEstimator de(1e6*(acc.frequency()[1]-acc.frequency()[0]));
    casa::Matrix<casa::Complex> vis = acc.visibility().xyPlane(3);
    casa::Matrix<casa::Bool> flags = acc.flag().xyPlane(3);
@@ -242,8 +242,8 @@ void processDelays(scimath::GenericNormalEquations &gne, const accessors::IConst
 
         
         // phase as a proxy
-        casa::Complex avgVis = casa::sum(vis.row(baseline)) / casa::Float(vis.ncolumn());
-        const double phase = arg(avgVis);
+        //casa::Complex avgVis = casa::sum(vis.row(baseline)) / casa::Float(vis.ncolumn());
+        //const double phase = arg(avgVis);
 
         if (!re[baseline].isEmpty() && (re[baseline].getDuration() > 300.)) {
             //finaliseRate(re[baseline], gne, index1, index2, cH0, sH0, cd, effectiveLO);

@@ -149,7 +149,7 @@ void process(const IConstDataSource &ds) {
             
             
             // flagging based on the amplitude (to remove extreme outliers)
-            casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
+            //casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
             
             /*
             if ((casa::abs(currentAvgVis) > 0.5) && (row % 3 == 2)) {

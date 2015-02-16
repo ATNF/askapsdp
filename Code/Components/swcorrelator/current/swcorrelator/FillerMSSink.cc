@@ -485,7 +485,6 @@ void FillerMSSink::initDataDesc()
    const size_t nSpw = names.size();
    ASKAPCHECK(nSpw > 0, "No spectral windows defined");
    const std::string defaultWindow = parset.getString("defaultwindow",names[0]);
-   bool defaultWindowSighted = false;
    for (size_t spw = 0; spw < nSpw; ++spw) {
         std::vector<std::string> line = parset.getStringVector("spws." + names[spw]);
         ASKAPASSERT(line.size() >= 4);
@@ -500,7 +499,6 @@ void FillerMSSink::initDataDesc()
         const casa::Int polID = addPolarisation(scimath::PolConverter::fromString(line[3]));
         const casa::Int dataDescID = addDataDesc(spWinID, polID);
         if (names[spw] == defaultWindow) {
-            defaultWindowSighted = true;
             itsDataDescID = dataDescID;
             itsNumberOfChannels = numChan;
             itsCurrentStartFreq = startFreq.getValue("Hz");

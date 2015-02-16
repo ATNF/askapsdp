@@ -16,6 +16,7 @@ env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 #env.Append(CCFLAGS=['-O3', '-fopenmp'])
 #env.Append(LINKFLAGS=['-fopenmp'])
+env.Append(LINKFLAGS=['-Wno-unknown-pragmas'])
 
 # Optimization for complex arithmetic. The functionality this flag enables
 # was default behaviour prior to GCC 4.3. However this option is not supported

@@ -93,8 +93,8 @@ int main(int argc, const char** argv)
             Simple3BaselineCorrelator<accType> s3bc(0,-lag,0);
             s3bc.accumulate(buf1.begin(), buf2.begin(), buf1.begin(), int(buf1.size()));
             const accType vis12 = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
-            const accType vis23 = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
-            const accType vis13 = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);
+            //const accType vis23 = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
+            //const accType vis13 = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);
             outBuf[lag] = vis12;
             //os<<lag<<" "<<abs(vis12)<<" "<<arg(vis12)<<" "<<abs(vis23)<<" "<<arg(vis23)<<" "<<abs(vis13)<<
             //    " "<<arg(vis13)<<std::endl;
