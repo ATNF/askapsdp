@@ -29,6 +29,7 @@
 
 // System includes
 #include <vector>
+#include <string>
 
 // ASKAPsoft includes
 #include "askap/Application.h"
@@ -52,12 +53,19 @@ class CasdaUploadApp : public askap::Application {
         virtual int run(int argc, char* argv[]);
 
     private:
-        static void generateMetadataFile(const IdentityElement& identity,
+        static void generateMetadataFile(const std::string& filename,
+                                         const IdentityElement& identity,
                                          const ObservationElement& obs,
                                          const std::vector<ImageElement>& images,
                                          const std::vector<CatalogElement>& catalogs,
                                          const std::vector<MeasurementSetElement>& ms,
                                          const std::vector<EvaluationReportElement>& reports);
+
+        static void checksumFile(const std::string& filename);
+
+        static void tarAndChecksum(const std::string& in, const std::string& out);
+
+        static void copyAndChecksum(const std::string& in, const std::string& out);
 
         std::vector<ImageElement> buildImageElements(void) const;
 

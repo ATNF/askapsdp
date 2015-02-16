@@ -33,6 +33,7 @@
 // System includes
 #include <string>
 #include <vector>
+#include <fstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -55,6 +56,7 @@
 #include "casdaupload/CatalogElement.h"
 #include "casdaupload/MeasurementSetElement.h"
 #include "casdaupload/EvaluationReportElement.h"
+#include "casdaupload/CasdaChecksumFile.h"
 
 // Using
 using namespace std;
@@ -87,13 +89,44 @@ int CasdaUploadApp::run(int argc, char* argv[])
         obs.setObsTimeRange(firstMs.getObsStart(), firstMs.getObsEnd());
     }
 
-    generateMetadataFile(identity, obs, images, catalogs, ms, reports);
+    const string outdir = config().getString("outputdir");
+    const string metadataFilename = outdir + "/observation.xml";
+    generateMetadataFile(metadataFilename, identity, obs, images, catalogs, ms, reports);
+
+    // Tar up measurement sets
+    for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
+            it != ms.end(); ++it) {
+        const string in = it->getFilename();
+        const string out = outdir + "/" + in + ".tar";
+        tarAndChecksum(in, out);
+    }
+
+    // Copy artifacts and checksum
+    for (vector<ImageElement>::const_iterator it = images.begin();
+            it != images.end(); ++it) {
+        const string in = it->getFilename();
+        const string out = outdir + "/" + in;
+        copyAndChecksum(in, out);
+    }
+    for (vector<CatalogElement>::const_iterator it = catalogs.begin();
+            it != catalogs.end(); ++it) {
+        const string in = it->getFilename();
+        const string out = outdir + "/" + in;
+        copyAndChecksum(in, out);
+    }
+    for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
+            it != reports.end(); ++it) {
+        const string in = it->getFilename();
+        const string out = outdir + "/" + in;
+        copyAndChecksum(in, out);
+    }
 
     stats.logSummary();
     return 0;
 }
 
 void CasdaUploadApp::generateMetadataFile(
+    const std::string& filename,
     const IdentityElement& identity,
     const ObservationElement& obs,
     const std::vector<ImageElement>& images,
@@ -101,8 +134,6 @@ void CasdaUploadApp::generateMetadataFile(
     const std::vector<MeasurementSetElement>& ms,
     const std::vector<EvaluationReportElement>& reports)
 {
-    const std::string filename = "metadata.xml";
-
     xercesc::XMLPlatformUtils::Initialize();
 
     boost::scoped_ptr<LocalFileFormatTarget> target(new LocalFileFormatTarget(XercescString(filename)));
@@ -251,4 +282,53 @@ std::vector<EvaluationReportElement> CasdaUploadApp::buildEvaluationElements(voi
     }
 
     return elements;
+}
+
+void CasdaUploadApp::tarAndChecksum(const std::string& in, const std::string& out)
+{
+    ASKAPLOG_INFO_STR(logger, "Tarring file " << in << " to " << out);
+    stringstream cmd;
+    cmd << "tar cf ";
+    cmd << out << " " << in;
+    const int status = system(cmd.str().c_str());
+    if (status != 0) {
+        ASKAPTHROW(AskapError, "Tar command failed with error code: " << status);
+    }
+    ASKAPLOG_INFO_STR(logger, "Calculating checksum for " << in);
+    checksumFile(out);
+}
+
+void CasdaUploadApp::checksumFile(const std::string& filename)
+{
+    const string checksumFile = filename + ".cksum";
+    CasdaChecksumFile csum(checksumFile);
+
+    const size_t BUFFER_SIZE = 1024 * 1024;
+    vector<char> buffer(BUFFER_SIZE);
+
+    std::ifstream src(filename.c_str(), std::ios::binary);
+    do {
+        src.read(&buffer[0], BUFFER_SIZE);
+        csum.processBytes(&buffer[0], src.gcount());
+    } while (src);
+}
+
+void CasdaUploadApp::copyAndChecksum(const std::string& in, const std::string& out)
+{
+    ASKAPLOG_INFO_STR(logger, "Copying and calculating checksum for " << in);
+
+    const string checksumFile = out + ".cksum";
+    CasdaChecksumFile csum(checksumFile);
+
+    const size_t BUFFER_SIZE = 1024 * 1024;
+    vector<char> buffer(BUFFER_SIZE);
+
+    std::ifstream src(in.c_str(), std::ios::binary);
+    std::ofstream dst(out.c_str(), std::ios::binary);
+    do {
+        src.read(&buffer[0], BUFFER_SIZE);
+        const streamsize readsz = src.gcount();
+        csum.processBytes(&buffer[0], readsz);
+        dst.write(&buffer[0], readsz);
+    } while (src);
 }
