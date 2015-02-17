@@ -33,6 +33,8 @@
 
 // ASKAPsoft includes
 #include "askap/Application.h"
+#include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 
 // Local package includes
 #include "casdaupload/IdentityElement.h"
@@ -53,7 +55,10 @@ class CasdaUploadApp : public askap::Application {
         virtual int run(int argc, char* argv[]);
 
     private:
-        static void generateMetadataFile(const std::string& filename,
+
+        /// Created the metadata file
+        /// @param[in] filename
+        static void generateMetadataFile(const boost::filesystem::path& file,
                                          const IdentityElement& identity,
                                          const ObservationElement& obs,
                                          const std::vector<ImageElement>& images,
@@ -61,19 +66,31 @@ class CasdaUploadApp : public askap::Application {
                                          const std::vector<MeasurementSetElement>& ms,
                                          const std::vector<EvaluationReportElement>& reports);
 
-        static void checksumFile(const std::string& filename);
+        static void checksumFile(const boost::filesystem::path& filename);
 
-        static void tarAndChecksum(const std::string& in, const std::string& out);
+        static void tarAndChecksum(const boost::filesystem::path& infile,
+                                   const boost::filesystem::path& outfile);
 
-        static void copyAndChecksum(const std::string& in, const std::string& out);
+        static void copyAndChecksum(const boost::filesystem::path& infile,
+                                    const boost::filesystem::path& outdir);
 
-        std::vector<ImageElement> buildImageElements(void) const;
+        static void writeReadyFile(const boost::filesystem::path& filename);
 
-        std::vector<MeasurementSetElement> buildMeasurementSetElements(void) const;
+        template <typename T>
+        static void appendElementCollection(const std::vector<T>& elements,
+                                            const std::string& tag,
+                                            xercesc::DOMElement* root);
 
-        std::vector<CatalogElement> buildCatalogElements(void) const;
+        template <typename T>
+        std::vector<T> buildArtifactElements(const std::string& key,
+                                             bool hasProject = true) const;
 
-        std::vector<EvaluationReportElement> buildEvaluationElements(void) const;
+        // Size (in bytes) of the buffer for file IO. This is effectivly the I/O
+        // size for copy and checksum operations.
+        static const size_t IO_BUFFER_SIZE = 1048576;
+
+        // The filename extension used for checksum files
+        static const std::string CHECKSUM_EXT;
 };
 
 }

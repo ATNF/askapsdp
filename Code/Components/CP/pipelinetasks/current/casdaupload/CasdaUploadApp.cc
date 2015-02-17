@@ -42,7 +42,9 @@
 #include "Common/ParameterSet.h"
 #include "askap/StatReporter.h"
 #include "casa/aipstype.h"
+#include "casa/Quanta/MVTime.h"
 #include "boost/scoped_ptr.hpp"
+#include "boost/filesystem.hpp"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "xercesc/framework/LocalFileFormatTarget.hpp"
 #include "xercesc/framework/XMLFormatter.hpp"
@@ -65,8 +67,12 @@ using namespace askap::cp::pipelinetasks;
 using namespace casa;
 using namespace xercesc;
 using askap::accessors::XercescString;
+namespace fs = boost::filesystem;
 
 ASKAP_LOGGER(logger, ".CasdaUploadApp");
+
+// Initialise statics
+const std::string askap::cp::pipelinetasks::CasdaUploadApp::CHECKSUM_EXT = ".cksum";
 
 int CasdaUploadApp::run(int argc, char* argv[])
 {
@@ -74,10 +80,18 @@ int CasdaUploadApp::run(int argc, char* argv[])
 
     IdentityElement identity(config());
 
-    std::vector<ImageElement> images(buildImageElements());
-    std::vector<CatalogElement> catalogs(buildCatalogElements());
-    std::vector<MeasurementSetElement> ms(buildMeasurementSetElements());
-    std::vector<EvaluationReportElement> reports(buildEvaluationElements());
+    vector<ImageElement> images(
+        buildArtifactElements<ImageElement>("images.artifactlist"));
+    vector<CatalogElement> catalogs(
+        buildArtifactElements<CatalogElement>("catalogs.artifactlist"));
+    vector<MeasurementSetElement> ms(
+        buildArtifactElements<MeasurementSetElement>("measurementsets.artifactlist"));
+    vector<EvaluationReportElement> reports(
+        buildArtifactElements<EvaluationReportElement>("evaluation.artifactlist", false));
+
+    if (images.empty() && catalogs.empty() && ms.empty()) {
+        ASKAPTHROW(AskapError, "No artifacts declared for upload");
+    }
 
     ObservationElement obs;
 
@@ -89,44 +103,62 @@ int CasdaUploadApp::run(int argc, char* argv[])
         obs.setObsTimeRange(firstMs.getObsStart(), firstMs.getObsEnd());
     }
 
-    const string outdir = config().getString("outputdir");
-    const string metadataFilename = outdir + "/observation.xml";
-    generateMetadataFile(metadataFilename, identity, obs, images, catalogs, ms, reports);
+    // Create the output directory
+    const fs::path outbase(config().getString("outputdir"));
+    if (!is_directory(outbase)) {
+        ASKAPTHROW(AskapError, "Directory " << outbase
+                << " does not exists or is not a directory");
+    }
+    const fs::path outdir = outbase / config().getString("sbid");
+    ASKAPLOG_INFO_STR(logger, "Using output directory: " << outdir);
+    if (!is_directory(outdir)) {
+        create_directory(outdir);
+    }
+    if (!exists(outdir)) {
+        ASKAPTHROW(AskapError, "Failed to create directory " << outdir);
+    }
+    const fs::path metadataFile = outdir / "observation.xml";
+    generateMetadataFile(metadataFile, identity, obs, images, catalogs, ms, reports);
 
     // Tar up measurement sets
     for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
             it != ms.end(); ++it) {
-        const string in = it->getFilename();
-        const string out = outdir + "/" + in + ".tar";
+        const fs::path in(it->getFilename());
+        fs::path out(outdir / in);
+        out += ".tar";
         tarAndChecksum(in, out);
     }
 
     // Copy artifacts and checksum
     for (vector<ImageElement>::const_iterator it = images.begin();
             it != images.end(); ++it) {
-        const string in = it->getFilename();
-        const string out = outdir + "/" + in;
+        const fs::path in(it->getFilename());
+        const fs::path out(outdir / in);
         copyAndChecksum(in, out);
     }
     for (vector<CatalogElement>::const_iterator it = catalogs.begin();
             it != catalogs.end(); ++it) {
-        const string in = it->getFilename();
-        const string out = outdir + "/" + in;
+        const fs::path in(it->getFilename());
+        const fs::path out(outdir / in);
         copyAndChecksum(in, out);
     }
     for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
             it != reports.end(); ++it) {
-        const string in = it->getFilename();
-        const string out = outdir + "/" + in;
+        const fs::path in(it->getFilename());
+        const fs::path out(outdir / in);
         copyAndChecksum(in, out);
     }
+
+    // Finally, and specifically as the last step, write the READY file
+    const fs::path readyFilename = outdir / "READY";
+    writeReadyFile(readyFilename);
 
     stats.logSummary();
     return 0;
 }
 
 void CasdaUploadApp::generateMetadataFile(
-    const std::string& filename,
+    const fs::path& file,
     const IdentityElement& identity,
     const ObservationElement& obs,
     const std::vector<ImageElement>& images,
@@ -136,7 +168,8 @@ void CasdaUploadApp::generateMetadataFile(
 {
     xercesc::XMLPlatformUtils::Initialize();
 
-    boost::scoped_ptr<LocalFileFormatTarget> target(new LocalFileFormatTarget(XercescString(filename)));
+    boost::scoped_ptr<LocalFileFormatTarget> target(new LocalFileFormatTarget(
+                XercescString(file.string())));
 
     // Create document
     DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(XercescString("LS"));
@@ -154,45 +187,11 @@ void CasdaUploadApp::generateMetadataFile(
     // Add observation element
     root->appendChild(obs.toXmlElement(*doc));
 
-    // Create image elements
-    if (!images.empty()) {
-        DOMElement* imagesElement = doc->createElement(XercescString("images"));
-        for (vector<ImageElement>::const_iterator it = images.begin();
-                it != images.end(); ++it) {
-            imagesElement->appendChild(it->toXmlElement(*doc));
-        }
-        root->appendChild(imagesElement);
-    }
-
-    // Create catalog elements
-    if (!catalogs.empty()) {
-        DOMElement* catalogElement = doc->createElement(XercescString("catalogs"));
-        for (vector<CatalogElement>::const_iterator it = catalogs.begin();
-                it != catalogs.end(); ++it) {
-            catalogElement->appendChild(it->toXmlElement(*doc));
-        }
-        root->appendChild(catalogElement);
-    }
-
-    // Create measurement set elements
-    if (!ms.empty()) {
-        DOMElement* msElement = doc->createElement(XercescString("measurement_sets"));
-        for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
-                it != ms.end(); ++it) {
-            msElement->appendChild(it->toXmlElement(*doc));
-        }
-        root->appendChild(msElement);
-    }
-
-    // Create evalation report elements
-    if (!reports.empty()) {
-        DOMElement* reportsElement = doc->createElement(XercescString("evaluation"));
-        for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
-                it != reports.end(); ++it) {
-            reportsElement->appendChild(it->toXmlElement(*doc));
-        }
-        root->appendChild(reportsElement);
-    }
+    // Create artifact elements
+    appendElementCollection<ImageElement>(images, "images", root);
+    appendElementCollection<CatalogElement>(catalogs, "catalogs", root);
+    appendElementCollection<MeasurementSetElement>(ms, "measurement_sets", root);
+    appendElementCollection<EvaluationReportElement>(reports, "evaluation", root);
 
     // Write
     DOMLSSerializer* writer = ((DOMImplementationLS*)impl)->createLSSerializer();
@@ -213,122 +212,96 @@ void CasdaUploadApp::generateMetadataFile(
     xercesc::XMLPlatformUtils::Terminate();
 }
 
-std::vector<ImageElement> CasdaUploadApp::buildImageElements() const
+template <typename T>
+std::vector<T> CasdaUploadApp::buildArtifactElements(const std::string& key, bool hasProject) const
 {
-    const string KEY = "images.artifactlist";
-    vector<ImageElement> elements;
+    vector<T> elements;
 
-    if (config().isDefined(KEY)) {
-        const vector<string> names = config().getStringVector(KEY);
+    if (config().isDefined(key)) {
+        const vector<string> names = config().getStringVector(key);
         for (vector<string>::const_iterator it = names.begin(); it != names.end(); ++it) {
             const LOFAR::ParameterSet subset = config().makeSubset(*it + ".");
             const string filename = subset.getString("filename");
-            const string project = subset.getString("project");
-            elements.push_back(ImageElement(filename, project));
+
+            string project = "";
+            if (hasProject) {
+                project = subset.getString("project");
+            }
+            elements.push_back(T(filename, project));
         }
     }
 
     return elements;
 }
 
-std::vector<MeasurementSetElement> CasdaUploadApp::buildMeasurementSetElements(void) const
+void CasdaUploadApp::tarAndChecksum(const fs::path& infile, const fs::path& outfile)
 {
-    const string KEY = "measurementsets.artifactlist";
-    vector<MeasurementSetElement> elements;
-
-    if (config().isDefined(KEY)) {
-        const vector<string> names = config().getStringVector(KEY);
-        for (vector<string>::const_iterator it = names.begin(); it != names.end(); ++it) {
-            const LOFAR::ParameterSet subset = config().makeSubset(*it + ".");
-            const string filename = subset.getString("filename");
-            const string project = subset.getString("project");
-            elements.push_back(MeasurementSetElement(filename, project));
-        }
-    }
-
-    return elements;
-}
-
-std::vector<CatalogElement> CasdaUploadApp::buildCatalogElements(void) const
-{
-    const string KEY = "catalogs.artifactlist";
-    vector<CatalogElement> elements;
-
-    if (config().isDefined(KEY)) {
-        const vector<string> names = config().getStringVector(KEY);
-        for (vector<string>::const_iterator it = names.begin(); it != names.end(); ++it) {
-            const LOFAR::ParameterSet subset = config().makeSubset(*it + ".");
-            const string filename = subset.getString("filename");
-            const string project = subset.getString("project");
-            elements.push_back(CatalogElement(filename, project));
-        }
-    }
-
-    return elements;
-}
-
-std::vector<EvaluationReportElement> CasdaUploadApp::buildEvaluationElements(void) const
-{
-    const string KEY = "evaluation.artifactlist";
-    vector<EvaluationReportElement> elements;
-
-    if (config().isDefined(KEY)) {
-        const vector<string> names = config().getStringVector(KEY);
-        for (vector<string>::const_iterator it = names.begin(); it != names.end(); ++it) {
-            const LOFAR::ParameterSet subset = config().makeSubset(*it + ".");
-            const string filename = subset.getString("filename");
-            elements.push_back(EvaluationReportElement(filename));
-        }
-    }
-
-    return elements;
-}
-
-void CasdaUploadApp::tarAndChecksum(const std::string& in, const std::string& out)
-{
-    ASKAPLOG_INFO_STR(logger, "Tarring file " << in << " to " << out);
+    ASKAPLOG_INFO_STR(logger, "Tarring file " << infile << " to " << outfile);
     stringstream cmd;
     cmd << "tar cf ";
-    cmd << out << " " << in;
+    cmd << outfile << " " << infile;
     const int status = system(cmd.str().c_str());
     if (status != 0) {
         ASKAPTHROW(AskapError, "Tar command failed with error code: " << status);
     }
-    ASKAPLOG_INFO_STR(logger, "Calculating checksum for " << in);
-    checksumFile(out);
+    checksumFile(outfile);
 }
 
-void CasdaUploadApp::checksumFile(const std::string& filename)
+void CasdaUploadApp::checksumFile(const fs::path& filename)
 {
-    const string checksumFile = filename + ".cksum";
+    ASKAPLOG_INFO_STR(logger, "Calculating checksum for " << filename);
+    const string checksumFile = filename.string() + CHECKSUM_EXT;
     CasdaChecksumFile csum(checksumFile);
 
-    const size_t BUFFER_SIZE = 1024 * 1024;
-    vector<char> buffer(BUFFER_SIZE);
-
-    std::ifstream src(filename.c_str(), std::ios::binary);
+    ifstream src(filename.c_str(), std::ios::binary);
+    vector<char> buffer(IO_BUFFER_SIZE);
     do {
-        src.read(&buffer[0], BUFFER_SIZE);
+        src.read(&buffer[0], IO_BUFFER_SIZE);
         csum.processBytes(&buffer[0], src.gcount());
     } while (src);
 }
 
-void CasdaUploadApp::copyAndChecksum(const std::string& in, const std::string& out)
+void CasdaUploadApp::copyAndChecksum(const boost::filesystem::path& infile,
+                                     const boost::filesystem::path& outdir)
 {
-    ASKAPLOG_INFO_STR(logger, "Copying and calculating checksum for " << in);
+    ASKAPLOG_INFO_STR(logger, "Copying and calculating checksum for " << infile);
 
-    const string checksumFile = out + ".cksum";
+    const string checksumFile = outdir.string() + CHECKSUM_EXT;
     CasdaChecksumFile csum(checksumFile);
 
-    const size_t BUFFER_SIZE = 1024 * 1024;
-    vector<char> buffer(BUFFER_SIZE);
-
-    std::ifstream src(in.c_str(), std::ios::binary);
-    std::ofstream dst(out.c_str(), std::ios::binary);
+    ifstream src(infile.string().c_str(), std::ios::binary);
+    ofstream dst(outdir.string().c_str(), std::ios::binary);
+    vector<char> buffer(IO_BUFFER_SIZE);
     do {
-        src.read(&buffer[0], BUFFER_SIZE);
+        src.read(&buffer[0], IO_BUFFER_SIZE);
         const streamsize readsz = src.gcount();
         csum.processBytes(&buffer[0], readsz);
         dst.write(&buffer[0], readsz);
     } while (src);
+}
+
+void CasdaUploadApp::writeReadyFile(const boost::filesystem::path& filename)
+{
+    ofstream fs(filename.string().c_str());
+    Quantity today;
+    MVTime::read(today, "today");
+    fs << MVTime(today).string(MVTime::FITS) << endl;
+    fs.close();
+}
+
+template <typename T>
+void CasdaUploadApp::appendElementCollection(const std::vector<T>& elements,
+        const std::string& tag,
+        xercesc::DOMElement* root)
+{
+    // Create measurement set elements
+    if (!elements.empty()) {
+        DOMDocument* doc = root->getOwnerDocument();
+        DOMElement* child = doc->createElement(XercescString(tag));
+        for (typename vector<T>::const_iterator it = elements.begin();
+                it != elements.end(); ++it) {
+            child->appendChild(it->toXmlElement(*doc));
+        }
+        root->appendChild(child);
+    }
 }

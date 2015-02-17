@@ -77,9 +77,9 @@ void CasdaChecksumFile::close(void)
     }
 
     itsFile << std::hex << std::nouppercase
-        << finaliseCrc() << " "
-        << finaliseSha1() << " "
-        << itsFileSize << endl;
+            << finaliseCrc() << " "
+            << finaliseSha1() << " "
+            << itsFileSize << endl;
     itsFile.close();
 }
 
@@ -89,7 +89,7 @@ std::string CasdaChecksumFile::finaliseSha1(void)
     SHA1_Final(sha1hash, &itsSha1Ctx);
     stringstream ss;
     ss << std::hex << std::nouppercase;
-    for(int i = 0; i < SHA_DIGEST_LENGTH; ++i) {
+    for (int i = 0; i < SHA_DIGEST_LENGTH; ++i) {
         ss << ((sha1hash[i] & 0x000000F0) >> 4) << (sha1hash[i] & 0x0000000F);
     }
     return ss.str();

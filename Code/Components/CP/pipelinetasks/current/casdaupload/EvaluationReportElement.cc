@@ -45,7 +45,8 @@ using namespace xercesc;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
-EvaluationReportElement::EvaluationReportElement(const std::string& filename)
+EvaluationReportElement::EvaluationReportElement(const std::string& filename,
+        const std::string& /*project*/)
     : itsFilename(filename)
 {
 }

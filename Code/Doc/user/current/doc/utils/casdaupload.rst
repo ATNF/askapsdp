@@ -8,11 +8,13 @@ supported:
 * Images (FITS format only)
 * Source Catalogs (VOTable format only)
 * Visibilities (CASA Measurement Set format only)
-* Evalaution Pipeline Artifacts (any file format)
+* Evaluation Pipeline Artifacts (any file format)
 
 The utility takes as input one or more of the above file types, plus a
 configuration parameter set. It performs the following tasks:
 
+* Creates a directory, relative to a given base directory, where all artifacts
+  will be deposited for ingest into the CASDA system
 * Produces a metadata file (XML) that enumerates the artifacts to be archived.
   This file is read by the CASDA ingest software
 * Creates a tarfile of the measurement set. The measurement set is a directory,
@@ -29,6 +31,10 @@ configuration parameter set. It performs the following tasks:
 
 * Deposits all artifacts, the checksum files and the metadata file in the
   designated output directory
+* Finally, and specifically as the last step, a file named "READY" is written
+  to the output directory. This indicates no further addition or mutation of the
+  data products in the output directory will take place and the CASDA ingest
+  process can begin.
 
 Running the program
 -------------------
@@ -50,8 +56,14 @@ The required parameters are:
 +-----------------------------+----------------+-----------------+----------------------------------------------+
 |**Parameter**                |**Type**        |**Default**      |**Description**                               |
 +=============================+================+=================+==============================================+
-|outputdir                    |string          |None             |Directory where artifacts will be deposited   |
-|                             |                |                 |for CASDA to collect                          |
+|outputdir                    |string          |None             |Base directory where artifacts will be        |
+|                             |                |                 |deposited. A directory will be created within |
+|                             |                |                 |the "outputdir" named per the "sbid" parameter|
+|                             |                |                 |described below. For example, if the          |
+|                             |                |                 |"outputdir" is /foo/bar and the "sbid" is 1234|
+|                             |                |                 |then the directory /foo/bar/1234 will be      |
+|                             |                |                 |created and all artifacts, plus the metadata  |
+|                             |                |                 |file, will be copied there.                   |
 +-----------------------------+----------------+-----------------+----------------------------------------------+
 |telescope                    |string          |None             |Name of the telescope that produced the       |
 |                             |                |                 |artifacts                                     |

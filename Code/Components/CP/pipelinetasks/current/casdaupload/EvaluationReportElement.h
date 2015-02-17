@@ -39,7 +39,7 @@ namespace pipelinetasks {
 
 class EvaluationReportElement {
     public:
-        EvaluationReportElement(const std::string& filename);
+        EvaluationReportElement(const std::string& filename, const std::string& project);
 
         xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 

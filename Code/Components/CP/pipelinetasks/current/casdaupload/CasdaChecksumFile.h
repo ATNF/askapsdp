@@ -71,6 +71,7 @@ class CasdaChecksumFile {
         void close(void);
 
     private:
+
         // Returns the SHA1 checksum. This method should only be called
         // once per object. Failure to do so has unspecified behaviour.
         std::string finaliseSha1(void);
