@@ -81,8 +81,6 @@ export PYLINTRC
 
 ANT_HOME="${ASKAP_ROOT}/share/ant"
 export ANT_HOME
-
-test -f /etc/askap/site/epicsenv.sh && . /etc/askap/site/epicsenv.sh || true
 """ % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
 
 tcshinit = """\
@@ -122,9 +120,6 @@ setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
 setenv PYLINTRC "${ASKAP_ROOT}/pylintrc"
 setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
-
-test -f /etc/askap/site/epicsenv.sh && echo 'Warning: Ignoring system /etc/askap/site/epicsenv.sh as it is bash environment.' || true
-
 """ % (os.getcwd(), os.getenv("RBUILD_REMOTE_ARCHIVE"))
 
 if java_home:
