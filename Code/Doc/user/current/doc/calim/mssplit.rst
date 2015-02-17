@@ -76,6 +76,13 @@ Configuration Parameters
 |                      |            |[0..2]                 |[0]), an array of integers such as [0,1,2]   |
 |                      |            |                       |or a range such as [0..2].                   |
 +----------------------+------------+-----------------------+---------------------------------------------+
+|fieldnames            |*None*      |[offset1]              |Defines the field names that will be         |
+|                      |            |or                     |exported to the output files. If this        |
+|                      |            |[offset1,offset2]      |parameter is not set all fields are exported.|
+|                      |            |or                     |The value may be a single string (e.g. a0 or |
+|                      |            |[offset1..9]           |[a0]), an array of strings such as [a0,a1,a2]|
+|                      |            |                       |or a range such as [a0..2].                  |
++----------------------+------------+-----------------------+---------------------------------------------+
 |timebegin             |*None*      |1996/11/20/5:20        |Defines a time based filter. Any rows with   |
 |                      |            |or                     |time i*earlier than* this parameter will be  |
 |                      |            |20Nov96-5h20m          |excluded during splitting (i.e. they will    |

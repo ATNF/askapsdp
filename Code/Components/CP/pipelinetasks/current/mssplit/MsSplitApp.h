@@ -111,16 +111,24 @@ class MsSplitApp : public askap::Application {
 
         // Returns true if the the row should be filtered (i.e excluded), otherwise
         // true.
-        bool rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed,
-                           double time) const;
+        bool rowIsFiltered(uint32_t scanid, uint32_t fieldid, uint32_t feed1,
+                           uint32_t feed2, double time) const;
 
         // Helper method for the configuration of the time range filters.
         // Parses the parset value associated with "key" (using MVTime::read()),
         // sets "var" to MVTime::second(), and logs a message "msg".
-        // @throws AskapError is thrown is the time string cannot be parsed by
+        // @throws AskapError is thrown if the time string cannot be parsed by
         // MVTime::read()
         void configureTimeFilter(const std::string& key, const std::string& msg,
                                  double& var);
+
+        // Helper method for the configuration of the field name filters.
+        // Parses the parset value associated with "fieldnames" and
+        // returns all fields in invis with one of these names.
+        // @throws AskapError is thrown if none of the field names are present.
+        std::vector<uint32_t>
+            configureFieldNameFilter(const std::vector<std::string>& names,
+                                     const std::string invis);
 
         /// Set of beam IDs to include in the new measurement set, or empty
         /// if all beams are to be included
@@ -129,6 +137,10 @@ class MsSplitApp : public askap::Application {
         /// Set of scan IDs to include in the new measurement set, or empty
         /// if all scans are to be included
         std::set<uint32_t> itsScans;
+
+        /// Set of fields to include in the new measurement set, or empty
+        /// if all scans are to be included
+        std::set<uint32_t> itsFieldIds;
 
         // Optional begin time filter. Rows with TIME < this value will be
         // excluded

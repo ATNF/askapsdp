@@ -409,12 +409,13 @@ void MsSplitApp::splitSpectralWindow(const casa::MeasurementSet& source,
 
 bool MsSplitApp::rowFiltersExist() const
 {
-    return !itsBeams.empty() || !itsScans.empty()
+    return !itsBeams.empty() || !itsScans.empty() || !itsFieldIds.empty()
         || itsTimeBegin > std::numeric_limits<double>::min()
         || itsTimeEnd < std::numeric_limits<double>::max();
 }
 
-bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2,
+bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t fieldid,
+                               uint32_t feed1, uint32_t feed2,
                                double time) const
 {
     // Include all rows if no filters exist
@@ -423,6 +424,8 @@ bool MsSplitApp::rowIsFiltered(uint32_t scanid, uint32_t feed1, uint32_t feed2,
     if (time < itsTimeBegin || time > itsTimeEnd) return true;
 
     if (!itsScans.empty() && itsScans.find(scanid) == itsScans.end()) return true;
+
+    if (!itsFieldIds.empty() && itsFieldIds.find(fieldid) == itsFieldIds.end()) return true;
 
     if (!itsBeams.empty() &&
             itsBeams.find(feed1) == itsBeams.end() &&
@@ -530,6 +533,7 @@ void MsSplitApp::splitMainTable(const casa::MeasurementSet& source,
 
         // Skip this row if it is filtered out
         if (rowIsFiltered(sc.scanNumber()(row),
+                    sc.fieldId()(row),
                     sc.feed1()(row),
                     sc.feed2()(row),
                     sc.time()(row))) {
@@ -775,6 +779,40 @@ void MsSplitApp::configureTimeFilter(const std::string& key, const std::string& 
     }
 }
 
+std::vector<uint32_t> MsSplitApp::configureFieldNameFilter(
+                          const std::vector<std::string>& names,
+                          const std::string invis)
+{
+    std::vector<uint32_t> fieldIds;
+    if (!names.empty()) {
+        const casa::MeasurementSet in(invis);
+        const ROMSColumns srcMsc(in);
+        const ROMSFieldColumns& sc = srcMsc.field();
+        const casa::Vector<casa::String> fieldNames = sc.name().getColumn();
+        // Step through each field and find IDs for the filter.
+        // Could set fieldIds in the following loop, but this seems easier.
+        for (uInt i = 0; i < sc.nrow(); ++i) {
+            if (find(names.begin(), names.end(), (std::string)fieldNames[i]) !=
+                     names.end()) {
+                fieldIds.push_back(i);
+            }
+        }
+        // print a warning for any missing fields
+        for (uInt i = 0; i < names.size(); ++i) {
+            if (find(fieldNames.begin(), fieldNames.end(),
+                       (casa::String)names[i]) == fieldNames.end()) {
+                ASKAPLOG_WARN_STR(logger, "  cannot find field name " <<
+                    names[i] << " in ms "<< invis);
+            }
+        }
+    }
+    if (fieldIds.empty()) {
+        ASKAPTHROW(AskapError, "Cannot find any of the field names " <<
+            names << " in ms "<< invis);
+    }
+    return fieldIds;
+}
+
 int MsSplitApp::run(int argc, char* argv[])
 {
     StatReporter stats;
@@ -791,14 +829,23 @@ int MsSplitApp::run(int argc, char* argv[])
     if (config().isDefined("beams")) {
         const vector<uint32_t> v = config().getUint32Vector("beams", true);
         itsBeams.insert(v.begin(), v.end());
-        ASKAPLOG_INFO_STR(logger,  "Including ONLY beams: " << v);
+        ASKAPLOG_INFO_STR(logger, "Including ONLY beams: " << v);
     }
 
     // Read scan id selection parameters
     if (config().isDefined("scans")) {
         const vector<uint32_t> v = config().getUint32Vector("scans", true);
         itsScans.insert(v.begin(), v.end());
-        ASKAPLOG_INFO_STR(logger,  "Including ONLY scan numbers: " << v);
+        ASKAPLOG_INFO_STR(logger, "Including ONLY scan numbers: " << v);
+    }
+
+    // Read field name selection parameters
+    if (config().isDefined("fieldnames")) {
+        const vector<string> names = config().getStringVector("fieldnames", true);
+        ASKAPLOG_INFO_STR(logger, "Including ONLY fields with names: " << names);
+        const vector<uint32_t> v = configureFieldNameFilter(names,invis);
+        itsFieldIds.insert(v.begin(), v.end());
+        ASKAPLOG_INFO_STR(logger, "  fields: " << v);
     }
 
     // Read time range selection parameters
