@@ -32,7 +32,7 @@
 
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
-#include "Common/ParameterSet.h"
+#include "boost/filesystem.hpp"
 
 // Local package includes
 
@@ -42,14 +42,15 @@ namespace pipelinetasks {
 
 class ImageElement {
     public:
-        ImageElement(const std::string& filename, const std::string& project);
+        ImageElement(const boost::filesystem::path& filepath,
+                     const std::string& project);
 
         xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
-        std::string getFilename(void) const;
+        boost::filesystem::path getFilepath(void) const;
 
     private:
-        std::string itsFilename;
+        boost::filesystem::path itsFilepath;
         std::string itsProject;
 };
 

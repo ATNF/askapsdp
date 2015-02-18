@@ -45,9 +45,9 @@ using namespace xercesc;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
-EvaluationReportElement::EvaluationReportElement(const std::string& filename,
-        const std::string& /*project*/)
-    : itsFilename(filename)
+EvaluationReportElement::EvaluationReportElement(const boost::filesystem::path& filepath,
+                                                 const std::string& /*project*/)
+    : itsFilepath(filepath)
 {
 }
 
@@ -55,13 +55,13 @@ xercesc::DOMElement* EvaluationReportElement::toXmlElement(xercesc::DOMDocument&
 {
     DOMElement* e = doc.createElement(XercescString("evaluation"));
 
-    XercescUtils::addTextElement(*e, "filename", itsFilename);
+    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string());
     XercescUtils::addTextElement(*e, "format", "pdf");
 
     return e;
 }
 
-std::string EvaluationReportElement::getFilename(void) const
+boost::filesystem::path EvaluationReportElement::getFilepath(void) const
 {
-    return itsFilename;
+    return itsFilepath;
 }

@@ -72,7 +72,7 @@ namespace fs = boost::filesystem;
 ASKAP_LOGGER(logger, ".CasdaUploadApp");
 
 // Initialise statics
-const std::string askap::cp::pipelinetasks::CasdaUploadApp::CHECKSUM_EXT = ".cksum";
+const std::string askap::cp::pipelinetasks::CasdaUploadApp::CHECKSUM_EXT = ".checksum";
 
 int CasdaUploadApp::run(int argc, char* argv[])
 {
@@ -99,8 +99,10 @@ int CasdaUploadApp::run(int argc, char* argv[])
     // observation. Note, only the first measurement set (if there are multiple)
     // is used in this calculation.
     if (!ms.empty()) {
-        ASKAPLOG_WARN_STR(logger, "Multiple measurement set were specified. Only"
-                << " the first one will be used to populate the observation metadata");
+        if (ms.size() > 1) {
+            ASKAPLOG_WARN_STR(logger, "Multiple measurement set were specified. Only"
+                    << " the first one will be used to populate the observation metadata");
+        }
         const MeasurementSetElement& firstMs = ms[0];
         obs.setObsTimeRange(firstMs.getObsStart(), firstMs.getObsEnd());
     }
@@ -121,11 +123,12 @@ int CasdaUploadApp::run(int argc, char* argv[])
     }
     const fs::path metadataFile = outdir / "observation.xml";
     generateMetadataFile(metadataFile, identity, obs, images, catalogs, ms, reports);
+    checksumFile(metadataFile);
 
     // Tar up measurement sets
     for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
             it != ms.end(); ++it) {
-        const fs::path in(it->getFilename());
+        const fs::path in(it->getFilepath());
         fs::path out(outdir / in.filename());
         out += ".tar";
         tarAndChecksum(in, out);
@@ -134,19 +137,19 @@ int CasdaUploadApp::run(int argc, char* argv[])
     // Copy artifacts and checksum
     for (vector<ImageElement>::const_iterator it = images.begin();
             it != images.end(); ++it) {
-        const fs::path in(it->getFilename());
+        const fs::path in(it->getFilepath());
         const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
     for (vector<CatalogElement>::const_iterator it = catalogs.begin();
             it != catalogs.end(); ++it) {
-        const fs::path in(it->getFilename());
+        const fs::path in(it->getFilepath());
         const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
     for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
             it != reports.end(); ++it) {
-        const fs::path in(it->getFilename());
+        const fs::path in(it->getFilepath());
         const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
@@ -285,8 +288,8 @@ void CasdaUploadApp::copyAndChecksum(const boost::filesystem::path& infile,
     const string checksumFile = outdir.string() + CHECKSUM_EXT;
     CasdaChecksumFile csum(checksumFile);
 
-    ifstream src(infile.string().c_str(), std::ios::binary);
-    ofstream dst(outdir.string().c_str(), std::ios::binary);
+    ifstream src(infile.c_str(), std::ios::binary);
+    ofstream dst(outdir.c_str(), std::ios::binary);
     vector<char> buffer(IO_BUFFER_SIZE);
     do {
         src.read(&buffer[0], IO_BUFFER_SIZE);
@@ -298,7 +301,7 @@ void CasdaUploadApp::copyAndChecksum(const boost::filesystem::path& infile,
 
 void CasdaUploadApp::writeReadyFile(const boost::filesystem::path& filename)
 {
-    ofstream fs(filename.string().c_str());
+    ofstream fs(filename.c_str());
     Quantity today;
     MVTime::read(today, "today");
     fs << MVTime(today).string(MVTime::FITS) << endl;

@@ -36,6 +36,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 #include "votable/XercescString.h"
 #include "votable/XercescUtils.h"
 
@@ -46,8 +47,9 @@ using namespace xercesc;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
-CatalogElement::CatalogElement(const std::string& filename, const std::string& project)
-    : itsFilename(filename), itsProject(project)
+CatalogElement::CatalogElement(const boost::filesystem::path& filepath,
+                               const std::string& project)
+    : itsFilepath(filepath), itsProject(project)
 {
 }
 
@@ -55,14 +57,14 @@ xercesc::DOMElement* CatalogElement::toXmlElement(xercesc::DOMDocument& doc) con
 {
     DOMElement* e = doc.createElement(XercescString("catalog"));
 
-    XercescUtils::addTextElement(*e, "filename", itsFilename);
+    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string());
     XercescUtils::addTextElement(*e, "format", "votable");
     XercescUtils::addTextElement(*e, "project", itsProject);
 
     return e;
 }
 
-std::string CatalogElement::getFilename(void) const
+boost::filesystem::path CatalogElement::getFilepath(void) const
 {
-    return itsFilename;
+    return itsFilepath;
 }

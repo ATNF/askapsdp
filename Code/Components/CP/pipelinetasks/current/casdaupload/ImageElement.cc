@@ -35,6 +35,7 @@
 
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 #include "votable/XercescString.h"
 #include "votable/XercescUtils.h"
 
@@ -44,8 +45,9 @@ using namespace xercesc;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
-ImageElement::ImageElement(const std::string& filename, const std::string& project)
-    : itsFilename(filename), itsProject(project)
+ImageElement::ImageElement(const boost::filesystem::path& filepath,
+                           const std::string& project)
+    : itsFilepath(filepath), itsProject(project)
 {
 }
 
@@ -53,7 +55,7 @@ xercesc::DOMElement* ImageElement::toXmlElement(xercesc::DOMDocument& doc) const
 {
     DOMElement* e = doc.createElement(XercescString("image"));
 
-    XercescUtils::addTextElement(*e, "filename", itsFilename);
+    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string());
     XercescUtils::addTextElement(*e, "format", "fits");
     XercescUtils::addTextElement(*e, "project", itsProject);
 
@@ -61,7 +63,7 @@ xercesc::DOMElement* ImageElement::toXmlElement(xercesc::DOMDocument& doc) const
 }
 
 
-std::string ImageElement::getFilename(void) const
+boost::filesystem::path ImageElement::getFilepath(void) const
 {
-    return itsFilename;
+    return itsFilepath;
 }

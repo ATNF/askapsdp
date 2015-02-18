@@ -32,6 +32,7 @@
 
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 
 namespace askap {
 namespace cp {
@@ -39,14 +40,15 @@ namespace pipelinetasks {
 
 class CatalogElement {
     public:
-        CatalogElement(const std::string& filename, const std::string& project);
+        CatalogElement(const boost::filesystem::path& filepath,
+                       const std::string& project);
 
         xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
-        std::string getFilename(void) const;
+        boost::filesystem::path getFilepath(void) const;
 
     private:
-        std::string itsFilename;
+        boost::filesystem::path itsFilepath;
         std::string itsProject;
 };
 

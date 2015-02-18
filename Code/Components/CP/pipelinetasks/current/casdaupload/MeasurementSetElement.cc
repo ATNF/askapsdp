@@ -39,16 +39,17 @@
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 #include "votable/XercescString.h"
 #include "votable/XercescUtils.h"
+#include "casa/Quanta/MVTime.h"
+#include "casa/Quanta/Quantum.h"
+#include "casa/Arrays/Vector.h"
+#include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
+#include "measures/Measures/MEpoch.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
-#include "casa/Quanta/MVTime.h"
-#include "measures/Measures/MDirection.h"
-#include "casa/Quanta/Quantum.h"
-#include "measures/Measures/Stokes.h"
-#include "casa/Arrays/Vector.h"
-#include "measures/Measures/MEpoch.h"
 
 // Local package includes
 #include "casdaupload/ScanElement.h"
@@ -64,18 +65,18 @@ using askap::accessors::XercescUtils;
 
 ASKAP_LOGGER(logger, ".MeasurementSetElement");
 
-MeasurementSetElement::MeasurementSetElement(const std::string& filename,
+MeasurementSetElement::MeasurementSetElement(const boost::filesystem::path& filepath,
         const std::string& project)
-    : itsFilename(filename), itsProject(project)
+    : itsFilepath(filepath), itsProject(project)
 {
-    extractData(filename);
+    extractData();
 }
 
 xercesc::DOMElement* MeasurementSetElement::toXmlElement(xercesc::DOMDocument& doc) const
 {
     DOMElement* e = doc.createElement(XercescString("measurement_set"));
 
-    XercescUtils::addTextElement(*e, "filename", itsFilename);
+    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string());
     XercescUtils::addTextElement(*e, "format", "tar");
     XercescUtils::addTextElement(*e, "project", itsProject);
 
@@ -88,9 +89,9 @@ xercesc::DOMElement* MeasurementSetElement::toXmlElement(xercesc::DOMDocument& d
     return e;
 }
 
-std::string MeasurementSetElement::getFilename(void) const
+boost::filesystem::path MeasurementSetElement::getFilepath(void) const
 {
-    return itsFilename;
+    return itsFilepath;
 }
 
 casa::MEpoch MeasurementSetElement::getObsStart(void) const
@@ -103,11 +104,11 @@ casa::MEpoch MeasurementSetElement::getObsEnd(void) const
     return itsObsEnd;
 }
 
-void MeasurementSetElement::extractData(const std::string& filename)
+void MeasurementSetElement::extractData()
 {
     ASKAPLOG_INFO_STR(logger, "Extracting metadata from measurement set: "
-                      << filename);
-    casa::MeasurementSet ms(filename, casa::Table::Old);
+                      << itsFilepath);
+    casa::MeasurementSet ms(itsFilepath.string(), casa::Table::Old);
     ROMSColumns msc(ms);
 
     // Extract observation start and stop time

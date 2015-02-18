@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "measures/Measures/MEpoch.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "boost/filesystem.hpp"
 
 // Local package includes
 #include "ScanElement.h"
@@ -44,12 +45,12 @@ namespace pipelinetasks {
 
 class MeasurementSetElement {
     public:
-        MeasurementSetElement(const std::string& filename,
+        MeasurementSetElement(const boost::filesystem::path& filepath,
                               const std::string& project);
 
         xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
-        std::string getFilename(void) const;
+        boost::filesystem::path getFilepath(void) const;
 
         casa::MEpoch getObsStart(void) const;
 
@@ -57,9 +58,9 @@ class MeasurementSetElement {
 
     private:
 
-        void extractData(const std::string& filename);
+        void extractData(void);
 
-        std::string itsFilename;
+        boost::filesystem::path itsFilepath;
         std::string itsProject;
         casa::MEpoch itsObsStart;
         casa::MEpoch itsObsEnd;
