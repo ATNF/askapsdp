@@ -78,15 +78,15 @@ int CasdaUploadApp::run(int argc, char* argv[])
 {
     StatReporter stats;
 
-    IdentityElement identity(config());
+    const IdentityElement identity(config());
 
-    vector<ImageElement> images(
+    const vector<ImageElement> images(
         buildArtifactElements<ImageElement>("images.artifactlist"));
-    vector<CatalogElement> catalogs(
+    const vector<CatalogElement> catalogs(
         buildArtifactElements<CatalogElement>("catalogs.artifactlist"));
-    vector<MeasurementSetElement> ms(
+    const vector<MeasurementSetElement> ms(
         buildArtifactElements<MeasurementSetElement>("measurementsets.artifactlist"));
-    vector<EvaluationReportElement> reports(
+    const vector<EvaluationReportElement> reports(
         buildArtifactElements<EvaluationReportElement>("evaluation.artifactlist", false));
 
     if (images.empty() && catalogs.empty() && ms.empty()) {
@@ -99,7 +99,9 @@ int CasdaUploadApp::run(int argc, char* argv[])
     // observation. Note, only the first measurement set (if there are multiple)
     // is used in this calculation.
     if (!ms.empty()) {
-        MeasurementSetElement& firstMs = ms[0];
+        ASKAPLOG_WARN_STR(logger, "Multiple measurement set were specified. Only"
+                << " the first one will be used to populate the observation metadata");
+        const MeasurementSetElement& firstMs = ms[0];
         obs.setObsTimeRange(firstMs.getObsStart(), firstMs.getObsEnd());
     }
 
@@ -124,7 +126,7 @@ int CasdaUploadApp::run(int argc, char* argv[])
     for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
             it != ms.end(); ++it) {
         const fs::path in(it->getFilename());
-        fs::path out(outdir / in);
+        fs::path out(outdir / in.filename());
         out += ".tar";
         tarAndChecksum(in, out);
     }
@@ -133,19 +135,19 @@ int CasdaUploadApp::run(int argc, char* argv[])
     for (vector<ImageElement>::const_iterator it = images.begin();
             it != images.end(); ++it) {
         const fs::path in(it->getFilename());
-        const fs::path out(outdir / in);
+        const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
     for (vector<CatalogElement>::const_iterator it = catalogs.begin();
             it != catalogs.end(); ++it) {
         const fs::path in(it->getFilename());
-        const fs::path out(outdir / in);
+        const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
     for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
             it != reports.end(); ++it) {
         const fs::path in(it->getFilename());
-        const fs::path out(outdir / in);
+        const fs::path out(outdir / in.filename());
         copyAndChecksum(in, out);
     }
 
@@ -238,9 +240,23 @@ void CasdaUploadApp::tarAndChecksum(const fs::path& infile, const fs::path& outf
 {
     ASKAPLOG_INFO_STR(logger, "Tarring file " << infile << " to " << outfile);
     stringstream cmd;
-    cmd << "tar cf ";
-    cmd << outfile << " " << infile;
-    const int status = system(cmd.str().c_str());
+    cmd << "tar -cf " << outfile << " ";
+    int status = -1;
+
+    // If the infile has a parent path, either relative or absolute, we need
+    // to have tar change to the parent path first. For example the path
+    // "/foo/bar/dataset.ms" has a parent path "/foo/bar". Failure to do this
+    // results in the parent path incorporated in the tarfile, where in the
+    // above example we want the contents of the tarfile to be rooted at
+    // directory "dataset.ms"
+    if (infile.has_parent_path()) {
+        cmd << "--directory " << infile.parent_path() << " " << infile.filename();
+    } else {
+        cmd << infile;
+    }
+
+    ASKAPLOG_DEBUG_STR(logger, "Tar command: " << cmd.str());
+    status = system(cmd.str().c_str());
     if (status != 0) {
         ASKAPTHROW(AskapError, "Tar command failed with error code: " << status);
     }
