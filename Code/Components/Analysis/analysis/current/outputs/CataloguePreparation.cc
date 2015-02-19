@@ -177,9 +177,9 @@ CatalogueSpecification ComponentCatalogue(duchamp::FitsHeader &header)
                       "pos.eq.ra;meta.main", "float", "col_rajd", "J2000");
     newSpec.addColumn("DECJD", "dec_deg_cont", "[deg]", 11, prPos,
                       "pos.eq.dec;meta.main", "float", "col_decjd", "J2000");
-    newSpec.addColumn("RAERR", "ra_err", "[deg]", 11, prPos,
+    newSpec.addColumn("RAERR", "ra_err", "[arcsec]", 11, prPos,
                       "stat.error;pos.eq.ra", "float", "col_raerr", "J2000");
-    newSpec.addColumn("DECERR", "dec_err", "[deg]", 11, prPos,
+    newSpec.addColumn("DECERR", "dec_err", "[arcsec]", 11, prPos,
                       "stat.error;pos.eq.dec", "float", "col_decerr", "J2000");
     newSpec.addColumn("VEL", "freq", "[" + header.getSpectralUnits() + "]", 11, prVel,
                       "em.freq", "float", "col_freq", "");
