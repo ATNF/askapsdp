@@ -40,6 +40,7 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// Encapsulates an image artifact (e.g. a FITS image) for upload to CASDA
 class ImageElement {
     public:
         ImageElement(const boost::filesystem::path& filepath,

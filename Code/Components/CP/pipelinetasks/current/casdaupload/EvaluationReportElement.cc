@@ -34,19 +34,18 @@
 #include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "votable/XercescString.h"
 #include "votable/XercescUtils.h"
 
 // Using
 using namespace askap::cp::pipelinetasks;
-using namespace xercesc;
+using xercesc::DOMElement;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
 EvaluationReportElement::EvaluationReportElement(const boost::filesystem::path& filepath,
-                                                 const std::string& /*project*/)
+        const std::string& /*project*/)
     : itsFilepath(filepath)
 {
 }

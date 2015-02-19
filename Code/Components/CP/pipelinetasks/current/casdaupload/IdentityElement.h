@@ -37,6 +37,7 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// Encapsulates the identity of a package of data to be uploaded to CASDA
 class IdentityElement {
     public:
         IdentityElement(const LOFAR::ParameterSet& parset);

@@ -41,9 +41,8 @@
 #include "votable/XercescUtils.h"
 
 // Using
-using namespace askap;
 using namespace askap::cp::pipelinetasks;
-using namespace xercesc;
+using xercesc::DOMElement;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
@@ -51,6 +50,9 @@ CatalogElement::CatalogElement(const boost::filesystem::path& filepath,
                                const std::string& project)
     : itsFilepath(filepath), itsProject(project)
 {
+    if (filepath.extension() != ".xml") {
+        ASKAPTHROW(AskapError, "Unsupported format image - Expect xml file extension");
+    }
 }
 
 xercesc::DOMElement* CatalogElement::toXmlElement(xercesc::DOMDocument& doc) const

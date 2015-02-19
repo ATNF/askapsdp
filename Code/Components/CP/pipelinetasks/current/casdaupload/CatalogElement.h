@@ -38,6 +38,8 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// Encapsulates a source catalog artifact (e.g. Duchamp output) for upload
+/// to CASDA
 class CatalogElement {
     public:
         CatalogElement(const boost::filesystem::path& filepath,

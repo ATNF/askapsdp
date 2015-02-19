@@ -48,7 +48,9 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief Implementation of the Cflag application
+/// @brief Main application implementation for the CASDA upload utility.
+/// The CASDA upload utility prepares artifacts for submission to the CSIRO
+/// ASKAP Science Data Archive (CASDA)
 class CasdaUploadApp : public askap::Application {
     public:
         /// Run the application
@@ -56,8 +58,7 @@ class CasdaUploadApp : public askap::Application {
 
     private:
 
-        /// Created the metadata file
-        /// @param[in] filename
+        /// Create the metadata file
         static void generateMetadataFile(const boost::filesystem::path& file,
                                          const IdentityElement& identity,
                                          const ObservationElement& obs,
@@ -66,15 +67,11 @@ class CasdaUploadApp : public askap::Application {
                                          const std::vector<MeasurementSetElement>& ms,
                                          const std::vector<EvaluationReportElement>& reports);
 
-        static void checksumFile(const boost::filesystem::path& filename);
-
-        static void tarAndChecksum(const boost::filesystem::path& infile,
-                                   const boost::filesystem::path& outfile);
-
-        static void copyAndChecksum(const boost::filesystem::path& infile,
-                                    const boost::filesystem::path& outdir);
-
-        static void writeReadyFile(const boost::filesystem::path& filename);
+        /// Copy artifacts in the "elements" vector to the given output directory.
+        /// During the copy process a checksum is created for the file.
+        template <typename T>
+        static void copyAndChecksumElements(const std::vector<T>& elements,
+                                            const boost::filesystem::path& outdir);
 
         template <typename T>
         static void appendElementCollection(const std::vector<T>& elements,
@@ -84,13 +81,6 @@ class CasdaUploadApp : public askap::Application {
         template <typename T>
         std::vector<T> buildArtifactElements(const std::string& key,
                                              bool hasProject = true) const;
-
-        // Size (in bytes) of the buffer for file IO. This is effectivly the I/O
-        // size for copy and checksum operations.
-        static const size_t IO_BUFFER_SIZE = 1048576;
-
-        // The filename extension used for checksum files
-        static const std::string CHECKSUM_EXT;
 };
 
 }

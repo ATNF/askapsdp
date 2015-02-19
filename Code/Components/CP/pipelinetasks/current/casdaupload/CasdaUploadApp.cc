@@ -33,16 +33,12 @@
 // System includes
 #include <string>
 #include <vector>
-#include <fstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "askap/AskapUtil.h"
 #include "Common/ParameterSet.h"
 #include "askap/StatReporter.h"
-#include "casa/aipstype.h"
-#include "casa/Quanta/MVTime.h"
 #include "boost/scoped_ptr.hpp"
 #include "boost/filesystem.hpp"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
@@ -59,20 +55,16 @@
 #include "casdaupload/MeasurementSetElement.h"
 #include "casdaupload/EvaluationReportElement.h"
 #include "casdaupload/CasdaChecksumFile.h"
+#include "casdaupload/CasdaFileUtils.h"
 
 // Using
 using namespace std;
-using namespace askap;
 using namespace askap::cp::pipelinetasks;
-using namespace casa;
 using namespace xercesc;
 using askap::accessors::XercescString;
 namespace fs = boost::filesystem;
 
 ASKAP_LOGGER(logger, ".CasdaUploadApp");
-
-// Initialise statics
-const std::string askap::cp::pipelinetasks::CasdaUploadApp::CHECKSUM_EXT = ".checksum";
 
 int CasdaUploadApp::run(int argc, char* argv[])
 {
@@ -93,15 +85,15 @@ int CasdaUploadApp::run(int argc, char* argv[])
         ASKAPTHROW(AskapError, "No artifacts declared for upload");
     }
 
-    ObservationElement obs;
-
     // If a measurement set is present, we can determine the time range for the
     // observation. Note, only the first measurement set (if there are multiple)
     // is used in this calculation.
+    ObservationElement obs;
     if (!ms.empty()) {
         if (ms.size() > 1) {
-            ASKAPLOG_WARN_STR(logger, "Multiple measurement set were specified. Only"
-                    << " the first one will be used to populate the observation metadata");
+            ASKAPLOG_WARN_STR(logger, "Multiple measurement set were specified."
+                              << " Only the first one will be used to populate the"
+                              << " observation metadata");
         }
         const MeasurementSetElement& firstMs = ms[0];
         obs.setObsTimeRange(firstMs.getObsStart(), firstMs.getObsEnd());
@@ -111,7 +103,7 @@ int CasdaUploadApp::run(int argc, char* argv[])
     const fs::path outbase(config().getString("outputdir"));
     if (!is_directory(outbase)) {
         ASKAPTHROW(AskapError, "Directory " << outbase
-                << " does not exists or is not a directory");
+                   << " does not exists or is not a directory");
     }
     const fs::path outdir = outbase / config().getString("sbid");
     ASKAPLOG_INFO_STR(logger, "Using output directory: " << outdir);
@@ -123,7 +115,7 @@ int CasdaUploadApp::run(int argc, char* argv[])
     }
     const fs::path metadataFile = outdir / "observation.xml";
     generateMetadataFile(metadataFile, identity, obs, images, catalogs, ms, reports);
-    checksumFile(metadataFile);
+    CasdaFileUtils::checksumFile(metadataFile);
 
     // Tar up measurement sets
     for (vector<MeasurementSetElement>::const_iterator it = ms.begin();
@@ -131,32 +123,18 @@ int CasdaUploadApp::run(int argc, char* argv[])
         const fs::path in(it->getFilepath());
         fs::path out(outdir / in.filename());
         out += ".tar";
-        tarAndChecksum(in, out);
+        ASKAPLOG_INFO_STR(logger, "Tarring file " << in << " to " << out);
+        CasdaFileUtils::tarAndChecksum(in, out);
     }
 
     // Copy artifacts and checksum
-    for (vector<ImageElement>::const_iterator it = images.begin();
-            it != images.end(); ++it) {
-        const fs::path in(it->getFilepath());
-        const fs::path out(outdir / in.filename());
-        copyAndChecksum(in, out);
-    }
-    for (vector<CatalogElement>::const_iterator it = catalogs.begin();
-            it != catalogs.end(); ++it) {
-        const fs::path in(it->getFilepath());
-        const fs::path out(outdir / in.filename());
-        copyAndChecksum(in, out);
-    }
-    for (vector<EvaluationReportElement>::const_iterator it = reports.begin();
-            it != reports.end(); ++it) {
-        const fs::path in(it->getFilepath());
-        const fs::path out(outdir / in.filename());
-        copyAndChecksum(in, out);
-    }
+    copyAndChecksumElements<ImageElement>(images, outdir);
+    copyAndChecksumElements<CatalogElement>(catalogs, outdir);
+    copyAndChecksumElements<EvaluationReportElement>(reports, outdir);
 
     // Finally, and specifically as the last step, write the READY file
     const fs::path readyFilename = outdir / "READY";
-    writeReadyFile(readyFilename);
+    CasdaFileUtils::writeReadyFile(readyFilename);
 
     stats.logSummary();
     return 0;
@@ -228,84 +206,15 @@ std::vector<T> CasdaUploadApp::buildArtifactElements(const std::string& key, boo
             const LOFAR::ParameterSet subset = config().makeSubset(*it + ".");
             const string filename = subset.getString("filename");
 
-            string project = "";
-            if (hasProject) {
-                project = subset.getString("project");
+            if (hasProject && !subset.isDefined("project")) {
+                ASKAPTHROW(AskapError, "Project is not defined for artifact: " << *it);
             }
+            const string project = subset.getString("project", "");
             elements.push_back(T(filename, project));
         }
     }
 
     return elements;
-}
-
-void CasdaUploadApp::tarAndChecksum(const fs::path& infile, const fs::path& outfile)
-{
-    ASKAPLOG_INFO_STR(logger, "Tarring file " << infile << " to " << outfile);
-    stringstream cmd;
-    cmd << "tar -cf " << outfile << " ";
-    int status = -1;
-
-    // If the infile has a parent path, either relative or absolute, we need
-    // to have tar change to the parent path first. For example the path
-    // "/foo/bar/dataset.ms" has a parent path "/foo/bar". Failure to do this
-    // results in the parent path incorporated in the tarfile, where in the
-    // above example we want the contents of the tarfile to be rooted at
-    // directory "dataset.ms"
-    if (infile.has_parent_path()) {
-        cmd << "--directory " << infile.parent_path() << " " << infile.filename();
-    } else {
-        cmd << infile;
-    }
-
-    ASKAPLOG_DEBUG_STR(logger, "Tar command: " << cmd.str());
-    status = system(cmd.str().c_str());
-    if (status != 0) {
-        ASKAPTHROW(AskapError, "Tar command failed with error code: " << status);
-    }
-    checksumFile(outfile);
-}
-
-void CasdaUploadApp::checksumFile(const fs::path& filename)
-{
-    ASKAPLOG_INFO_STR(logger, "Calculating checksum for " << filename);
-    const string checksumFile = filename.string() + CHECKSUM_EXT;
-    CasdaChecksumFile csum(checksumFile);
-
-    ifstream src(filename.c_str(), std::ios::binary);
-    vector<char> buffer(IO_BUFFER_SIZE);
-    do {
-        src.read(&buffer[0], IO_BUFFER_SIZE);
-        csum.processBytes(&buffer[0], src.gcount());
-    } while (src);
-}
-
-void CasdaUploadApp::copyAndChecksum(const boost::filesystem::path& infile,
-                                     const boost::filesystem::path& outdir)
-{
-    ASKAPLOG_INFO_STR(logger, "Copying and calculating checksum for " << infile);
-
-    const string checksumFile = outdir.string() + CHECKSUM_EXT;
-    CasdaChecksumFile csum(checksumFile);
-
-    ifstream src(infile.c_str(), std::ios::binary);
-    ofstream dst(outdir.c_str(), std::ios::binary);
-    vector<char> buffer(IO_BUFFER_SIZE);
-    do {
-        src.read(&buffer[0], IO_BUFFER_SIZE);
-        const streamsize readsz = src.gcount();
-        csum.processBytes(&buffer[0], readsz);
-        dst.write(&buffer[0], readsz);
-    } while (src);
-}
-
-void CasdaUploadApp::writeReadyFile(const boost::filesystem::path& filename)
-{
-    ofstream fs(filename.c_str());
-    Quantity today;
-    MVTime::read(today, "today");
-    fs << MVTime(today).string(MVTime::FITS) << endl;
-    fs.close();
 }
 
 template <typename T>
@@ -322,5 +231,18 @@ void CasdaUploadApp::appendElementCollection(const std::vector<T>& elements,
             child->appendChild(it->toXmlElement(*doc));
         }
         root->appendChild(child);
+    }
+}
+
+template <typename T>
+void CasdaUploadApp::copyAndChecksumElements(const std::vector<T>& elements,
+        const fs::path& outdir)
+{
+    for (typename vector<T>::const_iterator it = elements.begin();
+            it != elements.end(); ++it) {
+        const fs::path in(it->getFilepath());
+        const fs::path out(outdir / in.filename());
+        ASKAPLOG_INFO_STR(logger, "Copying and calculating checksum for " << in);
+        CasdaFileUtils::copyAndChecksum(in, out);
     }
 }

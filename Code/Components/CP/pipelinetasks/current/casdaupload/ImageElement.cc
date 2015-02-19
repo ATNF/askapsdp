@@ -34,6 +34,7 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "askap/AskapError.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "boost/filesystem.hpp"
 #include "votable/XercescString.h"
@@ -41,7 +42,7 @@
 
 // Using
 using namespace askap::cp::pipelinetasks;
-using namespace xercesc;
+using xercesc::DOMElement;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
@@ -49,6 +50,9 @@ ImageElement::ImageElement(const boost::filesystem::path& filepath,
                            const std::string& project)
     : itsFilepath(filepath), itsProject(project)
 {
+    if (filepath.extension() != ".fits") {
+        ASKAPTHROW(AskapError, "Unsupported format image - Expect fits file extension");
+    }
 }
 
 xercesc::DOMElement* ImageElement::toXmlElement(xercesc::DOMDocument& doc) const

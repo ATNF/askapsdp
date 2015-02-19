@@ -56,10 +56,9 @@
 
 // Using
 using namespace std;
-using namespace askap;
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
-using namespace xercesc;
+using xercesc::DOMElement;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
 
@@ -76,7 +75,7 @@ xercesc::DOMElement* MeasurementSetElement::toXmlElement(xercesc::DOMDocument& d
 {
     DOMElement* e = doc.createElement(XercescString("measurement_set"));
 
-    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string());
+    XercescUtils::addTextElement(*e, "filename", itsFilepath.filename().string() + ".tar");
     XercescUtils::addTextElement(*e, "format", "tar");
     XercescUtils::addTextElement(*e, "project", itsProject);
 
@@ -118,10 +117,10 @@ void MeasurementSetElement::extractData()
     itsObsStart = timeRange(0);
     itsObsEnd = timeRange(1);
 
-    const casa::ROMSFieldColumns& fieldc = msc.field();
-    const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
-    const casa::ROMSPolarizationColumns& polc = msc.polarization();
-    const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
+    const ROMSFieldColumns& fieldc = msc.field();
+    const ROMSDataDescColumns& ddc = msc.dataDescription();
+    const ROMSPolarizationColumns& polc = msc.polarization();
+    const ROMSSpWindowColumns& spwc = msc.spectralWindow();
 
     // Iterate over all rows, creating a ScanElement for each scan
     casa::Int lastScanId = -1;
@@ -135,8 +134,8 @@ void MeasurementSetElement::extractData()
 
             // Field
             const casa::Int fieldId = msc.fieldId()(row);
-            const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
-            const casa::MDirection fieldDirection = dirVec(0);
+            const casa::Vector<MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
+            const MDirection fieldDirection = dirVec(0);
             const std::string fieldName = fieldc.name()(fieldId);
 
             // Polarisations
@@ -160,7 +159,7 @@ void MeasurementSetElement::extractData()
             while (row < msc.nrow() && msc.scanNumber()(row) == scanNum) {
                 ++row;
             }
-            const casa::MEpoch endTime = msc.timeMeas()(row - 1);
+            const MEpoch endTime = msc.timeMeas()(row - 1);
 
             // 3: Store the ScanElement
             itsScans.push_back(ScanElement(scanNum,
@@ -170,8 +169,8 @@ void MeasurementSetElement::extractData()
                                            fieldName,
                                            stokesTypesInt,
                                            nChan,
-                                           casa::Quantity(centreFreq, "Hz"),
-                                           casa::Quantity(chanWidth(0), "Hz")));
+                                           Quantity(centreFreq, "Hz"),
+                                           Quantity(chanWidth(0), "Hz")));
         } else {
             ++row;
         }

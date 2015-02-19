@@ -33,7 +33,6 @@
 // System includes
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
@@ -49,8 +48,6 @@ using namespace askap::cp::pipelinetasks;
 using namespace xercesc;
 using askap::accessors::XercescString;
 using askap::accessors::XercescUtils;
-
-ASKAP_LOGGER(logger, ".IdentityElement");
 
 IdentityElement::IdentityElement(const LOFAR::ParameterSet& parset)
     : itsParset(parset)

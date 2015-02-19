@@ -38,6 +38,8 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// Encapsulates an artifact of the evaluation pipeline (e.g. an evaluation
+///report) for upload to CASDA
 class EvaluationReportElement {
     public:
         EvaluationReportElement(const boost::filesystem::path& filepath,

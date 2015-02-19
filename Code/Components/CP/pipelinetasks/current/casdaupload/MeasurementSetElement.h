@@ -43,6 +43,7 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// Encapsulates a measurement set artifct to be uploaded to CASDA
 class MeasurementSetElement {
     public:
         MeasurementSetElement(const boost::filesystem::path& filepath,
