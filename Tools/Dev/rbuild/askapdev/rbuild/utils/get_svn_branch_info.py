@@ -28,7 +28,12 @@ import os
 
 from runcmd import runcmd
 
-SRCDIR = 'Src/' # Must match repository structure. Unlikely to change.
+# The SRC dir is a string in the repository URL to split on. For example the
+# official ASKAPsoft repository is: https://svn.atnf.csiro.au/askapsdp/trunk
+# so we split on "askapsdp" and, on the right of the split, get "trunk" or
+# "releases/CP-0.5". Note that this does not necessarily work if the URL
+# changes!
+SRCDIR = 'askapsdp/' 
 
 def get_svn_branch_info():
     '''Return the branch of the repository we are using.
