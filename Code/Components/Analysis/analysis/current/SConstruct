@@ -33,6 +33,7 @@ pkg.AddSubPackage("polarisation")
 pkg.AddSubPackage("preprocessing")
 pkg.AddSubPackage("patternmatching")
 pkg.AddSubPackage("outputs")
+pkg.AddSubPackage("catalogues")
 
 # run the build process
 pkg()

@@ -48,32 +48,52 @@ namespace askap {
 namespace analysis {
 
 AskapComponentParsetWriter::AskapComponentParsetWriter():
-    duchamp::ASCIICatalogueWriter(), itsSourceList(0), itsFitType("best"),
-    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+    duchamp::ASCIICatalogueWriter(),
+    itsSourceList(0),
+    itsFitType("best"),
+    itsRefRA(0.),
+    itsRefDec(0.),
+    itsFlagReportSize(false),
+    itsSourceIDlist("")
 {
     itsOpenFlag = false;
     itsDestination = duchamp::Catalogues::FILE;
 }
 
 AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name):
-    duchamp::ASCIICatalogueWriter(name), itsSourceList(0), itsFitType("best"),
-    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+    duchamp::ASCIICatalogueWriter(name),
+    itsSourceList(0),
+    itsFitType("best"),
+    itsRefRA(0.),
+    itsRefDec(0.),
+    itsFlagReportSize(false),
+    itsSourceIDlist("")
 {
     itsOpenFlag = false;
     itsDestination = duchamp::Catalogues::FILE;
 }
 
 AskapComponentParsetWriter::AskapComponentParsetWriter(duchamp::Catalogues::DESTINATION dest):
-    duchamp::ASCIICatalogueWriter(dest), itsSourceList(0), itsFitType("best"),
-    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+    duchamp::ASCIICatalogueWriter(dest),
+    itsSourceList(0),
+    itsFitType("best"),
+    itsRefRA(0.),
+    itsRefDec(0.),
+    itsFlagReportSize(false),
+    itsSourceIDlist("")
 {
     itsOpenFlag = false;
 }
 
 AskapComponentParsetWriter::AskapComponentParsetWriter(std::string name,
         duchamp::Catalogues::DESTINATION dest):
-    duchamp::ASCIICatalogueWriter(name, dest), itsSourceList(0), itsFitType("best"),
-    itsRefRA(0.), itsRefDec(0.), itsFlagReportSize(false), itsSourceIDlist("")
+    duchamp::ASCIICatalogueWriter(name, dest),
+    itsSourceList(0),
+    itsFitType("best"),
+    itsRefRA(0.),
+    itsRefDec(0.),
+    itsFlagReportSize(false),
+    itsSourceIDlist("")
 {
     itsOpenFlag = false;
 }
@@ -112,8 +132,7 @@ void AskapComponentParsetWriter::writeTableHeader()
         *itsStream << "sources.names = field1\n";
         std::string raRef = analysisutilities::decToDMS(itsRefRA, "RA", 4, "parset");
         std::string decRef = analysisutilities::decToDMS(itsRefDec, "DEC", 3, "parset");
-        *itsStream << "sources.field1.direction = [" <<
-                         raRef << ", " << decRef << ", J2000]\n";
+        *itsStream << "sources.field1.direction = [" << raRef << ", " << decRef << ", J2000]\n";
     }
 }
 
@@ -129,11 +148,9 @@ void AskapComponentParsetWriter::writeEntries()
         cmpnt.setReference(itsRefRA, itsRefDec);
         cmpnt.setSizeFlag(itsFlagReportSize);
 
-        // First iterate over all components, storing them in a multimap indexed by their flux.
+        // First iterate over all components, storing them in a multimap indexed by their flux.    
         std::vector<sourcefitting::RadioSource>::iterator src;
-        for (src = itsSourceList->begin();
-                src < itsSourceList->end();
-                src++) {
+        for (src = itsSourceList->begin(); src < itsSourceList->end(); src++) {
             std::vector<casa::Gaussian2D<Double> > fitset = src->gaussFitSet(itsFitType);
             for (size_t i = 0; i < fitset.size(); i++) {
                 cmpnt.defineComponent(&*src, i, itsFitType);
@@ -157,7 +174,9 @@ void AskapComponentParsetWriter::writeEntries()
 
             *itsStream << cmpntIter->second;
             // update source ID list
-            if (itsSourceIDlist.size() > 0) idlist << ",";
+            if (itsSourceIDlist.size() > 0){
+                idlist << ",";
+            }
             idlist << "src" << cmpntIter->second.ID();
             itsSourceIDlist = idlist.str();
         }

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Implementation of base class CatalogueEntry
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,27 +26,33 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_ANALYSIS_CATPREP_H_
-#define ASKAP_ANALYSIS_CATPREP_H_
+#include <catalogues/CatalogueEntry.h>
+#include <askap_analysis.h>
 
-#include <string>
-#include <vector>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
+#include <Common/ParameterSet.h>
+
+ASKAP_LOGGER(logger, ".catalogueentry");
 
 namespace askap {
 
 namespace analysis {
 
-/// Find the correct component suffix. Returns a string to
-/// uniquely identify a fit that is part of an island. The first
-/// 26 numbers (zero-based), get a single letter a-z. After that,
-/// it becomes aa,ab,ac,...az,ba,bb,bc,...bz,ca,... If there are
-/// more than 702 (=26^2+26), we move to three characters:
-/// zy,zz,aaa,aab,aac,... And so on.
-std::string getSuffix(unsigned int num);
+CatalogueEntry::CatalogueEntry(const LOFAR::ParameterSet &parset):
+    itsSBid(parset.getString("SBid", "null"))
+{
+    std::string imageName = parset.getString("image");
+    imageName.erase(imageName.rfind("."), std::string::npos);
+    imageName.erase(0, imageName.rfind("/") + 1);
+    std::stringstream id;
+    id << "SB" << itsSBid << "_" << imageName << "_";
+    itsIDbase = id.str();
+
+}
+
 
 }
 
 }
-
-
-#endif

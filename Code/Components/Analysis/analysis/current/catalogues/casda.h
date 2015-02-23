@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Constants needed for CASDA catalogues
 ///
 /// @copyright (c) 2014 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,27 +26,47 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_ANALYSIS_CATPREP_H_
-#define ASKAP_ANALYSIS_CATPREP_H_
+#ifndef ASKAP_ANALYSIS_CATALOGUES_CASDA_H_
+#define ASKAP_ANALYSIS_CATALOGUES_CASDA_H_
 
 #include <string>
-#include <vector>
 
 namespace askap {
 
 namespace analysis {
 
-/// Find the correct component suffix. Returns a string to
-/// uniquely identify a fit that is part of an island. The first
-/// 26 numbers (zero-based), get a single letter a-z. After that,
-/// it becomes aa,ab,ac,...az,ba,bb,bc,...bz,ca,... If there are
-/// more than 702 (=26^2+26), we move to three characters:
-/// zy,zz,aaa,aab,aac,... And so on.
-std::string getSuffix(unsigned int num);
+namespace casda {
+
+/// Which type of fit to use for the CASDA components.
+const std::string componentFitType = "best";
+
+/// Units for reporting frequency.
+const std::string freqUnit = "MHz";
+
+/// Units for reporting fluxes from image (peak flux, noise, rms
+/// residual).
+const std::string fluxUnit = "mJy/beam";
+
+/// Units for reporting integrated flux.
+const std::string intFluxUnit = "mJy";
+
+/// Precision for reporting fluxes
+const int precFlux = 3;
+/// Precision for reporting frequency
+const int precFreq = 1;
+/// Precision for reporting sizes (maj/min/pa etc).
+const int precSize = 2;
+/// Precision for reporting alpha & beta values
+const int precSpec = 2;
+/// Precision for reporting RA/DEC positions
+const int precPos = 6;
+/// Precision for reporting pixel locations
+const int precPix = 2;
 
 }
 
 }
 
+}
 
 #endif

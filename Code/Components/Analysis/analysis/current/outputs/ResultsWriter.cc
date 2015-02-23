@@ -35,10 +35,11 @@
 #include <parallelanalysis/DuchampParallel.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
-#include <outputs/AskapVOTableCatalogueWriter.h>
-#include <outputs/AskapAsciiCatalogueWriter.h>
 #include <outputs/AskapComponentParsetWriter.h>
 #include <outputs/CataloguePreparation.h>
+#include <catalogues/IslandCatalogue.h>
+#include <catalogues/ComponentCatalogue.h>
+#include <catalogues/FitCatalogue.h>
 
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Outputs/CatalogueSpecification.hh>
@@ -64,26 +65,6 @@ ResultsWriter::ResultsWriter(DuchampParallel *finder):
     itsFitParams(finder->fitParams()),
     itsFlag2D(finder->is2D())
 {
-}
-
-void ResultsWriter::setCube(duchamp::Cube &cube)
-{
-    itsCube = cube;
-}
-
-void ResultsWriter::setParset(LOFAR::ParameterSet &parset)
-{
-    itsParset = parset;
-}
-
-void ResultsWriter::setSourceList(std::vector<sourcefitting::RadioSource> &srclist)
-{
-    itsSourceList = srclist;
-}
-
-void ResultsWriter::setFitParams(sourcefitting::FittingParameters &fitparams)
-{
-    itsFitParams = fitparams;
 }
 
 void ResultsWriter::setFlag2D(bool flag2D)
@@ -134,83 +115,22 @@ void ResultsWriter::duchampOutput()
 void ResultsWriter::writeIslandCatalogue()
 {
     if (itsFlag2D) {
-        std::string filename = itsCube.pars().getOutFile();
-        filename.replace(filename.rfind(".txt"),
-                         std::string::npos, ".islands.xml");
-        ASKAPLOG_INFO_STR(logger, "Writing the island catalogue to " << filename);
-        duchamp::Catalogues::CatalogueSpecification islandColumns =
-            IslandCatalogue(itsCube.header());
-        islandColumns.checkAll(itsCube.ObjectList(), itsCube.header());
 
-        AskapVOTableCatalogueWriter vowriter(filename);
-        vowriter.setup(&itsCube);
-        vowriter.setEntryType(ISLAND);
-        vowriter.setFitType("best");
-        ASKAPLOG_DEBUG_STR(logger, "Writing island table to the VOTable " <<
-                           filename);
-        vowriter.setColumnSpec(&islandColumns);
-        vowriter.setSourceList(&itsSourceList);
-        vowriter.openCatalogue();
-        vowriter.writeHeader();
-        std::string tableVersion = "casda.continuum_island_description_v0.5";
-        duchamp::VOParam version("table_version", "meta.version", "char",
-                                 tableVersion, 39, "");
-        vowriter.writeParameter(version);
-        vowriter.writeParameters();
-        vowriter.writeStats();
-        vowriter.writeTableHeader();
-        vowriter.writeEntries();
-        vowriter.writeFooter();
-        vowriter.closeCatalogue();
+        IslandCatalogue cat(itsSourceList, itsParset, itsCube);
+        cat.check();
+        cat.write();
+
     }
 
-}
-
-void ResultsWriter::writeFrequencyParam(AskapVOTableCatalogueWriter &vowriter)
-{
-    double ra, dec, freq;
-    int spec = itsCube.header().WCS().spec;
-    if (spec >= 0) { // if there is a spectral axis, write the frequency of the image
-        itsCube.header().pixToWCS(itsCube.getDimX() / 2., itsCube.getDimY() / 2., 0.,
-                                  ra, dec, freq);
-        std::string frequnits(itsCube.header().WCS().cunit[spec]);
-        duchamp::VOParam freqParam("Reference frequency", "em.freq;meta.main", "float",
-                                   freq, 0, frequnits);
-        vowriter.writeParameter(freqParam);
-    }
 }
 
 void ResultsWriter::writeComponentCatalogue()
 {
     if (itsFitParams.doFit()) {
-        duchamp::Catalogues::CatalogueSpecification casdaColumns =
-            ComponentCatalogue(itsCube.header());
-        setupCols(casdaColumns, itsSourceList, "best");
 
-        std::string filename = itsCube.pars().getOutFile();
-        filename = filename.replace(filename.rfind(".txt"),
-                                    std::string::npos, ".components.xml");
-
-        ASKAPLOG_DEBUG_STR(logger,
-                           "Writing CASDA-style Fit results to the VOTable " << filename);
-
-        AskapVOTableCatalogueWriter vowriter(filename);
-        vowriter.setup(&itsCube);
-        vowriter.setFitType("best");
-        vowriter.setColumnSpec(&casdaColumns);
-        vowriter.setSourceList(&itsSourceList);
-        vowriter.openCatalogue();
-        vowriter.writeHeader();
-        std::string tableVersion = "casda.continuum_component_description_v1.7";
-        duchamp::VOParam version("table_version", "meta.version", "char", tableVersion, 42, "");
-        vowriter.writeParameter(version);
-        vowriter.writeParameters();
-        writeFrequencyParam(vowriter);
-        vowriter.writeStats();
-        vowriter.writeTableHeader();
-        vowriter.writeEntries();
-        vowriter.writeFooter();
-        vowriter.closeCatalogue();
+        ComponentCatalogue cat(itsSourceList, itsParset, itsCube);
+        cat.check();
+        cat.write();
 
     }
 
@@ -225,45 +145,11 @@ void ResultsWriter::writeFitResults()
 
         for (size_t t = 0; t < outtypes.size(); t++) {
 
-            duchamp::Catalogues::CatalogueSpecification columns =
-                fullCatalogue(itsCube.getFullCols(), itsCube.header());
-            
-            setupCols(columns, itsSourceList, outtypes[t]);
+            FitCatalogue cat(itsSourceList, itsParset, itsCube, outtypes[t]);
+            cat.check();
+            cat.write();
 
-            std::string filename = itsParset.getString("fitResultsFile", "selavy-fitResults.txt");
-            filename = sourcefitting::convertSummaryFile(filename, outtypes[t]);
 
-            AskapAsciiCatalogueWriter writer(filename);
-            ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
-            writer.setup(&itsCube);
-            writer.setFitType(outtypes[t]);
-            writer.setColumnSpec(&columns);
-            writer.setSourceList(&itsSourceList);
-            writer.openCatalogue();
-            writer.writeTableHeader();
-            writer.writeEntries();
-            writer.writeFooter();
-            writer.closeCatalogue();
-
-            filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
-
-            AskapVOTableCatalogueWriter vowriter(filename);
-            vowriter.setup(&itsCube);
-            vowriter.setFitType(outtypes[t]);
-            ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
-            vowriter.setColumnSpec(&columns);
-            vowriter.setSourceList(&itsSourceList);
-            vowriter.openCatalogue();
-            vowriter.writeHeader();
-            vowriter.writeParameters();
-            if (itsFlag2D) {
-                writeFrequencyParam(vowriter);
-            }
-            vowriter.writeStats();
-            vowriter.writeTableHeader();
-            vowriter.writeEntries();
-            vowriter.writeFooter();
-            vowriter.closeCatalogue();
         }
 
     }
@@ -274,88 +160,40 @@ void ResultsWriter::writeFitAnnotations()
 {
     if (itsFitParams.doFit()) {
 
-        std::string fitAnnotationFile = itsParset.getString("fitAnnotationFile",
-                                        "selavy-fitResults.ann");
         std::string fitBoxAnnotationFile = itsParset.getString("fitBoxAnnotationFile",
                                            "selavy-fitResults.boxes.ann");
-        bool doBoxAnnot = !itsFitParams.fitJustDetection() &&
-                          (fitAnnotationFile != fitBoxAnnotationFile);
+        if (!itsFitParams.fitJustDetection()) {
 
-        if (itsSourceList.size() > 0) {
+            if (itsSourceList.size() > 0) {
 
-            for (int i = 0; i < 3; i++) {
-                boost::shared_ptr<duchamp::AnnotationWriter> writerFit;
-                boost::shared_ptr<duchamp::AnnotationWriter> writerBox;
-                switch (i) {
-                    case 0: //Karma
-                        if (itsCube.pars().getFlagKarma()) {
-                            writerFit = boost::shared_ptr<KarmaAnnotationWriter>(
-                                            new KarmaAnnotationWriter(fitAnnotationFile));
-                            ASKAPLOG_INFO_STR(logger,
-                                              "Writing fit results to karma annotation file: "
-                                              << fitAnnotationFile
-                                              << " with address of writer = " << writerFit);
-                            if (doBoxAnnot)
-                                writerBox = boost::shared_ptr<KarmaAnnotationWriter>(
-                                                new KarmaAnnotationWriter(fitBoxAnnotationFile));
+                for (int i = 0; i < 3; i++) {
+                    boost::shared_ptr<duchamp::AnnotationWriter> writerFit;
+                    boost::shared_ptr<duchamp::AnnotationWriter> writerBox;
+                    std::string filename;
+                    size_t loc;
+                    switch (i) {
+                        case 0: //Karma
+                            writerBox = boost::shared_ptr<KarmaAnnotationWriter>(
+                                            new KarmaAnnotationWriter(fitBoxAnnotationFile));
                             break;
                         case 1://DS9
-                            if (itsCube.pars().getFlagDS9()) {
-                                std::string filename = fitAnnotationFile;
-                                size_t loc = filename.rfind(".ann");
-                                if (loc == std::string::npos) filename += ".reg";
-                                else filename.replace(loc, 4, ".reg");
-                                writerFit = boost::shared_ptr<DS9AnnotationWriter>(
-                                                new DS9AnnotationWriter(filename));
-                                ASKAPLOG_INFO_STR(logger,
-                                                  "Writing fit results to DS9 annotation file: "
-                                                  << filename
-                                                  << " with address of writer = " << writerFit);
-                                if (doBoxAnnot) {
-                                    filename = fitBoxAnnotationFile;
-                                    size_t loc = filename.rfind(".ann");
-                                    if (loc == std::string::npos) filename += ".reg";
-                                    else filename.replace(loc, 4, ".reg");
-                                    writerBox = boost::shared_ptr<DS9AnnotationWriter>(
-                                                    new DS9AnnotationWriter(filename));
-                                }
-                            }
+                            filename = fitBoxAnnotationFile;
+                            loc = filename.rfind(".ann");
+                            if (loc == std::string::npos) filename += ".reg";
+                            else filename.replace(loc, 4, ".reg");
+                            writerBox = boost::shared_ptr<DS9AnnotationWriter>(
+                                            new DS9AnnotationWriter(filename));
                             break;
                         case 2://CASA
-                            if (itsCube.pars().getFlagCasa()) {
-                                std::string filename = fitAnnotationFile;
-                                size_t loc = filename.rfind(".ann");
-                                if (loc == std::string::npos) filename += ".crf";
-                                else filename.replace(loc, 4, ".crf");
-                                writerFit = boost::shared_ptr<CasaAnnotationWriter>(
-                                                new CasaAnnotationWriter(filename));
-                                ASKAPLOG_INFO_STR(logger,
-                                                  "Writing fit results to casa annotation file: "
-                                                  << filename
-                                                  << " with address of writer = " << writerFit);
-                                if (doBoxAnnot) {
-                                    filename = fitBoxAnnotationFile;
-                                    size_t loc = filename.rfind(".ann");
-                                    if (loc == std::string::npos) filename += ".reg";
-                                    else filename.replace(loc, 4, ".reg");
-                                    writerBox =
-                                        boost::shared_ptr<CasaAnnotationWriter>(
-                                            new CasaAnnotationWriter(filename));
-                                }
-                            }
+                            filename = fitBoxAnnotationFile;
+                            loc = filename.rfind(".ann");
+                            if (loc == std::string::npos) filename += ".reg";
+                            else filename.replace(loc, 4, ".reg");
+                            writerBox =
+                                boost::shared_ptr<CasaAnnotationWriter>(
+                                    new CasaAnnotationWriter(filename));
                             break;
-                        }
-                }
-
-                if (writerFit.get() != 0) {
-                    writerFit->setup(&itsCube);
-                    writerFit->openCatalogue();
-                    writerFit->setColourString("BLUE");
-                    writerFit->writeHeader();
-                    writerFit->writeParameters();
-                    writerFit->writeStats();
-                    writerFit->writeTableHeader();
-                    // writer->writeEntries();
+                    }
 
                     if (writerBox.get() != 0) {
                         writerBox->setup(&itsCube);
@@ -365,38 +203,26 @@ void ResultsWriter::writeFitAnnotations()
                         writerBox->writeParameters();
                         writerBox->writeStats();
                         writerBox->writeTableHeader();
-                    }
 
-                    std::vector<sourcefitting::RadioSource>::iterator src;
-                    int num = 1;
-                    for (src = itsSourceList.begin();
-                         src < itsSourceList.end();
-                         src++) {
-                        bool boxesWithFits = (fitAnnotationFile == fitBoxAnnotationFile);
-                        src->writeFitToAnnotationFile(writerFit, num, true, boxesWithFits);
-                        if (doBoxAnnot && writerBox != 0) {
-                            src->writeFitToAnnotationFile(writerBox, num, false, true);
+                        std::vector<sourcefitting::RadioSource>::iterator src;
+                        int num = 1;
+                        for (src = itsSourceList.begin(); src < itsSourceList.end(); src++) {
+                            src->writeFitToAnnotationFile(writerBox, num++, false, true);
                         }
-                        num++;
-                    }
 
-                    writerFit->writeFooter();
-                    writerFit->closeCatalogue();
-                    if (writerBox != 0) {
                         writerBox->writeFooter();
                         writerBox->closeCatalogue();
                     }
-                }
 
-                writerFit.reset();
-                writerBox.reset();
+                    writerBox.reset();
+
+                }
 
             }
 
         }
 
     }
-
 }
 
 void ResultsWriter::writeComponentParset()
@@ -404,6 +230,7 @@ void ResultsWriter::writeComponentParset()
     if (itsFitParams.doFit()) {
         std::string filename = itsParset.getString("outputComponentParset", "");
         if (filename != "") {
+            /// @todo Instantiate the writer from a parset - then don't have to find the flags etc
             AskapComponentParsetWriter pwriter(filename);
             ASKAPLOG_INFO_STR(logger, "Writing Fit results to parset named " << filename);
             pwriter.setup(&itsCube);

@@ -28,6 +28,8 @@
 #include <parallelanalysis/DuchampParallel.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FitResults.h>
+#include <catalogues/CasdaIsland.h>
+#include <catalogues/CasdaComponent.h>
 
 #include <duchamp/Outputs/VOTableCatalogueWriter.hh>
 #include <duchamp/Outputs/columns.hh>
@@ -46,49 +48,13 @@ using namespace duchamp::Catalogues;
 AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter():
     duchamp::VOTableCatalogueWriter()
 {
-    itsSourceList = 0;
-    itsFitType = "best";
-    itsEntryType = COMPONENT;
 }
 
 AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(string name):
     duchamp::VOTableCatalogueWriter(name)
 {
-    itsSourceList = 0;
-    itsFitType = "best";
-    itsEntryType = COMPONENT;
 }
 
-AskapVOTableCatalogueWriter::AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other)
-{
-    this->operator=(other);
-}
-
-AskapVOTableCatalogueWriter&
-AskapVOTableCatalogueWriter::operator= (const AskapVOTableCatalogueWriter& other)
-{
-    if (this == &other) return *this;
-    ((VOTableCatalogueWriter &) *this) = other;
-    itsSourceList = other.itsSourceList;
-    itsFitType = other.itsFitType;
-    itsEntryType = other.itsEntryType;
-    return *this;
-}
-
-// void AskapVOTableCatalogueWriter::setup(DuchampParallel *finder)
-// {
-//     this->CatalogueWriter::setup(finder->pCube());
-//     itsSourceList = finder->pSourceList();
-// }
-
-void AskapVOTableCatalogueWriter::writeEntries()
-{
-    if (itsOpenFlag) {
-        for (std::vector<RadioSource>::iterator src = itsSourceList->begin();
-                src < itsSourceList->end(); src++)
-            this->writeEntry(*src);
-    }
-}
 
 void AskapVOTableCatalogueWriter::writeTableHeader()
 {
@@ -139,61 +105,68 @@ void AskapVOTableCatalogueWriter::writeTableHeader()
         }
 
         itsFileStream << "      <DATA>\n"
-                            << "        <TABLEDATA>\n";
+                      << "        <TABLEDATA>\n";
 
 
     }
 }
 
-void AskapVOTableCatalogueWriter::writeEntry(RadioSource &source)
+void AskapVOTableCatalogueWriter::writeFrequencyParam()
+{
+    double ra, dec, freq;
+    int spec = itsHead->WCS().spec;
+    if (spec >= 0) {
+        // if there is a spectral axis, write the frequency of the image
+
+        // get the RA/DEC/FREQ values for the centre of the 1st channel
+        itsHead->pixToWCS(itsCubeDim[0] / 2., itsCubeDim[1] / 2., 0.,
+                          ra, dec, freq);
+        std::string frequnits(itsHead->WCS().cunit[spec]);
+        duchamp::VOParam freqParam("Reference frequency", "em.freq;meta.main", "float",
+                                   freq, 0, frequnits);
+        this->writeParameter(freqParam);
+    }
+}
+
+
+template <class T>
+void AskapVOTableCatalogueWriter::writeEntries(std::vector<T> &objlist)
 {
     if (itsOpenFlag) {
-        itsFileStream.setf(std::ios::fixed);
-
-        if (itsEntryType == COMPONENT) {
-
-            // write out an entry for all fits
-            for (size_t f = 0; f < source.numFits(itsFitType); f++) {
-                itsFileStream << "        <TR>\n";
-                itsFileStream << "          ";
-                for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
-                    Column col = itsColumnSpecification->column(i);
-                    itsFileStream << "<TD>";
-                    source.printTableEntry(itsFileStream, col,
-                                            f, itsFitType);
-                    itsFileStream << "</TD>";
-                }
-                itsFileStream << "\n";
-                itsFileStream << "        </TR>\n";
-            }
-
-        } else {
-
-            itsFileStream << "        <TR>\n";
-            itsFileStream << "          ";
-            for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
-                Column col = itsColumnSpecification->column(i);
-                itsFileStream << "<TD>";
-                if (col.type() == "NCOMP") {
-                    // n_components printing not defined elsewhere
-                    col.printEntry(itsFileStream,
-                                   source.numFits(itsFitType));
-                } else if (col.type() == "NUM") {
-                    // ensure we print the island ID, not the 1st component ID
-                    col.printEntry(itsFileStream, source.getID());
-                } else {
-                    // use Duchamp library to print all other columns
-                    source.duchamp::Detection::printTableEntry(itsFileStream, col);
-                }
-                itsFileStream << "</TD>";
-            }
-            itsFileStream << "\n";
-            itsFileStream << "        </TR>\n";
-
-
+        for (size_t i = 0; i < objlist.size(); i++) {
+            // this->writeSource(objlist[i]);
+            this->writeEntry<T>(objlist[i]);
         }
     }
 }
+template void
+AskapVOTableCatalogueWriter::writeEntries<CasdaIsland>(std::vector<CasdaIsland>
+        &objlist);
+template void
+AskapVOTableCatalogueWriter::writeEntries<CasdaComponent>(std::vector<CasdaComponent>
+        &objlist);
+
+template <class T>
+void AskapVOTableCatalogueWriter::writeEntry(T &obj)
+{
+    if (itsOpenFlag) {
+        itsFileStream.setf(std::ios::fixed);
+        itsFileStream << "        <TR>\n";
+        itsFileStream << "          ";
+        for (size_t i = 0; i < itsColumnSpecification->size(); i++) {
+            Column col = itsColumnSpecification->column(i);
+            itsFileStream << "<TD>";
+            obj.printTableEntry(itsFileStream, col);
+            itsFileStream << "</TD>";
+        }
+        itsFileStream << "\n";
+        itsFileStream << "        </TR>\n";
+
+    }
+}
+template void AskapVOTableCatalogueWriter::writeEntry<CasdaIsland>(CasdaIsland &obj);
+template void AskapVOTableCatalogueWriter::writeEntry<CasdaComponent>(CasdaComponent &obj);
+
 
 }
 

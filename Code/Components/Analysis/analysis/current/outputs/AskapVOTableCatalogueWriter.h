@@ -35,65 +35,39 @@ namespace analysis {
 
 using sourcefitting::RadioSource;
 
-/// Enumeration to distinguish between the options of writing
-/// out an Island catalogue or a component catalogue.
-enum ENTRYTYPE { ISLAND, COMPONENT};
-
 /// A class to handle writing of VOTables, adapted for use with
 /// ASKAP/Selavy catalogues. This builds on the Duchamp library,
-/// adding interfaces to the RadioSource objects and, from
-/// there, the fitted components. This offers the options of
-/// either writing out a catalogue of components, or a catalogue
-/// of the islands from which they come (these are the duchamp
-/// Detection objects, but a differently-formatted catalogue to
-/// that provided by Duchamp).
-
+/// adding interfaces to the various Catalogue objects. This offers
+/// the options of either writing out a catalogue of components, or a
+/// catalogue of the islands from which they come.
 class AskapVOTableCatalogueWriter : public duchamp::VOTableCatalogueWriter {
     public:
         AskapVOTableCatalogueWriter();
         AskapVOTableCatalogueWriter(std::string name);
-        AskapVOTableCatalogueWriter(const AskapVOTableCatalogueWriter& other);
-        AskapVOTableCatalogueWriter& operator= (
-            const AskapVOTableCatalogueWriter& other);
         virtual ~AskapVOTableCatalogueWriter() {};
-
-        std::vector<RadioSource> *srclist() {return itsSourceList;};
-        void setSourceList(std::vector<RadioSource> *cmplist)
-        {
-            itsSourceList = cmplist;
-        };
-        std::string fitType() {return itsFitType;};
-        void setFitType(std::string s) {itsFitType = s;};
-        ENTRYTYPE entryType() {return itsEntryType;};
-        void setEntryType(ENTRYTYPE type) {itsEntryType = type;};
-
-        // /// Initialise with a given DuchampParallel, taking the
-        // /// duchamp::Cube and the source list
-        // void setup(DuchampParallel *finder);
 
         /// Writes out the header information for each column, making
         /// appropriate WCS substitutions for columns that need it
         /// (RA, DEC, VEL etc)
         void writeTableHeader();
 
-        /// Loops over all sources in itsSourceList, writing them out
-        /// individually.
-        void writeEntries();
+        /// Writes a VOPARAM to the header of the VOTable indicating
+        /// the frequency that the image was observed at.
+        void writeFrequencyParam();
 
-        // Declare that we are using the writeEntry from
-        // VOTableCatalogueWriter as well.
-        using duchamp::VOTableCatalogueWriter::writeEntry;
+        /// Modified, templated version of writeEntries that takes as
+        /// an argument a list of things to be written to the
+        /// VOTable. These are passed individually to writeEntry, and
+        /// need to have a printTableEntry method.
+        template <class T> void writeEntries(std::vector<T> &objlist);
 
-        /// Modified version of writeEntry to take a RadioSource
-        /// source and treat it either as an island (if
-        /// itsEntryType==ISLAND) or as a collection of one or more
-        /// components (itsEntryType==COMPONENT).
-        void writeEntry(RadioSource &source);
+        /// Modified, templated version of writeEntry that will write
+        /// a single object to the VOTable. This object needs to have
+        /// a printTableEntry method.
+        template <class T> void writeEntry(T &obj);
+
 
     protected:
-        std::vector<RadioSource> *itsSourceList;
-        std::string itsFitType; ///< Which fit type to write out.
-        ENTRYTYPE itsEntryType;
 
 }; // end 'class AskapVOTableCatalogueWriter'
 

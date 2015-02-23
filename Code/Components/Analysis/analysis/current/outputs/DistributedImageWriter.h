@@ -50,24 +50,24 @@ class DistributedImageWriter : public ImageWriter {
                                std::string imageName);
         virtual ~DistributedImageWriter() {};
 
-    /// @details Handles the creation of the image, only doing
-    /// so when either in serial mode or in the master process
-    /// when distributed. The ImageWriter::create function is
-    /// called. Worker processes in distributed mode do
-    /// nothing here.
+        /// @details Handles the creation of the image, only doing
+        /// so when either in serial mode or in the master process
+        /// when distributed. The ImageWriter::create function is
+        /// called. Worker processes in distributed mode do
+        /// nothing here.
         void create();
 
         /// @details Handles distributed writing of the requested
-    /// data. When in parallel mode, the master cycles through
-    /// the workers, sending an OK signal for them to write,
-    /// and waiting for an OK reply before contacting the
-    /// next. Once all have finished, an 'all done' signal is
-    /// broadcast. The workers wait for the signal from the
-    /// master for them to write, then write the array using
-    /// the write function from ImageWriter, then send an OK
-    /// signal back to the master.
-    /// In serial mode, we directly call ImageWriter::write.
-void write(const casa::Array<casa::Float> &data,
+        /// data. When in parallel mode, the master cycles through
+        /// the workers, sending an OK signal for them to write,
+        /// and waiting for an OK reply before contacting the
+        /// next. Once all have finished, an 'all done' signal is
+        /// broadcast. The workers wait for the signal from the
+        /// master for them to write, then write the array using
+        /// the write function from ImageWriter, then send an OK
+        /// signal back to the master.
+        /// In serial mode, we directly call ImageWriter::write.
+        void write(const casa::Array<casa::Float> &data,
                    const casa::IPosition &loc,
                    bool accumulate = false);
 

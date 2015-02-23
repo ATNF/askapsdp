@@ -51,57 +51,67 @@ class ResultsWriter {
         /// Initialise with the parset, used to access parameters
         /// defining aspects of the output
         ResultsWriter(DuchampParallel *finder);
+
+        /// Default destructor
         virtual ~ResultsWriter() {};
-
-        /// Set the Duchamp Cube object
-        void setCube(duchamp::Cube &cube);
-
-        /// Set the parset, used to access parameters defining aspects
-        /// of the output
-        void setParset(LOFAR::ParameterSet &parset);
-
-        /// Set the list of RadioSource objects (that include the
-        /// components)
-        void setSourceList(std::vector<sourcefitting::RadioSource> &srclist);
-
-        /// Set the list of fitting parameters
-        void setFitParams(sourcefitting::FittingParameters &fitparams);
 
         /// Set the flag indicating whether the image is a continuum
         /// image or not
         void setFlag2D(bool flag2D);
 
-        /// Writes the standard Duchamp output files. This includes the
-        /// results files and annotation files. These are done with the
-        /// standard Duchamp functionality. This will also include the
-        /// writing of the binary catalogue and the text-based spectra.
+        /// Writes the standard Duchamp output files. This includes
+        /// the results files and annotation files. These are done
+        /// with the standard Duchamp functionality. This will also
+        /// include the writing of the binary catalogue and the
+        /// text-based spectra.
         void duchampOutput();
 
-        /// Writes a single PARAM to the header of the given VOTable that
-        /// records the frequency at which the image was taken.
-        void writeFrequencyParam(AskapVOTableCatalogueWriter &vowriter);
-
+        /// Writes out the CASDA island catalogue, using the
+        /// IslandCatalogue class to handle the writing (which will
+        /// create VOTable and ASCII text versions of the catalogue).
         void writeIslandCatalogue();
 
+        /// Writes out the CASDA component catalogue, using the
+        /// ComponentCatalogue class to handle the writing (which will
+        /// create VOTable and ASCII text versions of the catalogue).
         void writeComponentCatalogue();
 
+        /// Writes out the catalogue of 2D Gaussian fits, using the
+        /// FitCatalogue class to handle the writing (which will
+        /// create VOTable and ASCII text versions of the catalogue,
+        /// as well as annotation files showing the location of the
+        /// fitted components).
         void writeFitResults();
 
-        /// This function writes an annotation file showing the location
-        /// and shape of the fitted 2D Gaussian components. It makes use
-        /// of the RadioSource::writeFitToAnnotationFile() function. The
-        /// file written to is given by the input parameter
+        /// This function writes an annotation file showing the
+        /// location and shape of the fitted 2D Gaussian
+        /// components. It makes use of the
+        /// RadioSource::writeFitToAnnotationFile() function. The file
+        /// written to is given by the input parameter
         /// fitAnnotationFile.
         void writeFitAnnotations();
 
+        /// Writes out a parset that details the set of components,
+        /// optionally limited to the nth-brightest components. Such a
+        /// parset is suitable for use with csimulator or ccalibrator.
         void writeComponentParset();
 
 
     protected:
+
+        /// The input parset
         LOFAR::ParameterSet &itsParset;
+
+        /// The Duchamp cube structure
         duchamp::Cube &itsCube;
+
+        /// The list of RadioSource detections
         std::vector<sourcefitting::RadioSource> &itsSourceList;
+
+        /// The Fitting Parameters
         sourcefitting::FittingParameters &itsFitParams;
+
+        /// Whether we are dealing with a 2D image.
         bool itsFlag2D;
 };
 

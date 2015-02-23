@@ -33,35 +33,39 @@ namespace askap {
 
 namespace analysis {
 
+/// A class to handle writing of ASCII text file versions of
+/// catalogues, adapted for use with ASKAP/Selavy catalogues. This
+/// builds on the Duchamp library, adding interfaces to the various
+/// Catalogue objects. This offers the options of either writing out a
+/// catalogue of components, or a catalogue of the islands from which
+/// they come.
 class AskapAsciiCatalogueWriter : public duchamp::ASCIICatalogueWriter {
     public:
         AskapAsciiCatalogueWriter();
         AskapAsciiCatalogueWriter(std::string name);
         AskapAsciiCatalogueWriter(duchamp::Catalogues::DESTINATION dest);
         AskapAsciiCatalogueWriter(std::string name, duchamp::Catalogues::DESTINATION dest);
-        AskapAsciiCatalogueWriter(const AskapAsciiCatalogueWriter& other);
-        AskapAsciiCatalogueWriter& operator= (const AskapAsciiCatalogueWriter& other);
         virtual ~AskapAsciiCatalogueWriter() {};
 
-        bool writeFits() {return itsFlagWriteFits;};
-        void setFlagWriteFits(bool b) {itsFlagWriteFits = b;};
-        std::vector<sourcefitting::RadioSource> *sourcelist() {return itsSourceList;};
-        void setSourceList(std::vector<sourcefitting::RadioSource> *srclist)
-        {
-            itsSourceList = srclist;
-        };
-        std::string fitType() {return itsFitType;};
-        void setFitType(std::string s) {itsFitType = s;};
-
+        /// Writes out the header information for each column, making
+        /// appropriate WCS substitutions for columns that need it
+        /// (RA, DEC, VEL etc)
         void writeTableHeader();
-        void writeEntries();
-        using duchamp::ASCIICatalogueWriter::writeEntry;
-        void writeEntry(sourcefitting::RadioSource &source);
+
+        /// Modified, templated version of writeEntries that takes as
+        /// an argument a list of things to be written to the text
+        /// file. These are passed individually to writeEntry, and
+        /// need to have a printTableEntry method.
+        template <class T> void writeEntries(std::vector<T> &objlist);
+
+        /// Modified, templated version of writeEntry that will write
+        /// a single object to the text file. This object needs to
+        /// have a printTableEntry method.
+        template <class T> void writeEntry(T &obj);
+
 
     protected:
-        bool itsFlagWriteFits; ///< Do we write the information on the fits to each source?
-        std::vector<sourcefitting::RadioSource> *itsSourceList;
-        std::string itsFitType; ///< Which fit type to write out.
+
 };
 
 }
