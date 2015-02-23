@@ -129,13 +129,13 @@ void IslandCatalogue::defineSpec()
                       "pos.cartesian.x;phot.flux;stat.max", "int", "col_xpeak", "");
     itsSpec.addColumn("YPEAK", "y_peak", "", 7, casda::precPix,
                       "pos.cartesian.y;phot.flux;stat.max", "int", "col_ypeak", "");
-    itsSpec.addColumn("FLAG1", "flag_c1", "", 5, 0,
+    itsSpec.addColumn("FLAG1", "flag_i1", "", 5, 0,
                       "meta.code", "int", "col_flag1", "");
-    itsSpec.addColumn("FLAG2", "flag_c2", "", 5, 0,
+    itsSpec.addColumn("FLAG2", "flag_i2", "", 5, 0,
                       "meta.code", "int", "col_flag2", "");
-    itsSpec.addColumn("FLAG3", "flag_c3", "", 5, 0,
+    itsSpec.addColumn("FLAG3", "flag_i3", "", 5, 0,
                       "meta.code", "int", "col_flag3", "");
-    itsSpec.addColumn("FLAG4", "flag_c4", "", 5, 0,
+    itsSpec.addColumn("FLAG4", "flag_i4", "", 5, 0,
                       "meta.code", "int", "col_flag4", "");
     itsSpec.addColumn("COMMENT", "comment", "", 100, 0,
                       "meta.note", "char", "col_comment", "");

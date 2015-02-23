@@ -157,9 +157,9 @@ void ComponentCatalogue::defineSpec()
                       "askap:spect.curvature;em.radio", "float", "col_beta", "");
     itsSpec.addColumn("RMSIMAGE", "rms_image", "[" + casda::fluxUnit + "]", 10, casda::precFlux,
                       "stat.stdev;phot.flux.density", "float", "col_rmsimage", "");
-    itsSpec.addColumn("FLAG1", "flag_c1", "", 5, 0,
+    itsSpec.addColumn("FLAG1", "has_siblings", "", 5, 0,
                       "meta.code", "int", "col_flag1", "");
-    itsSpec.addColumn("FLAG2", "flag_c2", "", 5, 0,
+    itsSpec.addColumn("FLAG2", "fit_is_estimate", "", 5, 0,
                       "meta.code", "int", "col_flag2", "");
     itsSpec.addColumn("FLAG3", "flag_c3", "", 5, 0,
                       "meta.code", "int", "col_flag3", "");
