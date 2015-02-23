@@ -42,11 +42,14 @@ Threshold-related parameters
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.snrCut                     |float       |5.0          |The signal-to-noise threshold, in units of sigma above the mean.  |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
-|Selavy.WeightScaling              |bool        |false        |Whether to scale the fluxes by the weights for the purposes of    |
+|Selavy.Weights                    |bool        |false        |Whether to scale the fluxes by the weights for the purposes of    |
 |                                  |            |             |source detection.                                                 |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
-|Selavy.WeightScaling.weightsimage |string      |""           |The filename of the weights image to be used to scale the fluxes  |
+|Selavy.Weights.weightsimage       |string      |""           |The filename of the weights image to be used to scale the fluxes  |
 |                                  |            |             |prior to searching.                                               |
++----------------------------------+------------+-------------+------------------------------------------------------------------+
+|Selavy.Weights.weightsCutoff      |float       |-1           |If positive (not by default), pixels with a weight below this     |
+|                                  |            |             |value are set to zero for the searching step.                     |
 +----------------------------------+------------+-------------+------------------------------------------------------------------+
 |Selavy.VariableThreshold          |bool        |false        |If true, a sliding box function is used to find the local noise   |
 |                                  |            |             |properties, which are used to make a signal-to-noise map that can |
