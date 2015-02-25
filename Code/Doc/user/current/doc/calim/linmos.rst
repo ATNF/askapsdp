@@ -60,6 +60,9 @@ For example, the *weighttype* parameter becomes *linmos.weighttype*.
 |                  |                  |              |  primary-beam weighting of the visibilities.               |
 |                  |                  |              |- **Weighted**: Full primary-beam-squared weighting.        |
 +------------------+------------------+--------------+------------------------------------------------------------+
+|cutoff            |float             |0.01          |Desired cutoff of the gain function used to form weights,   |
+|                  |                  |              |relative to the maximum gain.                               |
++------------------+------------------+--------------+------------------------------------------------------------+
 |psfref            |uint              |0             |Which of the input images to extract restoring-beam         |
 |                  |                  |              |information from. The default behaviour is to use the       |
 |                  |                  |              |first image specified (indices start at 0).                 |
