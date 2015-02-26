@@ -190,6 +190,8 @@ void FitCatalogue::writeVOT()
                        itsVotableFilename);
     vowriter.setColumnSpec(&itsSpec);
     vowriter.openCatalogue();
+    vowriter.setResourceName("Catalogue of component fitting results from Selavy source-finding");
+    vowriter.setTableName("Fitted component catalogue");
     vowriter.writeHeader();
     duchamp::VOParam version("table_version", "meta.version", "char", itsVersion, 39, "");
     vowriter.writeParameter(version);

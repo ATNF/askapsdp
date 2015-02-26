@@ -193,6 +193,8 @@ void ComponentCatalogue::writeVOT()
                        itsVotableFilename);
     vowriter.setColumnSpec(&itsSpec);
     vowriter.openCatalogue();
+    vowriter.setResourceName("Component catalogue from Selavy source-finding");
+    vowriter.setTableName("Component catalogue");
     vowriter.writeHeader();
     duchamp::VOParam version("table_version", "meta.version", "char", itsVersion, 39, "");
     vowriter.writeParameter(version);

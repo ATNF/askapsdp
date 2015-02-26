@@ -165,6 +165,8 @@ void IslandCatalogue::writeVOT()
                        itsVotableFilename);
     vowriter.setColumnSpec(&itsSpec);
     vowriter.openCatalogue();
+    vowriter.setResourceName("Island catalogue from Selavy source-finding");
+    vowriter.setTableName("Island catalogue");
     vowriter.writeHeader();
     duchamp::VOParam version("table_version", "meta.version", "char", itsVersion, 39, "");
     vowriter.writeParameter(version);
