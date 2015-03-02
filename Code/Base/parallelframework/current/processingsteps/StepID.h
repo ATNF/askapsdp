@@ -64,7 +64,7 @@ public:
    /// @param[in] first first rank
    /// @param[in] last last rank
    /// @param[in] nRanks number of ranks allocated as a group
-   StepID(int first, int last, unsigned int nRanks = 1);
+   StepID(int first, int last, unsigned int nRanks = 1u);
 
    /// @brief first rank
    /// @return first rank allocated to this step
@@ -78,7 +78,46 @@ public:
    /// @return number of ranks allocated as a group to the processing step
    inline unsigned int nRanks() const { return itsNRanks;}
 
+   /// @brief check whether this is a single rank step
+   /// @return true, if the step represented by this object is
+   /// allocated a single rank.
+   inline bool isSingleRank() const 
+       { return (itsFirst == itsLast) && (itsNRanks == 1u); }
+
+   /// @brief extract single rank from this allocation
+   /// @details The whole allocation can be represented as a 
+   /// number of groups each containing itsNRanks elements.
+   /// This operator returns a single rank StepID corresponding
+   /// to the given group and element.
+   /// @param[in] group zero-based group number to choose
+   /// @param[in] element zero-based element number to choose
+   /// @note For a flexible allocation it is impossible to check
+   /// the validity of the result inside this method. It is checked
+   /// when the logical allocation is translated to the physical 
+   /// allocation. However, the element should always be between
+   /// zero and itsNRanks-1, inclusive, and this is checked.
+   StepID operator()(unsigned int group, unsigned int element = 0) const;
+
+   /// @brief project a flexible allocation to a given number of ranks
+   /// @details The total number of ranks is not known when logical 
+   /// relations are set up. This might result in a flexible allocation
+   /// of ranks for a given processing step or allocation w.r.t. the end
+   /// of rank space (i.e. the last available rank). This method maps the
+   /// allocation represented by this object to the given number of ranks
+   /// available. For fixed allocations checks are done that ranks do not
+   /// exceed the total number available.
+   /// @param[in] nRanks total number of ranks available
+   void project(unsigned int nRanks);
+
 private:
+
+   /// @brief helper method to project a single index
+   /// @details Used in the project method.
+   /// @param[in] index index to project
+   /// @param[in] nRanks total number of ranks available
+   /// @return rank corresponding to the given index
+   static int projectIndex(int index, int nRanks);
+
   
    /// @brief first rank assigned to this step
    /// @note negative values point to ranks counted from the very last available. 
