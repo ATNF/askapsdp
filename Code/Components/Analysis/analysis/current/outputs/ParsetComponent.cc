@@ -58,12 +58,20 @@ void ParsetComponent::defineComponent(sourcefitting::RadioSource *src,
 
     casa::Gaussian2D<Double> gauss = src->gaussFitSet(fitType).at(fitNum);
 
-    double thisRA, thisDec, zworld;
+    double srcRA, srcDec, zworld;
     itsHead->pixToWCS(gauss.xCenter(), gauss.yCenter(), src->getZcentre(),
-                      thisRA, thisDec, zworld);
-    itsDECoff = (thisDec - itsDECref) * M_PI / 180.;
-    itsRAoff = (thisRA - itsRAref) * M_PI / 180. * cos(itsDECref * M_PI / 180.);
+                      srcRA, srcDec, zworld);
 
+    // values in radians for ease-of-use
+    double refRr=itsRAref*M_PI/180.;
+    double refDr=itsDECref*M_PI/180.;
+    double srcRr=srcRA*M_PI/180.;
+    double srcDr=srcDec*M_PI/180.;
+
+    // Find the offsets in RA & Dec (really l & m)
+    itsRAoff = sin(srcRr-refRr) * cos(srcDr);
+    itsDECoff = sin(srcDr) * cos(refDr) - cos(srcDr) * sin(refDr) * cos(srcRr - refRr);
+    
     itsFlux = gauss.flux();
     if (itsHead->needBeamSize()) {
         // Convert from Jy/beam to Jy
