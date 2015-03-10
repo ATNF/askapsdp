@@ -171,7 +171,7 @@ void MetadataConverter::convertAntenna(const std::string& name,
 
     // <antenna name>.actual_pol
     destMapper.setFloat(makeMapKey(antennaName, "actual_pol"),
-            antenna.actualPolAngle().getValue("rad"));
+            antenna.actualPolAngle().getValue("deg"));
 
     // <antenna name>.on_source
     destMapper.setBool(makeMapKey(antennaName, "on_source"),
@@ -209,7 +209,7 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
                         "actual_azel")));
         // actual_pol
         ant.actualPolAngle(Quantity(srcMapper.getFloat(makeMapKey(antennaName,
-                        "actual_pol")), "rad"));
+                        "actual_pol")), "deg"));
         // on_source
         ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
                         "on_source")));
