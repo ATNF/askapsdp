@@ -73,7 +73,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                                      Quantity(-10, "deg"),
                                      MDirection::Ref(MDirection::J2000));
             const casa::Int scanId = 0;
-            const casa::Quantity polAngle(1.234567, "rad");
+            const casa::Quantity polAngle(120.1, "deg");
             const casa::Bool onSource = true;
             const casa::Bool flagged = false;
             const casa::Quantity centreFreq(1400.0, "MHz");
@@ -186,9 +186,8 @@ class MetadataConverterTest : public CppUnit::TestFixture {
 
             verifyDir(srcAnt.actualRaDec(), resultAnt.actualRaDec());
             verifyDir(srcAnt.actualAzEl(), resultAnt.actualAzEl());
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(srcAnt.actualPolAngle().getValue("rad"),
-                resultAnt.actualPolAngle().getValue("rad"),
-                std::numeric_limits<float>::epsilon());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(srcAnt.actualPolAngle().getValue("deg"),
+                resultAnt.actualPolAngle().getValue("deg"), 10e-5);
             CPPUNIT_ASSERT_EQUAL(srcAnt.onSource(), resultAnt.onSource());
             CPPUNIT_ASSERT_EQUAL(srcAnt.flagged(), resultAnt.flagged());
         }
