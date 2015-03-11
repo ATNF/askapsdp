@@ -283,11 +283,25 @@ void MsSplitApp::copyPointing(const casa::MeasurementSet& source, casa::Measurem
     // Add new rows to the destination and copy the data
     dest.pointing().addRow(sc.nrow());
 
-    // TODO: The first two left out because adding "target" hangs the split (or
-    // at least gets it stuck in some long/infinite loop). Maybe need to handle
-    // these MeasCol differently
-    //dc.direction().putColumn(sc.direction());
-    //dc.target().putColumn(sc.target());
+    // Create and copy the POLANGLE column, if it exists.
+    // This non-standard column captures the third (role) axis position.
+    // casabrowser row order changes when it's copy at the end, so do it here.
+    if (source.pointing().actualTableDesc().isColumn("POLANGLE")) {
+        const MSPointing& srcPointing = source.pointing();
+        const casa::ROScalarColumn<casa::Float> srcPolAngleCol(srcPointing, "POLANGLE");
+        MSPointing& destPointing = dest.pointing();
+        destPointing.addColumn(srcPointing.actualTableDesc().columnDesc("POLANGLE"));
+        casa::ScalarColumn<casa::Float> destPolAngleCol(destPointing, "POLANGLE");
+        destPolAngleCol.putColumn(srcPolAngleCol);
+    }
+
+    // Copy required columns
+
+    // These two copies were disabled due to a problem with them hanging.
+    // This not longer seems to be a problem, so the copies are re-enabled.
+    dc.direction().putColumn(sc.direction());
+    dc.target().putColumn(sc.target());
+
     dc.antennaId().putColumn(sc.antennaId());
     dc.interval().putColumn(sc.interval());
     dc.name().putColumn(sc.name());
@@ -295,6 +309,7 @@ void MsSplitApp::copyPointing(const casa::MeasurementSet& source, casa::Measurem
     dc.time().putColumn(sc.time());
     dc.timeOrigin().putColumn(sc.timeOrigin());
     dc.tracking().putColumn(sc.tracking());
+
 }
 
 void MsSplitApp::copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& dest)
