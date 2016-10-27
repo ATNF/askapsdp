@@ -1,6 +1,6 @@
 # ASKAP SDP HAS Moved!
 
-The **ASKAP SDP project**, which is astronomy data reduction software **ASKAPsoft** and other things, is now being hosted at the CSIRO Bitbucket repository which is publicly accessible. The version of ASKAPsoft in this github repo is old and not supported in any way. Go to the CSIRO Bitbucket to obtain the latest version. Information and links (including Digital Object Identifiers (DOI) for referencing) to various versions can be found if you [search the CSIRO Data Access Portal](https://data.csiro.au/dap/search?q=ASKAPsoft).
+The **ASKAP SDP project**, which is astronomy data reduction software **ASKAPsoft** and other things, is now being hosted at the CSIRO Bitbucket repository which is publicly accessible. The version of ASKAPsoft in this github repo is old and not supported in any way. Go to the CSIRO Bitbucket to obtain the latest version. Information and links (including Digital Object Identifiers (DOI) for referencing) to various versions can be found if you [search the CSIRO Data Access Portal (DAP)](https://data.csiro.au/dap/search?q=ASKAPsoft). The DAP will also have contact details for queries and issues.
 
 We have moved from github to that system on CSIRO recommendation. This github repo was setup before CSIRO obtained their Bitbucket services.
 
