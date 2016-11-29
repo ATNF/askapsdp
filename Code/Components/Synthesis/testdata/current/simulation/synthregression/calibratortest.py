@@ -74,11 +74,11 @@ def loadParset(fname,rotate=True):
           if line.startswith("gain"):
 	     parts = line.split()
 	     if len(parts)!=3:
-	        raise RuntimeError, "Expect 3 parts in the line of parset file, you have %s" % (parts,)
+	        raise RuntimeError("Expect 3 parts in the line of parset file, you have %s" % (parts))
              if parts[1]!="=":
-	        raise RuntimeError, "Value and key are supposed to be separated by '=', you have %s" % (parts,)
+	        raise RuntimeError("Value and key are supposed to be separated by '=', you have %s" % (parts))
 	     if not parts[2].startswith('[') or not parts[2].endswith(']'):
-	        raise RuntimeErrror, "Value is supposed to be in square brackets, you have <%s>" % parts[2]
+	        raise RuntimeError("Value is supposed to be in square brackets, you have <%s>" % parts[2])
              values = parts[2][1:-1].split(",")
 	     if len(values)!=2:
 	        raise RuntimeError, "Two numbers are expected, you have %s" % (values,)
